@@ -153,7 +153,9 @@ jobs:
 
       - name: Import Godot project
         run: |
-          $GODOT --headless --import 2>&1 | tail -5
+          rm -rf .godot/imported
+          $GODOT --headless --import 2>&1
+          sleep 5
 
       - name: Create builds directory
         run: |
