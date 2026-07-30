@@ -23,6 +23,7 @@
 [ext_resource type="Resource" uid="uid://b248dinmb0vlb" path="res://resources/levels/ui/funkin/funkin_note_override.tres" id="22_0ktul"]
 [ext_resource type="Resource" uid="uid://csifqf5pyurw8" path="res://songs/test/data/test_Player.tres" id="22_7o1jy"]
 [ext_resource type="Resource" uid="uid://d3gd5egsmfwfp" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_lseq1"]
+[ext_resource type="PackedScene" uid="uid://mobile_controls" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="24_mobile"]
 
 [sub_resource type="Resource" id="Resource_pwsoq"]
 script = ExtResource("4_gd4mu")
@@ -474,3 +475,11 @@ offset_top = 974.3529
 offset_right = 0.19844958
 offset_bottom = 974.3529
 lane_id = 3
+
+[node name="MobileControls" parent="." instance=ExtResource("24_mobile")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

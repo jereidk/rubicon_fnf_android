@@ -14,12 +14,30 @@ var buttons: Array = []
 var lane_ids: Array = []
 var pressed_lanes: Dictionary = {}
 
+# Mapeo de lanes a teclas (estándar FNF)
+var lane_to_keycode: Dictionary = {
+	0: KEY_D,
+	1: KEY_F,
+	2: KEY_J,
+	3: KEY_K
+}
+
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	
 	_setup_buttons()
 	_update_layout()
+	_setup_mobile_input_actions()
+
+func _setup_mobile_input_actions() -> void:
+	for i in range(4):
+		var action_name = "mobile_lane_%d" % i
+		if not InputMap.has_action(action_name):
+			InputMap.create_action(action_name)
+			var key_event = InputEventKey.new()
+			key_event.keycode = lane_to_keycode[i]
+			InputMap.action_add_event(action_name, key_event)
 
 func _setup_buttons() -> void:
 	for btn in buttons:
@@ -88,9 +106,11 @@ func _handle_touch(event: InputEventScreenTouch) -> void:
 		var lane = _get_lane_for_position(event.position)
 		if lane >= 0 and not pressed_lanes.has(lane):
 			pressed_lanes[lane] = true
+			_send_input_event(lane, true)
 			lane_pressed.emit(lane)
 	else:
 		for lane in pressed_lanes.keys():
+			_send_input_event(lane, false)
 			lane_released.emit(lane)
 		pressed_lanes.clear()
 
@@ -100,11 +120,19 @@ func _handle_mouse(event: InputEventMouseButton) -> void:
 			var lane = _get_lane_for_position(event.position)
 			if lane >= 0 and not pressed_lanes.has(lane):
 				pressed_lanes[lane] = true
+				_send_input_event(lane, true)
 				lane_pressed.emit(lane)
 		else:
 			for lane in pressed_lanes.keys():
+				_send_input_event(lane, false)
 				lane_released.emit(lane)
 			pressed_lanes.clear()
+
+func _send_input_event(lane: int, pressed: bool) -> void:
+	var event = InputEventKey.new()
+	event.keycode = lane_to_keycode.get(lane, KEY_SPACE)
+	event.pressed = pressed
+	Input.parse_input_event(event)
 
 func _get_lane_for_position(pos: Vector2) -> int:
 	var total_width = (button_size.x + spacing) * lane_count - spacing
