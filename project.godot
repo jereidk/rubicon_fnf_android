@@ -41,6 +41,10 @@ project/assembly_name="RubiconFNF"
 
 enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
+[autoload]
+
+MobileControls="*res://addons/rubicon_mobile_controls/mobile_controls.tscn"
+
 [rubicon]
 
 defaults/note_database="uid://bvhsfvptfwijt"
