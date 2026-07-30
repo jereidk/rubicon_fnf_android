@@ -114,19 +114,10 @@ jobs:
             "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
             "ndk;${{ env.ANDROID_NDK }}"
 
-      - name: Create debug keystore
+      - name: Create release keystore
         run: |
           mkdir -p ~/.android
-          keytool -genkeypair -v \
-            -keystore ~/.android/debug.keystore \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass android \
-            -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US" \
-            2>/dev/null
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > ~/.android/release.keystore
 
       - name: Configure environment
         run: |
@@ -182,23 +173,28 @@ jobs:
             exit 1
           fi
 
+      - name: Sign APK with Release Keystore
+        if: steps.build.outputs.build_success == 'true'
+        run: |
+          $ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}/apksigner sign \
+            --ks ~/.android/release.keystore \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --out builds/rubicon-release.apk \
+            builds/android_debug.apk
+          
+          echo "Signed APK: builds/rubicon-release.apk"
+          ls -lh builds/
+
       - name: Upload APK artifact
         if: steps.build.outputs.build_success == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: rubicon-fnfr-android-debug
-          path: builds/android_debug.apk
+          name: rubicon-fnfr-android-release
+          path: builds/rubicon-release.apk
           retention-days: 14
           compression-level: 9
-
-      - name: Upload debug symbols
-        if: steps.build.outputs.build_success == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: rubicon-fnfr-android-debug-symbols
-          path: |
-            builds/*.apk.idsig
-          retention-days: 14
 
   release:
     name: Create Release
@@ -213,14 +209,14 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: rubicon-fnfr-android-debug
+          name: rubicon-fnfr-android-release
           path: .
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: android_debug.apk
+          files: rubicon-release.apk
           generate_release_notes: true
           prerelease: ${{ !contains(github.ref, '-rc') }}
         env:
