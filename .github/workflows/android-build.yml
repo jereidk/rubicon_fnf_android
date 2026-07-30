@@ -155,15 +155,28 @@ jobs:
           echo ""
           echo "Godot version:"
           $GODOT --version || echo "Godot not found"
-          echo ""
-          echo "Searching for Java..."
-          find /opt /home/runner -name "java" -type f 2>/dev/null | head -5
+
+      - name: Cache Godot import cache
+        uses: actions/cache@v4
+        with:
+          path: .godot/imported
+          key: godot-import-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', 'project.godot') }}
+          restore-keys: |
+            godot-import-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Import Godot project
         run: |
           $GODOT --headless --import 2>&1 | tail -5
 
+      - name: Cache Android build template
+        id: cache-android-build-template
+        uses: actions/cache@v4
+        with:
+          path: android
+          key: android-build-template-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
       - name: Install Android build template
+        if: steps.cache-android-build-template.outputs.cache-hit != 'true'
         run: |
           $GODOT --headless --install-android-build-template 2>&1
 
