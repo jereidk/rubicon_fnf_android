@@ -5,25 +5,41 @@
 - **Engine Original**: Godot 4.7.1.2
 - **Extraído**: 2026-07-30
 
-## 📁 Estructura
+## 📁 Estructura Completa
 
 ```
 lullaby_mod/
-├── audio/                 # 205 archivos .ogg (música, SFX, voces)
-├── charts/                # Charts JSON de Codename Engine
-│   ├── chimera/
-│   ├── monochrome/
-│   └── safety_lullaby/
-├── conversion_scripts/     # Scripts para convertir assets
-│   ├── convert_chart.py
-│   ├── extract_ctex_to_png.py
-│   └── organize_assets.py
-├── docs/                  # Documentación completa
-├── sprites/              # Sprites y personajes
-│   ├── chimera/
-│   ├── monochrome/
-│   └── safety_lullaby/
-└── original_pck/          # (vacío - copiar Lullaby.pck aquí si se desea)
+├── audio/                     # 205 archivos .ogg
+│   ├── mus_*.ogg             # Música
+│   ├── sfx_*.ogg             # Efectos de sonido
+│   └── vox_*.ogg             # Voces
+├── charts/                    # Charts JSON de Codename Engine
+│   ├── chimera/data/         # Chimera chart
+│   ├── monochrome/data/       # Monochrome chart
+│   └── safety_lullaby/data/  # Safety Lullaby chart
+├── conversion_scripts/         # Scripts de conversión
+│   ├── convert_chart.py      # Convierte charts a formato Rubicon
+│   ├── extract_ctex_to_png.py # Extrae PNGs de .ctex
+│   └── organize_assets.py    # Organiza assets
+├── docs/                     # Documentación
+├── engine_scripts/            # Scripts del engine Rubicon
+│   ├── rubicon_character.gdc
+│   ├── rubicon_level*.gdc
+│   └── rubicon_level_note*.gdc
+├── rubicon_mania_scripts/     # Scripts modo mania
+├── scenes/                    # Escenas de las canciones
+│   ├── chimera/              # step_0-4.tscn
+│   └── safety_lullaby/       # gameover, intro
+├── songs_scripts/             # Scripts específicos de canciones
+│   └── chimera/              # Scripts de Chimera
+├── sprites/                   # Sprites Godot (.import files)
+├── sprites_data/              # Datos de sprites
+│   ├── blood/
+│   ├── gf/
+│   ├── goldp1/, goldp2/
+│   ├── hypno_end/, hypno_world/
+│   └── smileychrome/
+└── original_pck/              # (vacío - requiere Lullaby.pck)
 ```
 
 ## 🎵 Canciones
@@ -36,23 +52,44 @@ lullaby_mod/
 
 ## 📊 Contenido Extraído
 
-- **205 archivos de audio** (.ogg) - Listos para usar
-- **3 charts** - Formato Codename Engine JSON
-- **Sprites** - Personajes y fondos
+| Tipo | Cantidad | Formato |
+|------|----------|---------|
+| Audio | 205 | .ogg Vorbis |
+| Charts | 3 | JSON (Codename Engine) |
+| Scripts Engine | 6 | .gdc (GDScript compilado) |
+| Scripts Mania | 4 | .gdc |
+| Scripts Songs | 7+ | .gdc |
+| Escenas | 7 | .tscn.remap |
+| Personajes | 7+ | JSON + recursos |
 
-## ⚠️ Notas
+## 🔧 Scripts de Conversión
 
-- Los sprites están en formato `.png.import` de Godot
-- Los charts usan formato Codename Engine (diferente a FNF estándar)
-- Para convertir charts, ejecutar `python3 conversion_scripts/convert_chart.py`
+```bash
+# Convertir charts al formato Rubicon
+python3 conversion_scripts/convert_chart.py <input.json> [output.json]
 
-## 🔧 Para Agregar al Proyecto
+# Extraer PNGs de .ctex (formato Godot 4)
+python3 conversion_scripts/extract_ctex_to_png.py <carpeta_ctex> <salida>
+
+# Organizar assets
+python3 conversion_scripts/organize_assets.py <source> <output>
+```
+
+## 📱 Para Agregar al Proyecto
 
 ```bash
 # Copiar canciones
 cp -r charts/* ../songs/
 cp -r audio/* ../assets/audio/
+cp -r sprites_data/* ../assets/levels/characters/
 ```
+
+## ⚠️ Notas Importantes
+
+1. **Sprites**: Están en formato `.png.import` de Godot - requieren conversión
+2. **Charts**: Usan formato Codename Engine (diferente a FNF estándar)
+3. **Scripts**: Son `.gdc` (GDScript compilado) - no editables directamente
+4. **Texturas .ctex**: 603 archivos, formato propietario Godot 4
 
 ## 📚 Documentación
 Ver `docs/README.md` para información completa.
