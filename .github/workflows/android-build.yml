@@ -22,6 +22,7 @@ env:
   ANDROID_BUILD_TOOLS: '34.0.0'
   ANDROID_NDK: '26.1.10909125'
   DEBIAN_FRONTEND: 'noninteractive'
+  ACTIONS_RUNNER_DEBUG: 'true'
 
 jobs:
   build:
