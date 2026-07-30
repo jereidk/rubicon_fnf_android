@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://benm23nk1o2jb"
-path="res://.godot/imported/Icon.png-33e63688031d53466d4d656c73cf10ca.ctex"
+uid="uid://b1ou1ypk42a88"
+path="res://.godot/imported/funkin_notes.png-e2a34e62e2c5b03dff249479f49081e4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Icon.png"
-dest_files=["res://.godot/imported/Icon.png-33e63688031d53466d4d656c73cf10ca.ctex"]
+source_file="res://assets/levels/ui/funkin/mania/funkin_notes.png"
+dest_files=["res://.godot/imported/funkin_notes.png-e2a34e62e2c5b03dff249479f49081e4.ctex"]
 
 [params]
 

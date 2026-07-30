@@ -1,3 +1,17 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Linux
+*.directory
+
+# Build outputs (APK, keystore)
+*.apk
+*.apk.idsig
+*.keystore
+builds/*.apk
+builds/*.pck
+debug.keystore
+
+# Logs
+*.log
