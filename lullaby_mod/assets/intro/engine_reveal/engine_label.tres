@@ -1,14 +1,14 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/engine_reveal/engine_label.png" id="1_e64kr"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/engine_reveal/engine_label.png" id="1_ydwsg"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4epvv"]
-atlas = ExtResource("1_e64kr")
+atlas = ExtResource("1_ydwsg")
 region = Rect2(2, 2, 725, 247)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qfjf1"]
-atlas = ExtResource("1_e64kr")
+atlas = ExtResource("1_ydwsg")
 region = Rect2(2, 251, 725, 246)
 margin = Rect2(0, 1, 0, 1)
 filter_clip = true

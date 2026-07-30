@@ -1,50 +1,50 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/cabin_door.png" id="1_fgqnl"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/cabin_door.png" id="1_q27lx"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_s2mwh"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(446, 2, 55, 144)
 margin = Rect2(6, 0, 10, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f5dqc"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(387, 2, 57, 142)
 margin = Rect2(4, 0, 8, 2)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_aect1"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(327, 2, 58, 143)
 margin = Rect2(3, 0, 7, 1)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ljsr6"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(264, 2, 61, 143)
 margin = Rect2(0, 0, 4, 1)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jfqtv"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(2, 2, 64, 143)
 margin = Rect2(0, 0, 1, 1)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t4kud"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(68, 2, 64, 143)
 margin = Rect2(1, 0, 1, 1)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_g67b8"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(134, 2, 63, 145)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7p20s"]
-atlas = ExtResource("1_fgqnl")
+atlas = ExtResource("1_q27lx")
 region = Rect2(199, 2, 63, 145)
 filter_clip = true
 

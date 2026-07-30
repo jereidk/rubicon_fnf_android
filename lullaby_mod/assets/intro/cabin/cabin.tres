@@ -1,34 +1,34 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/cabin.png" id="1_hoaah"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/cabin.png" id="1_3ptwr"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tee2i"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(2, 2, 657, 469)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f7ufo"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(2, 473, 657, 469)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6atl2"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(661, 2, 657, 469)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_68hal"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(661, 473, 657, 469)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xcfri"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(1320, 2, 657, 469)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_748j5"]
-atlas = ExtResource("1_hoaah")
+atlas = ExtResource("1_3ptwr")
 region = Rect2(1320, 473, 657, 469)
 filter_clip = true
 

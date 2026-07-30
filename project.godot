@@ -27,6 +27,8 @@ buses/default_bus_layout="uid://dg07spmwy57em"
 
 RubiconTouchInput="*res://addons/rubicon_mobile_controls/touch_input_handler.gd"
 SceneChanger="*res://menus/scene_changer.gd"
+Settings="*res://menus/settings.gd"
+VolumeSlider="*res://menus/volume_slider/volume_slider.tscn"
 
 [display]
 

@@ -1,15 +1,15 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/opening_shot/front_trees.png" id="1_54s64"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/opening_shot/front_trees.png" id="1_ojntr"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kpn6t"]
-atlas = ExtResource("1_54s64")
+atlas = ExtResource("1_ojntr")
 region = Rect2(2, 1463, 2324, 1451)
 margin = Rect2(10, 0, 10, 24)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_afybk"]
-atlas = ExtResource("1_54s64")
+atlas = ExtResource("1_ojntr")
 region = Rect2(2, 2, 2326, 1459)
 margin = Rect2(0, 16, 8, 16)
 filter_clip = true

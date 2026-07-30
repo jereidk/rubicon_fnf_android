@@ -4,7 +4,7 @@ extends Control
 ## first a general content warning, then (on "Continue") a flashing-lights
 ## warning that lets the player opt out of flash effects.
 
-const MAIN_MENU_SCENE := "res://menus/main/main_menu.tscn"
+const FIRST_BOOT_SETTINGS_SCENE := "res://menus/first_boot/first_boot_settings.tscn"
 
 const CONTENT_WARNING_TEXT := "This game contains [color=9b0000]loud noises, jumpscares, covered partial
 nudity, depictions of gore, body horror, and insects.[/color]
@@ -24,7 +24,6 @@ const FLASH_WARNING_TEXT := "Furthermore, this mod contains [color=red]FLASHING 
 @onready var kill_sound: AudioStreamPlayer = $AudioStreamPlayer2
 
 var _showing_flash_stage := false
-var flashing_lights_enabled := true
 
 func _on_no_button_button_down() -> void:
 	if not _showing_flash_stage:
@@ -34,7 +33,7 @@ func _on_no_button_button_down() -> void:
 		return
 
 	press_sound.play()
-	flashing_lights_enabled = false
+	Settings.flashing_lights_enabled = false
 	_continue_to_menu()
 
 func _on_yes_button_button_down() -> void:
@@ -42,7 +41,7 @@ func _on_yes_button_button_down() -> void:
 	if not _showing_flash_stage:
 		_show_flash_stage()
 	else:
-		flashing_lights_enabled = true
+		Settings.flashing_lights_enabled = true
 		_continue_to_menu()
 
 func _show_flash_stage() -> void:
@@ -52,4 +51,4 @@ func _show_flash_stage() -> void:
 	yes_button.text = "Keep on"
 
 func _continue_to_menu() -> void:
-	SceneChanger.change_scene(MAIN_MENU_SCENE)
+	SceneChanger.change_scene(FIRST_BOOT_SETTINGS_SCENE)

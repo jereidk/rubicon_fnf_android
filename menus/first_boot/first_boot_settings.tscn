@@ -1,0 +1,262 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://menus/first_boot/first_boot_settings.gd" id="1_fbs"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/background.png" id="2_bg"]
+[ext_resource type="Theme" path="res://lullaby_mod/resources/themes/thm_boot_panel.tres" id="3_thm"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_font"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/global/notes/nte_default_hypno.png" id="5_notes"]
+[ext_resource type="Theme" path="res://lullaby_mod/resources/themes/thm_boot_panel_small.tres" id="6_thmsmall"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.res" id="7_wind"]
+[ext_resource type="Script" path="res://menus/first_boot/key_rebind_button.gd" id="8_rebind"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("4_font")
+font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_desc"]
+font = ExtResource("4_font")
+font_size = 36
+font_color = Color(0.31616732, 0.31616738, 0.31616727, 1)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_left"]
+atlas = ExtResource("5_notes")
+region = Rect2(368, 117, 120, 121)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_down"]
+atlas = ExtResource("5_notes")
+region = Rect2(179, 116, 122, 120)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_up"]
+atlas = ExtResource("5_notes")
+region = Rect2(743, 118, 121, 119)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_right"]
+atlas = ExtResource("5_notes")
+region = Rect2(555, 116, 120, 121)
+
+[sub_resource type="Gradient" id="Gradient_vig"]
+offsets = PackedFloat32Array(0.45327103, 0.8785047)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.5882353)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vig"]
+gradient = SubResource("Gradient_vig")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[node name="FirstBoot" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fbs")
+
+[node name="BG" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TextureRect" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.5)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer"]
+layout_mode = 2
+theme = ExtResource("3_thm")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Apply your preferences."
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="Options" type="PanelContainer" parent="CenterContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options"]
+layout_mode = 2
+
+[node name="Graphics" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics"]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "Graphics"
+horizontal_alignment = 1
+
+[node name="Preset" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Quality Preset:"
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset"]
+layout_mode = 2
+size_flags_horizontal = 2
+mouse_default_cursor_shape = 2
+selected = 3
+item_count = 4
+popup/item_0/text = "CUSTOM"
+popup/item_0/id = 0
+popup/item_0/disabled = true
+popup/item_1/text = "Low"
+popup/item_1/id = 1
+popup/item_2/text = "Medium"
+popup/item_2/id = 2
+popup/item_3/text = "High"
+popup/item_3/id = 3
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics"]
+layout_mode = 2
+text = "The intended experience. [Post-processing and antialiasing at its max]"
+label_settings = SubResource("LabelSettings_desc")
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
+layout_mode = 2
+
+[node name="Input" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Title" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input"]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "Input"
+horizontal_alignment = 1
+
+[node name="Input" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input"]
+layout_mode = 2
+alignment = 1
+
+[node name="Arrows" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input"]
+layout_mode = 2
+
+[node name="Left" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows" node_paths=PackedStringArray("button")]
+layout_mode = 2
+script = ExtResource("8_rebind")
+lane = 0
+button = NodePath("Button")
+
+[node name="Texture" type="TextureRect" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Left"]
+layout_mode = 2
+texture = SubResource("AtlasTexture_left")
+stretch_mode = 2
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Left"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Left"
+
+[node name="Down" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows" node_paths=PackedStringArray("button")]
+layout_mode = 2
+script = ExtResource("8_rebind")
+lane = 1
+button = NodePath("Button")
+
+[node name="Texture" type="TextureRect" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Down"]
+layout_mode = 2
+texture = SubResource("AtlasTexture_down")
+stretch_mode = 2
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Down"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Down"
+
+[node name="Up" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows" node_paths=PackedStringArray("button")]
+layout_mode = 2
+script = ExtResource("8_rebind")
+lane = 2
+button = NodePath("Button")
+
+[node name="Texture" type="TextureRect" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Up"]
+layout_mode = 2
+texture = SubResource("AtlasTexture_up")
+stretch_mode = 2
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Up"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Up"
+
+[node name="Right" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows" node_paths=PackedStringArray("button")]
+layout_mode = 2
+script = ExtResource("8_rebind")
+lane = 3
+button = NodePath("Button")
+
+[node name="Texture" type="TextureRect" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Right"]
+layout_mode = 2
+texture = SubResource("AtlasTexture_right")
+stretch_mode = 2
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Input/Arrows/Right"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Right"
+
+[node name="Special" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input" node_paths=PackedStringArray("button")]
+layout_mode = 2
+alignment = 1
+script = ExtResource("8_rebind")
+lane = -1
+button = NodePath("Button")
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Special"]
+layout_mode = 2
+text = "Mechanic:"
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Input/Special"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "Special"
+
+[node name="Button" type="Button" parent="CenterContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme = ExtResource("6_thmsmall")
+text = "Apply and Continue"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_wind")
+volume_db = -4.63
+autoplay = true
+
+[node name="Vigenette" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vig")
+expand_mode = 1
+
+[connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset/OptionButton" to="." method="_on_preset_changed"]
+[connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/Button" to="." method="apply_and_continue"]

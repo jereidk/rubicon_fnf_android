@@ -1,0 +1,342 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://menus/volume_slider/volume_slider.gd" id="1_vol"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/menu/sfx_volume_down.res" id="2_down"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/menu/sfx_volume_up.res" id="3_up"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/tex_volume_slider.png" id="4_tex"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="5_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.18039216, 0.101960786, 0.101960786, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+bg_color = Color(0.9529412, 0.9019608, 0.8980392, 1)
+
+[sub_resource type="Theme" id="Theme_bars"]
+ProgressBar/styles/background = SubResource("StyleBoxFlat_bg")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_fill")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overflow"]
+bg_color = Color(0.5, 0.08000001, 0.19199991, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("5_font")
+font_size = 49
+
+[sub_resource type="Animation" id="Animation_reset"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Control/TextureRect:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(785.5, -200)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_in"]
+resource_name = "in"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Control/TextureRect:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.4),
+"transitions": PackedFloat32Array(0.55681634, 1),
+"update": 0,
+"values": [Vector2(785.5, -200), Vector2(785.5, 8)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_in_immediate"]
+resource_name = "in_immediate"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Control/TextureRect:position")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(785.5, 8)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_out"]
+resource_name = "out"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Control/TextureRect:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1.5768325, 1),
+"update": 0,
+"values": [Vector2(785.5, 8), Vector2(785.5, -200)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [true, false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vol"]
+_data = {
+&"RESET": SubResource("Animation_reset"),
+&"in": SubResource("Animation_in"),
+&"in_immediate": SubResource("Animation_in_immediate"),
+&"out": SubResource("Animation_out")
+}
+
+[node name="VolumeSlider" type="CanvasLayer" node_paths=PackedStringArray("bar_container", "timer", "animation_player", "volume_down", "volume_up")]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("1_vol")
+bar_container = NodePath("Control/TextureRect/HBoxContainer")
+timer = NodePath("Timer")
+animation_player = NodePath("AnimationPlayer")
+volume_down = NodePath("VolumeDown")
+volume_up = NodePath("VolumeUp")
+
+[node name="VolumeDown" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_down")
+max_polyphony = 2
+
+[node name="VolumeUp" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_up")
+max_polyphony = 2
+
+[node name="Control" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TextureRect" type="TextureRect" parent="Control"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -174.5
+offset_top = -200.0
+offset_right = 174.5
+offset_bottom = -41.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("4_tex")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/TextureRect"]
+custom_minimum_size = Vector2(240, 0)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -99.0
+offset_right = 120.0
+offset_bottom = -19.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(120, 0)
+mouse_filter = 2
+theme = SubResource("Theme_bars")
+theme_override_constants/separation = 8
+
+[node name="1" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 8)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="2" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 16)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="3" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 24)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="4" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 32)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="5" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 40)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="6" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 48)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="7" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 56)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="8" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 64)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="9" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 72)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="10" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 80)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="11" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 80)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+theme_override_styles/fill = SubResource("StyleBoxFlat_overflow")
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="12" type="ProgressBar" parent="Control/TextureRect/HBoxContainer"]
+custom_minimum_size = Vector2(12, 80)
+size_flags_horizontal = 3
+size_flags_vertical = 8
+theme_override_styles/fill = SubResource("StyleBoxFlat_overflow")
+max_value = 10.0
+step = 1.0
+value = 10.0
+fill_mode = 3
+show_percentage = false
+
+[node name="Label" type="Label" parent="Control/TextureRect"]
+texture_filter = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -43.5
+offset_top = 16.0
+offset_right = 43.5
+offset_bottom = 49.0
+grow_horizontal = 2
+text = "Volume"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries/ = SubResource("AnimationLibrary_vol")

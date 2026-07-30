@@ -1,21 +1,21 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/path_grass.png" id="1_hwhe2"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/cabin/path_grass.png" id="1_3f2bf"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kcjky"]
-atlas = ExtResource("1_hwhe2")
+atlas = ExtResource("1_3f2bf")
 region = Rect2(2, 2, 1957, 775)
 margin = Rect2(0, 0, 1, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ctfr0"]
-atlas = ExtResource("1_hwhe2")
+atlas = ExtResource("1_3f2bf")
 region = Rect2(2, 779, 1957, 774)
 margin = Rect2(0, 1, 1, 1)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4msr1"]
-atlas = ExtResource("1_hwhe2")
+atlas = ExtResource("1_3f2bf")
 region = Rect2(2, 1555, 1958, 771)
 margin = Rect2(0, 4, 0, 4)
 filter_clip = true

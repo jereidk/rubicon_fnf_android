@@ -17,6 +17,7 @@ color = Color(0, 0, 0, 1)
 
 [node name="TransitionTimer" type="Timer" parent="."]
 wait_time = 1.0
+one_shot = true
 autostart = true
 
 [connection signal="timeout" from="TransitionTimer" to="." method="_on_timer_end"]
