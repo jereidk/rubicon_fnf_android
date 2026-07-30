@@ -477,9 +477,3 @@ offset_bottom = 974.3529
 lane_id = 3
 
 [node name="MobileControls" parent="." instance=ExtResource("24_mobile")]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
