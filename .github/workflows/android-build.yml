@@ -131,9 +131,12 @@ jobs:
         run: |
           echo "ANDROID_HOME=$HOME/.android/sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/.android/sdk" >> $GITHUB_ENV
-          JAVA_PATH=$(find /home/runner -name "java" -type f -executable 2>/dev/null | head -1)
-          JAVA_HOME_DIR=$(dirname $(dirname $JAVA_PATH))
-          echo "JAVA_HOME=$JAVA_HOME_DIR" >> $GITHUB_ENV
+          if [ -d "/opt/hostedtoolcache/Java_Temurin-JDK/${{ env.JAVA_VERSION }}" ]; then
+            JAVA_HOME_DIR="/opt/hostedtoolcache/Java_Temurin-JDK/${{ env.JAVA_VERSION }}/x64"
+          elif [ -d "/home/runner/work/_toolchains" ]; then
+            JAVA_HOME_DIR=$(find /home/runner/work/_toolchains -name "jdk*" -type d 2>/dev/null | head -1)
+          fi
+          echo "JAVA_HOME=${JAVA_HOME_DIR}" >> $GITHUB_ENV
           echo "GODOT=/opt/godot/godot" >> $GITHUB_ENV
 
       - name: Print environment
