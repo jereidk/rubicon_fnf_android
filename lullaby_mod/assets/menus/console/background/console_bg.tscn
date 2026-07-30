@@ -1,6 +1,6 @@
 [gd_scene format=4]
 
-[ext_resource type="Script" path="res://lullaby_mod/assets/menus/console/background/background.gd" id="1_yo46g"]
+[ext_resource type="Script" path="res://lullaby_mod/assets/menus/console/background/background.gdc" id="1_yo46g"]
 [ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/background/glowyredd.tres" id="2_cgxec"]
 [ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_cell.gdshader" id="3_bdo15"]
 [ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/background/materials/Toon Shader  (Eevee Only).002.tres" id="4_r0y3y"]

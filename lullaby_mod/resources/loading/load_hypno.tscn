@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/loading/lullaby_loading_screen.gd" id="1_p612y"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/loading/lullaby_loading_screen.gdc" id="1_p612y"]
 [ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/loading/load_hypno/loading.tres" id="2_cu5cg"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clhdg"]

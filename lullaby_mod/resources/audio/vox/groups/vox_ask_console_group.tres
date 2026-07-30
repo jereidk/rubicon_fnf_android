@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_utjrk"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_aye7x"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gdc" id="1_utjrk"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gdc" id="2_aye7x"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_console/vox_collector_console_101.ogg" id="3_xjlhe"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_console/vox_collector_console_102.ogg" id="4_k8k2p"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_console/vox_collector_console_103.ogg" id="5_80e4a"]

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_66y0c"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_h5wye"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gdc" id="1_66y0c"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gdc" id="2_h5wye"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_hat_poke/vox_collector_hatreturn.ogg" id="3_f6fqv"]
 
 [sub_resource type="Resource" id="Resource_wsa0d"]

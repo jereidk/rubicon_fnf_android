@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_kh4l4"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_us6fu"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gdc" id="1_kh4l4"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gdc" id="2_us6fu"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_soultoken/vox_collector_soultoken_101.ogg" id="3_ss2q8"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_soultoken/vox_collector_soultoken_102.ogg" id="4_r34kb"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_soultoken/vox_collector_soultoken_103.ogg" id="5_ksfpb"]

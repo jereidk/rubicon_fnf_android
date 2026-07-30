@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/check_box.gd" id="1_36gv3"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/check_box.gdc" id="1_36gv3"]
 [ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/SelectBox.res" id="2_4gkmk"]
 [ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/Checkmark.res" id="3_j1j3i"]
 

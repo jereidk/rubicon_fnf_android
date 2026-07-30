@@ -1,6 +1,6 @@
 [gd_scene format=4]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_console.gd" id="1_xh3aw"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_console.gdc" id="1_xh3aw"]
 [ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/console.tres" id="2_nl012"]
 [ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_adapter.tres" id="3_sol25"]
 [ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="4_meyka"]

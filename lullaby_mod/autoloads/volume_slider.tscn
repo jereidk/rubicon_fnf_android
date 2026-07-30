@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/volume_slider.gd" id="1_uq5bb"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/volume_slider.gdc" id="1_uq5bb"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/menu/sfx_volume_down.wav" id="2_8ggrw"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/menu/sfx_volume_up.wav" id="3_dmqfk"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/tex_volume_slider.png" id="4_kjhyh"]

@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gd" id="1_j6lxn"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gdc" id="1_j6lxn"]
 [ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.tscn" id="2_x7d0s"]
 [ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3_sbhv3"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4_637ju"]

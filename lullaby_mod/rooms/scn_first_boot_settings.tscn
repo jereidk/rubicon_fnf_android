@@ -1,13 +1,13 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/menus/lullaby_first_boot_settings.gd" id="1_4k5dt"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/menus/lullaby_first_boot_settings.gdc" id="1_4k5dt"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/background.png" id="2_g3ygm"]
 [ext_resource type="Theme" path="res://lullaby_mod/resources/themes/thm_boot_panel.tres" id="3_5gfuh"]
 [ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_m3e6n"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_quality_preset.gd" id="5_kuoxm"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_game_input.gd" id="6_shqvc"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_quality_preset.gdc" id="5_kuoxm"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_game_input.gdc" id="6_shqvc"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/global/notes/nte_default_hypno.png" id="7_k5kxc"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_map_input.gd" id="8_lv6a0"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_map_input.gdc" id="8_lv6a0"]
 [ext_resource type="Theme" path="res://lullaby_mod/resources/themes/thm_boot_panel_small.tres" id="9_jpoyb"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.ogg" id="10_qsk6x"]
 

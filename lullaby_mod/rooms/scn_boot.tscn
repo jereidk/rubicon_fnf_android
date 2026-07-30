@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/lullaby_boot_screen.gd" id="1_5w642"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/lullaby_boot_screen.gdc" id="1_5w642"]
 
 [node name="Boot" type="Node" unique_id=1914915109]
 script = ExtResource("1_5w642")
