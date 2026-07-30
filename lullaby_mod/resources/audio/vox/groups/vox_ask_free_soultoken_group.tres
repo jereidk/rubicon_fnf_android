@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_b2ace"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_8r618"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_101.ogg" id="3_31krt"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_102.ogg" id="4_jf56d"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_103.ogg" id="5_xdstc"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_104.ogg" id="6_yuxyr"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_105.ogg" id="7_n73gd"]
+
+[sub_resource type="Resource" id="Resource_v5wn3"]
+script = ExtResource("2_8r618")
+stream = ExtResource("3_31krt")
+dialogue_text = "NO."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_qgcav"]
+script = ExtResource("2_8r618")
+stream = ExtResource("4_jf56d")
+dialogue_text = "NO. I TOLD YOU NOT TO ASK ME."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_3im7y"]
+script = ExtResource("2_8r618")
+stream = ExtResource("5_xdstc")
+dialogue_text = "MM."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_lcnrm"]
+script = ExtResource("2_8r618")
+stream = ExtResource("6_yuxyr")
+dialogue_text = "M."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_pr6ng"]
+script = ExtResource("2_8r618")
+stream = ExtResource("7_n73gd")
+dialogue_text = "FINE JUST HAVE IT ALREADY. JUST STOP. EOUGH... HAPPY NOW?"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_b2ace")
+group_name = "ask_free_soultoken"
+voicelines = Array[ExtResource("2_8r618")]([SubResource("Resource_v5wn3"), SubResource("Resource_qgcav"), SubResource("Resource_3im7y"), SubResource("Resource_lcnrm"), SubResource("Resource_pr6ng")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

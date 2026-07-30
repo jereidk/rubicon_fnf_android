@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_66y0c"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_h5wye"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_hat_poke/vox_collector_hatreturn.ogg" id="3_f6fqv"]
+
+[sub_resource type="Resource" id="Resource_wsa0d"]
+script = ExtResource("2_h5wye")
+stream = ExtResource("3_f6fqv")
+dialogue_text = "I HOPE YOU LEARNED YOUR LESSON. THIS FINE CONNOISSEUR NEEDS HIS HAT UNCREASED."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_66y0c")
+group_name = "hatreturn"
+voicelines = Array[ExtResource("2_h5wye")]([SubResource("Resource_wsa0d")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

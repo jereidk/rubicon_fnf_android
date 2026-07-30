@@ -1,0 +1,65 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/collector/shop/candle_fire.png" id="1_ub3em"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s4hsb"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(238, 2, 230, 429)
+margin = Rect2(70, 54, 162, 81)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1jhxe"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(470, 429, 228, 423)
+margin = Rect2(76, 59, 164, 87)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2l5qo"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(2, 439, 227, 428)
+margin = Rect2(79, 54, 165, 82)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t35ig"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(2, 2, 234, 435)
+margin = Rect2(78, 48, 158, 75)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uhuad"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(238, 433, 230, 425)
+margin = Rect2(79, 57, 162, 85)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cuyi2"]
+atlas = ExtResource("1_ub3em")
+region = Rect2(470, 2, 230, 425)
+margin = Rect2(70, 57, 162, 85)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s4hsb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1jhxe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2l5qo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t35ig")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uhuad")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cuyi2")
+}],
+"loop": 1,
+"name": &"fire",
+"speed": 12.0
+}]

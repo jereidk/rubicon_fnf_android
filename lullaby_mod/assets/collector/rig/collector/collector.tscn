@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/collector/rig/collector/Collector.gltf" id="1_3gc3l"]
+[ext_resource type="PackedScene" path="res://assets/collector/rig/collector/collector_smoke.tscn" id="2_cymqs"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/body_collector_1.tres" id="3_vegfc"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/body_collector_4.tres" id="4_6w7i2"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/body_collector_0_001.tres" id="5_ngb2c"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/cuff.tres" id="6_cv1o0"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/coat_collector_2.tres" id="7_ermay"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/head_material.tres" id="8_ew3f7"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/hat_collector_0.tres" id="9_p3seg"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/pipe_collector_3.tres" id="10_yy3km"]
+[ext_resource type="Material" path="res://assets/collector/rig/materials/pipe_1.tres" id="11_ihlwb"]
+
+[node name="Collector" unique_id=1582283198 instance=ExtResource("1_3gc3l")]
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="0" unique_id=1589650369]
+transform = Transform3D(0.5709099, 0.7467544, -0.3412026, 0.04164504, -0.4413923, -0.8963473, -0.8199555, 0.49752435, -0.28309396, 0.04006203, 8.879335, 0.31792647)
+bone_name = "Pipe_2"
+bone_idx = 58
+
+[node name="SmokeOffset" type="Node3D" parent="Armature/Skeleton3D/BoneAttachment3D" index="0" unique_id=1969068455]
+transform = Transform3D(0.99999905, -8.940697e-08, 0, 0, 0.999999, 0, 0, 2.9802322e-08, 1.0000002, -0.25555694, 0.9074626, -0.14142895)
+
+[node name="CollectorSmoke" parent="Armature/Skeleton3D/BoneAttachment3D/SmokeOffset" index="0" unique_id=185774596 instance=ExtResource("2_cymqs")]
+transform = Transform3D(0.9952615, -0.09157699, 0.03267625, -0.053868026, -0.2395415, 0.9693902, -0.080946356, -0.96655744, -0.24333982, 0.24712521, 0.48846364, -0.29886436)
+
+[node name="Body" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="1" unique_id=278312732]
+surface_material_override/0 = ExtResource("3_vegfc")
+surface_material_override/1 = ExtResource("4_6w7i2")
+surface_material_override/2 = ExtResource("5_ngb2c")
+
+[node name="Body_001" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="2" unique_id=1108377321]
+surface_material_override/0 = ExtResource("6_cv1o0")
+
+[node name="Coat" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="3" unique_id=1736344627]
+surface_material_override/0 = ExtResource("7_ermay")
+
+[node name="Cube" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="4" unique_id=964482831]
+surface_material_override/0 = ExtResource("8_ew3f7")
+
+[node name="Hands" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="5" unique_id=22244376]
+surface_material_override/0 = ExtResource("5_ngb2c")
+
+[node name="Hat" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="6" unique_id=1002893640]
+surface_material_override/0 = ExtResource("9_p3seg")
+
+[node name="Pipe" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="7" unique_id=1305525239]
+surface_material_override/0 = ExtResource("10_yy3km")
+
+[node name="Pipe_001" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="8" unique_id=164903927]
+surface_material_override/0 = ExtResource("11_ihlwb")
+
+[node name="Teeth" parent="Armature/Skeleton3D" parent_id_path=PackedInt32Array(285803104) index="9" unique_id=533047407]
+surface_material_override/0 = ExtResource("3_vegfc")

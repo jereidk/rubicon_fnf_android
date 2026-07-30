@@ -1,0 +1,82 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/console/options/portrait/OptionsBox.png" id="1_7m0yy"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_now0y"]
+atlas = ExtResource("1_7m0yy")
+region = Rect2(4, 4, 757, 876)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xj878"]
+atlas = ExtResource("1_7m0yy")
+region = Rect2(765, 4, 756, 876)
+margin = Rect2(1, 0, 1, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nm2oe"]
+atlas = ExtResource("1_7m0yy")
+region = Rect2(4, 884, 756, 876)
+margin = Rect2(1, 0, 1, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_now0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj878")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm2oe")
+}],
+"loop": 1,
+"name": &"Options Box instance ",
+"speed": 24.0
+}]

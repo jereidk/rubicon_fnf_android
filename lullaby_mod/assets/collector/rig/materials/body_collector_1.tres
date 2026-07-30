@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_1.png" id="1_k8rlm"]
+[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_1_metallic_roughness.png" id="2_yrpsx"]
+[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_1_height.png" id="3_0e0qq"]
+
+[resource]
+resource_name = "Collector1"
+albedo_texture = ExtResource("1_k8rlm")
+metallic = 1.0
+metallic_specular = 0.25
+metallic_texture = ExtResource("2_yrpsx")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_yrpsx")
+roughness_texture_channel = 1
+normal_scale = 0.8
+normal_texture = ExtResource("3_0e0qq")

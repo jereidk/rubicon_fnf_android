@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_qxg2a"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_u1lfp"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_105.ogg" id="3_i8tli"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_106.ogg" id="4_ulapy"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_107.ogg" id="5_5yogg"]
+
+[sub_resource type="Resource" id="Resource_ygngf"]
+script = ExtResource("2_u1lfp")
+stream = ExtResource("3_i8tli")
+dialogue_text = "HUH?? MY ZODIAC? PFFFFT- MUAHEHAHAHASEHAHAHAHAUHAHAH! EOUGHHCH HUOH EUGH."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_i3egq"]
+script = ExtResource("2_u1lfp")
+stream = ExtResource("4_ulapy")
+dialogue_text = "WHAT ARE YOU, TWELVE??? MUAHASHJHEEUHEHAAA SIGH..."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_gksfu"]
+script = ExtResource("2_u1lfp")
+stream = ExtResource("5_5yogg")
+dialogue_text = "Virgo."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_qxg2a")
+group_name = "ask_who_2"
+voicelines = Array[ExtResource("2_u1lfp")]([SubResource("Resource_ygngf"), SubResource("Resource_i3egq"), SubResource("Resource_gksfu")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

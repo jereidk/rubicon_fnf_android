@@ -1,0 +1,95 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/console/training/training_icons.png" id="1_8gk5c"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ahelk"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(1423, 1, 348, 296)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ekwle"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(1774, 1, 348, 296)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nwep2"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(2125, 1, 348, 296)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m72kg"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(1, 1, 471, 182)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f32q3"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(475, 1, 471, 182)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1aa7f"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(949, 1, 471, 182)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qdbr2"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(3395, 1, 457, 307)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h4usp"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(2476, 1, 457, 304)
+margin = Rect2(0, 1, 0, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1x5my"]
+atlas = ExtResource("1_8gk5c")
+region = Rect2(2936, 1, 456, 305)
+margin = Rect2(1, 0, 1, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ahelk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ekwle")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nwep2")
+}],
+"loop": 1,
+"name": &"TrainPendulum",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m72kg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f32q3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1aa7f")
+}],
+"loop": 1,
+"name": &"TrainPulse",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qdbr2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h4usp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1x5my")
+}],
+"loop": 1,
+"name": &"TrainType",
+"speed": 5.0
+}]

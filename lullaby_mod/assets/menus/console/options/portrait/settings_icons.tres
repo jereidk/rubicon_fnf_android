@@ -1,0 +1,94 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/console/options/portrait/settings_icons.png" id="1_y3sb1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wq5io"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(1, 1, 716, 839)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wvxyl"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(720, 1, 716, 839)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ewi3x"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(1439, 1, 716, 839)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7wvxh"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(2158, 1, 698, 842)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_72e1x"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(2859, 1, 698, 842)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o80v1"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(1, 843, 698, 842)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8lyod"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(1413, 843, 708, 845)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ampu"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(702, 843, 708, 844)
+margin = Rect2(0, 0, 0, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kfvfx"]
+atlas = ExtResource("1_y3sb1")
+region = Rect2(2124, 846, 708, 845)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wq5io")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wvxyl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ewi3x")
+}],
+"loop": 1,
+"name": &"collector",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7wvxh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_72e1x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o80v1")
+}],
+"loop": 1,
+"name": &"gf",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8lyod")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8ampu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kfvfx")
+}],
+"loop": 1,
+"name": &"gold",
+"speed": 5.0
+}]

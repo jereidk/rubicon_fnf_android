@@ -1,0 +1,76 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/intro/opening_shot/main_tree.png" id="1_yrn4g"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v7ssj"]
+atlas = ExtResource("1_yrn4g")
+region = Rect2(2, 2, 1363, 1457)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p4e6b"]
+atlas = ExtResource("1_yrn4g")
+region = Rect2(1367, 2, 1361, 1456)
+margin = Rect2(1, 0, 2, 1)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v7ssj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p4e6b")
+}],
+"loop": 1,
+"name": &"Main tree  instance ",
+"speed": 24.0
+}]

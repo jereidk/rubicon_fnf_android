@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_8782k"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_xajnj"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_where/vox_collector_where_103.ogg" id="3_12ffc"]
+
+[sub_resource type="Resource" id="Resource_imrti"]
+script = ExtResource("2_xajnj")
+stream = ExtResource("3_12ffc")
+dialogue_text = "OHHHH! THAT'S WHAT YOU MEANT. SHOULD'VE SAID IT THE FIRST TIME. WE ARE SOMEWHERE, LOCALIZED IN THE MIDDLE OF SOMETIME."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_8782k")
+group_name = "ask_where_2"
+voicelines = Array[ExtResource("2_xajnj")]([SubResource("Resource_imrti")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

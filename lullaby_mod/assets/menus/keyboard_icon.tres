@@ -1,0 +1,27 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/keyboard_icon.png" id="1_y2wfj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2pt7h"]
+atlas = ExtResource("1_y2wfj")
+region = Rect2(0, 0, 393, 208)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j5brr"]
+atlas = ExtResource("1_y2wfj")
+region = Rect2(394, 0, 393, 208)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2pt7h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j5brr")
+}],
+"loop": 0,
+"name": &"keyboardicon",
+"speed": 24.0
+}]

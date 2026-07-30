@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_k3mvm"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_b4ia5"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/shopping/vox_collector_picked_1.ogg" id="3_h3pnr"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/shopping/vox_collector_picked_2.ogg" id="4_ln6oj"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/shopping/vox_collector_picked_3.ogg" id="5_3k65q"]
+
+[sub_resource type="Resource" id="Resource_wa7ks"]
+script = ExtResource("2_b4ia5")
+stream = ExtResource("3_h3pnr")
+dialogue_text = "GREAT PICK!"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_kuj05"]
+script = ExtResource("2_b4ia5")
+stream = ExtResource("4_ln6oj")
+dialogue_text = "HAVE FUN NOW!"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_xufsy"]
+script = ExtResource("2_b4ia5")
+stream = ExtResource("5_3k65q")
+dialogue_text = "GREAT CHOICE."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_k3mvm")
+group_name = "shop_picked"
+voicelines = Array[ExtResource("2_b4ia5")]([SubResource("Resource_wa7ks"), SubResource("Resource_kuj05"), SubResource("Resource_xufsy")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

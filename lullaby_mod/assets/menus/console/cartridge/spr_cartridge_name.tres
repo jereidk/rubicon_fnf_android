@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/BoyfriendName.png" id="1_d2wh8"]
+[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/GirlfriendName.png" id="2_u1tm2"]
+[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/Serena_Name.png" id="3_j7rt3"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_d2wh8")
+}],
+"loop": 0,
+"name": &"boyfriend",
+"speed": 0.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_u1tm2")
+}],
+"loop": 0,
+"name": &"girlfriend",
+"speed": 0.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_j7rt3")
+}],
+"loop": 0,
+"name": &"serena",
+"speed": 0.0
+}]

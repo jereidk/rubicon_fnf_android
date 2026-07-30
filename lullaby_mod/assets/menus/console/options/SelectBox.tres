@@ -1,0 +1,37 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/menus/console/options/SelectBox.png" id="1_ha4n5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i0rpi"]
+atlas = ExtResource("1_ha4n5")
+region = Rect2(4, 4, 59, 65)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1xebw"]
+atlas = ExtResource("1_ha4n5")
+region = Rect2(67, 4, 59, 64)
+margin = Rect2(0, 1, 0, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4hbjt"]
+atlas = ExtResource("1_ha4n5")
+region = Rect2(130, 4, 59, 64)
+margin = Rect2(0, 1, 0, 1)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_i0rpi")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_1xebw")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_4hbjt")
+}],
+"loop": 1,
+"name": &"checkbox",
+"speed": 24.0
+}]

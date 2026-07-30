@@ -1,0 +1,8 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_bw.otf" id="1_7remy"]
+
+[resource]
+default_font = ExtResource("1_7remy")
+Label/colors/font_color = Color(0.9372549, 0.9764706, 1, 1)
+Label/constants/line_spacing = 3

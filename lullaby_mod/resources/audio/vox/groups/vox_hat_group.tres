@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_rwdc0"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_t056y"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_hat_poke/vox_collector_hat_1.ogg" id="3_27yri"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_hat_poke/vox_collector_hat_2.ogg" id="4_cwp6a"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_hat_poke/vox_collector_hatfinal.ogg" id="5_ewv44"]
+
+[sub_resource type="Resource" id="Resource_ul1n0"]
+script = ExtResource("2_t056y")
+stream = ExtResource("3_27yri")
+dialogue_text = "DON’T TOUCH ME THERE!"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_cx3ht"]
+script = ExtResource("2_t056y")
+stream = ExtResource("4_cwp6a")
+dialogue_text = "STOP THAT! VINTAGE LEATHER AIN'T CHEAP!
+
+"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_1aae8"]
+script = ExtResource("2_t056y")
+stream = ExtResource("5_ewv44")
+dialogue_text = "You do that one more time, I’m going to give you a timeout."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_rwdc0")
+group_name = "hat"
+voicelines = Array[ExtResource("2_t056y")]([SubResource("Resource_ul1n0"), SubResource("Resource_cx3ht"), SubResource("Resource_1aae8")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

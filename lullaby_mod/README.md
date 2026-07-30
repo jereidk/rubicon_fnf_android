@@ -5,6 +5,16 @@
 - **Engine Original**: Godot 4.7.1.2
 - **Extraído**: 2026-07-30
 
+## ⚠️ Nota sobre el estado de la extracción
+
+Gran parte de este árbol (sobre todo lo que no sea `rooms/`, `scripts/lullaby/menus`, `assets/menus`, `resources/themes` y `resources/fonts`) todavía consiste en los `.remap`/`.import` originales — punteros de texto al `.pck`, no el contenido real. Ver `original_pck/` para el `.pck` real (ahora recuperable vía `git lfs pull`, íntegro y con checksum verificado).
+
+Las **10 escenas de "rooms" (todo el flujo de menús: boot, warning, first-boot-settings, debug-select, credits, petina, shitty-gpu, fuck_no, game_intro, collector_shop) y sus dependencias directas** (scripts, texturas, temas, fuentes) SÍ están convertidas a formato real y legible (`.tscn`/`.tres` texto, `.png` reales), usando Godot 4.7.1 real corriendo headless sobre los archivos extraídos con [GodotPckTool](https://github.com/hhyyrylainen/GodotPckTool):
+
+- `ResourceLoader.load()` + `ResourceSaver.save()` para reconstruir `.scn`/`.res` binarios → `.tscn`/`.tres` texto.
+- Texturas `.ctex` → decodificadas con `Image.decompress()` y reexportadas como `.png` real.
+- Los `.gd` siguen siendo bytecode compilado (`.gdc`) renombrado — Godot no puede reconstruir el source original, solo GDRE Tools (que no corrió en este sandbox por límites de Wine). Audio/fuentes/modelos 3D de las dependencias de menú se omitieron a propósito (no son necesarios para la estructura visual).
+
 ## 📁 Estructura Completa
 
 ```

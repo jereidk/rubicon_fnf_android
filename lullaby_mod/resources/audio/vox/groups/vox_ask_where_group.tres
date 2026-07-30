@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="VoicelineGroup" format=3]
+
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_pf4sy"]
+[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_w66f1"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_where/vox_collector_where_101.ogg" id="3_m66a4"]
+[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_where/vox_collector_where_102.ogg" id="4_aifav"]
+
+[sub_resource type="Resource" id="Resource_begxw"]
+script = ExtResource("2_w66f1")
+stream = ExtResource("3_m66a4")
+dialogue_text = "WE'RE IN THE PLANE-RENOWNED CABINET OF NOVELTIES! YOUR GOTO SHOP, MUSEUM, WHATEVER I FEEL LIKE USING TO DESCRIBE IT, PRIMED WITH ALL COLLECTED ARTIFACTS YOU NAB."
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[sub_resource type="Resource" id="Resource_d8063"]
+script = ExtResource("2_w66f1")
+stream = ExtResource("4_aifav")
+dialogue_text = "THINK OF IT LIKE... A TRAIN STATION, WHERE THIS IS THE HUB YOU CAN GO ANYWHERE YOU NEED, AND I'M THE DASHING CONDUCTOR! MUEHAHAHEH EOUGHCH... I'VE MADE IT A ONE OF A KIND WELCOMING HOME, WOULDN'T YOU AGREE?"
+state = 3
+ending_state = 3
+metadata/_custom_type_script = "uid://db05q0i1q5mr7"
+
+[resource]
+script = ExtResource("1_pf4sy")
+group_name = "ask_where"
+voicelines = Array[ExtResource("2_w66f1")]([SubResource("Resource_begxw"), SubResource("Resource_d8063")])
+metadata/_custom_type_script = "uid://3dcidf4ke34"

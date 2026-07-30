@@ -1,0 +1,26 @@
+[gd_resource type="AnimationLibrary" format=3]
+
+[ext_resource type="Animation" path="res://resources/animations/shop/monochrome_jar/mono_jar_freakout.res" id="1_48dsg"]
+[ext_resource type="Animation" path="res://resources/animations/shop/monochrome_jar/mono_jar_idle.res" id="2_km6t8"]
+
+[sub_resource type="Animation" id="Animation_66n68"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Jar_RIG/Skeleton3D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[resource]
+_data = {
+&"RESET": SubResource("Animation_66n68"),
+&"freakout": ExtResource("1_48dsg"),
+&"idle": ExtResource("2_km6t8")
+}
