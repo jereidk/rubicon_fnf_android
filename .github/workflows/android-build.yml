@@ -168,28 +168,6 @@ jobs:
         run: |
           $GODOT --headless --import 2>&1 | tail -5
 
-      - name: Cache Android build template
-        id: cache-android-build-template
-        uses: actions/cache@v4
-        with:
-          path: android
-          key: android-build-template-${{ runner.os }}-${{ env.GODOT_VERSION }}
-
-      - name: Install Android build template
-        if: steps.cache-android-build-template.outputs.cache-hit != 'true'
-        run: |
-          $GODOT --headless --install-android-build-template 2>&1
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('android/build/gradle/wrapper/gradle-wrapper.properties', 'android/build/**/*.gradle*') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-${{ env.GODOT_VERSION }}-
-
       - name: Create builds directory
         run: |
           mkdir -p builds
