@@ -144,11 +144,16 @@ jobs:
           echo "Java version:"
           java -version 2>&1 | head -1
           echo ""
+          echo "JAVA_HOME=${JAVA_HOME}"
+          echo ""
           echo "Android SDK components:"
           ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager --list_installed 2>/dev/null | grep -E "platforms|build-tools|ndk" || true
           echo ""
           echo "Godot version:"
           $GODOT --version || echo "Godot not found"
+          echo ""
+          echo "Searching for Java..."
+          find /opt /home/runner -name "java" -type f 2>/dev/null | head -5
 
       - name: Import Godot project
         run: |
