@@ -147,9 +147,6 @@ jobs:
           echo ""
           echo "Godot version:"
           $GODOT --version || echo "Godot not found"
-          echo ""
-          echo "Searching for Java..."
-          find /opt /home/runner -name "java" -type f 2>/dev/null | head -5
 
       - name: Import Godot project
         run: |
