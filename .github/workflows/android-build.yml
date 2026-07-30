@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GODOT_VERSION: '4.6'
+  GODOT_VERSION: '4.6.stable'
+  GODOT_BINARY_VERSION: '4.6'
   JAVA_VERSION: '21'
   ANDROID_API: '34'
   ANDROID_BUILD_TOOLS: '34.0.0'
@@ -43,17 +44,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}
           key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}
 
       - name: Download Godot
         if: steps.cache-godot.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}
           wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz -O /tmp/templates.tpz
-          unzip -q /tmp/templates.tpz -d ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
-          mv ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/
-          rm -rf ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/templates
+          unzip -q /tmp/templates.tpz -d ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}
+          mv ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}/templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}/
+          rm -rf ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}/templates
           rm /tmp/templates.tpz
 
       - name: Cache Godot binary
@@ -62,17 +63,17 @@ jobs:
         with:
           path: |
             /opt/godot
-          key: godot-bin-${{ runner.os }}-${{ env.GODOT_VERSION }}
+          key: godot-bin-${{ runner.os }}-${{ env.GODOT_BINARY_VERSION }}
 
       - name: Download Godot binary
         if: steps.cache-godot-bin.outputs.cache-hit != 'true'
         run: |
           mkdir -p /opt/godot
-          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip -O /tmp/godot.zip
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_BINARY_VERSION }}/Godot_v${{ env.GODOT_BINARY_VERSION }}_linux.x86_64.zip -O /tmp/godot.zip
           unzip -q /tmp/godot.zip -d /opt/godot
-          chmod +x /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64
+          chmod +x /opt/godot/Godot_v${{ env.GODOT_BINARY_VERSION }}_linux.x86_64
           rm /tmp/godot.zip
-          ln -sf /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 /opt/godot/godot
+          ln -sf /opt/godot/Godot_v${{ env.GODOT_BINARY_VERSION }}_linux.x86_64 /opt/godot/godot
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
