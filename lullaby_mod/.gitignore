@@ -1,7 +1,8 @@
-# Archivos grandes
+# Archivos grandes (subir manualmente a GitHub Releases)
 *.pck
 *.exe
 *.zip
+*.tar.gz
 
 # Audio
 # (los .ogg son necesarios)
@@ -9,3 +10,6 @@
 # Sprites sin procesar
 *.ctex
 *.import
+
+# Carpeta para archivos grandes
+original_pck/

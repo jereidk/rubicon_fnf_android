@@ -84,6 +84,19 @@ cp -r audio/* ../assets/audio/
 cp -r sprites_data/* ../assets/levels/characters/
 ```
 
+## ⚠️ Archivos Grandes (Descarga Manual)
+
+Los siguientes archivos son demasiado grandes para Git (>100MB) y deben descargarse por separado:
+
+1. **Lullaby.pck** (814 MB) - [Descargar del release de GitHub](https://github.com/CabinetOfNovelteam/lullaby_public/releases/tag/demo)
+2. **lullaby_textures.ctex.tar.gz** (599 MB) - Archivo local en `/workspace/project/lullaby_extracted/`
+
+Para extraer las texturas:
+```bash
+cd lullaby_mod/original_pck
+tar -xzf lullaby_textures.ctex.tar.gz
+```
+
 ## ⚠️ Notas Importantes
 
 1. **Sprites**: Están en formato `.png.import` de Godot - requieren conversión
