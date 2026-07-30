@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_b2ace"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_8r618"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_101.ogg" id="3_31krt"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_102.ogg" id="4_jf56d"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_103.ogg" id="5_xdstc"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_104.ogg" id="6_yuxyr"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_105.ogg" id="7_n73gd"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_b2ace"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_8r618"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_101.ogg" id="3_31krt"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_102.ogg" id="4_jf56d"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_103.ogg" id="5_xdstc"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_104.ogg" id="6_yuxyr"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_getsoultoken/vox_collector_getsoultoken_105.ogg" id="7_n73gd"]
 
 [sub_resource type="Resource" id="Resource_v5wn3"]
 script = ExtResource("2_8r618")

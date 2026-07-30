@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_hh70f"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_fv1sp"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/shopping/vox_collector_shophoverchim.ogg" id="3_o6ok6"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_hh70f"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_fv1sp"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/shopping/vox_collector_shophoverchim.ogg" id="3_o6ok6"]
 
 [sub_resource type="Resource" id="Resource_c7cvi"]
 script = ExtResource("2_fv1sp")

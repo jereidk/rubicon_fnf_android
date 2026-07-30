@@ -1,12 +1,12 @@
 [gd_scene format=4]
 
-[ext_resource type="Script" path="res://assets/menus/console/background/background.gd" id="1_yo46g"]
-[ext_resource type="Material" path="res://assets/menus/console/background/glowyredd.tres" id="2_cgxec"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_cell.gdshader" id="3_bdo15"]
-[ext_resource type="Material" path="res://assets/menus/console/background/materials/Toon Shader  (Eevee Only).002.tres" id="4_r0y3y"]
-[ext_resource type="Material" path="res://assets/menus/console/background/materials/Toon Shader  (Eevee Only).003.tres" id="5_wqwre"]
-[ext_resource type="AudioStream" path="res://resources/audio/sfx/shop/console/sfx_soulroom_startup.wav" id="6_2dr65"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/Background.png" id="7_1o8ag"]
+[ext_resource type="Script" path="res://lullaby_mod/assets/menus/console/background/background.gd" id="1_yo46g"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/background/glowyredd.tres" id="2_cgxec"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_cell.gdshader" id="3_bdo15"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/background/materials/Toon Shader  (Eevee Only).002.tres" id="4_r0y3y"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/background/materials/Toon Shader  (Eevee Only).003.tres" id="5_wqwre"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_startup.wav" id="6_2dr65"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/Background.png" id="7_1o8ag"]
 
 [sub_resource type="Environment" id="Environment_v3oac"]
 background_mode = 1

@@ -1,10 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_gb.ttf" id="1_e1tm7"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/cartridge_bag_sidepanel.gd" id="2_v1257"]
-[ext_resource type="Shader" path="res://resources/shaders/static/shd_shop_static.gdshader" id="3_rworx"]
-[ext_resource type="Texture2D" path="res://assets/menus/cartridge_bag/tex_border.png" id="4_nhfri"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pixel.otf" id="5_r5f4x"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="1_e1tm7"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/cartridge_bag_sidepanel.gd" id="2_v1257"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader" id="3_rworx"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/cartridge_bag/tex_border.png" id="4_nhfri"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pixel.otf" id="5_r5f4x"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot8b"]
 draw_center = false

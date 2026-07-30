@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_pd7er"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_wyina"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_101.ogg" id="3_061im"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_102.ogg" id="4_o57la"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_103.ogg" id="5_y1403"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/talk/ask_who/vox_collector_who_104.ogg" id="6_0xip5"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_pd7er"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_wyina"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_who/vox_collector_who_101.ogg" id="3_061im"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_who/vox_collector_who_102.ogg" id="4_o57la"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_who/vox_collector_who_103.ogg" id="5_y1403"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/talk/ask_who/vox_collector_who_104.ogg" id="6_0xip5"]
 
 [sub_resource type="Resource" id="Resource_6iqs5"]
 script = ExtResource("2_wyina")

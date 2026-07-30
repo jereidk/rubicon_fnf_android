@@ -1,7 +1,7 @@
 [gd_resource type="Theme" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/menus/warning_screen/tex_boot_header.png" id="1_bh54b"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_bw.otf" id="2_4at48"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/warning_screen/tex_boot_header.png" id="1_bh54b"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="2_4at48"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_12bjw"]
 texture = ExtResource("1_bh54b")

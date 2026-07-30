@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="VoicelineGroup" format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_2k8nt"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_d0y11"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_1.ogg" id="3_6tpne"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_2.ogg" id="4_1i3vj"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_3.ogg" id="5_0om2h"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_4.ogg" id="6_n45ml"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_5.ogg" id="7_gr6lo"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_6.ogg" id="8_tiaxg"]
-[ext_resource type="AudioStream" path="res://resources/audio/vox/reactives/re_enter/vox_collector_enter_7.ogg" id="9_m8ylq"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1_2k8nt"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2_d0y11"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_1.ogg" id="3_6tpne"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_2.ogg" id="4_1i3vj"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_3.ogg" id="5_0om2h"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_4.ogg" id="6_n45ml"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_5.ogg" id="7_gr6lo"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_6.ogg" id="8_tiaxg"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/reactives/re_enter/vox_collector_enter_7.ogg" id="9_m8ylq"]
 
 [sub_resource type="Resource" id="Resource_mdlmc"]
 script = ExtResource("2_d0y11")

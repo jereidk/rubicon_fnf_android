@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_pipe_inside.jpg" id="1_ye2kt"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_pipe_inside.jpg" id="1_ye2kt"]
 
 [resource]
 resource_name = "Collector-1"

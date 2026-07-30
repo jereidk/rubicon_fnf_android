@@ -1,92 +1,92 @@
 [gd_scene format=4]
 
-[ext_resource type="Theme" path="res://resources/console/thm_options.tres" id="1_3pcgo"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/console.gd" id="2_ynokv"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/background/console_bg.tscn" id="3_yci5w"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_cell.gdshader" id="4_xfjdr"]
-[ext_resource type="Shader" path="res://resources/shaders/blend_modes/shd_blend_modes.gdshader" id="5_yy11l"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/MultiplyGradientofAwesomeness.png" id="6_d661d"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/BubbletopLeft.png" id="7_edstm"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/BubbulsBottomRight.png" id="8_be22b"]
-[ext_resource type="Theme" path="res://resources/console/thm_soulroom.tres" id="9_s23lv"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/memory_counter.gd" id="10_gxlbw"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/time.gd" id="11_n163n"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/console_tab_container.gd" id="12_xjwse"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/home.gd" id="13_a2k32"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/SelectBubble.png" id="14_uh23o"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_credits.gltf" id="15_vjblp"]
-[ext_resource type="Animation" path="res://assets/menus/console/icons/animations/idle.tres" id="16_lr82d"]
-[ext_resource type="Animation" path="res://assets/menus/console/icons/animations/select.tres" id="17_4tacc"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_training.gltf" id="18_na2mk"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_gallery.gltf" id="19_wb8r8"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_settings.gltf" id="20_lmmmu"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_cartridge.gltf" id="21_laj2s"]
-[ext_resource type="PackedScene" path="res://assets/collector/shop/models/prp_cartridge.gltf" id="22_wfesi"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/cartridge_icon.gd" id="23_sjnta"]
-[ext_resource type="Material" path="res://assets/collector/shop/models/materials/cartridge_body.tres" id="24_bu4vi"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge.png" id="25_aidmt"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/chimera_cartridge.png" id="26_tgxfu"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/monochrome_cartridge.png" id="27_21fex"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/home_button.gd" id="28_2nc6k"]
-[ext_resource type="Material" path="res://assets/menus/console/icons/materials/mat_console_idle.tres" id="29_w7bmg"]
-[ext_resource type="Material" path="res://assets/menus/console/icons/materials/mat_console_select.tres" id="30_iox0i"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/gallery_button.gd" id="31_0l50m"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/home/cartridges_button.gd" id="32_rkoml"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/shop_bind_ui.gd" id="33_m5tpy"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/console_tabs.gd" id="34_mt8m6"]
-[ext_resource type="Texture2D" path="res://assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="35_jv51v"]
-[ext_resource type="PackedScene" path="res://assets/menus/console/icons/models/ui_arrow.gltf" id="36_2vb3o"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_funkin.ttf" id="37_rg3h6"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/role_scroller.gd" id="38_tpb67"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_funkin2.ttf" id="39_hd1jp"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/credits_container.gd" id="40_apa3h"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gd" id="41_2vm2v"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/credits/devest_portraits.tres" id="42_hhmo4"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_balthazar.ttf" id="43_ypa6l"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/credits/open_scroll_icon.svg" id="44_wy1j8"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd" id="45_uh3qs"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/options/portrait/OptionsBox.res" id="46_1pgtl"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/portrait_box.gd" id="47_2xp0c"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/options/portrait/settings_icons.res" id="48_57dr8"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/volume_button.gd" id="49_dbutl"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/incremental_button.gd" id="50_vkkpy"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/categories_button.gd" id="51_o0rmd"]
-[ext_resource type="PackedScene" path="res://resources/console/settings/toggle_button.tscn" id="52_0ye1x"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/window_mode_button.gd" id="53_dy80y"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/list_button.gd" id="54_guxm5"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/quality_preset_button.gd" id="55_lashb"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/input_button.gd" id="56_3aqok"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/settings/delete_save_data.gd" id="57_fxaak"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/training/lil_ector.res" id="58_bktoq"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/gameplay/gameplay.png" id="59_jtnin"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/gameplay/gameplay_icon.png" id="60_jtmyx"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/visuals/visuals.png" id="61_84q77"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/visuals/visuals_icon.png" id="62_ubdij"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/misc/misc.png" id="63_lmr2r"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/options/misc/misc_icon.png" id="64_qqp2t"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_bw.otf" id="65_saj2m"]
-[ext_resource type="Texture2D" path="res://assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66_2xjno"]
-[ext_resource type="Texture2D" path="res://assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67_cc1yr"]
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/pause/tex_chimera_pause_serena.png" id="68_4jpil"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/CollectorNoteBox.png" id="69_lj3ak"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/CollectorsNoteTitle.png" id="70_afwit"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_times.ttf" id="71_1ydjf"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/CollectorNote3.png" id="72_nkoai"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/CollectorNote1.png" id="73_of27v"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/CollectorNote2.png" id="74_q14ca"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_gb.ttf" id="75_2150l"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/collectors_note_label.gd" id="76_2boew"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/cartridges_enter_label.gd" id="77_rwyqr"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/cartridge/spr_cartridge_name.tres" id="78_g6t8a"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/console/buttons/training_button.gd" id="79_lnr1u"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/training/Box.png" id="80_bwv1e"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/training/training_icons.res" id="81_n2fg8"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/menuheader.png" id="82_rqlad"]
-[ext_resource type="SpriteFrames" path="res://assets/menus/console/intro/ConsoleStartup.res" id="83_ovfe7"]
-[ext_resource type="AnimationLibrary" path="res://resources/animations/shop/console_intro.tres" id="84_jyabn"]
-[ext_resource type="AudioStream" path="res://resources/audio/mus/mus_soulroom.ogg" id="85_d8qj4"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/collector_shop_settings.gd" id="86_qefjv"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_crt.gdshader" id="87_w71s2"]
+[ext_resource type="Theme" path="res://lullaby_mod/resources/console/thm_options.tres" id="1_3pcgo"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console.gd" id="2_ynokv"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/background/console_bg.tscn" id="3_yci5w"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_cell.gdshader" id="4_xfjdr"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader" id="5_yy11l"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/MultiplyGradientofAwesomeness.png" id="6_d661d"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/BubbletopLeft.png" id="7_edstm"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/BubbulsBottomRight.png" id="8_be22b"]
+[ext_resource type="Theme" path="res://lullaby_mod/resources/console/thm_soulroom.tres" id="9_s23lv"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/memory_counter.gd" id="10_gxlbw"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/time.gd" id="11_n163n"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tab_container.gd" id="12_xjwse"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/home.gd" id="13_a2k32"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/SelectBubble.png" id="14_uh23o"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_credits.gltf" id="15_vjblp"]
+[ext_resource type="Animation" path="res://lullaby_mod/assets/menus/console/icons/animations/idle.tres" id="16_lr82d"]
+[ext_resource type="Animation" path="res://lullaby_mod/assets/menus/console/icons/animations/select.tres" id="17_4tacc"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_training.gltf" id="18_na2mk"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_gallery.gltf" id="19_wb8r8"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_settings.gltf" id="20_lmmmu"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_cartridge.gltf" id="21_laj2s"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="22_wfesi"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridge_icon.gd" id="23_sjnta"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_body.tres" id="24_bu4vi"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="25_aidmt"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="26_tgxfu"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="27_21fex"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home_button.gd" id="28_2nc6k"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_idle.tres" id="29_w7bmg"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres" id="30_iox0i"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/gallery_button.gd" id="31_0l50m"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home/cartridges_button.gd" id="32_rkoml"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gd" id="33_m5tpy"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tabs.gd" id="34_mt8m6"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="35_jv51v"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_arrow.gltf" id="36_2vb3o"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_funkin.ttf" id="37_rg3h6"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/role_scroller.gd" id="38_tpb67"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_funkin2.ttf" id="39_hd1jp"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd" id="40_apa3h"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gd" id="41_2vm2v"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/credits/devest_portraits.tres" id="42_hhmo4"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="43_ypa6l"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg" id="44_wy1j8"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd" id="45_uh3qs"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/portrait/OptionsBox.res" id="46_1pgtl"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/portrait_box.gd" id="47_2xp0c"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/portrait/settings_icons.res" id="48_57dr8"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/volume_button.gd" id="49_dbutl"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/incremental_button.gd" id="50_vkkpy"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/categories_button.gd" id="51_o0rmd"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/resources/console/settings/toggle_button.tscn" id="52_0ye1x"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/window_mode_button.gd" id="53_dy80y"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/list_button.gd" id="54_guxm5"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/quality_preset_button.gd" id="55_lashb"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/input_button.gd" id="56_3aqok"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/delete_save_data.gd" id="57_fxaak"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/training/lil_ector.res" id="58_bktoq"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay.png" id="59_jtnin"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay_icon.png" id="60_jtmyx"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals.png" id="61_84q77"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png" id="62_ubdij"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63_lmr2r"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64_qqp2t"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65_saj2m"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66_2xjno"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67_cc1yr"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/pause/tex_chimera_pause_serena.png" id="68_4jpil"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNoteBox.png" id="69_lj3ak"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorsNoteTitle.png" id="70_afwit"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_times.ttf" id="71_1ydjf"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote3.png" id="72_nkoai"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote1.png" id="73_of27v"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote2.png" id="74_q14ca"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="75_2150l"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gd" id="76_2boew"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridges_enter_label.gd" id="77_rwyqr"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/cartridge/spr_cartridge_name.tres" id="78_g6t8a"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/training_button.gd" id="79_lnr1u"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/training/Box.png" id="80_bwv1e"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/training/training_icons.res" id="81_n2fg8"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/menuheader.png" id="82_rqlad"]
+[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/intro/ConsoleStartup.res" id="83_ovfe7"]
+[ext_resource type="AnimationLibrary" path="res://lullaby_mod/resources/animations/shop/console_intro.tres" id="84_jyabn"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_soulroom.ogg" id="85_d8qj4"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector_shop_settings.gd" id="86_qefjv"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_crt.gdshader" id="87_w71s2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hlefr"]
 render_priority = 0
@@ -553,7 +553,7 @@ bind/3/pose = Transform3D(4.217746e-14, 1, -3.1391647e-07, -1, -1.3896296e-13, -
 script = ExtResource("41_2vm2v")
 name = "BeefStarchJello"
 role = "Owner, Director, Art Director, Voice Actor, Writer, Animator, Artist"
-description = "“She Beef on my Starch till I Jello. [img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img]”
+description = "“She Beef on my Starch till I Jello. [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]”
 
 Co-Creator of Happy Bunnies. Cutscene Animator, Concept Artist, Animator.
 
@@ -705,7 +705,7 @@ Dokibird, Mint Fantôme[/font_size]
 If you actually read this, thank you for sitting through this all :)
 ALSO APPRECIATE PROGRAMMERS MORE!!! YOU HAVE NO GOD DAMN IDEA HOW MUCH EFFORT WE PUT INTO THIS FOR YOU.
 
-also heres my oshi list i love gigi murin and cecilia immergreen and ninomae ina'nis and dokibird and mint fantome, and theyre probably hidden everywhere in the files huehuehue [img=64x64]res://assets/menus/console/credits/customemojis/Emote-gigi14.png[/img]"
+also heres my oshi list i love gigi murin and cecilia immergreen and ninomae ina'nis and dokibird and mint fantome, and theyre probably hidden everywhere in the files huehuehue [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/Emote-gigi14.png[/img]"
 socials_link = "https://twitter.com/anniebuue"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
@@ -758,7 +758,7 @@ metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 script = ExtResource("41_2vm2v")
 name = "BreezyMelee"
 role = "Programmer & Visual Enthusiast"
-description = "\"TIME TO SAVE THE MOD heh....!.[img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img]\".
+description = "\"TIME TO SAVE THE MOD heh....!.[img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\".
 
 [u]Cabinet of Novelties Shop[/u]
 
@@ -836,7 +836,7 @@ metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 script = ExtResource("41_2vm2v")
 name = "BurritoBaptizer"
 role = "2D & 3D Artist, Musician "
-description = "\"I am a reddit smeller [img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
+description = "\"I am a reddit smeller [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
 
 Co-Creator of Happy Bunnies.
 
@@ -887,7 +887,7 @@ metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 script = ExtResource("41_2vm2v")
 name = "CRUST"
 role = "2D/3D Artist & Animator"
-description = "\"i am a reddit farter [img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
+description = "\"i am a reddit farter [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
 
 Happy Bunnies Member. Storyboarder, Pixel Artist, 2D Artist & Animator, Ooga Booga Caveman, Concept Animator.
 
@@ -1212,7 +1212,7 @@ I've also worked on the website (cabinetofnovelties.com) alongside Picto, though
 [b]And once again, thank you from reading!!![/b]
 [/left]
 
-[img]res://assets/menus/console/credits/customemojis/thechickens.png[/img]"
+[img]res://lullaby_mod/assets/menus/console/credits/customemojis/thechickens.png[/img]"
 socials_link = "https://x.com/legole0"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 

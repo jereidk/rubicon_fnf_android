@@ -1,8 +1,8 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/collector/hand/playerhand.gltf" id="1_s8vpu"]
-[ext_resource type="Material" path="res://assets/collector/rig/materials/cuff.tres" id="2_mycdd"]
-[ext_resource type="Material" path="res://assets/collector/rig/materials/body_collector_0_001.tres" id="3_c0514"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/hand/playerhand.gltf" id="1_s8vpu"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/collector/rig/materials/cuff.tres" id="2_mycdd"]
+[ext_resource type="Material" path="res://lullaby_mod/assets/collector/rig/materials/body_collector_0_001.tres" id="3_c0514"]
 
 [node name="PlayerHand" unique_id=1072434040 instance=ExtResource("1_s8vpu")]
 

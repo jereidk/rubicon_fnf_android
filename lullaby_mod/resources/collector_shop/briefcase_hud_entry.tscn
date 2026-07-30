@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_hypnosis.ttf" id="1_r12bh"]
-[ext_resource type="Texture2D" path="res://assets/menus/briefcase/coin_icon.tres" id="2_545iu"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="1_r12bh"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/briefcase/coin_icon.tres" id="2_545iu"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_g4v7s"]
 font = ExtResource("1_r12bh")

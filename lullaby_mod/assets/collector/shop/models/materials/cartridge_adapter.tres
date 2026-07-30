@@ -1,8 +1,8 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartrige_adapter.png" id="1_v7gi5"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartrige_adapter_orm.png" id="2_skbpr"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartrige_adapter_normal.png" id="3_qe5t1"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartrige_adapter.png" id="1_v7gi5"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartrige_adapter_orm.png" id="2_skbpr"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartrige_adapter_normal.png" id="3_qe5t1"]
 
 [resource]
 resource_name = "cartridge_adapter"

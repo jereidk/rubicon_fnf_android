@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bq7jtr7r7y0bl"]
 
-[ext_resource type="PackedScene" uid="uid://dhg465jxg5ou8" path="res://assets/collector/shop_talk_pick/pick_hands.gltf" id="1_3hdrm"]
-[ext_resource type="Material" uid="uid://c207r2hhrya37" path="res://assets/collector/rig/materials/cuff.tres" id="2_wainq"]
-[ext_resource type="Material" uid="uid://qovvs1wbe8o6" path="res://assets/collector/rig/materials/body_collector_0_001.tres" id="3_4ykmg"]
+[ext_resource type="PackedScene" uid="uid://dhg465jxg5ou8" path="res://lullaby_mod/assets/collector/shop_talk_pick/pick_hands.gltf" id="1_3hdrm"]
+[ext_resource type="Material" uid="uid://c207r2hhrya37" path="res://lullaby_mod/assets/collector/rig/materials/cuff.tres" id="2_wainq"]
+[ext_resource type="Material" uid="uid://qovvs1wbe8o6" path="res://lullaby_mod/assets/collector/rig/materials/body_collector_0_001.tres" id="3_4ykmg"]
 
 [node name="ShopTalkHand" unique_id=1266673607 instance=ExtResource("1_3hdrm")]
 

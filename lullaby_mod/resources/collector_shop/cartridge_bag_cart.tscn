@@ -1,12 +1,12 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/collector/shop/models/prp_cartridge.tscn" id="1_pe47j"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_dissolve.gdshader" id="2_c0ol4"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartridge_noise.png" id="3_ce2sj"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/chimera_cartridge.png" id="4_ojexn"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="5_iqfb4"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge.png" id="6_tlgnn"]
-[ext_resource type="AudioStream" path="res://resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7_uxk35"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.tscn" id="1_pe47j"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="2_c0ol4"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="3_ce2sj"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="4_ojexn"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="5_iqfb4"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="6_tlgnn"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7_uxk35"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
 size = Vector3(0.3046875, 0.30151367, 0.32128906)

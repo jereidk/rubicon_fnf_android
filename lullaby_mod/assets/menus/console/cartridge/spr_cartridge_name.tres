@@ -1,8 +1,8 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/BoyfriendName.png" id="1_d2wh8"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/GirlfriendName.png" id="2_u1tm2"]
-[ext_resource type="Texture2D" path="res://assets/menus/console/cartridge/Serena_Name.png" id="3_j7rt3"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/BoyfriendName.png" id="1_d2wh8"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/GirlfriendName.png" id="2_u1tm2"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/Serena_Name.png" id="3_j7rt3"]
 
 [resource]
 animations = [{

@@ -1,12 +1,12 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gd" id="1_j6lxn"]
-[ext_resource type="PackedScene" path="res://assets/collector/shop/models/prp_cartridge.tscn" id="2_x7d0s"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_dissolve.gdshader" id="3_sbhv3"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartridge_noise.png" id="4_637ju"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/monochrome_cartridge.png" id="5_i3dw6"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_0ld8o"]
-[ext_resource type="AudioStream" path="res://resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7_d7ir7"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gd" id="1_j6lxn"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.tscn" id="2_x7d0s"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3_sbhv3"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4_637ju"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="5_i3dw6"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_0ld8o"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7_d7ir7"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
 size = Vector3(0.15939331, 0.13555908, 0.076416016)

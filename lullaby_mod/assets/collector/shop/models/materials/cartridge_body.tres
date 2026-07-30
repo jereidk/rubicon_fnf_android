@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge.png" id="1_6frbx"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="1_6frbx"]
 
 [resource]
 resource_name = "cartridge_body"

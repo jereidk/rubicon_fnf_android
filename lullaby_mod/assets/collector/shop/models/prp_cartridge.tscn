@@ -1,14 +1,14 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/collector/shop/models/prp_cartridge.gltf" id="1_wetcg"]
-[ext_resource type="Script" path="res://assets/collector/shop/models/prp_cartridge.gd" id="2_1kenk"]
-[ext_resource type="Shader" path="res://resources/shaders/shd_dissolve.gdshader" id="3_ayb6t"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/cartridge_noise.png" id="4_ym546"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/chimera_cartridge.png" id="5_7fvo2"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_ppcse"]
-[ext_resource type="AudioStream" path="res://resources/audio/sfx/shop/sfx_cart_dissolve.wav" id="7_x5s3y"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/monochrome_cartridge.png" id="8_syehc"]
-[ext_resource type="Texture2D" path="res://assets/collector/shop/models/textures/hypno_cartridge.png" id="9_s55jt"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="1_wetcg"]
+[ext_resource type="Script" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gd" id="2_1kenk"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3_ayb6t"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4_ym546"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="5_7fvo2"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_ppcse"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_cart_dissolve.wav" id="7_x5s3y"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="8_syehc"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="9_s55jt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_k5uac"]
 resource_local_to_scene = true

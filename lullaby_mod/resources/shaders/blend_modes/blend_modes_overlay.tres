@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3]
 
-[ext_resource type="Shader" path="res://resources/shaders/blend_modes/shd_blend_modes.gdshader" id="1_skr2b"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader" id="1_skr2b"]
 
 [resource]
 shader = ExtResource("1_skr2b")

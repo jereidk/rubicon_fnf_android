@@ -1,8 +1,8 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_0.png" id="1_iiso3"]
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_0_roughness.png" id="2_aa66r"]
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_0_normal.png" id="3_4opb6"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_body_0.png" id="1_iiso3"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_body_0_roughness.png" id="2_aa66r"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_body_0_normal.png" id="3_4opb6"]
 
 [resource]
 resource_name = "Collector0.001"

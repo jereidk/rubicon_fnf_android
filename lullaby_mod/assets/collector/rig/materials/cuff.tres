@@ -1,8 +1,8 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_cuff.png" id="1_ir6b0"]
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_body_1_metallic_roughness.png" id="2_lrnik"]
-[ext_resource type="Texture2D" path="res://assets/collector/rig/textures/tex_cuff_height.png" id="3_sl7ml"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_cuff.png" id="1_ir6b0"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_body_1_metallic_roughness.png" id="2_lrnik"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/textures/tex_cuff_height.png" id="3_sl7ml"]
 
 [resource]
 resource_name = "cuff"

@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/menus/console/icons/textures/uigradient_tex.png" id="1_el2uk"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/icons/textures/uigradient_tex.png" id="1_el2uk"]
 
 [resource]
 resource_name = "UIMat"

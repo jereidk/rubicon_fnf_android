@@ -1,0 +1,165 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://menus/warning/warning.gd" id="1_warn"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/background.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/warning_screen/tex_warning_tab.png" id="3_tab"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_font"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/warning_screen/tex_warning_longtab.png" id="5_longtab"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/warning_screen/tex_warning_tabAlt.png" id="6_tabalt"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_kollectadex_select.res" id="7_press"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_wet_disguisting_fart.mp3" id="8_kill"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_no"]
+texture = ExtResource("3_tab")
+axis_stretch_horizontal = 2
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yes"]
+texture = ExtResource("6_tabalt")
+
+[node name="Warning" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_warn")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.028683126, 0.0058529885, 0.0058529885, 1)
+
+[node name="TextureRect" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.35)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="WarningHeader" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -410.0
+offset_right = 300.0
+offset_bottom = -300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.84827894, 0.1514216, 1.92523e-07, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 100
+text = "WARNING"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarningLongTab" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -747.5
+offset_top = -190.25
+offset_right = 747.5
+offset_bottom = 179.74878
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_longtab")
+expand_mode = 1
+
+[node name="WarningText" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -660.0
+offset_top = -160.0
+offset_right = 660.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.92941177, 0.85, 0.85, 1)
+theme_override_fonts/normal_font = ExtResource("4_font")
+theme_override_font_sizes/normal_font_size = 40
+bbcode_enabled = true
+text = "This game contains [color=9b0000]loud noises, jumpscares, covered partial
+nudity, depictions of gore, body horror, and insects.[/color]
+
+If you are sensitive to any of the above, do [color=red]not[/color]
+play [color=9b0000]Friday Night Funkin' Lullaby.[/color] Wish to continue?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NoButton" type="Button" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -470.5
+offset_top = 234.67996
+offset_right = -169.5
+offset_bottom = 406.67996
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.4103271, 0.0, 0.0, 1)
+theme_override_colors/font_pressed_color = Color(0.8178649, 0.044973753, 0.7399265, 1)
+theme_override_colors/font_hover_color = Color(0.94062644, 0.059972364, 0.3276071, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 64
+theme_override_styles/normal = SubResource("StyleBoxTexture_no")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_no")
+theme_override_styles/hover = SubResource("StyleBoxTexture_no")
+text = "Exit"
+
+[node name="YesButton" type="Button" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 169.5
+offset_top = 234.67996
+offset_right = 470.5
+offset_bottom = 406.67996
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.4117647, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.8178649, 0.044973753, 0.7399265, 1)
+theme_override_colors/font_hover_color = Color(0.94062644, 0.059972364, 0.3276071, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 64
+theme_override_styles/normal = SubResource("StyleBoxTexture_yes")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_yes")
+theme_override_styles/hover = SubResource("StyleBoxTexture_yes")
+text = "Continue"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_press")
+volume_db = -16.371
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_kill")
+volume_db = -10.176
+
+[connection signal="button_down" from="NoButton" to="." method="_on_no_button_button_down"]
+[connection signal="button_down" from="YesButton" to="." method="_on_yes_button_button_down"]

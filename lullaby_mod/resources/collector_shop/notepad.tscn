@@ -1,10 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/collector/shop/models/mdl_notepad.gltf" id="1_eq1w7"]
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/props/prp_notepad.gd" id="2_pylhi"]
-[ext_resource type="Shader" path="res://resources/shaders/misc/shd_uv_appear.gdshader" id="3_yqcxq"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_hypno_options.ttf" id="4_1i0gi"]
-[ext_resource type="Shader" path="res://resources/shaders/misc/shd_yellower.gdshader" id="5_bsq2j"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/mdl_notepad.gltf" id="1_eq1w7"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_notepad.gd" id="2_pylhi"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/misc/shd_uv_appear.gdshader" id="3_yqcxq"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypno_options.ttf" id="4_1i0gi"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/misc/shd_yellower.gdshader" id="5_bsq2j"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_778kt"]
 viewport_path = NodePath("Page Display/SubViewport")

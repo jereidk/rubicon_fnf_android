@@ -1,6 +1,6 @@
 [gd_resource type="AnimationLibrary" format=3]
 
-[ext_resource type="AudioStream" path="res://resources/audio/sfx/shop/console/sfx_collector_logo.wav" id="1_87r8g"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_collector_logo.wav" id="1_87r8g"]
 
 [sub_resource type="Animation" id="Animation_b21dp"]
 length = 0.001

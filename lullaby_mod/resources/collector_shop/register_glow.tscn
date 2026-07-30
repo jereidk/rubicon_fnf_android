@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Shader" path="res://resources/shaders/shd_shopregister_glow.gdshader" id="1_tqmh4"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader" id="1_tqmh4"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_erv7p"]
 render_priority = 0

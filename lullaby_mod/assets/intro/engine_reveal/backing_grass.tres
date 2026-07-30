@@ -1,6 +1,6 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/intro/engine_reveal/backing_grass.png" id="1_hlfua"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/engine_reveal/backing_grass.png" id="1_hlfua"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_no08i"]
 atlas = ExtResource("1_hlfua")

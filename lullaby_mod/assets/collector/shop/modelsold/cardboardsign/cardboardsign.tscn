@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://assets/collector/shop/modelsold/cardboardsign/intro.gltf" id="1_iyp81"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/intro.gltf" id="1_iyp81"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hakx0"]
 size = Vector3(0.56941336, 0.20874973, 0.027053833)

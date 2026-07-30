@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Texture2D" path="res://assets/collector/rig/collector/smoke_spritesheet.png" id="1_bhhgy"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/rig/collector/smoke_spritesheet.png" id="1_bhhgy"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8mxtg"]
 transparency = 1

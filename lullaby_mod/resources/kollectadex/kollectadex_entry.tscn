@@ -1,9 +1,9 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/lullaby/collectors_shop/kollectadex/kollectadex_entry.gd" id="1_dmxpq"]
-[ext_resource type="Texture2D" path="res://assets/menus/kollectadex/selected.png" id="2_85bvp"]
-[ext_resource type="Texture2D" path="res://assets/menus/kollectadex/unselected.png" id="3_bw2b1"]
-[ext_resource type="FontFile" path="res://resources/fonts/fnt_pokemon_bw.otf" id="4_0b3nm"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex/kollectadex_entry.gd" id="1_dmxpq"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/selected.png" id="2_85bvp"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/unselected.png" id="3_bw2b1"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_0b3nm"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_84lis"]
 font = ExtResource("4_0b3nm")
