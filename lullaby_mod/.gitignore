@@ -1,15 +1,11 @@
-# Archivos grandes (subir manualmente a GitHub Releases)
-*.pck
+# Archivos grandes
 *.exe
 *.zip
-*.tar.gz
 
 # Audio
 # (los .ogg son necesarios)
 
 # Sprites sin procesar
-*.ctex
 *.import
 
-# Carpeta para archivos grandes
-original_pck/
+# Nota: *.pck, *.ctex y *.tar.gz se suben con Git LFS
