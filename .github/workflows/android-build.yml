@@ -34,6 +34,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          sparse-checkout: |
+            /*
+            !/lullaby_mod/original_pck/
+          sparse-checkout-cone-mode: false
 
       - name: Cache Godot
         id: cache-godot
@@ -243,6 +247,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          sparse-checkout: |
+            /*
+            !/lullaby_mod/original_pck/
+          sparse-checkout-cone-mode: false
 
       - name: Setup Python
         uses: actions/setup-python@v5
