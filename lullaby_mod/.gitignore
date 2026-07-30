@@ -1,0 +1,11 @@
+# Archivos grandes
+*.pck
+*.exe
+*.zip
+
+# Audio
+# (los .ogg son necesarios)
+
+# Sprites sin procesar
+*.ctex
+*.import
