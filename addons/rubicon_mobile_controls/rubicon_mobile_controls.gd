@@ -34,7 +34,7 @@ func _setup_mobile_input_actions() -> void:
 	for i in range(4):
 		var action_name = "mobile_lane_%d" % i
 		if not InputMap.has_action(action_name):
-			InputMap.create_action(action_name)
+			InputMap.add_action(action_name)
 			var key_event = InputEventKey.new()
 			key_event.keycode = lane_to_keycode[i]
 			InputMap.action_add_event(action_name, key_event)
