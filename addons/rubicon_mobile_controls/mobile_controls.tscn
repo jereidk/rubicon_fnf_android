@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://mobile_controls"]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="1"]
 
@@ -9,8 +9,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1")
 lane_count = 4
-button_size = Vector2(100, 100)
-spacing = 20.0
-opacity = 0.7
+hitbox_top_percent = 0.2
+show_outlines = true
+fill_color = Color(1, 1, 1, 0.03)
+pressed_fill_color = Color(1, 1, 1, 0.16)
+haptic_feedback = true

@@ -23,6 +23,10 @@ config/icon="uid://dlxowoyf4wnti"
 
 buses/default_bus_layout="uid://dg07spmwy57em"
 
+[autoload]
+
+RubiconTouchInput="*res://addons/rubicon_mobile_controls/touch_input_handler.gd"
+
 [display]
 
 window/size/viewport_width=1920
@@ -39,11 +43,16 @@ project/assembly_name="RubiconFNF"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
+enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/rubicon_mobile_controls/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
 [rubicon]
 
 defaults/note_database="uid://bvhsfvptfwijt"
+
+[rubicon_mobile_controls]
+
+enabled=true
+lane_count=4
 
 [rendering]
 

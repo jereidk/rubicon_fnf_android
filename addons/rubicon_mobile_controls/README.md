@@ -1,89 +1,28 @@
 # Rubicon Mobile Controls
 
-Este addon añade controles táctiles para jugar a Rubicon FNF en dispositivos Android.
+Controles táctiles estilo **hitbox** para jugar Rubicon FNF en Android: en vez de botones circulares pequeños, la pantalla se divide en zonas verticales grandes (una por lane) — tocar en cualquier punto de una zona presiona ese lane, como un controlador hitbox físico.
 
-## Instalación
+## Cómo funciona
 
-1. **Habilitar el addon:**
-   - Abre Godot Engine
-   - Ve a `Project` > `Project Settings` > `Plugins`
-   - Encuentra `Rubicon Mobile Controls` y ponlo en `Enabled`
+- `rubicon_mobile_controls.gd` (`RubiconMobileControls`): el `Control` que dibuja y detecta las zonas táctiles. Soporta multitouch real (varios dedos en distintos lanes a la vez, con conteo por lane para que soltar un dedo no libere los demás lanes) y arrastrar el dedo entre zonas sin soltar.
+- `touch_input_handler.gd` (`RubiconTouchInputHandler`): traduce `lane_pressed`/`lane_released` a un `InputEventKey` sintético (D/F/J/K) inyectado con `Input.parse_input_event`. Esto es necesario porque `RubiconLevelNoteController` matchea eventos de teclado crudos contra un `RubiconLevelNoteInputMap`, no usa el `InputMap` de acciones de Godot.
+- Está registrado como autoload (`RubiconTouchInput`, ver `project.godot`), así que cualquier instancia de `mobile_controls.tscn` se conecta sola a él en `_ready()` — no hace falta cablear señales a mano por escena.
 
-2. **Añadir los controles a tu nivel:**
-   - Añade la escena `res://addons/rubicon_mobile_controls/mobile_controls.tscn` a tu nivel
-   - O instanciarla programáticamente:
-   ```gdscript
-   var mobile_controls = load("res://addons/rubicon_mobile_controls/mobile_controls.tscn").instantiate()
-   add_child(mobile_controls)
-   ```
+## Uso
 
-3. **Conectar las señales:**
-   ```gdscript
-   var touch_handler = $TouchInputHandler  # o usa el autoload
-   var mobile_controls = $MobileControls
-   
-   mobile_controls.lane_pressed.connect(touch_handler._on_mobile_controls_lane_pressed)
-   mobile_controls.lane_released.connect(touch_handler._on_mobile_controls_lane_released)
-   ```
+1. El plugin ya está habilitado en `project.godot`. Los ajustes viven en `Project Settings > Rubicon Mobile Controls` (`rubicon_mobile_controls/enabled`, `lane_count`).
+2. Instancia `res://addons/rubicon_mobile_controls/mobile_controls.tscn` como hijo de la capa de UI de tu canción (ver `songs/test/test.tscn`, nodo `UILayer/MobileControls`).
+3. El control se auto-oculta y desactiva si `DisplayServer.is_touchscreen_available()` es falso y la build no reporta el feature `mobile` (para no molestar en desktop), o si `rubicon_mobile_controls/enabled` está en `false`.
 
-## Configuración
+## Configuración (exports en `RubiconMobileControls`)
 
-En el nodo `MobileControls` puedes ajustar:
-
-- **lane_count**: Número de lanes (4 por defecto para FNF)
-- **button_size**: Tamaño de los botones
-- **spacing**: Espacio entre botones
-- **opacity**: Opacidad de los botones
-
-## Compilación para Android
-
-### Requisitos
-
-1. Godot Engine 4.6
-2. Android SDK con:
-   - Platform SDK 34
-   - Build Tools 34
-   - NDK (cualquier versión reciente)
-3. JDK 17+
-
-### Pasos
-
-1. **Configurar Godot:**
-   - Descarga Godot 4.6 desde https://godotengine.org
-   - Instala los export templates de Android desde `Editor` > `Manage Export Templates`
-
-2. **Configurar Android SDK en Godot:**
-   - Ve a `Editor` > `Editor Settings` > `Export` > `Android`
-   - Configura la ruta al Android SDK
-
-3. **Exportar:**
-   - Ve a `Project` > `Export`
-   - Selecciona `Android Debug`
-   - Click en `Export Project`
-
-### Solución de problemas
-
-**Error: "Cannot export project with preset..."**
-- Asegúrate de que el Android SDK está configurado correctamente en Godot
-- Verifica que tienes los export templates instalados
-
-**Error de compilación Gradle**
-- Asegúrate de tener Gradle instalado (versión 7.0+)
-- Verifica que JAVA_HOME está configurado
-
-## assets Preparados
-
-El proyecto está preparado con:
-- ✅ Controles táctiles básicos
-- ✅ Mapeo de lanes a teclas (D, F, J, K)
-- ✅ Soporte para multi-touch
-- ✅ Configuración de opacity
+- `lane_count`: número de zonas/lanes (4 por defecto).
+- `hitbox_top_percent`: fracción superior de la pantalla que queda libre de zonas táctiles (para no tapar HUD como el botón de pausa).
+- `show_outlines` / `outline_color` / `outline_width`: borde visible de cada zona.
+- `fill_color` / `pressed_fill_color`: color de relleno en reposo y mientras se mantiene presionada.
+- `haptic_feedback` / `haptic_duration_ms`: vibración al presionar (usa `Input.vibrate_handheld`, no-op fuera de Android/iOS).
 
 ## Próximos pasos
 
-Para una experiencia móvil completa, considera:
-- Añadir botón de pausa
-- Añadir botón de restart
-- Implementar feedback háptico (vibración)
-- Optimizar sprites para móvil
-- Ajustar la UI para diferentes resoluciones
+- Botón de pausa dentro de la franja libre (`hitbox_top_percent`).
+- Ajuste de layout específico por resolución/aspect ratio si hace falta más que el anclaje full-rect actual.
