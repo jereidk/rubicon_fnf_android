@@ -1,0 +1,240 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: none
+  security-events: none
+  attestations: none
+  statuses: none
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: '4.6.stable'
+  JAVA_VERSION: '21'
+  ANDROID_API: '34'
+  ANDROID_BUILD_TOOLS: '34.0.0'
+  ANDROID_NDK: '26.1.10909125'
+  DEBIAN_FRONTEND: 'noninteractive'
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz -O /tmp/templates.tpz
+          unzip -q /tmp/templates.tpz -d ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          mv ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/
+          rm -rf ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/templates
+          rm /tmp/templates.tpz
+
+      - name: Cache Godot binary
+        id: cache-godot-bin
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/godot
+          key: godot-bin-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot binary
+        if: steps.cache-godot-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /opt/godot
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /opt/godot
+          chmod +x /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64
+          rm /tmp/godot.zip
+          ln -sf /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 /opt/godot/godot
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Cache Android SDK
+        id: cache-android-sdk
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+          key: android-sdk-${{ runner.os }}-${{ env.ANDROID_API }}-${{ env.ANDROID_BUILD_TOOLS }}-${{ env.ANDROID_NDK }}
+          restore-keys: |
+            android-sdk-${{ runner.os }}-
+
+      - name: Setup Android SDK
+        if: steps.cache-android-sdk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.android/sdk/cmdline-tools
+          cd ~/.android/sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          rm cmdline-tools.zip
+
+      - name: Accept Android licenses
+        run: |
+          yes | ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Install Android SDK components
+        run: |
+          ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-${{ env.ANDROID_API }}" \
+            "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
+            "ndk;${{ env.ANDROID_NDK }}"
+
+      - name: Create debug keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkeypair -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            2>/dev/null
+
+      - name: Configure environment
+        run: |
+          echo "ANDROID_HOME=$HOME/.android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/.android/sdk" >> $GITHUB_ENV
+          echo "JAVA_HOME=${{ runner.tool_cache }}/Java_OpenJDK_jre-${{ env.JAVA_VERSION }}-x64" >> $GITHUB_ENV
+          echo "GODOT=/opt/godot/godot" >> $GITHUB_ENV
+
+      - name: Print environment
+        run: |
+          echo "Java version:"
+          java -version 2>&1 | head -1
+          echo ""
+          echo "Android SDK components:"
+          ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager --list_installed 2>/dev/null | grep -E "platforms|build-tools|ndk" || true
+          echo ""
+          echo "Godot version:"
+          $GODOT --version || echo "Godot not found"
+
+      - name: Import Godot project
+        run: |
+          $GODOT --headless --import 2>&1 | tail -5
+
+      - name: Build Android Debug APK
+        id: build
+        run: |
+          $GODOT --headless --export-debug "Android Debug" builds/android_debug.apk 2>&1
+          
+          if [ -f builds/android_debug.apk ]; then
+            echo "APK_SIZE=$(du -h builds/android_debug.apk | cut -f1)" >> $GITHUB_OUTPUT
+            echo "apk_path=builds/android_debug.apk" >> $GITHUB_OUTPUT
+            echo "build_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "build_success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        if: steps.build.outputs.build_success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubicon-fnfr-android-debug
+          path: builds/android_debug.apk
+          retention-days: 14
+          compression-level: 9
+
+      - name: Upload debug symbols
+        if: steps.build.outputs.build_success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubicon-fnfr-android-debug-symbols
+          path: |
+            builds/*.apk.idsig
+          retention-days: 14
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      apk_size: ${{ needs.build.outputs.apk_size }}
+
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: rubicon-fnfr-android-debug
+          path: .
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android_debug.apk
+          generate_release_notes: true
+          prerelease: ${{ !contains(github.ref, '-rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Verify project structure
+        run: |
+          echo "Checking project files..."
+          test -f project.godot && echo "✓ project.godot exists"
+          test -f export_presets.cfg && echo "✓ export_presets.cfg exists"
+          test -d addons/rubicon_mobile_controls && echo "✓ rubicon_mobile_controls addon exists"
+          test -f build.sh && echo "✓ build.sh exists"
+          echo ""
+          echo "Project structure verified!"
