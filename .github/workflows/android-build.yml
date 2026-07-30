@@ -159,6 +159,10 @@ jobs:
         run: |
           $GODOT --headless --import 2>&1 | tail -5
 
+      - name: Install Android build template
+        run: |
+          $GODOT --headless --install-android-build-template 2>&1
+
       - name: Create builds directory
         run: |
           mkdir -p builds
