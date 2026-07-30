@@ -132,10 +132,14 @@ jobs:
         run: |
           echo "ANDROID_HOME=$HOME/.android/sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/.android/sdk" >> $GITHUB_ENV
-          if [ -d "/opt/hostedtoolcache/Java_Temurin-JDK/${{ env.JAVA_VERSION }}" ]; then
-            JAVA_HOME_DIR="/opt/hostedtoolcache/Java_Temurin-JDK/${{ env.JAVA_VERSION }}/x64"
-          elif [ -d "/home/runner/work/_toolchains" ]; then
-            JAVA_HOME_DIR=$(find /home/runner/work/_toolchains -name "jdk*" -type d 2>/dev/null | head -1)
+          # Find Java installed by setup-java
+          JAVA_DIR=$(find /opt/hostedtoolcache/Java_Temurin-JDK -maxdepth 1 -type d -name "*${{ env.JAVA_VERSION }}*" 2>/dev/null | head -1)
+          if [ -n "$JAVA_DIR" ]; then
+            JAVA_HOME_DIR="$JAVA_DIR/x64"
+          else
+            # Fallback: use java from PATH and get its parent directory
+            JAVA_BIN=$(which java 2>/dev/null)
+            JAVA_HOME_DIR=$(dirname $(dirname $JAVA_BIN) 2>/dev/null)
           fi
           echo "JAVA_HOME=${JAVA_HOME_DIR}" >> $GITHUB_ENV
           echo "GODOT=/opt/godot/godot" >> $GITHUB_ENV
