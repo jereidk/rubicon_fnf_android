@@ -13,5 +13,9 @@ builds/*.apk
 builds/*.pck
 debug.keystore
 
+# Version tracking (local only)
+version.txt
+keys/
+
 # Logs
 *.log
