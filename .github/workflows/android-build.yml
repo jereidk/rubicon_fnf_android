@@ -80,7 +80,6 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: 'gradle'
 
       - name: Cache Android SDK
         id: cache-android-sdk
