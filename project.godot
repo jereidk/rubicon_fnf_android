@@ -14,10 +14,10 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="RubiconFNF"
+config/name="Friday Night Funkin': Lullaby"
 run/main_scene="res://menus/boot/boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/icon="uid://dlxowoyf4wnti"
+config/icon="uid://benm23nk1o2jb"
 
 [audio]
 
