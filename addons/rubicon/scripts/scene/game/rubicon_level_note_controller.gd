@@ -140,13 +140,17 @@ func update_performance() -> void:
 		var bonus_score: float = sqrt((float(performance_combo_highest) / note_count) * 100.0) * performance_score_max * 0.05
 		performance_score_value = floori(base_score + bonus_score)
 
-	performance_hits_perfect = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT)
-	performance_hits_great = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_GREAT)
-	performance_hits_good = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_GOOD)
-	performance_hits_okay = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY)
-	performance_hits_bad = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD)
-	performance_hits_miss = _get_result_count_of_rating(RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS)
-
+	# _get_result_count_of_rating() previously ran once per judgment (6 calls),
+	# each re-scanning every handler's whole hit history, plus a 7th identical
+	# scan below for accuracy - all 7 walked the exact same
+	# `for key in note_handlers: for i in handler.note_hit_index` range. Folded
+	# into a single pass that tallies rating counts and accuracy together.
+	var hits_perfect: int = 0
+	var hits_great: int = 0
+	var hits_good: int = 0
+	var hits_okay: int = 0
+	var hits_bad: int = 0
+	var hits_miss: int = 0
 	var total_hits: float = 0.0
 	var accuracy_hits: float = 0.0
 	for key: String in note_handlers:
@@ -156,25 +160,33 @@ func update_performance() -> void:
 			accuracy_hits += result.get_accuracy_value()
 			total_hits += 1
 
+			match result.scoring_rating:
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT:
+					hits_perfect += 1
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_GREAT:
+					hits_great += 1
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_GOOD:
+					hits_good += 1
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY:
+					hits_okay += 1
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD:
+					hits_bad += 1
+				RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS:
+					hits_miss += 1
+
+	performance_hits_perfect = hits_perfect
+	performance_hits_great = hits_great
+	performance_hits_good = hits_good
+	performance_hits_okay = hits_okay
+	performance_hits_bad = hits_bad
+	performance_hits_miss = hits_miss
+
 	if total_hits == 0.0:
 		performance_accuracy_percent = 100.0
 	else:
 		performance_accuracy_percent = (accuracy_hits / total_hits) * 100
 
 	performance_updated.emit()
-
-func _get_result_count_of_rating(rating : RubiconLevelNoteHitResult.Judgment) -> int:
-	var count : int = 0
-	for key in note_handlers:
-		var handler : RubiconLevelNoteHandler = note_handlers[key]
-		for i in handler.note_hit_index:
-			var result : RubiconLevelNoteHitResult = handler.results[i]
-			if result.scoring_rating != rating:
-				continue
-
-			count += 1
-
-	return count
 
 func _reset_note_database() -> void:
 	_internal_note_database.clear()

@@ -28,6 +28,13 @@ var _fps_tracker: PackedInt32Array
 var _fps_index: int = 0
 var _disable_quick_restart: bool = false
 
+var _last_average: int = -1
+var _last_low: int = -1
+var _last_high: int = -1
+var _last_ram_used: int = -1
+var _last_ram_peak: int = -1
+var _last_vram_used: int = -1
+
 func _ready() -> void :
 	game_name_label.text = ProjectSettings.get("application/config/name")
 	game_version_label.text = ProjectSettings.get("application/config/version")
@@ -64,15 +71,31 @@ func _process(delta: float) -> void :
 
 	average = floori(float(average) / tracker_size)
 
-	fps_average_counter.text = str(average)
-	fps_low_counter.text = str(low)
-	fps_high_counter.text = str(high)
+	if average != _last_average:
+		_last_average = average
+		fps_average_counter.text = str(average)
+	if low != _last_low:
+		_last_low = low
+		fps_low_counter.text = str(low)
+	if high != _last_high:
+		_last_high = high
+		fps_high_counter.text = str(high)
 
 	if current_state < CurrentState.ADVANCED:
 		return
 
-	ram_label.text = "%s / %s" % [to_memory_format(OS.get_static_memory_usage()), to_memory_format(OS.get_static_memory_peak_usage())]
-	vram_label.text = "%s" % [to_memory_format(floori(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED)))]
+	var ram_used: int = OS.get_static_memory_usage()
+	var ram_peak: int = OS.get_static_memory_peak_usage()
+	var vram_used: int = floori(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
+
+	if ram_used != _last_ram_used or ram_peak != _last_ram_peak:
+		_last_ram_used = ram_used
+		_last_ram_peak = ram_peak
+		ram_label.text = "%s / %s" % [to_memory_format(ram_used), to_memory_format(ram_peak)]
+
+	if vram_used != _last_vram_used:
+		_last_vram_used = vram_used
+		vram_label.text = "%s" % [to_memory_format(vram_used)]
 
 func update_visibility() -> void :
 	match current_state:

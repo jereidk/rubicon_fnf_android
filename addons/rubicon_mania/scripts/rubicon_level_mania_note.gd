@@ -14,6 +14,8 @@ class_name RubiconLevelManiaNote extends RubiconLevelNote
 @export var reference_trail : Control
 @export var reference_container : Control
 
+var _last_final_rotation : float = INF
+
 func get_mania_handler() -> RubiconLevelManiaNoteHandler:
 	return _handler
 
@@ -38,9 +40,16 @@ func _process(delta: float) -> void:
 	var handler : RubiconLevelManiaNoteHandler = get_mania_handler()
 	var controller : RubiconLevelNoteController = handler.get_controller()
 	
+	# global_direction is chart-animatable (see the Lane* AnimationPlayer
+	# tracks in the song scenes), so it can't be computed only once in
+	# initialize() - but it's static outside those animated sections, so
+	# only touch .rotation (which dirties the Control's transform) when it
+	# actually changed since last frame.
 	var final_rotation : float = handler.global_direction + local_direction
-	reference_container.rotation = final_rotation
-	reference_graphic.rotation = -final_rotation
+	if final_rotation != _last_final_rotation:
+		_last_final_rotation = final_rotation
+		reference_container.rotation = final_rotation
+		reference_graphic.rotation = -final_rotation
 	
 	var current_time : float = controller.get_level_clock().time_milliseconds
 	var current_start_position : float = controller.chart.scroll_multiplier * controller.scroll_speed_multiplier * handler.data[data_index].get_graphical_start_position_relative(current_time)

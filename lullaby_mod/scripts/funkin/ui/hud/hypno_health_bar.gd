@@ -11,6 +11,13 @@ const TO_LOSING: StringName = &"toLose"
 const FROM_WINNING: StringName = &"fromWin"
 const FROM_LOSING: StringName = &"fromLose"
 
+const MID_ANIMATIONS: Array[StringName] = [
+	TO_WINNING,
+	TO_LOSING,
+	FROM_WINNING,
+	FROM_LOSING,
+]
+
 
 @export var size_lerp_weight: float = 3.6
 
@@ -20,7 +27,15 @@ const FROM_LOSING: StringName = &"fromLose"
 @export var time_interval: float = 1.0
 
 @export_group("References")
-@export var health_module: RubiconHealthModule
+@export var health_module: RubiconHealthModule:
+	set(value):
+		if value != health_module and health_module != null and health_module.health_changed.is_connected(_on_health_changed):
+			health_module.health_changed.disconnect(_on_health_changed)
+
+		health_module = value
+
+		if health_module != null and not health_module.health_changed.is_connected(_on_health_changed):
+			health_module.health_changed.connect(_on_health_changed)
 @export var progress_bar: TextureProgressBar
 @export var left_icon: AnimatedSprite2D
 @export var right_icon: AnimatedSprite2D
@@ -30,6 +45,10 @@ var _level: RubiconLevel
 var _clock: RubiconLevelClock
 
 
+## health_module.health only changes on note hits/misses, not every frame, so
+## the ratio/icon-animation update lives in _on_health_changed() instead of
+## _process() - only _update_icon_scale() (clock-driven, genuinely continuous)
+## still needs to run every frame.
 func _notification(what: int) -> void :
 	match what:
 		NOTIFICATION_PARENTED, NOTIFICATION_READY:
@@ -41,40 +60,41 @@ func _notification(what: int) -> void :
 				else:
 					parent = parent.get_parent()
 
+			if what == NOTIFICATION_READY:
+				_on_health_changed()
+
 
 func _process(_delta: float) -> void :
-	if health_module:
-		var health: float = health_module.health
-		var min_health: float = health_module.min_health
-		var max_health: float = health_module.max_health
-		var health_ratio: float = (health - min_health) / (max_health - min_health)
-
-		if icon_container:
-			icon_container.progress_ratio = 1.0 - health_ratio
-		progress_bar.ratio = health_ratio
-
-		var player_winning: = health_ratio > 0.8
-		var player_losing: = health_ratio < 0.2
-
-		if left_icon:
-			_update_icon_animation(left_icon, player_winning, player_losing)
-		if right_icon:
-			_update_icon_animation(right_icon, player_losing, player_winning)
-
 	if _clock and _clock._last_time_change:
 		_update_icon_scale()
 
 
+func _on_health_changed() -> void :
+	if not health_module:
+		return
+
+	var health: float = health_module.health
+	var min_health: float = health_module.min_health
+	var max_health: float = health_module.max_health
+	var health_ratio: float = (health - min_health) / (max_health - min_health)
+
+	if icon_container:
+		icon_container.progress_ratio = 1.0 - health_ratio
+	progress_bar.ratio = health_ratio
+
+	var player_winning: = health_ratio > 0.8
+	var player_losing: = health_ratio < 0.2
+
+	if left_icon:
+		_update_icon_animation(left_icon, player_winning, player_losing)
+	if right_icon:
+		_update_icon_animation(right_icon, player_losing, player_winning)
+
+
 func _update_icon_animation(icon: AnimatedSprite2D, losing: bool = false, winning: bool = false) -> void :
 	var current_anim: StringName = icon.animation
-	var mid_animation: Array[StringName] = [
-		TO_WINNING, 
-		TO_LOSING, 
-		FROM_WINNING, 
-		FROM_LOSING, 
-	]
 
-	if mid_animation.has(current_anim):
+	if MID_ANIMATIONS.has(current_anim):
 		return
 
 	var animation: StringName = NEUTRAL

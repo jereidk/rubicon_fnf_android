@@ -8,13 +8,28 @@ extends Control
 
 @export_group("References")
 @export var eyes_player: AnimationPlayer
-@export var health_module: RubiconHealthModule
+@export var health_module: RubiconHealthModule:
+	set(value):
+		if value != health_module and health_module != null and health_module.health_changed.is_connected(_on_health_changed):
+			health_module.health_changed.disconnect(_on_health_changed)
+
+		health_module = value
+
+		if health_module != null and not health_module.health_changed.is_connected(_on_health_changed):
+			health_module.health_changed.connect(_on_health_changed)
 @export var progress_bar: ProgressBar
 
 var fail_stage: int = 0
 
 
-func _process(_delta: float) -> void :
+func _ready() -> void :
+	_on_health_changed()
+
+
+## health_module.health only changes on note hits/misses, not every frame, so
+## the ratio update is driven by the health_changed signal instead of a
+## per-frame _process() poll.
+func _on_health_changed() -> void :
 	if health_module == null or progress_bar == null:
 		return
 
