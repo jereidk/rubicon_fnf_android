@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbg4bbiufeqp8"
-path.s3tc="res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.s3tc.ctex"
-path.etc2="res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.etc2.ctex"
+path="res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/sprites/hypno_pendulum.png"
-dest_files=["res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.s3tc.ctex", "res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.etc2.ctex"]
+dest_files=["res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c97448a.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

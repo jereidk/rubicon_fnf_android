@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dnb15qkhi5vsd"
-path.s3tc="res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.s3tc.ctex"
-path.etc2="res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.etc2.ctex"
+path="res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/unown_vultures/spritemap1.png"
-dest_files=["res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.s3tc.ctex", "res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.etc2.ctex"]
+dest_files=["res://.godot/imported/spritemap1.png-97b7b331d1a7e041887cb3a581b71131.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

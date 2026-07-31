@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqnf311b8j6ko"
-path.s3tc="res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.s3tc.ctex"
-path.etc2="res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.etc2.ctex"
+path="res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/intro/engine_reveal/grass.png"
-dest_files=["res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.s3tc.ctex", "res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.etc2.ctex"]
+dest_files=["res://.godot/imported/grass.png-6e0c04e5ebb7565ae817629426f0c697.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

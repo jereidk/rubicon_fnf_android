@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhf1qoiosh3st"
-path.s3tc="res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.s3tc.ctex"
-path.etc2="res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.etc2.ctex"
+path="res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/cut_serena_cinematics_1.png"
-dest_files=["res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.s3tc.ctex", "res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.etc2.ctex"]
+dest_files=["res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

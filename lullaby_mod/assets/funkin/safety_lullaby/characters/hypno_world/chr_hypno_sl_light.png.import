@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://desshoxvcp85y"
-path.s3tc="res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.s3tc.ctex"
-path.etc2="res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.etc2.ctex"
+path="res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/chr_hypno_sl_light.png"
-dest_files=["res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.s3tc.ctex", "res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.etc2.ctex"]
+dest_files=["res://.godot/imported/chr_hypno_sl_light.png-04283d6bfe3bee186996487a64bf5d10.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

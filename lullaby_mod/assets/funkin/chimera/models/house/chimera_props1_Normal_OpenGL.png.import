@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsolxikl6o7md"
-path.s3tc="res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.s3tc.ctex"
-path.etc2="res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.etc2.ctex"
+path="res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "6a94bb087be4cc924c0f22c4baf13b45"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/models/house/chimera_props1_Normal_OpenGL.png"
-dest_files=["res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.s3tc.ctex", "res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.etc2.ctex"]
+dest_files=["res://.godot/imported/chimera_props1_Normal_OpenGL.png-d18859540e3c585d7923c2d1e4d1ca45.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

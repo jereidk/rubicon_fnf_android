@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0nkohx2g2c0u"
-path.s3tc="res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.s3tc.ctex"
-path.etc2="res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.etc2.ctex"
+path="res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/menus/antipiracy/fucknoscope.png"
-dest_files=["res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.s3tc.ctex", "res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.etc2.ctex"]
+dest_files=["res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d8ae.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

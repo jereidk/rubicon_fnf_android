@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csb6dsfuktd5m"
-path.s3tc="res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.s3tc.ctex"
-path.etc2="res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.etc2.ctex"
+path="res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/characters/goldp2/chr_goldp2_tex_2.png"
-dest_files=["res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.s3tc.ctex", "res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.etc2.ctex"]
+dest_files=["res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92e4fd7626.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

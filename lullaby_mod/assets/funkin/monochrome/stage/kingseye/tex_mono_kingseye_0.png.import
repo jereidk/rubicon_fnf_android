@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2qch5my12w41"
-path.s3tc="res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.s3tc.ctex"
-path.etc2="res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.etc2.ctex"
+path="res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/stage/kingseye/tex_mono_kingseye_0.png"
-dest_files=["res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.s3tc.ctex", "res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.etc2.ctex"]
+dest_files=["res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f436824bbae50d.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

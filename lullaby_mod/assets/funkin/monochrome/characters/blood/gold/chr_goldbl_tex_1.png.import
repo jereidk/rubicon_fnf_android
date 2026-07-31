@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdbsc81c0y34x"
-path.s3tc="res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.s3tc.ctex"
-path.etc2="res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.etc2.ctex"
+path="res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/characters/blood/gold/chr_goldbl_tex_1.png"
-dest_files=["res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.s3tc.ctex", "res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.etc2.ctex"]
+dest_files=["res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2ae6b5ca6.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

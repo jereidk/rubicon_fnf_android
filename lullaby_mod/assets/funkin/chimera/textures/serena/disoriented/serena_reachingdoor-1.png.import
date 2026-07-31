@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqn388en5q6ni"
-path.s3tc="res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.s3tc.ctex"
-path.etc2="res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.etc2.ctex"
+path="res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/disoriented/serena_reachingdoor-1.png"
-dest_files=["res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.s3tc.ctex", "res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.etc2.ctex"]
+dest_files=["res://.godot/imported/serena_reachingdoor-1.png-4da8d1f166537f0a7a1ff8084ac3f1fb.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

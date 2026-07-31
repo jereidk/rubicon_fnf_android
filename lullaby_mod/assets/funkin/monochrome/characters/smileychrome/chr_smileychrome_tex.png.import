@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8q8itniclxd"
-path.s3tc="res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.s3tc.ctex"
-path.etc2="res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.etc2.ctex"
+path="res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/characters/smileychrome/chr_smileychrome_tex.png"
-dest_files=["res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.s3tc.ctex", "res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.etc2.ctex"]
+dest_files=["res://.godot/imported/chr_smileychrome_tex.png-d9cff25a240ef08419c9ffb989ed2041.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

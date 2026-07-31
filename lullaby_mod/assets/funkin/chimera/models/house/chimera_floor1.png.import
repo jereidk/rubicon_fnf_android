@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckhpvayegd0fw"
-path.s3tc="res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.s3tc.ctex"
-path.etc2="res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.etc2.ctex"
+path="res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "f0a94051ca01f806928d63ae74f855fd"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/models/house/chimera_floor1.png"
-dest_files=["res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.s3tc.ctex", "res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.etc2.ctex"]
+dest_files=["res://.godot/imported/chimera_floor1.png-40f1b328c58c7209ebd9e28f167b4dcd.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

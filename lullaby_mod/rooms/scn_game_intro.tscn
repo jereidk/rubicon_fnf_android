@@ -1,9 +1,9 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/game_intro.gdc" id="1_052et"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/game_intro.gd" id="1_052et"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_game_intro_start.ogg" id="2_k7xxd"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_game_intro_loop.ogg" id="3_2waua"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/intro/mouse_controlled_camera.gdc" id="4_7lxke"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/intro/mouse_controlled_camera.gd" id="4_7lxke"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_enter_game.ogg" id="5_jat8p"]
 [ext_resource type="Material" path="res://lullaby_mod/resources/shaders/blend_modes/blend_modes_overlay.tres" id="6_k2qm2"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/intro/overlay_fog.png" id="7_ewapd"]

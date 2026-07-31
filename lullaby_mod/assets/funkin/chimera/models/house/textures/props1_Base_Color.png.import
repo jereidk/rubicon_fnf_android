@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dg2x2xgkjwao4"
-path.s3tc="res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.s3tc.ctex"
-path.etc2="res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.etc2.ctex"
+path="res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/models/house/textures/props1_Base_Color.png"
-dest_files=["res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.s3tc.ctex", "res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.etc2.ctex"]
+dest_files=["res://.godot/imported/props1_Base_Color.png-c1ad05d7b5d445ed06618d0c785ab271.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://chd1vi6kx3pbu"
-path.s3tc="res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.s3tc.ctex"
-path.etc2="res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.etc2.ctex"
+path="res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnown2/spritemap1.png"
-dest_files=["res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.s3tc.ctex", "res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.etc2.ctex"]
+dest_files=["res://.godot/imported/spritemap1.png-151938dee9eae64d8a389ad48b7991c2.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

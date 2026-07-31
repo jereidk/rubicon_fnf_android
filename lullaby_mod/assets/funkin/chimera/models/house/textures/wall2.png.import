@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bl1ifvi0dkfi3"
-path.s3tc="res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.s3tc.ctex"
-path.etc2="res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.etc2.ctex"
+path="res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/models/house/textures/wall2.png"
-dest_files=["res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.s3tc.ctex", "res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.etc2.ctex"]
+dest_files=["res://.godot/imported/wall2.png-ef8106b6ebb792e5b040e5bf6c16e270.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

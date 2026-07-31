@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds7ls1bqk4til"
-path.s3tc="res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.s3tc.ctex"
-path.etc2="res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.etc2.ctex"
+path="res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/stage/eyesfront/eyeball_glow.png"
-dest_files=["res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.s3tc.ctex", "res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.etc2.ctex"]
+dest_files=["res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed84ca5.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

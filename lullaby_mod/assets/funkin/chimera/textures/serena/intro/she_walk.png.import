@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cde8s1r4f24cy"
-path.s3tc="res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.s3tc.ctex"
-path.etc2="res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.etc2.ctex"
+path="res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/she_walk.png"
-dest_files=["res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.s3tc.ctex", "res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.etc2.ctex"]
+dest_files=["res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=1.0
 compress/uastc_level=2

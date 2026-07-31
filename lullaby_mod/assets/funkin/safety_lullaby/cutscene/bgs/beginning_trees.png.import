@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dx2q6os000kfg"
-path.s3tc="res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.s3tc.ctex"
-path.etc2="res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.etc2.ctex"
+path="res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/bgs/beginning_trees.png"
-dest_files=["res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.s3tc.ctex", "res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.etc2.ctex"]
+dest_files=["res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce82ede4eb.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5571apxorpq1"
-path.s3tc="res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.s3tc.ctex"
-path.etc2="res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.etc2.ctex"
+path="res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/disoriented/serena_freakingout-0.png"
-dest_files=["res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.s3tc.ctex", "res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.etc2.ctex"]
+dest_files=["res://.godot/imported/serena_freakingout-0.png-3a7f75d6be1385cb567dbb6047b0acde.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

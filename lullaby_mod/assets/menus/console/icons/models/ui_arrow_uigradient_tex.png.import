@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfcv3quyygp3r"
-path.s3tc="res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.s3tc.ctex"
-path.etc2="res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.etc2.ctex"
+path="res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "138b6ff126e440a18d93b05674f22c0a"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/menus/console/icons/models/ui_arrow_uigradient_tex.png"
-dest_files=["res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.s3tc.ctex", "res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.etc2.ctex"]
+dest_files=["res://.godot/imported/ui_arrow_uigradient_tex.png-7eb4740be5a3e7e7792b93a567e8223c.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
