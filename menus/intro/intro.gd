@@ -23,7 +23,12 @@ static var skip_intro: bool = false
 
 @export var intro_skipped: bool = false
 
+@export var skip_button: Button
+
 func _ready() -> void:
+	if skip_button:
+		skip_button.pressed.connect(skipintro)
+		skip_button.visible = not skip_intro
 	if skip_intro:
 		initial_timer.stop()
 
@@ -35,20 +40,40 @@ func _ready() -> void:
 		intro_player.play()
 
 func _input(event: InputEvent) -> void:
-	if event.is_action(&"ui_accept") and event.is_pressed():
+	var confirm_pressed: bool = _is_confirm_press(event)
+
+	if confirm_pressed:
 		if root_anim_player.current_animation == &"intro" and not intro_skipped:
 			skipintro()
 
 	if (not door_button) or (not door_button.visible):
 		return
 
+	if confirm_pressed:
+		click_door()
+
+## Rubicon addition: the real mod only ever listened for ui_accept (a
+## keyboard/joypad-only action), so a touch-only Android player could watch
+## the whole intro and never find a way to advance past it. Treat any
+## tap/click the same as ui_accept here, mirroring the broad "press enter"
+## affordance the EnterLabel/DoorButton prompt implies.
+func _is_confirm_press(event: InputEvent) -> bool:
 	if event.is_action(&"ui_accept") and event.is_pressed():
-		if door_button.visible:
-			click_door()
+		return true
+	if event is InputEventScreenTouch and event.pressed:
+		return true
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		return true
+	return false
 
 func skipintro() -> void:
+	if intro_skipped:
+		return
+
 	intro_skipped = true
 	initial_timer.stop()
+	if skip_button:
+		skip_button.visible = false
 
 	root_anim_player.play(&"intro")
 	root_anim_player.seek(SKIPPABLE_AT_SEC, true)
@@ -57,7 +82,13 @@ func skipintro() -> void:
 	interactive.initial_clip = 1
 	intro_player.play()
 
+var _door_entered := false
+
 func click_door() -> void:
+	if _door_entered:
+		return
+	_door_entered = true
+
 	root_anim_player.pause()
 	camera_anim_player.play(&"go_in")
 

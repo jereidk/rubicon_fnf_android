@@ -910,7 +910,7 @@ fill_to = Vector2(0, 0)
 [sub_resource type="FontVariation" id="FontVariation_hckq7"]
 base_font = ExtResource("32_kgidy")
 
-[node name="Intro" type="Control" unique_id=1905890316 node_paths=PackedStringArray("root_anim_player", "camera_anim_player", "door_button")]
+[node name="Intro" type="Control" unique_id=1905890316 node_paths=PackedStringArray("root_anim_player", "camera_anim_player", "door_button", "skip_button")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -922,6 +922,7 @@ script = ExtResource("1_052et")
 root_anim_player = NodePath("AnimationPlayer")
 camera_anim_player = NodePath("Camera2D/AnimationPlayer")
 door_button = NodePath("CenterContainer/TabContainer/CabinShot/Scene/Parallax2D2/Cabin/DoorButton")
+skip_button = NodePath("SkipButton")
 
 [node name="IntroPlayer" type="AudioStreamPlayer" parent="." unique_id=835312054]
 unique_name_in_owner = true
@@ -1391,6 +1392,21 @@ horizontal_alignment = 1
 [node name="door" type="AudioStreamPlayer" parent="." unique_id=1187013326]
 volume_db = -10.0
 bus = &"SoundEffects"
+
+[node name="SkipButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -76.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Skip >>"
 
 [connection signal="timeout" from="InitialTimer" to="." method="_on_initial_timer_timeout"]
 [connection signal="animation_finished" from="Camera2D/AnimationPlayer" to="." method="_on_camera_animation_finished"]
