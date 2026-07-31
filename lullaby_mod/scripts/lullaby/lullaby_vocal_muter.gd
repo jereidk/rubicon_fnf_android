@@ -11,10 +11,6 @@ extends Node
 func _ready() -> void :
 	for target: RubiconLevelNoteController in targets:
 		target.note_changed.connect(_on_note_changed)
-		# Rubicon note: this engine build's RubiconLevelManiaNoteHandler has
-		# no "misplayed" signal (ghost-tap/anti-mash penalty isn't
-		# implemented here), so the primary miss-mutes-vocals behavior
-		# below via note_changed is what actually drives this mechanic.
 		for handler_id in target.note_handlers:
 			var handler: RubiconLevelNoteHandler = target.note_handlers[handler_id]
 			if handler is RubiconLevelManiaNoteHandler and handler.has_signal(&"misplayed"):
