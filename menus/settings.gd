@@ -214,6 +214,14 @@ func apply_settings() -> void:
 	for action_name: StringName in input_map:
 		InputMap.action_erase_events(action_name)
 		for input_event: InputEvent in input_map[action_name]:
+			# Rubicon note: force "any device" on reapply. A settings.ini saved
+			# before the project's [input] device ids were fixed (they were
+			# bogus device=16/32 instead of -1, silently dropping every touch-
+			# emulated tap and most real keyboard/mouse input against these
+			# actions) would otherwise keep reintroducing that same bad device
+			# id from disk forever, even after the project.godot fix.
+			if "device" in input_event:
+				input_event.device = -1
 			InputMap.action_add_event(action_name, input_event)
 
 	applied.emit()
