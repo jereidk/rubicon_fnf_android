@@ -2,14 +2,15 @@
 extends Control
 class_name RubiconVirtualDPad
 
-## Cloud-gaming/emulator style D-pad: a structured cross with four
-## rectangular directional arms (RetroArch/PSP overlay look), each with an
-## outward-pointing chevron. Pressing/holding/releasing an arm presses/
-## holds/releases the matching ui_up/ui_down/ui_left/ui_right action
-## directly, exactly like a held keyboard key - so any menu that already
-## navigates via focus_neighbor + those actions works with this with zero
-## changes. Sibling to RubiconVirtualJoystick (used for 3D camera look);
-## this one is for UI focus navigation instead of analog look/movement.
+## Cloud-gaming style virtual joystick: a base ring with a knob that
+## follows the finger and snaps back to center on release. Underneath the
+## joystick look, direction is still resolved into one of 4 discrete
+## zones (up/right/down/left) and presses/holds/releases the matching
+## ui_up/ui_down/ui_left/ui_right action directly, exactly like a held
+## keyboard key - so any menu that already navigates via focus_neighbor +
+## those actions works with this with zero changes. Sibling to
+## RubiconVirtualJoystick (used for 3D camera look); this one is for UI
+## focus navigation instead of analog look/movement.
 ##
 ## Hardened against jitter spam: a finger resting near a zone boundary
 ## (or the dead zone edge) shouldn't rapid-fire action_press/release as
@@ -53,11 +54,20 @@ const MIN_ZONE_HOLD_SEC: float = 0.05
 	set(value):
 		divider_color = value
 		queue_redraw()
+@export var knob_color: Color = Color(0.85, 0.85, 0.9, 0.7):
+	set(value):
+		knob_color = value
+		queue_redraw()
 
 var _active_zone: int = -1
 var _touch_index: int = -1
 var _in_dead_zone: bool = true
 var _zone_held_since: float = 0.0
+## Visual-only: how far the knob is drawn from center. Purely cosmetic -
+## it tracks the raw finger offset (clamped to the base ring) so the
+## joystick reads as responsive, but the 4-zone hysteresis above is what
+## actually decides which action fires.
+var _knob_offset: Vector2 = Vector2.ZERO
 
 func _get_origin() -> Vector2:
 	var p: Vector2 = anchor_position
@@ -67,73 +77,20 @@ func _get_origin() -> Vector2:
 		p.y += size.y
 	return p
 
-## Local-space (relative to origin) rectangle for one arm of the plus/cross,
-## as a 4-point polygon: from the hub edge (w) out to the tip (radius),
-## width 2*w. dir is one of the 4 cardinal unit vectors (up/right/down/left).
-func _arm_rect(dir: Vector2, w: float) -> PackedVector2Array:
-	var perp: Vector2 = dir.rotated(PI / 2.0) * w
-	var inner: Vector2 = dir * w
-	var outer: Vector2 = dir * radius
-	return PackedVector2Array([
-		inner + perp, outer + perp, outer - perp, inner - perp,
-	])
-
-## A small outward-pointing chevron/triangle centered at `center`, in the
-## direction `dir`, used as the arrow glyph inside each arm.
-func _chevron(center: Vector2, dir: Vector2, s: float) -> PackedVector2Array:
-	var perp: Vector2 = dir.rotated(PI / 2.0)
-	var apex: Vector2 = center + dir * s * 0.6
-	var base1: Vector2 = center - dir * s * 0.4 + perp * s * 0.55
-	var base2: Vector2 = center - dir * s * 0.4 - perp * s * 0.55
-	return PackedVector2Array([apex, base1, base2])
-
 func _draw() -> void:
 	var origin: Vector2 = _get_origin()
-	var w: float = radius * 0.38
-	var dirs := [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]
 
-	# Hub (center square) backing the whole cross.
-	var hub := PackedVector2Array([
-		origin + Vector2(-w, -w), origin + Vector2(w, -w),
-		origin + Vector2(w, w), origin + Vector2(-w, w),
-	])
-	draw_colored_polygon(hub, base_color)
+	# Base ring.
+	draw_circle(origin, radius, base_color)
+	draw_arc(origin, radius, 0.0, TAU, 48, divider_color, 2.5, true)
 
-	# Four arms, each its own button so the pressed zone lights up alone.
-	for zone in range(4):
-		var dir: Vector2 = dirs[zone]
-		var color: Color = pressed_color if zone == _active_zone else base_color
-		var arm: PackedVector2Array = _arm_rect(dir, w)
-		var world_arm := PackedVector2Array()
-		for p in arm:
-			world_arm.append(origin + p)
-		draw_colored_polygon(world_arm, color)
-
-		# Outward chevron glyph, centered between the hub edge and the tip.
-		var mid: Vector2 = origin + dir * ((w + radius) * 0.5)
-		draw_colored_polygon(_chevron(mid, dir, w * 1.1), divider_color)
-
-	# Structural outline: the outer silhouette of the plus shape (12 points,
-	# traced clockwise), so the whole D-pad reads as one solid molded piece.
-	var l: float = radius
-	var outline := PackedVector2Array([
-		Vector2(-w, -l), Vector2(w, -l), Vector2(w, -w),
-		Vector2(l, -w), Vector2(l, w), Vector2(w, w),
-		Vector2(w, l), Vector2(-w, l), Vector2(-w, w),
-		Vector2(-l, w), Vector2(-l, -w), Vector2(-w, -w),
-	])
-	var world_outline := PackedVector2Array()
-	for p in outline:
-		world_outline.append(origin + p)
-	world_outline.append(world_outline[0])
-	draw_polyline(world_outline, divider_color, 2.5, true)
-
-	# Seams between each arm and the hub, so the arms read as distinct
-	# physical buttons rather than one blob.
-	draw_line(origin + Vector2(-w, -w), origin + Vector2(w, -w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(w, -w), origin + Vector2(w, w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(w, w), origin + Vector2(-w, w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(-w, w), origin + Vector2(-w, -w), divider_color, 1.5, true)
+	# Knob: follows the finger (clamped to the ring), snaps back to center
+	# on release; lights up while a direction is actually being held.
+	var knob_radius: float = radius * 0.42
+	var knob_pos: Vector2 = origin + _knob_offset
+	var knob_col: Color = pressed_color if _active_zone != -1 else knob_color
+	draw_circle(knob_pos, knob_radius, knob_col)
+	draw_arc(knob_pos, knob_radius, 0.0, TAU, 32, divider_color, 2.0, true)
 
 func _notification(what: int) -> void:
 	match what:
@@ -176,6 +133,9 @@ func _update_zone(pos: Vector2) -> void:
 	var origin: Vector2 = _get_origin()
 	var offset: Vector2 = pos - origin
 	var dist: float = offset.length()
+
+	_knob_offset = offset.limit_length(radius * 0.7)
+	queue_redraw()
 
 	var exit_radius: float = radius * DEAD_ZONE_EXIT_PERCENT
 	var enter_radius: float = radius * DEAD_ZONE_ENTER_PERCENT
@@ -239,4 +199,6 @@ func _set_zone(zone: int) -> void:
 func _release() -> void:
 	_touch_index = -1
 	_in_dead_zone = true
+	_knob_offset = Vector2.ZERO
 	_set_zone(-1)
+	queue_redraw()
