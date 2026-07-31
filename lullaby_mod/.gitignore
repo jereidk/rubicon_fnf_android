@@ -8,4 +8,12 @@
 # Sprites sin procesar
 *.import
 
+# Excepcion: texturas 3D del Cabinet of Novelties / Collector necesitan
+# import settings VRAM Compressed explicitos (no el default Lossless) o
+# un `--headless --import` limpio en CI las reimporta sin comprimir y
+# el juego vuelve a tener el lag de carga/VRAM en Android.
+!/assets/collector/rig/**/*.import
+!/assets/collector/shop/models/**/*.import
+!/assets/collector/shop/modelsold/**/*.import
+
 # Nota: *.pck, *.ctex y *.tar.gz se suben con Git LFS
