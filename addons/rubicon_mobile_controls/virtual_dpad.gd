@@ -177,6 +177,24 @@ func _update_zone(pos: Vector2) -> void:
 
 	_set_zone(raw_zone)
 
+## Dispatches via Input.parse_input_event (real InputEventAction), not
+## Input.action_press/action_release. action_press only updates the Input
+## singleton's polled action-strength state - per Godot's own docs it
+## "will not cause any Node._input calls." Godot's own Control focus
+## navigation (grab_focus/focus_neighbor_* moving on ui_up/down/left/
+## right, ui_accept activating a button) is driven entirely by real
+## InputEvents flowing through _input/_gui_input, so action_press alone
+## silently never moves focus anywhere - confirmed empirically. Every
+## menu here (Console, Kollectadex, Settings, Categories...) is built on
+## that same default focus system, so this one call is what makes the
+## D-pad actually navigate any of it, not just poll-based consumers like
+## MouseController's Input.get_axis(ui_right, ui_left).
+func _dispatch_action(action: StringName, pressed: bool) -> void:
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = pressed
+	Input.parse_input_event(event)
+
 func _set_zone(zone: int) -> void:
 	_in_dead_zone = zone == -1
 
@@ -189,9 +207,9 @@ func _set_zone(zone: int) -> void:
 	_zone_held_since = now
 
 	if _active_zone != -1:
-		Input.action_release(ACTIONS[_active_zone])
+		_dispatch_action(ACTIONS[_active_zone], false)
 	if zone != -1:
-		Input.action_press(ACTIONS[zone])
+		_dispatch_action(ACTIONS[zone], true)
 
 	_active_zone = zone
 	queue_redraw()
@@ -209,7 +227,7 @@ func _release() -> void:
 	_in_dead_zone = true
 	_knob_offset = Vector2.ZERO
 	if _active_zone != -1:
-		Input.action_release(ACTIONS[_active_zone])
+		_dispatch_action(ACTIONS[_active_zone], false)
 	_active_zone = -1
 	_zone_held_since = 0.0
 	queue_redraw()
