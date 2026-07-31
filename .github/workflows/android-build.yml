@@ -192,7 +192,7 @@ jobs:
         with:
           name: rubicon-fnfr-android-debug
           path: builds/android_debug.apk
-          retention-days: 14
+          retention-days: 3
           compression-level: 9
 
       - name: Upload debug symbols
@@ -202,7 +202,7 @@ jobs:
           name: rubicon-fnfr-android-debug-symbols
           path: |
             builds/*.apk.idsig
-          retention-days: 14
+          retention-days: 3
 
   release:
     name: Create Release
