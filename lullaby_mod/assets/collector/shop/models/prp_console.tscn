@@ -1,15 +1,15 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://q3s0hpj6sk73"]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_console.gdc" id="1_xh3aw"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/console.tres" id="2_nl012"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_adapter.tres" id="3_sol25"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="4_meyka"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="5_3rdrk"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="6_t7ejp"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="7_rgtu2"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="8_7myjc"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="9_k27cf"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="10_2gnxp"]
+[ext_resource type="Script" uid="uid://dxq0hpyngokux" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_console.gd" id="1"]
+[ext_resource type="Material" uid="uid://dbejgvwirfp6j" path="res://lullaby_mod/assets/collector/shop/models/materials/console.tres" id="2"]
+[ext_resource type="Material" uid="uid://ywykf2vw760g" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_adapter.tres" id="3"]
+[ext_resource type="PackedScene" uid="uid://d1r7aa5nov1mc" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="4"]
+[ext_resource type="Shader" uid="uid://b7bx2eh2ixh2v" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="5"]
+[ext_resource type="Texture2D" uid="uid://b07uqtm3nyxic" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://ds7fujbpkpaby" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://b5rm4xq4cb0ht" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://bwg67dkx7dgcy" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="10"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_wjhjm"]
 _surfaces = [{
@@ -36,7 +36,7 @@ _surfaces = [{
 "index_count": 588,
 "index_data": PackedByteArray("AACMAAIAAgAFAAAAAgAGAAUAAAADAIwAAwABAIwAAwAEAAEABwAIAAkABwAKAAgACQCNAAcACQAMAI0ACwCNAAwACwAMAA0AjgA5AI8AjgCQADkAjgCRAJAAjwA5ADYAkgCOAI8AjgCTAJEAkgCTAI4AkwCUAJEAkwCVAJQAkgA6AJMAOgCVAJMAOgA7AJUAkgCPADgAOACPAJYAjwA2AJYAOACWADUAlwA1AJYAmACWADYAlwCWAJgAmAA2AJkANwCXAJgAmgCYAJkANwCYAJoAmgCZAJsAmgCbAJwAmgCcAJ0ANwCaAJ0ANwCdADQADgAPAJ4AEQAOAJ4AEQCeABAADgCfAA8AEwAPAJ8AEwCfABIAoAAVAKEAoQAUAKAAoQAWABQAFQCiAKEAFQCjAKIAoAAYABUAFQAZAKMAGACgAKQAGQAXAKMAGACkAKUAGwAXABkAGAClABsAGwAaABcAGwClABoAHAAdAB4AHAAfAB0ApgAhACIApgCnACEApwAmACEAqACmACIAqAAiACMAqAAjACcAJQCmAKgAIACnAKYAJQAgAKYAIACpAKcAJQCoAKoAqAAnAKoAJQCqAKsAKwCqACcAqQCsAKcApwCsACYAqQAkAKwAKgCsACQArQCrAKoAKwCtAKoArQApAKsALQApAK0ArgCtACsALQCtAK4AKgAtAK4ArgArACwAKgCvAKwAKgCuAK8ArwCuACwArwAmAKwArwAsACgArwAoACYAsACxALIAMACyALEAMACzALIAsAC0ALEALwC0ALAALwCwAC4AMQAvAC4AMQAyAC8AMgAxALUAMgC1ALYAtgC1ALcAtgC3ALgAMwC4ALcAMwC3ALkAugBCALsAugA+AEIAvAC6ALsAvAC7AL0AvQBAALwAvgC8AEAAvQBDAEAAvgC/ALwAwABDAL0AwQC/AL4AwAC9AMIAwQDDAL8AxADAAMIAPADDAMEAxADCAMUAPAA9AMMAQQDEAMUAPAA/AD0AQQDFAD8APABBAD8ARABFAEYARABHAEUASABJAEoASABLAEkATABNAE4ATABPAE0AUABRAFIAUABTAFEAVABVAFYAVABXAFUAWABZAFoAWABbAFkAewDGAH4AewB+AH8AxgB9AH4AxgB8AH0AXABdAMcAXADHAF4AXQBfAMcAXQBgAF8AyAB4AHoAyAB6AMkAygDIAMkAygDJAMsAdwDKAMsAdwDLAHkAYQBiAMwAYQDMAGMAYgBkAMwAYgBlAGQAZgBnAM0AZgDNAGgAZwBpAM0AZwBqAGkAzgDPAHAAzgBxAM8AzgBwAHIAzgDQAHEAcgBwANEA0ADSAHEAcgDRANMA0ABvANIAbgDTANEAawDSAG8AbgDRAGwAawBtANIA1ABuAGwA1ABtAGsA1ABsANUA1ADVAG0AcwB0AHUAcwB1AHYA1gCFAIcA1gCHANcAhADWANcAhADXAIYA2ADZAIoA2ADaANkA2ACKANsA2ACJANoAiADYANsAiwCJANgAiADcANgAiwDYANwAgADdAN4AgADeAIIA3QCDAN4A3QCBAIMA"),
 "lods": [1.8765292, PackedByteArray("AAABAAIAAAADAAEAAwAEAAEAAgAFAAAAAgAGAAUABwAIAAkABwAKAAgACQALAAcACQAMAAsACwAMAA0ADgAPABAAEQAOABAADgASAA8AEwAPABIAFAAVABYAFQAXABYAFAAYABUAFQAZABcAGAAUABoAGwAXABkAGAAaABsAGwAaABcAHAAdAB4AHAAfAB0AIAAhACIAIwAgACIAIAAkACEAJQAgACMAIQAkACYAJQAjACcAKAAmACQAKQAlACcAKgAoACQAKwApACcAKgAsACgALAApACsAKgAtACwALQApACwALgAvADAAMQAvAC4AMQAyAC8AMgAxADMANAA1ADYANwA1ADQAOAA2ADUAOAA5ADYAOAA6ADkAOQA6ADsAPAA9AD4APAA/AD0APAA+AEAAPABBAD8AQgBAAD4AQQBCAD8AQgBDAEAAQQBDAEIARABFAEYARABHAEUASABJAEoASABLAEkATABNAE4ATABPAE0AUABRAFIAUABTAFEAVABVAFYAVABXAFUAWABZAFoAWABbAFkAXABdAF4AXQBfAF4AXQBgAF8AYQBiAGMAYgBkAGMAYgBlAGQAZgBnAGgAZwBpAGgAZwBqAGkAawBsAG0AawBuAGwAawBtAG8AbgBwAGwAbwBtAHEAcgBwAG4AcgBvAHEAcgBxAHAAcwB0AHUAcwB1AHYAdwB4AHkAeAB6AHkAewB8AH0AewB9AH4AewB+AH8AgACBAIIAgQCDAIIAhACFAIYAhQCHAIYAiACJAIoAiwCJAIgA")],
-"material": ExtResource("2_nl012"),
+"material": ExtResource("2"),
 "name": "console",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -71,7 +71,7 @@ _surfaces = [{
 "index_count": 1128,
 "index_data": PackedByteArray("AAABAAIAAQAAAAMABAADAAAABAAFAAMABQAEABUBFQEEAAYAFgEXARgBFgEYAYkAFgGJABkBFgEZARoBGwEaAYwAGwEWARoBFgEbAYoAFgGKABwBiAAWARwBiAAcAYsAiAAdARYBHQEXARYBiAAeAR0BHwEXAR0BIAEfAR0BhAAdAR4BhwAgAR0BhAAhAR0BhwAdASEBIQEiAYcAIQEjASIBIQGEAIIAIQEkASMBIQGCACUBJQEkASEBgAAlAYIAJAElAYUAhQAlASYBJgElAScBgAAoASUBJwElASkBKAGBACUBKQElAYEAKAGDAIEAKQGBAIYAKgErASwBKgEsAQkAKwEtASwBKwEqAQcAKwEKAC0BKwEuAQoAKwEHAAsAKwEvAS4BCAArAQsACAALAAwAMAEvASsBCAAwASsBMQEvATABCAAyATABMwExATABNAEwATIBDQAzATABNAE1ATABDQAwATUBNQE2AQ0ANQE3ATYBNQE0AQ4ANQE4ATcBNQEOADkBOQE4ATUBOQEOABIAOAE5AQ8ADwA5AToBOgE5ATsBOQESADwBOwE5AT0BEAA5ATwBPQE5ARAAEAA8ARMAPQEQABEAFAA+ARYAFAAVAD4BPgE/ARYAPgEYAD8BPwEYABkAPwEZABcAGgAbABwAGgAdABsAHQAeABsAHQBAAR4AQAEgAB4AQAEfACAAVQBBAUIBWABBAVUAQwFBAVgAQgFBAUQBQwFFAUEBQQFFAUQBQwFGAUUBQgFEAUcBRgFWAEUBVgBEAUUBRgFXAFYAVgBUAEQBRwFEAVQARwFUAEgBUgBIAVQAUgBTAEgBSQFKAUsBSQEnAEoBSwEhAEkBKABKAScAKAAiAEoBSwEjACEATAEiACgAIgBMASkAKQBMASoAKAAqAEwBMAAqACgAIQAjAE0BJABNASMAJQBNASQATQElACEAIQAlACYAMAAxACoAIQAmACsATgExADAAMQBOATMAMwBOATIAMAAyAE4BTwEyADAATwEwAFABUAEuAE8BUAEvAC4AKwAuAC8AKwAtAC4AUQEtACsAKwAmAFEBLQBRASwALABRASYANAA1ADYANAA3ADUAOAA5ADUAOAA6ADkAOwA8AD0AOwBSATwAOwA+AFIBOwA/AD4AxQBTAVQBwQBTAcUAVQFTAcEAVgFUAVMBVgFXAVQBWAFTAVUBVgFTAVgBWAFVAVkBVwFWAcMAWAHDAFYBVwHDAFoBxwBaAcMAxwDGAFoBWAHCAMMAWQHCAFgBWQHEAMIAQABbAVwBXQFAAFwBXAFbAV4BXQFfAUAAQgBfAV0BQgBgAV8BQgBEAGABXgFbAWEBQABiAVsBWwFDAGEBYgFBAFsBQQBDAFsBRQBjAUQARQBkAWMBZAFlAWMBZAFmAWUBZwFlAWYBZwFmAWgBaAFmAWkBaAFHAGcBRgBoAWkBRwBoAUgASABoAUYAagFKAEsAagFJAEoAawFqAUsAawFLAGwBTABrAWwBTABsAU0AbQFuAW8BTgBtAW8BTgBvAVAAbQFwAW4BcAFxAW4BcAFyAXEBcgFPAHEBcgFRAE8AWQBaAFsAXABbAFoAWwBcAF0AWQBeAFoAcwFeAFkAXwBzAVkAYABhAGIAYABjAGEAdAGeAHUBdAGdAJ4AdgF0AXUBdgF3AXQBeAF3AXYBeAF2AXkBegF4AXkBegF5AXsBnAB6AXsBnAB7AZ8AfAGOAH0BfAGQAI4AfgF8AX0BfgF/AXwBgAF/AX4BgAF+AYEBggGAAYEBggGBAYMBjQCCAYMBjQCDAY8AbACEAW8AbACFAYQBhQGGAYQBhQGHAYYBhwGIAYYBhwGJAYgBiQFuAIgBiQFtAG4AigGLAYwBjQGKAYwBjAGLAY4BjQGPAYoBeQCPAY0BeQCQAY8BeQB1AJABjgGLAZEBigGSAYsBiwF7AJEBkgF6AIsBegB7AIsBeACTAXUAeACUAZMBlAGVAZMBlAGWAZUBlwGVAZYBlwGWAZgBmAGWAZkBmAF0AJcBdgCYAZkBdACYAXcAdwCYAXYAZABmAJoBZABlAGYAZwBkAJoBZwCaAWgAaQBqAGUAaQBrAGoAcABxAHIAcABzAHEAfAB9AH4AfAB/AH0AmwGcAZ0BmwGeAZwBkQCbAZ0BngGfAZwBkQCdAaABngGhAZ8BoQGSAJ8BoQGUAJIAkQCgAZMAkQCTAKIBowGiAZMAowGkAaIBpQGkAaMBpQGVAKQBpgGVAKUBpgGnAZUAlgCnAaYBlgCXAKcBqAGZAKkBqAGbAJkAmACoAakBmACpAZoAoAChAKIAoACjAKEApAClAKYApACqAaUApACnAKoBpACoAKcAqQCqAKsAqQCsAKoArACtAKoArACrAa0AqwGvAK0AqwGuAK8AuQCsAboAuQC6ALsArAGyALoAuQC7ALgArAGtAbIAuQC4ALcAsACyAK0BtwC4ALYAsACxALIAtwC2AK4BsACzALEArwGuAbYAsAC0ALMArwG2ALUAtAC1ALMAtACvAbUAsAG9ALEBvACwAbEBvACxAb4AsAGyAb0AsgHAAL0AsgG/AMAAyADJAMoAyACzAckAyADLALMByADMAMsA2gC0AdwA2gC1AbQBtQHbALQBtQHdANsA3gDcALYB3gC2Ad8A4ADfALYB4AC2AeEA4gDgAOEA4gDhAOMA4gDjAOQAtwHOAM8AtwHNAM4A0AC3Ac8A0ADPANEA0gDTANQA0gDVANMA1gDXANgA1gDZANcA5QDmAOcA5QDoAOYA6QDqAOsA6QDsAOoA7QDuAO8A7QDwAO4A8QC4AfMA8QC5AbgBuQHyALgBuQH0APIA9QD2APcA9QD3APgA+QD1APgA+QD4APoA+QD6APsA+QD7APwA/QD+AP8AAAH/AP4A/QD/AAEBAgH9AAEBAgEBAQMBBAEFAQYBBAEGAQcBCAEJAQoBCAG6AQkBCAELAboBCAEMAQsBDQEOAQ8BDQEQAQ4BEQESARMBEQEUARIB"),
 "lods": [0.2983382, PackedByteArray("AAABAAIAAQAAAAMABAADAAAABAAFAAMABQAEAAYABwAIAAkACAAKAAkACAAHAAsACAALAAwADQAKAAgADQAIAA4ADgAPAA0AEAAPAA4ADwAQABEAEAAOABIAEAASABMAFAAVABYAFQAXABYAFQAYABcAFwAYABkAGgAbABwAGgAdABsAHQAeABsAHQAfAB4AHwAgAB4AIQAiACMAIQAjACQAJAAlACEAIQAlACYAIQAnACIAKAAiACcAKQAiACgAKAAqACkAIQAmACsAKwAmACwALAAtACsAKwAtAC4AKwAuAC8AMAAqACgAMAAvAC4AMAAxACoAMAAuADIAMwAxADAAMAAyADMANAA1ADYANAA3ADUAOAA5ADUAOAA6ADkAOwA8AD0AOwA+ADwAOwA/AD4AQABBAEIAQgBBAEMAQgBEAEAARQBGAEQARwBEAEYASABHAEYASQBKAEsATABJAEsATABLAE0ATgBPAFAATgBRAE8AUgBTAFQAVQBUAFMAVgBUAFUAVwBWAFUAVwBVAFgAWQBaAFsAXABbAFoAWwBcAF0AWQBeAFoAXwBeAFkAYABhAGIAYABjAGEAZABlAGYAZwBkAGYAZwBmAGgAaQBqAGUAaQBrAGoAbABtAG4AbABuAG8AcABxAHIAcABzAHEAdAB1AHYAdwB0AHYAeAB2AHUAeQB1AHoAeQB6AHsAfAB9AH4AfAB/AH0AgACBAIIAgACDAIEAhACCAIEAgQCFAIQAhQCBAIYAhACFAIcAhwCIAIQAhwCJAIgAigCIAIkAiACKAIsAigCJAIwAjQCOAI8AjQCQAI4AkQCSAJMAkQCUAJIAkQCTAJUAlgCVAJMAlgCXAJUAmACZAJoAmACbAJkAnACdAJ4AnACeAJ8AoAChAKIAoACjAKEApAClAKYApACnAKUApACoAKcAqQCqAKsAqQCsAKoArACtAKoArACuAK0ArgCvAK0AsACxALIAsACzALEAsAC0ALMAtAC1ALMAtAC2ALUAtAC3ALYAtwC4ALYAuQCwALIAuQC4ALcAuQCyALoAuQC7ALgAuQC6ALsAvAC9AL4AvAC/AL0AvwDAAL0AwQDCAMMAwQDEAMIAxQDBAMMAxQDDAMYAxwDGAMMAyADJAMoAyADLAMkAyADMAMsAzQDOAM8A0ADNAM8A0ADPANEA0gDTANQA0gDVANMA1gDXANgA1gDZANcA2gDbANwA2gDdANsA3gDcAN8A4ADfANwA4ADcAOEA4gDgAOEA4gDhAOMA4gDjAOQA5QDmAOcA5QDoAOYA6QDqAOsA6QDsAOoA7QDuAO8A7QDwAO4A8QDyAPMA8QD0APIA9QD2APcA9QD3APgA+QD1APgA+QD4APoA+QD6APsA+QD7APwA/QD+AP8AAAH/AP4A/QD/AAEBAgH9AAEBAgEBAQMBBAEFAQYBBAEGAQcBCAEJAQoBCAELAQkBCAEMAQsBDQEOAQ8BDQEQAQ4BEQESARMBEQEUARIB")],
-"material": ExtResource("3_sol25"),
+"material": ExtResource("3"),
 "name": "cartridge_adapter",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -83,13 +83,13 @@ shadow_mesh = SubResource("ArrayMesh_sh7bb")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xf1vf"]
 render_priority = 0
-shader = ExtResource("5_3rdrk")
-shader_parameter/texture_albedo = ExtResource("7_rgtu2")
-shader_parameter/texture_normal = ExtResource("8_7myjc")
-shader_parameter/metallic_amount = null
+next_pass = null
+shader = ExtResource("5")
+shader_parameter/texture_albedo = ExtResource("7")
+shader_parameter/texture_normal = ExtResource("8")
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("6_t7ejp")
+shader_parameter/dissolve_texture = ExtResource("6")
 shader_parameter/burn_size = 0.10000000475
 shader_parameter/dissolve_amount = -0.10000000149012
 
@@ -152,7 +152,7 @@ _surfaces = [{
 "index_count": 78,
 "index_data": PackedByteArray("FgAXABgAGAAXAAEAGAABABkAFwAWAAAAFwAAABoAFgAYAAMAAwAYAAIAAwACAAQAFgADAAUAFgAFABsAHAAHAAgAHAAIAB0ACQAcAB0ACQAGABwAHgALAAwAHgAMAB8ADQAeAB8ADQAKAB4AIAAPABAAIAAQACEAEQAgACEAEQAOACAAFQASACIAFQAiACMAIgAUACMAIgATABQA"),
 "lods": [0.5905288, PackedByteArray("AAABAAIAAAACAAMAAwACAAQAAAADAAUABgAHAAgABgAIAAkACgALAAwACgAMAA0ADgAPABAADgAQABEAEgATABQAEgAUABUA")],
-"material": ExtResource("2_nl012"),
+"material": ExtResource("2"),
 "name": "console",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -187,7 +187,7 @@ _surfaces = [{
 "index_count": 78,
 "index_data": PackedByteArray("FgABAAIAFgACABcAAwAWABcAAwAAABYABAAYABkAGAAEAAcAGAAHABoAGQAYAAUAGQAFABsABAAZABwAHAAZAAYAHAAGAB0AHAAJAAQAHAAIAAkAHgALAAwAHgAMAB8ACgAeAB8ACgAfAA0AIAAPABAAIAAQACEAEQAgACEAEQAOACAAIgATABQAIgAUACMAFQAiACMAFQASACIA"),
 "lods": [0.27255487, PackedByteArray("AAABAAIAAAACAAMABAAFAAYABQAEAAcABAAGAAgACAAJAAQACgALAAwACgAMAA0ADgAPABAADgAQABEAEgATABQAEgAUABUA")],
-"material": ExtResource("2_nl012"),
+"material": ExtResource("2"),
 "name": "console",
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -251,7 +251,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("7_rgtu2")]
+"values": [ExtResource("7")]
 }
 
 [sub_resource type="Animation" id="Animation_onoob"]
@@ -268,7 +268,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("9_k27cf")]
+"values": [ExtResource("9")]
 }
 
 [sub_resource type="Animation" id="Animation_g2krc"]
@@ -285,7 +285,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("10_2gnxp")]
+"values": [ExtResource("10")]
 }
 
 [sub_resource type="Animation" id="Animation_h2fsy"]
@@ -302,7 +302,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("7_rgtu2")]
+"values": [ExtResource("7")]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_g2krc"]
@@ -314,7 +314,7 @@ _data = {
 }
 
 [node name="prp_console" type="Node3D" unique_id=1326272856 node_paths=PackedStringArray("cartridge_materials")]
-script = ExtResource("1_xh3aw")
+script = ExtResource("1")
 cartridge_materials = NodePath("CartridgeMaterials")
 
 [node name="Console" type="MeshInstance3D" parent="." unique_id=1273955513]
@@ -325,7 +325,7 @@ mesh = SubResource("ArrayMesh_mlgjx")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7772264, 0)
 mesh = SubResource("ArrayMesh_o3rev")
 
-[node name="prp_cartridge" parent="Console/Adapter" unique_id=1564110037 instance=ExtResource("4_meyka")]
+[node name="prp_cartridge" parent="Console/Adapter" unique_id=1564110037 instance=ExtResource("4")]
 transform = Transform3D(1.8410705, 0, 7.112181, 0, 7.346613, 0, -7.112181, 0, 1.8410705, -27.92067, -13.0468855, 17.289112)
 
 [node name="Cartridge" parent="Console/Adapter/prp_cartridge" index="0" unique_id=418026459]

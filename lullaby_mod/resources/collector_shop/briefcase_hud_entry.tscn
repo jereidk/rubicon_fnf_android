@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b0gdf1hwvty7i"]
 
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="1_r12bh"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/briefcase/coin_icon.tres" id="2_545iu"]
+[ext_resource type="FontFile" uid="uid://b2onowkv4pmbx" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="1"]
+[ext_resource type="Texture2D" uid="uid://ca2akhv22eoy6" path="res://lullaby_mod/assets/menus/briefcase/coin_icon.tres" id="2"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_g4v7s"]
-font = ExtResource("1_r12bh")
+font = ExtResource("1")
 font_size = 96
 shadow_size = 6
 shadow_color = Color(0, 0, 0, 1)
@@ -29,7 +29,7 @@ custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 offset_transform_enabled = true
 offset_transform_position = Vector2(12, 0)
-texture = ExtResource("2_545iu")
+texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
 

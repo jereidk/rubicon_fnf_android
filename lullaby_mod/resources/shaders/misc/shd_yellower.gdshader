@@ -1,4 +1,4 @@
-// Shader stolen from res://resources/shaders/color/shd_simple_color_replace.gdshader
+// Shader stolen from res://lullaby_mod/resources/shaders/color/shd_simple_color_replace.gdshader
 // Modified by lunarcleint
 
 shader_type canvas_item;

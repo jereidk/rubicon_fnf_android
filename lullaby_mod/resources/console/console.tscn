@@ -1,100 +1,101 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://dpnrx427b1ijy"]
 
-[ext_resource type="Theme" path="res://lullaby_mod/resources/console/thm_options.tres" id="1_3pcgo"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console.gdc" id="2_ynokv"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/background/console_bg.tscn" id="3_yci5w"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_cell.gdshader" id="4_xfjdr"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader" id="5_yy11l"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/MultiplyGradientofAwesomeness.png" id="6_d661d"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/BubbletopLeft.png" id="7_edstm"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/BubbulsBottomRight.png" id="8_be22b"]
-[ext_resource type="Theme" path="res://lullaby_mod/resources/console/thm_soulroom.tres" id="9_s23lv"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/memory_counter.gdc" id="10_gxlbw"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/time.gdc" id="11_n163n"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tab_container.gdc" id="12_xjwse"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/home.gdc" id="13_a2k32"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/SelectBubble.png" id="14_uh23o"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_credits.gltf" id="15_vjblp"]
-[ext_resource type="Animation" path="res://lullaby_mod/assets/menus/console/icons/animations/idle.tres" id="16_lr82d"]
-[ext_resource type="Animation" path="res://lullaby_mod/assets/menus/console/icons/animations/select.tres" id="17_4tacc"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_training.gltf" id="18_na2mk"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_gallery.gltf" id="19_wb8r8"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_settings.gltf" id="20_lmmmu"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_cartridge.gltf" id="21_laj2s"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="22_wfesi"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridge_icon.gdc" id="23_sjnta"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_body.tres" id="24_bu4vi"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="25_aidmt"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="26_tgxfu"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="27_21fex"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home_button.gdc" id="28_2nc6k"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_idle.tres" id="29_w7bmg"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres" id="30_iox0i"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/gallery_button.gdc" id="31_0l50m"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home/cartridges_button.gdc" id="32_rkoml"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gdc" id="33_m5tpy"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tabs.gdc" id="34_mt8m6"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="35_jv51v"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/menus/console/icons/models/ui_arrow.gltf" id="36_2vb3o"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_funkin.ttf" id="37_rg3h6"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/role_scroller.gdc" id="38_tpb67"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_funkin2.ttf" id="39_hd1jp"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gdc" id="40_apa3h"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gdc" id="41_2vm2v"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/credits/devest_portraits.tres" id="42_hhmo4"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="43_ypa6l"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg" id="44_wy1j8"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gdc" id="45_uh3qs"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/portrait/OptionsBox.res" id="46_1pgtl"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/portrait_box.gdc" id="47_2xp0c"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/options/portrait/settings_icons.res" id="48_57dr8"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/volume_button.gdc" id="49_dbutl"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/incremental_button.gdc" id="50_vkkpy"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/categories_button.gdc" id="51_o0rmd"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/console/settings/toggle_button.tscn" id="52_0ye1x"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/window_mode_button.gdc" id="53_dy80y"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/list_button.gdc" id="54_guxm5"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/quality_preset_button.gdc" id="55_lashb"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/input_button.gdc" id="56_3aqok"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/delete_save_data.gdc" id="57_fxaak"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/training/lil_ector.res" id="58_bktoq"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay.png" id="59_jtnin"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay_icon.png" id="60_jtmyx"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals.png" id="61_84q77"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png" id="62_ubdij"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63_lmr2r"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64_qqp2t"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65_saj2m"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66_2xjno"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67_cc1yr"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/pause/tex_chimera_pause_serena.png" id="68_4jpil"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNoteBox.png" id="69_lj3ak"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorsNoteTitle.png" id="70_afwit"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_times.ttf" id="71_1ydjf"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote3.png" id="72_nkoai"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote1.png" id="73_of27v"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote2.png" id="74_q14ca"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="75_2150l"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gdc" id="76_2boew"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridges_enter_label.gdc" id="77_rwyqr"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/cartridge/spr_cartridge_name.tres" id="78_g6t8a"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/training_button.gdc" id="79_lnr1u"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/training/Box.png" id="80_bwv1e"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/training/training_icons.res" id="81_n2fg8"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/menuheader.png" id="82_rqlad"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/console/intro/ConsoleStartup.res" id="83_ovfe7"]
-[ext_resource type="AnimationLibrary" path="res://lullaby_mod/resources/animations/shop/console_intro.tres" id="84_jyabn"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_soulroom.ogg" id="85_d8qj4"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector_shop_settings.gdc" id="86_qefjv"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_crt.gdshader" id="87_w71s2"]
+[ext_resource type="Theme" uid="uid://bo5yp6dkejvl" path="res://lullaby_mod/resources/console/thm_options.tres" id="1"]
+[ext_resource type="Script" uid="uid://bfdtvyr38nfsk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://ct6iv6dplaf2c" path="res://lullaby_mod/assets/menus/console/background/console_bg.tscn" id="3"]
+[ext_resource type="Shader" uid="uid://bdigd3d3vihs0" path="res://lullaby_mod/resources/shaders/shd_cell.gdshader" id="4"]
+[ext_resource type="Shader" uid="uid://dcd33wsouc143" path="res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader" id="5"]
+[ext_resource type="Texture2D" uid="uid://bud87qdhx8is" path="res://lullaby_mod/assets/menus/console/MultiplyGradientofAwesomeness.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://dakq88h4giq4l" path="res://lullaby_mod/assets/menus/console/BubbletopLeft.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://brnslcytp5a01" path="res://lullaby_mod/assets/menus/console/BubbulsBottomRight.png" id="8"]
+[ext_resource type="Theme" uid="uid://bomkpkthng20p" path="res://lullaby_mod/resources/console/thm_soulroom.tres" id="9"]
+[ext_resource type="Script" uid="uid://m51il23w1cwt" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/memory_counter.gd" id="10"]
+[ext_resource type="Script" uid="uid://cp2ukr27w0y8l" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/time.gd" id="11"]
+[ext_resource type="Script" uid="uid://wsghge7e7101" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tab_container.gd" id="12"]
+[ext_resource type="Script" uid="uid://dep3vfm25ktgv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/home.gd" id="13"]
+[ext_resource type="Texture2D" uid="uid://x3l14f5p7kp4" path="res://lullaby_mod/assets/menus/console/SelectBubble.png" id="14"]
+[ext_resource type="PackedScene" uid="uid://cllqbl0dakk5q" path="res://lullaby_mod/assets/menus/console/icons/models/ui_credits.gltf" id="15"]
+[ext_resource type="Animation" uid="uid://dpdsbbhb47an4" path="res://lullaby_mod/assets/menus/console/icons/animations/idle.tres" id="16"]
+[ext_resource type="Animation" uid="uid://de8vohlqkbk0y" path="res://lullaby_mod/assets/menus/console/icons/animations/select.tres" id="17"]
+[ext_resource type="PackedScene" uid="uid://blmormj0sk1d1" path="res://lullaby_mod/assets/menus/console/icons/models/ui_training.gltf" id="18"]
+[ext_resource type="PackedScene" uid="uid://bufv5tnfmb324" path="res://lullaby_mod/assets/menus/console/icons/models/ui_gallery.gltf" id="19"]
+[ext_resource type="PackedScene" uid="uid://dn6nge3jm5i12" path="res://lullaby_mod/assets/menus/console/icons/models/ui_settings.gltf" id="20"]
+[ext_resource type="PackedScene" uid="uid://coee4j0rkvtjx" path="res://lullaby_mod/assets/menus/console/icons/models/ui_cartridge.gltf" id="21"]
+[ext_resource type="PackedScene" uid="uid://d1r7aa5nov1mc" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="22"]
+[ext_resource type="Script" uid="uid://0o5dlmalbsjq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridge_icon.gd" id="23"]
+[ext_resource type="Material" uid="uid://dxvaeobgeuuck" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_body.tres" id="24"]
+[ext_resource type="Texture2D" uid="uid://ds7fujbpkpaby" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="25"]
+[ext_resource type="Texture2D" uid="uid://bwg67dkx7dgcy" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="26"]
+[ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="27"]
+[ext_resource type="Script" uid="uid://cceu0sr4b00xm" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home_button.gd" id="28"]
+[ext_resource type="Material" uid="uid://bp602wx487gdq" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_idle.tres" id="29"]
+[ext_resource type="Material" uid="uid://d10k0u0qfnykw" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres" id="30"]
+[ext_resource type="Script" uid="uid://heu72nbs4klv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/gallery_button.gd" id="31"]
+[ext_resource type="Script" uid="uid://6ehgghqnnrfg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home/cartridges_button.gd" id="32"]
+[ext_resource type="Script" uid="uid://bpqsia4nl31kq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gd" id="33"]
+[ext_resource type="Script" uid="uid://dl7qb0b82xisj" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tabs.gd" id="34"]
+[ext_resource type="Texture2D" uid="uid://co32fmips3bpr" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="35"]
+[ext_resource type="PackedScene" uid="uid://pyrxbn5l37ss" path="res://lullaby_mod/assets/menus/console/icons/models/ui_arrow.gltf" id="36"]
+[ext_resource type="FontFile" uid="uid://gk0tkvl4wnv2" path="res://lullaby_mod/resources/fonts/fnt_funkin.ttf" id="37"]
+[ext_resource type="Script" uid="uid://71o7bsk0g7av" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/role_scroller.gd" id="38"]
+[ext_resource type="FontFile" uid="uid://ilqa3kmi8s03" path="res://lullaby_mod/resources/fonts/fnt_funkin2.ttf" id="39"]
+[ext_resource type="Script" uid="uid://bt1rv1ok0bduo" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd" id="40"]
+[ext_resource type="Script" uid="uid://c3kvjgv8wyyjg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gd" id="41"]
+[ext_resource type="SpriteFrames" uid="uid://g1laam845ewt" path="res://lullaby_mod/assets/menus/console/credits/devest_portraits.tres" id="42"]
+[ext_resource type="FontFile" uid="uid://ccukgoph618vn" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="43"]
+[ext_resource type="Texture2D" uid="uid://cjsypkv02kfvp" path="res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg" id="44"]
+[ext_resource type="Script" uid="uid://dha6qny43jfir" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd" id="45"]
+[ext_resource type="SpriteFrames" uid="uid://3s5so0t7ksfx" path="res://lullaby_mod/assets/menus/console/options/portrait/OptionsBox.res" id="46"]
+[ext_resource type="Script" uid="uid://njf81bju8os3" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/portrait_box.gd" id="47"]
+[ext_resource type="SpriteFrames" uid="uid://crjc0ctw7n3ux" path="res://lullaby_mod/assets/menus/console/options/portrait/settings_icons.res" id="48"]
+[ext_resource type="Script" uid="uid://bgeylojmyab8u" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/volume_button.gd" id="49"]
+[ext_resource type="Script" uid="uid://c1gbq7uaqw3ku" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/incremental_button.gd" id="50"]
+[ext_resource type="Script" uid="uid://o4qe8fss82cc" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/categories_button.gd" id="51"]
+[ext_resource type="PackedScene" uid="uid://dku2pdplgpcuy" path="res://lullaby_mod/resources/console/settings/toggle_button.tscn" id="52"]
+[ext_resource type="Script" uid="uid://bkwdvpacebqo3" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/window_mode_button.gd" id="53"]
+[ext_resource type="Script" uid="uid://b2rgvh635u8gc" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/list_button.gd" id="54"]
+[ext_resource type="Script" uid="uid://cy3cjlx4hitno" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/quality_preset_button.gd" id="55"]
+[ext_resource type="Script" uid="uid://clw02pwxq4tqd" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/input_button.gd" id="56"]
+[ext_resource type="Script" uid="uid://dvabg635gsp35" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/delete_save_data.gd" id="57"]
+[ext_resource type="SpriteFrames" uid="uid://bhhdt4d11ad4p" path="res://lullaby_mod/assets/menus/console/training/lil_ector.res" id="58"]
+[ext_resource type="Texture2D" uid="uid://cgg4jowrlujfp" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay.png" id="59"]
+[ext_resource type="Texture2D" uid="uid://cadnw3b5vo85o" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay_icon.png" id="60"]
+[ext_resource type="Texture2D" uid="uid://d07uxh7mdhmfl" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals.png" id="61"]
+[ext_resource type="Texture2D" uid="uid://ckhxeswokdxg0" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png" id="62"]
+[ext_resource type="Texture2D" uid="uid://ecxvo8jf1mjg" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63"]
+[ext_resource type="Texture2D" uid="uid://d1pa7o5lokrtv" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64"]
+[ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
+[ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
+[ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
+[ext_resource type="Texture2D" uid="uid://s7bn5f6v8jfp" path="res://lullaby_mod/assets/funkin/chimera/pause/tex_chimera_pause_serena.png" id="68"]
+[ext_resource type="Texture2D" uid="uid://bvd7ls668ig7d" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNoteBox.png" id="69"]
+[ext_resource type="Texture2D" uid="uid://brxtcktfyu144" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorsNoteTitle.png" id="70"]
+[ext_resource type="FontFile" uid="uid://7umymrh6l0lh" path="res://lullaby_mod/resources/fonts/fnt_times.ttf" id="71"]
+[ext_resource type="Texture2D" uid="uid://cq6dv55o0ld60" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote3.png" id="72"]
+[ext_resource type="Texture2D" uid="uid://c5fa3icr7e2gu" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote1.png" id="73"]
+[ext_resource type="Texture2D" uid="uid://b0jpros81c8ik" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote2.png" id="74"]
+[ext_resource type="FontFile" uid="uid://bskj0bv8cf310" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="75"]
+[ext_resource type="Script" uid="uid://by4bc0vahgypx" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gd" id="76"]
+[ext_resource type="Script" uid="uid://onbmyr64dkbk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridges_enter_label.gd" id="77"]
+[ext_resource type="SpriteFrames" uid="uid://bc7j5in7nkdys" path="res://lullaby_mod/assets/menus/console/cartridge/spr_cartridge_name.tres" id="78"]
+[ext_resource type="Script" uid="uid://6kvofwu5i2h5" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/training_button.gd" id="79"]
+[ext_resource type="Texture2D" uid="uid://dy3bopt1xtjwi" path="res://lullaby_mod/assets/menus/console/training/Box.png" id="80"]
+[ext_resource type="SpriteFrames" uid="uid://cx5sint0bwj8w" path="res://lullaby_mod/assets/menus/console/training/training_icons.res" id="81"]
+[ext_resource type="Texture2D" uid="uid://dj8w1ch8bf1q3" path="res://lullaby_mod/assets/menus/console/menuheader.png" id="82"]
+[ext_resource type="SpriteFrames" uid="uid://b1hd642ip03vp" path="res://lullaby_mod/assets/menus/console/intro/ConsoleStartup.res" id="83"]
+[ext_resource type="AnimationLibrary" uid="uid://bamwqihnv0kbe" path="res://lullaby_mod/resources/animations/shop/console_intro.tres" id="84"]
+[ext_resource type="AudioStream" uid="uid://b45wvdqymy0iw" path="res://lullaby_mod/resources/audio/mus/mus_soulroom.ogg" id="85"]
+[ext_resource type="Script" uid="uid://dmkptu3syyxf2" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector_shop_settings.gd" id="86"]
+[ext_resource type="Shader" uid="uid://bsqej2ntumu5i" path="res://lullaby_mod/resources/shaders/shd_crt.gdshader" id="87"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hlefr"]
 render_priority = 0
-shader = ExtResource("4_xfjdr")
+next_pass = null
+shader = ExtResource("4")
 shader_parameter/colorer = Color(0.12, 0.12, 0.357, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_b21dp"]
-shader = ExtResource("5_yy11l")
+shader = ExtResource("5")
 shader_parameter/blend_mode = 2
 
 [sub_resource type="Environment" id="Environment_n7j5i"]
@@ -334,8 +335,8 @@ tracks/31/keys = PackedFloat32Array(0, 1, 1, 0.99999994, 0.99999994)
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_4e3fp"]
 _data = {
 &"ArrowPress_24f": SubResource("Animation_v76o6"),
-&"Idle_192f": ExtResource("16_lr82d"),
-&"Select_48f": ExtResource("17_4tacc")
+&"Idle_192f": ExtResource("16"),
+&"Select_48f": ExtResource("17")
 }
 
 [sub_resource type="Animation" id="Animation_vogi3"]
@@ -350,7 +351,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("25_aidmt")]
+"values": [ExtResource("25")]
 }
 
 [sub_resource type="Animation" id="Animation_hr5tu"]
@@ -366,7 +367,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("26_tgxfu")]
+"values": [ExtResource("26")]
 }
 
 [sub_resource type="Animation" id="Animation_wyhsc"]
@@ -382,7 +383,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("27_21fex")]
+"values": [ExtResource("27")]
 }
 
 [sub_resource type="Animation" id="Animation_k67fb"]
@@ -398,7 +399,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("25_aidmt")]
+"values": [ExtResource("25")]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_wyhsc"]
@@ -487,7 +488,7 @@ _surfaces = [{
 "index_count": 1038,
 "index_data": PackedByteArray("7ADtAO4A7ADvAO0A7ADuAPAA7ADwAPEA8gDzAPQA8gD1APMA9QD2APMA9QD3APYA+AD5APoA+AD7APkA/AD5APsA/AD9APkA/gD/AAAB/gABAf8AAgH/AAEBAgEDAf8ABAEFAQYBBAEHAQUBCAEEAQYBCAEGAQkBCgELAQwBCgENAQsBCgEMAQ4BCgEOAQ8BEAERARIBEAETAREBFAERARMBFAEVAREBEgERARYBFQEWAREBEgEWARcBFQEYARYBGQEaARsBGQEcARoBGwEaAR0BHgEZARsBGwEdAR8BHgEbASABIAEbAR8BIAEfASEBIgEjASQBIgElASMBJAEjASYBJAEmAScBJAEnASgBJAEoASkBIgEkASkBIgEpASoBKwEBACwBLAEBAAIAAQADAAIAKwEAAAEALQECAAcABgAtAQcAKwEuAQQABQArAQQALwEwAa0ArQCrAC8BLwGsADABrAAvAa4ArQAwATEBrAAxATABMQGvAK0AMQGsALAAMgEzATQBNAGxADIBNAEzAbMAMwE1AbMAMwG0ADUBNgG0ADMBMgE2ATMBMgGxALYANgEyAbIAtgA3ATIBMgG1ALIAtQAyATcBCAAJAAoACAA4AQkACwAMAA0ACwAOAAwADwAMABAAEQAMABIAOQEVADoBOQEUABUAOQE6ARYAOQEWABMAFgA7ARgAFQAXADsBFgA8ATsBFQA7ATwBGQAaABsAHAAdAB4APQE+AT8BQAE/AT4BQQFCAUMBRAFDAUIBygBFAckAygBGAUUByABFAUYByADLAEUBzwBHAUgBzwDNAEcBzABIAUcBzABHAc4AHwBJASEAHwBKAUkBIgBJAUoBIgAgAEkBKQAnAEsBJwBMAUsBKABLAUwBKgBLASgA0QDTAE0B0wBOAU0B0gBNAU4B0ABNAdIA1QDXAE8B1wBQAU8B1gBPAVAB1ABPAdYA2gBRAdkA2gBSAVEB2ABRAVIB2ADbAFEBUwFUAVUBVQEkAFMBUwFWAVQBVgFTASUAVQFUAVcBVgFXAVQBVQFXASMAVgEmAFcBWAFZAVoBWwFZAVwBWAFdAVkBWAFeAV0BWAFfAV4BYAFdAWEBYAFhAVwBYgFhAWMBYgFkAWEBZQFmAWcBZQFoAWYBaQFqAWsBaQFsAWoBbQFuAW8BbQFwAW4BcQFuAXIBcwFwAXQBcwF0AXIBdQF2AXcBdQF4AXYBeQF3AXYBeQF2AXoBewF8AX0BewF+AXwBfwF9AXwBfwF8AYABgQGCAYMBgQGEAYIBhQGGAYMBgQGHAYYBgQGGAYgBiQGKAYsBiQGMAYoBjQGOAYsBjQGPAY4BkAGOAZEBjQGSAZEBjQGTAZIBjQGUAZMBjQGVAZQBkAGWAZcBkAGYAZYBmQGaAZsBmQGcAZoBnQGeAZ8BnQGgAZ4BoQGfAZ4BoQGeAaIBowGkAaUBowGmAaQBpwGoAakBpwGqAagBqwGsAa0BqwGuAawBrwGwAbEBrwGyAbABswG0AbUBswG2AbQBswG3AbYBswG4AbcBuQG6AbsBuQG8AboBvQG7AboBvQG6Ab4BvwHAAcEBvwHCAcABwwHEAcUBwwHGAcQBxwHIAckBxwHKAcgBywHMAc0BywHOAcwBzwHQAdEBzwHSAdABzwHTAdIBzwHUAdMBKwAsAC0AKwAuACwALwAwAC0AMQAwADIAMQAzADAAMQA0ADUANgA3AC0ANgA4ADcAOQA3ADoAOQA7ADcAOQA8AD0AOQA+ADwAPwA+AEAAPwBAAEEAQgBDAEQAQgBFAEMARgBHAEMARgBDAEgAQgBJAEoAQgBLAEkATABLAE0ATABNAE4ATwBQAEgAUQBSAEgAUQBTAFIAVABQAFUAVABWAFAAVABXAFgAWQBaAFsAWQBcANUBWQDVAdYBXgDWAdUBXgDVAV0AXgBfAFoAYABaAGEAYABlAGQAYABkAGMA1wFaAGMA1wFiAFoAZgBiAGcAZgBnAGgAaQBoAGoAaQBqAGsAbABqAG0AbABuAGoAaQBuAG8AbwBrAGwAbABwAG8AaQBvAHEAcgBzAHEAdAB1AHYAdAB3AHUAdAB4AHkAdAB6AFsAdAB7AHoAfAB9AH4AfAB/AH0AfACHAIYAfACGAIQAhQCDAIQAgwB9AIQAggB9AIMAggDYAX0AgAB9ANgBgACBAH0AiACJAIYAiACGAIoAiwCMAIoAiwCNAIwAiACOAI8AiACPAJAAkQCSAJAAkgCRAJMAlACSAJMAlACVAJIAlgCVAJcAmACZAJoAmACbAJkAnACdAJ4AnQCfAJ4AoACfAKEAoACiAJ8A2QHaAdsB2QHcAdoB2wHaAd0B2wHdAd4B3wHgAeEB3wHiAeAB4wHiAd8B4wHkAeIB5QHmAecB5QHoAeYB6AHpAeYB6gHoAeUB6AHrAekB6gHsAegB7AHrAegB7AHtAesB7gGkAKUA7gHvAaQA7wGmAKQApACmAKcA7gGoAPABowCoAO4B8QGqAKYAqQCqAPEBtwC5APIBtwC4ALkAugC7ALwAugC9ALsAvgC/ALsAwADBALsAwgDDAMQAxQDGAMcA8wH0AfUB9gH3AfUB9gH4AfcB+QH6AfsB+QH8AfoB/QH+Af8BAAIBAgICAwIEAgUCAwIGAgQCBwIIAgkCBwIKAggCCwIMAgkCDQIOAg8C3ADdAN4A3ADfAN0A4ADhAOIA4ADjAOEAEALhABECEgITAuYA5ADlAOYA5ADnAOUA6ADpAOoA6ADrAOkAFAIVAhYC"),
 "lods": [0.10716948, PackedByteArray("AAABAAIAAQADAAIAAAACAAQABQAAAAQABgACAAcACAAJAAoACwAMAA0ACwAOAAwADwAMABAAEQAMABIAEwAUABUAEwAVABYAFgAVABcAFgAXABgAGQAaABsAHAAdAB4AHwAgACEAIgAgAB8AIwAkACUAJQAmACMAJwAoACkAKgApACgAKwAsAC0AKwAuACwALwAwAC0AMQAwADIAMQAzADAAMQA0ADUANgA3AC0ANgA4ADcAOQA3ADoAOQA7ADcAOQA8AD0AOQA+ADwAPwA+AEAAPwBAAEEAQgBDAEQAQgBFAEMARgBHAEMARgBDAEgAQgBJAEoAQgBLAEkATABLAE0ATABNAE4ATwBQAEgAUQBSAEgAUQBTAFIAVABQAFUAVABWAFAAVABXAFgAWQBaAFsAWQBcAF0AWQBdAF4AXgBfAFoAYABaAGEAYgBaAGMAYABkAGMAYABlAGQAZgBiAGcAZgBnAGgAaQBoAGoAaQBqAGsAbABqAG0AbABuAGoAaQBuAG8AbwBrAGwAbABwAG8AaQBvAHEAcgBzAHEAdAB1AHYAdAB3AHUAdAB4AHkAdAB6AFsAdAB7AHoAfAB9AH4AfAB/AH0AgACBAH0AgAB9AIIAggB9AIMAgwB9AIQAhQCDAIQAfACGAIQAfACHAIYAiACJAIYAiACGAIoAiwCMAIoAiwCNAIwAiACOAI8AiACPAJAAkQCSAJAAkgCRAJMAlACSAJMAlACVAJIAlgCVAJcAmACZAJoAmACbAJkAnACdAJ4AnQCfAJ4AoACfAKEAoACiAJ8AowCkAKUAowCmAKQApACmAKcAowCoAKYAqQCqAKYAqwCsAK0ArACrAK4ArACvAK0ArwCsALAAsQCyALMAsgC0ALMAsQC1ALIAtQCxALYAtwC4ALkAugC7ALwAugC9ALsAvgC/ALsAwADBALsAwgDDAMQAxQDGAMcAyADJAMoAyADLAMkAzADNAM4AzADPAM0A0ADRANIA0gDRANMA1ADVANYA1gDVANcA2ADZANoA2ADbANkA3ADdAN4A3ADfAN0A4ADhAOIA4ADjAOEA5ADlAOYA5ADnAOUA6ADpAOoA6ADrAOkA")],
-"material": ExtResource("29_w7bmg"),
+"material": ExtResource("29"),
 "name": "UIMat",
 "primitive": 3,
 "skin_data": PackedByteArray("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"),
@@ -523,7 +524,7 @@ _surfaces = [{
 "index_count": 1038,
 "index_data": PackedByteArray("7ADtAO4A7ADvAO0A7ADuAPAA7ADwAPEA8gDzAPQA8gD1APMA9QD2APMA9QD3APYA+AD5APoA+AD7APkA/AD5APsA/AD9APkA/gD/AAAB/gABAf8AAgH/AAEBAgEDAf8ABAEFAQYBBAEHAQUBCAEEAQYBCAEGAQkBCgELAQwBCgENAQsBCgEMAQ4BCgEOAQ8BEAERARIBEAETAREBFAERARMBFAEVAREBEgERARYBFQEWAREBEgEWARcBFQEYARYBGQEaARsBGQEcARoBGwEaAR0BHgEZARsBGwEdAR8BHgEbASABIAEbAR8BIAEfASEBIgEjASQBIgElASMBJAEjASYBJAEmAScBJAEnASgBJAEoASkBIgEkASkBIgEpASoBKwEBACwBLAEBAAIAAQADAAIAKwEAAAEALQECAAcABgAtAQcAKwEuAQQABQArAQQALwEwAa0ArQCrAC8BLwGsADABrAAvAa4ArQAwATEBrAAxATABMQGvAK0AMQGsALAAMgEzATQBNAGxADIBNAEzAbMAMwE1AbMAMwG0ADUBNgG0ADMBMgE2ATMBMgGxALYANgEyAbIAtgA3ATIBMgG1ALIAtQAyATcBCAAJAAoACAA4AQkACwAMAA0ACwAOAAwADwAMABAAEQAMABIAOQEVADoBOQEUABUAOQE6ARYAOQEWABMAFgA7ARgAFQAXADsBFgA8ATsBFQA7ATwBGQAaABsAHAAdAB4APQE+AT8BQAE/AT4BQQFCAUMBRAFDAUIBygBFAckAygBGAUUByABFAUYByADLAEUBzwBHAUgBzwDNAEcBzABIAUcBzABHAc4AHwBJASEAHwBKAUkBIgBJAUoBIgAgAEkBKQAnAEsBJwBMAUsBKABLAUwBKgBLASgA0QDTAE0B0wBOAU0B0gBNAU4B0ABNAdIA1QDXAE8B1wBQAU8B1gBPAVAB1ABPAdYA2gBRAdkA2gBSAVEB2ABRAVIB2ADbAFEBUwFUAVUBVQEkAFMBUwFWAVQBVgFTASUAVQFUAVcBVgFXAVQBVQFXASMAVgEmAFcBWAFZAVoBWwFZAVwBWAFdAVkBWAFeAV0BWAFfAV4BYAFdAWEBYAFhAVwBYgFhAWMBYgFkAWEBZQFmAWcBZQFoAWYBaQFqAWsBaQFsAWoBbQFuAW8BbQFwAW4BcQFuAXIBcwFwAXQBcwF0AXIBdQF2AXcBdQF4AXYBeQF3AXYBeQF2AXoBewF8AX0BewF+AXwBfwF9AXwBfwF8AYABgQGCAYMBgQGEAYIBhQGGAYMBgQGHAYYBgQGGAYgBiQGKAYsBiQGMAYoBjQGOAYsBjQGPAY4BkAGOAZEBjQGSAZEBjQGTAZIBjQGUAZMBjQGVAZQBkAGWAZcBkAGYAZYBmQGaAZsBmQGcAZoBnQGeAZ8BnQGgAZ4BoQGfAZ4BoQGeAaIBowGkAaUBowGmAaQBpwGoAakBpwGqAagBqwGsAa0BqwGuAawBrwGwAbEBrwGyAbABswG0AbUBswG2AbQBswG3AbYBswG4AbcBuQG6AbsBuQG8AboBvQG7AboBvQG6Ab4BvwHAAcEBvwHCAcABwwHEAcUBwwHGAcQBxwHIAckBxwHKAcgBywHMAc0BywHOAcwBzwHQAdEBzwHSAdABzwHTAdIBzwHUAdMBKwAsAC0AKwAuACwALwAwAC0AMQAwADIAMQAzADAAMQA0ADUANgA3AC0ANgA4ADcAOQA3ADoAOQA7ADcAOQA8AD0AOQA+ADwAPwA+AEAAPwBAAEEAQgBDAEQAQgBFAEMARgBHAEMARgBDAEgAQgBJAEoAQgBLAEkATABLAE0ATABNAE4ATwBQAEgAUQBSAEgAUQBTAFIAVABQAFUAVABWAFAAVABXAFgAWQBaAFsAWQBcANUBWQDVAdYBXgDWAdUBXgDVAV0AXgBfAFoAYABaAGEAYABlAGQAYABkAGMA1wFaAGMA1wFiAFoAZgBiAGcAZgBnAGgAaQBoAGoAaQBqAGsAbABqAG0AbABuAGoAaQBuAG8AbwBrAGwAbABwAG8AaQBvAHEAcgBzAHEAdAB1AHYAdAB3AHUAdAB4AHkAdAB6AFsAdAB7AHoAfAB9AH4AfAB/AH0AfACHAIYAfACGAIQAhQCDAIQAgwB9AIQAggB9AIMAggDYAX0AgAB9ANgBgACBAH0AiACJAIYAiACGAIoAiwCMAIoAiwCNAIwAiACOAI8AiACPAJAAkQCSAJAAkgCRAJMAlACSAJMAlACVAJIAlgCVAJcAmACZAJoAmACbAJkAnACdAJ4AnQCfAJ4AoACfAKEAoACiAJ8A2QHaAdsB2QHcAdoB2wHaAd0B2wHdAd4B3wHgAeEB3wHiAeAB4wHiAd8B4wHkAeIB5QHmAecB5QHoAeYB6AHpAeYB6gHoAeUB6AHrAekB6gHsAegB7AHrAegB7AHtAesB7gGkAKUA7gHvAaQA7wGmAKQApACmAKcA7gGoAPABowCoAO4B8QGqAKYAqQCqAPEBtwC5APIBtwC4ALkAugC7ALwAugC9ALsAvgC/ALsAwADBALsAwgDDAMQAxQDGAMcA8wH0AfUB9gH3AfUB9gH4AfcB+QH6AfsB+QH8AfoB/QH+Af8BAAIBAgICAwIEAgUCAwIGAgQCBwIIAgkCBwIKAggCCwIMAgkCDQIOAg8C3ADdAN4A3ADfAN0A4ADhAOIA4ADjAOEAEALhABECEgITAuYA5ADlAOYA5ADnAOUA6ADpAOoA6ADrAOkAFAIVAhYC"),
 "lods": [0.10716948, PackedByteArray("AAABAAIAAQADAAIAAAACAAQABQAAAAQABgACAAcACAAJAAoACwAMAA0ACwAOAAwADwAMABAAEQAMABIAEwAUABUAEwAVABYAFgAVABcAFgAXABgAGQAaABsAHAAdAB4AHwAgACEAIgAgAB8AIwAkACUAJQAmACMAJwAoACkAKgApACgAKwAsAC0AKwAuACwALwAwAC0AMQAwADIAMQAzADAAMQA0ADUANgA3AC0ANgA4ADcAOQA3ADoAOQA7ADcAOQA8AD0AOQA+ADwAPwA+AEAAPwBAAEEAQgBDAEQAQgBFAEMARgBHAEMARgBDAEgAQgBJAEoAQgBLAEkATABLAE0ATABNAE4ATwBQAEgAUQBSAEgAUQBTAFIAVABQAFUAVABWAFAAVABXAFgAWQBaAFsAWQBcAF0AWQBdAF4AXgBfAFoAYABaAGEAYgBaAGMAYABkAGMAYABlAGQAZgBiAGcAZgBnAGgAaQBoAGoAaQBqAGsAbABqAG0AbABuAGoAaQBuAG8AbwBrAGwAbABwAG8AaQBvAHEAcgBzAHEAdAB1AHYAdAB3AHUAdAB4AHkAdAB6AFsAdAB7AHoAfAB9AH4AfAB/AH0AgACBAH0AgAB9AIIAggB9AIMAgwB9AIQAhQCDAIQAfACGAIQAfACHAIYAiACJAIYAiACGAIoAiwCMAIoAiwCNAIwAiACOAI8AiACPAJAAkQCSAJAAkgCRAJMAlACSAJMAlACVAJIAlgCVAJcAmACZAJoAmACbAJkAnACdAJ4AnQCfAJ4AoACfAKEAoACiAJ8AowCkAKUAowCmAKQApACmAKcAowCoAKYAqQCqAKYAqwCsAK0ArACrAK4ArACvAK0ArwCsALAAsQCyALMAsgC0ALMAsQC1ALIAtQCxALYAtwC4ALkAugC7ALwAugC9ALsAvgC/ALsAwADBALsAwgDDAMQAxQDGAMcAyADJAMoAyADLAMkAzADNAM4AzADPAM0A0ADRANIA0gDRANMA1ADVANYA1gDVANcA2ADZANoA2ADbANkA3ADdAN4A3ADfAN0A4ADhAOIA4ADjAOEA5ADlAOYA5ADnAOUA6ADpAOoA6ADrAOkA")],
-"material": ExtResource("29_w7bmg"),
+"material": ExtResource("29"),
 "name": "UIMat",
 "primitive": 3,
 "skin_data": PackedByteArray("AwACAAAAAABEkrptAAAAAAMAAgAAAAAAVoOofAAAAAADAAIAAAAAAF3voRAAAAAAAwACAAAAAABikZxuAAAAAAMAAgAAAAAA6f8VAAAAAAADAAIAAAAAAKL/XAAAAAAAAwACAAAAAADp/xUAAAAAAAMAAAAAAAAA//8AAAAAAAACAAMAAAAAAOH7HQQAAAAAAgADAAAAAACj8VsOAAAAAAIAAwAAAAAAXvKgDQAAAAACAAMAAAAAAMr7NAQAAAAAAgADAAAAAABe8qANAAAAAAIAAwAAAAAA0PQuCwAAAAACAAMAAAAAAOH7HQQAAAAAAgADAAAAAAA258gYAAAAAAIAAwAAAAAAzeUxGgAAAAACAAMAAAAAAIzkchsAAAAAAgADAAAAAAA258gYAAAAAAIAAwAAAAAAecyFMwAAAAACAAMAAAAAAHnMhTMAAAAAAgADAAAAAACM5HIbAAAAAAIAAwAAAAAAjORyGwAAAAACAAMAAAAAADbnyBgAAAAAAgADAAAAAAA258gYAAAAAAIAAwAAAAAA0PQuCwAAAAACAAMAAAAAAF7yoA0AAAAAAgADAAAAAACM5HIbAAAAAAIAAwAAAAAAXvKgDQAAAAACAAMAAAAAAKPxWw4AAAAAAgADAAAAAADN5TEaAAAAAAIAAwAAAAAAo/FbDgAAAAACAAMAAAAAAM3lMRoAAAAAAgADAAAAAADN5TEaAAAAAAIAAwAAAAAAo/FbDgAAAAADAAIAAAAAAESSum0AAAAAAwACAAAAAACi/1wAAAAAAAMAAgAAAAAAov9cAAAAAAADAAIAAAAAAESSum0AAAAAAgADAAAAAADN5TEaAAAAAAIAAwAAAAAAzeUxGgAAAAACAAMAAAAAAEPQuy8AAAAAAgADAAAAAABD0LsvAAAAAAMAAgAAAAAA9P8KAAAAAAADAAIAAAAAAOGCHX0AAAAAAgADAAAAAACrlFNrAAAAAAMAAgAAAAAA4P8eAAAAAAADAAIAAAAAAOGCHX0AAAAAAgADAAAAAACrlFNrAAAAAAMAAgAAAAAA4P8eAAAAAAADAAIAAAAAAOGCHX0AAAAAAwACAAAAAAD0/woAAAAAAAMAAgAAAAAA9P8KAAAAAAADAAIAAAAAAPT/CgAAAAAAAgADAAAAAACrlFNrAAAAAAIAAwAAAAAAQqe8WAAAAAACAAMAAAAAAEKnvFgAAAAAAwAAAAAAAAD//wAAAAAAAAIAAwAAAAAAfJSCawAAAAADAAAAAAAAAP//AAAAAAAAAwAAAAAAAAD//wAAAAAAAAMAAAAAAAAA//8AAAAAAAADAAAAAAAAAP//AAAAAAAAAwAAAAAAAAD//wAAAAAAAAIAAwAAAAAAfJSCawAAAAACAAMAAAAAAEKnvFgAAAAAAwACAAAAAAD0/woAAAAAAAIAAwAAAAAAQqe8WAAAAAACAAMAAAAAAKuUU2sAAAAAAwAAAAAAAAD//wAAAAAAAAIAAwAAAAAAfJSCawAAAAACAAMAAAAAAEKnvFgAAAAAAgADAAAAAAB8lIJrAAAAAAMAAAAAAAAA//8AAAAAAAADAAAAAAAAAP//AAAAAAAAAwACAAAAAAD0/woAAAAAAAMAAAAAAAAA//8AAAAAAAACAAMAAAAAAKuUU2sAAAAAAgADAAAAAABCp7xYAAAAAAMAAgAAAAAAKITWewAAAAACAAMAAAAAAHyUgmsAAAAAAwAAAAAAAAD//wAAAAAAAAMAAgAAAAAAKITWewAAAAADAAAAAAAAAP//AAAAAAAAAwAAAAAAAAD//wAAAAAAAAMAAgAAAAAAKITWewAAAAADAAAAAAAAAP//AAAAAAAAAwAAAAAAAAD//wAAAAAAAAMAAAAAAAAA//8AAAAAAAACAAMAAAAAAOX8GQMAAAAAAgADAAAAAAC2/0gAAAAAAAIAAwAAAAAAcfyNAwAAAAACAAMAAAAAAA718AoAAAAAAgADAAAAAAA59cUKAAAAAAIAAwAAAAAAcfyNAwAAAAACAAMAAAAAAFf+pwEAAAAAAgADAAAAAABx/I0DAAAAAAIAAwAAAAAAV/6nAQAAAAACAAMAAAAAAHH8jQMAAAAAAgADAAAAAADl/BkDAAAAAAIAAwAAAAAADvXwCgAAAAACAAMAAAAAADn1xQoAAAAAAgADAAAAAABX/qcBAAAAAAIAAwAAAAAAOfXFCgAAAAACAAMAAAAAAKv5UwYAAAAAAgADAAAAAACr+VMGAAAAAAIAAwAAAAAAueVFGgAAAAACAAMAAAAAALnlRRoAAAAAAgADAAAAAAChn11gAAAAAAIAAwAAAAAAoZ9dYAAAAAACAAMAAAAAALnlRRoAAAAAAgADAAAAAADY3CYjAAAAAAIAAwAAAAAAS7SzSwAAAAACAAMAAAAAADn1xQoAAAAAAgADAAAAAADY3CYjAAAAAAIAAwAAAAAAYt6cIQAAAAACAAMAAAAAAFf+pwEAAAAAAgADAAAAAACr+VMGAAAAAAIAAwAAAAAAq/lTBgAAAAACAAMAAAAAAFf+pwEAAAAAAgADAAAAAAC2/0gAAAAAAAIAAwAAAAAAV/6nAQAAAAACAAMAAAAAADn1xQoAAAAAAgADAAAAAACr+VMGAAAAAAIAAwAAAAAA1p0oYgAAAAACAAMAAAAAAGjmlhkAAAAAAgADAAAAAABo5pYZAAAAAAIAAwAAAAAA1p0oYgAAAAACAAMAAAAAAA718AoAAAAAAgADAAAAAABo5pYZAAAAAAIAAwAAAAAAOfXFCgAAAAACAAMAAAAAAGLenCEAAAAAAgADAAAAAADWnShiAAAAAAIAAwAAAAAAB7v3RAAAAAACAAMAAAAAAAe790QAAAAAAgADAAAAAAAHu/dEAAAAAAIAAwAAAAAAS7SzSwAAAAACAAMAAAAAAEu0s0sAAAAAAgADAAAAAAAHu/dEAAAAAAIAAwAAAAAAYt6cIQAAAAACAAMAAAAAAEu0s0sAAAAAAgADAAAAAADY3CYjAAAAAAIAAwAAAAAAoZ9dYAAAAAACAAMAAAAAAKGfXWAAAAAAAgADAAAAAABLtLNLAAAAAAIAAwAAAAAAoZ9dYAAAAAACAAMAAAAAANjcJiMAAAAAAgADAAAAAAC55UUaAAAAAAIAAwAAAAAAq/lTBgAAAAACAAMAAAAAADn1xQoAAAAAAgADAAAAAADY3CYjAAAAAAIAAwAAAAAAYt6cIQAAAAACAAMAAAAAAGLenCEAAAAAAgADAAAAAABLtLNLAAAAAAIAAwAAAAAA2NwmIwAAAAACAAMAAAAAAAe790QAAAAAAgADAAAAAAAHu/dEAAAAAAIAAwAAAAAA1p0oYgAAAAACAAMAAAAAAGLenCEAAAAAAgADAAAAAABo5pYZAAAAAAIAAwAAAAAAOfXFCgAAAAACAAMAAAAAAA718AoAAAAAAgADAAAAAABi3pwhAAAAAAMAAgAAAAAAov9cAAAAAAADAAIAAAAAAFaDqHwAAAAAAwACAAAAAABEkrptAAAAAAMAAgAAAAAAXe+hEAAAAAADAAIAAAAAAGKRnG4AAAAAAwACAAAAAADp/xUAAAAAAAMAAgAAAAAA6f8VAAAAAAADAAAAAAAAAP//AAAAAAAAAwACAAAAAABikZxuAAAAAAMAAgAAAAAAXe+hEAAAAAADAAIAAAAAAF3voRAAAAAAAwACAAAAAABikZxuAAAAAAMAAAAAAAAA//8AAAAAAAADAAAAAAAAAP//AAAAAAAAAgADAAAAAADh+x0EAAAAAAIAAwAAAAAA4fsdBAAAAAACAAMAAAAAAKPxWw4AAAAAAgADAAAAAACj8VsOAAAAAAIAAwAAAAAAyvs0BAAAAAACAAMAAAAAAMr7NAQAAAAAAgADAAAAAADh+x0EAAAAAAIAAwAAAAAAXvKgDQAAAAACAAMAAAAAAKPxWw4AAAAAAgADAAAAAADK+zQEAAAAAAIAAwAAAAAAXvKgDQAAAAACAAMAAAAAAOH7HQQAAAAAAgADAAAAAADQ9C4LAAAAAAIAAwAAAAAANufIGAAAAAACAAMAAAAAAM3lMRoAAAAAAgADAAAAAACM5HIbAAAAAAIAAwAAAAAANufIGAAAAAACAAMAAAAAAND0LgsAAAAAAgADAAAAAACM5HIbAAAAAAIAAwAAAAAAXvKgDQAAAAACAAMAAAAAAF7yoA0AAAAAAgADAAAAAADN5TEaAAAAAAIAAwAAAAAAo/FbDgAAAAACAAMAAAAAAEPQuy8AAAAAAgADAAAAAADN5TEaAAAAAAIAAwAAAAAAQ9C7LwAAAAACAAMAAAAAAM3lMRoAAAAAAgADAAAAAAA258gYAAAAAAIAAwAAAAAAzeUxGgAAAAACAAMAAAAAAM3lMRoAAAAAAgADAAAAAAA258gYAAAAAAIAAwAAAAAAyvs0BAAAAAACAAMAAAAAAMr7NAQAAAAAAgADAAAAAADQ9C4LAAAAAAIAAwAAAAAA0PQuCwAAAAACAAMAAAAAAND0LgsAAAAAAgADAAAAAADQ9C4LAAAAAAIAAwAAAAAAjORyGwAAAAACAAMAAAAAAIzkchsAAAAAAgADAAAAAAB5zIUzAAAAAAIAAwAAAAAAjORyGwAAAAACAAMAAAAAAHnMhTMAAAAAAgADAAAAAACM5HIbAAAAAAMAAAAAAAAA//8AAAAAAAADAAIAAAAAAOn/FQAAAAAAAwACAAAAAADp/xUAAAAAAAMAAAAAAAAA//8AAAAAAAADAAIAAAAAAOn/FQAAAAAAAwACAAAAAACi/1wAAAAAAAMAAgAAAAAAov9cAAAAAAADAAIAAAAAAOn/FQAAAAAAAwACAAAAAABikZxuAAAAAAMAAgAAAAAAVoOofAAAAAADAAIAAAAAAGKRnG4AAAAAAwACAAAAAABWg6h8AAAAAAMAAgAAAAAAVoOofAAAAAADAAIAAAAAAESSum0AAAAAAwACAAAAAABWg6h8AAAAAAMAAgAAAAAARJK6bQAAAAACAAMAAAAAAPbBCD4AAAAAAgADAAAAAADt1hEpAAAAAAIAAwAAAAAAktJsLQAAAAACAAMAAAAAALLITTcAAAAAAgADAAAAAADt1hEpAAAAAAIAAwAAAAAAsshNNwAAAAACAAMAAAAAALLITTcAAAAAAgADAAAAAACv2U8mAAAAAAIAAwAAAAAA7dYRKQAAAAACAAMAAAAAANnMJTMAAAAAAgADAAAAAADH1jcpAAAAAAIAAwAAAAAAish0NwAAAAACAAMAAAAAAIrIdDcAAAAAAgADAAAAAABb0qMtAAAAAAIAAwAAAAAAx9Y3KQAAAAACAAMAAAAAAMPBOz4AAAAAAgADAAAAAACKyHQ3AAAAAAIAAwAAAAAAx9Y3KQAAAAADAAIAAAAAAGOCm30AAAAAAgADAAAAAACgnV5iAAAAAAIAAwAAAAAAoJ1eYgAAAAADAAIAAAAAAP2LAXQAAAAAAwACAAAAAABjgpt9AAAAAAIAAwAAAAAAoJ1eYgAAAAACAAMAAAAAAMOHO3gAAAAAAgADAAAAAACgnV5iAAAAAAIAAwAAAAAAnp1gYgAAAAADAAIAAAAAAGOCm30AAAAAAwACAAAAAACXgmh9AAAAAAIAAwAAAAAAnJ1iYgAAAAADAAIAAAAAAFmMpXMAAAAAAgADAAAAAACcnWJiAAAAAAIAAwAAAAAAnJ1iYgAAAAADAAIAAAAAAJeCaH0AAAAAAgADAAAAAACcnWJiAAAAAAMAAgAAAAAAl4JofQAAAAACAAMAAAAAAKCdXmIAAAAAAgADAAAAAAApptVZAAAAAAIAAwAAAAAAK6bTWQAAAAACAAMAAAAAAKCdXmIAAAAAAgADAAAAAACgnV5iAAAAAAIAAwAAAAAAK6bTWQAAAAACAAMAAAAAAMPBOz4AAAAAAgADAAAAAACKyHQ3AAAAAAIAAwAAAAAAish0NwAAAAACAAMAAAAAAJ6dYGIAAAAAAgADAAAAAAArptNZAAAAAAIAAwAAAAAAL6bPWQAAAAACAAMAAAAAAKCdXmIAAAAAAgADAAAAAACKyHQ3AAAAAAIAAwAAAAAAnJ1iYgAAAAACAAMAAAAAANnMJTMAAAAAAgADAAAAAAAzpstZAAAAAAIAAwAAAAAAsshNNwAAAAACAAMAAAAAAJydYmIAAAAAAgADAAAAAAAzpstZAAAAAAIAAwAAAAAANKbKWQAAAAACAAMAAAAAAJydYmIAAAAAAgADAAAAAACyyE03AAAAAAIAAwAAAAAA9sEIPgAAAAACAAMAAAAAALLITTcAAAAAAgADAAAAAAAzpstZAAAAAAIAAwAAAAAAnJ1iYgAAAAADAAIAAAAAAIzpchYAAAAAAwACAAAAAADz6QsWAAAAAAMAAgAAAAAA8+kLFgAAAAADAAIAAAAAAPPpCxYAAAAAAwACAAAAAADuoBBfAAAAAAMAAgAAAAAA3/IfDQAAAAADAAAAAAAAAP//AAAAAAAAAgADAAAAAABp/pUBAAAAAAIAAwAAAAAAHPviBAAAAAACAAMAAAAAAI76cAUAAAAAAgADAAAAAAAk8doOAAAAAAIAAwAAAAAAjvpwBQAAAAACAAMAAAAAAPb8CAMAAAAAAgADAAAAAACO+nAFAAAAAAIAAwAAAAAAc7yLQwAAAAACAAMAAAAAAFHarSUAAAAAAgADAAAAAABp3JUjAAAAAAIAAwAAAAAAUdqtJQAAAAACAAMAAAAAAHnMhTMAAAAAAgADAAAAAABzvItDAAAAAAIAAwAAAAAA6rEUTgAAAAACAAMAAAAAAHnMhTMAAAAAAgADAAAAAABD0LsvAAAAAAIAAwAAAAAAQ7i7RwAAAAACAAMAAAAAAD/Avz8AAAAAAgADAAAAAABD0LsvAAAAAAIAAwAAAAAAlttoJAAAAAACAAMAAAAAAD/Avz8AAAAAAgADAAAAAACW22gkAAAAAAIAAwAAAAAAadyVIwAAAAACAAMAAAAAABDf7iAAAAAAAgADAAAAAAAk8doOAAAAAAIAAwAAAAAAQ7i7RwAAAAACAAMAAAAAABDf7iAAAAAAAgADAAAAAAD2/AgDAAAAAAIAAwAAAAAA1fYpCQAAAAACAAMAAAAAANX2KQkAAAAAAgADAAAAAABR360gAAAAAAIAAwAAAAAAUd+tIAAAAAACAAMAAAAAAOqxFE4AAAAAAwACAAAAAABu/5AAAAAAAAMAAgAAAAAAVeupFAAAAAADAAIAAAAAAIzpchYAAAAAAwACAAAAAACM6XIWAAAAAAMAAgAAAAAADqLwXQAAAAACAAMAAAAAAKLKXDUAAAAAAgADAAAAAACd3GEjAAAAAAIAAwAAAAAA7MYSOQAAAAACAAMAAAAAALbXSCgAAAAAAgADAAAAAACd3GEjAAAAAAIAAwAAAAAAdt+IIAAAAAACAAMAAAAAAG/cjyMAAAAAAgADAAAAAAC+xkA5AAAAAAIAAwAAAAAAndxhIwAAAAACAAMAAAAAAHbfiCAAAAAAAgADAAAAAADsxhI5AAAAAAIAAwAAAAAAospcNQAAAAACAAMAAAAAAJ3cYSMAAAAAAgADAAAAAADsxhI5AAAAAAIAAwAAAAAAttdIKAAAAAACAAMAAAAAAPDADj8AAAAAAgADAAAAAACd3GEjAAAAAAIAAwAAAAAA8MAOPwAAAAACAAMAAAAAAJ3cYSMAAAAAAgADAAAAAADsxhI5AAAAAAIAAwAAAAAAttdIKAAAAAACAAMAAAAAAKLKXDUAAAAAAgADAAAAAABv3I8jAAAAAAIAAwAAAAAAvsZAOQAAAAACAAMAAAAAAHbfiCAAAAAAAgADAAAAAAB014ooAAAAAAIAAwAAAAAAb9yPIwAAAAACAAMAAAAAAG/cjyMAAAAAAgADAAAAAAB234ggAAAAAAIAAwAAAAAAvsZAOQAAAAACAAMAAAAAAHTXiigAAAAAAgADAAAAAACxwE0/AAAAAAIAAwAAAAAAb9yPIwAAAAACAAMAAAAAAL7GQDkAAAAAAgADAAAAAABv3I8jAAAAAAMAAgAAAAAAwo88cAAAAAACAAMAAAAAAC+Uz2sAAAAAAwACAAAAAAAtm9FkAAAAAAIAAwAAAAAAeJSGawAAAAADAAIAAAAAAMKPPHAAAAAAAgADAAAAAAB4lIZrAAAAAAMAAgAAAAAAnINifAAAAAACAAMAAAAAAHiUhmsAAAAAAwACAAAAAADCjzxwAAAAAAIAAwAAAAAAxZQ5awAAAAADAAIAAAAAAC2b0WQAAAAAAwACAAAAAADCjzxwAAAAAAMAAgAAAAAAwo88cAAAAAADAAIAAAAAAJyDYnwAAAAAAwACAAAAAAAYkOZvAAAAAAIAAwAAAAAAxZQ5awAAAAADAAIAAAAAAJyDYnwAAAAAAgADAAAAAABmlJhrAAAAAAMAAgAAAAAAnINifAAAAAADAAIAAAAAABiQ5m8AAAAAAwACAAAAAAAYkOZvAAAAAAMAAgAAAAAAuZtFZAAAAAADAAIAAAAAABiQ5m8AAAAAAgADAAAAAABmlJhrAAAAAAIAAwAAAAAAxZQ5awAAAAACAAMAAAAAAHiUhmsAAAAAAwACAAAAAADCjzxwAAAAAAIAAwAAAAAAZpSYawAAAAADAAIAAAAAABiQ5m8AAAAAAgADAAAAAAAVlOlrAAAAAAMAAgAAAAAAGJDmbwAAAAACAAMAAAAAABWU6WsAAAAAAwACAAAAAAC5m0VkAAAAAAIAAwAAAAAAZpSYawAAAAACAAMAAAAAAHiUhmsAAAAAAgADAAAAAACsnVJiAAAAAAIAAwAAAAAAL5TPawAAAAACAAMAAAAAALCdTmIAAAAAAgADAAAAAAB4lIZrAAAAAAIAAwAAAAAAsJ1OYgAAAAACAAMAAAAAAMWUOWsAAAAAAgADAAAAAACwnU5iAAAAAAIAAwAAAAAAeJSGawAAAAACAAMAAAAAAKqdVGIAAAAAAgADAAAAAABmlJhrAAAAAAIAAwAAAAAAqp1UYgAAAAACAAMAAAAAAMWUOWsAAAAAAgADAAAAAACrnVNiAAAAAAIAAwAAAAAAFZTpawAAAAACAAMAAAAAAKudU2IAAAAAAgADAAAAAABmlJhrAAAAAAIAAwAAAAAApZ1ZYgAAAAACAAMAAAAAAGaUmGsAAAAAAgADAAAAAAClnVliAAAAAAIAAwAAAAAAFZTpawAAAAACAAMAAAAAAKudU2IAAAAAAgADAAAAAADFlDlrAAAAAAIAAwAAAAAAq51TYgAAAAACAAMAAAAAAGaUmGsAAAAAAgADAAAAAACqnVRiAAAAAAIAAwAAAAAAsJ1OYgAAAAACAAMAAAAAAHiUhmsAAAAAAgADAAAAAACwnU5iAAAAAAIAAwAAAAAAscBNPwAAAAACAAMAAAAAAKydUmIAAAAAAgADAAAAAAC+xkA5AAAAAAIAAwAAAAAAsJ1OYgAAAAACAAMAAAAAAL7GQDkAAAAAAgADAAAAAACqnVRiAAAAAAIAAwAAAAAAvsZAOQAAAAACAAMAAAAAALCdTmIAAAAAAgADAAAAAACiylw1AAAAAAIAAwAAAAAAq51TYgAAAAACAAMAAAAAAKLKXDUAAAAAAgADAAAAAACqnVRiAAAAAAIAAwAAAAAA7MYSOQAAAAACAAMAAAAAAKWdWWIAAAAAAgADAAAAAADsxhI5AAAAAAIAAwAAAAAAq51TYgAAAAACAAMAAAAAAPDADj8AAAAAAgADAAAAAACrnVNiAAAAAAIAAwAAAAAA8MAOPwAAAAACAAMAAAAAAKWdWWIAAAAAAgADAAAAAADsxhI5AAAAAAIAAwAAAAAAqp1UYgAAAAACAAMAAAAAAOzGEjkAAAAAAgADAAAAAACrnVNiAAAAAAIAAwAAAAAAospcNQAAAAACAAMAAAAAAL7GQDkAAAAAAgADAAAAAACwnU5iAAAAAAIAAwAAAAAADvXwCgAAAAACAAMAAAAAAOX8GQMAAAAAAgADAAAAAADl/BkDAAAAAAIAAwAAAAAADvXwCgAAAAACAAMAAAAAALLITTcAAAAAAgADAAAAAACv2U8mAAAAAAIAAwAAAAAA2cwlMwAAAAACAAMAAAAAAO3WESkAAAAAAgADAAAAAADH1jcpAAAAAAIAAwAAAAAAish0NwAAAAACAAMAAAAAAMOHO3gAAAAAAgADAAAAAACgnV5iAAAAAAMAAgAAAAAAY4KbfQAAAAACAAMAAAAAAJ6dYGIAAAAAAwACAAAAAACXgmh9AAAAAAIAAwAAAAAAnJ1iYgAAAAACAAMAAAAAAJ6dYGIAAAAAAgADAAAAAAArptNZAAAAAAIAAwAAAAAAoJ1eYgAAAAACAAMAAAAAAC+mz1kAAAAAAgADAAAAAACKyHQ3AAAAAAIAAwAAAAAAnJ1iYgAAAAACAAMAAAAAANnMJTMAAAAAAgADAAAAAAAzpstZAAAAAAIAAwAAAAAAsshNNwAAAAADAAIAAAAAAIzpchYAAAAAAwACAAAAAADz6QsWAAAAAAMAAgAAAAAA8+kLFgAAAAADAAIAAAAAAPPpCxYAAAAAAgADAAAAAACO+nAFAAAAAAIAAwAAAAAAktJsLQAAAAACAAMAAAAAAO3WESkAAAAAAgADAAAAAADt1hEpAAAAAAIAAwAAAAAA7dYRKQAAAAACAAMAAAAAAK/ZTyYAAAAAAgADAAAAAACv2U8mAAAAAAIAAwAAAAAAr9lPJgAAAAACAAMAAAAAAMfWNykAAAAAAgADAAAAAACv2U8mAAAAAAIAAwAAAAAAx9Y3KQAAAAACAAMAAAAAAMfWNykAAAAAAgADAAAAAABb0qMtAAAAAAIAAwAAAAAAx9Y3KQAAAAADAAIAAAAAAJeCaH0AAAAAAwACAAAAAABZjKVzAAAAAAMAAgAAAAAAl4JofQAAAAACAAMAAAAAAMOHO3gAAAAAAwACAAAAAACXgmh9AAAAAAIAAwAAAAAAw4c7eAAAAAADAAIAAAAAAJeCaH0AAAAAAwACAAAAAABjgpt9AAAAAAIAAwAAAAAAw4c7eAAAAAADAAIAAAAAAGOCm30AAAAAAgADAAAAAADDhzt4AAAAAAMAAgAAAAAA/YsBdAAAAAADAAIAAAAAAGOCm30AAAAAAwAAAAAAAAD//wAAAAAAAAMAAAAAAAAA//8AAAAAAAADAAAAAAAAAP//AAAAAAAAAwACAAAAAACi/1wAAAAAAAMAAgAAAAAAbv+QAAAAAAADAAIAAAAAAO6gEF8AAAAAAwACAAAAAABikZxuAAAAAAMAAgAAAAAARJK6bQAAAAADAAIAAAAAAA6i8F0AAAAAAwACAAAAAABEkrptAAAAAA=="),
@@ -550,7 +551,7 @@ bind/3/bone = -1
 bind/3/pose = Transform3D(4.217746e-14, 1, -3.1391647e-07, -1, -1.3896296e-13, -1.343588e-07, -1.343588e-07, 3.1391653e-07, 1, -1.3109747e-14, 0.31082362, 4.176189e-08)
 
 [sub_resource type="Resource" id="Resource_3wbki"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "BeefStarchJello"
 role = "Owner, Director, Art Director, Voice Actor, Writer, Animator, Artist"
 description = "“She Beef on my Starch till I Jello. [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]”
@@ -595,7 +596,7 @@ socials_link = "https://x.com/beefstarchjello"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_1pg6q"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "anniebuue"
 role = "Owner, Director, Programmer, Rubicon Engine Lead Co-creator and Programmer"
 description = "[center][font_size=32]Oshis: 
@@ -710,7 +711,7 @@ socials_link = "https://twitter.com/anniebuue"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_s8oc3"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Doodii"
 role = "Art Lead & Supervisor, Artist, Concept & Promo Artist, Rendered Animator"
 description = "“Hello bro”
@@ -733,7 +734,7 @@ socials_link = "https://x.com/D00_D11"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_c1dk4"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Acecre4m"
 role = "Pixel Artist"
 description = "[u]     Art      [/u]
@@ -744,18 +745,17 @@ socials_link = "https://x.com/acecre4m_"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_bpx2w"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Bakyura"
 role = "Voice Actor"
 description = "[u]     Misc.      [/u]
 
 [u]Chimera[/u]
 Serena’s Voice Actor and performance."
-socials_link = ""
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_krns4"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "BreezyMelee"
 role = "Programmer & Visual Enthusiast"
 description = "\"TIME TO SAVE THE MOD heh....!.[img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\".
@@ -822,7 +822,7 @@ socials_link = "https://x.com/BreezyMelee"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_53u57"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "BruhMoment"
 role = "3D Artist & Animator"
 description = "[u]     Art      [/u]
@@ -833,7 +833,7 @@ socials_link = "https://x.com/BruhhMomentt05"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_6xqcv"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "BurritoBaptizer"
 role = "2D & 3D Artist, Musician "
 description = "\"I am a reddit smeller [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
@@ -855,7 +855,7 @@ socials_link = "https://x.com/burritobaptizer"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_aipkm"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "cherrythecool"
 role = "Programmer"
 description = "“where's kinger”
@@ -884,7 +884,7 @@ socials_link = "https://goddess.nekoweb.org/"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_xqvk1"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "CRUST"
 role = "2D/3D Artist & Animator"
 description = "\"i am a reddit farter [img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img][img=64x64]res://lullaby_mod/assets/menus/console/credits/customemojis/GorillaDog.png[/img]\"
@@ -908,7 +908,7 @@ socials_link = "https://x.com/IsCrust"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_7bcxd"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "DiomaFX"
 role = "Editor, VFX"
 description = "VFX, Playtesting and game design assistance.
@@ -922,7 +922,7 @@ socials_link = "https://steamcommunity.com/profiles/76561198101067652"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_515yq"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "eden_essence"
 role = "Musician"
 description = "“shoutout fatal files”
@@ -959,7 +959,7 @@ socials_link = "https://x.com/edxn_essence"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_g013n"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Gibz"
 role = "Charter, Writing Assistance, Previous Director"
 description = "Early team organization & directing work.
@@ -975,7 +975,7 @@ socials_link = "https://x.com/9766Gibz"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_t7fim"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Graev"
 role = "2D Artist"
 description = "[u]      Art       [/u]
@@ -986,7 +986,7 @@ socials_link = "https://x.com/infinitydeaft"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_jmxba"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Greggreg"
 role = "Musician"
 description = "[u]      Music      [/u]
@@ -997,7 +997,7 @@ socials_link = "https://x.com/gregnantmen"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_yuu1f"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "HarleyEggu"
 role = "3D Modeller, Animator, Writer"
 description = "“Welcome to faggotopia!”
@@ -1018,7 +1018,7 @@ socials_link = "https://x.com/HarleyEggu"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_6cqfn"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Icdnis"
 role = "Writer"
 description = "[u]      Misc       [/u]
@@ -1028,7 +1028,7 @@ socials_link = "https://toyhou.se/frostbite"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_ojefv"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Jack-O"
 role = "3D Animator"
 description = "“So what's he up to now?”
@@ -1041,7 +1041,7 @@ socials_link = "https://x.com/Jackin0ff_"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_v76o6"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Jrguy"
 role = "Programmer"
 description = "Happy Bunnies Member.
@@ -1066,7 +1066,7 @@ socials_link = "https://www.youtube.com/@jrguy"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_4e3fp"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Katastrophii"
 role = "Voice Actor"
 description = "[u]     Misc.      [/u]
@@ -1078,7 +1078,7 @@ socials_link = "https://x.com/VapurrwaveFoxxo"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_n3hid"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Kixel"
 role = "2D Artist & Animator"
 description = "\"AHHHHHHHHHHHHHHISDODASHOASHDIHASODHAOSDHZKJXBZNMBCYUECIWQBCSJMXN\"
@@ -1093,7 +1093,7 @@ socials_link = "https://x.com/KixelArt"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_n0yyd"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "KyleviMusic"
 role = "Musician, Sound Engineer "
 description = "\"Hola, Ana Vivas, Globox.\"
@@ -1111,7 +1111,7 @@ socials_link = "https://www.youtube.com/@kylevimusic"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_5uc5c"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "legole0"
 role = "Previous Director, Programmer & Rubicon Engine Co-creator"
 description = "[center]Previously Director, Programmer, and made Rubicon alongside Annie[/center]
@@ -1217,7 +1217,7 @@ socials_link = "https://x.com/legole0"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_0ludl"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Lunarcleint"
 role = "Programmer"
 description = "\"Mmmm I love when I rebase then get 7 trillion conflicts I love godot 🥹\"
@@ -1239,7 +1239,7 @@ socials_link = "https://x.com/lunarcleint"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_8ygb7"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Maboi9798"
 role = "Pixel Artist, 2D Animator & Artist"
 description = "“peepeepoopookakaweeweewawa”
@@ -1250,7 +1250,7 @@ socials_link = "https://x.com/M_boi9798"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_xuxmh"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "MarStarBro"
 role = "Musician"
 description = "\"My metal game goin strong 💪\"
@@ -1267,7 +1267,7 @@ socials_link = "https://x.com/MarstarMain"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_bjefn"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "MEGAF0XX"
 role = "3D Artist & Animator"
 description = "\"good morning\"
@@ -1286,7 +1286,7 @@ socials_link = "https://x.com/MEGAF0XX"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_h2l5q"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Pictospark"
 role = "2D & 3D Artist, Programmer"
 description = "\"(wpn_denyselect.wav)\"
@@ -1321,7 +1321,7 @@ socials_link = "https://bsky.app/profile/pictospark.bsky.social"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_5vqgg"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "PunkShop9k"
 role = "3D Artist"
 description = "“pingas!”
@@ -1334,7 +1334,7 @@ socials_link = "https://x.com/punkshop09k"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_ffyfa"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "RedTV53"
 role = "Voice Actor"
 description = "“Come little girlfriend, click this link. This video is cool, i think. https://youtu.be/BoGeRRN5AIc”
@@ -1349,7 +1349,7 @@ socials_link = "https://x.com/RedTv_53"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_v8fp5"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "rushillbun"
 role = "Programmer"
 description = "“Hypno's Lullaby, Japan:“
@@ -1375,7 +1375,7 @@ socials_link = "https://x.com/confusedbluebis"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_s2ih7"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Sarasacuni"
 role = "2D Artist"
 description = "Artistic presence and support <3"
@@ -1383,7 +1383,7 @@ socials_link = "https://x.com/sacuniUltimate"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_26fpe"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "ScorchVX"
 role = "Previous Owner & Director, Concept Artist"
 description = "[u]        Art       [/u]
@@ -1403,7 +1403,7 @@ socials_link = "https://x.com/ScorchVx"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_jbm3l"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Scrumbo"
 role = "Musician"
 description = "[u]       Music       [/u]
@@ -1416,7 +1416,7 @@ socials_link = "https://www.youtube.com/@scrumbo_2096"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_hlefr"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Sector"
 role = "2D Artist"
 description = "[u]       Art       [/u]
@@ -1426,7 +1426,7 @@ socials_link = "https://x.com/Sector03_"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_r8cv6"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "SmileySqueak"
 role = "Musician"
 description = "[u]       Music       [/u]
@@ -1437,7 +1437,7 @@ socials_link = "https://www.youtube.com/@smileysqueak/videos"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_7sig0"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Snootilous"
 role = "2D Artist & Animator"
 description = "“yeah ,, i think it came out well,!”
@@ -1449,7 +1449,7 @@ socials_link = "https://x.com/snootilous"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_vogi3"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "SturmVideo"
 role = "Musician"
 description = "[u]       Music/Misc       [/u]
@@ -1460,7 +1460,7 @@ socials_link = "https://www.youtube.com/@churgneygurgney9895/videos"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_51d5e"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "TottuDento"
 role = "3D Artist"
 description = "[u]       Art       [/u]
@@ -1471,7 +1471,7 @@ socials_link = "https://x.com/TDento23_I"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_136d4"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "TypicalEmerald"
 role = "2D Artist & Animator"
 description = "[u]       Art       [/u]
@@ -1482,7 +1482,7 @@ socials_link = "https://x.com/typicalemerald"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_5gx8c"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Wrathstetic"
 role = "Musician"
 description = "[u]       Music       [/u]
@@ -1493,9 +1493,8 @@ socials_link = "https://www.youtube.com/@wrathstetic"
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Resource" id="Resource_v8rxn"]
-script = ExtResource("41_2vm2v")
+script = ExtResource("41")
 name = "Special Thanks"
-role = ""
 description = "Collusiam - Visualizers for songs' instrumental uploads
 Fishsticks - team's support animal-mascot
 TrainerDerek - Creator of original Hypno's Lullaby pokepasta
@@ -1512,7 +1511,6 @@ TotallyNBF - Creepsinart - LanaRoseVA - MintyCuffz - Springy
 Charts done through the engine.
 
 Friday Night Funkin' Team - Pokémon"
-socials_link = ""
 metadata/_custom_type_script = "uid://c3kvjgv8wyyjg"
 
 [sub_resource type="Animation" id="Animation_g2iq5"]
@@ -3405,7 +3403,7 @@ fill_to = Vector2(0.54347825, 0)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("66_2xjno")
+"texture": ExtResource("66")
 }],
 "loop": 1,
 "name": &"boyfriend",
@@ -3413,7 +3411,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("67_cc1yr")
+"texture": ExtResource("67")
 }],
 "loop": 1,
 "name": &"girlfriend",
@@ -3421,7 +3419,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("68_4jpil")
+"texture": ExtResource("68")
 }],
 "loop": 1,
 "name": &"serena",
@@ -3548,7 +3546,7 @@ _data = {
 }
 
 [sub_resource type="FontVariation" id="FontVariation_ueyfw"]
-base_font = ExtResource("71_1ydjf")
+base_font = ExtResource("71")
 variation_embolden = 0.5
 spacing_glyph = 12
 
@@ -3556,7 +3554,7 @@ spacing_glyph = 12
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("72_nkoai")
+"texture": ExtResource("72")
 }],
 "loop": 1,
 "name": &"heartbeat",
@@ -3564,7 +3562,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("73_of27v")
+"texture": ExtResource("73")
 }],
 "loop": 1,
 "name": &"pendulum",
@@ -3572,7 +3570,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("74_q14ca")
+"texture": ExtResource("74")
 }],
 "loop": 1,
 "name": &"unknowns",
@@ -3833,7 +3831,7 @@ _data = {
 }
 
 [sub_resource type="FontVariation" id="FontVariation_krns4"]
-base_font = ExtResource("71_1ydjf")
+base_font = ExtResource("71")
 spacing_glyph = 8
 
 [sub_resource type="Animation" id="Animation_jbm3l"]
@@ -3851,7 +3849,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("27_21fex")]
+"values": [ExtResource("27")]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gq4tn"]
@@ -4041,6 +4039,8 @@ advance_mode = 2
 advance_expression = "settings_post_processing < 2"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_w8hxk"]
+states/End/node = null
+states/Start/node = null
 states/crt_off/node = SubResource("AnimationNodeAnimation_jbm3l")
 states/crt_off/position = Vector2(479.5, 99.25)
 states/crt_on/node = SubResource("AnimationNodeAnimation_hlefr")
@@ -4090,7 +4090,7 @@ _data = {
 }
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fgulo"]
-shader = ExtResource("87_w71s2")
+shader = ExtResource("87")
 shader_parameter/mask_type = 1
 shader_parameter/curve = 0.0
 shader_parameter/color_offset = 0.0
@@ -4107,14 +4107,14 @@ grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.09, 1)
 pivot_offset_ratio = Vector2(0.5, 0)
-theme = ExtResource("1_3pcgo")
-script = ExtResource("2_ynokv")
+theme = ExtResource("1")
+script = ExtResource("2")
 tab_container = NodePath("TabContainer")
 startup_sound = NodePath("console_bg/Startup")
 other_sounds = NodePath("DebugSFX")
 background_anim = NodePath("console_bg/Control/SubViewportContainer/SubViewport/Background/AnimationPlayer")
 
-[node name="console_bg" parent="." unique_id=1358787594 instance=ExtResource("3_yci5w")]
+[node name="console_bg" parent="." unique_id=1358787594 instance=ExtResource("3")]
 layout_mode = 1
 
 [node name="Empty_002" parent="console_bg/Control/SubViewportContainer/SubViewport/Background" parent_id_path=PackedInt32Array(1358787594, 1761828415) index="1" unique_id=1042043012]
@@ -4150,7 +4150,7 @@ layout_mode = 0
 offset_top = 509.0
 offset_right = 1440.0
 offset_bottom = 1082.0
-texture = ExtResource("6_d661d")
+texture = ExtResource("6")
 expand_mode = 1
 
 [node name="BGDarken" type="ColorRect" parent="BackgroundElements" unique_id=1511072419]
@@ -4168,7 +4168,7 @@ offset_left = -245.0
 offset_top = -65.0
 offset_right = 291.0
 offset_bottom = 678.5902
-texture = ExtResource("7_edstm")
+texture = ExtResource("7")
 
 [node name="BubblesBottomRight" type="TextureRect" parent="BackgroundElements" unique_id=401594308]
 layout_mode = 0
@@ -4176,7 +4176,7 @@ offset_left = 945.326
 offset_top = 644.0
 offset_right = 1578.0
 offset_bottom = 1255.0
-texture = ExtResource("8_be22b")
+texture = ExtResource("8")
 
 [node name="MemoryCardMargin" type="MarginContainer" parent="BackgroundElements" unique_id=373624893]
 layout_mode = 0
@@ -4191,16 +4191,16 @@ theme_override_constants/separation = 2
 
 [node name="MemoryCard" type="Label" parent="BackgroundElements/MemoryCardMargin/VBoxContainer" unique_id=75366460]
 layout_mode = 2
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 44
 text = "Memory Card #1"
 
 [node name="MemoryCounter" type="Label" parent="BackgroundElements/MemoryCardMargin/VBoxContainer" unique_id=1525541885]
 layout_mode = 2
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 30
 text = "??? TB Memory"
-script = ExtResource("10_gxlbw")
+script = ExtResource("10")
 
 [node name="PlayerProfileMargin" type="MarginContainer" parent="BackgroundElements" unique_id=1060094966]
 layout_mode = 1
@@ -4221,7 +4221,7 @@ theme_override_constants/separation = 2
 [node name="PlayerProfile" type="Label" parent="BackgroundElements/PlayerProfileMargin/VBoxContainer" unique_id=50182355]
 layout_mode = 2
 size_flags_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 40
 text = "Player Profile"
 horizontal_alignment = 2
@@ -4229,11 +4229,11 @@ horizontal_alignment = 2
 [node name="Time" type="Label" parent="BackgroundElements/PlayerProfileMargin/VBoxContainer" unique_id=1077021681 node_paths=PackedStringArray("timer")]
 layout_mode = 2
 size_flags_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 30
 text = "xx:xxpm | xxx. xx"
 horizontal_alignment = 2
-script = ExtResource("11_n163n")
+script = ExtResource("11")
 timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="BackgroundElements/PlayerProfileMargin/VBoxContainer/Time" unique_id=599318262]
@@ -4254,7 +4254,7 @@ current_tab = 0
 clip_tabs = false
 tabs_visible = false
 switch_on_drag_hover = false
-script = ExtResource("12_xjwse")
+script = ExtResource("12")
 console_root = NodePath("..")
 header_label = NodePath("../Header/texture/Label")
 animplayer = NodePath("../AnimationPlayer")
@@ -4263,7 +4263,7 @@ animplayer = NodePath("../AnimationPlayer")
 visible = false
 layout_mode = 2
 mouse_filter = 2
-script = ExtResource("13_a2k32")
+script = ExtResource("13")
 select_bubble = NodePath("SelectBubble")
 tab_container = NodePath("..")
 default_focus = NodePath("FakeButtons/Cartridges")
@@ -4271,7 +4271,7 @@ metadata/_tab_index = 0
 
 [node name="SelectBubble" type="Sprite2D" parent="TabContainer/Home" unique_id=434186938]
 position = Vector2(736, 574)
-texture = ExtResource("14_uh23o")
+texture = ExtResource("14")
 
 [node name="IconSubViewport" type="SubViewportContainer" parent="TabContainer/Home" unique_id=324113169]
 layout_mode = 0
@@ -4300,7 +4300,7 @@ projection = 1
 size = 3.0
 far = 10.0
 
-[node name="ui_credits" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=755808480 instance=ExtResource("15_vjblp")]
+[node name="ui_credits" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=755808480 instance=ExtResource("15")]
 transform = Transform3D(0.88, 0, 0, 0, 0.88, 0, 0, 0, 0.88, 0.654, 1.524, 0)
 
 [node name="Skeleton3D" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_credits/UI_Icons" parent_id_path=PackedInt32Array(755808480, 279618588) index="0" unique_id=719129384]
@@ -4324,7 +4324,7 @@ autoplay = &"Idle_192f"
 speed_scale = 1.75
 next/Select_48f = &"Idle_192f"
 
-[node name="ui_training" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=2019872166 instance=ExtResource("18_na2mk")]
+[node name="ui_training" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=2019872166 instance=ExtResource("18")]
 transform = Transform3D(1.015, 0, 0, 0, 1.015, 0, 0, 0, 1.015, 1.671, -0.046, 0)
 
 [node name="Skeleton3D" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_training/UI_Icons" parent_id_path=PackedInt32Array(2019872166, 2115493042) index="0" unique_id=1938917430]
@@ -4360,7 +4360,7 @@ autoplay = &"Idle_192f"
 speed_scale = 1.75
 next/Select_48f = &"Idle_192f"
 
-[node name="ui_gallery" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=1838871102 instance=ExtResource("19_wb8r8")]
+[node name="ui_gallery" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=1838871102 instance=ExtResource("19")]
 transform = Transform3D(0.81, 0, 0, 0, 0.81, 0, 0, 0, 0.81, 0.122, -0.672, 0)
 
 [node name="AnimationPlayer" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_gallery" index="1" unique_id=1867709587]
@@ -4368,7 +4368,7 @@ autoplay = &"Idle_192f"
 speed_scale = 1.75
 next/Select_48f = &"Idle_192f"
 
-[node name="ui_settings" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=1979700617 instance=ExtResource("20_lmmmu")]
+[node name="ui_settings" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=1979700617 instance=ExtResource("20")]
 transform = Transform3D(0.849, 0, 0, 0, 0.849, 0, 0, 0, 0.849, -0.996, 0.775, 0)
 
 [node name="AnimationPlayer" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_settings" index="1" unique_id=955853672]
@@ -4376,7 +4376,7 @@ autoplay = &"Idle_192f"
 speed_scale = 1.75
 next/Select_48f = &"Idle_192f"
 
-[node name="ui_cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=420123907 instance=ExtResource("21_laj2s")]
+[node name="ui_cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=420123907 instance=ExtResource("21")]
 transform = Transform3D(1.173, 0, 0, 0, 1.173, 0, 0, 0, 1.173, 0.436, 0.25, 0)
 
 [node name="Skeleton3D" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons" parent_id_path=PackedInt32Array(420123907, 2020827812) index="0" unique_id=1373844525]
@@ -4415,14 +4415,14 @@ transform = Transform3D(0.9848271, 1.499228e-08, 0.17353787, -5.4662403e-09, 0.9
 bone_name = "UI_CARTRIDGES1"
 bone_idx = 2
 
-[node name="prp_cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone" unique_id=2111798876 node_paths=PackedStringArray("cartridge_materials") instance=ExtResource("22_wfesi")]
+[node name="prp_cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone" unique_id=2111798876 node_paths=PackedStringArray("cartridge_materials") instance=ExtResource("22")]
 transform = Transform3D(0.99999994, 9.707912e-27, -2.384184e-07, 2.6663474e-19, 1.0000001, -4.0914806e-13, 2.384184e-07, 6.973408e-23, 0.99999994, 0, -0.24647145, 0)
-script = ExtResource("23_sjnta")
+script = ExtResource("23")
 cartridge_materials = NodePath("CartridgeMaterials")
 
 [node name="Cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone/prp_cartridge" index="0" unique_id=418026459]
 transform = Transform3D(0.355, 0, 0, 0, 0.355, 0, 0, 0, 0.355, 0, 0.16, 0)
-surface_material_override/0 = ExtResource("24_bu4vi")
+surface_material_override/0 = ExtResource("24")
 
 [node name="CartridgeMaterials" type="AnimationPlayer" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone/prp_cartridge" unique_id=62464712]
 libraries/materials = SubResource("AnimationLibrary_wyhsc")
@@ -4456,7 +4456,7 @@ focus_neighbor_right = NodePath("../Cartridges")
 focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 2
-script = ExtResource("28_2nc6k")
+script = ExtResource("28")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Settings")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_settings")
@@ -4465,8 +4465,8 @@ icon_animation_player = NodePath("../../IconSubViewport/SubViewport/ui_settings/
 idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
-material_idle = ExtResource("29_w7bmg")
-material_select = ExtResource("30_iox0i")
+material_idle = ExtResource("29")
+material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Settings" unique_id=1306506377]
 layout_mode = 1
@@ -4481,7 +4481,7 @@ offset_right = 86.5
 offset_bottom = 51.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 42
 text = "Settings"
 horizontal_alignment = 1
@@ -4500,7 +4500,7 @@ focus_neighbor_right = NodePath("../Training")
 focus_neighbor_bottom = NodePath("../Cartridges")
 focus_mode = 2
 mouse_filter = 2
-script = ExtResource("28_2nc6k")
+script = ExtResource("28")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Credits")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_credits")
@@ -4509,8 +4509,8 @@ icon_animation_player = NodePath("../../IconSubViewport/SubViewport/ui_credits/A
 idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
-material_idle = ExtResource("29_w7bmg")
-material_select = ExtResource("30_iox0i")
+material_idle = ExtResource("29")
+material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Credits" unique_id=1327187529]
 layout_mode = 1
@@ -4525,7 +4525,7 @@ offset_right = 74.5
 offset_bottom = 55.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 42
 text = "Credits"
 horizontal_alignment = 1
@@ -4544,7 +4544,7 @@ focus_neighbor_top = NodePath("../Credits")
 focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 2
-script = ExtResource("28_2nc6k")
+script = ExtResource("28")
 disabled = true
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Training")
@@ -4554,8 +4554,8 @@ icon_animation_player = NodePath("../../IconSubViewport/SubViewport/ui_training/
 idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
-material_idle = ExtResource("29_w7bmg")
-material_select = ExtResource("30_iox0i")
+material_idle = ExtResource("29")
+material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Training" unique_id=626961837]
 layout_mode = 1
@@ -4570,7 +4570,7 @@ offset_right = 87.0
 offset_bottom = 58.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 42
 text = "Training"
 horizontal_alignment = 1
@@ -4589,7 +4589,7 @@ focus_neighbor_top = NodePath("../Cartridges")
 focus_neighbor_right = NodePath("../Training")
 focus_mode = 2
 mouse_filter = 2
-script = ExtResource("31_0l50m")
+script = ExtResource("31")
 home_container = NodePath("../..")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_gallery")
 icon_mesh = NodePath("../../IconSubViewport/SubViewport/ui_gallery/UI_Icons/Skeleton3D/GALLERY")
@@ -4597,8 +4597,8 @@ icon_animation_player = NodePath("../../IconSubViewport/SubViewport/ui_gallery/A
 idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
-material_idle = ExtResource("29_w7bmg")
-material_select = ExtResource("30_iox0i")
+material_idle = ExtResource("29")
+material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Gallery" unique_id=1181545106]
 layout_mode = 1
@@ -4613,7 +4613,7 @@ offset_right = 80.0
 offset_bottom = 42.25
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 42
 text = "Gallery"
 horizontal_alignment = 1
@@ -4634,7 +4634,7 @@ focus_neighbor_right = NodePath("../Training")
 focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 2
-script = ExtResource("32_rkoml")
+script = ExtResource("32")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Cartridges")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_cartridge")
@@ -4656,7 +4656,7 @@ offset_top = 4.0
 offset_right = 112.5
 offset_bottom = 51.0
 grow_horizontal = 2
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 42
 text = "Cartridges"
 horizontal_alignment = 1
@@ -4674,18 +4674,18 @@ offset_right = 118.19269
 offset_bottom = -214.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_font_sizes/font_size = 32
 text = "$BIND Switch Cartridge"
 horizontal_alignment = 1
 vertical_alignment = 2
-script = ExtResource("33_m5tpy")
+script = ExtResource("33")
 format_text = "[$open_cartridge_bag$] Switch Cartridge"
 
 [node name="Credits" type="Control" parent="TabContainer" unique_id=1230364610 node_paths=PackedStringArray("tab_container")]
 visible = false
 layout_mode = 2
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 metadata/_tab_index = 1
 
@@ -4705,7 +4705,7 @@ color = Color(0.9019608, 1, 1, 1)
 energy = 4.0
 blend_mode = 2
 range_z_max = 2
-texture = ExtResource("35_jv51v")
+texture = ExtResource("35")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/Awesomeahhlight" unique_id=1569068782]
 libraries/ = SubResource("AnimationLibrary_aipkm")
@@ -4738,14 +4738,14 @@ projection = 1
 size = 3.0
 far = 10.0
 
-[node name="ui_arrow" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport" unique_id=295154986 instance=ExtResource("36_2vb3o")]
+[node name="ui_arrow" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport" unique_id=295154986 instance=ExtResource("36")]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -1, 1.7, 0)
 
 [node name="HatArrowMesh" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow/HatArrow/Skeleton3D" parent_id_path=PackedInt32Array(295154986, 1762337925) index="0" unique_id=294009144]
 mesh = SubResource("ArrayMesh_5uc5c")
 skin = SubResource("Skin_3wbki")
 
-[node name="ui_arrow2" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport" unique_id=59839313 instance=ExtResource("36_2vb3o")]
+[node name="ui_arrow2" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport" unique_id=59839313 instance=ExtResource("36")]
 transform = Transform3D(-0.5, 0, 0, 0, 0.5, -4.371139e-08, 0, 4.371139e-08, 0.5, 1, 1.7, 0)
 
 [node name="HatArrowMesh" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow2/HatArrow/Skeleton3D" parent_id_path=PackedInt32Array(59839313, 1762337925) index="0" unique_id=294009144]
@@ -4761,8 +4761,8 @@ offset_top = 140.0
 offset_right = 243.8533
 offset_bottom = 198.0
 grow_horizontal = 0
-theme = ExtResource("9_s23lv")
-theme_override_fonts/font = ExtResource("37_rg3h6")
+theme = ExtResource("9")
+theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 40
 text = "A"
 horizontal_alignment = 2
@@ -4776,8 +4776,8 @@ offset_left = 1196.1469
 offset_top = 140.0
 offset_right = 2043.8533
 offset_bottom = 198.0
-theme = ExtResource("9_s23lv")
-theme_override_fonts/font = ExtResource("37_rg3h6")
+theme = ExtResource("9")
+theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 40
 text = "B"
 vertical_alignment = 1
@@ -4801,8 +4801,8 @@ alignment = 1
 [node name="Name" type="Label" parent="TabContainer/Credits/CurrentlySelected/VBoxContainer" unique_id=1995450251]
 z_index = 1
 layout_mode = 2
-theme = ExtResource("9_s23lv")
-theme_override_fonts/font = ExtResource("37_rg3h6")
+theme = ExtResource("9")
+theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 50
 text = "Test bro"
 horizontal_alignment = 1
@@ -4810,7 +4810,7 @@ vertical_alignment = 1
 
 [node name="Role" type="Control" parent="TabContainer/Credits/CurrentlySelected/VBoxContainer" unique_id=1849976739 node_paths=PackedStringArray("nonscroll_label", "scroll_label", "parent_container", "scroll_container")]
 layout_mode = 2
-script = ExtResource("38_tpb67")
+script = ExtResource("38")
 nonscroll_label = NodePath("RoleLabel")
 scroll_label = NodePath("ScrollContainer/HBoxContainer/RoleLabel")
 parent_container = NodePath("../../..")
@@ -4832,8 +4832,8 @@ theme_override_constants/separation = 0
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
-theme = ExtResource("9_s23lv")
-theme_override_fonts/font = ExtResource("39_hd1jp")
+theme = ExtResource("9")
+theme_override_fonts/font = ExtResource("39")
 theme_override_font_sizes/font_size = 46
 text = "Role"
 horizontal_alignment = 1
@@ -4848,8 +4848,8 @@ offset_left = -39.5
 offset_right = 39.5
 offset_bottom = 36.0
 grow_horizontal = 2
-theme = ExtResource("9_s23lv")
-theme_override_fonts/font = ExtResource("39_hd1jp")
+theme = ExtResource("9")
+theme_override_fonts/font = ExtResource("39")
 theme_override_font_sizes/font_size = 46
 text = "Role"
 horizontal_alignment = 1
@@ -4862,7 +4862,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("40_apa3h")
+script = ExtResource("40")
 console = NodePath("../../..")
 primary_portrait_animation = NodePath("CreditsPortraitPrimary/AnimationPlayer")
 secondary_portrait_animation = NodePath("CreditsPortraitSecondary/AnimationPlayer")
@@ -4877,15 +4877,15 @@ left_arrow_anim = NodePath("../CurrentlySelected/SubViewportContainer/SubViewpor
 right_arrow_anim = NodePath("../CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow2/AnimationPlayer")
 left_arrow_mesh = NodePath("../CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow/HatArrow/Skeleton3D/HatArrowMesh")
 right_arrow_mesh = NodePath("../CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow2/HatArrow/Skeleton3D/HatArrowMesh")
-material_idle = ExtResource("29_w7bmg")
-material_select = ExtResource("30_iox0i")
+material_idle = ExtResource("29")
+material_select = ExtResource("30")
 credits_entries = [SubResource("Resource_3wbki"), SubResource("Resource_1pg6q"), SubResource("Resource_s8oc3"), SubResource("Resource_c1dk4"), SubResource("Resource_bpx2w"), SubResource("Resource_krns4"), SubResource("Resource_53u57"), SubResource("Resource_6xqcv"), SubResource("Resource_aipkm"), SubResource("Resource_xqvk1"), SubResource("Resource_7bcxd"), SubResource("Resource_515yq"), SubResource("Resource_g013n"), SubResource("Resource_t7fim"), SubResource("Resource_jmxba"), SubResource("Resource_yuu1f"), SubResource("Resource_6cqfn"), SubResource("Resource_ojefv"), SubResource("Resource_v76o6"), SubResource("Resource_4e3fp"), SubResource("Resource_n3hid"), SubResource("Resource_n0yyd"), SubResource("Resource_5uc5c"), SubResource("Resource_0ludl"), SubResource("Resource_8ygb7"), SubResource("Resource_xuxmh"), SubResource("Resource_bjefn"), SubResource("Resource_h2l5q"), SubResource("Resource_5vqgg"), SubResource("Resource_ffyfa"), SubResource("Resource_v8fp5"), SubResource("Resource_s2ih7"), SubResource("Resource_26fpe"), SubResource("Resource_jbm3l"), SubResource("Resource_hlefr"), SubResource("Resource_r8cv6"), SubResource("Resource_7sig0"), SubResource("Resource_vogi3"), SubResource("Resource_51d5e"), SubResource("Resource_136d4"), SubResource("Resource_5gx8c"), SubResource("Resource_v8rxn")]
 
 [node name="CreditsPortraitSecondary" type="AnimatedSprite2D" parent="TabContainer/Credits/CreditsContainer" unique_id=2132617242]
 modulate = Color(0.1, 0.1, 0.1, 1)
 position = Vector2(103.99998, 803.00006)
 scale = Vector2(0.9031746, 0.9031745)
-sprite_frames = ExtResource("42_hhmo4")
+sprite_frames = ExtResource("42")
 animation = &"Jack-O"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitSecondary" unique_id=1239002531]
@@ -4894,7 +4894,7 @@ libraries/ = SubResource("AnimationLibrary_26fpe")
 [node name="CreditsPortraitPrimary" type="AnimatedSprite2D" parent="TabContainer/Credits/CreditsContainer" unique_id=837053894]
 modulate = Color(0.5, 0.5, 0.5, 1)
 position = Vector2(472, 731)
-sprite_frames = ExtResource("42_hhmo4")
+sprite_frames = ExtResource("42")
 animation = &"Bakyura"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitPrimary" unique_id=1474806969]
@@ -4911,9 +4911,9 @@ theme_override_constants/margin_right = 16
 z_index = 1
 custom_minimum_size = Vector2(720, 600)
 layout_mode = 2
-theme = ExtResource("9_s23lv")
+theme = ExtResource("9")
 theme_override_constants/line_separation = 2
-theme_override_fonts/normal_font = ExtResource("43_ypa6l")
+theme_override_fonts/normal_font = ExtResource("43")
 theme_override_font_sizes/normal_font_size = 36
 bbcode_enabled = true
 text = "Description bro"
@@ -4938,9 +4938,9 @@ offset_right = -14.678833
 offset_bottom = 80.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2
-icon = ExtResource("44_wy1j8")
+icon = ExtResource("44")
 expand_icon = true
-script = ExtResource("45_uh3qs")
+script = ExtResource("45")
 
 [node name="KeybindLabel" type="Label" parent="TabContainer/Credits/OpenScroll" unique_id=1113445378]
 layout_mode = 1
@@ -4962,7 +4962,7 @@ vertical_alignment = 2
 [node name="Settings" type="Control" parent="TabContainer" unique_id=541604915 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
 layout_mode = 2
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("OptionsSections/VBoxContainer/GameplayButton")
 metadata/_tab_index = 2
@@ -4975,11 +4975,11 @@ texture = SubResource("GradientTexture2D_gqufi")
 
 [node name="PortraitBox" type="AnimatedSprite2D" parent="TabContainer/Settings" unique_id=467561537 node_paths=PackedStringArray("console", "portrait", "settings_container")]
 position = Vector2(1000, 584)
-sprite_frames = ExtResource("46_1pgtl")
+sprite_frames = ExtResource("46")
 animation = &"Options Box instance "
 autoplay = "Options Box instance "
 frame_progress = 0.86153674
-script = ExtResource("47_2xp0c")
+script = ExtResource("47")
 console = NodePath("../../..")
 portrait = NodePath("SettingsPortraits")
 settings_container = NodePath("SettingsSubmenu")
@@ -4987,7 +4987,7 @@ settings_container = NodePath("SettingsSubmenu")
 [node name="SettingsPortraits" type="AnimatedSprite2D" parent="TabContainer/Settings/PortraitBox" unique_id=164571436]
 visible = false
 position = Vector2(4, 0)
-sprite_frames = ExtResource("48_57dr8")
+sprite_frames = ExtResource("48")
 animation = &"gf"
 
 [node name="SettingsSubmenu" type="TabContainer" parent="TabContainer/Settings/PortraitBox" unique_id=2018747834]
@@ -5013,7 +5013,7 @@ clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 25
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("MasterVolume")
 metadata/_tab_index = 0
@@ -5024,10 +5024,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MusicVolume")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Master Volume: "
 alignment = 0
-script = ExtResource("49_dbutl")
+script = ExtResource("49")
 property = &"audio_master_volume"
 is_percent = true
 increment_amount = 0.1
@@ -5042,10 +5042,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../MasterVolume")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../SFXVolume")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Music Volume: "
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"audio_music_volume"
 is_percent = true
 increment_amount = 0.1
@@ -5060,10 +5060,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../MusicVolume")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VoiceVolume")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "SFX Volume: "
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"audio_sfx_volume"
 is_percent = true
 increment_amount = 0.1
@@ -5078,10 +5078,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../SFXVolume")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Offset")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Voice Volume: "
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"audio_vox_volume"
 is_percent = true
 increment_amount = 0.1
@@ -5096,10 +5096,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VoiceVolume")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VisualOffset")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Offset: "
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"game_offset"
 increment_amount = 1.0
 value_max = 9999.9
@@ -5114,10 +5114,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Offset")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ChangeKeybinds")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Visual Offset: "
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"game_visual_offset"
 increment_amount = 1.0
 value_max = 9999.9
@@ -5132,10 +5132,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VisualOffset")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../SpeedMultiplier")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Change Keybinds"
 alignment = 0
-script = ExtResource("51_o0rmd")
+script = ExtResource("51")
 settings_portraits = NodePath("../../../SettingsPortraits")
 submenu = NodePath("../..")
 submenu_index = 3
@@ -5149,10 +5149,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ChangeKeybinds")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Downscroll")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Scroll Speed Mult: x"
 alignment = 0
-script = ExtResource("50_vkkpy")
+script = ExtResource("50")
 property = &"game_speed_multiplier"
 increment_amount = 0.1
 value_max = 10.0
@@ -5160,7 +5160,7 @@ value_min = 0.1
 console = NodePath("../../../../../..")
 tooltip = "Multiplier for chart scroll speed, the speed at which notes come down the screen."
 
-[node name="Downscroll" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=187182708 node_paths=PackedStringArray("console") instance=ExtResource("52_0ye1x")]
+[node name="Downscroll" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=187182708 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../SpeedMultiplier")
@@ -5171,7 +5171,7 @@ property = &"game_downscroll"
 console = NodePath("../../../../../..")
 tooltip = "Places player arrows at the bottom of the screen and makes notes scroll down."
 
-[node name="GhostTapping" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=93099427 node_paths=PackedStringArray("console") instance=ExtResource("52_0ye1x")]
+[node name="GhostTapping" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=93099427 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Downscroll")
@@ -5182,7 +5182,7 @@ property = &"game_ghost_tapping"
 console = NodePath("../../../../../..")
 tooltip = "If on, lets you press lanes freely without getting punished for not hitting a note."
 
-[node name="BabyMode" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=2041249697 node_paths=PackedStringArray("console") instance=ExtResource("52_0ye1x")]
+[node name="BabyMode" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=2041249697 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GhostTapping")
@@ -5199,7 +5199,7 @@ clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 25
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("WindowMode")
 metadata/_tab_index = 1
@@ -5210,10 +5210,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Resolution")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Window Mode: "
 alignment = 0
-script = ExtResource("53_dy80y")
+script = ExtResource("53")
 resolution_button = NodePath("../Resolution")
 next_node = NodePath("../QualityPreset")
 property = &"display_window_mode"
@@ -5228,11 +5228,11 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../WindowMode")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../QualityPreset")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Resolution: "
 alignment = 0
-script = ExtResource("54_guxm5")
+script = ExtResource("54")
 property = &"display_resolution"
 display_list = ["640 x 360", "1280 x 720", "1366 x 768", "1920 x 1080", "2560 x 1440", "3840 x 2160"]
 values_list = [Vector2i(640, 360), Vector2i(1280, 720), Vector2i(1366, 768), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]
@@ -5245,10 +5245,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Resolution")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VSync")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Quality Preset: "
 alignment = 0
-script = ExtResource("55_lashb")
+script = ExtResource("55")
 display_list = ["Low", "Medium", "High"]
 values_list = [0, 1, 2]
 console = NodePath("../../../../../..")
@@ -5260,10 +5260,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../QualityPreset")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MaxFPS")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "VSync: "
 alignment = 0
-script = ExtResource("54_guxm5")
+script = ExtResource("54")
 property = &"display_vsync"
 display_list = ["Disabled", "Enabled", "Adaptive"]
 values_list = [0, 1, 2]
@@ -5276,17 +5276,17 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VSync")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../FlashingLights")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Max FPS: "
 alignment = 0
-script = ExtResource("54_guxm5")
+script = ExtResource("54")
 property = &"display_target_fps"
 display_list = ["30", "60", "90", "120", "144", "180", "240", "Unlimited"]
 values_list = [30, 60, 90, 120, 144, 180, 240, 0]
 console = NodePath("../../../../../..")
 tooltip = "Change game's maximum frames per second limit. "
 
-[node name="FlashingLights" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1526687835 node_paths=PackedStringArray("console") instance=ExtResource("52_0ye1x")]
+[node name="FlashingLights" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1526687835 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../MaxFPS")
@@ -5303,7 +5303,7 @@ custom_maximum_size = Vector2(713, 836)
 clip_contents = true
 layout_mode = 2
 theme_override_constants/separation = 25
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("DebugToggle")
 metadata/_tab_index = 2
@@ -5314,10 +5314,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../DeleteSaveData")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Debug Keybind: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"debug_toggle"
 console = NodePath("../../../../../..")
 tooltip = "Toggles debug, displaying current running FPS and memory."
@@ -5328,17 +5328,17 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../DebugToggle")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 text = "Delete Save Data!!!"
 alignment = 0
-script = ExtResource("57_fxaak")
+script = ExtResource("57")
 console = NodePath("../../../../../..")
 tooltip = "Deletes all save data for FNF Lullaby. Start from the beginning."
 
 [node name="LilEctor" type="AnimatedSprite2D" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1339668073]
 position = Vector2(352.29382, 664)
-sprite_frames = ExtResource("58_bktoq")
+sprite_frames = ExtResource("58")
 animation = &"Lil Ector"
 autoplay = "Lil Ector"
 frame_progress = 0.8696289
@@ -5347,7 +5347,7 @@ frame_progress = 0.8696289
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 25
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("NoteLeft")
 metadata/_tab_index = 3
@@ -5358,10 +5358,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../NoteDown")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Note Left: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"mania_lane0"
 is_input_game = true
 console = NodePath("../../../../../..")
@@ -5372,10 +5372,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteLeft")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../NoteUp")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Note Down: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"mania_lane1"
 is_input_game = true
 console = NodePath("../../../../../..")
@@ -5386,10 +5386,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteDown")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../NoteRight")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Note Up: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"mania_lane2"
 is_input_game = true
 console = NodePath("../../../../../..")
@@ -5400,10 +5400,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteUp")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Special")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Note Right: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"mania_lane3"
 is_input_game = true
 console = NodePath("../../../../../..")
@@ -5414,10 +5414,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteRight")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Pause")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Special: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"lullaby_special"
 console = NodePath("../../../../../..")
 tooltip = "The key for each special mechanic in songs."
@@ -5428,10 +5428,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Special")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VolumeUp")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Pause: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"funkin_pause"
 console = NodePath("../../../../../..")
 
@@ -5441,10 +5441,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Pause")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VolumeDown")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Volume Up: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"volume_up"
 console = NodePath("../../../../../..")
 
@@ -5454,10 +5454,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VolumeUp")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VolumeMute")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Volume Down: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"volume_down"
 console = NodePath("../../../../../..")
 
@@ -5467,10 +5467,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VolumeDown")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../QuickRestart")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Mute Volume: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"volume_mute"
 console = NodePath("../../../../../..")
 
@@ -5480,10 +5480,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VolumeMute")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../FullscreenToggle")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Quick Restart: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"quick_restart"
 console = NodePath("../../../../../..")
 
@@ -5493,10 +5493,10 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../QuickRestart")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
-theme = ExtResource("1_3pcgo")
+theme = ExtResource("1")
 text = "Toggle Fullscreen: "
 alignment = 0
-script = ExtResource("56_3aqok")
+script = ExtResource("56")
 input = &"fullscreen_toggle"
 console = NodePath("../../../../../..")
 
@@ -5519,7 +5519,7 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../VisualsButton")
-script = ExtResource("51_o0rmd")
+script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
 backout_node = NodePath(".")
@@ -5527,12 +5527,12 @@ console = NodePath("../../../../..")
 
 [node name="Gameplay" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GameplayButton" unique_id=1655435567]
 position = Vector2(169, 55)
-texture = ExtResource("59_jtnin")
+texture = ExtResource("59")
 
 [node name="GameplayIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GameplayButton/Gameplay" unique_id=1204631900]
 position = Vector2(-238, -1)
 scale = Vector2(1.3536586, 1.3536586)
-texture = ExtResource("60_jtmyx")
+texture = ExtResource("60")
 
 [node name="VisualsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2131229385 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -5542,7 +5542,7 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GameplayButton")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MiscButton")
-script = ExtResource("51_o0rmd")
+script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "collector"
 submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
@@ -5552,12 +5552,12 @@ console = NodePath("../../../../..")
 
 [node name="Visuals" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/VisualsButton" unique_id=451549991]
 position = Vector2(169, 55)
-texture = ExtResource("61_84q77")
+texture = ExtResource("61")
 
 [node name="VisualsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/VisualsButton/Visuals" unique_id=1547676887]
 position = Vector2(-239.00002, -8.9999695)
 scale = Vector2(1.2136714, 1.2136713)
-texture = ExtResource("62_ubdij")
+texture = ExtResource("62")
 
 [node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -5567,7 +5567,7 @@ focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VisualsButton")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
-script = ExtResource("51_o0rmd")
+script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "gold"
 submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
@@ -5577,12 +5577,12 @@ console = NodePath("../../../../..")
 
 [node name="Misc" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton" unique_id=1947891812]
 position = Vector2(169, 55)
-texture = ExtResource("63_lmr2r")
+texture = ExtResource("63")
 
 [node name="MiscIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton/Misc" unique_id=1872034145]
 position = Vector2(-227, -3)
 scale = Vector2(1.3536586, 1.3536586)
-texture = ExtResource("64_qqp2t")
+texture = ExtResource("64")
 
 [node name="Tooltip" type="Label" parent="TabContainer/Settings" unique_id=16871969]
 unique_name_in_owner = true
@@ -5592,14 +5592,14 @@ offset_left = 0.73399353
 offset_top = 1032.0
 offset_right = 1440.734
 offset_bottom = 1074.0
-theme_override_fonts/font = ExtResource("65_saj2m")
+theme_override_fonts/font = ExtResource("65")
 text = "test test test test test test test test test test test test test test test test test test test test"
 horizontal_alignment = 1
 
 [node name="Cartridges" type="Control" parent="TabContainer" unique_id=1033664902 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
 layout_mode = 2
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("EnterLabel")
 metadata/_tab_index = 3
@@ -5631,7 +5631,7 @@ offset_right = -33.999756
 offset_bottom = 319.0
 grow_horizontal = 0
 grow_vertical = 2
-texture = ExtResource("69_lj3ak")
+texture = ExtResource("69")
 
 [node name="CollectorsNoteTitle" type="TextureRect" parent="TabContainer/Cartridges/Box" unique_id=371839487]
 layout_mode = 1
@@ -5643,7 +5643,7 @@ offset_top = 61.75
 offset_right = 369.49994
 offset_bottom = 130.75
 grow_horizontal = 2
-texture = ExtResource("70_afwit")
+texture = ExtResource("70")
 
 [node name="CollectorsNoteLabel" type="Label" parent="TabContainer/Cartridges/Box/CollectorsNoteTitle" unique_id=1094829342]
 layout_mode = 1
@@ -5677,13 +5677,13 @@ offset_right = 403.6056
 offset_bottom = -27.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_fonts/normal_font = ExtResource("75_2150l")
+theme_override_fonts/normal_font = ExtResource("75")
 theme_override_font_sizes/normal_font_size = 30
 bbcode_enabled = true
 text = "[color=red]Type[/color] the corresponding letters to the Unowns as they appear"
 horizontal_alignment = 1
 vertical_alignment = 2
-script = ExtResource("76_2boew")
+script = ExtResource("76")
 
 [node name="EnterLabel" type="RichTextLabel" parent="TabContainer/Cartridges" unique_id=1856591640 node_paths=PackedStringArray("animation_player", "console")]
 layout_mode = 0
@@ -5702,20 +5702,20 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_outline_size = 0
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 4
-theme_override_fonts/normal_font = ExtResource("75_2150l")
+theme_override_fonts/normal_font = ExtResource("75")
 theme_override_font_sizes/normal_font_size = 40
 theme_override_styles/focus = SubResource("StyleBoxFlat_4e3fp")
 bbcode_enabled = true
 text = "Press [color=red]Enter[/color] to Continue"
 horizontal_alignment = 1
 vertical_alignment = 1
-script = ExtResource("77_rwyqr")
+script = ExtResource("77")
 animation_player = NodePath("../AnimationPlayer")
 console = NodePath("../../..")
 
 [node name="Name" type="AnimatedSprite2D" parent="TabContainer/Cartridges" unique_id=1968344442]
 position = Vector2(229.17436, 962)
-sprite_frames = ExtResource("78_g6t8a")
+sprite_frames = ExtResource("78")
 animation = &"girlfriend"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Cartridges" unique_id=1611202666]
@@ -5724,7 +5724,7 @@ libraries/ = SubResource("AnimationLibrary_n0yyd")
 [node name="Training" type="Control" parent="TabContainer" unique_id=532288812 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
 layout_mode = 2
-script = ExtResource("34_mt8m6")
+script = ExtResource("34")
 tab_container = NodePath("..")
 default_focus = NodePath("MarginContainer/VBoxContainer/HBoxContainer/PendulumButton")
 metadata/_tab_index = 4
@@ -5750,18 +5750,18 @@ custom_minimum_size = Vector2(529, 403)
 layout_mode = 2
 focus_neighbor_right = NodePath("../PulseButton")
 focus_neighbor_bottom = NodePath("../../TypingButton")
-script = ExtResource("79_lnr1u")
+script = ExtResource("79")
 console = NodePath("../../../../../..")
 box = NodePath("PendulumBox")
 
 [node name="PendulumBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton" unique_id=1353416492]
 position = Vector2(264, 201)
-texture = ExtResource("80_bwv1e")
+texture = ExtResource("80")
 
 [node name="Pendulum" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox" unique_id=73468746]
 position = Vector2(44.117996, -27)
 scale = Vector2(1.0793918, 1.0793918)
-sprite_frames = ExtResource("81_n2fg8")
+sprite_frames = ExtResource("81")
 animation = &"TrainPendulum"
 autoplay = "TrainPendulum"
 frame_progress = 0.6962325
@@ -5772,7 +5772,7 @@ offset_top = 138.0
 offset_right = 101.0
 offset_bottom = 178.5
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("71_1ydjf")
+theme_override_fonts/font = ExtResource("71")
 theme_override_font_sizes/font_size = 36
 text = "P e n d u l u m"
 
@@ -5782,18 +5782,18 @@ custom_minimum_size = Vector2(529, 403)
 layout_mode = 2
 focus_neighbor_left = NodePath("../PendulumButton")
 focus_neighbor_bottom = NodePath("../../TypingButton")
-script = ExtResource("79_lnr1u")
+script = ExtResource("79")
 console = NodePath("../../../../../..")
 box = NodePath("PulseBox")
 
 [node name="PulseBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton" unique_id=1389474769]
 position = Vector2(264, 201)
-texture = ExtResource("80_bwv1e")
+texture = ExtResource("80")
 
 [node name="Pulse" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox" unique_id=896849387]
 position = Vector2(2.000061, -23.999985)
 scale = Vector2(1.0439562, 1.043956)
-sprite_frames = ExtResource("81_n2fg8")
+sprite_frames = ExtResource("81")
 animation = &"TrainPulse"
 autoplay = "TrainPulse"
 frame_progress = 0.7997416
@@ -5804,7 +5804,7 @@ offset_top = 138.0
 offset_right = 58.0
 offset_bottom = 178.5
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("71_1ydjf")
+theme_override_fonts/font = ExtResource("71")
 theme_override_font_sizes/font_size = 36
 text = "P u l s e"
 
@@ -5814,18 +5814,18 @@ custom_minimum_size = Vector2(529, 403)
 layout_mode = 2
 size_flags_horizontal = 4
 focus_neighbor_top = NodePath("../HBoxContainer/PendulumButton")
-script = ExtResource("79_lnr1u")
+script = ExtResource("79")
 console = NodePath("../../../../..")
 box = NodePath("TypingBox")
 
 [node name="TypingBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/TypingButton" unique_id=852125666]
 position = Vector2(264, 201)
-texture = ExtResource("80_bwv1e")
+texture = ExtResource("80")
 
 [node name="Typing" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/TypingButton/TypingBox" unique_id=596683121]
 position = Vector2(3.0517578e-05, -26.999954)
 scale = Vector2(1.0301306, 1.0301305)
-sprite_frames = ExtResource("81_n2fg8")
+sprite_frames = ExtResource("81")
 animation = &"TrainType"
 autoplay = "TrainType"
 frame_progress = 0.17084701
@@ -5836,13 +5836,13 @@ offset_top = 139.0
 offset_right = 76.0
 offset_bottom = 179.5
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("71_1ydjf")
+theme_override_fonts/font = ExtResource("71")
 theme_override_font_sizes/font_size = 36
 text = "T y p i n g"
 
 [node name="LilEctor" type="AnimatedSprite2D" parent="TabContainer/Training" unique_id=353276087]
 position = Vector2(144, 904)
-sprite_frames = ExtResource("58_bktoq")
+sprite_frames = ExtResource("58")
 animation = &"Lil Ector"
 autoplay = "Lil Ector"
 frame_progress = 0.55702555
@@ -5859,7 +5859,7 @@ mouse_filter = 2
 
 [node name="texture" type="TextureRect" parent="Header" unique_id=1763021049]
 layout_mode = 2
-texture = ExtResource("82_rqlad")
+texture = ExtResource("82")
 
 [node name="Label" type="Label" parent="Header/texture" unique_id=1057207198]
 layout_mode = 1
@@ -5905,7 +5905,7 @@ offset_bottom = 242.69995
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset_ratio = Vector2(0.5, 0.5)
-theme_override_fonts/font = ExtResource("71_1ydjf")
+theme_override_fonts/font = ExtResource("71")
 theme_override_font_sizes/font_size = 60
 text = "Cabinet of Novelties"
 horizontal_alignment = 1
@@ -5917,7 +5917,7 @@ offset_top = 240.99997
 offset_right = 65.0
 offset_bottom = 279.24997
 pivot_offset_ratio = Vector2(0.5, 0.5)
-theme_override_fonts/font = ExtResource("71_1ydjf")
+theme_override_fonts/font = ExtResource("71")
 theme_override_font_sizes/font_size = 34
 text = "est. 1938"
 horizontal_alignment = 1
@@ -5929,18 +5929,18 @@ scale = Vector2(1.25, 1.25)
 
 [node name="Mouf" type="AnimatedSprite2D" parent="CollectorIntro/Logo" unique_id=741124210]
 position = Vector2(0, -112)
-sprite_frames = ExtResource("83_ovfe7")
+sprite_frames = ExtResource("83")
 animation = &"Teeth Open instance "
 
 [node name="Swoosh" type="AnimatedSprite2D" parent="CollectorIntro/Logo" unique_id=582275002]
 position = Vector2(-0.20098877, 28.200012)
-sprite_frames = ExtResource("83_ovfe7")
+sprite_frames = ExtResource("83")
 animation = &"Red Swoosh instance "
 frame = 7
 
 [node name="Hat" type="AnimatedSprite2D" parent="CollectorIntro/Logo" unique_id=1816369593]
 position = Vector2(-14, -113)
-sprite_frames = ExtResource("83_ovfe7")
+sprite_frames = ExtResource("83")
 animation = &"Hat"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CollectorIntro/Logo/Hat" unique_id=1371497911]
@@ -5965,12 +5965,12 @@ anchor_bottom = 1.0
 color = Color(0, 0, 0, 1)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=387359969]
-libraries/ = ExtResource("84_jyabn")
+libraries/ = ExtResource("84")
 "next/collector intro" = &"bg_startup"
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=207176935]
 unique_name_in_owner = true
-stream = ExtResource("85_d8qj4")
+stream = ExtResource("85")
 volume_db = -80.0
 autoplay = true
 bus = &"Music"
@@ -6001,7 +6001,7 @@ libraries/ = SubResource("AnimationLibrary_5s4x1")
 autoplay = &"out"
 
 [node name="CollectorShopSettings" type="Node" parent="." unique_id=434024531]
-script = ExtResource("86_qefjv")
+script = ExtResource("86")
 metadata/_custom_type_script = "uid://dmkptu3syyxf2"
 
 [node name="PostProcessingTree" type="AnimationTree" parent="CollectorShopSettings" unique_id=61161687]

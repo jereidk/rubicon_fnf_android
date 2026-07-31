@@ -1,4 +1,4 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c7n6gu0q0k751"]
 
 [resource]
 resource_name = "Toon Shader  (Eevee Only).003"

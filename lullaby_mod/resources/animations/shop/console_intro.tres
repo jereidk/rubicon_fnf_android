@@ -1,6 +1,6 @@
-[gd_resource type="AnimationLibrary" format=3]
+[gd_resource type="AnimationLibrary" format=3 uid="uid://bamwqihnv0kbe"]
 
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_collector_logo.wav" id="1_87r8g"]
+[ext_resource type="AudioStream" uid="uid://b0ismo62nadix" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_collector_logo.wav" id="1"]
 
 [sub_resource type="Animation" id="Animation_b21dp"]
 length = 0.001
@@ -383,7 +383,7 @@ tracks/1/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.0,
-"stream": ExtResource("1_87r8g")
+"stream": ExtResource("1")
 }],
 "times": PackedFloat32Array(0)
 }

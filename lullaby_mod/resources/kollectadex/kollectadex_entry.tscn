@@ -1,12 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://6vbjjhd0pih"]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex/kollectadex_entry.gdc" id="1_dmxpq"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/selected.png" id="2_85bvp"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/unselected.png" id="3_bw2b1"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_0b3nm"]
+[ext_resource type="Script" uid="uid://u215v2b5i8bk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex/kollectadex_entry.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://drfne7nskc200" path="res://lullaby_mod/assets/menus/kollectadex/selected.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://cvmf3wrnlcd0a" path="res://lullaby_mod/assets/menus/kollectadex/unselected.png" id="3"]
+[ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_84lis"]
-font = ExtResource("4_0b3nm")
+font = ExtResource("4")
 font_size = 64
 font_color = Color(0.9372549, 0.9764706, 1, 1)
 
@@ -15,9 +15,9 @@ custom_minimum_size = Vector2(0, 55)
 layout_mode = 3
 anchors_preset = 0
 focus_mode = 2
-script = ExtResource("1_dmxpq")
-focus_texture_selected = ExtResource("2_85bvp")
-focus_texture_unselected = ExtResource("3_bw2b1")
+script = ExtResource("1")
+focus_texture_selected = ExtResource("2")
+focus_texture_unselected = ExtResource("3")
 reference_focus_indicator = NodePath("TextureRect")
 reference_number_label = NodePath("HBoxContainer/Number")
 reference_name_label = NodePath("HBoxContainer/Name")
@@ -32,7 +32,7 @@ offset_top = -23.5
 offset_right = 559.0
 offset_bottom = 23.5
 grow_vertical = 2
-texture = ExtResource("3_bw2b1")
+texture = ExtResource("3")
 stretch_mode = 4
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1401713211]

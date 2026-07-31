@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cvva03481wweq"]
 
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="1_e1tm7"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/cartridge_bag_sidepanel.gdc" id="2_v1257"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader" id="3_rworx"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/cartridge_bag/tex_border.png" id="4_nhfri"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pixel.otf" id="5_r5f4x"]
+[ext_resource type="FontFile" uid="uid://bskj0bv8cf310" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="1"]
+[ext_resource type="Script" uid="uid://fbxx11niydbv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/cartridge_bag_sidepanel.gd" id="2"]
+[ext_resource type="Shader" uid="uid://drdk00f2npdl3" path="res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader" id="3"]
+[ext_resource type="Texture2D" uid="uid://vbie8nb2v8ko" path="res://lullaby_mod/assets/menus/cartridge_bag/tex_border.png" id="4"]
+[ext_resource type="FontFile" uid="uid://fsb5mocvw7ji" path="res://lullaby_mod/resources/fonts/fnt_pixel.otf" id="5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot8b"]
 draw_center = false
@@ -14,11 +14,11 @@ Button/colors/font_color = Color(1, 1, 1, 0.86800003)
 Button/colors/font_disabled_color = Color(1, 1, 1, 0.65882355)
 Button/colors/font_hover_color = Color(1, 1, 1, 0.92200005)
 Button/font_sizes/font_size = 64
-Button/fonts/font = ExtResource("1_e1tm7")
+Button/fonts/font = ExtResource("1")
 Button/styles/focus = SubResource("StyleBoxFlat_dot8b")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hjwb4"]
-shader = ExtResource("3_rworx")
+shader = ExtResource("3")
 shader_parameter/bars_amount = 1.74
 shader_parameter/stretch_x = 0.82
 shader_parameter/base_color = Color(0.3571377, 0.2355721, 0.29224047, 1)
@@ -27,15 +27,15 @@ shader_parameter/contrast = 1.065
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fgulo"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_p1y0g"]
-font = ExtResource("1_e1tm7")
+font = ExtResource("1")
 font_size = 48
 
 [sub_resource type="LabelSettings" id="LabelSettings_dot8b"]
-font = ExtResource("1_e1tm7")
+font = ExtResource("1")
 font_size = 48
 
 [sub_resource type="FontVariation" id="FontVariation_lpqgh"]
-base_font = ExtResource("5_r5f4x")
+base_font = ExtResource("5")
 
 [node name="CartridgeBagSidepanel" type="Control" unique_id=1439715146 node_paths=PackedStringArray("tabs", "song_name", "song_stats")]
 layout_mode = 3
@@ -45,7 +45,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_dot8b")
-script = ExtResource("2_v1257")
+script = ExtResource("2")
 tabs = NodePath("Tabs")
 song_name = NodePath("Tabs/SongInformation/Margin/Items/Name")
 song_stats = NodePath("Tabs/SongInformation/Margin/Items/Stats")
@@ -66,7 +66,7 @@ offset_left = 18.0
 offset_top = 19.0
 offset_right = 146.0
 offset_bottom = 147.0
-texture = ExtResource("4_nhfri")
+texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 4
 
@@ -79,7 +79,7 @@ offset_left = 18.0
 offset_top = -146.0
 offset_right = 146.0
 offset_bottom = -18.0
-texture = ExtResource("4_nhfri")
+texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 4
 flip_v = true

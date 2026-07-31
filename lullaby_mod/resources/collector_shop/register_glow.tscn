@@ -1,10 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://borim0byhdt3r"]
 
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader" id="1_tqmh4"]
+[ext_resource type="Shader" uid="uid://lp8vkebic3v3" path="res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader" id="1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_erv7p"]
 render_priority = 0
-shader = ExtResource("1_tqmh4")
+next_pass = null
+shader = ExtResource("1")
 shader_parameter/primary_color = Color(1, 1, 1, 1)
 shader_parameter/secondary_color = Color(0.85464096, 0.0007847238, 0.8884346, 1)
 shader_parameter/emission = 9.2

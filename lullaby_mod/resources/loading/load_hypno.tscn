@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://hxsa6cg5h6m"]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/loading/lullaby_loading_screen.gdc" id="1_p612y"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/loading/load_hypno/loading.tres" id="2_cu5cg"]
+[ext_resource type="Script" uid="uid://c188vpx5h77m6" path="res://lullaby_mod/scripts/lullaby/loading/lullaby_loading_screen.gd" id="1"]
+[ext_resource type="SpriteFrames" uid="uid://b3opxuemusmm6" path="res://lullaby_mod/assets/loading/load_hypno/loading.tres" id="2"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clhdg"]
 
@@ -108,7 +108,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
-script = ExtResource("1_p612y")
+script = ExtResource("1")
 animation_start = &"open"
 animation_end = &"close"
 animation_player = NodePath("AnimationPlayer")
@@ -144,7 +144,7 @@ show_percentage = false
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="HypnoContainer" unique_id=1779664716]
 position = Vector2(-392, -207)
 scale = Vector2(0.8, 0.8)
-sprite_frames = ExtResource("2_cu5cg")
+sprite_frames = ExtResource("2")
 animation = &"loading instance 1"
 autoplay = "loading instance 1"
 frame_progress = 0.762932

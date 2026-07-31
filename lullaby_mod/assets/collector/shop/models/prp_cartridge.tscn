@@ -1,25 +1,25 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://stbwla7734nb"]
 
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="1_wetcg"]
-[ext_resource type="Script" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gdc" id="2_1kenk"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3_ayb6t"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4_ym546"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="5_7fvo2"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_ppcse"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_cart_dissolve.wav" id="7_x5s3y"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="8_syehc"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="9_s55jt"]
+[ext_resource type="PackedScene" uid="uid://d1r7aa5nov1mc" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="1"]
+[ext_resource type="Script" uid="uid://br1nn8wucga5s" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gd" id="2"]
+[ext_resource type="Shader" uid="uid://b7bx2eh2ixh2v" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3"]
+[ext_resource type="Texture2D" uid="uid://b07uqtm3nyxic" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://bwg67dkx7dgcy" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://b5rm4xq4cb0ht" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6"]
+[ext_resource type="AudioStream" uid="uid://dwsoxoct4jc0m" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_cart_dissolve.wav" id="7"]
+[ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://ds7fujbpkpaby" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="9"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_k5uac"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("3_ayb6t")
-shader_parameter/texture_albedo = ExtResource("5_7fvo2")
-shader_parameter/texture_normal = ExtResource("6_ppcse")
-shader_parameter/metallic_amount = null
+next_pass = null
+shader = ExtResource("3")
+shader_parameter/texture_albedo = ExtResource("5")
+shader_parameter/texture_normal = ExtResource("6")
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("4_ym546")
+shader_parameter/dissolve_texture = ExtResource("4")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
@@ -55,7 +55,7 @@ tracks/0/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.1786,
-"stream": ExtResource("7_x5s3y")
+"stream": ExtResource("7")
 }],
 "times": PackedFloat32Array(0)
 }
@@ -91,7 +91,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("5_7fvo2")]
+"values": [ExtResource("5")]
 }
 
 [sub_resource type="Animation" id="Animation_qsqk3"]
@@ -107,7 +107,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("8_syehc")]
+"values": [ExtResource("8")]
 }
 
 [sub_resource type="Animation" id="Animation_bld7d"]
@@ -123,7 +123,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("9_s55jt")]
+"values": [ExtResource("9")]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_homwj"]
@@ -133,8 +133,8 @@ _data = {
 &"safety_lullaby": SubResource("Animation_bld7d")
 }
 
-[node name="prp_cartridge" unique_id=1053355038 node_paths=PackedStringArray("anim") instance=ExtResource("1_wetcg")]
-script = ExtResource("2_1kenk")
+[node name="prp_cartridge" unique_id=1053355038 node_paths=PackedStringArray("anim") instance=ExtResource("1")]
+script = ExtResource("2")
 anim = NodePath("AnimationPlayer")
 
 [node name="Cartridge" parent="." index="0" unique_id=418026459]

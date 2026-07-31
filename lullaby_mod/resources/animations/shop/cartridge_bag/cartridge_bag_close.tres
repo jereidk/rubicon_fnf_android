@@ -1,6 +1,6 @@
-[gd_resource type="Animation" format=3]
+[gd_resource type="Animation" format=3 uid="uid://b5yvebd78top6"]
 
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_pick_cartridge.wav" id="1_fxaec"]
+[ext_resource type="AudioStream" uid="uid://d36wpo6gq5k0g" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_pick_cartridge.wav" id="1"]
 
 [resource]
 resource_name = "CartridgeBag_Close"
@@ -130,7 +130,7 @@ tracks/15/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.0,
-"stream": ExtResource("1_fxaec")
+"stream": ExtResource("1")
 }],
 "times": PackedFloat32Array(0)
 }

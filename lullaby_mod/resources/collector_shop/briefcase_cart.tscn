@@ -1,12 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dpr8enn17fs8d"]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gdc" id="1_j6lxn"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.tscn" id="2_x7d0s"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3_sbhv3"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4_637ju"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="5_i3dw6"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6_0ld8o"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7_d7ir7"]
+[ext_resource type="Script" uid="uid://bryun6youv5k0" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase_cart.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://stbwla7734nb" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.tscn" id="2"]
+[ext_resource type="Shader" uid="uid://b7bx2eh2ixh2v" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="3"]
+[ext_resource type="Texture2D" uid="uid://b07uqtm3nyxic" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://b5rm4xq4cb0ht" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="6"]
+[ext_resource type="AudioStream" uid="uid://bt2qgji7iic7i" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="7"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_g4v7s"]
 size = Vector3(0.15939331, 0.13555908, 0.076416016)
@@ -14,13 +14,13 @@ size = Vector3(0.15939331, 0.13555908, 0.076416016)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_axaw1"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("3_sbhv3")
-shader_parameter/texture_albedo = ExtResource("5_i3dw6")
-shader_parameter/texture_normal = ExtResource("6_0ld8o")
-shader_parameter/metallic_amount = null
+next_pass = null
+shader = ExtResource("3")
+shader_parameter/texture_albedo = ExtResource("5")
+shader_parameter/texture_normal = ExtResource("6")
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("4_637ju")
+shader_parameter/dissolve_texture = ExtResource("4")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
@@ -103,7 +103,7 @@ tracks/1/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.0,
-"stream": ExtResource("7_d7ir7")
+"stream": ExtResource("7")
 }],
 "times": PackedFloat32Array(0.05)
 }
@@ -137,7 +137,7 @@ _data = {
 transform = Transform3D(0.93185645, -0.0051282877, 0.36279082, 0.005503173, 0.99998486, 1.1706622e-07, -0.36278534, 0.001996392, 0.9318706, 0, 0, 0)
 bone_name = "Cartridge10"
 bone_idx = 11
-script = ExtResource("1_j6lxn")
+script = ExtResource("1")
 animation_offset = NodePath("Offset/AnimationOffset")
 cartridge_mesh = NodePath("Offset/AnimationOffset/Cartridge/Cartridge")
 area = NodePath("Offset/Area")
@@ -161,7 +161,7 @@ debug_color = Color(0.70196074, 0.641636, 0, 0.41960785)
 [node name="AnimationOffset" type="Node3D" parent="Offset" unique_id=1791359077]
 transform = Transform3D(1, -4.656613e-10, 7.450581e-09, 0, 1, -2.3283064e-10, 0, 0, 1, 0, 0, 0)
 
-[node name="Cartridge" parent="Offset/AnimationOffset" unique_id=1053355038 instance=ExtResource("2_x7d0s")]
+[node name="Cartridge" parent="Offset/AnimationOffset" unique_id=1053355038 instance=ExtResource("2")]
 transform = Transform3D(-3.7252903e-08, -2.910383e-11, 1, -2.3283064e-10, 1, -1.1641532e-10, -1, 0, -4.4703484e-08, -3.1145997, -1.7755979, 3.1936429)
 texture = "monochrome"
 

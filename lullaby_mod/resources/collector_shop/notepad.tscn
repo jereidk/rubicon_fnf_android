@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b3gswbvn2u7cu"]
 
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/mdl_notepad.gltf" id="1_eq1w7"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_notepad.gdc" id="2_pylhi"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/misc/shd_uv_appear.gdshader" id="3_yqcxq"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypno_options.ttf" id="4_1i0gi"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/misc/shd_yellower.gdshader" id="5_bsq2j"]
+[ext_resource type="PackedScene" uid="uid://bco6350k2ojqe" path="res://lullaby_mod/assets/collector/shop/models/mdl_notepad.gltf" id="1"]
+[ext_resource type="Script" uid="uid://dw0m571aycxpi" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_notepad.gd" id="2"]
+[ext_resource type="Shader" uid="uid://cfsc23f1num8e" path="res://lullaby_mod/resources/shaders/misc/shd_uv_appear.gdshader" id="3"]
+[ext_resource type="FontFile" uid="uid://bwcnnkcy7kr68" path="res://lullaby_mod/resources/fonts/fnt_hypno_options.ttf" id="4"]
+[ext_resource type="Shader" uid="uid://bbjmotp7jw3tl" path="res://lullaby_mod/resources/shaders/misc/shd_yellower.gdshader" id="5"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_778kt"]
 viewport_path = NodePath("Page Display/SubViewport")
@@ -12,20 +12,21 @@ viewport_path = NodePath("Page Display/SubViewport")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_prrni"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("3_yqcxq")
+next_pass = null
+shader = ExtResource("3")
 shader_parameter/sprite_texture = SubResource("ViewportTexture_778kt")
 shader_parameter/appear_progress = 1.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_hakx0"]
 line_spacing = 22.91
-font = ExtResource("4_1i0gi")
+font = ExtResource("4")
 font_size = 64
 outline_size = 31
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tsc1i"]
-shader = ExtResource("5_bsq2j")
+shader = ExtResource("5")
 shader_parameter/colors_to_mask = PackedColorArray(1, 1, 1, 0, 0, 0, 0, 0)
 shader_parameter/range = 0.15999999642368
 
@@ -33,8 +34,8 @@ shader_parameter/range = 0.15999999642368
 margin = 0.02
 size = Vector3(0.165, 0.011, 0.007)
 
-[node name="Notepad" unique_id=178168157 instance=ExtResource("1_eq1w7")]
-script = ExtResource("2_pylhi")
+[node name="Notepad" unique_id=178168157 instance=ExtResource("1")]
+script = ExtResource("2")
 
 [node name="Skeleton3D" parent="NotPadRIG" parent_id_path=PackedInt32Array(12125590) index="0" unique_id=1604676]
 bones/1/position = Vector3(0.00057938206, 0.2509967, 0.013590443)
@@ -58,7 +59,7 @@ size = Vector2i(790, 970)
 unique_name_in_owner = true
 offset_right = 593.0
 offset_bottom = 11100.0
-theme_override_fonts/font = ExtResource("4_1i0gi")
+theme_override_fonts/font = ExtResource("4")
 theme_override_font_sizes/font_size = 64
 text = "Who are you?
 What is the console?

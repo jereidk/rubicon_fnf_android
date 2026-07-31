@@ -1,198 +1,198 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bqkjiwokrcvo"]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gdc" id="1_7546p"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2_80opm"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3_svid3"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_hatreturn_group.tres" id="4_b1qdt"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_joiningback_group.tres" id="5_0s82n"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_failed_return_group.tres" id="6_f033t"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_passed_return_group.tres" id="7_fiilf"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_failed_return_group.tres" id="8_1cxnk"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_passed_return_group.tres" id="9_kwlrr"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_failed_return_group.tres" id="10_hu3ei"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_passed_return_group.tres" id="11_o388k"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_failed_return_group.tres" id="12_52aji"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_passed_return_group.tres" id="13_b0gq0"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_idletoolong_group.tres" id="14_p0wri"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_console_group.tres" id="15_5ihxv"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_free_soultoken_group.tres" id="16_a4xhp"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_getsoultoken_group.tres" id="17_nnvsm"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_what_group.tres" id="18_u7mdj"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_group.tres" id="19_2udr2"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_2_group.tres" id="20_f1llr"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_group.tres" id="21_q2i82"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_2_group.tres" id="22_338x5"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_why_group.tres" id="23_bq7d3"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_reask_group.tres" id="24_8103b"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_baby_chim_group.tres" id="25_x1ufx"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_boughtall_group.tres" id="26_lu387"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_enter_group.tres" id="27_dgd4x"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_byebye_group.tres" id="28_d8qrh"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_interrupt_group.tres" id="29_ld1kt"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_picked_group.tres" id="30_1he18"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hovermono_group.tres" id="31_kbpjs"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hoverchim_group.tres" id="32_i758p"]
-[ext_resource type="Resource" path="res://lullaby_mod/resources/audio/vox/groups/vox_babyon_group.tres" id="33_w1r5f"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/mouse_controller.gdc" id="34_fhllx"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/Sequences.gdc" id="35_oxxwo"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/vox_collector_firstjoin.ogg" id="36_xkoop"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/vox/vox_collector_outro.ogg" id="37_6cn11"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_collector_board.ogg" id="38_ijd61"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_intro_shop.ogg" id="39_sklhh"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_console_startup.ogg" id="40_06lmh"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_orchhit_high.ogg" id="41_mtkka"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_orchhit_higher.ogg" id="42_dmu3m"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/resources/collector_shop/coin.tres" id="43_xtf6r"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="44_1nf5a"]
-[ext_resource type="Material" path="res://lullaby_mod/resources/shaders/blend_modes/additive.tres" id="45_jtl53"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/briefcase_hud_entry.tscn" id="46_s877i"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/briefcase/top_bar.png" id="47_107kd"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/briefcase/bottom_bar.png" id="48_dt6y2"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/CollectorDialogue.gdc" id="49_webx7"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_rosarivo_regular.ttf" id="50_f6qjm"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_rosarivo_italic.ttf" id="51_6rbwq"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_text_collector_jingle.wav" id="52_hsev4"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/text_effects/text_collector_effect.gdc" id="53_0j4es"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_text_table_jingle.wav" id="54_p8arx"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/blur/shd_radial_blur.gdshader" id="55_no2kl"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gdc" id="56_k0ooe"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/keyboard_icon.tres" id="57_tvw5l"]
-[ext_resource type="AnimationLibrary" path="res://lullaby_mod/assets/menus/keyboard_icon_library.tres" id="58_vj4ks"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/EntryVoicelines.gdc" id="59_sxapn"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector_shop_settings.gdc" id="60_aeq4r"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_static.wav" id="61_itfyn"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_record_scratch.ogg" id="62_ka6s0"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_takes_glove_off.wav" id="63_dibil"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_throws_glove.wav" id="64_18vou"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_bang_on_table.wav" id="65_yqxss"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_vibraphones.wav" id="66_tbhst"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_shop_ambience.ogg" id="67_i4c78"]
-[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_3d.gd" id="68_7lmru"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/flashing_check_3d.gdc" id="69_33ius"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/hand/PlayerHand.tscn" id="70_pps70"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/player_hand.gdc" id="71_lrqg6"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/cardboardsign.tscn" id="72_7k40l"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_sign.gdc" id="73_kcapi"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/cardboardmarker1_Emission.png" id="74_x6xqw"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/Shop_Emission.png" id="75_qccpi"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/Talk_Emission.png" id="76_du0e5"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_intro.tres" id="77_wwhe7"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_intro_first.tres" id="78_yv3e0"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_idle.tres" id="79_r70np"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_board_select.ogg" id="80_t5vl0"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_board_hover.ogg" id="81_3mx2y"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/notepad.tscn" id="82_tg8s8"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="83_uufka"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_briefcase.gltf" id="84_6q77e"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase.gdc" id="85_8v6iu"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/briefcase_cart.tscn" id="86_qb6xw"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="87_mksbw"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="88_3m6cf"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="89_v2ssr"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="90_pvw0n"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_idle.tres" id="91_skbxu"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_intro.tres" id="92_ylyod"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_outro.tres" id="93_51brp"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_reset.res" id="94_17km4"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_deny.wav" id="95_p1nca"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_cart_buy.ogg" id="96_xgrja"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_select_alt.wav" id="97_b6y4m"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_back.wav" id="98_dio78"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge_bag.gltf" id="99_681gp"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_cart.tscn" id="100_77jim"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="101_vb1w2"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="102_r1gwr"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/cartridge_bag_handler.gdc" id="103_ynhqm"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_close.tres" id="104_hosm7"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_open.tres" id="105_ikrtu"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_layerswap.tres" id="106_bslyj"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/rig/collector/collector.tscn" id="107_kf0tl"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector.gdc" id="108_ae7e8"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/briefcase_idle.tres" id="109_ubvan"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/briefcase_intro.tres" id="110_2drtb"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/briefcase_outro.tres" id="111_7c3ty"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/default_trans.tres" id="112_i443k"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pipe_trans.tres" id="113_4vrev"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_idle_0.tres" id="114_6xs0m"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_idle_1.tres" id="115_mhidv"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_idle_2.tres" id="116_ucnp3"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_idle_3.tres" id="117_xq6w8"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_idle_4.tres" id="118_ahafd"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/pose_rest.tres" id="119_yos7m"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/sequence_intro.tres" id="120_55kcg"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/talk_idle.tres" id="121_b3kmn"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/talk_intro.tres" id="122_0u14i"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/collector/talk_outro.tres" id="123_4on5t"]
-[ext_resource type="LightmapGIData" path="res://lullaby_mod/resources/collector_shop/env_collector_shop.lmbake" id="124_lue4p"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_candles_fake_shadow.gltf" id="125_1u5pg"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_area.gdc" id="126_hnbio"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_kollectadex.gdc" id="127_5fx5h"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_open_kollectadex.ogg" id="128_ox4cb"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thedesk.gdc" id="129_ejhec"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thecollector.gdc" id="130_7ann3"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thecollectorhat.gdc" id="131_ertsb"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_console.gdc" id="132_eegxa"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/power_console.gdc" id="133_jtedc"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_power.ogg" id="134_ev0nh"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_chimera_photos.gdc" id="135_cllhy"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_photo_whisper.ogg" id="136_uryqm"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/poke_area.gdc" id="137_syrxe"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_unown_jar_1.ogg" id="138_nlryn"]
-[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/serena_voiceline.gd" id="139_nloh4"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_unown_jar_2.ogg" id="140_077n3"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_sign_wobble.wav" id="141_c37xc"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/trigger_exit.gdc" id="142_6wy22"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/visibility_viewport_toggler.gdc" id="143_2u6ce"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/mdl_shop_base.gltf" id="144_p7gun"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_tv.gltf" id="145_4w2op"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_sign.gltf" id="146_1c5gw"]
-[ext_resource type="Animation" path="res://lullaby_mod/resources/animations/shop/shop_sign_wobble.tres" id="147_qjfd3"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_gigi.gltf" id="148_btdta"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/gigi/prp_gigi.gdc" id="149_ycj3h"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/gigi/prp_gigi_sequence.gdc" id="150_murqc"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_murin_0.wav" id="151_hc55n"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_thighs_0.wav" id="152_oy27r"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_factory_0.wav" id="153_i7d2e"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_0.wav" id="154_m7dsc"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_1.wav" id="155_8e5se"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_2.wav" id="156_0414d"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_notaggressive_0.wav" id="157_rmwtb"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_0.wav" id="158_iah5b"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_1.wav" id="159_dtctf"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_2.wav" id="160_htbbv"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_0.wav" id="161_705r1"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_1.wav" id="162_vogxf"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_2.wav" id="163_t775k"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_unsuicidal_0.wav" id="164_rmgio"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_console.tscn" id="165_hc2qq"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_new_shop_prop.gdshader" id="166_d7wxc"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_sfx.gdc" id="167_5kwkh"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_kollectadex.gltf" id="168_l6205"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_register.gltf" id="169_bhclm"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/static/shd_shop_static_spatial.gdshader" id="170_tqlxs"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_soultoken.gltf" id="171_jq0hu"]
-[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="172_5cbe1"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_soultoken_label.gdc" id="173_0d1rc"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/register_glow.tscn" id="174_nmram"]
-[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader" id="175_ui6a7"]
-[ext_resource type="Script" path="res://lullaby_mod/resources/collector_shop/tokencheck.gd" id="176_ee411"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/mdl_falling_tokens.gltf" id="177_oxspf"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/soul_token.png" id="178_jatil"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/collector/shop/models/textures/soul_token_normal.png" id="179_8y2tg"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_pendulum_string.gltf" id="180_xdruy"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_visible_if_complete.gdc" id="181_7dcqp"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_pendulum_string_bones.gdc" id="182_ko66g"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_mono_jar.gltf" id="183_pkuea"]
-[ext_resource type="AnimationLibrary" path="res://lullaby_mod/resources/animations/shop/monochrome_jar/mono_jar_library.res" id="184_c1il2"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_chimera_photos.gltf" id="185_nk50b"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186_khmrl"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187_dgma6"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/console/console.tscn" id="188_t2jse"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_inactive.tres" id="189_ol4r0"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/kollectadex/kollectadex.tscn" id="190_deouk"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191_dfirg"]
-[ext_resource type="PackedScene" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192_dif0s"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gdc" id="193_1qr3q"]
+[ext_resource type="Script" uid="uid://b3p4arwnoxr8e" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gd" id="1"]
+[ext_resource type="Resource" uid="uid://4l7ftjieh7in" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2"]
+[ext_resource type="Resource" uid="uid://dcnjvtc5155m2" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3"]
+[ext_resource type="Resource" uid="uid://ho1eww3mpi1b" path="res://lullaby_mod/resources/audio/vox/groups/vox_hatreturn_group.tres" id="4"]
+[ext_resource type="Resource" uid="uid://fo8kvmftnvcv" path="res://lullaby_mod/resources/audio/vox/groups/vox_joiningback_group.tres" id="5"]
+[ext_resource type="Resource" uid="uid://c5nia6dfbyuwu" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_failed_return_group.tres" id="6"]
+[ext_resource type="Resource" uid="uid://dj868mtg7ekay" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_passed_return_group.tres" id="7"]
+[ext_resource type="Resource" uid="uid://bbpxyropagrj0" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_failed_return_group.tres" id="8"]
+[ext_resource type="Resource" uid="uid://b80ntxtt6ejpo" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_passed_return_group.tres" id="9"]
+[ext_resource type="Resource" uid="uid://fb2p1vdm16nv" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_failed_return_group.tres" id="10"]
+[ext_resource type="Resource" uid="uid://7dsx3uvgjy3" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_passed_return_group.tres" id="11"]
+[ext_resource type="Resource" uid="uid://bjerni5qqagtg" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_failed_return_group.tres" id="12"]
+[ext_resource type="Resource" uid="uid://cuisi6alkas88" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_passed_return_group.tres" id="13"]
+[ext_resource type="Resource" uid="uid://bidrevxftbvtf" path="res://lullaby_mod/resources/audio/vox/groups/vox_idletoolong_group.tres" id="14"]
+[ext_resource type="Resource" uid="uid://euregt8jfibu" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_console_group.tres" id="15"]
+[ext_resource type="Resource" uid="uid://pyhmgf8th2mj" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_free_soultoken_group.tres" id="16"]
+[ext_resource type="Resource" uid="uid://dj5gfaq7j7fwv" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_getsoultoken_group.tres" id="17"]
+[ext_resource type="Resource" uid="uid://db56uwf283arq" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_what_group.tres" id="18"]
+[ext_resource type="Resource" uid="uid://36upp1o3hko1" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_group.tres" id="19"]
+[ext_resource type="Resource" uid="uid://ck4oksrlpxojo" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_2_group.tres" id="20"]
+[ext_resource type="Resource" uid="uid://0f645qw1g4kd" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_group.tres" id="21"]
+[ext_resource type="Resource" uid="uid://cvb7mnkt84pn3" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_2_group.tres" id="22"]
+[ext_resource type="Resource" uid="uid://2tdibeu3ku81" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_why_group.tres" id="23"]
+[ext_resource type="Resource" uid="uid://dodqq0sb1q37v" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_reask_group.tres" id="24"]
+[ext_resource type="Resource" uid="uid://dpm6gl6hrqm81" path="res://lullaby_mod/resources/audio/vox/groups/vox_baby_chim_group.tres" id="25"]
+[ext_resource type="Resource" uid="uid://bovifqb1ormnn" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_boughtall_group.tres" id="26"]
+[ext_resource type="Resource" uid="uid://c1vwpu4n0hy7b" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_enter_group.tres" id="27"]
+[ext_resource type="Resource" uid="uid://7dvf7crnrdcr" path="res://lullaby_mod/resources/audio/vox/groups/vox_byebye_group.tres" id="28"]
+[ext_resource type="Resource" uid="uid://b1ncr5hc86c00" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_interrupt_group.tres" id="29"]
+[ext_resource type="Resource" uid="uid://c5w63qdq2shou" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_picked_group.tres" id="30"]
+[ext_resource type="Resource" uid="uid://3rm4xb8j1qdi" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hovermono_group.tres" id="31"]
+[ext_resource type="Resource" uid="uid://cm3ur3w0q1311" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hoverchim_group.tres" id="32"]
+[ext_resource type="Resource" uid="uid://bkm8dutnh3po" path="res://lullaby_mod/resources/audio/vox/groups/vox_babyon_group.tres" id="33"]
+[ext_resource type="Script" uid="uid://f854gqdvv8p6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/mouse_controller.gd" id="34"]
+[ext_resource type="Script" uid="uid://dr43kfmejrh85" path="res://lullaby_mod/scripts/lullaby/collectors_shop/Sequences.gd" id="35"]
+[ext_resource type="AudioStream" uid="uid://lxy7mxd1nnq6" path="res://lullaby_mod/resources/audio/vox/vox_collector_firstjoin.ogg" id="36"]
+[ext_resource type="AudioStream" uid="uid://tbn0q6wu68bw" path="res://lullaby_mod/resources/audio/vox/vox_collector_outro.ogg" id="37"]
+[ext_resource type="AudioStream" uid="uid://y6hby1asr3ju" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_collector_board.ogg" id="38"]
+[ext_resource type="AudioStream" uid="uid://bf53t4q5ir6th" path="res://lullaby_mod/resources/audio/mus/mus_intro_shop.ogg" id="39"]
+[ext_resource type="AudioStream" uid="uid://c8itadmxg4ox0" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_console_startup.ogg" id="40"]
+[ext_resource type="AudioStream" uid="uid://bl0spytcujvfo" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_orchhit_high.ogg" id="41"]
+[ext_resource type="AudioStream" uid="uid://uj42q6qocg5y" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_orchhit_higher.ogg" id="42"]
+[ext_resource type="SpriteFrames" uid="uid://cfve5fgfo70pw" path="res://lullaby_mod/resources/collector_shop/coin.tres" id="43"]
+[ext_resource type="FontFile" uid="uid://b2onowkv4pmbx" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="44"]
+[ext_resource type="Material" uid="uid://c87gakvlk07sl" path="res://lullaby_mod/resources/shaders/blend_modes/additive.tres" id="45"]
+[ext_resource type="PackedScene" uid="uid://b0gdf1hwvty7i" path="res://lullaby_mod/resources/collector_shop/briefcase_hud_entry.tscn" id="46"]
+[ext_resource type="Texture2D" uid="uid://8j21x1m6jfdd" path="res://lullaby_mod/assets/menus/briefcase/top_bar.png" id="47"]
+[ext_resource type="Texture2D" uid="uid://b5rc5sqexu7lj" path="res://lullaby_mod/assets/menus/briefcase/bottom_bar.png" id="48"]
+[ext_resource type="Script" uid="uid://duh6ldrbjf2g2" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/CollectorDialogue.gd" id="49"]
+[ext_resource type="FontFile" uid="uid://di04sgsnjcavb" path="res://lullaby_mod/resources/fonts/fnt_rosarivo_regular.ttf" id="50"]
+[ext_resource type="FontFile" uid="uid://nlujp71c7b6b" path="res://lullaby_mod/resources/fonts/fnt_rosarivo_italic.ttf" id="51"]
+[ext_resource type="AudioStream" uid="uid://boqei300aket1" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_text_collector_jingle.wav" id="52"]
+[ext_resource type="Script" uid="uid://0l76f2hsofnc" path="res://lullaby_mod/scripts/lullaby/collectors_shop/text_effects/text_collector_effect.gd" id="53"]
+[ext_resource type="AudioStream" uid="uid://gajv5hir4qqv" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_text_table_jingle.wav" id="54"]
+[ext_resource type="Shader" uid="uid://if4u4prw7l5e" path="res://lullaby_mod/resources/shaders/blur/shd_radial_blur.gdshader" id="55"]
+[ext_resource type="Script" uid="uid://bpqsia4nl31kq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gd" id="56"]
+[ext_resource type="SpriteFrames" uid="uid://bn2ei4bbh5qyg" path="res://lullaby_mod/assets/menus/keyboard_icon.tres" id="57"]
+[ext_resource type="AnimationLibrary" uid="uid://cnd1sq6tbkrfr" path="res://lullaby_mod/assets/menus/keyboard_icon_library.tres" id="58"]
+[ext_resource type="Script" uid="uid://dnnlojqp1chyf" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/EntryVoicelines.gd" id="59"]
+[ext_resource type="Script" uid="uid://dmkptu3syyxf2" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector_shop_settings.gd" id="60"]
+[ext_resource type="AudioStream" uid="uid://bvv7vw02tl8sv" path="res://lullaby_mod/resources/audio/mus/mus_static.wav" id="61"]
+[ext_resource type="AudioStream" uid="uid://dovp4jp5wcqge" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_record_scratch.ogg" id="62"]
+[ext_resource type="AudioStream" uid="uid://euiu8x6jogr1" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_takes_glove_off.wav" id="63"]
+[ext_resource type="AudioStream" uid="uid://c5hbyvbk3n2jl" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_throws_glove.wav" id="64"]
+[ext_resource type="AudioStream" uid="uid://dsqqnuothif2" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_bang_on_table.wav" id="65"]
+[ext_resource type="AudioStream" uid="uid://cp6xdb4usenvi" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_vibraphones.wav" id="66"]
+[ext_resource type="AudioStream" uid="uid://bjosc52h6cf68" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_shop_ambience.ogg" id="67"]
+[ext_resource type="Script" uid="uid://4o7ga224i56d" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_3d.gd" id="68"]
+[ext_resource type="Script" uid="uid://yqnkprx8h5jc" path="res://lullaby_mod/scripts/lullaby/flashing_check_3d.gd" id="69"]
+[ext_resource type="PackedScene" uid="uid://bgrght3txi2i8" path="res://lullaby_mod/assets/collector/hand/PlayerHand.tscn" id="70"]
+[ext_resource type="Script" uid="uid://v0wpdjdqc7tv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/player_hand.gd" id="71"]
+[ext_resource type="PackedScene" uid="uid://cr6576fdh4i7y" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/cardboardsign.tscn" id="72"]
+[ext_resource type="Script" uid="uid://dg5ssjr8mhvqk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_sign.gd" id="73"]
+[ext_resource type="Texture2D" uid="uid://k472glsbullj" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/cardboardmarker1_Emission.png" id="74"]
+[ext_resource type="Texture2D" uid="uid://dkpgcefus0tqw" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/Shop_Emission.png" id="75"]
+[ext_resource type="Texture2D" uid="uid://cr5pqekuwdtwu" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/Talk_Emission.png" id="76"]
+[ext_resource type="Animation" uid="uid://tll08ppe4tto" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_intro.tres" id="77"]
+[ext_resource type="Animation" uid="uid://ceayjx2o6w016" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_intro_first.tres" id="78"]
+[ext_resource type="Animation" uid="uid://bsnnt6d8ogpyl" path="res://lullaby_mod/resources/animations/shop/cardboard_sign/cardboard_sign_idle.tres" id="79"]
+[ext_resource type="AudioStream" uid="uid://bldijhw5eokdd" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_board_select.ogg" id="80"]
+[ext_resource type="AudioStream" uid="uid://douip18pstk7o" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_board_hover.ogg" id="81"]
+[ext_resource type="PackedScene" uid="uid://b3gswbvn2u7cu" path="res://lullaby_mod/resources/collector_shop/notepad.tscn" id="82"]
+[ext_resource type="AudioStream" uid="uid://bt2qgji7iic7i" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_click.wav" id="83"]
+[ext_resource type="PackedScene" uid="uid://c3yueti6fg5xj" path="res://lullaby_mod/assets/collector/shop/models/prp_briefcase.gltf" id="84"]
+[ext_resource type="Script" uid="uid://cqp6n5vv23hpc" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_briefcase.gd" id="85"]
+[ext_resource type="PackedScene" uid="uid://dpr8enn17fs8d" path="res://lullaby_mod/resources/collector_shop/briefcase_cart.tscn" id="86"]
+[ext_resource type="Shader" uid="uid://b7bx2eh2ixh2v" path="res://lullaby_mod/resources/shaders/shd_dissolve.gdshader" id="87"]
+[ext_resource type="Texture2D" uid="uid://b07uqtm3nyxic" path="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_noise.png" id="88"]
+[ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="89"]
+[ext_resource type="Texture2D" uid="uid://b5rm4xq4cb0ht" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png" id="90"]
+[ext_resource type="Animation" uid="uid://beja263x4gxol" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_idle.tres" id="91"]
+[ext_resource type="Animation" uid="uid://lhpxyvl8vmnf" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_intro.tres" id="92"]
+[ext_resource type="Animation" uid="uid://cvfvq65gfttut" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_outro.tres" id="93"]
+[ext_resource type="Animation" uid="uid://b0kdknjwolpuv" path="res://lullaby_mod/resources/animations/shop/briefcase/briefcase_reset.res" id="94"]
+[ext_resource type="AudioStream" uid="uid://cjdmfnbn1v8x" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_deny.wav" id="95"]
+[ext_resource type="AudioStream" uid="uid://cl6xuvlb3am7j" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_cart_buy.ogg" id="96"]
+[ext_resource type="AudioStream" uid="uid://bmqk6wlk8r7hd" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_select_alt.wav" id="97"]
+[ext_resource type="AudioStream" uid="uid://bpwev80h5u4xm" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_back.wav" id="98"]
+[ext_resource type="PackedScene" uid="uid://sophludnewj0" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge_bag.gltf" id="99"]
+[ext_resource type="PackedScene" uid="uid://y6g3j64ss6y3" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_cart.tscn" id="100"]
+[ext_resource type="Texture2D" uid="uid://bwg67dkx7dgcy" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="101"]
+[ext_resource type="Texture2D" uid="uid://ds7fujbpkpaby" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="102"]
+[ext_resource type="Script" uid="uid://k8wh6drtu0x3" path="res://lullaby_mod/scripts/lullaby/collectors_shop/cartridge_bag_handler.gd" id="103"]
+[ext_resource type="Animation" uid="uid://b5yvebd78top6" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_close.tres" id="104"]
+[ext_resource type="Animation" uid="uid://b343kw5nbc5oh" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_open.tres" id="105"]
+[ext_resource type="Animation" uid="uid://bltdticwxo1pv" path="res://lullaby_mod/resources/animations/shop/cartridge_bag/cartridge_bag_layerswap.tres" id="106"]
+[ext_resource type="PackedScene" uid="uid://qugewewkn2o4" path="res://lullaby_mod/assets/collector/rig/collector/collector.tscn" id="107"]
+[ext_resource type="Script" uid="uid://cbe1k1vyk31ba" path="res://lullaby_mod/scripts/lullaby/collectors_shop/collector.gd" id="108"]
+[ext_resource type="Animation" uid="uid://cgey4qmprgnuu" path="res://lullaby_mod/resources/animations/collector/briefcase_idle.tres" id="109"]
+[ext_resource type="Animation" uid="uid://t47efffm8vyw" path="res://lullaby_mod/resources/animations/collector/briefcase_intro.tres" id="110"]
+[ext_resource type="Animation" uid="uid://dh512ckg8lgaq" path="res://lullaby_mod/resources/animations/collector/briefcase_outro.tres" id="111"]
+[ext_resource type="Animation" uid="uid://cc5wsn1w7m5gs" path="res://lullaby_mod/resources/animations/collector/default_trans.tres" id="112"]
+[ext_resource type="Animation" uid="uid://cgv1u70nnq16b" path="res://lullaby_mod/resources/animations/collector/pipe_trans.tres" id="113"]
+[ext_resource type="Animation" uid="uid://b1metgk31ykh7" path="res://lullaby_mod/resources/animations/collector/pose_idle_0.tres" id="114"]
+[ext_resource type="Animation" uid="uid://cd7yvlssm20to" path="res://lullaby_mod/resources/animations/collector/pose_idle_1.tres" id="115"]
+[ext_resource type="Animation" uid="uid://cq7owc4ggvqxc" path="res://lullaby_mod/resources/animations/collector/pose_idle_2.tres" id="116"]
+[ext_resource type="Animation" uid="uid://dbkqivb4meyb7" path="res://lullaby_mod/resources/animations/collector/pose_idle_3.tres" id="117"]
+[ext_resource type="Animation" uid="uid://br0bso8i1w8sj" path="res://lullaby_mod/resources/animations/collector/pose_idle_4.tres" id="118"]
+[ext_resource type="Animation" uid="uid://dva76kdurtqfw" path="res://lullaby_mod/resources/animations/collector/pose_rest.tres" id="119"]
+[ext_resource type="Animation" uid="uid://drrw6oi2503rd" path="res://lullaby_mod/resources/animations/collector/sequence_intro.tres" id="120"]
+[ext_resource type="Animation" uid="uid://dg2rsluu3x1sq" path="res://lullaby_mod/resources/animations/collector/talk_idle.tres" id="121"]
+[ext_resource type="Animation" uid="uid://dtdafifsugtpo" path="res://lullaby_mod/resources/animations/collector/talk_intro.tres" id="122"]
+[ext_resource type="Animation" uid="uid://duoocqx0tlgts" path="res://lullaby_mod/resources/animations/collector/talk_outro.tres" id="123"]
+[ext_resource type="LightmapGIData" uid="uid://e73u2yua3buq" path="res://lullaby_mod/resources/collector_shop/env_collector_shop.lmbake" id="124"]
+[ext_resource type="PackedScene" uid="uid://ctjmecp2l7eay" path="res://lullaby_mod/assets/collector/shop/models/prp_candles_fake_shadow.gltf" id="125"]
+[ext_resource type="Script" uid="uid://k5kilairykvk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_area.gd" id="126"]
+[ext_resource type="Script" uid="uid://d2dcs46f8h0i1" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_kollectadex.gd" id="127"]
+[ext_resource type="AudioStream" uid="uid://4r7ig6md7ld1" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_open_kollectadex.ogg" id="128"]
+[ext_resource type="Script" uid="uid://drflyqvjyt43y" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thedesk.gd" id="129"]
+[ext_resource type="Script" uid="uid://baoj8kadj33aq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thecollector.gd" id="130"]
+[ext_resource type="Script" uid="uid://baarfwci6o5nx" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/thecollectorhat.gd" id="131"]
+[ext_resource type="Script" uid="uid://d4k40it4cdyi0" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_console.gd" id="132"]
+[ext_resource type="Script" uid="uid://bqy6j581o8mph" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/power_console.gd" id="133"]
+[ext_resource type="AudioStream" uid="uid://c0ixmgn8jdqax" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_power.ogg" id="134"]
+[ext_resource type="Script" uid="uid://c17kpyaj328hy" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_chimera_photos.gd" id="135"]
+[ext_resource type="AudioStream" uid="uid://wtii1uevsylw" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_photo_whisper.ogg" id="136"]
+[ext_resource type="Script" uid="uid://3iidxh8sngup" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/poke_area.gd" id="137"]
+[ext_resource type="AudioStream" uid="uid://cd206ce1qkxqo" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_unown_jar_1.ogg" id="138"]
+[ext_resource type="Script" uid="uid://clppj8ng8vedf" path="res://lullaby_mod/songs/chimera/serena_voiceline.gd" id="139"]
+[ext_resource type="AudioStream" uid="uid://bb5wxc23q4qct" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_unown_jar_2.ogg" id="140"]
+[ext_resource type="AudioStream" uid="uid://b7blnwguja08d" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_sign_wobble.wav" id="141"]
+[ext_resource type="Script" uid="uid://kpkw84c57lql" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/trigger_exit.gd" id="142"]
+[ext_resource type="Script" uid="uid://c5xkil6vmknfi" path="res://lullaby_mod/scripts/lullaby/collectors_shop/visibility_viewport_toggler.gd" id="143"]
+[ext_resource type="PackedScene" uid="uid://dtgttc6h2rnb6" path="res://lullaby_mod/assets/collector/shop/models/mdl_shop_base.gltf" id="144"]
+[ext_resource type="PackedScene" uid="uid://b087rd58wddij" path="res://lullaby_mod/assets/collector/shop/models/prp_tv.gltf" id="145"]
+[ext_resource type="PackedScene" uid="uid://disinlehjyg0e" path="res://lullaby_mod/assets/collector/shop/models/prp_sign.gltf" id="146"]
+[ext_resource type="Animation" uid="uid://dbi447c6mrfec" path="res://lullaby_mod/resources/animations/shop/shop_sign_wobble.tres" id="147"]
+[ext_resource type="PackedScene" uid="uid://825scktnynri" path="res://lullaby_mod/assets/collector/shop/models/prp_gigi.gltf" id="148"]
+[ext_resource type="Script" uid="uid://bbigvai5kew4a" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/gigi/prp_gigi.gd" id="149"]
+[ext_resource type="Script" uid="uid://fu845nkqtrol" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/gigi/prp_gigi_sequence.gd" id="150"]
+[ext_resource type="AudioStream" uid="uid://bn2mhofe6ugg4" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_murin_0.wav" id="151"]
+[ext_resource type="AudioStream" uid="uid://bv71tce3pk3x8" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_thighs_0.wav" id="152"]
+[ext_resource type="AudioStream" uid="uid://dlf6e4s2exmlh" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_factory_0.wav" id="153"]
+[ext_resource type="AudioStream" uid="uid://c6l3tnce6xf4v" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_0.wav" id="154"]
+[ext_resource type="AudioStream" uid="uid://un07prd3832h" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_1.wav" id="155"]
+[ext_resource type="AudioStream" uid="uid://b6bprjwxg1fy" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_fish_2.wav" id="156"]
+[ext_resource type="AudioStream" uid="uid://c2i0bxndqrwgl" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_notaggressive_0.wav" id="157"]
+[ext_resource type="AudioStream" uid="uid://cfn8sj87n71re" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_0.wav" id="158"]
+[ext_resource type="AudioStream" uid="uid://csbjh5120qsu" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_1.wav" id="159"]
+[ext_resource type="AudioStream" uid="uid://cnt5i348wn1ku" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberbegin_2.wav" id="160"]
+[ext_resource type="AudioStream" uid="uid://dkcgbdarb04op" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_0.wav" id="161"]
+[ext_resource type="AudioStream" uid="uid://bfdcgljp3odxx" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_1.wav" id="162"]
+[ext_resource type="AudioStream" uid="uid://b24uwpe61mv2n" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_septemberend_2.wav" id="163"]
+[ext_resource type="AudioStream" uid="uid://cthy6rrjmogn" path="res://lullaby_mod/resources/audio/sfx/shop/gigi/sfx_gigi_unsuicidal_0.wav" id="164"]
+[ext_resource type="PackedScene" uid="uid://q3s0hpj6sk73" path="res://lullaby_mod/assets/collector/shop/models/prp_console.tscn" id="165"]
+[ext_resource type="Shader" uid="uid://dji3d0wm2fw2a" path="res://lullaby_mod/resources/shaders/shd_new_shop_prop.gdshader" id="166"]
+[ext_resource type="Script" uid="uid://boa433vtsyclg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_sfx.gd" id="167"]
+[ext_resource type="PackedScene" uid="uid://c5hebp3s1brt3" path="res://lullaby_mod/assets/collector/shop/models/prp_kollectadex.gltf" id="168"]
+[ext_resource type="PackedScene" uid="uid://cd56vrdhdog1f" path="res://lullaby_mod/assets/collector/shop/models/prp_register.gltf" id="169"]
+[ext_resource type="Shader" uid="uid://dt23101ah1d4w" path="res://lullaby_mod/resources/shaders/static/shd_shop_static_spatial.gdshader" id="170"]
+[ext_resource type="PackedScene" uid="uid://dcr12y3ocidk1" path="res://lullaby_mod/assets/collector/shop/models/prp_soultoken.gltf" id="171"]
+[ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="172"]
+[ext_resource type="Script" uid="uid://c025a66uihh06" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_soultoken_label.gd" id="173"]
+[ext_resource type="PackedScene" uid="uid://borim0byhdt3r" path="res://lullaby_mod/resources/collector_shop/register_glow.tscn" id="174"]
+[ext_resource type="Shader" uid="uid://lp8vkebic3v3" path="res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader" id="175"]
+[ext_resource type="Script" uid="uid://x8b3tbwre0u2" path="res://lullaby_mod/resources/collector_shop/tokencheck.gd" id="176"]
+[ext_resource type="PackedScene" uid="uid://bawydfs2f7wmf" path="res://lullaby_mod/assets/collector/shop/models/mdl_falling_tokens.gltf" id="177"]
+[ext_resource type="Texture2D" uid="uid://b353k25rp4u3g" path="res://lullaby_mod/assets/collector/shop/models/textures/soul_token.png" id="178"]
+[ext_resource type="Texture2D" uid="uid://wfi3bhkxjfk7" path="res://lullaby_mod/assets/collector/shop/models/textures/soul_token_normal.png" id="179"]
+[ext_resource type="PackedScene" uid="uid://buwdhsiduph5a" path="res://lullaby_mod/assets/collector/shop/models/prp_pendulum_string.gltf" id="180"]
+[ext_resource type="Script" uid="uid://cwabht8tmx1r2" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_visible_if_complete.gd" id="181"]
+[ext_resource type="Script" uid="uid://b4l60ki2ipnfm" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_pendulum_string_bones.gd" id="182"]
+[ext_resource type="PackedScene" uid="uid://d28gdehfwypxm" path="res://lullaby_mod/assets/collector/shop/models/prp_mono_jar.gltf" id="183"]
+[ext_resource type="AnimationLibrary" uid="uid://da2tpqhgo4myx" path="res://lullaby_mod/resources/animations/shop/monochrome_jar/mono_jar_library.res" id="184"]
+[ext_resource type="PackedScene" uid="uid://d4iktkl0k0rli" path="res://lullaby_mod/assets/collector/shop/models/prp_chimera_photos.gltf" id="185"]
+[ext_resource type="PackedScene" uid="uid://b8cux1jom7v3x" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186"]
+[ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187"]
+[ext_resource type="PackedScene" uid="uid://dpnrx427b1ijy" path="res://lullaby_mod/resources/console/console.tscn" id="188"]
+[ext_resource type="Material" uid="uid://b6684n8fqkln6" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_inactive.tres" id="189"]
+[ext_resource type="PackedScene" uid="uid://bxk04pmofwax3" path="res://lullaby_mod/resources/kollectadex/kollectadex.tscn" id="190"]
+[ext_resource type="Texture2D" uid="uid://dqytnrnleytio" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191"]
+[ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
+[ext_resource type="Script" uid="uid://btrjxrci3pbix" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd" id="193"]
 
 [sub_resource type="Animation" id="Animation_x4yal"]
 length = 0.001
@@ -755,7 +755,7 @@ tracks/45/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("39_sklhh")]
+"values": [ExtResource("39")]
 }
 tracks/46/type = "value"
 tracks/46/imported = false
@@ -2927,7 +2927,7 @@ tracks/22/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 4.1939,
-"stream": ExtResource("40_06lmh")
+"stream": ExtResource("40")
 }],
 "times": PackedFloat32Array(0)
 }
@@ -3431,7 +3431,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(137.61, 138.41),
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
-"values": [ExtResource("41_mtkka"), ExtResource("42_dmu3m")]
+"values": [ExtResource("41"), ExtResource("42")]
 }
 tracks/12/type = "method"
 tracks/12/imported = false
@@ -4000,7 +4000,7 @@ tracks/21/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("39_sklhh")]
+"values": [ExtResource("39")]
 }
 
 [sub_resource type="Animation" id="Animation_kgw06"]
@@ -5010,37 +5010,30 @@ width = 18
 height = 163
 
 [sub_resource type="FontVariation" id="FontVariation_615p5"]
-base_font = ExtResource("50_f6qjm")
+base_font = ExtResource("50")
 variation_embolden = 0.8
 
 [sub_resource type="FontVariation" id="FontVariation_s4oqh"]
-base_font = ExtResource("51_6rbwq")
+base_font = ExtResource("51")
 variation_embolden = 0.8
 
 [sub_resource type="RichTextEffect" id="RichTextEffect_65amj"]
-script = ExtResource("53_0j4es")
-bbcode = "collector"
-jingle = ExtResource("52_hsev4")
+script = ExtResource("53")
+jingle = ExtResource("52")
 volume_db = -8.0
-bus = &"Master"
-shake_rate = 20.0
-shake_level = 1.0
-text_color = Color(1, 1, 0, 1)
 metadata/_custom_type_script = "uid://0l76f2hsofnc"
 
 [sub_resource type="RichTextEffect" id="RichTextEffect_1uqba"]
-script = ExtResource("53_0j4es")
+script = ExtResource("53")
 bbcode = "table"
-jingle = ExtResource("54_p8arx")
+jingle = ExtResource("54")
 volume_db = -8.0
-bus = &"Master"
 shake_rate = 30.0
-shake_level = 1.0
 text_color = Color(1, 0, 0, 1)
 metadata/_custom_type_script = "uid://0l76f2hsofnc"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_w8hxk"]
-shader = ExtResource("55_no2kl")
+shader = ExtResource("55")
 shader_parameter/BLUR_STRENGTH = 0.0
 shader_parameter/BLUR_CENTER = Vector2(0.5, 0.5)
 
@@ -5082,7 +5075,7 @@ _data = {
 }
 
 [sub_resource type="LabelSettings" id="LabelSettings_wqh0x"]
-font = ExtResource("44_1nf5a")
+font = ExtResource("44")
 font_size = 48
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idd4l"]
@@ -5114,6 +5107,8 @@ advance_mode = 2
 advance_expression = "settings_post_processing != 2"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_wqh0x"]
+states/End/node = null
+states/Start/node = null
 states/high/node = SubResource("AnimationNodeAnimation_idd4l")
 states/high/position = Vector2(471, 165)
 states/low/node = SubResource("AnimationNodeAnimation_kma3o")
@@ -5303,6 +5298,8 @@ advance_mode = 2
 advance_expression = "not settings_ssao"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_v8rxn"]
+states/End/node = null
+states/Start/node = null
 states/ssao_off/node = SubResource("AnimationNodeAnimation_2315v")
 states/ssao_off/position = Vector2(338, 99)
 states/ssao_on/node = SubResource("AnimationNodeAnimation_c1ekc")
@@ -5365,6 +5362,8 @@ advance_mode = 2
 advance_expression = "not settings_ssil"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ljpir"]
+states/End/node = null
+states/Start/node = null
 states/ssil_off/node = SubResource("AnimationNodeAnimation_3hij3")
 states/ssil_off/position = Vector2(338.5, 98.75)
 states/ssil_on/node = SubResource("AnimationNodeAnimation_jomiy")
@@ -5539,6 +5538,7 @@ states/Activate/node = SubResource("AnimationNodeAnimation_sxynt")
 states/Activate/position = Vector2(488.975, 16.210846)
 states/Deactivate/node = SubResource("AnimationNodeAnimation_kr6cs")
 states/Deactivate/position = Vector2(327.35788, 320.00348)
+states/End/node = null
 states/HoldLeft/node = SubResource("AnimationNodeAnimation_sm12n")
 states/HoldLeft/position = Vector2(134.59998, 218.56)
 states/HoldRight/node = SubResource("AnimationNodeAnimation_ivp12")
@@ -5551,6 +5551,7 @@ states/LeanRight/node = SubResource("AnimationNodeAnimation_fjilg")
 states/LeanRight/position = Vector2(547.4734, 129.98676)
 states/Point/node = SubResource("AnimationNodeAnimation_unamm")
 states/Point/position = Vector2(328.3536, 183.54684)
+states/Start/node = null
 states/Start/position = Vector2(329.051, -27.199997)
 transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_sxynt"), "Idle", "LeanLeft", SubResource("AnimationNodeStateMachineTransition_kr6cs"), "LeanLeft", "HoldLeft", SubResource("AnimationNodeStateMachineTransition_m2gqg"), "HoldLeft", "Idle", SubResource("AnimationNodeStateMachineTransition_lsrwa"), "Idle", "LeanRight", SubResource("AnimationNodeStateMachineTransition_7ntl6"), "LeanRight", "HoldRight", SubResource("AnimationNodeStateMachineTransition_5tkur"), "HoldRight", "Idle", SubResource("AnimationNodeStateMachineTransition_ngof7"), "Idle", "Point", SubResource("AnimationNodeStateMachineTransition_utja3"), "Point", "Idle", SubResource("AnimationNodeStateMachineTransition_nwewd"), "Point", "LeanLeft", SubResource("AnimationNodeStateMachineTransition_bvr5r"), "Point", "LeanRight", SubResource("AnimationNodeStateMachineTransition_3h0qw"), "Deactivate", "Activate", SubResource("AnimationNodeStateMachineTransition_ql8r1"), "Activate", "Idle", SubResource("AnimationNodeStateMachineTransition_kes4h"), "HoldLeft", "Deactivate", SubResource("AnimationNodeStateMachineTransition_tdvce"), "Point", "Deactivate", SubResource("AnimationNodeStateMachineTransition_hxbjh"), "HoldRight", "Deactivate", SubResource("AnimationNodeStateMachineTransition_k6wcn"), "LeanLeft", "Deactivate", SubResource("AnimationNodeStateMachineTransition_h28we"), "LeanRight", "Deactivate", SubResource("AnimationNodeStateMachineTransition_ykxkn"), "Idle", "Deactivate", SubResource("AnimationNodeStateMachineTransition_svyjf"), "Point", "HoldLeft", SubResource("AnimationNodeStateMachineTransition_tl6kk"), "Point", "HoldRight", SubResource("AnimationNodeStateMachineTransition_sm12n"), "HoldRight", "Point", SubResource("AnimationNodeStateMachineTransition_ivp12"), "HoldLeft", "Point", SubResource("AnimationNodeStateMachineTransition_8aku3")]
 graph_offset = Vector2(10.375, 174.61406)
@@ -8258,121 +8259,129 @@ tracks/3/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_fgpjf"]
 _data = {
-&"Intro": ExtResource("77_wwhe7"),
-&"IntroFirst": ExtResource("78_yv3e0"),
+&"Intro": ExtResource("77"),
+&"IntroFirst": ExtResource("78"),
 &"RESET": SubResource("Animation_sxynt"),
-&"idle": ExtResource("79_r70np")
+&"idle": ExtResource("79")
 }
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_erqqb"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("89_v2ssr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("89")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ga5lx"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("89_v2ssr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("89")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_hxbjh"]
 _data = {
-&"BRIEFCASE0IDLE_120f": ExtResource("91_skbxu"),
-&"BRIEFCASE0INTRO_132f": ExtResource("92_ylyod"),
-&"BRIEFCASE0OUTRO_100f": ExtResource("93_51brp"),
-&"RESET": ExtResource("94_17km4")
+&"BRIEFCASE0IDLE_120f": ExtResource("91"),
+&"BRIEFCASE0INTRO_132f": ExtResource("92"),
+&"BRIEFCASE0OUTRO_100f": ExtResource("93"),
+&"RESET": ExtResource("94")
 }
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_rl7sx"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("101_vb1w2")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("101")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s0y3h"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("102_r1gwr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("102")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_86o0i"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("89_v2ssr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("89")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jxms3"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("102_r1gwr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("102")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_iuxkf"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("101_vb1w2")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("101")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_t1wbv"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("102_r1gwr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("102")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
@@ -8524,28 +8533,28 @@ tracks/15/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_q4ygy"]
 _data = {
 &"RESET": SubResource("Animation_h8f31"),
-&"cartridge_bag_close": ExtResource("104_hosm7"),
-&"cartridge_bag_open": ExtResource("105_ikrtu"),
-&"cartridge_bar_layerswap": ExtResource("106_bslyj")
+&"cartridge_bag_close": ExtResource("104"),
+&"cartridge_bag_open": ExtResource("105"),
+&"cartridge_bar_layerswap": ExtResource("106")
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_cloae"]
 _data = {
-&"BRIEFCASE0IDLE_120f": ExtResource("109_ubvan"),
-&"BRIEFCASE0INTRO_132f": ExtResource("110_2drtb"),
-&"BRIEFCASE0OUTRO_100f": ExtResource("111_7c3ty"),
-&"default_trans": ExtResource("112_i443k"),
-&"pipe_trans": ExtResource("113_4vrev"),
-&"pose_idle_0": ExtResource("114_6xs0m"),
-&"pose_idle_1": ExtResource("115_mhidv"),
-&"pose_idle_2": ExtResource("116_ucnp3"),
-&"pose_idle_3": ExtResource("117_xq6w8"),
-&"pose_idle_4": ExtResource("118_ahafd"),
-&"pose_rest": ExtResource("119_yos7m"),
-&"sequence_intro": ExtResource("120_55kcg"),
-&"talk_idle": ExtResource("121_b3kmn"),
-&"talk_intro": ExtResource("122_0u14i"),
-&"talk_outro": ExtResource("123_4on5t")
+&"BRIEFCASE0IDLE_120f": ExtResource("109"),
+&"BRIEFCASE0INTRO_132f": ExtResource("110"),
+&"BRIEFCASE0OUTRO_100f": ExtResource("111"),
+&"default_trans": ExtResource("112"),
+&"pipe_trans": ExtResource("113"),
+&"pose_idle_0": ExtResource("114"),
+&"pose_idle_1": ExtResource("115"),
+&"pose_idle_2": ExtResource("116"),
+&"pose_idle_3": ExtResource("117"),
+&"pose_idle_4": ExtResource("118"),
+&"pose_rest": ExtResource("119"),
+&"sequence_intro": ExtResource("120"),
+&"talk_idle": ExtResource("121"),
+&"talk_intro": ExtResource("122"),
+&"talk_outro": ExtResource("123")
 }
 
 [sub_resource type="Environment" id="Environment_w8hxk"]
@@ -8638,47 +8647,47 @@ albedo_texture = SubResource("ViewportTexture_m1yb8")
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_737dn"]
 _data = {
-&"shop_sign_wobble": ExtResource("147_qjfd3")
+&"shop_sign_wobble": ExtResource("147")
 }
 
 [sub_resource type="Resource" id="Resource_cpafp"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("151_hc55n")])
+script = ExtResource("150")
+sequence = [ExtResource("151")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_mvjfc"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("152_oy27r")])
+script = ExtResource("150")
+sequence = [ExtResource("152")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_cqr7b"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("153_i7d2e")])
+script = ExtResource("150")
+sequence = [ExtResource("153")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_tndp3"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("154_m7dsc"), ExtResource("155_8e5se"), ExtResource("156_0414d")])
+script = ExtResource("150")
+sequence = [ExtResource("154"), ExtResource("155"), ExtResource("156")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_5ruqt"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("157_rmwtb")])
+script = ExtResource("150")
+sequence = [ExtResource("157")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_ybjqn"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("158_iah5b"), ExtResource("159_dtctf"), ExtResource("160_htbbv")])
+script = ExtResource("150")
+sequence = [ExtResource("158"), ExtResource("159"), ExtResource("160")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_rfk74"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("161_705r1"), ExtResource("162_vogxf"), ExtResource("163_t775k")])
+script = ExtResource("150")
+sequence = [ExtResource("161"), ExtResource("162"), ExtResource("163")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="Resource" id="Resource_8misp"]
-script = ExtResource("150_murqc")
-sequence = Array[AudioStream]([ExtResource("164_rmgio")])
+script = ExtResource("150")
+sequence = [ExtResource("164")]
 metadata/_custom_type_script = "uid://fu845nkqtrol"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wqh0x"]
@@ -8715,32 +8724,35 @@ orientation = 2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gwmwy"]
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("102_r1gwr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("102")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.10000000475
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tihbh"]
 resource_local_to_scene = true
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("102_r1gwr")
-shader_parameter/texture_normal = ExtResource("90_pvw0n")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("102")
+shader_parameter/texture_normal = ExtResource("90")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.439, 1, 1)
 shader_parameter/emission_amount = 15.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.1
 shader_parameter/dissolve_amount = -0.10000000149012
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jijbx"]
 render_priority = 0
-shader = ExtResource("166_d7wxc")
+next_pass = null
+shader = ExtResource("166")
 shader_parameter/glow_color = Color(1, 0.050980393, 0.972549, 0.19607843)
 shader_parameter/outline_width = 0.050000002375
 shader_parameter/glow_strength = 2.0
@@ -9219,7 +9231,8 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_j3pel"]
 render_priority = 0
-shader = ExtResource("170_tqlxs")
+next_pass = null
+shader = ExtResource("170")
 shader_parameter/bars_amount = 4.83
 shader_parameter/stretch_x = 0.23
 shader_parameter/squash_x = 2.05
@@ -9230,7 +9243,8 @@ shader_parameter/emission = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7yrpb"]
 render_priority = 0
-shader = ExtResource("170_tqlxs")
+next_pass = null
+shader = ExtResource("170")
 shader_parameter/bars_amount = 4.825
 shader_parameter/stretch_x = 0.21
 shader_parameter/squash_x = 5.0
@@ -9241,7 +9255,8 @@ shader_parameter/emission = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7oh6n"]
 render_priority = 0
-shader = ExtResource("170_tqlxs")
+next_pass = null
+shader = ExtResource("170")
 shader_parameter/bars_amount = 4.825
 shader_parameter/stretch_x = 0.21
 shader_parameter/squash_x = 5.0
@@ -9399,7 +9414,8 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bqifi"]
 render_priority = 0
-shader = ExtResource("175_ui6a7")
+next_pass = null
+shader = ExtResource("175")
 shader_parameter/primary_color = Color(0.5449743, 0.54497427, 0.54497427, 1)
 shader_parameter/secondary_color = Color(0.7241564, 0.00053752423, 0.7526808, 1)
 shader_parameter/emission = 9.2
@@ -9424,13 +9440,14 @@ size = Vector2(1.7, 1.2)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hicrb"]
 render_priority = 0
-shader = ExtResource("87_mksbw")
-shader_parameter/texture_albedo = ExtResource("178_jatil")
-shader_parameter/texture_normal = ExtResource("179_8y2tg")
+next_pass = null
+shader = ExtResource("87")
+shader_parameter/texture_albedo = ExtResource("178")
+shader_parameter/texture_normal = ExtResource("179")
 shader_parameter/metallic_amount = 0.8
 shader_parameter/emission_color = Color(1, 0.47079715, 0.6538066, 1)
 shader_parameter/emission_amount = 9.0
-shader_parameter/dissolve_texture = ExtResource("88_3m6cf")
+shader_parameter/dissolve_texture = ExtResource("88")
 shader_parameter/burn_size = 0.0
 shader_parameter/dissolve_amount = 1.10000002384186
 
@@ -9530,7 +9547,8 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5ahht"]
 render_priority = 0
-shader = ExtResource("166_d7wxc")
+next_pass = null
+shader = ExtResource("166")
 shader_parameter/glow_color = Color(1, 0.050980393, 0.972549, 0.15686275)
 shader_parameter/outline_width = 0.033
 shader_parameter/glow_strength = 2.0
@@ -9580,7 +9598,8 @@ height = 0.051611945
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_o4lgd"]
 render_priority = 0
-shader = ExtResource("166_d7wxc")
+next_pass = null
+shader = ExtResource("166")
 shader_parameter/glow_color = Color(1, 0.051, 0.973, 0.157)
 shader_parameter/outline_width = 0.033
 shader_parameter/glow_strength = 2.0
@@ -9590,7 +9609,8 @@ shader_parameter/pulse_size = 0.25
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3hij3"]
 render_priority = 0
-shader = ExtResource("166_d7wxc")
+next_pass = null
+shader = ExtResource("166")
 shader_parameter/glow_color = Color(1, 0.051, 0.973, 0.157)
 shader_parameter/outline_width = 0.033
 shader_parameter/glow_strength = 2.0
@@ -9643,7 +9663,7 @@ _data = {
 }
 
 [node name="CollectorShop" type="Node3D" unique_id=540830179 node_paths=PackedStringArray("mouse_controller", "sequence_controller", "voiceline", "dialogue", "entry_voicelines", "camera", "screen_transitions", "fake_candle_shadow")]
-script = ExtResource("1_7546p")
+script = ExtResource("1")
 state = 1
 mouse_controller = NodePath("MouseController")
 sequence_controller = NodePath("Sequences")
@@ -9653,7 +9673,7 @@ entry_voicelines = NodePath("EntryVoicelines")
 camera = NodePath("InterpolatedCamera")
 screen_transitions = NodePath("UI/BlackScreenThingy/Transitions")
 fake_candle_shadow = NodePath("Environment/LightmapGI/prp_candles_fake_shadow")
-voiceline_groups = [ExtResource("2_80opm"), ExtResource("3_svid3"), ExtResource("4_b1qdt"), ExtResource("5_0s82n"), ExtResource("6_f033t"), ExtResource("7_fiilf"), ExtResource("8_1cxnk"), ExtResource("9_kwlrr"), ExtResource("10_hu3ei"), ExtResource("11_o388k"), ExtResource("12_52aji"), ExtResource("13_b0gq0"), ExtResource("14_p0wri"), ExtResource("15_5ihxv"), ExtResource("16_a4xhp"), ExtResource("17_nnvsm"), ExtResource("18_u7mdj"), ExtResource("19_2udr2"), ExtResource("20_f1llr"), ExtResource("21_q2i82"), ExtResource("22_338x5"), ExtResource("23_bq7d3"), ExtResource("24_8103b"), ExtResource("25_x1ufx"), ExtResource("26_lu387"), ExtResource("27_dgd4x"), ExtResource("28_d8qrh"), ExtResource("29_ld1kt"), ExtResource("30_1he18"), ExtResource("31_kbpjs"), ExtResource("32_i758p"), ExtResource("33_w1r5f")]
+voiceline_groups = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("15"), ExtResource("16"), ExtResource("17"), ExtResource("18"), ExtResource("19"), ExtResource("20"), ExtResource("21"), ExtResource("22"), ExtResource("23"), ExtResource("24"), ExtResource("25"), ExtResource("26"), ExtResource("27"), ExtResource("28"), ExtResource("29"), ExtResource("30"), ExtResource("31"), ExtResource("32"), ExtResource("33")]
 idle_voiceline_time = 45.0
 skip_time = 2.0
 
@@ -9667,7 +9687,7 @@ unique_name_in_owner = true
 one_shot = true
 
 [node name="MouseController" type="Node" parent="." unique_id=1439659422 node_paths=PackedStringArray("root", "camera", "ray_cast", "hand_animation_tree")]
-script = ExtResource("34_fhllx")
+script = ExtResource("34")
 ray_length = 15.0
 root = NodePath("..")
 camera = NodePath("../InterpolatedCamera")
@@ -9677,11 +9697,11 @@ should_cast_ray = true
 metadata/_custom_type_script = "uid://f854gqdvv8p6"
 
 [node name="Sequences" type="Node" parent="." unique_id=1101023731]
-script = ExtResource("35_oxxwo")
+script = ExtResource("35")
 voicelines = {
-"sequence_intro": ExtResource("36_xkoop"),
-"sequence_outro": ExtResource("37_6cn11"),
-"sequence_sign_intro": ExtResource("38_ijd61")
+"sequence_intro": ExtResource("36"),
+"sequence_outro": ExtResource("37"),
+"sequence_sign_intro": ExtResource("38")
 }
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sequences" unique_id=787453118]
@@ -9738,7 +9758,7 @@ position = Vector2(960, 54.036)
 [node name="Coin" type="AnimatedSprite2D" parent="UI/Control/CinematicBars/Bottom/CartridgeCost" unique_id=1675049512]
 position = Vector2(-40, 0)
 scale = Vector2(0.3, 0.3)
-sprite_frames = ExtResource("43_xtf6r")
+sprite_frames = ExtResource("43")
 animation = &"spin"
 autoplay = "spin"
 frame_progress = 0.48720264
@@ -9749,7 +9769,7 @@ offset_top = -54.0
 offset_right = 55.0
 offset_bottom = 54.0
 pivot_offset = Vector2(15, 54)
-theme_override_fonts/normal_font = ExtResource("44_1nf5a")
+theme_override_fonts/normal_font = ExtResource("44")
 theme_override_font_sizes/normal_font_size = 64
 text = "1"
 horizontal_alignment = 1
@@ -9787,7 +9807,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/shadow_outline_size = 2
-theme_override_fonts/font = ExtResource("44_1nf5a")
+theme_override_fonts/font = ExtResource("44")
 theme_override_font_sizes/font_size = 96
 text = "Buy"
 horizontal_alignment = 1
@@ -9796,7 +9816,7 @@ vertical_alignment = 1
 [node name="Glow" type="TextureRect" parent="UI/Control/BriefcaseHUD/BuyButton" unique_id=1167839574]
 modulate = Color(1, 1, 1, 0.26500002)
 show_behind_parent = true
-material = ExtResource("45_jtl53")
+material = ExtResource("45")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -9813,7 +9833,7 @@ metadata/_edit_lock_ = true
 [node name="ExtraGlow" type="TextureRect" parent="UI/Control/BriefcaseHUD/BuyButton" unique_id=851811424]
 modulate = Color(1, 1, 1, 0.26500002)
 show_behind_parent = true
-material = ExtResource("45_jtl53")
+material = ExtResource("45")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -9846,7 +9866,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 2
 theme_override_constants/shadow_outline_size = 4
-theme_override_fonts/font = ExtResource("44_1nf5a")
+theme_override_fonts/font = ExtResource("44")
 theme_override_font_sizes/font_size = 96
 text = "Close"
 horizontal_alignment = 1
@@ -9855,7 +9875,7 @@ vertical_alignment = 1
 [node name="Glow" type="TextureRect" parent="UI/Control/BriefcaseHUD/CloseButton" unique_id=1826375661]
 modulate = Color(1, 1, 1, 0.26500002)
 show_behind_parent = true
-material = ExtResource("45_jtl53")
+material = ExtResource("45")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -9872,7 +9892,7 @@ metadata/_edit_lock_ = true
 [node name="ExtraGlow" type="TextureRect" parent="UI/Control/BriefcaseHUD/CloseButton" unique_id=61411934]
 modulate = Color(1, 1, 1, 0.26500002)
 show_behind_parent = true
-material = ExtResource("45_jtl53")
+material = ExtResource("45")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -9928,13 +9948,13 @@ size_flags_vertical = 3
 theme_override_constants/separation = 64
 alignment = 1
 
-[node name="Monochrome" parent="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items" unique_id=690733918 instance=ExtResource("46_s877i")]
+[node name="Monochrome" parent="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items" unique_id=690733918 instance=ExtResource("46")]
 z_index = 1
 layout_mode = 2
 offset_transform_position = Vector2(22, 0)
 offset_transform_scale = Vector2(1.1, 1.1)
 
-[node name="Chimera" parent="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items" unique_id=1611390886 instance=ExtResource("46_s877i")]
+[node name="Chimera" parent="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items" unique_id=1611390886 instance=ExtResource("46")]
 modulate = Color(1, 1, 1, 0.5)
 z_index = 1
 layout_mode = 2
@@ -9947,7 +9967,7 @@ anchor_right = 1.0
 offset_bottom = 238.0
 grow_horizontal = 2
 offset_transform_enabled = true
-texture = ExtResource("47_107kd")
+texture = ExtResource("47")
 expand_mode = 1
 stretch_mode = 5
 
@@ -9965,7 +9985,7 @@ offset_bottom = -196.02509
 grow_horizontal = 2
 grow_vertical = 0
 offset_transform_enabled = true
-texture = ExtResource("48_dt6y2")
+texture = ExtResource("48")
 expand_mode = 1
 stretch_mode = 5
 
@@ -9981,7 +10001,7 @@ offset_bottom = 961.0
 scale = Vector2(1e-05, 1e-05)
 pivot_offset = Vector2(960, 95.5)
 mouse_filter = 2
-script = ExtResource("49_webx7")
+script = ExtResource("49")
 seconds_per_character = 0.045
 dialogue_text = "Hello and Welcome to the Cabinet of Novelties!
 I’m The Collector, the finest connoisseur of magical items across all planes!
@@ -10018,10 +10038,10 @@ offset_bottom = 206.0
 mouse_filter = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 12
-theme_override_fonts/normal_font = ExtResource("50_f6qjm")
+theme_override_fonts/normal_font = ExtResource("50")
 theme_override_fonts/bold_font = SubResource("FontVariation_615p5")
 theme_override_fonts/bold_italics_font = SubResource("FontVariation_s4oqh")
-theme_override_fonts/italics_font = ExtResource("51_6rbwq")
+theme_override_fonts/italics_font = ExtResource("51")
 theme_override_font_sizes/normal_font_size = 32
 bbcode_enabled = true
 scroll_active = false
@@ -10040,10 +10060,10 @@ mouse_filter = 2
 theme_override_colors/default_color = Color(1, 0.8360001, 0.18, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 12
-theme_override_fonts/normal_font = ExtResource("50_f6qjm")
+theme_override_fonts/normal_font = ExtResource("50")
 theme_override_fonts/bold_font = SubResource("FontVariation_615p5")
 theme_override_fonts/bold_italics_font = SubResource("FontVariation_s4oqh")
-theme_override_fonts/italics_font = ExtResource("51_6rbwq")
+theme_override_fonts/italics_font = ExtResource("51")
 theme_override_font_sizes/normal_font_size = 23
 bbcode_enabled = true
 text = "[wave amp=10.0 freq=4.0]
@@ -10088,7 +10108,7 @@ text = "[The Go Back Button] Go Back"
 label_settings = SubResource("LabelSettings_wqh0x")
 horizontal_alignment = 2
 vertical_alignment = 1
-script = ExtResource("56_k0ooe")
+script = ExtResource("56")
 format_text = "[$ui_cancel$] Go Back"
 
 [node name="KeyboardHint" type="Control" parent="UI" unique_id=576710880]
@@ -10107,18 +10127,18 @@ grow_horizontal = 2
 grow_vertical = 0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="UI/KeyboardHint" unique_id=1785226201]
-sprite_frames = ExtResource("57_tvw5l")
+sprite_frames = ExtResource("57")
 animation = &"keyboardicon"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="UI/KeyboardHint/AnimatedSprite2D" unique_id=297899030]
-libraries/keyboard_icon_library = ExtResource("58_vj4ks")
+libraries/keyboard_icon_library = ExtResource("58")
 
 [node name="EntryVoicelines" type="Node" parent="." unique_id=187527438 node_paths=PackedStringArray("shop")]
-script = ExtResource("59_sxapn")
+script = ExtResource("59")
 shop = NodePath("..")
 
 [node name="Settings" type="Node" parent="." unique_id=465878829]
-script = ExtResource("60_aeq4r")
+script = ExtResource("60")
 settings_post_processing = 1
 metadata/_custom_type_script = "uid://dmkptu3syyxf2"
 
@@ -10153,42 +10173,42 @@ libraries/ = SubResource("AnimationLibrary_o4lgd")
 
 [node name="Music" type="AudioStreamPlayer3D" parent="Audio" unique_id=1697820559]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5310917, 1.6266226, 0.9599191)
-stream = ExtResource("39_sklhh")
+stream = ExtResource("39")
 volume_db = -24.001
 parameters/looping = true
 
 [node name="MusicStatic" type="AudioStreamPlayer3D" parent="Audio" unique_id=1514611214]
 transform = Transform3D(1, 0, 0, 0, -0.9242207, 0.38185892, 0, -0.38185892, -0.9242207, -0.5371442, 1.62709, 0.9554987)
-stream = ExtResource("61_itfyn")
+stream = ExtResource("61")
 volume_db = -13.7
 
 [node name="RecordScratch" type="AudioStreamPlayer3D" parent="Audio" unique_id=1650803982]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0035524368, 1.7230701, -1.2757653)
-stream = ExtResource("62_ka6s0")
+stream = ExtResource("62")
 volume_db = -12.934
 
 [node name="TakesHisGloveOff" type="AudioStreamPlayer3D" parent="Audio" unique_id=1002933012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45825994, 1.6150233, 0.33306357)
-stream = ExtResource("63_dibil")
+stream = ExtResource("63")
 
 [node name="ThrowsHisGloveToYou" type="AudioStreamPlayer3D" parent="Audio" unique_id=377145021]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5697092, 1.8453484, 0.8884196)
-stream = ExtResource("64_18vou")
+stream = ExtResource("64")
 
 [node name="BangOnTable" type="AudioStreamPlayer3D" parent="Audio" unique_id=548543695]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18149644, 1.2876602, 0.50733054)
-stream = ExtResource("65_yqxss")
+stream = ExtResource("65")
 
 [node name="OrchHit" type="AudioStreamPlayer" parent="Audio" unique_id=2112043880]
-stream = ExtResource("41_mtkka")
+stream = ExtResource("41")
 volume_db = -13.0
 
 [node name="Vibraphones" type="AudioStreamPlayer" parent="Audio" unique_id=1044872757]
-stream = ExtResource("66_tbhst")
+stream = ExtResource("66")
 volume_db = -13.0
 
 [node name="Ambience" type="AudioStreamPlayer" parent="Audio" unique_id=721100383]
-stream = ExtResource("67_i4c78")
+stream = ExtResource("67")
 volume_db = -23.724
 autoplay = true
 
@@ -10207,7 +10227,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0035524368, 1.8942138, 3.4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.735, 4.33)
 current = true
 fov = 55.0
-script = ExtResource("68_7lmru")
+script = ExtResource("68")
 position_interpolate_target = Vector3(0, 1.735, 4.33)
 position_interpolate_speed = 1.0
 rotation_interpolate_speed = 1.0
@@ -10225,14 +10245,14 @@ spot_range = 1.2
 spot_attenuation = 0.52
 spot_angle = 54.09
 spot_angle_attenuation = 0.27739254
-script = ExtResource("69_33ius")
+script = ExtResource("69")
 
 [node name="BriefcaseCartTarget" type="Node3D" parent="InterpolatedCamera" unique_id=1692046257]
 transform = Transform3D(0.9426415, 0, -0.33380687, 0, 1, 0, 0.33380687, 0, 0.9426415, 0.11, -0.05, -0.307)
 
-[node name="PlayerHand" parent="InterpolatedCamera" unique_id=1072434040 node_paths=PackedStringArray("camera", "shop") instance=ExtResource("70_pps70")]
+[node name="PlayerHand" parent="InterpolatedCamera" unique_id=1072434040 node_paths=PackedStringArray("camera", "shop") instance=ExtResource("70")]
 transform = Transform3D(0.936658, -0.31694058, -0.14906481, 0.27999547, 0.9332735, -0.22495103, 0.21041436, 0.16896471, 0.9629001, 0.39128023, -0.30730903, -0.5233512)
-script = ExtResource("71_lrqg6")
+script = ExtResource("71")
 base_pos = Vector3(0.39128023, -0.30730903, -0.5233512)
 camera = NodePath("..")
 shop = NodePath("../..")
@@ -10273,12 +10293,12 @@ unique_name_in_owner = true
 libraries/ = SubResource("AnimationLibrary_1863t")
 autoplay = &"RESET"
 
-[node name="CardboardSign" parent="." unique_id=715010421 node_paths=PackedStringArray("sign_player", "shop", "note_pad", "briefcase", "focus_area_center", "selector_model") instance=ExtResource("72_7k40l")]
+[node name="CardboardSign" parent="." unique_id=715010421 node_paths=PackedStringArray("sign_player", "shop", "note_pad", "briefcase", "focus_area_center", "selector_model") instance=ExtResource("72")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.73, -0.357, -0.5520505)
-script = ExtResource("73_kcapi")
-inactive_emission = ExtResource("74_x6xqw")
-shop_emission = ExtResource("75_qccpi")
-talk_emission = ExtResource("76_du0e5")
+script = ExtResource("73")
+inactive_emission = ExtResource("74")
+shop_emission = ExtResource("75")
+talk_emission = ExtResource("76")
 sign_player = NodePath("AnimationPlayer")
 shop = NodePath("..")
 note_pad = NodePath("../Notepad")
@@ -10298,20 +10318,20 @@ libraries/ = SubResource("AnimationLibrary_fgpjf")
 
 [node name="Confirm" type="AudioStreamPlayer3D" parent="CardboardSign" unique_id=638927460]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9192962, 2.2664475, 0.9966495)
-stream = ExtResource("80_t5vl0")
+stream = ExtResource("80")
 
 [node name="Hover" type="AudioStreamPlayer3D" parent="CardboardSign" unique_id=1819891985]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9192962, 2.2664475, 0.9966495)
-stream = ExtResource("81_3mx2y")
+stream = ExtResource("81")
 volume_db = 1.124
 
-[node name="SignHand" parent="CardboardSign" unique_id=703842882 instance=ExtResource("70_pps70")]
+[node name="SignHand" parent="CardboardSign" unique_id=703842882 instance=ExtResource("70")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.164, 1.145, 0.327)
 
 [node name="AnimationPlayer" parent="CardboardSign/SignHand" index="1" unique_id=325126546]
 autoplay = &"HandPointRight"
 
-[node name="Notepad" parent="." unique_id=178168157 node_paths=PackedStringArray("shop", "dialogue", "sign", "collector") instance=ExtResource("82_tg8s8")]
+[node name="Notepad" parent="." unique_id=178168157 node_paths=PackedStringArray("shop", "dialogue", "sign", "collector") instance=ExtResource("82")]
 transform = Transform3D(0.86113644, 0.094443075, -0.4995243, -0.015505263, 0.9870145, 0.15988119, 0.5081374, -0.12993427, 0.8514185, 0.65787375, 2.1078646, 0.42299974)
 visible = false
 notebook_base_pos = Vector3(2.25, 1.65, 1)
@@ -10324,11 +10344,11 @@ sign = NodePath("../CardboardSign")
 collector = NodePath("../Collector")
 
 [node name="HoverSound" type="AudioStreamPlayer" parent="Notepad" unique_id=1505398893]
-stream = ExtResource("83_uufka")
+stream = ExtResource("83")
 volume_db = -17.252
 
-[node name="Briefcase" parent="." unique_id=742807630 node_paths=PackedStringArray("cartridge_model_map", "mouse_controller", "camera", "open_timer", "cartridge_target", "shop", "dialogue", "denied_sound", "bought_sound", "scroll_sound", "select_sound", "cancel_sound", "hud_anims", "hud_buy_button", "hud_close_button", "hud_cartridge_map", "hud_in_timer", "hud_input_label", "animation_player", "collector_anims", "register_anims", "camera_positions", "falling_coin_anims") instance=ExtResource("84_6q77e")]
-script = ExtResource("85_8v6iu")
+[node name="Briefcase" parent="." unique_id=742807630 node_paths=PackedStringArray("cartridge_model_map", "mouse_controller", "camera", "open_timer", "cartridge_target", "shop", "dialogue", "denied_sound", "bought_sound", "scroll_sound", "select_sound", "cancel_sound", "hud_anims", "hud_buy_button", "hud_close_button", "hud_cartridge_map", "hud_in_timer", "hud_input_label", "animation_player", "collector_anims", "register_anims", "camera_positions", "falling_coin_anims") instance=ExtResource("84")]
+script = ExtResource("85")
 cartridges = [&"monochrome", &"chimera"]
 cartridge_model_map = {
 &"chimera": NodePath("BriefcaseRig/Skeleton3D/chimera"),
@@ -10371,13 +10391,13 @@ bones/3/rotation = Quaternion(0.9030339, -8.0322326e-07, -3.6596737e-07, 0.42956
 transform = Transform3D(3.010709, 0, 1.1721134, 0, 3.230823, 0, -1.1721134, 0, 3.010709, -2.507053, 0.22311592, 0.34107423)
 bus = &"SoundEffects"
 
-[node name="monochrome" parent="Briefcase/BriefcaseRig/Skeleton3D" index="2" unique_id=1069381216 instance=ExtResource("86_qb6xw")]
+[node name="monochrome" parent="Briefcase/BriefcaseRig/Skeleton3D" index="2" unique_id=1069381216 instance=ExtResource("86")]
 transform = Transform3D(0.93103296, -0.15481138, -0.330471, -0.005013193, -0.9109012, 0.41259417, -0.36490068, -0.38248208, -0.84885514, -5.0501523, -45.265244, -4.2302155)
 
 [node name="Cartridge" parent="Briefcase/BriefcaseRig/Skeleton3D/monochrome/Offset/AnimationOffset/Cartridge" parent_id_path=PackedInt32Array(1069381216, 1053355038) index="0" unique_id=418026459]
 material_override = SubResource("ShaderMaterial_erqqb")
 
-[node name="chimera" parent="Briefcase/BriefcaseRig/Skeleton3D" index="3" unique_id=1602774658 instance=ExtResource("86_qb6xw")]
+[node name="chimera" parent="Briefcase/BriefcaseRig/Skeleton3D" index="3" unique_id=1602774658 instance=ExtResource("86")]
 transform = Transform3D(0.93103296, -0.15481138, -0.330471, -0.005013193, -0.9109012, 0.41259417, -0.36490068, -0.38248208, -0.84885514, -4.4084187, -45.268696, -4.481731)
 bone_name = "Cartridge11"
 bone_idx = 7
@@ -10402,35 +10422,35 @@ wait_time = 0.5
 one_shot = true
 
 [node name="DeniedSound" type="AudioStreamPlayer" parent="Briefcase" unique_id=1413952707]
-stream = ExtResource("95_p1nca")
+stream = ExtResource("95")
 volume_db = -4.039
 max_polyphony = 3
 bus = &"SoundEffects"
 
 [node name="BoughtSound" type="AudioStreamPlayer" parent="Briefcase" unique_id=1662814065]
-stream = ExtResource("96_xgrja")
+stream = ExtResource("96")
 volume_db = -6.0
 bus = &"SoundEffects"
 
 [node name="ScrollSound" type="AudioStreamPlayer" parent="Briefcase" unique_id=2042466939]
-stream = ExtResource("83_uufka")
+stream = ExtResource("83")
 volume_db = -6.0
 max_polyphony = 4
 bus = &"SoundEffects"
 
 [node name="SelectSound" type="AudioStreamPlayer" parent="Briefcase" unique_id=1702118322]
-stream = ExtResource("97_b6y4m")
+stream = ExtResource("97")
 volume_db = -6.0
 max_polyphony = 2
 bus = &"SoundEffects"
 
 [node name="CancelSound" type="AudioStreamPlayer" parent="Briefcase" unique_id=640063060]
-stream = ExtResource("98_dio78")
+stream = ExtResource("98")
 volume_db = -2.0
 max_polyphony = 4
 bus = &"SoundEffects"
 
-[node name="CartridgeBag" parent="." unique_id=257798451 instance=ExtResource("99_681gp")]
+[node name="CartridgeBag" parent="." unique_id=257798451 instance=ExtResource("99")]
 transform = Transform3D(-0.06608882, 0, -0.4956113, 0, 0.49999997, 0, 0.4956113, 0, -0.06608882, 3.1488872, 2.4871192, 3.8833535)
 
 [node name="Skeleton3D" parent="CartridgeBag/CartridgeBag_RIG" parent_id_path=PackedInt32Array(257798451, 529983014) index="0" unique_id=1633299899]
@@ -10448,7 +10468,7 @@ bones/24/rotation = Quaternion(0.008549337, 0.0019524024, 0.2661734, 0.96388537)
 bones/25/position = Vector3(-0.013755309, 0.055699434, -0.0010134091)
 bones/25/rotation = Quaternion(0.6497734, -0.0006732806, -0.04192735, 0.7589705)
 
-[node name="SafetyLullaby" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="0" unique_id=1344579585 instance=ExtResource("100_77jim")]
+[node name="SafetyLullaby" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="0" unique_id=1344579585 instance=ExtResource("100")]
 transform = Transform3D(1, 0.000103435, 0.0001092152, 0.000107754044, 0.01402225, -0.9999019, -0.00010495626, 0.99990165, 0.0140223885, -0.50275856, 0.2811264, 0.10932613)
 bone_idx = 4
 
@@ -10459,7 +10479,7 @@ texture = "safety_lullaby"
 material_override = SubResource("ShaderMaterial_rl7sx")
 surface_material_override/0 = SubResource("ShaderMaterial_s0y3h")
 
-[node name="Monochrome" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="1" unique_id=1663910992 instance=ExtResource("100_77jim")]
+[node name="Monochrome" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="1" unique_id=1663910992 instance=ExtResource("100")]
 transform = Transform3D(1, 0.00011013184, 0.000109089124, 0.00010753408, 0.014022236, -0.9999019, -0.00011165068, 0.99990165, 0.014022374, -0.1823772, 0.28116903, 0.10929051)
 bone_name = "Layer 1 Pocket.002"
 bone_idx = 5
@@ -10475,7 +10495,7 @@ texture = "monochrome"
 material_override = SubResource("ShaderMaterial_86o0i")
 surface_material_override/0 = SubResource("ShaderMaterial_jxms3")
 
-[node name="Chimera" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="2" unique_id=1072630206 instance=ExtResource("100_77jim")]
+[node name="Chimera" parent="CartridgeBag/CartridgeBag_RIG/Skeleton3D" index="2" unique_id=1072630206 instance=ExtResource("100")]
 transform = Transform3D(1, 9.7378696e-05, 0.000109023276, 0.00010764707, 0.014022234, -0.9999019, -9.889787e-05, 0.99990165, 0.014022374, 0.14587548, 0.2812127, 0.10925401)
 bone_name = "Layer 1 Pocket.003"
 bone_idx = 6
@@ -10510,7 +10530,7 @@ remote_path = NodePath("../../../../../../../Environment/Areas/CartridgeBagViewp
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.722046e-06, -0.0005493164, 0.00011062622)
 
 [node name="CartridgeBagHandler" type="Node" parent="CartridgeBag" unique_id=2123864538 node_paths=PackedStringArray("carts", "animation_player", "mouse_controller", "sequences", "cartridge_anim_player", "console_area", "AudioPlayer", "sidepanel_sub_viewport", "cartridge_bag_sidepanel")]
-script = ExtResource("103_ynhqm")
+script = ExtResource("103")
 carts = {
 &"chimera": NodePath("../CartridgeBag_RIG/Skeleton3D/Chimera"),
 &"monochrome": NodePath("../CartridgeBag_RIG/Skeleton3D/Monochrome"),
@@ -10533,9 +10553,9 @@ bus = &"SoundEffects"
 libraries/ = SubResource("AnimationLibrary_q4ygy")
 autoplay = &"RESET"
 
-[node name="Collector" parent="." unique_id=1582283198 node_paths=PackedStringArray("animation_player", "voice_player") instance=ExtResource("107_kf0tl")]
+[node name="Collector" parent="." unique_id=1582283198 node_paths=PackedStringArray("animation_player", "voice_player") instance=ExtResource("107")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10183917, 0.014766037, -0.06932378)
-script = ExtResource("108_ae7e8")
+script = ExtResource("108")
 animation_player = NodePath("AnimationPlayer")
 voice_player = NodePath("../Sequences/Voiceline")
 top_open_position = Vector3(0, 0.04, 0)
@@ -10682,14 +10702,14 @@ denoiser_strength = 0.05
 texel_scale = 1.25
 max_texture_size = 4096
 generate_probes_subdiv = 3
-light_data = ExtResource("124_lue4p")
+light_data = ExtResource("124")
 
 [node name="ReflectionProbe" type="ReflectionProbe" parent="Environment/LightmapGI" unique_id=1204810908]
 visible = false
 interior = true
 ambient_color = Color(0.06837444, 0.019384017, 0.00046354576, 1)
 
-[node name="prp_candles_fake_shadow" parent="Environment/LightmapGI" unique_id=1684031830 instance=ExtResource("125_1u5pg")]
+[node name="prp_candles_fake_shadow" parent="Environment/LightmapGI" unique_id=1684031830 instance=ExtResource("125")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1467520338]
 environment = SubResource("Environment_w8hxk")
@@ -10841,7 +10861,7 @@ spot_angle_attenuation = 0.5396099
 
 [node name="FocusAreaLeft" type="Area3D" parent="Environment/Areas" unique_id=1816228085 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5437865, 1.6348336, 3.8301482)
-script = ExtResource("126_hnbio")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"focus_left"
@@ -10856,7 +10876,7 @@ debug_fill = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.283831, 0.80702007, 3.9595165)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("127_5fx5h")
+script = ExtResource("127")
 kollectadex = NodePath("../../../Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex")
 submenu_viewport = NodePath("../../../Viewports/KollectadexSubViewport")
 open_sound = NodePath("OpenSound")
@@ -10871,7 +10891,7 @@ shape = SubResource("BoxShape3D_tl6kk")
 debug_fill = false
 
 [node name="OpenSound" type="AudioStreamPlayer" parent="Environment/Areas/FocusKollectadex" unique_id=936094227]
-stream = ExtResource("128_ox4cb")
+stream = ExtResource("128")
 bus = &"SoundEffects"
 
 [node name="FocusAreaPlush" type="Area3D" parent="Environment/Areas" unique_id=1774106423 node_paths=PackedStringArray("sequences")]
@@ -10887,7 +10907,7 @@ debug_color = Color(0, 0.60038817, 0, 0.15)
 
 [node name="FocusAreaCenter" type="Area3D" parent="Environment/Areas" unique_id=365086908 node_paths=PackedStringArray("shop", "sequences", "sign_animation")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4399559, 1.73, 0)
-script = ExtResource("129_ejhec")
+script = ExtResource("129")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 sign_animation = NodePath("../../../CardboardSign/AnimationPlayer")
@@ -10901,7 +10921,7 @@ debug_color = Color(0, 0.6, 0, 0.4)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.094524145, 1.9122014, 0.35578752)
 collision_layer = 2
 collision_mask = 2
-script = ExtResource("130_7ann3")
+script = ExtResource("130")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 can_interact = false
@@ -10916,7 +10936,7 @@ debug_fill = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.094524145, 1.7303157, 0.35578752)
 collision_layer = 2
 collision_mask = 2
-script = ExtResource("131_ertsb")
+script = ExtResource("131")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 can_interact = false
@@ -10929,7 +10949,7 @@ debug_fill = false
 
 [node name="FocusAreaRight" type="Area3D" parent="Environment/Areas" unique_id=267682817 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9254525, 1.8691325, 3.6193552)
-script = ExtResource("126_hnbio")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"focus_right"
@@ -10942,7 +10962,7 @@ debug_fill = false
 
 [node name="FocusCartridgeBag" type="Area3D" parent="Environment/Areas" unique_id=1539933936 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9254525, 2.9244099, 3.870326)
-script = ExtResource("126_hnbio")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"focus_cartridge_bag"
@@ -10957,7 +10977,7 @@ debug_fill = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8661416, 1.7724857, 4.246125)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("132_eegxa")
+script = ExtResource("132")
 console = NodePath("../../../Viewports/ConsoleSubViewport/Console")
 submenu_viewport = NodePath("../../../Viewports/ConsoleSubViewport")
 shop = NodePath("../../..")
@@ -10974,7 +10994,7 @@ debug_fill = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.985889, 1.711846, 2.9743657)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("133_jtedc")
+script = ExtResource("133")
 hint = NodePath("../../../UI/KeyboardHint")
 console_area = NodePath("../FocusConsole")
 bag_focus = NodePath("../FocusCartridgeBag")
@@ -10990,7 +11010,7 @@ shape = SubResource("BoxShape3D_615p5")
 debug_fill = false
 
 [node name="ClickSound" type="AudioStreamPlayer3D" parent="Environment/Areas/FocusPowerConsole" unique_id=1755683054]
-stream = ExtResource("134_ev0nh")
+stream = ExtResource("134")
 volume_db = 6.0
 max_db = 6.0
 max_polyphony = 4
@@ -10998,7 +11018,7 @@ bus = &"SoundEffects"
 
 [node name="FocusUnownList" type="Area3D" parent="Environment/Areas" unique_id=967140554 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3670907, 1.8377675, 5.2485237)
-script = ExtResource("126_hnbio")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"sequence_unown_list"
@@ -11013,7 +11033,7 @@ debug_fill = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.041107, 1.6859912, 3.8475313)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("126_hnbio")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"sequence_board"
@@ -11027,7 +11047,7 @@ shape = SubResource("BoxShape3D_sm12n")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.041107, 1.6859912, 3.8475313)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("135_cllhy")
+script = ExtResource("135")
 board_area = NodePath("../FocusBoard")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
@@ -11035,7 +11055,7 @@ animation_name = &"focus_chimera_photos"
 
 [node name="Whispers" type="AudioStreamPlayer3D" parent="Environment/Areas/FocusChimeraPhotos" unique_id=1417920676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.14260757, 0.47943926)
-stream = ExtResource("136_uryqm")
+stream = ExtResource("136")
 volume_db = -80.0
 autoplay = true
 
@@ -11048,7 +11068,7 @@ debug_color = Color(0.36743256, 0, 0.70196074, 0.41960785)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.041107, 1.6859912, 3.8475313)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("135_cllhy")
+script = ExtResource("135")
 song_name = &"safety_lullaby"
 board_area = NodePath("../FocusBoard")
 shop = NodePath("../../..")
@@ -11064,7 +11084,7 @@ debug_color = Color(0.36743256, 0, 0.70196074, 0.41960785)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8536555, 1.4201705, 1.4162085)
 collision_layer = 2
 collision_mask = 3
-script = ExtResource("137_syrxe")
+script = ExtResource("137")
 target = NodePath("../../shop_base/prp_mono_jar")
 animation_player = NodePath("../../shop_base/prp_mono_jar/AnimationPlayer")
 animation_name = &"freakout"
@@ -11077,15 +11097,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.010803223, 0.0037155151, -
 shape = SubResource("BoxShape3D_ivp12")
 
 [node name="PokeSound" type="AudioStreamPlayer3D" parent="Environment/Areas/TriggerUnownJar" unique_id=1021796756]
-stream = ExtResource("138_nlryn")
+stream = ExtResource("138")
 volume_db = -4.0
 bus = &"SoundEffects"
-script = ExtResource("139_nloh4")
-variations = [ExtResource("138_nlryn"), ExtResource("140_077n3")]
+script = ExtResource("139")
+variations = [ExtResource("138"), ExtResource("140")]
 
 [node name="TriggerSignWobble" type="Area3D" parent="Environment/Areas" unique_id=2145951599 node_paths=PackedStringArray("animation_player", "poke_sound_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2571067, 2.8791628, -0.54311323)
-script = ExtResource("137_syrxe")
+script = ExtResource("137")
 animation_player = NodePath("../../shop_base/prp_sign/AnimationPlayer")
 animation_name = &"shop_sign_wobble"
 poke_sound_player = NodePath("PokeSound")
@@ -11095,12 +11115,12 @@ transform = Transform3D(1, -1.748429e-07, -1.5099312e-07, -1.7484574e-07, -0.999
 shape = SubResource("BoxShape3D_unamm")
 
 [node name="PokeSound" type="AudioStreamPlayer3D" parent="Environment/Areas/TriggerSignWobble" unique_id=1661490186]
-stream = ExtResource("141_c37xc")
+stream = ExtResource("141")
 volume_db = -10.0
 
 [node name="TriggerExit" type="Area3D" parent="Environment/Areas" unique_id=367295674 node_paths=PackedStringArray("shop", "camera_positions", "cine_bars", "dialogue")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.017146468, 1.4201705, 9.116621)
-script = ExtResource("142_6wy22")
+script = ExtResource("142")
 shop = NodePath("../../..")
 camera_positions = NodePath("../../../InterpolatedCamera/CameraPositions")
 cine_bars = NodePath("../../../UI/Control/CinematicBars/AnimationPlayer")
@@ -11114,7 +11134,7 @@ debug_fill = false
 
 [node name="FocusJar" type="Area3D" parent="Environment/Areas" unique_id=1790762008 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8724853, 1.5378289, 1.3885885)
-script = ExtResource("135_cllhy")
+script = ExtResource("135")
 song_name = &"monochrome"
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
@@ -11136,7 +11156,7 @@ aabb = AABB(-0.001, -1.0703025, -1.2434255, 0.002, 2.140605, 2.486851)
 [node name="KollectadexViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=1153337935 node_paths=PackedStringArray("sub_viewport")]
 transform = Transform3D(-3.5676206e-07, 0.99759316, 0.06975876, -2.4947244e-08, 0.0697585, -0.997597, -1.000016, -3.576385e-07, -3.284049e-15, -1.6969539, 1.760105, 3.8173351)
 aabb = AABB(-0.15841676, -0.14748432, -0.15715636, 0.31683353, 0.002, 0.31431273)
-script = ExtResource("143_2u6ce")
+script = ExtResource("143")
 is_accessible = false
 sub_viewport = NodePath("../../../Viewports/KollectadexSubViewport")
 
@@ -11147,14 +11167,14 @@ aabb = AABB(-0.15841676, -1.0522528, -1.1128985, 0.31683353, 1.8115363, 2.225797
 [node name="CartridgeBagViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=351055892 node_paths=PackedStringArray("sub_viewport")]
 transform = Transform3D(0.06259089, 0.0053624986, 0.4960363, -0.01879652, 0.4996371, -0.0030294675, -0.49570924, -0.01826847, 0.0627467, 3.0869427, 2.6034672, 3.7569773)
 aabb = AABB(-0.23815046, -0.033569977, -0.38274312, 0.42259005, 0.06713995, 0.76548624)
-script = ExtResource("143_2u6ce")
+script = ExtResource("143")
 is_accessible = false
 sub_viewport = NodePath("../../../Viewports/SidemenuSubViewport")
 
-[node name="shop_base" parent="Environment" unique_id=1510750927 instance=ExtResource("144_p7gun")]
+[node name="shop_base" parent="Environment" unique_id=1510750927 instance=ExtResource("144")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00032258034, 0.0033000708, -0.0010895729)
 
-[node name="prp_tv" parent="Environment/shop_base" unique_id=1864626517 instance=ExtResource("145_4w2op")]
+[node name="prp_tv" parent="Environment/shop_base" unique_id=1864626517 instance=ExtResource("145")]
 
 [node name="TV" parent="Environment/shop_base/prp_tv" index="0" unique_id=1398339570]
 surface_material_override/1 = SubResource("StandardMaterial3D_i5hh2")
@@ -11168,7 +11188,7 @@ light_color = Color(0.89, 1, 1, 1)
 light_energy = 0.0
 omni_range = 1.104
 
-[node name="prp_sign" parent="Environment/shop_base" unique_id=936900136 instance=ExtResource("146_1c5gw")]
+[node name="prp_sign" parent="Environment/shop_base" unique_id=936900136 instance=ExtResource("146")]
 
 [node name="Skeleton3D" parent="Environment/shop_base/prp_sign/SignRig" parent_id_path=PackedInt32Array(936900136, 583638837) index="0" unique_id=1961965088]
 bones/1/position = Vector3(1.1717503e-08, 2.1597989, -0.019842418)
@@ -11186,12 +11206,12 @@ update_scale = false
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Environment/shop_base/prp_sign" unique_id=1258324106]
 libraries/ = SubResource("AnimationLibrary_737dn")
 
-[node name="prp_gigi" parent="Environment/shop_base" unique_id=222039436 instance=ExtResource("148_btdta")]
+[node name="prp_gigi" parent="Environment/shop_base" unique_id=222039436 instance=ExtResource("148")]
 
 [node name="AudioTrigger" type="Area3D" parent="Environment/shop_base/prp_gigi" unique_id=1414745499 node_paths=PackedStringArray("player")]
 collision_layer = 2
 collision_mask = 2
-script = ExtResource("149_ycj3h")
+script = ExtResource("149")
 sequences = [SubResource("Resource_cpafp"), SubResource("Resource_mvjfc"), SubResource("Resource_cqr7b"), SubResource("Resource_tndp3"), SubResource("Resource_5ruqt"), SubResource("Resource_ybjqn"), SubResource("Resource_rfk74"), SubResource("Resource_8misp")]
 player = NodePath("AudioStreamPlayer3D")
 
@@ -11202,7 +11222,7 @@ debug_color = Color(0, 0.60038817, 0.70000815, 0.027)
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Environment/shop_base/prp_gigi/AudioTrigger" unique_id=139832830]
 transform = Transform3D(-0.08541694, 0, -0.99634534, 0, 1, 0, 0.99634534, 0, -0.08541695, -2.9024692, 2.786553, 3.9982328)
-stream = ExtResource("151_hc55n")
+stream = ExtResource("151")
 max_distance = 1.5
 max_polyphony = 4
 bus = &"SoundEffects"
@@ -11223,7 +11243,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007912926, 1.9097865, 9.95
 mesh = SubResource("PlaneMesh_2u2wv")
 metadata/_edit_lock_ = true
 
-[node name="prp_console" parent="Environment/shop_base" unique_id=1326272856 instance=ExtResource("165_hc2qq")]
+[node name="prp_console" parent="Environment/shop_base" unique_id=1326272856 instance=ExtResource("165")]
 
 [node name="Cartridge" parent="Environment/shop_base/prp_console/Console/Adapter/prp_cartridge" parent_id_path=PackedInt32Array(1326272856, 1564110037) index="0" unique_id=418026459]
 material_override = SubResource("ShaderMaterial_gwmwy")
@@ -11242,12 +11262,12 @@ mesh = SubResource("CapsuleMesh_tl6kk")
 
 [node name="ConsoleSFX" type="AudioStreamPlayer3D" parent="Environment/shop_base/prp_console" unique_id=1965724066]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.555864, 1.963513, 4.121563)
-script = ExtResource("167_5kwkh")
+script = ExtResource("167")
 
 [node name="KollectadexOffset" type="Node3D" parent="Environment/shop_base" unique_id=1346044858]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0865984, -1.1169598, -3.77852)
 
-[node name="prp_kollectadex" parent="Environment/shop_base/KollectadexOffset" unique_id=1143596182 instance=ExtResource("168_l6205")]
+[node name="prp_kollectadex" parent="Environment/shop_base/KollectadexOffset" unique_id=1143596182 instance=ExtResource("168")]
 transform = Transform3D(0.9999999, 0, 0, 0, 0.9999999, 0, 0, 0, 1, -1.76, 1.645, 3.725)
 
 [node name="PokedexRig" parent="Environment/shop_base/KollectadexOffset/prp_kollectadex" index="0" unique_id=1768842938]
@@ -11276,7 +11296,7 @@ libraries/ = SubResource("AnimationLibrary_d8063")
 libraries/kollectadex_animations = SubResource("AnimationLibrary_n0anh")
 autoplay = &"kollectadex_animations/RESET"
 
-[node name="prp_register" parent="Environment/shop_base" unique_id=267364885 instance=ExtResource("169_bhclm")]
+[node name="prp_register" parent="Environment/shop_base" unique_id=267364885 instance=ExtResource("169")]
 transform = Transform3D(0.9900747, 0, 0.14054175, 0, 1, 0, -0.14054175, 0, 0.9900747, -0.35306323, 0, -0.1335752)
 
 [node name="CashRegisterRig" parent="Environment/shop_base/prp_register" index="0" unique_id=607540176]
@@ -11299,7 +11319,7 @@ bone_idx = 17
 transform = Transform3D(0.014504479, -0.034415096, 0.9993025, -0.029984333, -0.9989728, -0.033968598, 0.9994447, -0.029470704, -0.015521251, 0.006351948, 0.096346796, 0.043451667)
 mesh = SubResource("PrismMesh_yf5fn")
 
-[node name="prp_soultoken" parent="Environment/shop_base/prp_register/CashRegisterRig/Skeleton3D/Projection/Offset" unique_id=478157476 instance=ExtResource("171_jq0hu")]
+[node name="prp_soultoken" parent="Environment/shop_base/prp_register/CashRegisterRig/Skeleton3D/Projection/Offset" unique_id=478157476 instance=ExtResource("171")]
 transform = Transform3D(-0.99992937, -0.011893688, 1.509958e-07, -0.01189369, 0.99992925, 1.1321959e-07, -1.5233172e-07, 1.1141569e-07, -1, 0.05121994, 0.08950162, 0.047972918)
 
 [node name="TOKEN5" parent="Environment/shop_base/prp_register/CashRegisterRig/Skeleton3D/Projection/Offset/prp_soultoken" index="0" unique_id=1547658873]
@@ -11312,19 +11332,19 @@ billboard = 2
 texture_filter = 0
 outline_modulate = Color(0.3515625, 0.13320923, 0.3515625, 1)
 text = "1"
-font = ExtResource("172_5cbe1")
+font = ExtResource("172")
 outline_size = 5
-script = ExtResource("173_0d1rc")
+script = ExtResource("173")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Environment/shop_base/prp_register" unique_id=433932491]
 libraries/ = SubResource("AnimationLibrary_i7nn1")
 
-[node name="Glow" parent="Environment/shop_base/prp_register" unique_id=1398761567 instance=ExtResource("174_nmram")]
+[node name="Glow" parent="Environment/shop_base/prp_register" unique_id=1398761567 instance=ExtResource("174")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1495708, 1.651, 0.45015642)
 mesh = SubResource("QuadMesh_aji13")
-script = ExtResource("176_ee411")
+script = ExtResource("176")
 
-[node name="prp_falling_tokens" parent="Environment/shop_base" unique_id=1037297650 instance=ExtResource("177_oxspf")]
+[node name="prp_falling_tokens" parent="Environment/shop_base" unique_id=1037297650 instance=ExtResource("177")]
 transform = Transform3D(-0.99976957, 0, -0.021466188, 0, 1, 0, 0.021466188, 0, -0.99976957, -2.7331676, -0.032267213, 1.3425001)
 
 [node name="TOKEN1" parent="Environment/shop_base/prp_falling_tokens/falling_soul_tokens/Skeleton3D" parent_id_path=PackedInt32Array(1037297650, 772068680) index="0" unique_id=59174050]
@@ -11346,8 +11366,8 @@ material_override = SubResource("ShaderMaterial_hicrb")
 [node name="CoinFalling" type="AnimationPlayer" parent="Environment/shop_base/prp_falling_tokens" unique_id=854343477]
 libraries/ = SubResource("AnimationLibrary_f3fqu")
 
-[node name="prp_pendulum_string" parent="Environment/shop_base" unique_id=500141715 node_paths=PackedStringArray("mesh") instance=ExtResource("180_xdruy")]
-script = ExtResource("181_7dcqp")
+[node name="prp_pendulum_string" parent="Environment/shop_base" unique_id=500141715 node_paths=PackedStringArray("mesh") instance=ExtResource("180")]
+script = ExtResource("181")
 song_name = "safety_lullaby"
 outline_shader = SubResource("ShaderMaterial_5ahht")
 mesh = NodePath("StringSLRig/Skeleton3D/StringSL")
@@ -11355,7 +11375,7 @@ metadata/_edit_lock_ = true
 
 [node name="PhysicalBoneSimulator3D" type="PhysicalBoneSimulator3D" parent="Environment/shop_base/prp_pendulum_string/StringSLRig/Skeleton3D" parent_id_path=PackedInt32Array(500141715, 1858475927) index="1" unique_id=1000540053 node_paths=PackedStringArray("parent")]
 active = false
-script = ExtResource("182_ko66g")
+script = ExtResource("182")
 parent = NodePath("../../..")
 
 [node name="Physical Bone SLString0" type="PhysicalBone3D" parent="Environment/shop_base/prp_pendulum_string/StringSLRig/Skeleton3D/PhysicalBoneSimulator3D" unique_id=373710052]
@@ -11489,28 +11509,28 @@ joint_constraints/impulse_clamp = 0.0
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
 shape = SubResource("CapsuleShape3D_3im7y")
 
-[node name="prp_mono_jar" parent="Environment/shop_base" unique_id=401308139 node_paths=PackedStringArray("mesh") instance=ExtResource("183_pkuea")]
+[node name="prp_mono_jar" parent="Environment/shop_base" unique_id=401308139 node_paths=PackedStringArray("mesh") instance=ExtResource("183")]
 transform = Transform3D(0.16, 0, 0, 0, 0.16, 0, 0, 0, 0.16, 1.8629596, 1.2724, 1.3941454)
-script = ExtResource("181_7dcqp")
+script = ExtResource("181")
 song_name = "monochrome"
 outline_shader = SubResource("ShaderMaterial_o4lgd")
 mesh = NodePath("Jar_RIG/Skeleton3D/MonochromeJarMESH")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Environment/shop_base/prp_mono_jar" unique_id=115068545]
-libraries/ = ExtResource("184_c1il2")
+libraries/ = ExtResource("184")
 autoplay = &"idle"
 next/freakout = &"idle"
 next/idle = &"idle"
 blend_times = [&"freakout", &"idle", 0.25, &"idle", &"idle", 0.25]
 
-[node name="prp_chimera_photos" parent="Environment/shop_base" unique_id=16761977 node_paths=PackedStringArray("mesh") instance=ExtResource("185_nk50b")]
-script = ExtResource("181_7dcqp")
+[node name="prp_chimera_photos" parent="Environment/shop_base" unique_id=16761977 node_paths=PackedStringArray("mesh") instance=ExtResource("185")]
+script = ExtResource("181")
 song_name = "chimera"
 outline_shader = SubResource("ShaderMaterial_3hij3")
 mesh = NodePath("ChimeraPics")
 metadata/_edit_lock_ = true
 
-[node name="prp_candles" parent="Environment/shop_base" unique_id=2140015244 instance=ExtResource("186_khmrl")]
+[node name="prp_candles" parent="Environment/shop_base" unique_id=2140015244 instance=ExtResource("186")]
 
 [node name="CandleSprites" type="Node3D" parent="Environment" unique_id=2124721092]
 
@@ -11520,7 +11540,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11530,7 +11550,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11540,7 +11560,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11550,7 +11570,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11560,7 +11580,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11570,7 +11590,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11580,7 +11600,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11590,7 +11610,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11600,7 +11620,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11610,7 +11630,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11620,7 +11640,7 @@ offset = Vector2(35.025, 189.47)
 pixel_size = 0.00025
 billboard = 2
 double_sided = false
-sprite_frames = ExtResource("187_dgma6")
+sprite_frames = ExtResource("187")
 animation = &"fire"
 autoplay = "fire"
 
@@ -11636,7 +11656,7 @@ positional_shadow_atlas_quad_2 = 2
 positional_shadow_atlas_quad_3 = 3
 size = Vector2i(640, 480)
 
-[node name="Console" parent="Viewports/ConsoleSubViewport" unique_id=523863700 node_paths=PackedStringArray("shop", "sequences", "focus_right_area") instance=ExtResource("188_t2jse")]
+[node name="Console" parent="Viewports/ConsoleSubViewport" unique_id=523863700 node_paths=PackedStringArray("shop", "sequences", "focus_right_area") instance=ExtResource("188")]
 modulate = Color(0, 0, 0, 1)
 anchors_preset = 8
 anchor_left = 0.5
@@ -11725,7 +11745,7 @@ bones/15/rotation = Quaternion(0.70710665, -8.4321945e-09, 8.432193e-09, 0.70710
 bones/15/scale = Vector3(1, 0.99999994, 0.99999994)
 
 [node name="TRAINING" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_training/UI_Icons/Skeleton3D" index="0" unique_id=2136675027]
-material_override = ExtResource("189_ol4r0")
+material_override = ExtResource("189")
 
 [node name="Skeleton3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons" parent_id_path=PackedInt32Array(523863700, 420123907, 2020827812) index="0" unique_id=1373844525]
 bones/0/position = Vector3(0, 0, 0)
@@ -11788,7 +11808,7 @@ disable_3d = true
 handle_input_locally = false
 size = Vector2i(1240, 928)
 
-[node name="Kollectadex" parent="Viewports/KollectadexSubViewport" unique_id=1133883574 instance=ExtResource("190_deouk")]
+[node name="Kollectadex" parent="Viewports/KollectadexSubViewport" unique_id=1133883574 instance=ExtResource("190")]
 
 [node name="Music" parent="Viewports/KollectadexSubViewport/Kollectadex" index="0" unique_id=494434619]
 volume_db = -80.0
@@ -11804,7 +11824,7 @@ kollectadex_anims = NodePath("../../../../../Environment/shop_base/KollectadexOf
 
 [node name="character" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex/CenterContainer" parent_id_path=PackedInt32Array(1133883574, 329254683) index="0" unique_id=1028967528]
 custom_minimum_size = Vector2(460, 525)
-texture = ExtResource("191_dfirg")
+texture = ExtResource("191")
 
 [node name="name" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex" index="5" unique_id=1936896133]
 text = "Gold NM"
@@ -11825,14 +11845,14 @@ text = "The floating, desparate remainder of a once bright star. All that was on
 [node name="SidemenuSubViewport" type="SubViewport" parent="Viewports" unique_id=164176958]
 size = Vector2i(480, 960)
 
-[node name="CartridgeBagSidepanel" parent="Viewports/SidemenuSubViewport" unique_id=1439715146 instance=ExtResource("192_dif0s")]
+[node name="CartridgeBagSidepanel" parent="Viewports/SidemenuSubViewport" unique_id=1439715146 instance=ExtResource("192")]
 
 [node name="PreloadCamera3D" type="Camera3D" parent="." unique_id=2020469880 node_paths=PackedStringArray("animation_player", "camera_to_focus")]
 process_mode = 3
 transform = Transform3D(-0.039508354, 0.0056133782, 0.99920326, 0, 0.9999842, -0.0056177634, -0.99921924, -0.00022194862, -0.03950772, 0.6222997, 2.0256062, 6.782942)
 visible = false
 fov = 109.7
-script = ExtResource("193_1qr3q")
+script = ExtResource("193")
 animation_player = NodePath("AnimationPlayer")
 animation_name = &"precache"
 camera_to_focus = NodePath("../InterpolatedCamera")

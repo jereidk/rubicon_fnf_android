@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bgrght3txi2i8"]
 
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/hand/playerhand.gltf" id="1_s8vpu"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/collector/rig/materials/cuff.tres" id="2_mycdd"]
-[ext_resource type="Material" path="res://lullaby_mod/assets/collector/rig/materials/body_collector_0_001.tres" id="3_c0514"]
+[ext_resource type="PackedScene" uid="uid://ddwgib42lmdfm" path="res://lullaby_mod/assets/collector/hand/playerhand.gltf" id="1"]
+[ext_resource type="Material" uid="uid://c207r2hhrya37" path="res://lullaby_mod/assets/collector/rig/materials/cuff.tres" id="2"]
+[ext_resource type="Material" uid="uid://qovvs1wbe8o6" path="res://lullaby_mod/assets/collector/rig/materials/body_collector_0_001.tres" id="3"]
 
-[node name="PlayerHand" unique_id=1072434040 instance=ExtResource("1_s8vpu")]
+[node name="PlayerHand" unique_id=1072434040 instance=ExtResource("1")]
 
 [node name="Skeleton3D" parent="Armature" parent_id_path=PackedInt32Array(1795864715) index="0" unique_id=1280980898]
 bones/3/rotation = Quaternion(0.8648431, 0.06294317, -0.057161085, 0.49479002)
@@ -41,7 +41,7 @@ bones/99/rotation = Quaternion(0.02607537, -0.03918624, -0.2634813, 0.9635156)
 bones/100/rotation = Quaternion(0.0160198, -0.0212265, -0.090025544, 0.99558437)
 
 [node name="Body_001" parent="Armature/Skeleton3D" index="0" unique_id=1124710601]
-surface_material_override/0 = ExtResource("2_mycdd")
+surface_material_override/0 = ExtResource("2")
 
 [node name="Hands" parent="Armature/Skeleton3D" index="1" unique_id=616381232]
-surface_material_override/0 = ExtResource("3_c0514")
+surface_material_override/0 = ExtResource("3")

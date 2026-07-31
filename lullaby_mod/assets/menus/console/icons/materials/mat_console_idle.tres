@@ -1,9 +1,9 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bp602wx487gdq"]
 
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/icons/textures/uigradient_tex.png" id="1_yw7e5"]
+[ext_resource type="Texture2D" uid="uid://bg3prjfjvxdex" path="res://lullaby_mod/assets/menus/console/icons/textures/uigradient_tex.png" id="1"]
 
 [resource]
 resource_name = "UIMat"
 transparency = 4
 shading_mode = 0
-albedo_texture = ExtResource("1_yw7e5")
+albedo_texture = ExtResource("1")

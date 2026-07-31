@@ -1,6 +1,6 @@
-[gd_resource type="Animation" format=3]
+[gd_resource type="Animation" format=3 uid="uid://b343kw5nbc5oh"]
 
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_open_inventory.wav" id="1_vtoxo"]
+[ext_resource type="AudioStream" uid="uid://ch0lqxnn2hgy3" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_open_inventory.wav" id="1"]
 
 [resource]
 resource_name = "CartridgeBag_Open"
@@ -130,7 +130,7 @@ tracks/15/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.0,
-"stream": ExtResource("1_vtoxo")
+"stream": ExtResource("1")
 }],
 "times": PackedFloat32Array(0.5)
 }

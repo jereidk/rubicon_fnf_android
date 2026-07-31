@@ -1,6 +1,6 @@
-[gd_resource type="Animation" format=3]
+[gd_resource type="Animation" format=3 uid="uid://lhpxyvl8vmnf"]
 
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_briefcase_enter.ogg" id="1_3vmvh"]
+[ext_resource type="AudioStream" uid="uid://bk687i7uv81h8" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_briefcase_enter.ogg" id="1"]
 
 [resource]
 resource_name = "BRIEFCASE0INTRO_132f"
@@ -62,7 +62,7 @@ tracks/6/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 0.0,
-"stream": ExtResource("1_3vmvh")
+"stream": ExtResource("1")
 }],
 "times": PackedFloat32Array(0)
 }

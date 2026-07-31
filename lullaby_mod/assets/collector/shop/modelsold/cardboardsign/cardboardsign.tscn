@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cr6576fdh4i7y"]
 
-[ext_resource type="PackedScene" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/intro.gltf" id="1_iyp81"]
+[ext_resource type="PackedScene" uid="uid://hm4gfykr8hpa" path="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/intro.gltf" id="1"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hakx0"]
 size = Vector3(0.56941336, 0.20874973, 0.027053833)
@@ -8,7 +8,7 @@ size = Vector3(0.56941336, 0.20874973, 0.027053833)
 [sub_resource type="BoxShape3D" id="BoxShape3D_qjhp0"]
 size = Vector3(0.61867625, 0.20232803, 0.027053833)
 
-[node name="Intro Scene" unique_id=715010421 instance=ExtResource("1_iyp81")]
+[node name="Intro Scene" unique_id=715010421 instance=ExtResource("1")]
 
 [node name="BoneAttachment3D" type="BoneAttachment3D" parent="Armature_002/Skeleton3D" parent_id_path=PackedInt32Array(341056355) index="0" unique_id=2066996404]
 transform = Transform3D(0.95884764, -0.17433257, -0.2240971, 0.150882, 0.98148996, -0.117951974, 0.24051185, 0.07928569, 0.9674026, 0.91062534, 0.8360345, -0.20013994)
