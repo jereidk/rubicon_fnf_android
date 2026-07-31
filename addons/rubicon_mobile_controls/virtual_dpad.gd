@@ -89,6 +89,7 @@ var _knob_offset: Vector2 = Vector2.ZERO
 ## is pressed, decaying back to 0 - the same "the touch registered"
 ## feedback the Accept/Cancel/F buttons get from their own flash.
 var _flash_amount: float = 0.0
+var _flash_tween: Tween
 
 func _get_origin() -> Vector2:
 	var p: Vector2 = anchor_position
@@ -307,9 +308,12 @@ func _set_zone(zone: int) -> void:
 	queue_redraw()
 
 func _flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+
 	_flash_amount = 1.0
-	var tween := create_tween()
-	tween.tween_method(_set_flash_amount, 1.0, 0.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_flash_tween = create_tween()
+	_flash_tween.tween_method(_set_flash_amount, 1.0, 0.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func _set_flash_amount(v: float) -> void:
 	_flash_amount = v

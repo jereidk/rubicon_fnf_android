@@ -82,6 +82,16 @@ func back_out() -> void :
 			focus_right_area.can_interact = true
 			focus_right_area.register_trigger()
 
+			# Whichever Home icon has GUI focus (grabbed via
+			# ConsoleTab.default_focus/focus_console.gd when the console
+			# opened) never gets a _focus_exited() call otherwise, since
+			# leaving the console just pans the camera away instead of
+			# removing the Control from the tree - so its own `focused`
+			# tracking bool (see ConsoleHomeButton) would stay stuck true
+			# forever, e.g. leaving the touch overlay's "F / Switch
+			# Cartridge" button's visibility gated only by console.focused
+			# instead of both conditions actually being false as intended.
+			get_viewport().gui_release_focus()
 			focused = false
 		else:
 			tab_container.change_tab(0)

@@ -10,6 +10,8 @@ class_name RubiconActionButton
 
 @export var action: StringName = &"ui_accept"
 
+var _flash_tween: Tween
+
 ## Optional: only show this button while this bool property is true (e.g.
 ## a contextual shortcut like "F / Switch Cartridge" that only means
 ## anything while the cartridge icon is actually focused). Leave
@@ -28,12 +30,17 @@ class_name RubiconActionButton
 func _ready() -> void:
 	pressed.connect(_dispatch)
 	button_down.connect(_flash)
-	if visible_source == null or visible_property.is_empty():
-		set_process(false)
-	else:
-		visible = _compute_visible()
 
+## visible_source/visible_source2 are wired via a node_paths override from
+## an ancestor scene (e.g. env_collector_shop.tscn pointing this button at
+## Console/Cartridges nodes that live outside TouchControls' own sub-scene
+## entirely). Checking for a configured visible_source every frame, rather
+## than once in _ready() to decide whether to set_process(false)
+## permanently, avoids depending on that cross-scene override always being
+## resolved by the time this node's own _ready() runs.
 func _process(_delta: float) -> void:
+	if visible_source == null or visible_property.is_empty():
+		return
 	visible = _compute_visible()
 
 func _compute_visible() -> bool:
@@ -58,7 +65,17 @@ func _dispatch() -> void:
 ## Quick bright pulse on touch-down, on top of the pressed/normal
 ## StyleBoxFlat swap - a flash reads as "the touch registered" far more
 ## immediately than a style change alone.
+##
+## A fast repeated tap (double-tap, or a drag that re-enters the button)
+## fires button_down more than once before the previous flash finishes.
+## Without killing that previous tween, two tweens end up racing to write
+## `modulate` on the same frame - whichever last happens to run that frame
+## "wins", so the button can visibly get stuck on the bright flash color
+## instead of ever settling back to white.
 func _flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+
 	modulate = Color(1.7, 1.7, 1.7, 1.0)
-	var tween := create_tween()
-	tween.tween_property(self, "modulate", Color.WHITE, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(self, "modulate", Color.WHITE, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
