@@ -2,13 +2,14 @@
 extends Control
 class_name RubiconVirtualDPad
 
-## Cloud-gaming style translucent D-pad: a diamond split into four
-## directional zones. Pressing/holding/releasing a zone presses/holds/
-## releases the matching ui_up/ui_down/ui_left/ui_right action directly,
-## exactly like a held keyboard key - so any menu that already navigates
-## via focus_neighbor + those actions works with this with zero changes.
-## Sibling to RubiconVirtualJoystick (used for 3D camera look); this one
-## is for UI focus navigation instead of analog look/movement.
+## Cloud-gaming/emulator style D-pad: a structured cross with four
+## rectangular directional arms (RetroArch/PSP overlay look), each with an
+## outward-pointing chevron. Pressing/holding/releasing an arm presses/
+## holds/releases the matching ui_up/ui_down/ui_left/ui_right action
+## directly, exactly like a held keyboard key - so any menu that already
+## navigates via focus_neighbor + those actions works with this with zero
+## changes. Sibling to RubiconVirtualJoystick (used for 3D camera look);
+## this one is for UI focus navigation instead of analog look/movement.
 ##
 ## Hardened against jitter spam: a finger resting near a zone boundary
 ## (or the dead zone edge) shouldn't rapid-fire action_press/release as
@@ -40,15 +41,15 @@ const MIN_ZONE_HOLD_SEC: float = 0.05
 	set(value):
 		anchor_position = value
 		queue_redraw()
-@export var base_color: Color = Color(1, 1, 1, 0.1):
+@export var base_color: Color = Color(0.09, 0.09, 0.12, 0.55):
 	set(value):
 		base_color = value
 		queue_redraw()
-@export var pressed_color: Color = Color(1, 1, 1, 0.32):
+@export var pressed_color: Color = Color(0.95, 0.85, 0.25, 0.75):
 	set(value):
 		pressed_color = value
 		queue_redraw()
-@export var divider_color: Color = Color(1, 1, 1, 0.25):
+@export var divider_color: Color = Color(1, 1, 1, 0.85):
 	set(value):
 		divider_color = value
 		queue_redraw()
@@ -66,21 +67,73 @@ func _get_origin() -> Vector2:
 		p.y += size.y
 	return p
 
+## Local-space (relative to origin) rectangle for one arm of the plus/cross,
+## as a 4-point polygon: from the hub edge (w) out to the tip (radius),
+## width 2*w. dir is one of the 4 cardinal unit vectors (up/right/down/left).
+func _arm_rect(dir: Vector2, w: float) -> PackedVector2Array:
+	var perp: Vector2 = dir.rotated(PI / 2.0) * w
+	var inner: Vector2 = dir * w
+	var outer: Vector2 = dir * radius
+	return PackedVector2Array([
+		inner + perp, outer + perp, outer - perp, inner - perp,
+	])
+
+## A small outward-pointing chevron/triangle centered at `center`, in the
+## direction `dir`, used as the arrow glyph inside each arm.
+func _chevron(center: Vector2, dir: Vector2, s: float) -> PackedVector2Array:
+	var perp: Vector2 = dir.rotated(PI / 2.0)
+	var apex: Vector2 = center + dir * s * 0.6
+	var base1: Vector2 = center - dir * s * 0.4 + perp * s * 0.55
+	var base2: Vector2 = center - dir * s * 0.4 - perp * s * 0.55
+	return PackedVector2Array([apex, base1, base2])
+
 func _draw() -> void:
 	var origin: Vector2 = _get_origin()
+	var w: float = radius * 0.38
+	var dirs := [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]
+
+	# Hub (center square) backing the whole cross.
+	var hub := PackedVector2Array([
+		origin + Vector2(-w, -w), origin + Vector2(w, -w),
+		origin + Vector2(w, w), origin + Vector2(-w, w),
+	])
+	draw_colored_polygon(hub, base_color)
+
+	# Four arms, each its own button so the pressed zone lights up alone.
 	for zone in range(4):
+		var dir: Vector2 = dirs[zone]
 		var color: Color = pressed_color if zone == _active_zone else base_color
-		var points := PackedVector2Array([
-			origin,
-			origin + Vector2.from_angle(deg_to_rad(zone * 90.0 - 90.0 - 45.0)) * radius,
-			origin + Vector2.from_angle(deg_to_rad(zone * 90.0 - 90.0)) * radius,
-			origin + Vector2.from_angle(deg_to_rad(zone * 90.0 - 90.0 + 45.0)) * radius,
-		])
-		draw_colored_polygon(points, color)
-	draw_arc(origin, radius, 0.0, TAU, 32, divider_color, 2.0)
-	for zone in range(4):
-		var angle: float = deg_to_rad(zone * 90.0 - 90.0 - 45.0)
-		draw_line(origin, origin + Vector2.from_angle(angle) * radius, divider_color, 2.0)
+		var arm: PackedVector2Array = _arm_rect(dir, w)
+		var world_arm := PackedVector2Array()
+		for p in arm:
+			world_arm.append(origin + p)
+		draw_colored_polygon(world_arm, color)
+
+		# Outward chevron glyph, centered between the hub edge and the tip.
+		var mid: Vector2 = origin + dir * ((w + radius) * 0.5)
+		draw_colored_polygon(_chevron(mid, dir, w * 1.1), divider_color)
+
+	# Structural outline: the outer silhouette of the plus shape (12 points,
+	# traced clockwise), so the whole D-pad reads as one solid molded piece.
+	var l: float = radius
+	var outline := PackedVector2Array([
+		Vector2(-w, -l), Vector2(w, -l), Vector2(w, -w),
+		Vector2(l, -w), Vector2(l, w), Vector2(w, w),
+		Vector2(w, l), Vector2(-w, l), Vector2(-w, w),
+		Vector2(-l, w), Vector2(-l, -w), Vector2(-w, -w),
+	])
+	var world_outline := PackedVector2Array()
+	for p in outline:
+		world_outline.append(origin + p)
+	world_outline.append(world_outline[0])
+	draw_polyline(world_outline, divider_color, 2.5, true)
+
+	# Seams between each arm and the hub, so the arms read as distinct
+	# physical buttons rather than one blob.
+	draw_line(origin + Vector2(-w, -w), origin + Vector2(w, -w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(w, -w), origin + Vector2(w, w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(w, w), origin + Vector2(-w, w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(-w, w), origin + Vector2(-w, -w), divider_color, 1.5, true)
 
 func _notification(what: int) -> void:
 	match what:
