@@ -34,7 +34,11 @@ func _input(event: InputEvent) -> void :
 			tween.kill()
 		tween = create_tween()
 		tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.25).set_trans(Tween.TRANS_CUBIC)
-	elif event.is_action_pressed(&"ui_accept"):
+	# Rubicon addition: a keyboard/joypad rebind still needs a real key or
+	# button press to finish, but entering "waiting for input" mode
+	# shouldn't require already having keyboard focus — allow a tap too, for
+	# players rebinding with a connected keyboard/controller on Android.
+	elif event.is_action_pressed(&"ui_accept") or SettingsButton.get_tap_direction(self, event) != 0:
 		detecting_input = true
 		console.play_sound.emit("sfx_soulroom_select_alt")
 		text = initial_text + "[...]"

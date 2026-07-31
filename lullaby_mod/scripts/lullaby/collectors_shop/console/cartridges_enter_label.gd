@@ -21,27 +21,40 @@ func _gui_input(event: InputEvent) -> void :
 	if console.booting:
 		return
 
-	if event.is_action(&"ui_accept"):
-		var scene_path: String
-		var is_chimera: bool = false
-		match SaveData.cartridge_selected:
-			&"safety_lullaby":
-				scene_path = "uid://d1qubpqxts4w3"
-			&"monochrome":
-				scene_path = "uid://dfflo57l50r1f"
-			&"chimera":
-				if Settings.lullaby_baby_mode:
-					if collector_shop: collector_shop.play_voiceline_entry(collector_shop.get_voiceline_group("baby_chim").voicelines[0], false)
-					return
-				scene_path = "uid://k26b7med2dat"
-				is_chimera = true
+	# Rubicon addition: the real mod only ever accepted ui_accept here
+	# (keyboard/joypad focus navigation), leaving no way to actually start
+	# a song from a touch-only device. A tap/click on the label does the
+	# same thing.
+	var is_touch_tap: bool = (
+		(event is InputEventScreenTouch and event.pressed)
+		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	)
 
-		focus_mode = Control.FOCUS_NONE
-		console.focused = false
-		console.play_sound.emit("sfx_soulroom_select")
-		collector_shop.sequence_controller.animation_player.play("sequence_consoletosong")
-		await collector_shop.sequence_controller.animation_player.animation_finished
+	if event.is_action(&"ui_accept") or is_touch_tap:
+		_enter_selected_cartridge()
 
-		Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
 
-		SceneChanger.change_to(scene_path, &"hypno", is_chimera)
+func _enter_selected_cartridge() -> void :
+	var scene_path: String
+	var is_chimera: bool = false
+	match SaveData.cartridge_selected:
+		&"safety_lullaby":
+			scene_path = "uid://d1qubpqxts4w3"
+		&"monochrome":
+			scene_path = "uid://dfflo57l50r1f"
+		&"chimera":
+			if Settings.lullaby_baby_mode:
+				if collector_shop: collector_shop.play_voiceline_entry(collector_shop.get_voiceline_group("baby_chim").voicelines[0], false)
+				return
+			scene_path = "uid://k26b7med2dat"
+			is_chimera = true
+
+	focus_mode = Control.FOCUS_NONE
+	console.focused = false
+	console.play_sound.emit("sfx_soulroom_select")
+	collector_shop.sequence_controller.animation_player.play("sequence_consoletosong")
+	await collector_shop.sequence_controller.animation_player.animation_finished
+
+	Input.mouse_mode = Input.MOUSE_MODE_CONFINED_HIDDEN
+
+	SceneChanger.change_to(scene_path, &"hypno", is_chimera)

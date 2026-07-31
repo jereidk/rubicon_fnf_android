@@ -23,10 +23,18 @@ func _ready() -> void :
 		text = initial_text + "Custom"
 
 func _input(event: InputEvent) -> void :
-	if not self.has_focus():
-		return
+	var direction: int = 0
+	if self.has_focus():
+		if event.is_action("ui_right") and not event.is_action_released("ui_right"):
+			direction = 1
+		elif event.is_action("ui_left") and not event.is_action_released("ui_left"):
+			direction = -1
 
-	if event.is_action("ui_right") and not event.is_action_released("ui_right"):
+	# Rubicon addition: see SettingsButton.get_tap_direction.
+	if direction == 0:
+		direction = SettingsButton.get_tap_direction(self, event)
+
+	if direction > 0:
 		if index + 1 < values_list.size():
 			console.play_sound.emit("sfx_soulroom_click")
 			index += 1
@@ -44,8 +52,7 @@ func _input(event: InputEvent) -> void :
 			tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.25).set_trans(Tween.TRANS_CUBIC)
 		else:
 			console.play_sound.emit("sfx_soulroom_deny")
-
-	if event.is_action("ui_left") and not event.is_action_released("ui_left"):
+	elif direction < 0:
 		if index - 1 >= 0:
 			console.play_sound.emit("sfx_soulroom_click")
 			index -= 1

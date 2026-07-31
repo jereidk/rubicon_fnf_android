@@ -78,6 +78,10 @@ const INPUT_EXCLUSIONS: Array[StringName] = [
 
 enum PostProcessing { NONE = 0, LOW = 1, HIGH = 2 }
 
+## Rubicon addition: how touch devices control free-look (e.g. the Cabinet
+## of Novelties shop). Not part of the original (keyboard/mouse-only) mod.
+enum TouchLookScheme { DRAG_ZONES = 0, JOYSTICK = 1 }
+
 var display_window_mode: Window.Mode = Window.Mode.MODE_FULLSCREEN
 var display_resolution: Vector2i = Vector2i(1366, 768)
 var display_vsync: DisplayServer.VSyncMode = DisplayServer.VSyncMode.VSYNC_DISABLED
@@ -130,6 +134,7 @@ var game_speed_multiplier: float = 1.0
 var game_downscroll: bool = false
 var game_ghost_tapping: bool = true
 var game_centered: bool = false
+var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.DRAG_ZONES
 
 var lullaby_baby_mode: bool = false
 

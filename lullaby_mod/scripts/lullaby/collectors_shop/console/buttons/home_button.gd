@@ -52,16 +52,39 @@ func _input(event: InputEvent) -> void :
 		return
 
 	if event.is_action_released(&"ui_accept") and focused:
-		if disabled:
-			console.play_sound.emit("sfx_soulroom_deny")
-			return
-		focused = false
-		icon_animation_player.play(select_animation)
-		home_container.disable_icons.emit()
-		console.play_sound.emit("sfx_soulroom_select_alt")
-		icon_animation_player.animation_finished.connect( func(_anim: StringName):
-			home_container.tab_container.change_tab(tab_target.get_index())
-		, CONNECT_ONE_SHOT)
+		_confirm()
+
+## Rubicon addition: the real mod only let you reach this via keyboard/
+## gamepad focus navigation + ui_accept — these Home icons had a real,
+## correctly sized hit rect (see console.tscn) but mouse_filter was set to
+## IGNORE, so nothing on touch could ever reach it. Tapping the icon now
+## grabs focus and confirms in one step.
+func _gui_input(event: InputEvent) -> void :
+	if console.booting:
+		return
+
+	var is_tap: bool = (
+		(event is InputEventScreenTouch and event.pressed)
+		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+	)
+	if not is_tap:
+		return
+
+	grab_focus()
+	focused = true
+	_confirm()
+
+func _confirm() -> void :
+	if disabled:
+		console.play_sound.emit("sfx_soulroom_deny")
+		return
+	focused = false
+	icon_animation_player.play(select_animation)
+	home_container.disable_icons.emit()
+	console.play_sound.emit("sfx_soulroom_select_alt")
+	icon_animation_player.animation_finished.connect( func(_anim: StringName):
+		home_container.tab_container.change_tab(tab_target.get_index())
+	, CONNECT_ONE_SHOT)
 
 func _disable_icons():
 	if has_focus():

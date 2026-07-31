@@ -7,6 +7,11 @@ extends Button
 
 
 func _ready() -> void :
+	# Rubicon addition: this is a real Button, but the real mod never wired
+	# its own click to _pressed() — only the F-key shortcut worked, so
+	# tapping/clicking it was a silent no-op.
+	pressed.connect(_pressed)
+
 	for event: InputEvent in InputMap.action_get_events(action):
 		if event is InputEventKey:
 			var keycode: Key = event.keycode

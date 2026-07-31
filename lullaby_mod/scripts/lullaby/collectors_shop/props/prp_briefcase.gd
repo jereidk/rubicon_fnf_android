@@ -106,6 +106,49 @@ func _input(event: InputEvent) -> void :
 	else:
 		handle_items_input(event)
 
+	handle_touch_input(event)
+
+## Rubicon addition: the real mod only supported ui_up/ui_down to browse
+## carts, ui_left/ui_right to pick Buy/Exit, and ui_accept to confirm —
+## nothing touch-only players could use. Tapping a cart in the HUD list
+## selects it (tap it again, now selected, to open Buy/Exit); tapping the
+## Buy/Exit labels themselves (only visible once that submenu is open,
+## same as with a keyboard) confirms the same way ui_accept would.
+func handle_touch_input(event: InputEvent) -> void :
+	if available_cartridges.is_empty():
+		return
+
+	var pos: Vector2
+	if event is InputEventScreenTouch and event.pressed:
+		pos = event.position
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		pos = event.position
+	else:
+		return
+
+	if in_button_submenu:
+		if hud_buy_button.get_global_rect().has_point(pos):
+			button_index = 0
+			try_buy_cart()
+		elif hud_close_button.get_global_rect().has_point(pos):
+			button_index = 1
+			exit_button_submenu()
+		return
+
+	for key: StringName in available_cartridges:
+		var hud_item: Control = hud_cartridge_map.get(key)
+		if hud_item == null or not hud_item.get_global_rect().has_point(pos):
+			continue
+
+		if key == current_cart:
+			select_sound.play()
+			in_button_submenu = true
+			fade_buttons_to(1.0)
+			update_button_selection()
+		else:
+			change_cart_selection(available_cartridges.find(key) - cart_index)
+		return
+
 
 func handle_button_input(event: InputEvent) -> void :
 	if event.is_action_pressed(&"ui_right"):
