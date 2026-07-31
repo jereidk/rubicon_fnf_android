@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bqkjiwokrcvo"]
 
 [ext_resource type="Script" uid="uid://b3p4arwnoxr8e" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gd" id="1"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/shop_touch_controls.gd" id="200"]
 [ext_resource type="Resource" uid="uid://4l7ftjieh7in" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2"]
 [ext_resource type="Resource" uid="uid://dcnjvtc5155m2" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3"]
 [ext_resource type="Resource" uid="uid://ho1eww3mpi1b" path="res://lullaby_mod/resources/audio/vox/groups/vox_hatreturn_group.tres" id="4"]
@@ -11859,6 +11860,27 @@ camera_to_focus = NodePath("../InterpolatedCamera")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera3D" unique_id=678603634]
 libraries/ = SubResource("AnimationLibrary_6duev")
+
+[node name="TouchControls" type="Control" parent="UI/Control" node_paths=PackedStringArray("shop", "back_button")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("200")
+shop = NodePath("../../..")
+back_button = NodePath("BackButton")
+
+[node name="BackButton" type="Button" parent="UI/Control/TouchControls"]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 144.0
+offset_bottom = 84.0
+text = "< Back"
 
 [connection signal="voice_entry_finished" from="." to="UI/Control/Dialogue" method="_on_collector_shop_voice_entry_finished"]
 [connection signal="voice_entry_finished" from="." to="Environment/Areas/TriggerExit" method="_on_collector_shop_voice_entry_finished"]
