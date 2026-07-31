@@ -184,6 +184,15 @@ func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
 		return
 
+	# Node._input() delivers touch events in the viewport's global coordinate
+	# space, but _get_origin()/_try_start()/_update_zone() all work in this
+	# Control's local space (same space _draw() uses) - make_input_local()
+	# converts the event's position into that local space first. Without
+	# this, _try_start()'s distance check compares a global touch position
+	# against a locally-computed origin, so touches essentially never land
+	# "close enough" once the pad isn't sitting at the viewport's origin.
+	event = make_input_local(event)
+
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			_try_start(event.index, event.position)
