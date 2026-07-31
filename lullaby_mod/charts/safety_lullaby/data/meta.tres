@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="RubiconLevelMetadata" format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_level_metadata_difficulty.gd" id="1_n5bvm"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_level_metadata.gd" id="2_6eyaj"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_time_change.gd" id="3_xk5rb"]
+
+[sub_resource type="Resource" id="Resource_n4oow"]
+script = ExtResource("3_xk5rb")
+bpm = 132.0
+
+[sub_resource type="Resource" id="Resource_wqfbw"]
+script = ExtResource("3_xk5rb")
+measure = 17.999999999999982
+bpm = 85.0
+
+[sub_resource type="Resource" id="Resource_u4qj1"]
+script = ExtResource("3_xk5rb")
+measure = 49.999999999999886
+bpm = 85.0
+time_signature_numerator = 3.0
+
+[sub_resource type="Resource" id="Resource_7ahq7"]
+script = ExtResource("3_xk5rb")
+measure = 66.00000000000013
+bpm = 85.0
+
+[resource]
+script = ExtResource("2_6eyaj")
+time_changes = Array[ExtResource("3_xk5rb")]([SubResource("Resource_n4oow"), SubResource("Resource_wqfbw"), SubResource("Resource_u4qj1"), SubResource("Resource_7ahq7")])
