@@ -134,7 +134,7 @@ var game_speed_multiplier: float = 1.0
 var game_downscroll: bool = false
 var game_ghost_tapping: bool = true
 var game_centered: bool = false
-var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.DRAG_ZONES
+var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.JOYSTICK
 
 var lullaby_baby_mode: bool = false
 
