@@ -287,4 +287,4 @@ func reset() -> void :
 	notepad_ids_unlocked = []
 
 	save(SAVE_PATH)
-	SceneChanger.change_to("res://lullaby_mod/rooms/scn_boot.tscn", &"hypno")
+	SceneChanger.change_to("res://menus/boot/boot.tscn", &"hypno")

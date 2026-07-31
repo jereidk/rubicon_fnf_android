@@ -10,9 +10,9 @@ const SHITTY_GPU_SCENE := "res://menus/shitty_gpu/shitty_gpu.tscn"
 
 func _on_timer_end() -> void:
 	if _has_bad_gpu():
-		SceneChanger.change_scene(SHITTY_GPU_SCENE)
+		SceneChanger.change_to(SHITTY_GPU_SCENE, &"hypno")
 	else:
-		SceneChanger.change_scene(WARNING_SCENE)
+		SceneChanger.change_to(WARNING_SCENE, &"hypno")
 
 func _has_bad_gpu() -> bool:
 	var adapter_name: String = RenderingServer.get_video_adapter_name()

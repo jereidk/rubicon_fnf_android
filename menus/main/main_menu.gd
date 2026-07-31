@@ -12,10 +12,10 @@ const PLACEHOLDER_SONG_SCENE := "res://songs/test/test.tscn"
 @onready var not_legole_fart: AudioStreamPlayer = %NotLegoleFart
 
 func _on_play_pressed() -> void:
-	SceneChanger.change_scene(PLACEHOLDER_SONG_SCENE)
+	SceneChanger.change_to(PLACEHOLDER_SONG_SCENE, &"hypno")
 
 func _on_warning_pressed() -> void:
-	SceneChanger.change_scene(WARNING_SCENE)
+	SceneChanger.change_to(WARNING_SCENE, &"hypno")
 
 func _on_logo_pressed() -> void:
 	%Logo.hide()

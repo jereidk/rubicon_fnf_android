@@ -12,4 +12,4 @@ func _on_preset_changed(index: int) -> void:
 			Settings.apply_quality_preset(Settings.QualityPreset.HIGH)
 
 func apply_and_continue() -> void:
-	SceneChanger.change_scene(INTRO_SCENE)
+	SceneChanger.change_to(INTRO_SCENE, &"hypno")

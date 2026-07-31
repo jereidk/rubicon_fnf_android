@@ -1,53 +1,76 @@
+class_name GameIntro
 extends Control
 
-## Port of Lullaby's game_intro.gd. The original is compiled bytecode we
-## can't recover, so this reimplements the behavior its exported
-## properties and animation tracks describe: a 20s painted intro
-## ("intro" animation on root_anim_player, cycling the OpeningShot ->
-## EngineShot -> CabinShot tabs), which becomes skippable partway through,
-## ending on the cabin with "Press Enter to start". Entering plays the
-## camera's "go_in" zoom into the door, then hands off to whatever comes
-## after the intro.
-##
-## The Cabinet of Novelties intro/shop that follows in the real mod isn't
-## built yet, so this currently lands on the main menu placeholder.
+## Real port of Lullaby's game_intro.gd (scripts/lullaby/game_intro.gd in
+## the decompiled recovery). skip_intro is a static var so other scenes can
+## flip GameIntro.skip_intro = true and have the intro jump straight to the
+## cabin on next load, matching the original's fast-forward behavior.
+## Entering the door plays the camera's "go_in" zoom, then go_into_shop()
+## hands off to the Cabinet of Novelties (env_collector_shop.tscn).
 
-const NEXT_SCENE := "res://menus/main/main_menu.tscn"
 const SKIPPABLE_AT_SEC := 9.9
+const SKIP_AT_SEC := 20.0
+const SHOP_SCENE := "uid://bqkjiwokrcvo"
+
+static var skip_intro: bool = false
 
 @export var root_anim_player: AnimationPlayer
 @export var camera_anim_player: AnimationPlayer
 @export var door_button: Button
 
-@onready var enter_label: Label = $EnterLabel
+@onready var intro_player: AudioStreamPlayer = %IntroPlayer
+@onready var initial_timer: Timer = %InitialTimer
 
-var intro_skipped := false
-var _entered := false
+@export var intro_skipped: bool = false
 
-func _on_initial_timer_timeout() -> void:
-	root_anim_player.play("intro")
+func _ready() -> void:
+	if skip_intro:
+		initial_timer.stop()
 
-func _process(_delta: float) -> void:
-	if root_anim_player.is_playing() and root_anim_player.current_animation == "intro":
-		intro_skipped = root_anim_player.current_animation_position >= SKIPPABLE_AT_SEC
+		root_anim_player.play(&"intro")
+		root_anim_player.seek(SKIP_AT_SEC, true)
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("ui_accept"):
+		var interactive: AudioStreamInteractive = intro_player.stream
+		interactive.initial_clip = 1
+		intro_player.play()
+
+func _input(event: InputEvent) -> void:
+	if event.is_action(&"ui_accept") and event.is_pressed():
+		if root_anim_player.current_animation == &"intro" and not intro_skipped:
+			skipintro()
+
+	if (not door_button) or (not door_button.visible):
 		return
 
-	if enter_label.visible:
-		click_door()
-		get_viewport().set_input_as_handled()
-	elif intro_skipped and root_anim_player.current_animation == "intro":
-		root_anim_player.seek(root_anim_player.current_animation_length, true)
-		get_viewport().set_input_as_handled()
+	if event.is_action(&"ui_accept") and event.is_pressed():
+		if door_button.visible:
+			click_door()
+
+func skipintro() -> void:
+	intro_skipped = true
+	initial_timer.stop()
+
+	root_anim_player.play(&"intro")
+	root_anim_player.seek(SKIPPABLE_AT_SEC, true)
+
+	var interactive: AudioStreamInteractive = intro_player.stream
+	interactive.initial_clip = 1
+	intro_player.play()
 
 func click_door() -> void:
-	if _entered:
-		return
-	_entered = true
-	camera_anim_player.play("go_in")
+	root_anim_player.pause()
+	camera_anim_player.play(&"go_in")
+
+	if SaveData.get_flag(&"splash_seen"):
+		SaveData.set_flag(&"splash_seen", true)
+		SaveData.save()
+
+func go_into_shop() -> void:
+	SceneChanger.change_to(SHOP_SCENE, &"hypno", true)
+
+func _on_initial_timer_timeout() -> void:
+	root_anim_player.play(&"intro")
 
 func _on_camera_animation_finished(anim_name: StringName) -> void:
 	if anim_name == &"go_in":
-		SceneChanger.change_scene(NEXT_SCENE)
+		go_into_shop()

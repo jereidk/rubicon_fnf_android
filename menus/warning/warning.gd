@@ -33,7 +33,7 @@ func _on_no_button_button_down() -> void:
 		return
 
 	press_sound.play()
-	Settings.flashing_lights_enabled = false
+	Settings.game_flashing_lights = false
 	_continue_to_menu()
 
 func _on_yes_button_button_down() -> void:
@@ -41,7 +41,7 @@ func _on_yes_button_button_down() -> void:
 	if not _showing_flash_stage:
 		_show_flash_stage()
 	else:
-		Settings.flashing_lights_enabled = true
+		Settings.game_flashing_lights = true
 		_continue_to_menu()
 
 func _show_flash_stage() -> void:
@@ -51,4 +51,4 @@ func _show_flash_stage() -> void:
 	yes_button.text = "Keep on"
 
 func _continue_to_menu() -> void:
-	SceneChanger.change_scene(FIRST_BOOT_SETTINGS_SCENE)
+	SceneChanger.change_to(FIRST_BOOT_SETTINGS_SCENE, &"hypno")
