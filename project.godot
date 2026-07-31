@@ -30,6 +30,7 @@ ErrorHandler="*res://lullaby_mod/scripts/lullaby/lullaby_error_handler.gd"
 SceneChanger="*res://menus/scene_changer.gd"
 Settings="*res://menus/settings.gd"
 SaveData="*res://lullaby_mod/scripts/lullaby/lullaby_save_data.gd"
+Debugger="*res://lullaby_mod/autoloads/atl_debug.tscn"
 VolumeSlider="*res://menus/volume_slider/volume_slider.tscn"
 
 [display]

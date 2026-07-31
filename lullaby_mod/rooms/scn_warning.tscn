@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/menus/lullaby_warning.gdc" id="1_tlpqp"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/menus/lullaby_warning.gd" id="1_tlpqp"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/background.png" id="2_pr741"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/warning_screen/tex_warning_tab.png" id="3_yaf0e"]
 [ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="4_58fsj"]
