@@ -42,19 +42,19 @@ const MIN_ZONE_HOLD_SEC: float = 0.05
 	set(value):
 		anchor_position = value
 		queue_redraw()
-@export var base_color: Color = Color(0.09, 0.09, 0.12, 0.55):
+@export var base_color: Color = Color(0.09, 0.09, 0.12, 0.35):
 	set(value):
 		base_color = value
 		queue_redraw()
-@export var pressed_color: Color = Color(0.95, 0.85, 0.25, 0.75):
+@export var pressed_color: Color = Color(0.95, 0.85, 0.25, 0.65):
 	set(value):
 		pressed_color = value
 		queue_redraw()
-@export var divider_color: Color = Color(1, 1, 1, 0.85):
+@export var divider_color: Color = Color(1, 1, 1, 0.6):
 	set(value):
 		divider_color = value
 		queue_redraw()
-@export var knob_color: Color = Color(0.85, 0.85, 0.9, 0.7):
+@export var knob_color: Color = Color(0.85, 0.85, 0.9, 0.5):
 	set(value):
 		knob_color = value
 		queue_redraw()
@@ -68,6 +68,10 @@ var _zone_held_since: float = 0.0
 ## joystick reads as responsive, but the 4-zone hysteresis above is what
 ## actually decides which action fires.
 var _knob_offset: Vector2 = Vector2.ZERO
+## Visual-only: quick bright pulse on the knob whenever a new direction
+## is pressed, decaying back to 0 - the same "the touch registered"
+## feedback the Accept/Cancel/F buttons get from their own flash.
+var _flash_amount: float = 0.0
 
 func _get_origin() -> Vector2:
 	var p: Vector2 = anchor_position
@@ -89,6 +93,7 @@ func _draw() -> void:
 	var knob_radius: float = radius * 0.42
 	var knob_pos: Vector2 = origin + _knob_offset
 	var knob_col: Color = pressed_color if _active_zone != -1 else knob_color
+	knob_col = knob_col.lerp(Color(1.0, 1.0, 1.0, knob_col.a), _flash_amount * 0.7)
 	draw_circle(knob_pos, knob_radius, knob_col)
 	draw_arc(knob_pos, knob_radius, 0.0, TAU, 32, divider_color, 2.0, true)
 
@@ -210,8 +215,18 @@ func _set_zone(zone: int) -> void:
 		_dispatch_action(ACTIONS[_active_zone], false)
 	if zone != -1:
 		_dispatch_action(ACTIONS[zone], true)
+		_flash()
 
 	_active_zone = zone
+	queue_redraw()
+
+func _flash() -> void:
+	_flash_amount = 1.0
+	var tween := create_tween()
+	tween.tween_method(_set_flash_amount, 1.0, 0.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+func _set_flash_amount(v: float) -> void:
+	_flash_amount = v
 	queue_redraw()
 
 ## Unconditional release: touch ended, focus lost, or the overlay itself
