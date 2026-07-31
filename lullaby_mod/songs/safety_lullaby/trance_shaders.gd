@@ -2,9 +2,14 @@ extends Node
 
 @export var pendulum_server: LullabyPendulumServer
 
+## Water distortion, HSV and contrast used to be three separate full-screen
+## passes (each its own hint_screen_texture backbuffer copy) chained in
+## draw order with nothing drawn between them - fused into one shader/pass
+## (shd_trance_water_hsv_contrast.gdshader) since chaining them inline
+## produces the same result. Radial blur stays a separate pass since it's a
+## spatial multi-tap operation that doesn't commute with a straight-line
+## color chain the way HSV/contrast do.
 @onready var water: ShaderMaterial = %WaterEffect.material
-@onready var hsv: ShaderMaterial = %HSVEffect.material
-@onready var contrast: ShaderMaterial = %ContrastEffect.material
 @onready var radial: ShaderMaterial = %RadialEffect.material
 
 var _effects_strength: float = 0.0
@@ -19,10 +24,10 @@ func _process(delta: float) -> void :
 	water.set_shader_parameter("GHOST_STRENGTH", min(EasingFunctions.ease_in_out_quad(0.0, 1.0, water_amount) * 0.25, 0.15))
 
 	var saturation_amount = 1.0 - (_effects_strength * 0.275)
-	hsv.set_shader_parameter("SATURATION", saturation_amount)
+	water.set_shader_parameter("SATURATION", saturation_amount)
 
 	var contrast_amount = 1.0 + (_effects_strength * 0.04575)
-	contrast.set_shader_parameter("CONTRAST", contrast_amount)
+	water.set_shader_parameter("CONTRAST", contrast_amount)
 
 	var radial_amount = _effects_strength * 0.135
 	radial.set_shader_parameter("BLUR_STRENGTH", radial_amount)

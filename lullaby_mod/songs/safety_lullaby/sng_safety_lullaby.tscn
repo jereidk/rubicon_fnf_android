@@ -57,6 +57,7 @@
 [ext_resource type="Shader" uid="uid://dgwdruursdk14" path="res://lullaby_mod/resources/shaders/color/shd_hsv.gdshader" id="54"]
 [ext_resource type="Shader" uid="uid://sw5ajedabbqw" path="res://lullaby_mod/resources/shaders/color/shd_contrast.gdshader" id="55"]
 [ext_resource type="Shader" uid="uid://if4u4prw7l5e" path="res://lullaby_mod/resources/shaders/blur/shd_radial_blur.gdshader" id="56"]
+[ext_resource type="Shader" path="res://lullaby_mod/resources/shaders/distortion/shd_trance_water_hsv_contrast.gdshader" id="202"]
 [ext_resource type="SpriteFrames" uid="uid://b2ipj1nl11wl3" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/hypnosis.res" id="57"]
 [ext_resource type="PackedScene" uid="uid://daoeiotolhbc6" path="res://lullaby_mod/resources/funkin/ui/pause/kanto/pause_kanto.tscn" id="58"]
 [ext_resource type="SpriteFrames" uid="uid://ck10htn5q2pyq" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/ui_safety_lullaby_pause.tres" id="59"]
@@ -2514,7 +2515,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("../../HSVShaderLayer:visible")
+tracks/1/path = NodePath("../../RadialShaderLayer:visible")
 tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -2526,34 +2527,10 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("../../ContrastShaderLayer:visible")
+tracks/2/path = NodePath("../../ScuiguileLayer:visible")
 tracks/2/interp = 0
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [true]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("../../RadialShaderLayer:visible")
-tracks/3/interp = 0
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [true]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("../../ScuiguileLayer:visible")
-tracks/4/interp = 0
-tracks/4/loop_wrap = true
-tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
@@ -2578,7 +2555,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("../../HSVShaderLayer:visible")
+tracks/1/path = NodePath("../../RadialShaderLayer:visible")
 tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -2587,105 +2564,53 @@ tracks/1/keys = {
 "update": 0,
 "values": [false]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("../../ContrastShaderLayer:visible")
-tracks/2/interp = 0
+tracks/2/path = NodePath("../../WaterShaderLayer")
+tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
 }
-tracks/3/type = "value"
+tracks/3/type = "method"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("../../RadialShaderLayer:visible")
-tracks/3/interp = 0
+tracks/3/path = NodePath("../../RadialShaderLayer")
+tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
 }
-tracks/4/type = "method"
+tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("../../WaterShaderLayer")
-tracks/4/interp = 1
+tracks/4/path = NodePath("../../ScuiguileLayer:visible")
+tracks/4/interp = 0
 tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
+"update": 0,
+"values": [false]
 }
 tracks/5/type = "method"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("../../HSVShaderLayer")
+tracks/5/path = NodePath("../../ScuiguileLayer")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/6/type = "method"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("../../ContrastShaderLayer")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/7/type = "method"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("../../RadialShaderLayer")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("../../ScuiguileLayer:visible")
-tracks/8/interp = 0
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
-}
-tracks/9/type = "method"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("../../ScuiguileLayer")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -2712,7 +2637,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("../../HSVShaderLayer:visible")
+tracks/1/path = NodePath("../../RadialShaderLayer:visible")
 tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -2721,105 +2646,53 @@ tracks/1/keys = {
 "update": 0,
 "values": [false]
 }
-tracks/2/type = "value"
+tracks/2/type = "method"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("../../ContrastShaderLayer:visible")
-tracks/2/interp = 0
+tracks/2/path = NodePath("../../WaterShaderLayer")
+tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
 }
-tracks/3/type = "value"
+tracks/3/type = "method"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("../../RadialShaderLayer:visible")
-tracks/3/interp = 0
+tracks/3/path = NodePath("../../RadialShaderLayer")
+tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
 }
-tracks/4/type = "method"
+tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("../../WaterShaderLayer")
-tracks/4/interp = 1
+tracks/4/path = NodePath("../../ScuiguileLayer:visible")
+tracks/4/interp = 0
 tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
+"update": 0,
+"values": [false]
 }
 tracks/5/type = "method"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("../../HSVShaderLayer")
+tracks/5/path = NodePath("../../ScuiguileLayer")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/6/type = "method"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("../../ContrastShaderLayer")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/7/type = "method"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("../../RadialShaderLayer")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"queue_free"
-}]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("../../ScuiguileLayer:visible")
-tracks/8/interp = 0
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
-}
-tracks/9/type = "method"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("../../ScuiguileLayer")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -3420,19 +3293,13 @@ script/source = "extends Control
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hakx0"]
-shader = ExtResource("52")
+shader = ExtResource("202")
 shader_parameter/NOISE_TEXTURE = ExtResource("53")
 shader_parameter/WAVE_STRENGTH = 0.0
 shader_parameter/GHOST_STRENGTH = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_5xele"]
-shader = ExtResource("54")
 shader_parameter/HUE = 0.0
 shader_parameter/SATURATION = 1.0000000475
 shader_parameter/VALUE = 1.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_8mxtg"]
-shader = ExtResource("55")
 shader_parameter/CONTRAST = 1.0000000475
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xficb"]
@@ -3956,28 +3823,6 @@ pendulum_server = NodePath("../LullabyPendulumServer")
 [node name="WaterEffect" type="ColorRect" parent="WaterShaderLayer" unique_id=104190426]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_hakx0")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HSVShaderLayer" type="CanvasLayer" parent="." unique_id=2028773922]
-
-[node name="HSVEffect" type="ColorRect" parent="HSVShaderLayer" unique_id=98186046]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_5xele")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ContrastShaderLayer" type="CanvasLayer" parent="." unique_id=388201588]
-
-[node name="ContrastEffect" type="ColorRect" parent="ContrastShaderLayer" unique_id=1397855932]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_8mxtg")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
