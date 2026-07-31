@@ -166,7 +166,7 @@ jobs:
 
       - name: Import Godot project
         run: |
-          $GODOT --headless --import 2>&1 | tail -5
+          $GODOT --headless --import 2>&1
 
       - name: Create builds directory
         run: |
