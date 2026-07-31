@@ -196,9 +196,20 @@ func _set_zone(zone: int) -> void:
 	_active_zone = zone
 	queue_redraw()
 
+## Unconditional release: touch ended, focus lost, or the overlay itself
+## went inactive. This bypasses _set_zone's MIN_ZONE_HOLD_SEC debounce on
+## purpose - that debounce exists to stop a wobbling finger from spamming
+## action_press/release during normal zone-to-zone transitions, but a real
+## release must never be swallowed by it. If it were, the held action
+## (e.g. ui_left) would stay pressed forever with no further touch event
+## ever arriving to clear it - which read as the 3D camera spinning
+## indefinitely on its own with no finger anywhere near the pad.
 func _release() -> void:
 	_touch_index = -1
 	_in_dead_zone = true
 	_knob_offset = Vector2.ZERO
-	_set_zone(-1)
+	if _active_zone != -1:
+		Input.action_release(ACTIONS[_active_zone])
+	_active_zone = -1
+	_zone_held_since = 0.0
 	queue_redraw()

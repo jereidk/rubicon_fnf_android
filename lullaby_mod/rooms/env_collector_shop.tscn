@@ -11861,10 +11861,12 @@ camera_to_focus = NodePath("../InterpolatedCamera")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera3D" unique_id=678603634]
 libraries/ = SubResource("AnimationLibrary_6duev")
 
-[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source")]
+[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source")]
 active_source = NodePath("../../..")
 active_property = &"state"
 inactive_states = Array[int]([0])
+force_active_source = NodePath("../../../Viewports/ConsoleSubViewport/Console")
+force_active_property = &"focused"
 
 [connection signal="voice_entry_finished" from="." to="UI/Control/Dialogue" method="_on_collector_shop_voice_entry_finished"]
 [connection signal="voice_entry_finished" from="." to="Environment/Areas/TriggerExit" method="_on_collector_shop_voice_entry_finished"]

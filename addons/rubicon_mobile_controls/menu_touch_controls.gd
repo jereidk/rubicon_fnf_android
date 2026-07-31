@@ -22,6 +22,16 @@ class_name RubiconMenuTouchControls
 @export var active_property: StringName = &""
 @export var inactive_states: Array[int] = []
 
+## Optional escape hatch: whenever this bool property is true, the overlay
+## is forced active even if active_source says otherwise. Needed because
+## a single state enum doesn't capture every "player needs input right
+## now" case - e.g. the Cabinet of Novelties' console sets the shop's
+## state to BUSY for the whole time it's open (not just its boot
+## animation), so gating purely on that state would hide the overlay
+## exactly while the player is navigating the console menu.
+@export var force_active_source: Node
+@export var force_active_property: StringName = &""
+
 var _enabled: bool = true
 
 func _ready() -> void:
@@ -43,6 +53,8 @@ func _process(_delta: float) -> void:
 		return
 
 	var active: bool = not inactive_states.has(int(active_source.get(active_property)))
+	if not active and force_active_source != null and not force_active_property.is_empty():
+		active = bool(force_active_source.get(force_active_property))
 	if active == visible:
 		return
 
