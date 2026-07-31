@@ -32,6 +32,18 @@ class_name RubiconMenuTouchControls
 @export var force_active_source: Node
 @export var force_active_property: StringName = &""
 
+## Node+property polled every frame to pick the D-pad's visual style:
+## continuous joystick drag for free-look camera panning, or a discrete
+## arrow D-pad for fixed menu selection. style_joystick_states lists the
+## values of style_property (read from style_source, e.g. a
+## CollectorShop and "state") that mean "show the joystick" - every
+## other value (including ones the overlay is only visible for via
+## force_active_source, like the console) shows the arrow D-pad instead.
+## Leave style_source unset to keep the D-pad's own default style always.
+@export var style_source: Node
+@export var style_property: StringName = &""
+@export var style_joystick_states: Array[int] = []
+
 var _enabled: bool = true
 
 func _ready() -> void:
@@ -55,6 +67,12 @@ func _process(_delta: float) -> void:
 	var active: bool = not inactive_states.has(int(active_source.get(active_property)))
 	if not active and force_active_source != null and not force_active_property.is_empty():
 		active = bool(force_active_source.get(force_active_property))
+
+	if dpad and style_source != null and not style_property.is_empty():
+		var state_value: int = int(style_source.get(style_property))
+		var wants_joystick: bool = style_joystick_states.has(state_value)
+		dpad.visual_style = RubiconVirtualDPad.VisualStyle.JOYSTICK if wants_joystick else RubiconVirtualDPad.VisualStyle.ARROWS
+
 	if active == visible:
 		return
 

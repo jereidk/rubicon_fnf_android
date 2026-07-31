@@ -2,15 +2,19 @@
 extends Control
 class_name RubiconVirtualDPad
 
-## Cloud-gaming style virtual joystick: a base ring with a knob that
-## follows the finger and snaps back to center on release. Underneath the
-## joystick look, direction is still resolved into one of 4 discrete
+## Two visual styles sharing one input pipeline: a continuous-feeling
+## joystick (base ring + knob that follows the finger) for camera drag,
+## and a structured 4-arrow D-pad for discrete menu selection. Whichever
+## style is showing, direction is still resolved into one of 4 discrete
 ## zones (up/right/down/left) and presses/holds/releases the matching
 ## ui_up/ui_down/ui_left/ui_right action directly, exactly like a held
 ## keyboard key - so any menu that already navigates via focus_neighbor +
-## those actions works with this with zero changes. Sibling to
-## RubiconVirtualJoystick (used for 3D camera look); this one is for UI
-## focus navigation instead of analog look/movement.
+## those actions works with this with zero changes, and MouseController's
+## Input.get_axis(ui_right, ui_left) camera pan works with the same zones
+## regardless of which style is on screen. Host scenes switch
+## visual_style at runtime (see RubiconMenuTouchControls.style_source) -
+## joystick while free-look camera dragging is the natural motion,
+## arrows once the player is picking between fixed menu options instead.
 ##
 ## Hardened against jitter spam: a finger resting near a zone boundary
 ## (or the dead zone edge) shouldn't rapid-fire action_press/release as
@@ -21,6 +25,8 @@ class_name RubiconVirtualDPad
 ## classic hysteresis so the active zone only changes on a deliberate
 ## movement, never a wobble. A minimum hold time before a zone can switch
 ## again is an extra backstop against spamming the underlying action.
+
+enum VisualStyle { JOYSTICK, ARROWS }
 
 const ACTIONS := {
 	0: &"ui_up",
@@ -34,6 +40,15 @@ const DEAD_ZONE_ENTER_PERCENT: float = 0.15
 const DEAD_ZONE_EXIT_PERCENT: float = 0.22
 const MIN_ZONE_HOLD_SEC: float = 0.05
 
+## The joystick reads as a smooth, continuous drag - it never flashes or
+## recolors on press (that read as jittery for something meant to feel
+## like an analog stick); it always stays the same white/gray. Only the
+## ARROWS style flashes and highlights the pressed arm, since each press
+## there is a discrete, separate action worth calling out.
+@export var visual_style: VisualStyle = VisualStyle.JOYSTICK:
+	set(value):
+		visual_style = value
+		queue_redraw()
 @export var radius: float = 100.0:
 	set(value):
 		radius = value
@@ -82,20 +97,79 @@ func _get_origin() -> Vector2:
 	return p
 
 func _draw() -> void:
+	match visual_style:
+		VisualStyle.ARROWS:
+			_draw_arrows()
+		_:
+			_draw_joystick()
+
+## Continuous-drag look: a base ring with a small knob that follows the
+## finger. Deliberately never changes color or flashes on press - it
+## always reads as the same plain white/gray stick, since a per-zone
+## highlight would fight the "one continuous drag" feel this style is
+## for.
+func _draw_joystick() -> void:
 	var origin: Vector2 = _get_origin()
 
-	# Base ring.
 	draw_circle(origin, radius, base_color)
 	draw_arc(origin, radius, 0.0, TAU, 48, divider_color, 2.5, true)
 
-	# Knob: follows the finger (clamped to the ring), snaps back to center
-	# on release; lights up while a direction is actually being held.
-	var knob_radius: float = radius * 0.42
+	var knob_radius: float = radius * 0.28
 	var knob_pos: Vector2 = origin + _knob_offset
-	var knob_col: Color = pressed_color if _active_zone != -1 else knob_color
-	knob_col = knob_col.lerp(Color(1.0, 1.0, 1.0, knob_col.a), _flash_amount * 0.7)
-	draw_circle(knob_pos, knob_radius, knob_col)
+	draw_circle(knob_pos, knob_radius, knob_color)
 	draw_arc(knob_pos, knob_radius, 0.0, TAU, 32, divider_color, 2.0, true)
+
+## Discrete-selection look: a structured cross with 4 rectangular arms,
+## a center hub, and outward chevron arrows - the pressed arm lights up
+## and flashes, since each press here is one separate, discrete choice
+## worth calling out (unlike the joystick's single continuous drag).
+func _draw_arrows() -> void:
+	var origin: Vector2 = _get_origin()
+	var w: float = radius * 0.38
+	var l: float = radius
+	var dirs := [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]
+
+	var hub := PackedVector2Array([
+		origin + Vector2(-w, -w), origin + Vector2(w, -w),
+		origin + Vector2(w, w), origin + Vector2(-w, w),
+	])
+	draw_colored_polygon(hub, base_color)
+
+	for zone in range(4):
+		var dir: Vector2 = dirs[zone]
+		var perp: Vector2 = dir.rotated(PI / 2.0) * w
+		var inner: Vector2 = dir * w
+		var outer: Vector2 = dir * l
+		var color: Color = base_color
+		if zone == _active_zone:
+			color = pressed_color.lerp(Color(1.0, 1.0, 1.0, pressed_color.a), _flash_amount * 0.7)
+		var world_arm := PackedVector2Array([
+			origin + inner + perp, origin + outer + perp,
+			origin + outer - perp, origin + inner - perp,
+		])
+		draw_colored_polygon(world_arm, color)
+
+		var mid: Vector2 = origin + dir * ((w + l) * 0.5)
+		var chevron_s: float = w * 1.1
+		var chev_perp: Vector2 = dir.rotated(PI / 2.0)
+		var apex: Vector2 = mid + dir * chevron_s * 0.6
+		var base1: Vector2 = mid - dir * chevron_s * 0.4 + chev_perp * chevron_s * 0.55
+		var base2: Vector2 = mid - dir * chevron_s * 0.4 - chev_perp * chevron_s * 0.55
+		draw_colored_polygon(PackedVector2Array([apex, base1, base2]), divider_color)
+
+	var outline := PackedVector2Array([
+		origin + Vector2(-w, -l), origin + Vector2(w, -l), origin + Vector2(w, -w),
+		origin + Vector2(l, -w), origin + Vector2(l, w), origin + Vector2(w, w),
+		origin + Vector2(w, l), origin + Vector2(-w, l), origin + Vector2(-w, w),
+		origin + Vector2(-l, w), origin + Vector2(-l, -w), origin + Vector2(-w, -w),
+	])
+	outline.append(outline[0])
+	draw_polyline(outline, divider_color, 2.5, true)
+
+	draw_line(origin + Vector2(-w, -w), origin + Vector2(w, -w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(w, -w), origin + Vector2(w, w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(w, w), origin + Vector2(-w, w), divider_color, 1.5, true)
+	draw_line(origin + Vector2(-w, w), origin + Vector2(-w, -w), divider_color, 1.5, true)
 
 func _notification(what: int) -> void:
 	match what:
@@ -215,7 +289,8 @@ func _set_zone(zone: int) -> void:
 		_dispatch_action(ACTIONS[_active_zone], false)
 	if zone != -1:
 		_dispatch_action(ACTIONS[zone], true)
-		_flash()
+		if visual_style == VisualStyle.ARROWS:
+			_flash()
 
 	_active_zone = zone
 	queue_redraw()

@@ -123,11 +123,27 @@ func _update_hand_from_shop_state() -> void :
 			_travel_hand(&"Deactivate")
 
 
+## Rubicon addition: keyboard_direction also reflects the virtual
+## joystick's left/right zones (it presses/releases ui_right/ui_left via
+## real InputEvents - see RubiconVirtualDPad), so that branch already
+## covers touch. The mouse-edge fallback below reads the raw cursor
+## position, and Android's touch-emulates-mouse means ANY tap or drag
+## updates that position too - including taps on the joystick or OK/
+## Back/F buttons themselves, which sit within EDGE_PERCENT (40%) of
+## the screen edges. Left unguarded, tapping a button near either edge
+## would spuriously pan the camera on top of whatever the joystick was
+## already doing. Skip the fallback entirely once touch controls are
+## enabled, so only the joystick's zones ever drive camera pan on touch.
 func _get_look_direction() -> float:
 	var keyboard_direction: = Input.get_axis("ui_right", "ui_left")
 
 	if keyboard_direction != 0.0:
 		return keyboard_direction
+
+	var touch_controls_active: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true) \
+		and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
+	if touch_controls_active:
+		return 0.0
 
 	return _get_mouse_edge_direction()
 
