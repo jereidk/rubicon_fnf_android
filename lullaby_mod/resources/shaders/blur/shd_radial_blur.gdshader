@@ -11,15 +11,19 @@ uniform vec2 BLUR_CENTER;
 const int SAMPLES = 15;
 
 void fragment() {
-	vec2 BLUR_UV = SCREEN_UV - BLUR_CENTER;
-	vec4 BLUR_COLOR = texture(SCREEN_TEXTURE, SCREEN_UV);
-	
-	float PRECOMPUTE = BLUR_STRENGTH * 0.1 * (1.0 / float(SAMPLES - 1));
-	for(int i = 1; i < SAMPLES; i++) {
-	    float SCALE = 1.0 + (float(i) * PRECOMPUTE);
-	    BLUR_COLOR += texture(SCREEN_TEXTURE, BLUR_UV * SCALE + BLUR_CENTER);
+	if (BLUR_STRENGTH <= 0.0) {
+		COLOR = texture(SCREEN_TEXTURE, SCREEN_UV);
+	} else {
+		vec2 BLUR_UV = SCREEN_UV - BLUR_CENTER;
+		vec4 BLUR_COLOR = texture(SCREEN_TEXTURE, SCREEN_UV);
+
+		float PRECOMPUTE = BLUR_STRENGTH * 0.1 * (1.0 / float(SAMPLES - 1));
+		for(int i = 1; i < SAMPLES; i++) {
+		    float SCALE = 1.0 + (float(i) * PRECOMPUTE);
+		    BLUR_COLOR += texture(SCREEN_TEXTURE, BLUR_UV * SCALE + BLUR_CENTER);
+		}
+		BLUR_COLOR /= float(SAMPLES);
+
+		COLOR = BLUR_COLOR;
 	}
-	BLUR_COLOR /= float(SAMPLES);
-	
-	COLOR = BLUR_COLOR;
 }

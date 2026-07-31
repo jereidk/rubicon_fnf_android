@@ -14,7 +14,7 @@ dest_files=["res://.godot/imported/sfx_soulroom_startup.wav-655c9afb639dcea20264
 
 force/8_bit=false
 force/mono=false
-force/max_rate=false
+force/max_rate=true
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false

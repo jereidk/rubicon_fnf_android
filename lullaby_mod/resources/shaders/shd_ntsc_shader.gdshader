@@ -132,15 +132,8 @@ const float chroma_filter[TAPS + 1] = float[TAPS + 1](
 #define fetch_offset(offset, one_x) pass1(uv + vec2((offset - 0.5) * one_x * blur_amount, 0.0), FRAGCOORD.xy, SCREEN_TEXTURE).xyzw
 
 vec4 pass1(vec2 uv, vec2 frag_coord, sampler2D tex) {
-	vec2 fragCoord = frag_coord;
 	vec4 cola = texture(tex, uv).rgba;
 	vec3 yiq = rgb2yiq(cola.rgb);
-
-	float chroma_phase = PI * mod(fragCoord.y, 2.0);
-	float mod_phase = chroma_phase + fragCoord.x * CHROMA_MOD_FREQ;
-
-	float i_mod = cos(mod_phase);
-	float q_mod = sin(mod_phase);
 
 	return vec4(yiq, cola.a);
 }
