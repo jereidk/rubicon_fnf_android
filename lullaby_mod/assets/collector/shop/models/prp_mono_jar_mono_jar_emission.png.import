@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bf3il3hswhwtq"
-path.s3tc="res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.etc2.ctex"
+path="res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "6ebb5cf382eccd5059248d012c656a6e"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_mono_jar_mono_jar_emission.png"
-dest_files=["res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.s3tc.ctex", "res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_mono_jar_mono_jar_emission.png-858bdfde299d3f98a26e2d3bb25daacf.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

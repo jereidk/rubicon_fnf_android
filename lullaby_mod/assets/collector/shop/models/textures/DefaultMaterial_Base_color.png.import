@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://p2w4dbx3bluf"
-path.s3tc="res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.s3tc.ctex"
-path.etc2="res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.etc2.ctex"
+path="res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/DefaultMaterial_Base_color.png"
-dest_files=["res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.s3tc.ctex", "res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.etc2.ctex"]
+dest_files=["res://.godot/imported/DefaultMaterial_Base_color.png-043c1abf5bac4a49eb47e87e0031cacc.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xlkrta17k1ac"
-path.s3tc="res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.etc2.ctex"
+path="res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "89d0b1b9b402bd81966f5f60c678bfc5"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_briefcase_briefcase.png"
-dest_files=["res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.s3tc.ctex", "res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_briefcase_briefcase.png-8eb8982160d5420dde657e266335a151.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

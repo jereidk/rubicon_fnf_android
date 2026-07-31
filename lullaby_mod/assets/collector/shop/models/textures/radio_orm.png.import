@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://n1vk7y8xq2lm"
-path.s3tc="res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.s3tc.ctex"
-path.etc2="res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.etc2.ctex"
+path="res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/radio_orm.png"
-dest_files=["res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.s3tc.ctex", "res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.etc2.ctex"]
+dest_files=["res://.godot/imported/radio_orm.png-9b73d8ee6ee43b966a0b2bc9e6252a1e.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

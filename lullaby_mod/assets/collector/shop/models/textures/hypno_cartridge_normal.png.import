@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1wd1gvbx8sid"
-path.s3tc="res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.s3tc.ctex"
-path.etc2="res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.etc2.ctex"
+path="res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge_normal.png"
-dest_files=["res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.s3tc.ctex", "res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.etc2.ctex"]
+dest_files=["res://.godot/imported/hypno_cartridge_normal.png-ca52cc568e902c77e292f18da254dccc.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=1

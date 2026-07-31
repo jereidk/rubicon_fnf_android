@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://db8ahy76kpoph"
-path.s3tc="res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.s3tc.ctex"
-path.etc2="res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.etc2.ctex"
+path="res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "c99b3703e84bfa429c3445da150ad2a9"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/modelsold/cardboardsign/intro_cardboardmarker_Normal.png"
-dest_files=["res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.s3tc.ctex", "res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.etc2.ctex"]
+dest_files=["res://.godot/imported/intro_cardboardmarker_Normal.png-2de14a51a55124bbd5047429ab497835.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=1

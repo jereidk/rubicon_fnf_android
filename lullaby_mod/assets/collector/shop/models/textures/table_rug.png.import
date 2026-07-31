@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://db440jkaaxneh"
-path.s3tc="res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.s3tc.ctex"
-path.etc2="res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.etc2.ctex"
+path="res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/table_rug.png"
-dest_files=["res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.s3tc.ctex", "res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.etc2.ctex"]
+dest_files=["res://.godot/imported/table_rug.png-e9e388b6c058675126d4408ec456c725.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

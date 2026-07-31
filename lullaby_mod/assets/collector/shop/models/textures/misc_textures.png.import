@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crsflcw1awkv"
-path.s3tc="res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.s3tc.ctex"
-path.etc2="res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.etc2.ctex"
+path="res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/misc_textures.png"
-dest_files=["res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.s3tc.ctex", "res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.etc2.ctex"]
+dest_files=["res://.godot/imported/misc_textures.png-528a1e41b9f055da192d13e1f7a67088.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

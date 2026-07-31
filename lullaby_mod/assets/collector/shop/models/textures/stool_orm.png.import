@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cx2f0wdi14pmr"
-path.s3tc="res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.s3tc.ctex"
-path.etc2="res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.etc2.ctex"
+path="res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/stool_orm.png"
-dest_files=["res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.s3tc.ctex", "res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.etc2.ctex"]
+dest_files=["res://.godot/imported/stool_orm.png-1da84ccdf06c5cff4819baf359437d02.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

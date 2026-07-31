@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qruipnj5tav8"
-path.s3tc="res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.s3tc.ctex"
-path.etc2="res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.etc2.ctex"
+path="res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/pillar_normal.png"
-dest_files=["res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.s3tc.ctex", "res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.etc2.ctex"]
+dest_files=["res://.godot/imported/pillar_normal.png-e1cbacc8d820c2bb588a8058afdc754e.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=1

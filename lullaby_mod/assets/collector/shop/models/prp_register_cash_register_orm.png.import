@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ch3dn5r6n3o23"
-path.s3tc="res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.etc2.ctex"
+path="res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "dc9094ebc30ef39f014c2cadb488f3b8"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_register_cash_register_orm.png"
-dest_files=["res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.s3tc.ctex", "res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_register_cash_register_orm.png-c1303d17acd063f39fe142d2020f7a57.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

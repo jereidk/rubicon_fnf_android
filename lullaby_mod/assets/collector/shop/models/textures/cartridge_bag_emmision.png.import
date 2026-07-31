@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsjxkqykxqrmw"
-path.s3tc="res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.s3tc.ctex"
-path.etc2="res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.etc2.ctex"
+path="res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/textures/cartridge_bag_emmision.png"
-dest_files=["res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.s3tc.ctex", "res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.etc2.ctex"]
+dest_files=["res://.godot/imported/cartridge_bag_emmision.png-4bc45be00e32f9d0b15943b4a09dbedd.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

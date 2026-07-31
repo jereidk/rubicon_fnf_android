@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5likqb1hfa5a"
-path.s3tc="res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.etc2.ctex"
+path="res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "c141f3731b613da2981944481d565376"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_candles_candle_normal.png"
-dest_files=["res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.s3tc.ctex", "res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_candles_candle_normal.png-b961b7c0d61f8808ac150d0cedc2ee5c.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=1

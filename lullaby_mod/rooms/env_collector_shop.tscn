@@ -171,6 +171,7 @@
 [ext_resource type="PackedScene" uid="uid://c5hebp3s1brt3" path="res://lullaby_mod/assets/collector/shop/models/prp_kollectadex.gltf" id="168"]
 [ext_resource type="PackedScene" uid="uid://cd56vrdhdog1f" path="res://lullaby_mod/assets/collector/shop/models/prp_register.gltf" id="169"]
 [ext_resource type="Shader" uid="uid://dt23101ah1d4w" path="res://lullaby_mod/resources/shaders/static/shd_shop_static_spatial.gdshader" id="170"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/resources/shaders/static/tex_static_noise.png" id="203"]
 [ext_resource type="PackedScene" uid="uid://dcr12y3ocidk1" path="res://lullaby_mod/assets/collector/shop/models/prp_soultoken.gltf" id="171"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="172"]
 [ext_resource type="Script" uid="uid://c025a66uihh06" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_soultoken_label.gd" id="173"]
@@ -9241,6 +9242,7 @@ shader_parameter/base_color = Color(0.33707228, 0.04309224, 0.34435582, 1)
 shader_parameter/speed = 1.2
 shader_parameter/contrast = 1.08
 shader_parameter/emission = 1.0
+shader_parameter/noise_tex = ExtResource("203")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7yrpb"]
 render_priority = 0
@@ -9253,6 +9255,7 @@ shader_parameter/base_color = Color(0.34399366, 0.043137256, 0.34509805, 1)
 shader_parameter/speed = 1.0
 shader_parameter/contrast = 1.08
 shader_parameter/emission = 1.0
+shader_parameter/noise_tex = ExtResource("203")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7oh6n"]
 render_priority = 0
@@ -9265,6 +9268,7 @@ shader_parameter/base_color = Color(0.34399366, 0.043137256, 0.34509805, 1)
 shader_parameter/speed = 1.0
 shader_parameter/contrast = 1.08
 shader_parameter/emission = 1.0
+shader_parameter/noise_tex = ExtResource("203")
 
 [sub_resource type="Gradient" id="Gradient_r23sg"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)

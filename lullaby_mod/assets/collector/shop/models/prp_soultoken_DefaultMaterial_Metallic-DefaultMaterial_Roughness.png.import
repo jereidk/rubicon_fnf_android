@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1v0rpcwgpxbn"
-path.s3tc="res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.etc2.ctex"
+path="res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "9e8b61aa578d35b0b7d0896f679c7a4c"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png"
-dest_files=["res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.s3tc.ctex", "res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_soultoken_DefaultMaterial_Metallic-DefaultMaterial_Roughness.png-df7b1e7662e5f5810a2550d0285ff93d.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

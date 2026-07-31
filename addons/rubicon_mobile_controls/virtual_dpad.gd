@@ -47,6 +47,8 @@ const MIN_ZONE_HOLD_SEC: float = 0.05
 ## there is a discrete, separate action worth calling out.
 @export var visual_style: VisualStyle = VisualStyle.JOYSTICK:
 	set(value):
+		if value == visual_style:
+			return
 		visual_style = value
 		queue_redraw()
 @export var radius: float = 100.0:

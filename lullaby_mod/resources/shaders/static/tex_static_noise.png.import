@@ -2,28 +2,28 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2wlnhh5rnxch"
-path="res://.godot/imported/candle_roughness.png-a66926fe4493fe5c73c25f937c00b4c9.ctex"
+uid="uid://bl3ik432sixiw"
+path="res://.godot/imported/tex_static_noise.png-8a5dd822b81895dc0c38cbd1a4ac014d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://lullaby_mod/assets/collector/shop/models/textures/candle_roughness.png"
-dest_files=["res://.godot/imported/candle_roughness.png-a66926fe4493fe5c73c25f937c00b4c9.ctex"]
+source_file="res://lullaby_mod/resources/shaders/static/tex_static_noise.png"
+dest_files=["res://.godot/imported/tex_static_noise.png-8a5dd822b81895dc0c38cbd1a4ac014d.ctex"]
 
 [params]
 
-compress/mode=4
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=2
+compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

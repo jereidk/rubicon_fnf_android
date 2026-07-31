@@ -3,24 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3bsg11c6avvo"
-path.s3tc="res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.s3tc.ctex"
-path.etc2="res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.etc2.ctex"
+path="res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/rig/textures/tex_pipe_height.png"
-dest_files=["res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.s3tc.ctex", "res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.etc2.ctex"]
+dest_files=["res://.godot/imported/tex_pipe_height.png-3e5adb1547fee6fb7d51c1357f7f0bbc.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0

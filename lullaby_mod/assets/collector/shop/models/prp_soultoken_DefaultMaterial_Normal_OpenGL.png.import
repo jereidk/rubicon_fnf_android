@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cov04gxm8lsj4"
-path.s3tc="res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.s3tc.ctex"
-path.etc2="res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.etc2.ctex"
+path="res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "c5b6bd4945d18265c33126f8e29cbc3b"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/prp_soultoken_DefaultMaterial_Normal_OpenGL.png"
-dest_files=["res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.s3tc.ctex", "res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.etc2.ctex"]
+dest_files=["res://.godot/imported/prp_soultoken_DefaultMaterial_Normal_OpenGL.png-edadcb0f8763e33b542eeb14f98c0b30.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=1

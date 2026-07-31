@@ -5,6 +5,7 @@
 [ext_resource type="Shader" uid="uid://drdk00f2npdl3" path="res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader" id="3"]
 [ext_resource type="Texture2D" uid="uid://vbie8nb2v8ko" path="res://lullaby_mod/assets/menus/cartridge_bag/tex_border.png" id="4"]
 [ext_resource type="FontFile" uid="uid://fsb5mocvw7ji" path="res://lullaby_mod/resources/fonts/fnt_pixel.otf" id="5"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/resources/shaders/static/tex_static_noise.png" id="6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot8b"]
 draw_center = false
@@ -23,6 +24,7 @@ shader_parameter/bars_amount = 1.74
 shader_parameter/stretch_x = 0.82
 shader_parameter/base_color = Color(0.3571377, 0.2355721, 0.29224047, 1)
 shader_parameter/contrast = 1.065
+shader_parameter/noise_tex = ExtResource("6")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fgulo"]
 

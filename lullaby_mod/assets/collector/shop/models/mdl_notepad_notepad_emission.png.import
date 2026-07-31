@@ -3,11 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bcluqg15tl5yq"
-path.s3tc="res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.s3tc.ctex"
-path.etc2="res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.etc2.ctex"
+path="res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
 "md5": "ab544a3bfb84373e6b3f808e8fc24aaa"
@@ -16,14 +14,14 @@ generator_parameters={
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/shop/models/mdl_notepad_notepad_emission.png"
-dest_files=["res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.s3tc.ctex", "res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.etc2.ctex"]
+dest_files=["res://.godot/imported/mdl_notepad_notepad_emission.png-687a0d9eeac55dacc8afbfd39312455f.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
-compress/uastc_level=0
+compress/uastc_level=2
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
