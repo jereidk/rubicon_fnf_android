@@ -105,33 +105,15 @@ func _go_previous() -> void :
 	console.play_sound.emit("sfx_soulroom_click")
 	previous_index()
 
-## Rubicon addition: the real mod drove all of this off ui_left/ui_right/
-## ui_accept/ui_up/ui_down with no click/tap/drag fallback at all —
-## nothing here was reachable on a touch-only device. Tap the left/right
-## edge of the carousel to navigate, tap the middle to open the current
-## person's link (mirrors ui_accept), and drag vertically over the
-## description to scroll it (mirrors ui_up/ui_down).
+## Clicking the left/right edge of the carousel navigates, clicking the
+## middle opens the current person's link (mirrors ui_accept).
 const _TAP_EDGE_PERCENT: float = 0.3
-
-var _drag_index: int = -1
-var _drag_last_y: float = 0.0
 
 func _gui_input(event: InputEvent) -> void :
 	if not get_parent().visible:
 		return
 
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			_handle_tap(event.position)
-			if description_label.get_global_rect().has_point(event.position):
-				_drag_index = event.index
-				_drag_last_y = event.position.y
-		elif event.index == _drag_index:
-			_drag_index = -1
-	elif event is InputEventScreenDrag and event.index == _drag_index:
-		description_label.get_v_scroll_bar().value += _drag_last_y - event.position.y
-		_drag_last_y = event.position.y
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_handle_tap(event.position)
 
 func _handle_tap(pos: Vector2) -> void :

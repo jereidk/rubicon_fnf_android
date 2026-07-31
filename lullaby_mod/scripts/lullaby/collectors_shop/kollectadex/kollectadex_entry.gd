@@ -61,21 +61,11 @@ func _on_focus_entered() -> void :
 func _on_focus_exited() -> void :
 	reference_focus_indicator.texture = focus_texture_unselected
 
-## Rubicon addition: entries only ever supported focus_neighbor keyboard/
-## gamepad navigation + ui_accept, with no click handler at all, so a
-## touch-only player couldn't select any entry. Tapping one focuses it
-## (updating Kollectadex.cur_index the same way keyboard nav does) and
-## synthesizes the ui_accept press Kollectadex._input already listens for,
-## instead of duplicating its unlocked/can_move/sound logic here.
 func _gui_input(event: InputEvent) -> void :
 	if Engine.is_editor_hint():
 		return
 
-	var is_tap: bool = (
-		(event is InputEventScreenTouch and event.pressed)
-		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
-	)
-	if not is_tap:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
 
 	grab_focus()

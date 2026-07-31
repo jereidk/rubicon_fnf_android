@@ -52,15 +52,11 @@ func _input(event: InputEvent) -> void:
 	if confirm_pressed:
 		click_door()
 
-## Rubicon addition: the real mod only ever listened for ui_accept (a
-## keyboard/joypad-only action), so a touch-only Android player could watch
-## the whole intro and never find a way to advance past it. Treat any
-## tap/click the same as ui_accept here, mirroring the broad "press enter"
-## affordance the EnterLabel/DoorButton prompt implies.
+## Treat a click the same as ui_accept, mirroring the broad "press enter"
+## affordance the EnterLabel/DoorButton prompt implies. Touch players use
+## the menu touch overlay's Accept button for the same action.
 func _is_confirm_press(event: InputEvent) -> bool:
 	if event.is_action(&"ui_accept") and event.is_pressed():
-		return true
-	if event is InputEventScreenTouch and event.pressed:
 		return true
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		return true

@@ -32,22 +32,15 @@ func _on_focus_exited():
 func _on_button_pressed():
 	pass
 
-## Rubicon addition: several settings rows (list_button.gd,
-## incremental_button.gd) only ever responded to ui_left/ui_right while
-## keyboard-focused, so a touch-only player had no way to change them.
-## Tapping the left/right half of the row steps the value the same
+## Clicking the left/right half of the row steps the value the same
 ## direction a keyboard press would, without needing focus first.
-## Returns -1/1 for a tap on the left/right half, 0 if the event isn't a
-## relevant tap on this button.
+## Returns -1/1 for a click on the left/right half, 0 if the event isn't a
+## relevant click on this button.
 static func get_tap_direction(button: Control, event: InputEvent) -> int:
-	var pos: Vector2
-	if event is InputEventScreenTouch and event.pressed:
-		pos = event.position
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		pos = event.position
-	else:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return 0
 
+	var pos: Vector2 = event.position
 	var rect: Rect2 = button.get_global_rect()
 	if not rect.has_point(pos):
 		return 0

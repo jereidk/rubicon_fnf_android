@@ -54,20 +54,11 @@ func _input(event: InputEvent) -> void :
 	if event.is_action_released(&"ui_accept") and focused:
 		_confirm()
 
-## Rubicon addition: the real mod only let you reach this via keyboard/
-## gamepad focus navigation + ui_accept — these Home icons had a real,
-## correctly sized hit rect (see console.tscn) but mouse_filter was set to
-## IGNORE, so nothing on touch could ever reach it. Tapping the icon now
-## grabs focus and confirms in one step.
 func _gui_input(event: InputEvent) -> void :
 	if console.booting:
 		return
 
-	var is_tap: bool = (
-		(event is InputEventScreenTouch and event.pressed)
-		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
-	)
-	if not is_tap:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
 
 	grab_focus()

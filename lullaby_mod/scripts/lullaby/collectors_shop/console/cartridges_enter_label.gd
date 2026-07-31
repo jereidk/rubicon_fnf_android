@@ -21,16 +21,9 @@ func _gui_input(event: InputEvent) -> void :
 	if console.booting:
 		return
 
-	# Rubicon addition: the real mod only ever accepted ui_accept here
-	# (keyboard/joypad focus navigation), leaving no way to actually start
-	# a song from a touch-only device. A tap/click on the label does the
-	# same thing.
-	var is_touch_tap: bool = (
-		(event is InputEventScreenTouch and event.pressed)
-		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
-	)
+	var is_click: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 
-	if event.is_action(&"ui_accept") or is_touch_tap:
+	if event.is_action(&"ui_accept") or is_click:
 		_enter_selected_cartridge()
 
 
