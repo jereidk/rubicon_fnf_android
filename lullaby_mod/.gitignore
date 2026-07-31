@@ -5,15 +5,11 @@
 # Audio
 # (los .ogg son necesarios)
 
-# Sprites sin procesar
-*.import
-
-# Excepcion: texturas 3D del Cabinet of Novelties / Collector necesitan
-# import settings VRAM Compressed explicitos (no el default Lossless) o
-# un `--headless --import` limpio en CI las reimporta sin comprimir y
-# el juego vuelve a tener el lag de carga/VRAM en Android.
-!/assets/collector/rig/**/*.import
-!/assets/collector/shop/models/**/*.import
-!/assets/collector/shop/modelsold/**/*.import
+# Nota: los .import SI se versionan (a proposito). Son metadata de texto,
+# no "sprites sin procesar", y guardan settings de compresion afinados a
+# mano (VRAM Compressed, mipmaps, GLTF _subresources.materials.use_external,
+# etc.). Si se ignoran, un `--headless --import` limpio en CI los regenera
+# con los defaults de Godot (Lossless sin comprimir, imports de GLTF rotos)
+# y se pierde el trabajo de optimizacion silenciosamente.
 
 # Nota: *.pck, *.ctex y *.tar.gz se suben con Git LFS

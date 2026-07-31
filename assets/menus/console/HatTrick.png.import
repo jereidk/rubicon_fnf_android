@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ce30oj0utg7cc"
-path="res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.ctex"
+path.s3tc="res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.s3tc.ctex"
+path.etc2="res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/menus/console/HatTrick.png"
-dest_files=["res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.ctex"]
+dest_files=["res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.s3tc.ctex", "res://.godot/imported/HatTrick.png-d288407137e17df7822cb74964d67bf4.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

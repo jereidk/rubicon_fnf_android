@@ -2,6 +2,12 @@
 .godot/
 /android/
 
+# Compiled GDScript bytecode: Godot always recompiles .gd -> .gdc fresh at
+# export time. A committed .gdc next to its .gd causes a duplicate ZIP
+# entry ("Multiple ZIP entries with the same name") that crashes apksigner.
+*.gdc
+*.gdc.uid
+
 # Linux
 *.directory
 

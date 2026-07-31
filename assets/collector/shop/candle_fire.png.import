@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://fi1vkvo4n4vr"
-path="res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.ctex"
+path.s3tc="res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.s3tc.ctex"
+path.etc2="res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/collector/shop/candle_fire.png"
-dest_files=["res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.ctex"]
+dest_files=["res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.s3tc.ctex", "res://.godot/imported/candle_fire.png-328585b4cb5b0b9114b58f536cd074d0.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

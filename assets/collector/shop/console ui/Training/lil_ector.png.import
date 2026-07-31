@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhnum6u8g07md"
-path="res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.ctex"
+path.s3tc="res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.s3tc.ctex"
+path.etc2="res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/collector/shop/console ui/Training/lil_ector.png"
-dest_files=["res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.ctex"]
+dest_files=["res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.s3tc.ctex", "res://.godot/imported/lil_ector.png-fda53d2d4eba8991543068e98221b9cb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
