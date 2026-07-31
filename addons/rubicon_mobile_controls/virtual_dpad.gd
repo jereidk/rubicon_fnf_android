@@ -9,6 +9,16 @@ class_name RubiconVirtualDPad
 ## via focus_neighbor + those actions works with this with zero changes.
 ## Sibling to RubiconVirtualJoystick (used for 3D camera look); this one
 ## is for UI focus navigation instead of analog look/movement.
+##
+## Hardened against jitter spam: a finger resting near a zone boundary
+## (or the dead zone edge) shouldn't rapid-fire action_press/release as
+## the angle/radius wobbles by a degree or two between frames. Switching
+## zones needs the angle to clear the boundary by ZONE_HYSTERESIS_DEG in
+## favor of the *new* zone, and entering/leaving the dead zone uses two
+## different radii (exit needs to travel further out than re-entry), both
+## classic hysteresis so the active zone only changes on a deliberate
+## movement, never a wobble. A minimum hold time before a zone can switch
+## again is an extra backstop against spamming the underlying action.
 
 const ACTIONS := {
 	0: &"ui_up",
@@ -16,6 +26,11 @@ const ACTIONS := {
 	2: &"ui_down",
 	3: &"ui_left",
 }
+
+const ZONE_HYSTERESIS_DEG: float = 10.0
+const DEAD_ZONE_ENTER_PERCENT: float = 0.15
+const DEAD_ZONE_EXIT_PERCENT: float = 0.22
+const MIN_ZONE_HOLD_SEC: float = 0.05
 
 @export var radius: float = 100.0:
 	set(value):
@@ -40,6 +55,8 @@ const ACTIONS := {
 
 var _active_zone: int = -1
 var _touch_index: int = -1
+var _in_dead_zone: bool = true
+var _zone_held_since: float = 0.0
 
 func _get_origin() -> Vector2:
 	var p: Vector2 = anchor_position
@@ -93,26 +110,70 @@ func _try_start(index: int, pos: Vector2) -> void:
 		return
 
 	_touch_index = index
+	_in_dead_zone = true
+	_zone_held_since = 0.0
 	_update_zone(pos)
 
+## Hysteresis on the radius (separate enter/exit thresholds) and on the
+## angle (a zone switch has to clear the boundary by ZONE_HYSTERESIS_DEG,
+## and can't happen again within MIN_ZONE_HOLD_SEC of the last one) so a
+## finger resting near either kind of boundary can't spam action_press/
+## release every frame.
 func _update_zone(pos: Vector2) -> void:
 	var origin: Vector2 = _get_origin()
 	var offset: Vector2 = pos - origin
-	if offset.length() < radius * 0.15:
-		_set_zone(-1)
-		return
+	var dist: float = offset.length()
+
+	var exit_radius: float = radius * DEAD_ZONE_EXIT_PERCENT
+	var enter_radius: float = radius * DEAD_ZONE_ENTER_PERCENT
+	if _in_dead_zone:
+		if dist < exit_radius:
+			_set_zone(-1)
+			return
+	else:
+		if dist < enter_radius:
+			_set_zone(-1)
+			return
+	_in_dead_zone = false
 
 	# atan2 is 0=right, 90=down (Godot's Y-down screen space); rotate so
 	# zone 0 (up) starts at -45deg and each zone spans 90deg going clockwise.
 	var angle_deg: float = rad_to_deg(offset.angle()) + 90.0 + 45.0
 	if angle_deg < 0.0:
 		angle_deg += 360.0
-	var zone: int = int(angle_deg / 90.0) % 4
-	_set_zone(zone)
+	var raw_zone: int = int(angle_deg / 90.0) % 4
+
+	if raw_zone == _active_zone or _active_zone == -1:
+		_set_zone(raw_zone)
+		return
+
+	# Only switch away from the current zone once the angle has moved
+	# solidly into the new zone - past its boundary by the hysteresis
+	# margin, not just barely across it. distance_into_zone is the signed
+	# offset from the new zone's center (±45deg at its edges); requiring
+	# it to be within ±(45 - margin) means the boundary itself has a dead
+	# band no single zone claims, so a wobbling finger can't flicker back
+	# and forth across it.
+	var zone_center: float = raw_zone * 90.0
+	var distance_into_zone: float = angle_deg - zone_center
+	if distance_into_zone > 180.0:
+		distance_into_zone -= 360.0
+
+	if absf(distance_into_zone) > 45.0 - ZONE_HYSTERESIS_DEG:
+		return
+
+	_set_zone(raw_zone)
 
 func _set_zone(zone: int) -> void:
+	_in_dead_zone = zone == -1
+
 	if zone == _active_zone:
 		return
+
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now - _zone_held_since < MIN_ZONE_HOLD_SEC:
+		return
+	_zone_held_since = now
 
 	if _active_zone != -1:
 		Input.action_release(ACTIONS[_active_zone])
@@ -124,4 +185,5 @@ func _set_zone(zone: int) -> void:
 
 func _release() -> void:
 	_touch_index = -1
+	_in_dead_zone = true
 	_set_zone(-1)
