@@ -26,6 +26,11 @@ var enter_cooldown: float = 0.0
 signal changed_credits_entry
 
 func _ready() -> void :
+	# Rubicon addition: let taps/drags over the description text bubble up
+	# to this container's own _gui_input instead of RichTextLabel's default
+	# click handling swallowing them.
+	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	primary_portrait_animation.play(credits_entries[0].name)
 	secondary_portrait_animation.play(credits_entries[1].name)
 	var list_end: LullabyCreditsEntry = LullabyCreditsEntry.new()
@@ -44,43 +49,12 @@ func _input(event: InputEvent) -> void :
 		return
 
 	if event.is_action_pressed("ui_accept") and enter_cooldown <= 0.0:
-		console.play_sound.emit("sfx_soulroom_select_alt")
-		OS.shell_open(credits_entries[current_portrait_index].socials_link)
-		enter_cooldown = 1.0
+		_open_current_socials_link()
 
 	if event.is_action_pressed("ui_left"):
-		current_portrait_index = wrap(current_portrait_index + 1, 0, credits_entries.size() - 1)
-		update_labels()
-
-		if left_arrow_anim.is_playing():
-			left_arrow_anim.stop()
-		left_arrow_anim.play("ArrowPress_24f")
-		left_arrow_mesh.mesh.surface_set_material(0, material_select)
-
-		if switch_animation.is_playing():
-			switch_animation.stop()
-			next_index()
-
-		changed_credits_entry.emit()
-		switch_animation.play("next")
-		console.play_sound.emit("sfx_soulroom_click")
-
+		_go_next()
 	elif event.is_action_pressed("ui_right"):
-		current_portrait_index = wrap(current_portrait_index - 1, 0, credits_entries.size() - 1)
-		update_labels()
-
-		if right_arrow_anim.is_playing():
-			right_arrow_anim.stop()
-		right_arrow_anim.play("ArrowPress_24f")
-		right_arrow_mesh.mesh.surface_set_material(0, material_select)
-
-		if switch_animation.is_playing():
-			switch_animation.stop()
-		switch_animation.play("previous")
-
-		changed_credits_entry.emit()
-		console.play_sound.emit("sfx_soulroom_click")
-		previous_index()
+		_go_previous()
 	if event.is_action_released("ui_right"):
 		right_arrow_mesh.mesh.surface_set_material(0, material_idle)
 	if event.is_action_released("ui_left"):
@@ -91,6 +65,85 @@ func _input(event: InputEvent) -> void :
 		description_label.get_v_scroll_bar().value -= 30
 	elif event.is_action("ui_down"):
 		description_label.get_v_scroll_bar().value += 30
+
+func _open_current_socials_link() -> void :
+	console.play_sound.emit("sfx_soulroom_select_alt")
+	OS.shell_open(credits_entries[current_portrait_index].socials_link)
+	enter_cooldown = 1.0
+
+func _go_next() -> void :
+	current_portrait_index = wrap(current_portrait_index + 1, 0, credits_entries.size() - 1)
+	update_labels()
+
+	if left_arrow_anim.is_playing():
+		left_arrow_anim.stop()
+	left_arrow_anim.play("ArrowPress_24f")
+	left_arrow_mesh.mesh.surface_set_material(0, material_select)
+
+	if switch_animation.is_playing():
+		switch_animation.stop()
+		next_index()
+
+	changed_credits_entry.emit()
+	switch_animation.play("next")
+	console.play_sound.emit("sfx_soulroom_click")
+
+func _go_previous() -> void :
+	current_portrait_index = wrap(current_portrait_index - 1, 0, credits_entries.size() - 1)
+	update_labels()
+
+	if right_arrow_anim.is_playing():
+		right_arrow_anim.stop()
+	right_arrow_anim.play("ArrowPress_24f")
+	right_arrow_mesh.mesh.surface_set_material(0, material_select)
+
+	if switch_animation.is_playing():
+		switch_animation.stop()
+	switch_animation.play("previous")
+
+	changed_credits_entry.emit()
+	console.play_sound.emit("sfx_soulroom_click")
+	previous_index()
+
+## Rubicon addition: the real mod drove all of this off ui_left/ui_right/
+## ui_accept/ui_up/ui_down with no click/tap/drag fallback at all —
+## nothing here was reachable on a touch-only device. Tap the left/right
+## edge of the carousel to navigate, tap the middle to open the current
+## person's link (mirrors ui_accept), and drag vertically over the
+## description to scroll it (mirrors ui_up/ui_down).
+const _TAP_EDGE_PERCENT: float = 0.3
+
+var _drag_index: int = -1
+var _drag_last_y: float = 0.0
+
+func _gui_input(event: InputEvent) -> void :
+	if not get_parent().visible:
+		return
+
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_handle_tap(event.position)
+			if description_label.get_global_rect().has_point(event.position):
+				_drag_index = event.index
+				_drag_last_y = event.position.y
+		elif event.index == _drag_index:
+			_drag_index = -1
+	elif event is InputEventScreenDrag and event.index == _drag_index:
+		description_label.get_v_scroll_bar().value += _drag_last_y - event.position.y
+		_drag_last_y = event.position.y
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_handle_tap(event.position)
+
+func _handle_tap(pos: Vector2) -> void :
+	var rect: Rect2 = get_global_rect()
+	var local_x_percent: float = (pos.x - rect.position.x) / rect.size.x
+
+	if local_x_percent < _TAP_EDGE_PERCENT:
+		_go_next()
+	elif local_x_percent > 1.0 - _TAP_EDGE_PERCENT:
+		_go_previous()
+	elif enter_cooldown <= 0.0:
+		_open_current_socials_link()
 
 func _get_next_credit_entry() -> LullabyCreditsEntry:
 	return credits_entries[wrap(current_portrait_index + 1, 0, credits_entries.size() - 1)]
