@@ -7,7 +7,7 @@ enum CurrentState
 	ADVANCED = 2
 }
 
-var current_state: CurrentState = CurrentState.NONE
+var current_state: CurrentState = CurrentState.ADVANCED
 
 @export var container: Control
 
