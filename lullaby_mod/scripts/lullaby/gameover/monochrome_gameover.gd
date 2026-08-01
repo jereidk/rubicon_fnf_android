@@ -24,7 +24,17 @@ func _on_animation_changed(_old: StringName, new: StringName) -> void :
 func _input(event: InputEvent) -> void :
 	if not boyfriend_scene.visible or event.is_echo() or not event.is_pressed():
 		return
-	if event.is_action(&"ui_accept"):
+
+	# ui_accept's default InputMap is Enter/Space/gamepad A - no mouse or
+	# touch binding, and Android's touch-emulates-mouse produces an
+	# InputEventMouseButton, not an action press - see
+	# safety_lullaby_gameover.gd's identical fix for the fuller story.
+	var is_tap: bool = (
+		event is InputEventScreenTouch
+		or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT)
+	)
+
+	if event.is_action(&"ui_accept") or is_tap:
 		animation_player.play(&"over_confirm")
 		await animation_player.animation_finished
 
