@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://c7espnyhcgtth" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="200"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/mechanic_touch_hitbox.gd" id="203"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/safety_lullaby/scripts/safety_lullaby_touch_controls.gd" id="204"]
 [ext_resource type="Resource" uid="uid://d2q7d3t7sexa3" path="res://lullaby_mod/songs/safety_lullaby/data/meta_safety_lullaby.tres" id="2"]
 [ext_resource type="Script" uid="uid://ca1311fn5lngq" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3"]
 [ext_resource type="SpriteFrames" uid="uid://ci7savexh1l02" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/HypnoIconDark.tres" id="4"]
@@ -3898,7 +3900,7 @@ metadata/_edit_lock_ = true
 
 [node name="MobileControls" parent="UILayer" instance=ExtResource("200")]
 
-[node name="SongTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("pause_button", "restart_button", "special_button", "mechanic_source")]
+[node name="SongTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("pause_button", "restart_button")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3909,8 +3911,6 @@ mouse_filter = 2
 script = ExtResource("201")
 pause_button = NodePath("PauseButton")
 restart_button = NodePath("RestartButton")
-special_button = NodePath("SpecialButton")
-mechanic_source = NodePath("../../LullabyPendulumServer")
 
 [node name="PauseButton" type="Button" parent="UILayer/SongTouchControls"]
 layout_mode = 0
@@ -3928,21 +3928,29 @@ offset_right = 276.0
 offset_bottom = 84.0
 text = "Restart"
 
-[node name="SpecialButton" type="Button" parent="UILayer/SongTouchControls"]
+[node name="SafetyLullabyTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "pendulum_server")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("204")
+hitbox = NodePath("PendulumHitbox")
+pendulum_server = NodePath("../../LullabyPendulumServer")
+
+[node name="PendulumHitbox" type="Control" parent="UILayer/SafetyLullabyTouchControls"]
 visible = false
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -80.0
-offset_top = 24.0
-offset_right = 80.0
-offset_bottom = 84.0
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.2
 grow_horizontal = 2
-text = "TAP!"
+script = ExtResource("203")
+action = &"lullaby_special"
 
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="TranceShaders" method="_on_lullaby_pendulum_server_mechanic_failed"]
-[connection signal="start_changed" from="LullabyPendulumServer" to="UILayer/SongTouchControls" method="_on_mechanic_state_changed"]
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="HealthModule" method="emit_signal" flags=6 binds= [&"health_depleted"]]
 [connection signal="health_depleted" from="HealthModule" to="TranceShaders" method="_on_health_module_health_depleted"]
 
