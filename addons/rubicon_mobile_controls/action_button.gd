@@ -10,6 +10,14 @@ class_name RubiconActionButton
 
 @export var action: StringName = &"ui_accept"
 
+## Optional: bypass the action/raycast system entirely and call this area's
+## trigger() straight away instead. For a contextual button that always
+## means one specific, unambiguous thing while visible (e.g. "Power" for
+## the TV's power console) - no aiming involved, unlike [member action]
+## dispatching "RightClick" for MouseController's raycast to pick up
+## whatever it happens to be pointed at.
+@export var direct_target: TriggerArea3D
+
 var _flash_tween: Tween
 
 ## Optional: only show this button while this bool property is true (e.g.
@@ -61,6 +69,11 @@ func _compute_visible() -> bool:
 	return v
 
 func _dispatch() -> void:
+	if direct_target != null:
+		direct_target.area_triggered.emit()
+		direct_target.trigger()
+		return
+
 	var press := InputEventAction.new()
 	press.action = action
 	press.pressed = true
