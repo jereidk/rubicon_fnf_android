@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bqkjiwokrcvo"]
 
 [ext_resource type="Script" uid="uid://b3p4arwnoxr8e" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gd" id="1"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/quality_gated_scene_loader.gd" id="303"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/menu_touch_controls.tscn" id="202"]
 [ext_resource type="Resource" uid="uid://4l7ftjieh7in" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2"]
 [ext_resource type="Resource" uid="uid://dcnjvtc5155m2" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3"]
@@ -10750,58 +10751,9 @@ environment = SubResource("Environment_w8hxk")
 
 [node name="Lights" type="Node3D" parent="Environment" unique_id=976740774]
 
-[node name="FCandle" type="OmniLight3D" parent="Environment/Lights" unique_id=276614979]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0810246, 1.7814702, 1.6828707)
-light_color = Color(1, 0.64193666, 0.44198054, 1)
-light_energy = 0.443
-light_bake_mode = 1
-shadow_opacity = 0.55
-omni_range = 3.327
-
-[node name="BCandle" type="OmniLight3D" parent="Environment/Lights" unique_id=1081363352]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5458422, 2.3767786, -1.4856821)
-light_color = Color(1, 0.64193666, 0.44198054, 1)
-light_energy = 0.416
-light_indirect_energy = 1.489
-light_bake_mode = 1
-omni_range = 2.725
-
-[node name="LCandle1" type="OmniLight3D" parent="Environment/Lights" unique_id=1944365340]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5003612, 1.3501202, 4.3081303)
-light_color = Color(1, 0.64193666, 0.44198054, 1)
-light_energy = 0.765
-light_volumetric_fog_energy = 1.25
-light_bake_mode = 1
-shadow_caster_mask = 4294967263
-omni_range = 1.479
-
-[node name="LCandle2" type="OmniLight3D" parent="Environment/Lights" unique_id=507677073]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9420419, 1.2844073, 4.2351093)
-light_color = Color(1, 0.64193666, 0.44198054, 1)
-light_energy = 0.52
-light_volumetric_fog_energy = 1.25
-light_bake_mode = 1
-shadow_caster_mask = 4294967263
-omni_range = 1.519
-
-[node name="LCandle3" type="OmniLight3D" parent="Environment/Lights" unique_id=743049919]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9915078, 1.318442, 3.161731)
-light_color = Color(1, 0.64193666, 0.44198054, 1)
-light_energy = 0.615
-light_volumetric_fog_energy = 1.25
-light_bake_mode = 1
-shadow_caster_mask = 4294967263
-omni_range = 3.375
-
-[node name="RCandle1" type="OmniLight3D" parent="Environment/Lights" unique_id=1854045506]
-transform = Transform3D(-0.95245963, 0, -0.30466476, 0, 1, 0, 0.30466476, 0, -0.95245963, 2.719213, 1.9520638, 2.8141181)
-light_color = Color(1, 0.6431373, 0.44313726, 1)
-light_energy = 0.765
-light_volumetric_fog_energy = 1.25
-light_bake_mode = 1
-shadow_caster_mask = 4294967263
-omni_range = 0.961
-omni_attenuation = 0.606
+[node name="DecorativeCandleLightsLoader" type="Node3D" parent="Environment/Lights"]
+script = ExtResource("303")
+optional_scene_path = "res://lullaby_mod/rooms/collector_shop_decorative_lights.tscn"
 
 [node name="AMBLight1" type="SpotLight3D" parent="Environment/Lights" unique_id=1498008427]
 transform = Transform3D(-0.44114554, 0, 0.8974356, 0, 1, 0, -0.8974356, 0, -0.44114554, -2.702867, 1.7842528, 6.130081)
