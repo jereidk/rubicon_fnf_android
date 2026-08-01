@@ -196,7 +196,6 @@
 [ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
 [ext_resource type="Script" uid="uid://btrjxrci3pbix" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd" id="193"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/touch_aim_reticle.gd" id="300"]
-[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_console_entry.gd" id="301"]
 
 [sub_resource type="Animation" id="Animation_x4yal"]
 length = 0.001
@@ -10956,13 +10955,12 @@ shape = SubResource("BoxShape3D_dk0q3")
 debug_color = Color(0, 0.60038817, 0, 0.21200001)
 debug_fill = false
 
-[node name="FocusAreaRight" type="Area3D" parent="Environment/Areas" unique_id=267682817 node_paths=PackedStringArray("shop", "sequences", "console_area")]
+[node name="FocusAreaRight" type="Area3D" parent="Environment/Areas" unique_id=267682817 node_paths=PackedStringArray("shop", "sequences")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9254525, 1.8691325, 3.6193552)
-script = ExtResource("301")
+script = ExtResource("126")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 animation_name = &"focus_right"
-console_area = NodePath("../FocusConsole")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Areas/FocusAreaRight" unique_id=139735045]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0035524368, 0.06859326, 0.008648872)
