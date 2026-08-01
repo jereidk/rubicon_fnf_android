@@ -28,6 +28,17 @@ var _flash_tween: Tween
 @export var visible_property2: StringName = &""
 
 func _ready() -> void:
+	# A Button grabs GUI focus on touch by default. Once this button holds
+	# focus, RubiconVirtualDPad's ui_up/ui_down/ui_left/ui_right presses get
+	# consumed by Godot's own focus-navigation (moving focus between
+	# Controls) instead of reaching whatever the dpad is actually supposed
+	# to drive - and a focused OK button re-absorbs the ui_accept event
+	# _dispatch() synthesizes below into its own default "activate on
+	# ui_accept" handling instead of it reaching the real target, making OK
+	# look like it does nothing. on_screen_keyboard.gd's buttons already
+	# have this same fix; this button just never got it.
+	focus_mode = Control.FOCUS_NONE
+
 	pressed.connect(_dispatch)
 	button_down.connect(_flash)
 
