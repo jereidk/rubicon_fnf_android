@@ -66,9 +66,17 @@ func _physics_process(_delta: float) -> void :
 			Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 		return
 
-	var mouse_position: = get_viewport().get_mouse_position()
+	# On touch, aim from screen center (i.e. wherever the joystick has left
+	# the camera looking) instead of the touch/emulated-mouse position -
+	# see _is_touch_controls_active()'s doc comment for why raw touch
+	# position can't drive this the way a real mouse cursor does.
+	var aim_position: Vector2
+	if _is_touch_controls_active():
+		aim_position = get_viewport().get_visible_rect().size * 0.5
+	else:
+		aim_position = get_viewport().get_mouse_position()
 
-	ray_cast.target_position = camera.project_ray_normal(mouse_position) * ray_length
+	ray_cast.target_position = camera.project_ray_normal(aim_position) * ray_length
 
 	if root:
 		ray_cast.collision_mask = root.state
@@ -140,12 +148,22 @@ func _get_look_direction() -> float:
 	if keyboard_direction != 0.0:
 		return keyboard_direction
 
-	var touch_controls_active: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true) \
-		and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
-	if touch_controls_active:
+	if _is_touch_controls_active():
 		return 0.0
 
 	return _get_mouse_edge_direction()
+
+
+## Android's "emulate mouse from touch" turns every screen tap into both a
+## mouse-position update and a real InputEventMouseButton - there's no
+## actual cursor, so neither can be trusted the way they would be with a
+## real mouse. Shared by _get_look_direction() (mouse-edge camera pan
+## fallback) and _physics_process()/_is_confirm_event() (raycast aim +
+## confirm-click), all three of which need to ignore that emulated input
+## on touch and defer to the joystick/OK button instead.
+func _is_touch_controls_active() -> bool:
+	return ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true) \
+		and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
 
 
 func _get_mouse_edge_direction() -> float:
@@ -246,7 +264,23 @@ func _input(event: InputEvent) -> void :
 	collider.trigger()
 
 
+## "RightClick" is bound to button_index=1 (left click, not right - a
+## naming leftover from the original desktop-only mod). On Android,
+## "emulate mouse from touch" fires that same left-click on every single
+## screen tap, so without the touch-controls check below, just touching
+## anywhere on the 3D view would instantly confirm/enter whatever's under
+## the finger - bypassing the joystick-aims / OK-confirms flow entirely.
+## On touch, only a real confirm - the OK button's synthetic
+## InputEventAction (see RubiconActionButton._dispatch()), or a physical
+## gamepad button - should count; the emulated InputEventMouseButton must
+## not.
 func _is_confirm_event(event: InputEvent) -> bool:
+	if _is_touch_controls_active():
+		return (
+			(event is InputEventAction or event is InputEventJoypadButton)
+			and event.is_action_pressed("RightClick")
+		)
+
 	return (
 		(event is InputEventMouseButton or event is InputEventJoypadButton)
 		and event.is_action_pressed("RightClick")

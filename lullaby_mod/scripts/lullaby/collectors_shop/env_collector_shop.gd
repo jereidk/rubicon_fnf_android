@@ -34,6 +34,16 @@ static var current_area: FocusArea3D:
 		if value != ShopStates.FREE_LOOK:
 			_idle_timer = 0.0
 
+		# The touch overlay's OK button is shared across every active
+		# state (see RubiconMenuTouchControls' own doc comment - one
+		# persistent instance, not swapped per sub-state). During
+		# FREE_LOOK it needs to fire MouseController's 3D area-select
+		# confirm ("RightClick") instead of its normal menu confirm
+		# (ui_accept, still correct once a sub-area/menu is FOCUSED).
+		if touch_confirm_button != null:
+			touch_confirm_button.action = &"RightClick" if value == ShopStates.FREE_LOOK else &"ui_accept"
+
+@export var touch_confirm_button: RubiconActionButton
 @export var mouse_controller: MouseController
 @export var sequence_controller: ShopSequences
 @export var voiceline: AudioStreamPlayer3D
@@ -79,6 +89,13 @@ signal voice_interrupted()
 func _ready() -> void :
 	current_area = null
 	last_trigger = null
+
+	# Exported NodePaths (touch_confirm_button included) aren't guaranteed
+	# resolved yet when state's own setter first ran during scene
+	# deserialization - re-run it now that every @export is populated, so
+	# touch_confirm_button.action reliably reflects the initial state
+	# instead of only updating on the first later change.
+	state = state
 
 
 	LullabyGameoverModule.has_died = false

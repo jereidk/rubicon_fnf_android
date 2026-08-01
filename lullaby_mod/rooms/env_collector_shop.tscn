@@ -9667,9 +9667,10 @@ _data = {
 &"precache": SubResource("Animation_6duev")
 }
 
-[node name="CollectorShop" type="Node3D" unique_id=540830179 node_paths=PackedStringArray("mouse_controller", "sequence_controller", "voiceline", "dialogue", "entry_voicelines", "camera", "screen_transitions", "fake_candle_shadow")]
+[node name="CollectorShop" type="Node3D" unique_id=540830179 node_paths=PackedStringArray("touch_confirm_button", "mouse_controller", "sequence_controller", "voiceline", "dialogue", "entry_voicelines", "camera", "screen_transitions", "fake_candle_shadow")]
 script = ExtResource("1")
 state = 1
+touch_confirm_button = NodePath("UI/Control/TouchControls/AcceptButton")
 mouse_controller = NodePath("MouseController")
 sequence_controller = NodePath("Sequences")
 voiceline = NodePath("Sequences/Voiceline")
