@@ -18,6 +18,7 @@ config/name="Friday Night Funkin': Lullaby"
 run/main_scene="res://menus/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://benm23nk1o2jb"
+config/quit_on_go_back=false
 
 [audio]
 
@@ -26,6 +27,7 @@ buses/default_bus_layout="uid://dg07spmwy57em"
 [autoload]
 
 RubiconTouchInput="*res://addons/rubicon_mobile_controls/touch_input_handler.gd"
+RubiconNativeBackButton="*res://addons/rubicon_mobile_controls/native_back_button_handler.gd"
 ErrorHandler="*res://lullaby_mod/scripts/lullaby/lullaby_error_handler.gd"
 SceneChanger="*res://menus/scene_changer.gd"
 Settings="*res://menus/settings.gd"
