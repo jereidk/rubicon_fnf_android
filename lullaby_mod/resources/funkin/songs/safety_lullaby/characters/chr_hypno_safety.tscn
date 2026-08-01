@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dqqqiv8d0q8gc" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="2"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="3"]
 [ext_resource type="AnimationLibrary" uid="uid://b8gl0stf13mx3" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/hypno_world_LIBRARY.res" id="4"]
 [ext_resource type="Script" uid="uid://dos8amtrpxdy8" path="res://lullaby_mod/scripts/lullaby/mechanics/safety_lullaby/lullaby_pendulum.gd" id="5"]
 [ext_resource type="Texture2D" uid="uid://burgn8gikum6l" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/teenulum_blurred.png" id="6"]
@@ -276,13 +275,6 @@ _data = {
 &"initial": SubResource("Animation_t43g5"),
 &"regular": SubResource("Animation_nqy2n")
 }
-
-[sub_resource type="Resource" id="Resource_nqy2n"]
-script = ExtResource("3")
-folder_path = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/"
-clip_texture_uvs = false
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="Animation" id="Animation_t0htw"]
 length = 0.001
@@ -1029,7 +1021,7 @@ light_mask = 81
 position = Vector2(-230.00002, -538.46155)
 script = ExtResource("2")
 symbol = "Hypno Sprites/Idle Pose"
-atlases = [SubResource("Resource_nqy2n")]
+atlas = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite" unique_id=2034205607]
 libraries/ = SubResource("AnimationLibrary_t0htw")

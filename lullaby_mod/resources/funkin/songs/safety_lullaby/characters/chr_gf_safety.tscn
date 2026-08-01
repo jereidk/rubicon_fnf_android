@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dqqqiv8d0q8gc" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="3"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4"]
 [ext_resource type="AnimationLibrary" uid="uid://bm0175y8ncrkx" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/gf_LIBRARY.res" id="5"]
 
 [sub_resource type="Animation" id="Animation_n5ebw"]
@@ -264,13 +263,6 @@ _data = {
 &"regular": SubResource("Animation_mqjs7"),
 &"trance": SubResource("Animation_n6gnp")
 }
-
-[sub_resource type="Resource" id="Resource_08hki"]
-script = ExtResource("4")
-folder_path = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
-clip_texture_uvs = false
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="Animation" id="Animation_mft5y"]
 length = 0.001
@@ -890,7 +882,7 @@ position = Vector2(-263, -636)
 scale = Vector2(1.5, 1.5)
 script = ExtResource("3")
 symbol = "idle"
-atlases = [SubResource("Resource_08hki")]
+atlas = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1566269538]
