@@ -6,22 +6,19 @@ extends Node
 ## Cabinet of Novelties console settings screens work against real property
 ## names via Settings.get(property)/Settings.set(property, value).
 ##
-## The QualityPreset enum/apply_quality_preset()/key_bindings block below is
-## Rubicon's own First Boot Settings screen (2D onboarding), kept separate
-## from Lullaby's graphics_/audio_/game_ properties since it predates this
-## port and First Boot Settings is deliberately simpler than the full console.
+## The key_bindings block below is Rubicon's own First Boot Settings screen
+## (2D onboarding), kept separate from Lullaby's graphics_/audio_/game_
+## properties since it predates this port. Its quality preset picker uses
+## the same LullabyQualityPreset resources as the full console instead of
+## its own separate system now - see PRESET_VERY_LOW etc. below.
 
 signal applied
 signal volume_changed(bus: StringName, value: float)
 
 # --- First Boot Settings (Rubicon's onboarding screen) ---
 
-enum QualityPreset { CUSTOM, VERY_LOW, LOW, MEDIUM, HIGH }
-
 signal key_binding_changed(lane: int, keycode: Key)
 signal special_binding_changed(keycode: Key)
-
-var quality_preset: QualityPreset = QualityPreset.HIGH
 
 var key_bindings: Dictionary = {
 	0: KEY_Z,
@@ -30,24 +27,6 @@ var key_bindings: Dictionary = {
 	3: KEY_K,
 }
 var special_binding: Key = KEY_SPACE
-
-func apply_quality_preset(preset: QualityPreset) -> void:
-	quality_preset = preset
-	match preset:
-		QualityPreset.VERY_LOW, QualityPreset.LOW:
-			# This screen only ever toggles 2D MSAA/screen-space AA - there's
-			# nothing further to strip for VERY_LOW here (no render_scale,
-			# shadow, or post-processing knobs at this level; those live in
-			# the full console settings' LullabyQualityPreset system below,
-			# deliberately kept separate - see this file's own doc comment).
-			get_viewport().msaa_2d = Viewport.MSAA_DISABLED
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
-		QualityPreset.MEDIUM:
-			get_viewport().msaa_2d = Viewport.MSAA_DISABLED
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
-		QualityPreset.HIGH:
-			get_viewport().msaa_2d = Viewport.MSAA_2X
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 
 func set_key_binding(lane: int, keycode: Key) -> void:
 	key_bindings[lane] = keycode
