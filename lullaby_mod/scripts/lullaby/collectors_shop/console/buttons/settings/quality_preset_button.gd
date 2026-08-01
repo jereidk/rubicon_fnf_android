@@ -74,3 +74,11 @@ func _apply_preset_for_index() -> void :
 			Settings.PRESET_MEDIUM.apply(Settings)
 		3:
 			Settings.PRESET_HIGH.apply(Settings)
+
+	# Sibling settings buttons (toggle_button.gd, incremental_button.gd,
+	# list_button.gd, input_button.gd) all apply live on change - this one
+	# only wrote into the Settings singleton's vars, leaving the actual
+	# render_scale/shadow/AA effect invisible until the player happened to
+	# back all the way out of the Settings submenu (console.gd's
+	# back_out(), the only other apply_settings() caller here).
+	Settings.apply_settings()
