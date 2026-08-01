@@ -41,11 +41,13 @@ var flags: Dictionary[StringName, bool] = {
 	&"safety_lullaby_failed_seen": false, 
 	&"safety_lullaby_passed_seen": false, 
 
-	&"chimera_beaten": false, 
-	&"chimera_unlocked": false, 
-	&"chimera_2nd_phase_first": false, 
-	&"chimera_failed_seen": false, 
-	&"chimera_passed_seen": false, 
+	&"chimera_beaten": false,
+	&"chimera_unlocked": false,
+	&"chimera_2nd_phase_first": false,
+	&"chimera_failed_seen": false,
+	&"chimera_passed_seen": false,
+
+	&"showcase_mode_unlocked": false,
 
 	&"console_area_seen": false, 
 	&"console_boot_seen": false, 

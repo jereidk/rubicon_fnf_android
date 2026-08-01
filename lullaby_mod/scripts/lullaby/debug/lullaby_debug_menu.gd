@@ -26,8 +26,7 @@ func _on_requested_shop() -> void :
 func _on_requested_warning() -> void :
 	SceneChanger.change_to(warning_scene_path, &"default")
 
-func _on_requested_benchmark(precache: bool) -> void :
-	ShopBenchmark.precache_shaders = precache
+func _on_requested_benchmark(_precache: bool) -> void :
 	SceneChanger.change_to(benchmark_scene_path, &"hypno")
 
 func _on_request_settings() -> void :
