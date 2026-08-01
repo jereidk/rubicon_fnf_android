@@ -5,7 +5,6 @@
 [ext_resource type="AnimationLibrary" uid="uid://bda7g8rjoiavc" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/chr_goldp1_frames_lbr.tres" id="3"]
 [ext_resource type="AudioStream" uid="uid://ciit5wnycpere" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_gold_vomit.ogg" id="4"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="5"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="6"]
 [ext_resource type="AnimationLibrary" uid="uid://cg2y8qkxkrsw3" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/chr_goldp1_atlas_LIBRARY.res" id="7"]
 [ext_resource type="AnimationLibrary" uid="uid://bjgf2pjpo4pu3" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/chr_goldp1_jumpscare_library.tres" id="8"]
 [ext_resource type="AnimationLibrary" uid="uid://2a6if3bweoly" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/chr_goldp1_spe_tex_library.tres" id="9"]
@@ -4002,18 +4001,6 @@ _data = {
 &"head_barf_1": SubResource("Animation_7m8ag")
 }
 
-[sub_resource type="Resource" id="Resource_h2dcq"]
-script = ExtResource("6")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
-[sub_resource type="Resource" id="Resource_8qrsk"]
-script = ExtResource("6")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/turnaround/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
 [sub_resource type="Animation" id="Animation_y81tm"]
 length = 0.001
 tracks/0/type = "value"
@@ -4125,7 +4112,7 @@ volume_db = 6.0
 position = Vector2(-419, -390)
 script = ExtResource("5")
 symbol = "_EXPORT/Mono head rip"
-atlases = [SubResource("Resource_h2dcq")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/BodySymbol" unique_id=843395131]
@@ -4135,7 +4122,7 @@ libraries/goldp1_atlas_LIBRARY = ExtResource("7")
 position = Vector2(-511, -605)
 script = ExtResource("5")
 symbol = "_EXPORT/Mono idle head"
-atlases = [SubResource("Resource_h2dcq")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/HeadSymbol" unique_id=1306259301]
@@ -4146,7 +4133,7 @@ position = Vector2(-407, -117)
 script = ExtResource("5")
 symbol = "_MISC/mono backshot idle"
 offset = Vector2(-562.595, -457.83)
-atlases = [SubResource("Resource_8qrsk")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/turnaround/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/AuraPose" unique_id=1292084778]

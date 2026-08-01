@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://bii3kj6n8l3xg" path="res://lullaby_mod/scripts/lullaby/mechanics/monochrome/typing_challenge.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://dd2vynsphtpri" path="res://lullaby_mod/resources/funkin/songs/monochrome/scenes/mch_unown.tscn" id="2"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="3"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4"]
 [ext_resource type="Texture2D" uid="uid://bjup42kts7aij" path="res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/tex_mono_celebi_note.png" id="5"]
 [ext_resource type="AudioStream" uid="uid://co4ww7fx0p1a2" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_celebi_pulse1.wav" id="6"]
 [ext_resource type="AudioStream" uid="uid://db5vnxlm46p48" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_celeby_pulse2.wav" id="7"]
@@ -12,18 +11,6 @@
 [sub_resource type="Curve" id="Curve_gggye"]
 _data = [Vector2(0, 0), 0.0, 0.3159763, 0, 0, Vector2(0.49812737, 0.49285716), 3.367506, 3.367506, 0, 0, Vector2(0.7602997, 1), 0.0064551276, 0.0, 0, 0]
 point_count = 3
-
-[sub_resource type="Resource" id="Resource_h1ord"]
-script = ExtResource("4")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
-[sub_resource type="Resource" id="Resource_p51hw"]
-script = ExtResource("4")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="Animation" id="Animation_q5x1p"]
 length = 1.0416667
@@ -433,12 +420,6 @@ _data = {
 &"RESET": SubResource("Animation_ulspn")
 }
 
-[sub_resource type="Resource" id="Resource_wckrq"]
-script = ExtResource("4")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/unown/flyby/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
 [sub_resource type="Animation" id="Animation_5w2d5"]
 length = 1.3333334
 step = 0.041666668
@@ -546,7 +527,7 @@ position = Vector2(344, 498)
 script = ExtResource("3")
 frame = 180
 centered = false
-atlases = [SubResource("Resource_h1ord")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="TickPulse" type="Node2D" parent="Celebi" unique_id=379908661]
@@ -555,7 +536,7 @@ scale = Vector2(0.99999994, 0.99999994)
 script = ExtResource("3")
 symbol = "Export/Celebi tick blast"
 frame = 24
-atlases = [SubResource("Resource_p51hw")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Celebi/TickPulse" unique_id=1456615111]
@@ -597,7 +578,7 @@ scale = Vector2(1.5, 1.5)
 script = ExtResource("3")
 symbol = " "
 frame = 31
-atlases = [SubResource("Resource_wckrq")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/mechanics/unown/flyby/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Unowns" unique_id=593638639]

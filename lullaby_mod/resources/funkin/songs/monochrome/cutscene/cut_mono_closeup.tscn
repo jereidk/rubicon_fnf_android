@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://h7ym5vmo82cv" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/cut_mono_pre_blood_tex_0.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://bxt4cnlmcy4e5" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/cut_mono_pre_blood_tex_1.png" id="5"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="6"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="7"]
 [ext_resource type="AnimationLibrary" uid="uid://imdn0mhnf8h1" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/unown_vultures/cut_mono_pre_blood_unown_vultures_LIBRARY.res" id="8"]
 [ext_resource type="Texture2D" uid="uid://du4ysalhynee0" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/lookingup/cut_mono_lookingup_bg.png" id="9"]
 [ext_resource type="SpriteFrames" uid="uid://6ecwn0qmd6n8" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_mono_looking_up.tres" id="10"]
@@ -939,12 +938,6 @@ animations = [{
 "speed": 1.0
 }]
 
-[sub_resource type="Resource" id="Resource_g4v7s"]
-script = ExtResource("7")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/unown_vultures/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_a0m0l"]
 atlas = ExtResource("5")
 region = Rect2(967, 3622, 525, 260)
@@ -1058,18 +1051,6 @@ _data = {
 &"Mono_crawl_": SubResource("Animation_8uwts"),
 &"RESET": SubResource("Animation_bwxs2")
 }
-
-[sub_resource type="Resource" id="Resource_sn8ly"]
-script = ExtResource("7")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnowns1/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
-
-[sub_resource type="Resource" id="Resource_5e8ga"]
-script = ExtResource("7")
-folder_path = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnown2/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yy0vh"]
 atlas = ExtResource("4")
@@ -4197,7 +4178,7 @@ position = Vector2(3.000061, 3.9932861)
 script = ExtResource("6")
 symbol = "WhatAnIndividual"
 offset = Vector2(64, -6)
-atlases = [SubResource("Resource_g4v7s")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/unown_vultures/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CrawlBack/Vultures" unique_id=1718588648]
@@ -4215,12 +4196,12 @@ libraries/ = SubResource("AnimationLibrary_wr1if")
 [node name="Frontowns1" type="Node2D" parent="CrawlBack" unique_id=1317040778]
 script = ExtResource("6")
 symbol = " "
-atlases = [SubResource("Resource_sn8ly")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnowns1/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="Frontowns2" type="Node2D" parent="CrawlBack" unique_id=790940945]
 script = ExtResource("6")
-atlases = [SubResource("Resource_5e8ga")]
+atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnown2/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="CloserUp" type="Control" parent="." unique_id=1548468611]

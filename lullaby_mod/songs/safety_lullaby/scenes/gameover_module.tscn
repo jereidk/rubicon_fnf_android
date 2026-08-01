@@ -7,7 +7,6 @@
 [ext_resource type="AudioStream" uid="uid://bpaf451our6e5" path="res://lullaby_mod/resources/audio/vox/reactives/re_baby_mode/dying/vox_collector_babydie_4.ogg" id="5"]
 [ext_resource type="Texture2D" uid="uid://y17rm48cpxhe" path="res://lullaby_mod/assets/funkin/safety_lullaby/gameover/hypno_spiral.png" id="6"]
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="7"]
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="8"]
 [ext_resource type="AnimationLibrary" uid="uid://bm0175y8ncrkx" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/gf_LIBRARY.res" id="9"]
 [ext_resource type="SpriteFrames" uid="uid://dtr25bbui8vqg" path="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/bgs/main_bgs.tres" id="10"]
 [ext_resource type="Texture2D" uid="uid://6e4282hgda1m" path="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/bgs/darkness_gradient.png" id="11"]
@@ -18,12 +17,6 @@
 [ext_resource type="AudioStream" uid="uid://bajcmumvgvbvu" path="res://lullaby_mod/resources/audio/mus/mus_gameover_sl_loop.ogg" id="16"]
 [ext_resource type="AudioStream" uid="uid://k3rg0o8qt6e5" path="res://lullaby_mod/resources/audio/mus/mus_gameover_sl.ogg" id="17"]
 [ext_resource type="AudioStream" uid="uid://dddhb08g0lh66" path="res://lullaby_mod/resources/audio/sfx/safety_lullaby/sfx_sl_retry.ogg" id="18"]
-
-[sub_resource type="Resource" id="Resource_igypm"]
-script = ExtResource("8")
-folder_path = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
-format = "adobe"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rk0es"]
 blend_mode = 1
@@ -732,7 +725,7 @@ scale = Vector2(1.225, 1.225)
 script = ExtResource("7")
 symbol = "gameover_intro"
 frame = 84
-atlases = [SubResource("Resource_igypm")]
+atlas = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GameOver/InitialScene/AnimateSymbol" unique_id=704275565]
