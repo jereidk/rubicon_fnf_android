@@ -192,18 +192,11 @@ jobs:
 
       - name: Build Android template and package APK
         if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        env:
+          ANDROID_HOME: /root/.android/sdk
+          ANDROID_SDK_ROOT: /root/.android/sdk
+          ANDROID_NDK_ROOT: /root/.android/sdk/ndk/${{ env.ANDROID_NDK }}
         run: |
-          # ~/.android/sdk (below) resolves via the shell at runtime, unlike
-          # a hardcoded env: block above which is NOT shell-expanded - an
-          # earlier version of this step hardcoded /root/.android/sdk, which
-          # doesn't exist on the default ubuntu-latest runner (user "runner",
-          # home /home/runner, not /root). That silently broke NDK detection:
-          # SCons's android/detect.py can_build() check failed to find the
-          # NDK and just omitted "android" from the list of buildable
-          # platforms entirely, rather than erroring on a bad path directly.
-          export ANDROID_HOME=~/.android/sdk
-          export ANDROID_SDK_ROOT=~/.android/sdk
-          export ANDROID_NDK_ROOT=~/.android/sdk/ndk/${{ env.ANDROID_NDK }}
           pip install scons==4.10.1
           cd godot-src
           scons platform=android target=template_debug arch=arm64 production=yes -j$(nproc) cache_path=${{ github.workspace }}/.scons-cache
