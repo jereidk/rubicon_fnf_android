@@ -1,0 +1,455 @@
+diff --git a/core/io/image.cpp b/core/io/image.cpp
+index 93ba6f0..d64f823 100644
+--- a/core/io/image.cpp
++++ b/core/io/image.cpp
+@@ -80,6 +80,10 @@ const char *Image::format_names[Image::FORMAT_MAX] = {
+ 	"ASTC_4x4_HDR",
+ 	"ASTC_8x8",
+ 	"ASTC_8x8_HDR",
++	"ASTC_10x10",
++	"ASTC_10x10_HDR",
++	"ASTC_12x12",
++	"ASTC_12x12_HDR",
+ 	"R16",
+ 	"RG16",
+ 	"RGB16",
+@@ -211,6 +215,14 @@ int Image::get_format_pixel_size(Format p_format) {
+ 			return 1;
+ 		case FORMAT_ASTC_8x8_HDR:
+ 			return 1;
++		case FORMAT_ASTC_10x10:
++			return 1;
++		case FORMAT_ASTC_10x10_HDR:
++			return 1;
++		case FORMAT_ASTC_12x12:
++			return 1;
++		case FORMAT_ASTC_12x12_HDR:
++			return 1;
+ 		case FORMAT_R16:
+ 			return 2;
+ 		case FORMAT_RG16:
+@@ -275,6 +287,16 @@ void Image::get_format_min_pixel_size(Format p_format, int &r_w, int &r_h) {
+ 			r_w = 8;
+ 			r_h = 8;
+ 		} break;
++		case FORMAT_ASTC_10x10:
++		case FORMAT_ASTC_10x10_HDR: {
++			r_w = 10;
++			r_h = 10;
++		} break;
++		case FORMAT_ASTC_12x12:
++		case FORMAT_ASTC_12x12_HDR: {
++			r_w = 12;
++			r_h = 12;
++		} break;
+ 		default: {
+ 			r_w = 1;
+ 			r_h = 1;
+@@ -328,6 +350,14 @@ int Image::get_format_block_size(Format p_format) {
+ 		case FORMAT_ASTC_8x8_HDR: {
+ 			return 8;
+ 		}
++		case FORMAT_ASTC_10x10:
++		case FORMAT_ASTC_10x10_HDR: {
++			return 10;
++		}
++		case FORMAT_ASTC_12x12:
++		case FORMAT_ASTC_12x12_HDR: {
++			return 12;
++		}
+ 		default: {
+ 		}
+ 	}
+@@ -335,14 +365,45 @@ int Image::get_format_block_size(Format p_format) {
+ 	return 1;
+ }
+ 
++int Image::get_format_bytes_per_block(Format p_format) {
++	switch (p_format) {
++		// ASTC always stores exactly 16 bytes/block regardless of block
++		// footprint (part of the format spec) - true for every ASTC format,
++		// but spelled out explicitly here (rather than falling into the
++		// general case below) since it's the reason these three block sizes
++		// can share one code path with 4x4/8x8 despite not being expressible
++		// as a power-of-two pixel_rshift.
++		case FORMAT_ASTC_4x4:
++		case FORMAT_ASTC_4x4_HDR:
++		case FORMAT_ASTC_8x8:
++		case FORMAT_ASTC_8x8_HDR:
++		case FORMAT_ASTC_10x10:
++		case FORMAT_ASTC_10x10_HDR:
++		case FORMAT_ASTC_12x12:
++		case FORMAT_ASTC_12x12_HDR: {
++			return 16;
++		}
++		default: {
++			// Every other compressed format's byte-per-block count is fully
++			// determined by its existing (block_size, pixel_size, pixel_rshift)
++			// triple - derive it instead of re-stating it a third time, so this
++			// is provably identical to the pre-existing pixsize>>rshift result
++			// for every format that isn't one of the three above.
++			int block = get_format_block_size(p_format);
++			int pixel_size = get_format_pixel_size(p_format);
++			int pixel_rshift = get_format_pixel_rshift(p_format);
++			return (block * block * pixel_size) >> pixel_rshift;
++		}
++	}
++}
++
+ void Image::_get_mipmap_offset_and_size(int p_mipmap, int64_t &r_offset, int &r_width, int &r_height) const {
+ 	int w = width;
+ 	int h = height;
+ 	int64_t ofs = 0;
+ 
+-	int pixel_size = get_format_pixel_size(format);
+-	int pixel_rshift = get_format_pixel_rshift(format);
+ 	int block = get_format_block_size(format);
++	int bytes_per_block = get_format_bytes_per_block(format);
+ 	int minw, minh;
+ 	get_format_min_pixel_size(format, minw, minh);
+ 
+@@ -350,10 +411,10 @@ void Image::_get_mipmap_offset_and_size(int p_mipmap, int64_t &r_offset, int &r_
+ 		int bw = w % block != 0 ? w + (block - w % block) : w;
+ 		int bh = h % block != 0 ? h + (block - h % block) : h;
+ 
+-		int64_t s = bw * bh;
++		// bw/bh are already rounded up to exact multiples of `block`, so this
++		// block count is always an exact integer division.
++		int64_t s = (int64_t)(bw / block) * (bh / block) * bytes_per_block;
+ 
+-		s *= pixel_size;
+-		s >>= pixel_rshift;
+ 		ofs += s;
+ 		w = MAX(minw, w >> 1);
+ 		h = MAX(minh, h >> 1);
+@@ -1907,9 +1968,8 @@ int64_t Image::_get_dst_image_size(int p_width, int p_height, Format p_format, i
+ 	// In this function, mipmap 0 represents the first mipmap instead of the original texture.
+ 	int mm = 0;
+ 
+-	int pixsize = get_format_pixel_size(p_format);
+-	int pixshift = get_format_pixel_rshift(p_format);
+ 	int block = get_format_block_size(p_format);
++	int bytes_per_block = get_format_bytes_per_block(p_format);
+ 
+ 	// Technically, you can still compress up to 1 px no matter the format, so commenting this.
+ 	//int minw, minh;
+@@ -1920,10 +1980,9 @@ int64_t Image::_get_dst_image_size(int p_width, int p_height, Format p_format, i
+ 		int bw = w % block != 0 ? w + (block - w % block) : w;
+ 		int bh = h % block != 0 ? h + (block - h % block) : h;
+ 
+-		int64_t s = bw * bh;
+-
+-		s *= pixsize;
+-		s >>= pixshift;
++		// bw/bh are already rounded up to exact multiples of `block`, so this
++		// block count is always an exact integer division.
++		int64_t s = (int64_t)(bw / block) * (bh / block) * bytes_per_block;
+ 
+ 		size += s;
+ 
+@@ -2921,7 +2980,7 @@ Error Image::decompress() {
+ 		_image_decompress_etc1(this);
+ 	} else if (format >= FORMAT_ETC2_R11 && format <= FORMAT_ETC2_RA_AS_RG && _image_decompress_etc2) {
+ 		_image_decompress_etc2(this);
+-	} else if (format >= FORMAT_ASTC_4x4 && format <= FORMAT_ASTC_8x8_HDR && _image_decompress_astc) {
++	} else if (format >= FORMAT_ASTC_4x4 && format <= FORMAT_ASTC_12x12_HDR && _image_decompress_astc) {
+ 		_image_decompress_astc(this);
+ 	} else {
+ 		return ERR_UNAVAILABLE;
+@@ -3991,6 +4050,10 @@ void Image::_bind_methods() {
+ 	BIND_ENUM_CONSTANT(FORMAT_ASTC_4x4_HDR);
+ 	BIND_ENUM_CONSTANT(FORMAT_ASTC_8x8);
+ 	BIND_ENUM_CONSTANT(FORMAT_ASTC_8x8_HDR);
++	BIND_ENUM_CONSTANT(FORMAT_ASTC_10x10);
++	BIND_ENUM_CONSTANT(FORMAT_ASTC_10x10_HDR);
++	BIND_ENUM_CONSTANT(FORMAT_ASTC_12x12);
++	BIND_ENUM_CONSTANT(FORMAT_ASTC_12x12_HDR);
+ 	BIND_ENUM_CONSTANT(FORMAT_R16);
+ 	BIND_ENUM_CONSTANT(FORMAT_RG16);
+ 	BIND_ENUM_CONSTANT(FORMAT_RGB16);
+@@ -4031,6 +4094,8 @@ void Image::_bind_methods() {
+ 
+ 	BIND_ENUM_CONSTANT(ASTC_FORMAT_4x4);
+ 	BIND_ENUM_CONSTANT(ASTC_FORMAT_8x8);
++	BIND_ENUM_CONSTANT(ASTC_FORMAT_10x10);
++	BIND_ENUM_CONSTANT(ASTC_FORMAT_12x12);
+ }
+ 
+ void Image::normal_map_to_xy() {
+@@ -4412,6 +4477,14 @@ uint32_t Image::get_format_component_mask(Format p_format) {
+ 			return rgba;
+ 		case FORMAT_ASTC_8x8_HDR:
+ 			return rgba;
++		case FORMAT_ASTC_10x10:
++			return rgba;
++		case FORMAT_ASTC_10x10_HDR:
++			return rgba;
++		case FORMAT_ASTC_12x12:
++			return rgba;
++		case FORMAT_ASTC_12x12_HDR:
++			return rgba;
+ 		case FORMAT_R16:
+ 			return r;
+ 		case FORMAT_RG16:
+diff --git a/core/io/image.h b/core/io/image.h
+index e6d101b..bb3fee0 100644
+--- a/core/io/image.h
++++ b/core/io/image.h
+@@ -111,6 +111,19 @@ public:
+ 		FORMAT_ASTC_4x4_HDR,
+ 		FORMAT_ASTC_8x8,
+ 		FORMAT_ASTC_8x8_HDR,
++		// Larger ASTC block footprints (fixed 16 bytes/block regardless of
++		// block size, same as 4x4/8x8 above) - not upstream Godot, added for
++		// smaller mobile VRAM/APK footprint at a real quality cost. See
++		// get_format_bytes_per_block()/get_format_block_size() below: the
++		// mipmap/data-size math for these is block-count based (bw/block *
++		// bh/block * bytes_per_block), not the pixel_size>>pixel_rshift
++		// shortcut upstream Godot uses for 4x4/8x8, which only works because
++		// those two happen to reduce to a power-of-two bits-per-pixel value
++		// (8bpp, 2bpp) - 10x10 (1.28bpp) and 12x12 (0.89bpp) do not.
++		FORMAT_ASTC_10x10,
++		FORMAT_ASTC_10x10_HDR,
++		FORMAT_ASTC_12x12,
++		FORMAT_ASTC_12x12_HDR,
+ 		FORMAT_R16,
+ 		FORMAT_RG16,
+ 		FORMAT_RGB16,
+@@ -148,6 +161,8 @@ public:
+ 	enum ASTCFormat {
+ 		ASTC_FORMAT_4x4,
+ 		ASTC_FORMAT_8x8,
++		ASTC_FORMAT_10x10,
++		ASTC_FORMAT_12x12,
+ 	};
+ 
+ 	enum BPTCFormat {
+@@ -395,6 +410,12 @@ public:
+ 	static int get_format_pixel_size(Format p_format);
+ 	static int get_format_pixel_rshift(Format p_format);
+ 	static int get_format_block_size(Format p_format);
++	// Bytes stored per single compressed block, independent of block pixel
++	// footprint - the general form of what get_format_pixel_size()'s
++	// pixel_size>>pixel_rshift trick approximates for formats where that
++	// happens to be an exact power-of-two shift. Needed for block sizes
++	// (10x10, 12x12) where it isn't. See _get_dst_image_size()'s use of this.
++	static int get_format_bytes_per_block(Format p_format);
+ 	static void get_format_min_pixel_size(Format p_format, int &r_w, int &r_h);
+ 
+ 	static int64_t get_image_data_size(int p_width, int p_height, Format p_format, bool p_mipmaps = false);
+diff --git a/drivers/gles3/storage/texture_storage.cpp b/drivers/gles3/storage/texture_storage.cpp
+index 83f8e89..f821ac9 100644
+--- a/drivers/gles3/storage/texture_storage.cpp
++++ b/drivers/gles3/storage/texture_storage.cpp
+@@ -961,6 +961,46 @@ Ref<Image> TextureStorage::_get_gl_image_and_format(const Ref<Image> &p_image, I
+ 				need_decompress = true;
+ 			}
+ 		} break;
++		case Image::FORMAT_ASTC_10x10: {
++			if (config->astc_supported) {
++				r_gl_internal_format = _EXT_COMPRESSED_RGBA_ASTC_10x10_KHR;
++				r_gl_format = GL_RGBA;
++				r_gl_type = GL_UNSIGNED_BYTE;
++				r_compressed = true;
++			} else {
++				need_decompress = true;
++			}
++		} break;
++		case Image::FORMAT_ASTC_10x10_HDR: {
++			if (config->astc_hdr_supported) {
++				r_gl_internal_format = _EXT_COMPRESSED_RGBA_ASTC_10x10_KHR;
++				r_gl_format = GL_RGBA;
++				r_gl_type = GL_UNSIGNED_BYTE;
++				r_compressed = true;
++			} else {
++				need_decompress = true;
++			}
++		} break;
++		case Image::FORMAT_ASTC_12x12: {
++			if (config->astc_supported) {
++				r_gl_internal_format = _EXT_COMPRESSED_RGBA_ASTC_12x12_KHR;
++				r_gl_format = GL_RGBA;
++				r_gl_type = GL_UNSIGNED_BYTE;
++				r_compressed = true;
++			} else {
++				need_decompress = true;
++			}
++		} break;
++		case Image::FORMAT_ASTC_12x12_HDR: {
++			if (config->astc_hdr_supported) {
++				r_gl_internal_format = _EXT_COMPRESSED_RGBA_ASTC_12x12_KHR;
++				r_gl_format = GL_RGBA;
++				r_gl_type = GL_UNSIGNED_BYTE;
++				r_compressed = true;
++			} else {
++				need_decompress = true;
++			}
++		} break;
+ 		default: {
+ 			ERR_FAIL_V_MSG(Ref<Image>(), vformat("The image format %d is not supported by the Compatibility renderer.", p_format));
+ 		}
+diff --git a/modules/astcenc/image_compress_astcenc.cpp b/modules/astcenc/image_compress_astcenc.cpp
+index c074f3e..1eed537 100644
+--- a/modules/astcenc/image_compress_astcenc.cpp
++++ b/modules/astcenc/image_compress_astcenc.cpp
+@@ -75,6 +75,22 @@ void _compress_astc(Image *r_img, Image::ASTCFormat p_format) {
+ 		}
+ 		block_x = 8;
+ 		block_y = 8;
++	} else if (p_format == Image::ASTCFormat::ASTC_FORMAT_10x10) {
++		if (is_hdr) {
++			target_format = Image::FORMAT_ASTC_10x10_HDR;
++		} else {
++			target_format = Image::FORMAT_ASTC_10x10;
++		}
++		block_x = 10;
++		block_y = 10;
++	} else if (p_format == Image::ASTCFormat::ASTC_FORMAT_12x12) {
++		if (is_hdr) {
++			target_format = Image::FORMAT_ASTC_12x12_HDR;
++		} else {
++			target_format = Image::FORMAT_ASTC_12x12;
++		}
++		block_x = 12;
++		block_y = 12;
+ 	}
+ 
+ 	// Compress image data and (if required) mipmaps.
+@@ -205,6 +221,26 @@ void _decompress_astc(Image *r_img) {
+ 			block_y = 8;
+ 			is_hdr = true;
+ 		} break;
++		case Image::FORMAT_ASTC_10x10: {
++			block_x = 10;
++			block_y = 10;
++			is_hdr = false;
++		} break;
++		case Image::FORMAT_ASTC_10x10_HDR: {
++			block_x = 10;
++			block_y = 10;
++			is_hdr = true;
++		} break;
++		case Image::FORMAT_ASTC_12x12: {
++			block_x = 12;
++			block_y = 12;
++			is_hdr = false;
++		} break;
++		case Image::FORMAT_ASTC_12x12_HDR: {
++			block_x = 12;
++			block_y = 12;
++			is_hdr = true;
++		} break;
+ 		default: {
+ 			ERR_FAIL_MSG(vformat("astcenc: Cannot decompress Image with a non-ASTC format: %s.", Image::get_format_name(src_format)));
+ 		} break;
+diff --git a/scene/resources/portable_compressed_texture.cpp b/scene/resources/portable_compressed_texture.cpp
+index 04eee9a..8946d11 100644
+--- a/scene/resources/portable_compressed_texture.cpp
++++ b/scene/resources/portable_compressed_texture.cpp
+@@ -47,7 +47,7 @@ static PortableCompressedTexture2D::CompressionMode get_expected_compression_mod
+ 		return PortableCompressedTexture2D::COMPRESSION_MODE_ETC2;
+ 	} else if (format >= Image::FORMAT_BPTC_RGBA && format <= Image::FORMAT_BPTC_RGBFU) {
+ 		return PortableCompressedTexture2D::COMPRESSION_MODE_BPTC;
+-	} else if (format >= Image::FORMAT_ASTC_4x4 && format <= Image::FORMAT_ASTC_8x8_HDR) {
++	} else if (format >= Image::FORMAT_ASTC_4x4 && format <= Image::FORMAT_ASTC_12x12_HDR) {
+ 		return PortableCompressedTexture2D::COMPRESSION_MODE_ASTC;
+ 	}
+ 	ERR_FAIL_V(PortableCompressedTexture2D::COMPRESSION_MODE_LOSSLESS);
+diff --git a/servers/rendering/renderer_rd/storage_rd/texture_storage.cpp b/servers/rendering/renderer_rd/storage_rd/texture_storage.cpp
+index c22f96e..e2618d8 100644
+--- a/servers/rendering/renderer_rd/storage_rd/texture_storage.cpp
++++ b/servers/rendering/renderer_rd/storage_rd/texture_storage.cpp
+@@ -1597,6 +1597,22 @@ RID TextureStorage::texture_create_from_native_handle(RSE::TextureType p_type, I
+ 			format = RD::DATA_FORMAT_ASTC_8x8_SFLOAT_BLOCK;
+ 			break;
+ 
++		case Image::FORMAT_ASTC_10x10:
++			format = RD::DATA_FORMAT_ASTC_10x10_UNORM_BLOCK;
++			break;
++
++		case Image::FORMAT_ASTC_10x10_HDR:
++			format = RD::DATA_FORMAT_ASTC_10x10_SFLOAT_BLOCK;
++			break;
++
++		case Image::FORMAT_ASTC_12x12:
++			format = RD::DATA_FORMAT_ASTC_12x12_UNORM_BLOCK;
++			break;
++
++		case Image::FORMAT_ASTC_12x12_HDR:
++			format = RD::DATA_FORMAT_ASTC_12x12_SFLOAT_BLOCK;
++			break;
++
+ 		default:
+ 			// Arbitrary fallback.
+ 			format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
+@@ -2752,6 +2768,70 @@ Ref<Image> TextureStorage::_validate_texture_format(const Ref<Image> &p_image, T
+ 			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
+ 
+ 		} break; // astc 8x8 HDR
++		case Image::FORMAT_ASTC_10x10: {
++			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_10x10_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
++				r_format.format = RD::DATA_FORMAT_ASTC_10x10_UNORM_BLOCK;
++				r_format.format_srgb = RD::DATA_FORMAT_ASTC_10x10_SRGB_BLOCK;
++			} else {
++				//not supported, reconvert
++				image->decompress();
++				r_format.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
++				r_format.format_srgb = RD::DATA_FORMAT_R8G8B8A8_SRGB;
++				image->convert(Image::FORMAT_RGBA8);
++			}
++			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
++			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
++			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
++			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
++
++		} break; // astc 10x10
++		case Image::FORMAT_ASTC_10x10_HDR: {
++			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_10x10_SFLOAT_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
++				r_format.format = RD::DATA_FORMAT_ASTC_10x10_SFLOAT_BLOCK;
++			} else {
++				//not supported, reconvert
++				image->decompress();
++				r_format.format = RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
++				image->convert(Image::FORMAT_RGBAH);
++			}
++			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
++			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
++			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
++			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
++
++		} break; // astc 10x10 HDR
++		case Image::FORMAT_ASTC_12x12: {
++			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_12x12_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
++				r_format.format = RD::DATA_FORMAT_ASTC_12x12_UNORM_BLOCK;
++				r_format.format_srgb = RD::DATA_FORMAT_ASTC_12x12_SRGB_BLOCK;
++			} else {
++				//not supported, reconvert
++				image->decompress();
++				r_format.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
++				r_format.format_srgb = RD::DATA_FORMAT_R8G8B8A8_SRGB;
++				image->convert(Image::FORMAT_RGBA8);
++			}
++			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
++			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
++			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
++			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
++
++		} break; // astc 12x12
++		case Image::FORMAT_ASTC_12x12_HDR: {
++			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_12x12_SFLOAT_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
++				r_format.format = RD::DATA_FORMAT_ASTC_12x12_SFLOAT_BLOCK;
++			} else {
++				//not supported, reconvert
++				image->decompress();
++				r_format.format = RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
++				image->convert(Image::FORMAT_RGBAH);
++			}
++			r_format.swizzle_r = RD::TEXTURE_SWIZZLE_R;
++			r_format.swizzle_g = RD::TEXTURE_SWIZZLE_G;
++			r_format.swizzle_b = RD::TEXTURE_SWIZZLE_B;
++			r_format.swizzle_a = RD::TEXTURE_SWIZZLE_A;
++
++		} break; // astc 12x12 HDR
+ 		case Image::FORMAT_R16: {
+ 			if (RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_R16_UNORM, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT)) {
+ 				r_format.format = RD::DATA_FORMAT_R16_UNORM;
