@@ -10755,6 +10755,16 @@ environment = SubResource("Environment_w8hxk")
 script = ExtResource("303")
 optional_scene_path = "res://lullaby_mod/rooms/collector_shop_decorative_lights.tscn"
 
+[node name="RCandle1" type="OmniLight3D" parent="Environment/Lights" unique_id=1854045506]
+transform = Transform3D(-0.95245963, 0, -0.30466476, 0, 1, 0, 0.30466476, 0, -0.95245963, 2.719213, 1.9520638, 2.8141181)
+light_color = Color(1, 0.6431373, 0.44313726, 1)
+light_energy = 0.765
+light_volumetric_fog_energy = 1.25
+light_bake_mode = 1
+shadow_caster_mask = 4294967263
+omni_range = 0.961
+omni_attenuation = 0.606
+
 [node name="AMBLight1" type="SpotLight3D" parent="Environment/Lights" unique_id=1498008427]
 transform = Transform3D(-0.44114554, 0, 0.8974356, 0, 1, 0, -0.8974356, 0, -0.44114554, -2.702867, 1.7842528, 6.130081)
 light_color = Color(1, 0.6431373, 0.44313726, 1)

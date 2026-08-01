@@ -44,13 +44,3 @@ light_volumetric_fog_energy = 1.25
 light_bake_mode = 1
 shadow_caster_mask = 4294967263
 omni_range = 3.375
-
-[node name="RCandle1" type="OmniLight3D" parent="."]
-transform = Transform3D(-0.95245963, 0, -0.30466476, 0, 1, 0, 0.30466476, 0, -0.95245963, 2.719213, 1.9520638, 2.8141181)
-light_color = Color(1, 0.6431373, 0.44313726, 1)
-light_energy = 0.765
-light_volumetric_fog_energy = 1.25
-light_bake_mode = 1
-shadow_caster_mask = 4294967263
-omni_range = 0.961
-omni_attenuation = 0.606
