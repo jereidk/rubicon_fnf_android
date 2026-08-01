@@ -12,6 +12,12 @@ class_name LullabyQualityPreset extends Resource
 @export var ssao: bool = true
 @export var ssil: bool = true
 
+## Only Very Low sets this - strips every decorative/post-processing shader
+## effect in the project (see LullabySettings.EFFECT_SHADER_PATHS) while
+## leaving shaders that are a node's actual base material untouched (e.g.
+## the shop console's toon shading, the cartridge dissolve-in animation).
+@export var disable_shader_effects: bool = false
+
 func is_matching(settings: LullabySettings) -> bool:
 	return (settings.graphics_scaling_mode == scaling_3d_mode and
 		settings.graphics_render_scale == render_scale and
@@ -21,7 +27,8 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_screen_space_aa_quality == screen_space_aa_quality and
 		settings.graphics_post_processing == post_processing and
 		settings.graphics_ssao == ssao and
-		settings.graphics_ssil == ssil
+		settings.graphics_ssil == ssil and
+		settings.graphics_disable_shader_effects == disable_shader_effects
 	)
 
 func apply(settings: LullabySettings) -> void :
@@ -34,3 +41,4 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_post_processing = post_processing
 	settings.graphics_ssao = ssao
 	settings.graphics_ssil = ssil
+	settings.graphics_disable_shader_effects = disable_shader_effects

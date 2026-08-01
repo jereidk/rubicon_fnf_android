@@ -103,6 +103,42 @@ var graphics_msaa_3d_quality: Viewport.MSAA = Viewport.MSAA.MSAA_4X
 var graphics_ssao: bool = true
 var graphics_ssil: bool = true
 var graphics_post_processing: PostProcessing = PostProcessing.HIGH
+var graphics_disable_shader_effects: bool = false
+
+## Decorative/post-processing shaders only - screen distortions, blur, CRT/
+## NTSC noise, glow, color grading, weather. Deliberately excludes shaders
+## that ARE a node's base appearance rather than an effect layered on top of
+## one (shd_cell's console toon shading, shd_dissolve's cartridge/console
+## dissolve-in animation, shd_single_unown_eye's eye rendering,
+## rgb_color_replacement/shd_simple_color_replace's functional note/splash
+## recoloring) - stripping those would leave meshes flat white or notes
+## wrongly colored instead of just running leaner.
+const EFFECT_SHADER_PATHS: Array[String] = [
+	"res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader",
+	"res://lullaby_mod/resources/shaders/blur/shd_radial_blur.gdshader",
+	"res://lullaby_mod/resources/shaders/color/shd_contrast.gdshader",
+	"res://lullaby_mod/resources/shaders/color/shd_hsv.gdshader",
+	"res://lullaby_mod/resources/shaders/distortion/shd_trance_water_hsv_contrast.gdshader",
+	"res://lullaby_mod/resources/shaders/distortion/shd_water_distortion.gdshader",
+	"res://lullaby_mod/resources/shaders/misc/shd_uv_appear.gdshader",
+	"res://lullaby_mod/resources/shaders/misc/shd_yellower.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_blood_arrow.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_crt.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_godrays.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_new_shop_prop.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_ntsc_shader.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_radialblur.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_rain.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_sepia.gdshader",
+	"res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader",
+	"res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader",
+	"res://lullaby_mod/resources/shaders/static/shd_shop_static_spatial.gdshader",
+]
+
+## node -> {property_name: original Material}, so toggling the setting back
+## off can restore exactly what was there rather than guessing a default.
+var _stashed_shader_materials: Dictionary = {}
+var _watching_new_nodes: bool = false
 
 var audio_master_volume: float = 1.2:
 	set(v):
@@ -210,6 +246,8 @@ func apply_settings() -> void:
 	window.msaa_3d = graphics_msaa_3d_quality
 	window.screen_space_aa = graphics_screen_space_aa_quality
 
+	_apply_shader_effects_setting()
+
 	AudioServer.set_bus_volume_linear(MASTER_VOLUME_BUS, audio_master_volume)
 	AudioServer.set_bus_volume_linear(MUSIC_VOLUME_BUS, audio_music_volume)
 	AudioServer.set_bus_volume_linear(SOUND_EFFECTS_VOLUME_BUS, audio_sfx_volume)
@@ -233,6 +271,69 @@ func apply_settings() -> void:
 			InputMap.action_add_event(action_name, input_event)
 
 	applied.emit()
+
+## Very Low toggles this on; every other preset off. Strips the current
+## tree's effect ShaderMaterials (stashing originals to restore if the
+## setting flips back off) and, while on, keeps stripping any newly added
+## node too - songs/menus instance plenty of shader-using nodes well after
+## boot (note splashes, pendulum mechanic, chimera's rain/godrays layers).
+func _apply_shader_effects_setting() -> void:
+	if graphics_disable_shader_effects:
+		if not _watching_new_nodes:
+			get_tree().node_added.connect(_strip_effect_shaders_from_node)
+			_watching_new_nodes = true
+		_strip_effect_shaders(get_tree().root)
+	else:
+		if _watching_new_nodes:
+			get_tree().node_added.disconnect(_strip_effect_shaders_from_node)
+			_watching_new_nodes = false
+		_restore_effect_shaders()
+
+func _strip_effect_shaders(node: Node) -> void:
+	_strip_effect_shaders_from_node(node)
+	for child in node.get_children():
+		_strip_effect_shaders(child)
+
+func _strip_effect_shaders_from_node(node: Node) -> void:
+	_strip_shader_material_property(node, &"material")
+	_strip_shader_material_property(node, &"material_override")
+	_strip_shader_material_property(node, &"material_overlay")
+	if node is MeshInstance3D and node.mesh:
+		for surface in node.mesh.get_surface_count():
+			_strip_surface_shader_material(node, surface)
+
+func _stash(node: Node, property: StringName, material: Material) -> void:
+	var id: int = node.get_instance_id()
+	if not _stashed_shader_materials.has(id):
+		_stashed_shader_materials[id] = {}
+	_stashed_shader_materials[id][property] = material
+
+func _strip_shader_material_property(node: Node, property: StringName) -> void:
+	if not (property in node):
+		return
+	var mat: Variant = node.get(property)
+	if mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
+		_stash(node, property, mat)
+		node.set(property, null)
+
+func _strip_surface_shader_material(node: MeshInstance3D, surface: int) -> void:
+	var mat: Material = node.get_surface_override_material(surface)
+	if mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
+		_stash(node, "surface_material_override/%d" % surface, mat)
+		node.set_surface_override_material(surface, null)
+
+func _restore_effect_shaders() -> void:
+	for id: int in _stashed_shader_materials:
+		var node: Object = instance_from_id(id)
+		if not is_instance_valid(node):
+			continue
+		for property: String in _stashed_shader_materials[id]:
+			var mat: Material = _stashed_shader_materials[id][property]
+			if node is MeshInstance3D and property.begins_with("surface_material_override/"):
+				node.set_surface_override_material(property.get_slice("/", 1).to_int(), mat)
+			else:
+				node.set(property, mat)
+	_stashed_shader_materials.clear()
 
 func get_input_name(action: StringName) -> String:
 	if not input_map.has(action):
