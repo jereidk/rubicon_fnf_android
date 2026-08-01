@@ -1,0 +1,105 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="1"]
+
+[node name="DecorativeCandleSprites" type="Node3D"]
+
+[node name="CandleL1" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4207716, 1.2256824, 4.409374)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleL2" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5813236, 1.1817355, 4.2919455)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleL3" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9090967, 1.1144764, 4.226339)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleL4" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1160572, 1.1289113, 3.1601062)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleL5" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9753127, 1.1930968, 3.06965)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleF1" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.96876246, 1.5254203, 1.6682932)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleF2" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1203103, 1.4756422, 1.5369905)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleF3" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2557136, 1.4165459, 1.6356325)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleF4" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.481469, 2.2820973, -1.607976)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
+
+[node name="CandleF5" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6144395, 2.2167633, -1.5148387)
+offset = Vector2(35.025, 189.47)
+pixel_size = 0.00025
+billboard = 2
+double_sided = false
+sprite_frames = ExtResource("1")
+animation = &"fire"
+autoplay = "fire"
