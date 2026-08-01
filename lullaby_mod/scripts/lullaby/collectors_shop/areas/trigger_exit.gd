@@ -1,5 +1,7 @@
 extends TriggerArea3D
 
+const ConfirmExitDialogScene: PackedScene = preload("res://lullaby_mod/scripts/lullaby/collectors_shop/confirm_exit_dialog.tscn")
+
 @export var shop: CollectorShop
 @export var camera_positions: AnimationPlayer
 @export var cine_bars: AnimationPlayer
@@ -34,9 +36,24 @@ func trigger() -> void :
 	if not can_interact:
 		return
 
-	shop.state = shop.ShopStates.BUSY;
+	# The OS-level close-request path (_notification above) already has its
+	# own "press twice" safety net (a second WM_CLOSE_REQUEST here quits
+	# immediately) - only the player walking up and interacting with the
+	# exit in-scene needs the confirmation prompt, so a stray tap doesn't
+	# immediately kick off leaving with no way back.
+	if _closing_game:
+		_do_exit()
+		return
+
+	shop.state = shop.ShopStates.BUSY
 	shop.stop_voiceline()
 
+	var dialog: ConfirmExitDialog = ConfirmExitDialogScene.instantiate()
+	add_child(dialog)
+	dialog.confirmed.connect(_do_exit)
+	dialog.cancelled.connect(func(): shop.state = shop.ShopStates.FREE_LOOK)
+
+func _do_exit() -> void :
 	if not _closing_game:
 		camera_positions.play(&"byebye")
 
