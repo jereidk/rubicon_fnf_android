@@ -113,34 +113,30 @@ jobs:
             "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
             "ndk;${{ env.ANDROID_NDK }}"
 
-      - name: Restore signing keystore
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      - name: Create ephemeral debug keystore
+        run: |
+          # This keystore only signs the intermediate build (below); it's
+          # thrown away and doesn't matter which certificate it uses - the
+          # APK actually shipped gets re-signed with the persistent release
+          # keystore in "Sign APK with Release Keystore" further down, which
+          # is what makes every build installable as an update over the
+          # last one (Android requires the same certificate across updates).
+          mkdir -p ~/.android
+          keytool -genkeypair -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            2>/dev/null
+
+      - name: Restore release keystore
         run: |
           mkdir -p ~/.android
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            # Every build must be signed with the SAME certificate, or Android
-            # refuses to install it over a previous build ("App not installed
-            # as package conflicts with an existing package"). Restore the
-            # one persistent keystore from a secret instead of generating a
-            # fresh random one on every run.
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore
-            echo "Restored persistent keystore from ANDROID_KEYSTORE_BASE64 secret."
-          else
-            echo "::warning::ANDROID_KEYSTORE_BASE64 secret not set - generating a throwaway keystore." \
-                 "APKs from this run will NOT be installable as an update over any other build." \
-                 "See CONTRIBUTING/README for how to generate and register the persistent keystore secret."
-            keytool -genkeypair -v \
-              -keystore ~/.android/debug.keystore \
-              -alias androiddebugkey \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -storepass android \
-              -keypass android \
-              -dname "CN=Android Debug,O=Android,C=US" \
-              2>/dev/null
-          fi
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > ~/.android/release.keystore
 
       - name: Configure environment
         run: |
@@ -214,12 +210,26 @@ jobs:
             exit 1
           fi
 
+      - name: Sign APK with Release Keystore
+        if: steps.build.outputs.build_success == 'true'
+        run: |
+          $ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}/apksigner sign \
+            --ks ~/.android/release.keystore \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --out builds/rubicon-release.apk \
+            builds/android_debug.apk
+
+          echo "Signed APK: builds/rubicon-release.apk"
+          ls -lh builds/
+
       - name: Upload APK artifact
         if: steps.build.outputs.build_success == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: rubicon-fnfr-android-debug
-          path: builds/android_debug.apk
+          name: rubicon-fnfr-android-release
+          path: builds/rubicon-release.apk
           retention-days: 3
           compression-level: 9
 
@@ -245,14 +255,14 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: rubicon-fnfr-android-debug
+          name: rubicon-fnfr-android-release
           path: .
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: android_debug.apk
+          files: rubicon-release.apk
           generate_release_notes: true
           prerelease: ${{ !contains(github.ref, '-rc') }}
         env:
