@@ -25,8 +25,199 @@ env:
   ACTIONS_RUNNER_DEBUG: 'true'
 
 jobs:
+  # Builds a patched Godot editor binary (Linux x86_64) - the ASTC 10x10/12x12
+  # patch (godot-patches/astc_10x10_12x12.patch) touches core/io/image.cpp,
+  # whose compress() path is TOOLS_ENABLED-only, i.e. only exists in editor
+  # builds. This is the binary that runs "--headless --import" below - it's
+  # what has to exist for Godot to be *able* to compress a texture to 12x12
+  # in the first place. See the patch file's own commit message for why this
+  # can't be done as a stock export_presets.cfg setting.
+  build-godot-editor:
+    name: Build patched Godot editor (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (patch only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            godot-patches
+          sparse-checkout-cone-mode: false
+
+      - name: Restore patched editor cache
+        id: cache-patched-editor
+        uses: actions/cache@v4
+        with:
+          path: godot-out/godot_editor.linuxbsd.x86_64
+          key: godot-patched-editor-${{ env.GODOT_VERSION }}-${{ hashFiles('godot-patches/*.patch') }}
+
+      - name: Clone Godot source
+        if: steps.cache-patched-editor.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.GODOT_VERSION }} https://github.com/godotengine/godot.git godot-src
+
+      - name: Apply ASTC patch
+        if: steps.cache-patched-editor.outputs.cache-hit != 'true'
+        run: |
+          cd godot-src
+          git apply --verbose ../godot-patches/astc_10x10_12x12.patch
+
+      - name: Restore SCons object cache
+        if: steps.cache-patched-editor.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: .scons-cache
+          key: godot-sconscache-editor-${{ env.GODOT_VERSION }}-${{ github.run_id }}
+          restore-keys: |
+            godot-sconscache-editor-${{ env.GODOT_VERSION }}-
+            godot-sconscache-editor-
+
+      - name: Setup Python and SCons
+        if: steps.cache-patched-editor.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build editor
+        if: steps.cache-patched-editor.outputs.cache-hit != 'true'
+        run: |
+          pip install scons==4.10.1
+          cd godot-src
+          scons platform=linuxbsd target=editor production=yes -j$(nproc) cache_path=${{ github.workspace }}/.scons-cache
+          mkdir -p ${{ github.workspace }}/godot-out
+          BIN=$(find bin -maxdepth 1 -iname "godot.linuxbsd.editor*" -type f | head -1)
+          test -n "$BIN"
+          cp "$BIN" ${{ github.workspace }}/godot-out/godot_editor.linuxbsd.x86_64
+          chmod +x ${{ github.workspace }}/godot-out/godot_editor.linuxbsd.x86_64
+
+      - name: Upload patched editor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-patched-editor
+          path: godot-out/godot_editor.linuxbsd.x86_64
+          retention-days: 7
+
+  # Builds a patched Godot Android export template (template_debug, arm64
+  # only - export_presets.cfg has every other architecture disabled). This is
+  # the runtime that actually ships inside the APK and runs on-device; it
+  # needs the same patch as the editor above so it can *decode* an ASTC
+  # 10x10/12x12 texture and upload it via the GLES3/Vulkan driver code the
+  # patch also touches. NOTE: this job has not been exercised on a real CI
+  # run yet - if it fails, check the exact Gradle/NDK version pinned by this
+  # Godot tag against ANDROID_NDK/JAVA_VERSION below first.
+  build-godot-template:
+    name: Build patched Godot Android template (arm64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (patch only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            godot-patches
+          sparse-checkout-cone-mode: false
+
+      - name: Restore patched template cache
+        id: cache-patched-template
+        uses: actions/cache@v4
+        with:
+          path: godot-out/android_debug.apk
+          key: godot-patched-template-arm64-${{ env.GODOT_VERSION }}-${{ hashFiles('godot-patches/*.patch') }}
+
+      - name: Setup Java JDK
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with:
+          # Matches the JDK version Godot's own official Android build CI
+          # uses for the gradlew step below - independent of the JAVA_VERSION
+          # used elsewhere in this workflow for apksigner.
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Android SDK
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        id: cache-android-sdk-tpl
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+          key: android-sdk-${{ runner.os }}-${{ env.ANDROID_API }}-${{ env.ANDROID_BUILD_TOOLS }}-${{ env.ANDROID_NDK }}
+          restore-keys: |
+            android-sdk-${{ runner.os }}-
+
+      - name: Setup Android SDK
+        if: steps.cache-patched-template.outputs.cache-hit != 'true' && steps.cache-android-sdk-tpl.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.android/sdk/cmdline-tools
+          cd ~/.android/sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          rm cmdline-tools.zip
+
+      - name: Accept Android licenses and install SDK components
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        run: |
+          yes | ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          ~/.android/sdk/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-${{ env.ANDROID_API }}" \
+            "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
+            "ndk;${{ env.ANDROID_NDK }}"
+
+      - name: Clone Godot source
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.GODOT_VERSION }} https://github.com/godotengine/godot.git godot-src
+
+      - name: Apply ASTC patch
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        run: |
+          cd godot-src
+          git apply --verbose ../godot-patches/astc_10x10_12x12.patch
+
+      - name: Restore SCons object cache
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: .scons-cache
+          key: godot-sconscache-template-arm64-${{ env.GODOT_VERSION }}-${{ github.run_id }}
+          restore-keys: |
+            godot-sconscache-template-arm64-${{ env.GODOT_VERSION }}-
+            godot-sconscache-template-arm64-
+
+      - name: Setup Python and SCons
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Android template and package APK
+        if: steps.cache-patched-template.outputs.cache-hit != 'true'
+        env:
+          ANDROID_HOME: /root/.android/sdk
+          ANDROID_SDK_ROOT: /root/.android/sdk
+          ANDROID_NDK_ROOT: /root/.android/sdk/ndk/${{ env.ANDROID_NDK }}
+        run: |
+          pip install scons==4.10.1
+          cd godot-src
+          scons platform=android target=template_debug arch=arm64 production=yes -j$(nproc) cache_path=${{ github.workspace }}/.scons-cache
+          cd platform/android/java
+          ./gradlew generateGodotTemplates
+          cd ../../..
+          ls -l bin/
+          mkdir -p ${{ github.workspace }}/godot-out
+          test -f bin/android_debug.apk
+          cp bin/android_debug.apk ${{ github.workspace }}/godot-out/android_debug.apk
+
+      - name: Upload patched template artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-patched-template
+          path: godot-out/android_debug.apk
+          retention-days: 7
+
   build:
     name: Build Android APK
+    needs: [build-godot-editor, build-godot-template]
     runs-on: ubuntu-latest
     
     steps:
@@ -39,41 +230,28 @@ jobs:
             !/lullaby_mod/original_pck/
           sparse-checkout-cone-mode: false
 
-      - name: Cache Godot
-        id: cache-godot
-        uses: actions/cache@v4
+      - name: Download patched Android template
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
-          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}
+          name: godot-patched-template
+          path: /tmp/godot-template
 
-      - name: Download Godot
-        if: steps.cache-godot.outputs.cache-hit != 'true'
+      - name: Install patched Android template
         run: |
           mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
-          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz -O /tmp/templates.tpz
-          unzip -q /tmp/templates.tpz -d ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
-          mv ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/
-          rm -rf ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/templates
-          rm /tmp/templates.tpz
+          cp /tmp/godot-template/android_debug.apk ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/android_debug.apk
 
-      - name: Cache Godot binary
-        id: cache-godot-bin
-        uses: actions/cache@v4
+      - name: Download patched Godot editor
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            /opt/godot
-          key: godot-bin-${{ runner.os }}-${{ env.GODOT_VERSION }}
+          name: godot-patched-editor
+          path: /tmp/godot-editor
 
-      - name: Download Godot binary
-        if: steps.cache-godot-bin.outputs.cache-hit != 'true'
+      - name: Install patched Godot editor
         run: |
           mkdir -p /opt/godot
-          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip -O /tmp/godot.zip
-          unzip -q /tmp/godot.zip -d /opt/godot
-          chmod +x /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64
-          rm /tmp/godot.zip
-          ln -sf /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 /opt/godot/godot
+          cp /tmp/godot-editor/godot_editor.linuxbsd.x86_64 /opt/godot/godot
+          chmod +x /opt/godot/godot
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
