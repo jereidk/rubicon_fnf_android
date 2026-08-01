@@ -19,6 +19,13 @@ class_name RubiconSongTouchControls
 @export var special_action: StringName = &"lullaby_special"
 @export var mechanic_source: Node
 
+## Same hide-during-cutscene/pause/gameover treatment as
+## RubiconMechanicHitbox/RubiconMobileControls - pause_button and
+## restart_button otherwise stay on screen and clickable through
+## cutscenes, the pause menu itself, and gameover.
+@export var default_hud: CanvasItem
+@export var gameover_source: Node
+
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
 	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
@@ -35,6 +42,27 @@ func _ready() -> void:
 		special_button.pressed.connect(func(): _dispatch(special_action))
 		special_button.visible = false
 		_on_mechanic_state_changed()
+
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func _process(_delta: float) -> void:
+	if not default_hud and not gameover_source:
+		return
+	_update_visibility()
+
+func _update_visibility() -> void:
+	if get_tree().paused:
+		visible = false
+		return
+
+	if gameover_source and "is_game_over" in gameover_source and gameover_source.is_game_over:
+		visible = false
+		return
+
+	var hud_visible: bool = true
+	if default_hud:
+		hud_visible = default_hud.visible and default_hud.modulate.a > 0.01
+	visible = hud_visible
 
 func _on_mechanic_state_changed() -> void:
 	if not special_button or not mechanic_source:

@@ -14862,6 +14862,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="UIBlack" type="ColorRect" parent="UILayer" unique_id=1486931997]
 visible = false
+mouse_filter = 2
 modulate = Color(1, 1, 1, 0)
 offset_right = 1920.0
 offset_bottom = 1080.0
@@ -14872,6 +14873,7 @@ metadata/_edit_lock_ = true
 
 [node name="LowerHealthRect" type="ColorRect" parent="UILayer" unique_id=190350196]
 self_modulate = Color(1, 1, 1, 0)
+mouse_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14931,6 +14933,7 @@ combo_template = ExtResource("112")
 
 [node name="Black2" type="ColorRect" parent="UILayer" unique_id=1414583849]
 visible = false
+mouse_filter = 2
 modulate = Color(1, 1, 1, 0)
 offset_right = 1920.0
 offset_bottom = 1080.0
@@ -15084,6 +15087,7 @@ grow_vertical = 2
 
 [node name="Rain" type="ColorRect" parent="UILayer/RainParent" unique_id=1066647889]
 visible = false
+mouse_filter = 2
 material = SubResource("ShaderMaterial_tslk7")
 layout_mode = 1
 anchors_preset = 15
@@ -15097,6 +15101,7 @@ copy_mode = 2
 
 [node name="NTSC" type="ColorRect" parent="UILayer" unique_id=1492348303]
 visible = false
+mouse_filter = 2
 material = SubResource("ShaderMaterial_8th5r")
 anchors_preset = 15
 anchor_right = 1.0

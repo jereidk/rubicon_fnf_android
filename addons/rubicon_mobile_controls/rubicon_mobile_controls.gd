@@ -52,6 +52,19 @@ const MOUSE_TOUCH_INDEX := -1000
 @export var haptic_feedback: bool = true
 @export var haptic_duration_ms: int = 35
 
+## The score/health HUD - hidden the same way RubiconMechanicHitbox's own
+## default_hud polling works (cutscene animations fade this out via
+## modulate:alpha, but never touched this hitbox, so it kept drawing and
+## - since it uses raw _input() rather than _gui_input() - kept accepting
+## ghost taps during cutscenes, pause, and gameover too).
+@export var default_hud: CanvasItem
+
+## Duck-typed like RubiconSongTouchControls.mechanic_source: any node
+## exposing an "is_game_over" bool. Optional - not every song's gameover
+## flow stays in this scene long enough to matter (a straight
+## change_scene_to_packed makes the whole question moot).
+@export var gameover_source: Node
+
 var _touch_to_lane: Dictionary = {}
 var _lane_active_count: Dictionary = {}
 
@@ -70,6 +83,38 @@ func _ready() -> void:
 	if handler != null:
 		lane_pressed.connect(handler._on_mobile_controls_lane_pressed)
 		lane_released.connect(handler._on_mobile_controls_lane_released)
+
+	# Needs to keep running through get_tree().paused = true to react to
+	# that transition at all - see RubiconMechanicHitbox's identical note.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	if not default_hud and not gameover_source:
+		return
+	_update_visibility()
+
+func _update_visibility() -> void:
+	if get_tree().paused:
+		if visible:
+			_release_all()
+		visible = false
+		return
+
+	if gameover_source and "is_game_over" in gameover_source and gameover_source.is_game_over:
+		if visible:
+			_release_all()
+		visible = false
+		return
+
+	var hud_visible: bool = true
+	if default_hud:
+		hud_visible = default_hud.visible and default_hud.modulate.a > 0.01
+
+	if visible and not hud_visible:
+		_release_all()
+	visible = hud_visible
 
 func _draw() -> void:
 	var top_y: float = size.y * hitbox_top_percent
@@ -95,6 +140,12 @@ func _notification(what: int) -> void:
 
 func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
+		return
+
+	# Raw _input() ignores Control visibility entirely (unlike _gui_input()),
+	# so without this a hidden hitbox (cutscene, pause, gameover - see
+	# _update_visibility()) would still silently register ghost note hits.
+	if not visible:
 		return
 
 	if event is InputEventScreenTouch:

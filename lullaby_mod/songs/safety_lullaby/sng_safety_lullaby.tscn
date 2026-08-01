@@ -3825,6 +3825,7 @@ pendulum_server = NodePath("../LullabyPendulumServer")
 
 [node name="WaterEffect" type="ColorRect" parent="WaterShaderLayer" unique_id=104190426]
 unique_name_in_owner = true
+mouse_filter = 2
 material = SubResource("ShaderMaterial_hakx0")
 anchors_preset = 15
 anchor_right = 1.0
@@ -3836,6 +3837,7 @@ grow_vertical = 2
 
 [node name="RadialEffect" type="ColorRect" parent="RadialShaderLayer" unique_id=402878191]
 unique_name_in_owner = true
+mouse_filter = 2
 material = SubResource("ShaderMaterial_xficb")
 anchors_preset = 15
 anchor_right = 1.0
@@ -3846,6 +3848,7 @@ grow_vertical = 2
 [node name="ScuiguileLayer" type="CanvasLayer" parent="." unique_id=61972321]
 
 [node name="SquiggleLayer" type="ColorRect" parent="ScuiguileLayer" unique_id=1676396596]
+mouse_filter = 2
 material = SubResource("ShaderMaterial_bhunq")
 anchors_preset = 15
 anchor_right = 1.0
@@ -3899,9 +3902,11 @@ song_grader = NodePath("../../UILayer/GameUI/Player/LullabySongGrader")
 target_timeline = NodePath("../../Clock/AnimationPlayer")
 metadata/_edit_lock_ = true
 
-[node name="MobileControls" parent="UILayer" instance=ExtResource("200")]
+[node name="MobileControls" parent="UILayer" node_paths=PackedStringArray("default_hud", "gameover_source") instance=ExtResource("200")]
+default_hud = NodePath("../GameUI/DefaultHUD")
+gameover_source = NodePath("../../Environment/SafetyLullabyGameoverModule")
 
-[node name="SongTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("pause_button", "restart_button")]
+[node name="SongTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("pause_button", "restart_button", "default_hud", "gameover_source")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3912,6 +3917,8 @@ mouse_filter = 2
 script = ExtResource("201")
 pause_button = NodePath("PauseButton")
 restart_button = NodePath("RestartButton")
+default_hud = NodePath("../GameUI/DefaultHUD")
+gameover_source = NodePath("../../Environment/SafetyLullabyGameoverModule")
 
 [node name="PauseButton" type="Button" parent="UILayer/SongTouchControls"]
 layout_mode = 1

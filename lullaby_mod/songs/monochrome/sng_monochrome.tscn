@@ -5544,6 +5544,7 @@ libraries/ = SubResource("AnimationLibrary_oat7m")
 autoplay = &"RESET"
 
 [node name="RadialBlur" type="ColorRect" parent="Front" unique_id=380721053]
+mouse_filter = 2
 material = SubResource("ShaderMaterial_dn3fh")
 offset_right = 1920.0
 offset_bottom = 1080.0
@@ -5552,6 +5553,7 @@ offset_bottom = 1080.0
 layer = 6
 
 [node name="UIBlackBG" type="ColorRect" parent="UILayer" unique_id=1261565469]
+mouse_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -5839,6 +5841,7 @@ layer = 64
 visible = false
 
 [node name="UIBlackFG" type="ColorRect" parent="UIBlack" unique_id=1991362866]
+mouse_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
