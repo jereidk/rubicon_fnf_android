@@ -84,6 +84,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/on_screen_keyboard.gd" id="202"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/monochrome/scripts/monochrome_typing_touch_controls.gd" id="203"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="204"]
 
 [sub_resource type="Animation" id="Animation_w1qyd"]
 length = 0.001
@@ -5789,12 +5790,16 @@ pause_button = NodePath("PauseButton")
 restart_button = NodePath("RestartButton")
 
 [node name="PauseButton" type="Button" parent="UILayer/SongTouchControls"]
-layout_mode = 0
-offset_left = 24.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
 offset_top = 24.0
-offset_right = 144.0
-offset_bottom = 84.0
-text = "Pause"
+offset_right = -24.0
+offset_bottom = 120.0
+grow_horizontal = 0
+script = ExtResource("204")
 
 [node name="RestartButton" type="Button" parent="UILayer/SongTouchControls"]
 layout_mode = 0

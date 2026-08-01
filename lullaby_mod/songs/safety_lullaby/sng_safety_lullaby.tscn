@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/mechanic_touch_hitbox.gd" id="203"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/safety_lullaby/scripts/safety_lullaby_touch_controls.gd" id="204"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="205"]
 [ext_resource type="Resource" uid="uid://d2q7d3t7sexa3" path="res://lullaby_mod/songs/safety_lullaby/data/meta_safety_lullaby.tres" id="2"]
 [ext_resource type="Script" uid="uid://ca1311fn5lngq" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3"]
 [ext_resource type="SpriteFrames" uid="uid://ci7savexh1l02" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/HypnoIconDark.tres" id="4"]
@@ -3913,12 +3914,16 @@ pause_button = NodePath("PauseButton")
 restart_button = NodePath("RestartButton")
 
 [node name="PauseButton" type="Button" parent="UILayer/SongTouchControls"]
-layout_mode = 0
-offset_left = 24.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
 offset_top = 24.0
-offset_right = 144.0
-offset_bottom = 84.0
-text = "Pause"
+offset_right = -24.0
+offset_bottom = 120.0
+grow_horizontal = 0
+script = ExtResource("205")
 
 [node name="RestartButton" type="Button" parent="UILayer/SongTouchControls"]
 layout_mode = 0
@@ -3949,6 +3954,8 @@ anchor_bottom = 0.2
 grow_horizontal = 2
 script = ExtResource("203")
 action = &"lullaby_special"
+notch_corner = 2
+notch_size = Vector2(144, 144)
 
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="TranceShaders" method="_on_lullaby_pendulum_server_mechanic_failed"]
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="HealthModule" method="emit_signal" flags=6 binds= [&"health_depleted"]]

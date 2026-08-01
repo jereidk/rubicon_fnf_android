@@ -28,6 +28,25 @@ signal released
 @export var fill_color: Color = Color(1, 0, 0, 0.08)
 @export var pressed_fill_color: Color = Color(1, 0, 0, 0.28)
 
+const NOTCH_NONE := 0
+const NOTCH_TOP_LEFT := 1
+const NOTCH_TOP_RIGHT := 2
+const NOTCH_BOTTOM_LEFT := 3
+const NOTCH_BOTTOM_RIGHT := 4
+
+## Rectangular corner cut out of this zone so a button drawn in that corner
+## (e.g. the pause button, top-right) doesn't sit on top of red tint that
+## implies it's also part of the mechanic hitbox. _has_point() below also
+## excludes it from hit-testing directly, so a tap there can't land on this
+## zone even if the button's own z-order ever changes.
+##
+## Plain int (with an @export_enum hint) rather than a real enum type -
+## Godot 4.7 chokes on a class_name script assigning its own nested enum
+## to a same-named typed export ("Cannot assign a value of type X as X"),
+## so this sidesteps that entirely.
+@export_enum("None", "Top Left", "Top Right", "Bottom Left", "Bottom Right") var notch_corner: int = NOTCH_NONE
+@export var notch_size: Vector2 = Vector2.ZERO
+
 const MOUSE_TOUCH_INDEX := -1000
 
 var _active_touches: Dictionary = {}
@@ -48,15 +67,93 @@ func _notification(what: int) -> void:
 		NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 			_release_all()
 
+func _has_point(point: Vector2) -> bool:
+	var notch: Rect2 = _notch_rect()
+	if notch.size != Vector2.ZERO and notch.has_point(point):
+		return false
+	return Rect2(Vector2.ZERO, size).has_point(point)
+
+func _notch_rect() -> Rect2:
+	if notch_corner == NOTCH_NONE or notch_size.x <= 0.0 or notch_size.y <= 0.0:
+		return Rect2()
+
+	var x: float = 0.0 if notch_corner in [NOTCH_TOP_LEFT, NOTCH_BOTTOM_LEFT] else size.x - notch_size.x
+	var y: float = 0.0 if notch_corner in [NOTCH_TOP_LEFT, NOTCH_TOP_RIGHT] else size.y - notch_size.y
+	return Rect2(x, y, notch_size.x, notch_size.y)
+
 func _draw() -> void:
 	var is_pressed: bool = not _active_touches.is_empty()
 	var fill: Color = pressed_fill_color if is_pressed else fill_color
-	var rect := Rect2(Vector2.ZERO, size)
+	var notch: Rect2 = _notch_rect()
 
+	if notch.size == Vector2.ZERO:
+		if fill.a > 0.0:
+			draw_rect(Rect2(Vector2.ZERO, size), fill, true)
+		if show_outline:
+			draw_rect(Rect2(Vector2.ZERO, size), outline_color, false, outline_width)
+		return
+
+	# L-shaped zone (full rect minus the notch corner): fill as two plain
+	# rects (no per-rect border, or the shared inner edge would double up
+	# as a stray line), then trace the six-point hexagon perimeter by hand
+	# so the cut reads as intentional instead of the outline just stopping.
 	if fill.a > 0.0:
-		draw_rect(rect, fill, true)
+		for fill_rect in _fill_rects(notch):
+			draw_rect(fill_rect, fill, true)
+
 	if show_outline:
-		draw_rect(rect, outline_color, false, outline_width)
+		var points: PackedVector2Array = _hexagon_points(notch)
+		points.append(points[0])
+		draw_polyline(points, outline_color, outline_width, true)
+
+## Two non-overlapping rects covering the full zone minus the notch corner.
+func _fill_rects(notch: Rect2) -> Array[Rect2]:
+	var w: float = size.x
+	var h: float = size.y
+	var nw: float = notch.size.x
+	var nh: float = notch.size.y
+
+	match notch_corner:
+		NOTCH_TOP_RIGHT:
+			return [Rect2(0, 0, w - nw, h), Rect2(w - nw, nh, nw, h - nh)]
+		NOTCH_TOP_LEFT:
+			return [Rect2(nw, 0, w - nw, h), Rect2(0, nh, nw, h - nh)]
+		NOTCH_BOTTOM_RIGHT:
+			return [Rect2(0, 0, w - nw, h), Rect2(w - nw, 0, nw, h - nh)]
+		NOTCH_BOTTOM_LEFT:
+			return [Rect2(nw, 0, w - nw, h), Rect2(0, 0, nw, h - nh)]
+		_:
+			return [Rect2(0, 0, w, h)]
+
+## Six points tracing this zone's perimeter clockwise from (0,0), cutting
+## across whichever corner notch is set.
+func _hexagon_points(notch: Rect2) -> PackedVector2Array:
+	var w: float = size.x
+	var h: float = size.y
+
+	match notch_corner:
+		NOTCH_TOP_RIGHT:
+			return PackedVector2Array([
+				Vector2(0, 0), Vector2(notch.position.x, 0), Vector2(notch.position.x, notch.size.y),
+				Vector2(w, notch.size.y), Vector2(w, h), Vector2(0, h),
+			])
+		NOTCH_TOP_LEFT:
+			return PackedVector2Array([
+				Vector2(notch.size.x, 0), Vector2(w, 0), Vector2(w, h),
+				Vector2(0, h), Vector2(0, notch.size.y), Vector2(notch.size.x, notch.size.y),
+			])
+		NOTCH_BOTTOM_RIGHT:
+			return PackedVector2Array([
+				Vector2(0, 0), Vector2(w, 0), Vector2(w, notch.position.y),
+				Vector2(notch.position.x, notch.position.y), Vector2(notch.position.x, h), Vector2(0, h),
+			])
+		NOTCH_BOTTOM_LEFT:
+			return PackedVector2Array([
+				Vector2(0, 0), Vector2(w, 0), Vector2(w, h),
+				Vector2(notch.size.x, h), Vector2(notch.size.x, notch.position.y), Vector2(0, notch.position.y),
+			])
+		_:
+			return PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, h), Vector2(0, h)])
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
