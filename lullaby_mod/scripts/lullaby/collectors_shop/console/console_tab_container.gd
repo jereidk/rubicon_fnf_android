@@ -6,11 +6,12 @@ extends TabContainer
 @export var animplayer: AnimationPlayer
 var _last_tab_idx: int
 var tabs_array = [
-	"Home", 
-	"Credits", 
-	"Settings", 
-	"Cartridges", 
-	"Training"
+	"Home",
+	"Credits",
+	"Settings",
+	"Cartridges",
+	"Training",
+	"Hacks"
 ]
 
 
