@@ -4187,7 +4187,7 @@ libraries/unown_vultures_LIBRARY = ExtResource("8")
 [node name="Gold" type="AnimatedSprite2D" parent="CrawlBack" unique_id=1359942368]
 position = Vector2(630.00006, 746.9933)
 sprite_frames = SubResource("SpriteFrames_0rgit")
-animation = &"Mono_hand_front-"
+animation = &"Mono_crawl_"
 autoplay = "Mono_crawl_"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CrawlBack/Gold" unique_id=2128061790]
@@ -4239,7 +4239,7 @@ autoplay = "Mono_lookingup_BG"
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="GettingUp" unique_id=1193843207]
 position = Vector2(960, 540)
 sprite_frames = ExtResource("10")
-animation = &"cut_mono_closer_up_tex_"
+animation = &"Mono_lookingup"
 frame = 10
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GettingUp/AnimatedSprite2D" unique_id=1771268935]
@@ -4342,7 +4342,7 @@ libraries/ = ExtResource("15")
 position = Vector2(-280.28577, -64.29248)
 scale = Vector2(1.0000001, 1.0000001)
 sprite_frames = SubResource("SpriteFrames_t7a4n")
-animation = &"Mono_hand_front-"
+animation = &"Mono_Gold_Side-"
 autoplay = "Mono_Gold_Side-"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="WatchingHandSide/Main/Gold" unique_id=919250700]
@@ -4391,7 +4391,7 @@ layout_mode = 2
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Flashes" unique_id=765266325]
 position = Vector2(960, 540)
 sprite_frames = SubResource("SpriteFrames_kigxh")
-animation = &"cut_mono_closer_up_tex_"
+animation = &"Red"
 frame = 10
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Flashes/AnimatedSprite2D" unique_id=1669363812]
