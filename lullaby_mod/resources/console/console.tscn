@@ -89,6 +89,7 @@
 [ext_resource type="Shader" uid="uid://bsqej2ntumu5i" path="res://lullaby_mod/resources/shaders/shd_crt.gdshader" id="87"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/keyboard_icon_hacks_button.png" id="200"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/hacks_tab.gd" id="201"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/hide_if_locked.gd" id="202"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hlefr"]
 render_priority = 0
@@ -5270,11 +5271,27 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GhostTapping")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShowcaseMode")
 text = "Baby Mode"
 property = &"lullaby_baby_mode"
 console = NodePath("../../../../../..")
 tooltip = "Calls over your grandest Collector to attempt mechanics for you."
+
+[node name="ShowcaseMode" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=3057231950 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+visible = false
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BabyMode")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+text = "Showcase Mode"
+property = &"lullaby_showcase_mode"
+console = NodePath("../../../../../..")
+tooltip = "Watch the game play itself perfectly, hitting every note on its own."
+
+[node name="LullabyHideIfLocked" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay/ShowcaseMode" unique_id=3057231951]
+script = ExtResource("202")
+unlock_flag = &"showcase_mode_unlocked"
 
 [node name="Visuals" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1649986475 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false

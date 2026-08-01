@@ -14,6 +14,12 @@ class_name SafetyLullabyTouchControls
 ## (chimera_special_touch_controls.gd) rather than trying to force this
 ## into the generic special_button/mechanic_source duck-typing.
 
+## How long the hitbox stays flashed "pressed" after a showcase-mode
+## autoplay pendulum hit (LullabyPendulumServer.pendulum_hit) - mirrors a
+## quick real tap rather than the full input_hit_window_ms.
+const SHOWCASE_HIT_FLASH_SECONDS: float = 0.1
+const SHOWCASE_TOUCH_INDEX: int = -2000
+
 @export var hitbox: Control
 @export var pendulum_server: LullabyPendulumServer
 
@@ -52,6 +58,9 @@ func _ready() -> void:
 	if hitbox:
 		hitbox.visible = false
 
+	if pendulum_server:
+		pendulum_server.pendulum_hit.connect(_on_pendulum_hit)
+
 	_update_visibility()
 
 func _process(_delta: float) -> void:
@@ -69,9 +78,22 @@ func _update_visibility() -> void:
 		hitbox.visible = false
 		return
 
-	var mechanic_active: bool = pendulum_server.started and not pendulum_server.autoplay
+	# Showcase Mode wants this hitbox visibly flashing along with the
+	# pendulum's own autoplay hits (see _on_pendulum_hit below), so it
+	# stays shown during autoplay instead of hiding like normal autoplay
+	# (e.g. the debug "Autoplay?" toggle) does.
+	var showing_off: bool = Settings.lullaby_showcase_mode
+	var mechanic_active: bool = pendulum_server.started and (not pendulum_server.autoplay or showing_off)
 	var hud_visible: bool = true
 	if default_hud:
 		hud_visible = default_hud.visible and default_hud.modulate.a > 0.01
 
 	hitbox.visible = mechanic_active and hud_visible
+
+func _on_pendulum_hit() -> void:
+	if not Settings.lullaby_showcase_mode or not hitbox or not hitbox.has_method("_handle_touch"):
+		return
+
+	hitbox.call("_handle_touch", SHOWCASE_TOUCH_INDEX, true)
+	var timer: SceneTreeTimer = get_tree().create_timer(SHOWCASE_HIT_FLASH_SECONDS)
+	timer.timeout.connect(func(): hitbox.call("_handle_touch", SHOWCASE_TOUCH_INDEX, false))

@@ -164,6 +164,7 @@ var game_centered: bool = false
 var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.JOYSTICK
 
 var lullaby_baby_mode: bool = false
+var lullaby_showcase_mode: bool = false
 
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}

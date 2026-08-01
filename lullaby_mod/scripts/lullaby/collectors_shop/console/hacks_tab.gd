@@ -11,6 +11,7 @@ extends ConsoleTab
 const CODES: Dictionary[String, StringName] = {
 	"IAMDEAD": &"monochrome",
 	"SERENAHEX": &"chimera",
+	"SHOWCASE": &"showcase_mode",
 }
 
 @export var code_input: LineEdit

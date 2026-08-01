@@ -26,7 +26,7 @@ func _update() -> void :
 	settings_speed_multiplier = Settings.game_speed_multiplier
 	settings_baby_mode = Settings.lullaby_baby_mode
 	settings_post_processing = Settings.graphics_post_processing
-	settings_autoplay = Settings.game_autoplay
+	settings_autoplay = Settings.game_autoplay or Settings.lullaby_showcase_mode
 
 	for controller: RubiconLevelNoteController in playable_controllers:
 		controller.inputs = Settings.get_level_note_inputs()

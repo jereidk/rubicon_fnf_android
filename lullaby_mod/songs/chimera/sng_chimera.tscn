@@ -1,6 +1,7 @@
 [gd_scene format=4 uid="uid://k26b7med2dat"]
 
 [ext_resource type="Script" uid="uid://c7espnyhcgtth" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/mechanics/lullaby_showcase_note_sync.gd" id="300"]
 [ext_resource type="Resource" uid="uid://c1lt53vc15ebf" path="res://lullaby_mod/songs/chimera/data/meta.tres" id="2"]
 [ext_resource type="Script" uid="uid://cnc3u32ults52" path="res://lullaby_mod/scripts/lullaby/song_flag_check.gd" id="3"]
 [ext_resource type="Script" uid="uid://bcj6htgg4nsv2" path="res://lullaby_mod/songs/chimera/scripts/chimera_second_phase_flag.gd" id="4"]
@@ -15161,6 +15162,11 @@ vertical_alignment = 2
 script = ExtResource("127")
 
 [node name="MobileControls" parent="UILayer" instance=ExtResource("200")]
+
+[node name="ShowcaseNoteSync" type="Node" parent="UILayer" node_paths=PackedStringArray("note_controller", "mobile_controls")]
+script = ExtResource("300")
+note_controller = NodePath("../GameUI/Player")
+mobile_controls = NodePath("../MobileControls")
 
 [node name="SongTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("pause_button", "restart_button")]
 layout_mode = 1
