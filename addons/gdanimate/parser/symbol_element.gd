@@ -102,6 +102,20 @@ func parse_optimized(input: Dictionary) -> void:
 		'LP': loop_mode = SymbolLoopMode.LOOP
 		_: loop_mode = SymbolLoopMode.LOOP
 	
+	# Some exports (e.g. Safety Lullaby's GF) use a compact 2D-only "MX"
+	# affine (6 floats: a, b, c, d, tx, ty) instead of the flattened 4x4
+	# "M3D" the base class expects - build the transform directly rather
+	# than routing through parse_optimized()'s 16-index dictionary, which
+	# would just fail with "Invalid Matrix3D" and leave every part at
+	# identity (all stacked on the origin, frozen).
+	if symbol.has('MX'):
+		var mx: Array = symbol.get('MX', [])
+		if mx.size() < 6:
+			printerr('Invalid Matrix MX')
+			return
+		transform = Transform2D(Vector2(mx[0], mx[1]), Vector2(mx[2], mx[3]), Vector2(mx[4], mx[5]))
+		return
+
 	# Small conversion because inheritance yucky
 	var m3d: Array = symbol.get('M3D', [])
 	var m3d_dict: Dictionary = {}
