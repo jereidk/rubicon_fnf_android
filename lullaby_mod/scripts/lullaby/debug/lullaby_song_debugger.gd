@@ -6,6 +6,11 @@ class_name LullabySongDebugger extends Node
 @export var container: Control
 @export var song_name_label: Label
 @export var debug_only_container: Control
+## Engine version + the detailed debug_only_container info both moved out
+## from under container (the top song-name bar) to their own bottom-right
+## corner - they used to inherit container's visible toggle for free by
+## being its children, so this mirrors that toggle explicitly instead.
+@export var engine_info_container: Control
 @export var seconds_counter: SpinBox
 @export var measure_counter: SpinBox
 @export var beats_counter: SpinBox
@@ -50,14 +55,17 @@ func update_visibility() -> void :
 	match Debugger.fps_display.current_state:
 		LullabyFPSDisplay.CurrentState.NONE:
 			container.visible = false
+			engine_info_container.visible = false
 			debug_only_container.visible = false
 		LullabyFPSDisplay.CurrentState.BASIC:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			container.visible = true
+			engine_info_container.visible = true
 			debug_only_container.visible = false
 		LullabyFPSDisplay.CurrentState.ADVANCED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			container.visible = true
+			engine_info_container.visible = true
 			debug_only_container.visible = true
 
 func _on_seconds_updated(value: float) -> void :

@@ -9,12 +9,14 @@ class_name RubiconPauseIconButton
 ## stays visually identical without needing to duplicate StyleBoxFlat
 ## resources three times.
 
-const BAR_COLOR := Color(1, 1, 1, 1)
-const BG_COLOR := Color(0, 0, 0, 0.85)
+const BAR_COLOR := Color(1, 1, 1, 0.9)
+const BG_COLOR := Color(0, 0, 0, 0.55)
 
-@export var bar_width: float = 9.0
-@export var bar_height: float = 30.0
-@export var bar_gap: float = 12.0
+## Fractions of the button's own size, rather than fixed pixel values, so
+## the bars stay proportional if this button is ever resized again.
+@export_range(0.0, 0.5) var bar_width_ratio: float = 0.09
+@export_range(0.0, 1.0) var bar_height_ratio: float = 0.34
+@export_range(0.0, 0.5) var bar_gap_ratio: float = 0.12
 
 func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
@@ -29,6 +31,11 @@ func _ready() -> void:
 	add_theme_stylebox_override(&"focus", style)
 
 func _draw() -> void:
+	var shortest_side: float = min(size.x, size.y)
+	var bar_width: float = shortest_side * bar_width_ratio
+	var bar_height: float = shortest_side * bar_height_ratio
+	var bar_gap: float = shortest_side * bar_gap_ratio
+
 	var center: Vector2 = size * 0.5
 	var half_gap: float = bar_gap * 0.5
 	var top: float = center.y - bar_height * 0.5

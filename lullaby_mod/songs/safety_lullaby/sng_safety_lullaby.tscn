@@ -3918,10 +3918,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -120.0
+offset_left = -164.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 120.0
+offset_bottom = 164.0
 grow_horizontal = 0
 script = ExtResource("205")
 
@@ -3955,7 +3955,7 @@ grow_horizontal = 2
 script = ExtResource("203")
 action = &"lullaby_special"
 notch_corner = 2
-notch_size = Vector2(144, 144)
+notch_size = Vector2(190, 190)
 
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="TranceShaders" method="_on_lullaby_pendulum_server_mechanic_failed"]
 [connection signal="mechanic_failed" from="LullabyPendulumServer" to="HealthModule" method="emit_signal" flags=6 binds= [&"health_depleted"]]

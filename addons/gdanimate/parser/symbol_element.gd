@@ -32,7 +32,12 @@ func parse_unoptimized(input: Dictionary) -> void:
 	frame = int(symbol.get('firstFrame', 0))
 	filters = []
 	
-	var raw_filters: Dictionary = symbol.get('filters', {})
+	# Adobe Animate's export sometimes writes "no filters" as [] instead of
+	# {} - matching parse_optimized() below, coerce anything that isn't
+	# actually a Dictionary to empty rather than letting a plain typed
+	# assignment throw and abort the rest of this symbol's parse.
+	var raw_filters_value: Variant = symbol.get('filters', {})
+	var raw_filters: Dictionary = raw_filters_value if raw_filters_value is Dictionary else {}
 	if not raw_filters.is_empty():
 		var blur: Dictionary = raw_filters.get('BlurFilter', {})
 		if not blur.is_empty():
@@ -65,7 +70,15 @@ func parse_optimized(input: Dictionary) -> void:
 	frame = int(symbol.get('FF', 0))
 	filters = []
 	
-	var raw_filters: Dictionary = symbol.get('F', {})
+	# Adobe Animate's export sometimes writes "no filters" as [] instead of
+	# {} - a plain `var raw_filters: Dictionary = symbol.get('F', {})`
+	# fails that assignment every time it happens (this is what was
+	# spamming thousands of "Trying to assign value of type 'Array' to a
+	# variable of type 'Dictionary'" errors, one per affected symbol, while
+	# loading Monochrome's atlases), so coerce anything that isn't
+	# actually a Dictionary to empty instead.
+	var raw_filters_value: Variant = symbol.get('F', {})
+	var raw_filters: Dictionary = raw_filters_value if raw_filters_value is Dictionary else {}
 	if not raw_filters.is_empty():
 		var blur: Dictionary = raw_filters.get('BLF', {})
 		if not blur.is_empty():
