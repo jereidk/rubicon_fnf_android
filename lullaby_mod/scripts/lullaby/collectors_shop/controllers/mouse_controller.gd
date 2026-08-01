@@ -66,12 +66,22 @@ func _physics_process(_delta: float) -> void :
 			Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 		return
 
-	# On touch, aim from screen center (i.e. wherever the joystick has left
-	# the camera looking) instead of the touch/emulated-mouse position -
-	# see is_touch_controls_active()'s doc comment for why raw touch
-	# position can't drive this the way a real mouse cursor does.
+	# On touch during FREE_LOOK, aim from screen center (i.e. wherever the
+	# joystick has left the camera looking) instead of the touch/emulated-
+	# mouse position - see is_touch_controls_active()'s doc comment for why
+	# raw touch position can't drive FREE_LOOK's big zone-entry areas the
+	# way a real mouse cursor does.
+	#
+	# That doesn't hold once FOCUSED: the camera is locked wherever the
+	# zoom-in animation left it (_process() below only pans during
+	# FREE_LOOK), so a fixed center point can only ever reach whatever that
+	# animation happened to center - e.g. the console screen, but not a
+	# separate prop like the power button sitting elsewhere on the same
+	# console. There's no joystick left to move a crosshair with anyway, so
+	# fall back to the raw touch position here, same as desktop's mouse -
+	# tap directly on the small thing you want, same as you'd click it.
 	var aim_position: Vector2
-	if is_touch_controls_active():
+	if is_touch_controls_active() and _is_free_look():
 		aim_position = get_viewport().get_visible_rect().size * 0.5
 	else:
 		aim_position = get_viewport().get_mouse_position()
