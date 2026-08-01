@@ -36,12 +36,15 @@ static var current_area: FocusArea3D:
 
 		# The touch overlay's OK button is shared across every active
 		# state (see RubiconMenuTouchControls' own doc comment - one
-		# persistent instance, not swapped per sub-state). During
-		# FREE_LOOK it needs to fire MouseController's 3D area-select
-		# confirm ("RightClick") instead of its normal menu confirm
-		# (ui_accept, still correct once a sub-area/menu is FOCUSED).
+		# persistent instance, not swapped per sub-state). MouseController's
+		# 3D raycast+"RightClick" confirm (see its own should_cast_ray,
+		# gated the same way below) drives BOTH area-select in FREE_LOOK
+		# and clicking a sub-item once FOCUSED (e.g. the TV screen itself,
+		# to actually open the console) - only once truly BUSY (forwarded
+		# into a SubViewport's own 2D GUI, e.g. the console's Home tab) does
+		# OK's job switch to a real "ui_accept" menu confirm.
 		if touch_confirm_button != null:
-			touch_confirm_button.action = &"RightClick" if value == ShopStates.FREE_LOOK else &"ui_accept"
+			touch_confirm_button.action = &"ui_accept" if value == ShopStates.BUSY else &"RightClick"
 
 @export var touch_confirm_button: RubiconActionButton
 @export var mouse_controller: MouseController
