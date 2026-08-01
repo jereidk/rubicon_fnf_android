@@ -16,7 +16,7 @@ signal volume_changed(bus: StringName, value: float)
 
 # --- First Boot Settings (Rubicon's onboarding screen) ---
 
-enum QualityPreset { CUSTOM, LOW, MEDIUM, HIGH }
+enum QualityPreset { CUSTOM, VERY_LOW, LOW, MEDIUM, HIGH }
 
 signal key_binding_changed(lane: int, keycode: Key)
 signal special_binding_changed(keycode: Key)
@@ -34,7 +34,12 @@ var special_binding: Key = KEY_SPACE
 func apply_quality_preset(preset: QualityPreset) -> void:
 	quality_preset = preset
 	match preset:
-		QualityPreset.LOW:
+		QualityPreset.VERY_LOW, QualityPreset.LOW:
+			# This screen only ever toggles 2D MSAA/screen-space AA - there's
+			# nothing further to strip for VERY_LOW here (no render_scale,
+			# shadow, or post-processing knobs at this level; those live in
+			# the full console settings' LullabyQualityPreset system below,
+			# deliberately kept separate - see this file's own doc comment).
 			get_viewport().msaa_2d = Viewport.MSAA_DISABLED
 			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 		QualityPreset.MEDIUM:

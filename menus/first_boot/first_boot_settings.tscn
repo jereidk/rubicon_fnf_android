@@ -117,17 +117,19 @@ text = "Quality Preset:"
 layout_mode = 2
 size_flags_horizontal = 2
 mouse_default_cursor_shape = 2
-selected = 3
-item_count = 4
+selected = 4
+item_count = 5
 popup/item_0/text = "CUSTOM"
 popup/item_0/id = 0
 popup/item_0/disabled = true
-popup/item_1/text = "Low"
+popup/item_1/text = "Very Low"
 popup/item_1/id = 1
-popup/item_2/text = "Medium"
+popup/item_2/text = "Low"
 popup/item_2/id = 2
-popup/item_3/text = "High"
+popup/item_3/text = "Medium"
 popup/item_3/id = 3
+popup/item_4/text = "High"
+popup/item_4/id = 4
 
 [node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics"]
 layout_mode = 2

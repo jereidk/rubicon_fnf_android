@@ -5,10 +5,12 @@ const INTRO_SCENE := "res://menus/intro/intro.tscn"
 func _on_preset_changed(index: int) -> void:
 	match index:
 		1:
-			Settings.apply_quality_preset(Settings.QualityPreset.LOW)
+			Settings.apply_quality_preset(Settings.QualityPreset.VERY_LOW)
 		2:
-			Settings.apply_quality_preset(Settings.QualityPreset.MEDIUM)
+			Settings.apply_quality_preset(Settings.QualityPreset.LOW)
 		3:
+			Settings.apply_quality_preset(Settings.QualityPreset.MEDIUM)
+		4:
 			Settings.apply_quality_preset(Settings.QualityPreset.HIGH)
 
 func apply_and_continue() -> void:
