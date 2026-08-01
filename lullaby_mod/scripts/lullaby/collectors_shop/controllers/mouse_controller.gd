@@ -68,10 +68,10 @@ func _physics_process(_delta: float) -> void :
 
 	# On touch, aim from screen center (i.e. wherever the joystick has left
 	# the camera looking) instead of the touch/emulated-mouse position -
-	# see _is_touch_controls_active()'s doc comment for why raw touch
+	# see is_touch_controls_active()'s doc comment for why raw touch
 	# position can't drive this the way a real mouse cursor does.
 	var aim_position: Vector2
-	if _is_touch_controls_active():
+	if is_touch_controls_active():
 		aim_position = get_viewport().get_visible_rect().size * 0.5
 	else:
 		aim_position = get_viewport().get_mouse_position()
@@ -148,7 +148,7 @@ func _get_look_direction() -> float:
 	if keyboard_direction != 0.0:
 		return keyboard_direction
 
-	if _is_touch_controls_active():
+	if is_touch_controls_active():
 		return 0.0
 
 	return _get_mouse_edge_direction()
@@ -158,10 +158,12 @@ func _get_look_direction() -> float:
 ## mouse-position update and a real InputEventMouseButton - there's no
 ## actual cursor, so neither can be trusted the way they would be with a
 ## real mouse. Shared by _get_look_direction() (mouse-edge camera pan
-## fallback) and _physics_process()/_is_confirm_event() (raycast aim +
-## confirm-click), all three of which need to ignore that emulated input
-## on touch and defer to the joystick/OK button instead.
-func _is_touch_controls_active() -> bool:
+## fallback), _physics_process()/_is_confirm_event() (raycast aim +
+## confirm-click), and touch_aim_reticle.gd (whether to show the crosshair
+## at all), all of which need to ignore that emulated input on touch and
+## defer to the joystick/OK button instead. Public (no leading underscore)
+## because touch_aim_reticle.gd, a separate sibling node, calls it too.
+func is_touch_controls_active() -> bool:
 	return ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true) \
 		and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
 
@@ -275,7 +277,7 @@ func _input(event: InputEvent) -> void :
 ## gamepad button - should count; the emulated InputEventMouseButton must
 ## not.
 func _is_confirm_event(event: InputEvent) -> bool:
-	if _is_touch_controls_active():
+	if is_touch_controls_active():
 		return (
 			(event is InputEventAction or event is InputEventJoypadButton)
 			and event.is_action_pressed("RightClick")

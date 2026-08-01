@@ -195,6 +195,7 @@
 [ext_resource type="Texture2D" uid="uid://dqytnrnleytio" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191"]
 [ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
 [ext_resource type="Script" uid="uid://btrjxrci3pbix" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd" id="193"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/touch_aim_reticle.gd" id="300"]
 
 [sub_resource type="Animation" id="Animation_x4yal"]
 length = 0.001
@@ -11881,6 +11882,23 @@ visible_source = NodePath("../../../../Viewports/ConsoleSubViewport/Console/TabC
 visible_property = &"focused"
 visible_source2 = NodePath("../../../../Viewports/ConsoleSubViewport/Console")
 visible_property2 = &"focused"
+
+[node name="TouchAimReticle" type="Control" parent="UI/Control" node_paths=PackedStringArray("mouse_controller")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("300")
+mouse_controller = NodePath("../../../MouseController")
 
 [connection signal="voice_entry_finished" from="." to="UI/Control/Dialogue" method="_on_collector_shop_voice_entry_finished"]
 [connection signal="voice_entry_finished" from="." to="Environment/Areas/TriggerExit" method="_on_collector_shop_voice_entry_finished"]
