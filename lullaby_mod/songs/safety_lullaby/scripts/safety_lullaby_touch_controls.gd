@@ -27,6 +27,11 @@ class_name SafetyLullabyTouchControls
 ## same idea as the pause case below.
 @export var default_hud: CanvasItem
 
+## Safety Lullaby's gameover is an in-scene cutscene (SafetyLullabyGameoverModule,
+## not a scene change like Monochrome/Chimera use), and nothing in it fades
+## default_hud or pauses the tree - is_game_over covers that gap directly.
+@export var gameover_module: SafetyLullabyGameoverModule
+
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
 	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
@@ -57,6 +62,10 @@ func _update_visibility() -> void:
 		return
 
 	if get_tree().paused:
+		hitbox.visible = false
+		return
+
+	if gameover_module and gameover_module.is_game_over:
 		hitbox.visible = false
 		return
 

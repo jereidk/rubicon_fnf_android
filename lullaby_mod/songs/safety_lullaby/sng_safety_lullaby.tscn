@@ -3933,7 +3933,7 @@ offset_right = 276.0
 offset_bottom = 84.0
 text = "Restart"
 
-[node name="SafetyLullabyTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "pendulum_server", "default_hud")]
+[node name="SafetyLullabyTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "pendulum_server", "default_hud", "gameover_module")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3945,6 +3945,7 @@ script = ExtResource("204")
 hitbox = NodePath("PendulumHitbox")
 pendulum_server = NodePath("../../LullabyPendulumServer")
 default_hud = NodePath("../GameUI/DefaultHUD")
+gameover_module = NodePath("../../Environment/SafetyLullabyGameoverModule")
 
 [node name="PendulumHitbox" type="Control" parent="UILayer/SafetyLullabyTouchControls"]
 visible = false
