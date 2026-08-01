@@ -29,7 +29,18 @@ func _input(event: InputEvent) -> void :
 	if animation_player.current_animation:
 		return
 
-	if event.is_action(&"ui_accept") and animation_player:
+	# ui_accept's default InputMap is Enter/Space/gamepad A - no mouse or
+	# touch binding, and Android's touch-emulates-mouse produces
+	# InputEventMouseButton, not an action press, so a touch player had no
+	# way at all to retry from this screen. A tap anywhere should be enough
+	# here (no aiming/hitbox concerns like in-song touch controls - this is
+	# just a single confirm prompt).
+	var is_tap: bool = (
+		event is InputEventScreenTouch
+		or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT)
+	)
+
+	if (event.is_action(&"ui_accept") or is_tap) and animation_player:
 		transitioning = true
 		animation_player.animation_finished.connect(transition_to_game, CONNECT_ONE_SHOT)
 		animation_player.play(retry_animation)
