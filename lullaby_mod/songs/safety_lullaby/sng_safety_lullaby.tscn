@@ -2799,6 +2799,94 @@ _data = {
 &"autoplay_on": SubResource("Animation_nqfm1")
 }
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_scmid1"]
+animation = &"centered"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_scmid2"]
+animation = &"uncentered"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_scmid1"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_scmid2"]
+advance_mode = 2
+advance_expression = "settings_centered"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_scmid3"]
+advance_mode = 2
+advance_expression = "not settings_centered"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_scmid"]
+states/End/node = null
+states/Start/node = null
+states/centered/node = SubResource("AnimationNodeAnimation_scmid1")
+states/centered/position = Vector2(372, 199.5)
+states/not_centered/node = SubResource("AnimationNodeAnimation_scmid2")
+states/not_centered/position = Vector2(372.5, 100.5)
+transitions = ["Start", "not_centered", SubResource("AnimationNodeStateMachineTransition_scmid1"), "not_centered", "centered", SubResource("AnimationNodeStateMachineTransition_scmid2"), "centered", "not_centered", SubResource("AnimationNodeStateMachineTransition_scmid3")]
+
+[sub_resource type="Animation" id="Animation_scmid1"]
+resource_name = "not_centered"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../../UILayer/GameUI/Player:anchor_left")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../../UILayer/GameUI/Player:anchor_right")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.5]
+}
+
+[sub_resource type="Animation" id="Animation_scmid2"]
+resource_name = "centered"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../../UILayer/GameUI/Player:anchor_left")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.75]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../../UILayer/GameUI/Player:anchor_right")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.75]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_scmid"]
+_data = {
+&"centered": SubResource("Animation_scmid1"),
+&"uncentered": SubResource("Animation_scmid2")
+}
+
 [sub_resource type="Gradient" id="Gradient_djtvt"]
 offsets = PackedFloat32Array(0.44572026, 1)
 colors = PackedColorArray(0, 0, 0, 0, 1, 1, 1, 1)
@@ -3382,6 +3470,15 @@ anim_player = NodePath("ScrollSetter")
 
 [node name="ScrollSetter" type="AnimationPlayer" parent="Settings/ScrollTree" unique_id=1020765329]
 libraries/ = SubResource("AnimationLibrary_q7m18")
+
+[node name="CenteredTree" type="AnimationTree" parent="Settings" unique_id=3057231960]
+root_node = NodePath(".")
+tree_root = SubResource("AnimationNodeStateMachine_scmid")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("CenteredSetter")
+
+[node name="CenteredSetter" type="AnimationPlayer" parent="Settings/CenteredTree" unique_id=3057231961]
+libraries/ = SubResource("AnimationLibrary_scmid")
 
 [node name="BabyModeTree" type="AnimationTree" parent="Settings" unique_id=827649611]
 root_node = NodePath("../..")

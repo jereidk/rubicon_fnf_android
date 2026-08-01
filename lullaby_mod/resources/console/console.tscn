@@ -5249,16 +5249,27 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../SpeedMultiplier")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../GhostTapping")
+focus_neighbor_bottom = NodePath("../Midscroll")
 text = "Downscroll"
 property = &"game_downscroll"
 console = NodePath("../../../../../..")
 tooltip = "Places player arrows at the bottom of the screen and makes notes scroll down."
 
-[node name="GhostTapping" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=93099427 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+[node name="Midscroll" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=3057231962 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Downscroll")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../GhostTapping")
+text = "Midscroll"
+property = &"game_centered"
+console = NodePath("../../../../../..")
+tooltip = "Centers your note lanes in the middle of the screen instead of off to the side."
+
+[node name="GhostTapping" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=93099427 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Midscroll")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../BabyMode")
 text = "Ghost Tapping"
