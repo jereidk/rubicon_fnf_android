@@ -83,7 +83,7 @@ simple_label = NodePath("SimpleMarginContainer/PanelContainer/Label")
 
 [node name="SimpleMarginContainer" type="MarginContainer" parent="FpsDisplay" unique_id=3057231908]
 anchors_preset = -1
-scale = Vector2(0.55, 0.55)
+offset_top = 60.0
 theme = ExtResource("3")
 
 [node name="PanelContainer" type="PanelContainer" parent="FpsDisplay/SimpleMarginContainer" unique_id=3057231909]
@@ -92,6 +92,7 @@ size_flags_horizontal = 0
 
 [node name="Label" type="Label" parent="FpsDisplay/SimpleMarginContainer/PanelContainer" unique_id=3057231910]
 layout_mode = 2
+theme_override_font_sizes/font_size = 38
 text = "FPS: 60 • Memory: 500 MB"
 
 [node name="MarginContainer" type="MarginContainer" parent="FpsDisplay" unique_id=1421133181]

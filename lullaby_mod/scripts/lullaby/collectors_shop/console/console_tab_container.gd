@@ -11,7 +11,7 @@ var tabs_array = [
 	"Settings",
 	"Cartridges",
 	"Training",
-	"Hacks"
+	"Codes"
 ]
 
 
