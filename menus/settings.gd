@@ -80,6 +80,12 @@ const DEFAULT_GAME_INPUTS: RubiconLevelNoteInputMap = preload("res://addons/rubi
 const INPUT_EXCLUSIONS: Array[StringName] = [
 	&"ui_accept", &"ui_select", &"ui_cancel", &"ui_left", &"ui_right", &"ui_up", &"ui_down",
 	&"ui_focus_next", &"ui_focus_prev", &"ui_page_up", &"ui_page_down", &"ui_home", &"ui_end",
+	# Not a remappable gameplay binding - keep these on whatever project.godot
+	# defines (desktop keyboard stand-ins + KEY_VOLUMEUP/DOWN/MUTE, which is
+	# what Android's hardware volume rocker actually sends) rather than
+	# freezing them into a player's settings.ini the first time it's written,
+	# which would silently drop any future default binding added here.
+	&"volume_up", &"volume_down", &"volume_mute",
 ]
 
 enum PostProcessing { NONE = 0, LOW = 1, HIGH = 2 }
