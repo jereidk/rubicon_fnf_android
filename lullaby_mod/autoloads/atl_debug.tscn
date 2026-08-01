@@ -63,7 +63,7 @@ script = ExtResource("1")
 fps_display = NodePath("FpsDisplay")
 settings = NodePath("SettingsMenu")
 
-[node name="FpsDisplay" type="CanvasLayer" parent="." unique_id=801632619 node_paths=PackedStringArray("container", "fps_average_counter", "fps_low_counter", "fps_high_counter", "game_name_label", "game_version_label", "game_type_label", "godot_version_label", "debug_only_section", "ram_label", "vram_label")]
+[node name="FpsDisplay" type="CanvasLayer" parent="." unique_id=801632619 node_paths=PackedStringArray("container", "fps_average_counter", "fps_low_counter", "fps_high_counter", "game_name_label", "game_version_label", "game_type_label", "godot_version_label", "debug_only_section", "ram_label", "vram_label", "simple_container", "simple_label")]
 process_mode = 3
 layer = 256
 script = ExtResource("2")
@@ -78,6 +78,21 @@ godot_version_label = NodePath("MarginContainer/VBoxContainer/GodotInfo/HBoxCont
 debug_only_section = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly")
 ram_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RAM/RAMCounter/Label")
 vram_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VRAM/VRAMCounter/Label")
+simple_container = NodePath("SimpleMarginContainer")
+simple_label = NodePath("SimpleMarginContainer/PanelContainer/Label")
+
+[node name="SimpleMarginContainer" type="MarginContainer" parent="FpsDisplay" unique_id=3057231908]
+anchors_preset = -1
+scale = Vector2(0.55, 0.55)
+theme = ExtResource("3")
+
+[node name="PanelContainer" type="PanelContainer" parent="FpsDisplay/SimpleMarginContainer" unique_id=3057231909]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="FpsDisplay/SimpleMarginContainer/PanelContainer" unique_id=3057231910]
+layout_mode = 2
+text = "FPS: 60 • Memory: 500 MB"
 
 [node name="MarginContainer" type="MarginContainer" parent="FpsDisplay" unique_id=1421133181]
 anchors_preset = -1

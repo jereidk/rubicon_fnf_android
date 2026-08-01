@@ -2,12 +2,13 @@ class_name LullabyFPSDisplay extends Node
 
 enum CurrentState
 {
-	NONE = 0, 
-	BASIC = 1, 
-	ADVANCED = 2
+	NONE = 0,
+	VERY_SIMPLE = 1,
+	BASIC = 2,
+	ADVANCED = 3
 }
 
-var current_state: CurrentState = CurrentState.BASIC
+var current_state: CurrentState = CurrentState.VERY_SIMPLE
 
 @export var container: Control
 
@@ -23,6 +24,17 @@ var current_state: CurrentState = CurrentState.BASIC
 @export var debug_only_section: Control
 @export var ram_label: Label
 @export var vram_label: Label
+
+## VERY_SIMPLE (the default) - just "FPS: 60 • Memory: 500 MB", nothing
+## else. simple_container is a separate node from container (which holds
+## the Classic/GameInfo/GodotInfo/DebugOnly blocks) since exactly one of
+## the two is ever visible at a time and they'd otherwise fight over the
+## same on-screen corner.
+@export var simple_container: Control
+@export var simple_label: Label
+
+var _last_simple_fps: int = -1
+var _last_simple_mem: int = -1
 
 var _fps_tracker: PackedInt32Array
 var _fps_index: int = 0
@@ -71,6 +83,14 @@ func _process(delta: float) -> void :
 
 	average = floori(float(average) / tracker_size)
 
+	if current_state == CurrentState.VERY_SIMPLE:
+		var mem_used: int = OS.get_static_memory_usage()
+		if average != _last_simple_fps or mem_used != _last_simple_mem:
+			_last_simple_fps = average
+			_last_simple_mem = mem_used
+			simple_label.text = "FPS: %d • Memory: %s" % [average, to_memory_format(mem_used)]
+		return
+
 	if average != _last_average:
 		_last_average = average
 		fps_average_counter.text = str(average)
@@ -102,12 +122,19 @@ func update_visibility() -> void :
 		CurrentState.NONE:
 			container.visible = false
 			debug_only_section.visible = false
+			simple_container.visible = false
+		CurrentState.VERY_SIMPLE:
+			container.visible = false
+			debug_only_section.visible = false
+			simple_container.visible = true
 		CurrentState.BASIC:
 			container.visible = true
 			debug_only_section.visible = false
+			simple_container.visible = false
 		CurrentState.ADVANCED:
 			container.visible = true
 			debug_only_section.visible = true
+			simple_container.visible = false
 
 func _input(event: InputEvent) -> void :
 	if event.is_action_pressed("quick_restart") and get_tree().current_scene is RubiconLevel and not _disable_quick_restart:
@@ -115,7 +142,10 @@ func _input(event: InputEvent) -> void :
 
 	if event.is_echo() or not event.is_action_pressed(&"debug_toggle"):
 		return
-	var limit: int = 3 if OS.is_debug_build() else 2
+	# VERY_SIMPLE ships in every build (it's the default), ADVANCED stays
+	# debug-only, same as before - NONE, VERY_SIMPLE, BASIC in release;
+	# all four in debug.
+	var limit: int = 4 if OS.is_debug_build() else 3
 	current_state = ((current_state + 1) % limit) as CurrentState
 	update_visibility()
 

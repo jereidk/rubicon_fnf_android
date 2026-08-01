@@ -53,7 +53,7 @@ func _process(_delta: float) -> void :
 
 func update_visibility() -> void :
 	match Debugger.fps_display.current_state:
-		LullabyFPSDisplay.CurrentState.NONE:
+		LullabyFPSDisplay.CurrentState.NONE, LullabyFPSDisplay.CurrentState.VERY_SIMPLE:
 			container.visible = false
 			engine_info_container.visible = false
 			debug_only_container.visible = false
