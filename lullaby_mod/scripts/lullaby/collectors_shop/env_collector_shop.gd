@@ -45,6 +45,7 @@ static var current_area: FocusArea3D:
 
 @export var touch_confirm_button: RubiconActionButton
 @export var mouse_controller: MouseController
+@export var console: Console
 @export var sequence_controller: ShopSequences
 @export var voiceline: AudioStreamPlayer3D
 @export var voiceline_group_name: String
@@ -179,7 +180,16 @@ func _input(event: InputEvent) -> void :
 		return
 
 	if event.is_action(&"ui_cancel"):
-		if state == ShopStates.FOCUSED:
+		# While the console is actively grabbing GUI focus for Home-tab/
+		# submenu navigation (Console.focused, set by focus_console.gd's
+		# trigger() - see FocusConsoleEntry's own doc comment), let
+		# Console.back_out() (forwarded via SubmenuArea._input()) handle
+		# this press instead: it steps out one level (submenu -> Home tab
+		# -> un-focused) at a time. Only once that's unwound all the way
+		# does this fire, fully zooming the camera back out - otherwise
+		# both handlers would fire on the very same keypress and fight
+		# over the same AnimationPlayer.
+		if state == ShopStates.FOCUSED and (console == null or not console.focused):
 			sequence_controller.animation_player.play(&"focus_center")
 
 func default_shop(play_voicelines: bool = true) -> void :
