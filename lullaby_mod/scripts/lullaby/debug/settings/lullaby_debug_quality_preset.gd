@@ -14,10 +14,12 @@ func _on_preset_selected(index: int) -> void :
 		0:
 			pass
 		1:
-			LullabySettings.PRESET_LOW.apply(Settings)
+			LullabySettings.PRESET_VERY_LOW.apply(Settings)
 		2:
-			LullabySettings.PRESET_MEDIUM.apply(Settings)
+			LullabySettings.PRESET_LOW.apply(Settings)
 		3:
+			LullabySettings.PRESET_MEDIUM.apply(Settings)
+		4:
 			LullabySettings.PRESET_HIGH.apply(Settings)
 
 	if root:
@@ -28,11 +30,13 @@ func get_preset_idx() -> int:
 	if not preset:
 		return 0
 
-	if preset == LullabySettings.PRESET_LOW:
+	if preset == LullabySettings.PRESET_VERY_LOW:
 		return 1
-	if preset == LullabySettings.PRESET_MEDIUM:
+	if preset == LullabySettings.PRESET_LOW:
 		return 2
-	if preset == LullabySettings.PRESET_HIGH:
+	if preset == LullabySettings.PRESET_MEDIUM:
 		return 3
+	if preset == LullabySettings.PRESET_HIGH:
+		return 4
 
 	return 0

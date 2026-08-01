@@ -399,15 +399,17 @@ text = "Preset:"
 [node name="OptionButton" type="OptionButton" parent="SettingsMenu/HBoxContainer/Settings/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer/Graphics/VBoxContainer/QualityPreset" unique_id=1314947157]
 layout_mode = 2
 selected = 0
-item_count = 4
+item_count = 5
 popup/item_0/text = "CUSTOM"
 popup/item_0/id = 0
-popup/item_1/text = "Low"
+popup/item_1/text = "Very Low"
 popup/item_1/id = 1
-popup/item_2/text = "Medium"
+popup/item_2/text = "Low"
 popup/item_2/id = 2
-popup/item_3/text = "High"
+popup/item_3/text = "Medium"
 popup/item_3/id = 3
+popup/item_4/text = "High"
+popup/item_4/id = 4
 
 [node name="RenderScale" type="HBoxContainer" parent="SettingsMenu/HBoxContainer/Settings/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer/Graphics/VBoxContainer" unique_id=1817818840 node_paths=PackedStringArray("spinbox")]
 layout_mode = 2

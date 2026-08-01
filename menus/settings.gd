@@ -69,6 +69,7 @@ const VOCALS_VOLUME_BUS: int = 3
 const PRESET_HIGH: LullabyQualityPreset = preload("res://lullaby_mod/resources/quality_presets/qol_high.tres")
 const PRESET_MEDIUM: LullabyQualityPreset = preload("res://lullaby_mod/resources/quality_presets/qol_medium.tres")
 const PRESET_LOW: LullabyQualityPreset = preload("res://lullaby_mod/resources/quality_presets/qol_low.tres")
+const PRESET_VERY_LOW: LullabyQualityPreset = preload("res://lullaby_mod/resources/quality_presets/qol_very_low.tres")
 
 const DEFAULT_GAME_INPUTS: RubiconLevelNoteInputMap = preload("res://addons/rubicon_mania/resources/default_input_map.tres")
 const INPUT_EXCLUSIONS: Array[StringName] = [
@@ -177,6 +178,8 @@ func get_quality_preset() -> LullabyQualityPreset:
 		return PRESET_MEDIUM
 	elif PRESET_LOW.is_matching(self):
 		return PRESET_LOW
+	elif PRESET_VERY_LOW.is_matching(self):
+		return PRESET_VERY_LOW
 
 	return null
 

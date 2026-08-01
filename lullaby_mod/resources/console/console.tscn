@@ -5249,8 +5249,8 @@ theme = ExtResource("1")
 text = "Quality Preset: "
 alignment = 0
 script = ExtResource("55")
-display_list = ["Low", "Medium", "High"]
-values_list = [0, 1, 2]
+display_list = ["Very Low", "Low", "Medium", "High"]
+values_list = [0, 1, 2, 3]
 console = NodePath("../../../../../..")
 tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
 

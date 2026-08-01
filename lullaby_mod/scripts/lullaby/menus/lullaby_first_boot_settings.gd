@@ -4,17 +4,19 @@ class_name LullabyFirstBootSettings extends Node
 @export var preset_description: Label
 
 func _ready() -> void :
-	_on_preset_changed(3)
+	_on_preset_changed(4)
 	focus_first.grab_focus()
 
 func _on_preset_changed(index: int) -> void :
 	var text: String = "Whatever you want."
 	match index:
 		1:
-			text = "Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]"
+			text = "As low as it gets [No shadows, 0.75x render scale, post-processing off, zero antialiasing]"
 		2:
-			text = "For the average computer [Post-processing low, basic antilaliasing]"
+			text = "Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]"
 		3:
+			text = "For the average computer [Post-processing low, basic antilaliasing]"
+		4:
 			text = "The intended experience. [Post-processing and antialiasing at its max]"
 
 	preset_description.text = text
