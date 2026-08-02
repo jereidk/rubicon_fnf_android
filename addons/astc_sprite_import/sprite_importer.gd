@@ -78,7 +78,7 @@ func _can_import_threaded() -> bool:
 func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]:
 	return [
 		{"name": "compress/block_size", "default_value": 12},
-		{"name": "compress/quality", "default_value": 98.0}, # THOROUGH: ~13x faster than EXHAUSTIVE (100) for ~0.4dB PSNR difference, measured on real project art
+		{"name": "compress/quality", "default_value": 100.0}, # EXHAUSTIVE: slower, runs on the CI runner rather than locally
 		{"name": "mipmaps/generate", "default_value": true},
 	]
 

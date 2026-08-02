@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/pendulum.png-94b9eba3e211fdae5284165754e4c961
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

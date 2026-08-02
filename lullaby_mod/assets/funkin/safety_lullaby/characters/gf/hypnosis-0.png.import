@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/hypnosis-0.png-9a7ba38b0e4ffcddd682ef5a7e51c4
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/angel_wall.png-9fa344775410c91293551a0e9c1a1a
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/fucknoscope.png-c0c32cc31cc92841a2bf374e85e1d
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/serena_looking_back.png-9f390c4737c3db99c3c0e
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

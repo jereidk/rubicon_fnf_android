@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/serena_disoriented-1.png-88c4198c2795f8ddcb87
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

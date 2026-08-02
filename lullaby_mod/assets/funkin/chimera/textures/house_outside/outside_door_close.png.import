@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/outside_door_close.png-c2a7fbe6356f79e59643d8
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/chr_bfp3_tex.png-3f5f44a292da913ab9e4b893f569
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

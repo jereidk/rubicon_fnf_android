@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/spr_back_up_2.png-efec81f0b3adf9c66fab4b510a8
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

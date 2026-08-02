@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/CameraFlash-2.png-999c412ca75ab1f2d7a83a65360
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false

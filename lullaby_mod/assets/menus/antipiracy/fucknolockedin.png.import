@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/fucknolockedin.png-52deecae183e1e08fe562f38ee
 [params]
 
 compress/block_size=12
-compress/quality=98.0
+compress/quality=100.0
 mipmaps/generate=false
