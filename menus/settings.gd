@@ -81,6 +81,7 @@ var display_target_fps: int = 60
 var graphics_scaling_mode: Viewport.Scaling3DMode = Viewport.Scaling3DMode.SCALING_3D_MODE_BILINEAR
 var graphics_render_scale: float = 1.0
 var graphics_fsr_sharpness: float = 1.0
+var graphics_shadows_enabled: bool = true
 var graphics_positional_shadow_atlas_size: int = 4096
 var graphics_positional_shadow_filter_quality: int = 2
 var graphics_screen_space_aa_quality: Viewport.ScreenSpaceAA = Viewport.ScreenSpaceAA.SCREEN_SPACE_AA_SMAA
@@ -226,7 +227,7 @@ func apply_settings() -> void:
 	window.scaling_3d_mode = graphics_scaling_mode
 	window.scaling_3d_scale = graphics_render_scale
 	window.fsr_sharpness = graphics_fsr_sharpness
-	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size
+	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
 	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
 
 	window.msaa_3d = graphics_msaa_3d_quality
