@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/chr_goldp2_tex_2.png-46a4cd65c3e5d5a03ca3ee92
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

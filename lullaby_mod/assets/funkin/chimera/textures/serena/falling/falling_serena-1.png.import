@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/falling_serena-1.png-6bedb7d132b54c083a519082
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

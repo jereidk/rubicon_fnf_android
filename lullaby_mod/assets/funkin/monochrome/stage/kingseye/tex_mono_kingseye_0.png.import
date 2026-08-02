@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/tex_mono_kingseye_0.png-17555d79419625c048f43
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

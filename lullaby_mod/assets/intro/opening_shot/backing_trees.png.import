@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/backing_trees.png-c36e730d83d4177bb075aa77402
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/tex_mono_health_bar.png-fafc35840becb0b72bd25
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

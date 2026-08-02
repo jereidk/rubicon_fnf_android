@@ -2,22 +2,26 @@
 extends EditorImportPlugin
 
 ## Imports large flat-shaded 2D sprites (character spritesheets, backgrounds,
-## cutscene art) as ASTC 12x12 at EXHAUSTIVE quality via a standalone
+## cutscene art) as ASTC 8x8 at EXHAUSTIVE quality via a standalone
 ## astcenc invocation - the same tool/library used by
 ## addons/astc_normal_import, just without ASTCENC_FLG_MAP_NORMAL and with a
-## much larger block size.
+## larger block size.
 ##
-## Godot's own quality preset (MEDIUM) barely differs from EXHAUSTIVE at the
-## same block size in practice (measured ~0.4dB PSNR difference), so the
-## real lever here is block size, and 12x12 gives ~9x smaller files than the
-## project's usual 4x4. That trade only pays off for content with little
-## per-pixel high-frequency detail: flat cel-shaded character/background art
-## verified fine by direct 1:1 pixel crop comparison against source; a
-## normal map tested with the same settings showed real degradation (see
-## addons/astc_normal_import's docstring), which is why THAT importer keeps
-## a small block size instead. Do not point this importer at pixel art,
-## fonts/text atlases, small UI icons, or normal/roughness maps - all of
-## those need either a smaller block or no ASTC compression at all.
+## 8x8 is the largest ASTC block Godot 4.7.1's Image::Format actually
+## supports (see the comment on _FORMAT_BY_BLOCK below) - 12x12 would give
+## ~9x smaller files instead of 8x8's ~4x, but isn't available in this
+## engine version. Godot's own quality preset (MEDIUM) barely differs from
+## EXHAUSTIVE at the same block size in practice (measured ~0.4dB PSNR
+## difference), so the real lever here is block size. That trade only pays
+## off for content with little per-pixel high-frequency detail: flat
+## cel-shaded character/background art verified fine by direct 1:1 pixel
+## crop comparison against source (measured PSNR 40dB at 8x8 on real
+## project art); a normal map tested with the same settings showed real
+## degradation (see addons/astc_normal_import's docstring), which is why
+## THAT importer keeps a small block size instead. Do not point this
+## importer at pixel art, fonts/text atlases, small UI icons, or
+## normal/roughness maps - all of those need either a smaller block or no
+## ASTC compression at all.
 ##
 ## _can_import_threaded() is deliberately false: the astc_compress helper
 ## already parallelizes internally across all CPU cores for a single file
@@ -27,11 +31,18 @@ extends EditorImportPlugin
 
 const ASTC_COMPRESS_REL_PATH := "res://tools/astc_compress/astc_compress"
 
+## Godot 4.7.1's Image::Format only exposes ASTC_4x4 and ASTC_8x8 to
+## GDScript - ASTC_10x10/ASTC_12x12 don't exist in this version (they were
+## added later). Referencing a nonexistent Image.FORMAT_* constant is a
+## GDScript compile error, which silently fails the whole plugin's
+## _enter_tree() and leaves the importer unregistered - Godot then falls
+## back to whatever default importer handles the extension, with no error
+## surfaced anywhere obvious. Learned this the hard way: a first version of
+## this importer targeted 12x12 and looked like it worked (CI stayed green,
+## build finished suspiciously fast) but never actually ran at all.
 const _FORMAT_BY_BLOCK := {
 	4: Image.FORMAT_ASTC_4x4,
 	8: Image.FORMAT_ASTC_8x8,
-	10: Image.FORMAT_ASTC_10x10,
-	12: Image.FORMAT_ASTC_12x12,
 }
 
 
@@ -77,16 +88,16 @@ func _can_import_threaded() -> bool:
 
 func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]:
 	return [
-		{"name": "compress/block_size", "default_value": 12},
+		{"name": "compress/block_size", "default_value": 8},
 		{"name": "compress/quality", "default_value": 100.0}, # EXHAUSTIVE: slower, runs on the CI runner rather than locally
 		{"name": "mipmaps/generate", "default_value": true},
 	]
 
 
 func _import(source_file: String, save_path: String, options: Dictionary, _platform_variants: Array[String], _gen_files: Array[String]) -> Error:
-	var block: int = int(options.get("compress/block_size", 12))
+	var block: int = int(options.get("compress/block_size", 8))
 	if not _FORMAT_BY_BLOCK.has(block):
-		push_error("astc_sprite: unsupported block size %d (must be 4, 8, 10 or 12)" % block)
+		push_error("astc_sprite: unsupported block size %d (must be 4 or 8 - this Godot version has no larger ASTC Image::Format)" % block)
 		return ERR_INVALID_PARAMETER
 	var quality: float = float(options.get("compress/quality", 100.0))
 	var want_mipmaps: bool = bool(options.get("mipmaps/generate", true))

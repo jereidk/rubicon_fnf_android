@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/she_walk.png-f31bce6c030d41343aedf4d775dbde6f
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

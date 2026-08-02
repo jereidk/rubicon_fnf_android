@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/serena_sing-1.png-6fe94c15b767c797845453721f6
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

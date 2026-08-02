@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/spritemap2.png-43578dd47ec949450b2bfdbd167769
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false

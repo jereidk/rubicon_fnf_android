@@ -17,11 +17,19 @@ extends EditorImportPlugin
 
 const ASTC_COMPRESS_REL_PATH := "res://tools/astc_compress/astc_compress"
 
+## Godot 4.7.1's Image::Format only exposes ASTC_4x4 and ASTC_8x8 to
+## GDScript - ASTC_10x10/ASTC_12x12 don't exist in this version (they were
+## added later). Referencing a nonexistent Image.FORMAT_* constant is a
+## GDScript compile error, which silently fails the whole plugin's
+## _enter_tree() and leaves the importer unregistered - Godot then falls
+## back to whatever default importer handles the extension, with no error
+## surfaced anywhere obvious. This dict used to list all four block sizes
+## (unused ones included "for completeness") and that alone was enough to
+## break compilation and silently disable this importer in every CI run so
+## far, despite this importer only ever using block=4 at runtime.
 const _FORMAT_BY_BLOCK := {
 	4: Image.FORMAT_ASTC_4x4,
 	8: Image.FORMAT_ASTC_8x8,
-	10: Image.FORMAT_ASTC_10x10,
-	12: Image.FORMAT_ASTC_12x12,
 }
 
 
@@ -78,7 +86,7 @@ func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]
 func _import(source_file: String, save_path: String, options: Dictionary, _platform_variants: Array[String], _gen_files: Array[String]) -> Error:
 	var block: int = int(options.get("compress/block_size", 4))
 	if not _FORMAT_BY_BLOCK.has(block):
-		push_error("astc_normal_map: unsupported block size %d (must be 4, 8, 10 or 12)" % block)
+		push_error("astc_normal_map: unsupported block size %d (must be 4 or 8 - this Godot version has no larger ASTC Image::Format)" % block)
 		return ERR_INVALID_PARAMETER
 	var quality: float = float(options.get("compress/quality", 100.0))
 	var want_mipmaps: bool = bool(options.get("mipmaps/generate", true))

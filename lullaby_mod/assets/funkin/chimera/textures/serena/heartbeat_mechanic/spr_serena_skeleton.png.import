@@ -12,6 +12,6 @@ dest_files=["res://.godot/imported/spr_serena_skeleton.png-e48a094751e7437aaf658
 
 [params]
 
-compress/block_size=12
+compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false
