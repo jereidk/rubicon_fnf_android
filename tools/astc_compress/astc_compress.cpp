@@ -10,11 +10,20 @@
 //
 // Usage: astc_compress <in.rgba8> <w> <h> <block_x> <block_y> <quality> <mode> <out.astc>
 //   mode: "color" or "normal" (normal expects X in R, Y in G of the input)
+//
+// Compresses using all available hardware threads via astcenc's own
+// thread_index-based parallelism (each thread calls astcenc_compress_image
+// on the same context/image; the library partitions the block work across
+// them). This is a single-file-at-a-time design on purpose: the caller
+// (the EditorImportPlugin) should NOT also run this tool concurrently
+// across multiple files, or the thread counts would multiply and
+// oversubscribe the machine.
 #include <astcenc.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <thread>
 
 int main(int argc, char **argv) {
     if (argc != 9) {
@@ -52,8 +61,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    unsigned int thread_count = std::thread::hardware_concurrency();
+    if (thread_count == 0) {
+        thread_count = 1;
+    }
+
     astcenc_context *context;
-    status = astcenc_context_alloc(&config, 1, &context);
+    status = astcenc_context_alloc(&config, thread_count, &context);
     if (status != ASTCENC_SUCCESS) {
         fprintf(stderr, "astc_compress: context alloc failed: %s\n", astcenc_get_error_string(status));
         return 1;
@@ -81,11 +95,23 @@ int main(int argc, char **argv) {
         swizzle = { ASTCENC_SWZ_R, ASTCENC_SWZ_G, ASTCENC_SWZ_B, ASTCENC_SWZ_A };
     }
 
-    status = astcenc_compress_image(context, &image, &swizzle, dest.data(), comp_len, 0);
+    std::vector<std::thread> workers;
+    std::vector<astcenc_error> thread_status(thread_count, ASTCENC_SUCCESS);
+    for (unsigned int t = 0; t < thread_count; t++) {
+        workers.emplace_back([&, t]() {
+            thread_status[t] = astcenc_compress_image(context, &image, &swizzle, dest.data(), comp_len, t);
+        });
+    }
+    for (auto &w : workers) {
+        w.join();
+    }
     astcenc_context_free(context);
-    if (status != ASTCENC_SUCCESS) {
-        fprintf(stderr, "astc_compress: compression failed: %s\n", astcenc_get_error_string(status));
-        return 1;
+
+    for (astcenc_error s : thread_status) {
+        if (s != ASTCENC_SUCCESS) {
+            fprintf(stderr, "astc_compress: compression failed: %s\n", astcenc_get_error_string(s));
+            return 1;
+        }
     }
 
     FILE *out = fopen(out_path, "wb");

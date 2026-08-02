@@ -178,7 +178,7 @@ jobs:
       - name: Build ASTC normal map compressor
         run: |
           cd tools/astc_compress
-          g++ -O2 -std=c++17 -I thirdparty/astcenc astc_compress.cpp thirdparty/astcenc/astcenc_*.cpp -o astc_compress
+          g++ -O2 -std=c++17 -pthread -I thirdparty/astcenc astc_compress.cpp thirdparty/astcenc/astcenc_*.cpp -o astc_compress
           chmod +x astc_compress
           cd ../..
           ls -la tools/astc_compress/astc_compress
