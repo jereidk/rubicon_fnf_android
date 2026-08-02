@@ -120,19 +120,19 @@ func hit_note(index : int, time_when_hit : float, hit_type : RubiconLevelNoteHit
 	var hit_windows : Array[float]
 	if settings.judgment_enabled & RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT == RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT:
 		ratings.append(RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT)
-		hit_windows.append(settings.judgment_window_perfect)
+		hit_windows.append(settings.judgment_window_perfect * settings.leniency_multiplier)
 	if settings.judgment_enabled & RubiconLevelNoteHitResult.Judgment.JUDGMENT_GREAT == RubiconLevelNoteHitResult.Judgment.JUDGMENT_GREAT:
 		ratings.append(RubiconLevelNoteHitResult.Judgment.JUDGMENT_GREAT)
-		hit_windows.append(settings.judgment_window_great)
+		hit_windows.append(settings.judgment_window_great * settings.leniency_multiplier)
 	if settings.judgment_enabled & RubiconLevelNoteHitResult.Judgment.JUDGMENT_GOOD == RubiconLevelNoteHitResult.Judgment.JUDGMENT_GOOD:
 		ratings.append(RubiconLevelNoteHitResult.Judgment.JUDGMENT_GOOD)
-		hit_windows.append(settings.judgment_window_good)
+		hit_windows.append(settings.judgment_window_good * settings.leniency_multiplier)
 	if settings.judgment_enabled & RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY == RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY:
 		ratings.append(RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY)
-		hit_windows.append(settings.judgment_window_okay)
+		hit_windows.append(settings.judgment_window_okay * settings.leniency_multiplier)
 	if settings.judgment_enabled & RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD == RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD:
 		ratings.append(RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD)
-		hit_windows.append(settings.judgment_window_bad)
+		hit_windows.append(settings.judgment_window_bad * settings.leniency_multiplier)
 
 	var rating : RubiconLevelNoteHitResult.Judgment = RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS
 	for i in hit_windows.size():
@@ -257,9 +257,9 @@ func _process(delta: float) -> void:
 
 		get_controller().update_performance()
 
-	while not autoplay and note_hit_index < data.size() and data[note_hit_index].get_millisecond_start_position() - millisecond_position < -settings.judgment_window_bad and (results[note_hit_index] == null or results[note_hit_index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_NONE):
-		# TODO: LESS BANDAID FIX THEN + 1000 RATING TIME OFFSET 
-		hit_note(note_hit_index, data[note_hit_index].get_millisecond_start_position() + settings.judgment_window_bad + 1000, RubiconLevelNoteHitResult.Hit.HIT_COMPLETE) # TODO: Add more forgiving hold notes
+	while not autoplay and note_hit_index < data.size() and data[note_hit_index].get_millisecond_start_position() - millisecond_position < -(settings.judgment_window_bad * settings.leniency_multiplier) and (results[note_hit_index] == null or results[note_hit_index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_NONE):
+		# TODO: LESS BANDAID FIX THEN + 1000 RATING TIME OFFSET
+		hit_note(note_hit_index, data[note_hit_index].get_millisecond_start_position() + (settings.judgment_window_bad * settings.leniency_multiplier) + 1000, RubiconLevelNoteHitResult.Hit.HIT_COMPLETE) # TODO: Add more forgiving hold notes
 		note_hit_index += 1
 
 		get_controller().update_performance()
@@ -269,16 +269,16 @@ func _has_passed_last_note(millisecond_position : float) -> bool:
 	if not has_last_note:
 		return false
 
-	var passed_end_of_last_single_note : bool = data[note_hit_index - 1].ending_row == null and data[note_hit_index - 1].get_millisecond_end_position() - millisecond_position >= settings.judgment_window_bad
+	var passed_end_of_last_single_note : bool = data[note_hit_index - 1].ending_row == null and data[note_hit_index - 1].get_millisecond_end_position() - millisecond_position >= settings.judgment_window_bad * settings.leniency_multiplier
 	var passed_end_of_last_long_note : bool = data[note_hit_index - 1].ending_row != null and data[note_hit_index - 1].get_millisecond_end_position() - millisecond_position >= 0.0
 	return passed_end_of_last_single_note or passed_end_of_last_long_note
 
 func _has_passed_current_long_note(millisecond_position : float) -> bool:
-	var passed_start_of_current_long_note : bool = data[note_hit_index].ending_row != null and data[note_hit_index].get_millisecond_start_position() - millisecond_position >= settings.judgment_window_bad
+	var passed_start_of_current_long_note : bool = data[note_hit_index].ending_row != null and data[note_hit_index].get_millisecond_start_position() - millisecond_position >= settings.judgment_window_bad * settings.leniency_multiplier
 	return passed_start_of_current_long_note
 
 func _is_inside_of_incomplete_note(millisecond_position : float) -> bool:
-	var passed_start_of_current_long_note : bool = data[note_hit_index].ending_row != null and data[note_hit_index].get_millisecond_start_position() - millisecond_position >= settings.judgment_window_bad
+	var passed_start_of_current_long_note : bool = data[note_hit_index].ending_row != null and data[note_hit_index].get_millisecond_start_position() - millisecond_position >= settings.judgment_window_bad * settings.leniency_multiplier
 	return results[note_hit_index] != null and results[note_hit_index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE
 
 func _roll_hit_back() -> void:

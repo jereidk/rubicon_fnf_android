@@ -89,15 +89,16 @@ func _press(event : InputEvent) -> void:
 		return
 	
 	var precise_time : float = controller.get_level_clock().get_time_precise()
+	var bad_window : float = settings.judgment_window_bad * settings.leniency_multiplier
 	var hit_time : float = data[note_hit_index].get_millisecond_start_position() - precise_time
-	while data[note_hit_index].get_millisecond_start_position() <= -settings.judgment_window_bad:
+	while data[note_hit_index].get_millisecond_start_position() <= -bad_window:
 		hit_note(note_hit_index, precise_time, RubiconLevelNoteHitResult.Hit.HIT_COMPLETE)
 		note_hit_index += 1
 		controller.update_performance()
 
 		hit_time = data[note_hit_index].get_millisecond_start_position() - precise_time
-	
-	if absf(hit_time) <= settings.judgment_window_bad:
+
+	if absf(hit_time) <= bad_window:
 		if data[note_hit_index].ending_row != null:
 			hit_note(note_hit_index, precise_time, RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE)
 			controller.update_performance()

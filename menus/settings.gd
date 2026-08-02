@@ -163,6 +163,11 @@ var audio_vox_volume: float = 1.0:
 
 var game_offset: float = 0.0
 var game_visual_offset: float = 0.0
+## Multiplies every judgment window (Perfect/Great/Good/.../Miss) - see
+## RubiconLevelNoteSettings.leniency_multiplier. Not the same as
+## game_offset above: that shifts *when* a hit is considered to land,
+## this changes how *wide* the acceptance window around that point is.
+var game_timing_leniency: float = 1.0
 var game_flashing_lights: bool = true
 var game_autoplay: bool = false
 var game_speed_multiplier: float = 1.0

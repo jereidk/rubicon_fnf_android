@@ -16,6 +16,14 @@ class_name RubiconLevelNoteSettings extends Resource
 @export_range(0.0, 130, 0.01, "or_greater") var judgment_window_okay : float = 105
 @export_range(0.0, 130, 0.01, "or_greater") var judgment_window_bad : float = 130
 
+## Scales every judgment_window_* above at comparison time (see
+## RubiconLevelNoteHandler.hit_note() and RubiconLevelManiaNoteHandler.
+## _press()) rather than the windows themselves, so a player-facing
+## timing preference doesn't have to mutate this Resource's actual
+## authored values - this same Resource instance is shared across every
+## lane handler and every song.
+@export_range(0.5, 2.0, 0.01, "or_greater") var leniency_multiplier : float = 1.0
+
 var _judgments_enabled : int = 63
 
 func _validate_property(property : Dictionary) -> void:

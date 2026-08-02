@@ -5197,7 +5197,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Offset")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ChangeKeybinds")
+focus_neighbor_bottom = NodePath("../Timing")
 theme = ExtResource("1")
 text = "Visual Offset: "
 alignment = 0
@@ -5210,10 +5210,26 @@ suffix = " ms"
 console = NodePath("../../../../../..")
 tooltip = "Offsets the position of all notes, in case of delays."
 
-[node name="ChangeKeybinds" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=762359194 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+[node name="Timing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=355808012 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VisualOffset")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ChangeKeybinds")
+theme = ExtResource("1")
+text = "Timing: "
+alignment = 0
+script = ExtResource("54")
+property = &"game_timing_leniency"
+display_list = ["Strict", "Normal", "Lenient"]
+values_list = [0.75, 1.0, 1.5]
+console = NodePath("../../../../../..")
+tooltip = "How wide the window is to hit a note. Lenient if Perfects feel impossible to land."
+
+[node name="ChangeKeybinds" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=762359194 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Timing")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../SpeedMultiplier")
 theme = ExtResource("1")

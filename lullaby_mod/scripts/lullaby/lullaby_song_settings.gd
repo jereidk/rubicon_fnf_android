@@ -46,3 +46,5 @@ func _update() -> void :
 			var handler: RubiconLevelNoteHandler = controller.note_handlers[handler_id]
 			if handler is RubiconLevelManiaNoteHandler and "allow_misplays" in handler:
 				handler.allow_misplays = settings_ghost_tapping
+			if handler.settings != null and "leniency_multiplier" in handler.settings:
+				handler.settings.leniency_multiplier = Settings.game_timing_leniency
