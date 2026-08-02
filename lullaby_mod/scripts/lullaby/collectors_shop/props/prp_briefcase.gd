@@ -106,7 +106,15 @@ func _input(event: InputEvent) -> void :
 	else:
 		handle_items_input(event)
 
-	handle_click_input(event)
+	# Skipped on touch: this hit-tests raw InputEventMouseButton positions
+	# against the HUD's cart/Buy/Exit rects, and Android's "emulate mouse
+	# from touch" turns every screen tap into one of those - bypassing the
+	# D-pad-driven handle_items_input/handle_button_input above entirely.
+	# handle_items_input/handle_button_input already cover touch fully via
+	# ui_up/ui_down/ui_left/ui_right/ui_accept, which the OK button and
+	# on-screen D-pad dispatch as real InputEventActions.
+	if not mouse_controller.is_touch_controls_active():
+		handle_click_input(event)
 
 ## Clicking a cart in the HUD list selects it (click it again, now
 ## selected, to open Buy/Exit); clicking the Buy/Exit labels themselves

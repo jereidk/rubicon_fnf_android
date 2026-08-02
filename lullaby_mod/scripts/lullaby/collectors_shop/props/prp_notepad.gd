@@ -383,6 +383,7 @@ func remove_end_handler():
 
 var _last_id: int = -1;
 var _allow_input: bool = true
+var _dpad_hover_id: int = 0
 
 const APPEAR_SPEED: float = 0.8;
 const APPEAR_FADED: float = 0.1;
@@ -395,7 +396,20 @@ func _process(delta: float) -> void :
 			visible = false
 			return
 
-	var hover_id: int = update_hover() if _allow_input else _last_id
+	# On touch, there's no hover to raycast - update_hover() reads the raw
+	# mouse position, which Android's "emulate mouse from touch" only ever
+	# sets to wherever the last tap landed (e.g. the OK button), not
+	# whatever the D-pad is pointing the selection at. Track the selection
+	# ourselves instead and drive it with ui_up/ui_down, same as
+	# handle_items_input() already does over in prp_briefcase.gd.
+	var touch_driven: bool = shop.mouse_controller.is_touch_controls_active()
+	var hover_id: int
+
+	if touch_driven:
+		_dpad_hover_id = clampi(_dpad_hover_id, 0, maxi(_visible_box_count() - 1, 0))
+		hover_id = _dpad_hover_id if _allow_input else _last_id
+	else:
+		hover_id = update_hover() if _allow_input else _last_id
 
 	selector.position.y = 80.0 * hover_id
 
@@ -411,7 +425,15 @@ func _process(delta: float) -> void :
 				_last_id = hover_id
 				hover_snd.play(0.0)
 
-			if Input.is_action_just_released("left_click"):
+			if touch_driven:
+				if Input.is_action_just_pressed("ui_down"):
+					_move_hover(1)
+				elif Input.is_action_just_pressed("ui_up"):
+					_move_hover(-1)
+
+				if Input.is_action_just_pressed("ui_accept"):
+					_select_option(hover_id)
+			elif Input.is_action_just_released("left_click"):
 				_select_option(hover_id)
 		else:
 			@warning_ignore("int_as_enum_without_cast", "int_as_enum_without_match")
@@ -437,6 +459,28 @@ func _process(delta: float) -> void :
 
 	rotation.x = deg_to_rad(-0.2) + (sin(elapsed_time) * 0.08)
 	rotation.y = deg_to_rad(-20.4) + (cos(elapsed_time + 1.0) * 0.08)
+
+## _collision_boxes' box_id metadata is a compact 0..N-1 index over only
+## the currently-unlocked options (see _reload_page()/unlock_option() -
+## still-hidden options keep an "offscreen" box parked off in space and
+## reuse a box_id that a later unlocked option will end up sharing), so
+## the D-pad has to walk that same compact space rather than options.size().
+func _visible_box_count() -> int:
+	var count: int = 0
+
+	for box: Area3D in _collision_boxes:
+		if not (box.has_meta("offscreen") and box.get_meta("offscreen")):
+			count += 1
+
+	return count
+
+func _move_hover(delta_index: int) -> void :
+	var count: int = _visible_box_count()
+
+	if count <= 0:
+		return
+
+	_dpad_hover_id = (_dpad_hover_id + delta_index + count) % count
 
 func update_hover() -> int:
 	if camera == null:
@@ -492,6 +536,7 @@ func open(is_exiting: bool = false):
 		dialogue.play_move_up()
 
 		_allow_input = true
+		_dpad_hover_id = 0
 
 		shader_mat.set_shader_parameter("appear_progress", 0.0)
 		_appear_mult = 1.0

@@ -28,9 +28,25 @@ class_name RubiconMenuTouchControls
 ## now" case - e.g. the Cabinet of Novelties' console sets the shop's
 ## state to BUSY for the whole time it's open (not just its boot
 ## animation), so gating purely on that state would hide the overlay
-## exactly while the player is navigating the console menu.
+## exactly while the player is navigating the console menu. Three slots
+## (OR'd together, same pattern as RubiconActionButton's AND'd
+## visible_source/visible_source2) because the shop has three separate
+## focused sub-states that all need this - console, briefcase, notepad -
+## and none of them is reachable from a single shared state value.
 @export var force_active_source: Node
 @export var force_active_property: StringName = &""
+@export var force_active_source2: Node
+@export var force_active_property2: StringName = &""
+@export var force_active_source3: Node
+@export var force_active_property3: StringName = &""
+
+## Optional: whenever this bool property is true, the D-pad is restricted
+## to its up/down zones only (left/right treated as dead zone, arms
+## visually dimmed) - for a menu that's a straight vertical list with
+## nothing to navigate sideways, so the player isn't shown two arrows
+## that do nothing (e.g. the SHOP/TALK sign's two-option chooser).
+@export var vertical_only_source: Node
+@export var vertical_only_property: StringName = &""
 
 ## Node+property polled every frame to pick the D-pad's visual style:
 ## continuous joystick drag for free-look camera panning, or a discrete
@@ -67,11 +83,19 @@ func _process(_delta: float) -> void:
 	var active: bool = not inactive_states.has(int(active_source.get(active_property)))
 	if not active and force_active_source != null and not force_active_property.is_empty():
 		active = bool(force_active_source.get(force_active_property))
+	if not active and force_active_source2 != null and not force_active_property2.is_empty():
+		active = bool(force_active_source2.get(force_active_property2))
+	if not active and force_active_source3 != null and not force_active_property3.is_empty():
+		active = bool(force_active_source3.get(force_active_property3))
 
 	if dpad and style_source != null and not style_property.is_empty():
 		var state_value: int = int(style_source.get(style_property))
 		var wants_joystick: bool = style_joystick_states.has(state_value)
 		dpad.visual_style = RubiconVirtualDPad.VisualStyle.JOYSTICK if wants_joystick else RubiconVirtualDPad.VisualStyle.ARROWS
+
+	if dpad and vertical_only_source != null and not vertical_only_property.is_empty():
+		var wants_vertical_only: bool = bool(vertical_only_source.get(vertical_only_property))
+		dpad.enabled_zones = RubiconVirtualDPad.VERTICAL_ZONES if wants_vertical_only else RubiconVirtualDPad.ALL_ZONES
 
 	if active == visible:
 		return

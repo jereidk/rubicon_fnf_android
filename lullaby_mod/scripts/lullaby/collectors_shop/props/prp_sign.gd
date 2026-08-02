@@ -3,6 +3,8 @@ extends Node3D
 @export var enabled: bool = false:
 	set(value):
 		enabled = value
+		if not enabled:
+			current_option_index = -1
 		_update_visual()
 @export var lerp_movement: bool = true
 
@@ -53,6 +55,16 @@ var _sick_tween: Tween = null
 var _sick_tween_progress: float = 0
 var _in_menu: bool = false
 
+## True only while the player is actually picking between shop/talk (not
+## once a submenu is open) - separate from `enabled`, which an outro
+## animation keeps true for a beat after entering the submenu (see
+## env_collector_shop.tscn's CardboardSign tracks). RubiconMenuTouchControls
+## reads this (vertical_only_source/property) to mute the on-screen D-pad
+## to up/down-only for exactly this chooser, not for whatever comes after.
+var is_choosing_option: bool:
+	get:
+		return enabled and not _in_menu
+
 func _ready() -> void :
 	mesh_mat = mesh.get_active_material(0).duplicate()
 	mesh.set_surface_override_material(0, mesh_mat)
@@ -73,6 +85,20 @@ func _process(delta: float) -> void :
 
 	var elapsed_time: float = Time.get_ticks_msec() / 1000.0;
 
+	# On touch, the sign has no hover to fall back on (see
+	# _setup_option_triggers - its mouse_entered/exited are ignored while
+	# touch controls are active, since Android's emulated mouse motion
+	# would otherwise fight the D-pad for current_option_index). So a
+	# selection always exists here instead: default to "shop" and let
+	# ui_up/ui_down (the on-screen D-pad, muted to vertical-only for this
+	# prop via RubiconMenuTouchControls.vertical_only_source - see this
+	# prop's `enabled` wiring on the CardboardSign node) move it.
+	var touch_driven: bool = enabled and not _in_menu and shop.mouse_controller.is_touch_controls_active()
+
+	if touch_driven and current_option_index == -1:
+		current_option_index = 0
+		_update_visual()
+
 	if current_option_index == -1 and not _in_menu:
 		_unselect_option()
 
@@ -83,8 +109,14 @@ func _process(delta: float) -> void :
 		if Input.is_action_just_released("ui_cancel") and _in_menu:
 			exit_submenu()
 
+		if touch_driven:
+			if Input.is_action_just_pressed("ui_down"):
+				_move_selection(1)
+			elif Input.is_action_just_pressed("ui_up"):
+				_move_selection(-1)
+
 		selector_model.position = selector_model.position.lerp(
-			_selector_target_position, 
+			_selector_target_position,
 			1.0 - pow(0.0003, delta * selector_lerp_speed)
 		)
 
@@ -94,9 +126,6 @@ func _process(delta: float) -> void :
 
 		selector_model.rotation.x = sin(elapsed_time) * 0.03
 		selector_model.rotation.z = cos(elapsed_time) * 0.025
-
-		if current_option_index >= 0 and Input.is_action_just_released("left_click"):
-			_select_option()
 
 		if lerp_movement:
 			position.x += sin(elapsed_time * 0.8) * 0.0003 + sin(elapsed_time / 2) * 0.0001
@@ -133,9 +162,36 @@ func _process(delta: float) -> void :
 			1.0 - pow(0.24, delta)
 		)
 
+func _input(event: InputEvent) -> void :
+	if not enabled or _in_menu or current_option_index == -1:
+		return
+
+	# Reuses MouseController's confirm check (real left-click on desktop,
+	# or the OK button's synthetic InputEventAction/a gamepad button on
+	# touch) instead of the old plain "left_click" check, which was a raw
+	# mouse-button action with no touch handling at all - it never fired
+	# from the OK button, so this sign was unreachable by anything but a
+	# real mouse.
+	if shop.mouse_controller.is_confirm_event(event):
+		_select_option()
+
+func _move_selection(delta_index: int) -> void :
+	var new_index: int = (current_option_index + delta_index + options.size()) % options.size()
+
+	if new_index == current_option_index:
+		return
+
+	current_option_index = new_index
+	_update_visual()
+	hover_snd.play(0)
+
 func _setup_option_triggers(area: Area3D, id: int):
 	area.mouse_entered.connect( func entered():
-		if enabled:
+		# Ignored on touch: Android's "emulate mouse from touch" turns
+		# every tap into real mouse-motion/button events, which would
+		# otherwise hijack current_option_index away from whatever the
+		# D-pad selected (see the touch_driven block in _process()).
+		if enabled and not shop.mouse_controller.is_touch_controls_active():
 			shop.mouse_controller.override_cursor_shape = Input.CURSOR_POINTING_HAND;
 
 			var last_option_name: String = String(current_option_name)
@@ -150,7 +206,7 @@ func _setup_option_triggers(area: Area3D, id: int):
 	)
 
 	area.mouse_exited.connect( func exited():
-		if enabled:
+		if enabled and not shop.mouse_controller.is_touch_controls_active():
 			current_option_index = -1
 	)
 
@@ -171,6 +227,7 @@ func _select_option():
 
 	selector_model.position.x += 0.01
 	confirm_snd.play(0)
+	_pulse_glow()
 
 	enter_submenu()
 
@@ -179,6 +236,15 @@ func _select_option():
 			briefcase.open()
 		1:
 			note_pad.open()
+
+func _pulse_glow() -> void :
+	if mesh_mat == null:
+		return
+
+	var base_energy: float = mesh_mat.emission_energy_multiplier
+	var glow_tween: Tween = create_tween()
+	glow_tween.tween_property(mesh_mat, "emission_energy_multiplier", base_energy * 1.8, 0.08)
+	glow_tween.tween_property(mesh_mat, "emission_energy_multiplier", base_energy, 0.35)
 
 func _update_visual() -> void :
 	if not enabled:

@@ -11762,44 +11762,27 @@ camera_to_focus = NodePath("../InterpolatedCamera")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera3D" unique_id=678603634]
 libraries/ = SubResource("AnimationLibrary_6duev")
 
-[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "style_source")]
+[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "force_active_source2", "force_active_source3", "style_source", "vertical_only_source")]
 active_source = NodePath("../../..")
 active_property = &"state"
 inactive_states = Array[int]([0])
 force_active_source = NodePath("../../../Viewports/ConsoleSubViewport/Console")
 force_active_property = &"focused"
+force_active_source2 = NodePath("../../../Briefcase")
+force_active_property2 = &"is_focused"
+force_active_source3 = NodePath("../../../Notepad")
+force_active_property3 = &"visible"
 style_source = NodePath("../../..")
 style_property = &"state"
 style_joystick_states = Array[int]([1])
+vertical_only_source = NodePath("../../../CardboardSign")
+vertical_only_property = &"is_choosing_option"
 
 [node name="SwitchCartridgeButton" parent="UI/Control/TouchControls" index="1" node_paths=PackedStringArray("visible_source", "visible_source2")]
 visible_source = NodePath("../../../../Viewports/ConsoleSubViewport/Console/TabContainer/Home/FakeButtons/Cartridges")
 visible_property = &"focused"
 visible_source2 = NodePath("../../../../Viewports/ConsoleSubViewport/Console")
 visible_property2 = &"focused"
-
-[node name="PowerButton" type="Button" parent="UI/Control/TouchControls" node_paths=PackedStringArray("direct_target", "visible_source")]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -230.0
-offset_top = 395.0
-offset_right = -40.0
-offset_bottom = 585.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_font_sizes/font_size = 26
-theme_override_styles/normal = SubResource("StyleBoxFlat_powerbtn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_powerbtn")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_powerbtn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_powerbtn")
-text = "Power"
-script = ExtResource("302")
-direct_target = NodePath("../../../../Environment/Areas/FocusPowerConsole")
-visible_source = NodePath("../../../../Environment/Areas/FocusAreaRight")
 
 [node name="TouchAimReticle" type="Control" parent="UI/Control" node_paths=PackedStringArray("mouse_controller")]
 layout_mode = 1

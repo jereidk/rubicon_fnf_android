@@ -35,6 +35,20 @@ const ACTIONS := {
 	3: &"ui_left",
 }
 
+const ALL_ZONES: Array[int] = [0, 1, 2, 3]
+const VERTICAL_ZONES: Array[int] = [0, 2]
+
+## Zones the pad actually accepts input for - a finger moving into a
+## zone not in this list is treated as if it were still in the dead
+## zone (see _update_zone). Also determines which arms _draw_arrows
+## renders at full opacity vs dimmed. Set by RubiconMenuTouchControls'
+## vertical_only_source/property for menus with nothing to navigate on
+## one axis, so the player isn't shown arrows that do nothing.
+@export var enabled_zones: Array[int] = ALL_ZONES:
+	set(value):
+		enabled_zones = value
+		queue_redraw()
+
 const ZONE_HYSTERESIS_DEG: float = 10.0
 const DEAD_ZONE_ENTER_PERCENT: float = 0.15
 const DEAD_ZONE_EXIT_PERCENT: float = 0.22
@@ -143,14 +157,20 @@ func _draw_arrows() -> void:
 		var perp: Vector2 = dir.rotated(PI / 2.0) * w
 		var inner: Vector2 = dir * w
 		var outer: Vector2 = dir * l
+		var zone_disabled: bool = not enabled_zones.has(zone)
 		var color: Color = base_color
 		if zone == _active_zone:
 			color = pressed_color.lerp(Color(1.0, 1.0, 1.0, pressed_color.a), _flash_amount * 0.7)
+		if zone_disabled:
+			color.a *= 0.25
 		var world_arm := PackedVector2Array([
 			origin + inner + perp, origin + outer + perp,
 			origin + outer - perp, origin + inner - perp,
 		])
 		draw_colored_polygon(world_arm, color)
+
+		if zone_disabled:
+			continue
 
 		var mid: Vector2 = origin + dir * ((w + l) * 0.5)
 		var chevron_s: float = w * 1.1
@@ -246,6 +266,9 @@ func _update_zone(pos: Vector2) -> void:
 	if angle_deg < 0.0:
 		angle_deg += 360.0
 	var raw_zone: int = int(angle_deg / 90.0) % 4
+
+	if not enabled_zones.has(raw_zone):
+		return
 
 	if raw_zone == _active_zone or _active_zone == -1:
 		_set_zone(raw_zone)

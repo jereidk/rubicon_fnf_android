@@ -297,3 +297,13 @@ func _is_confirm_event(event: InputEvent) -> bool:
 		(event is InputEventMouseButton or event is InputEventJoypadButton)
 		and event.is_action_pressed("RightClick")
 	)
+
+
+## Public alias of _is_confirm_event() - same reasoning as
+## is_touch_controls_active() above: props with their own bespoke
+## Area3D hover/confirm handling (e.g. prp_sign.gd's shop/talk chooser,
+## which bypasses this class' raycast entirely) still need the same
+## real-click-vs-synthetic-touch-confirm distinction, so they share this
+## instead of re-deriving it.
+func is_confirm_event(event: InputEvent) -> bool:
+	return _is_confirm_event(event)
