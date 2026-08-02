@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/tex_body_1_height.png-5b9ec68c2f484077c04b265
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0

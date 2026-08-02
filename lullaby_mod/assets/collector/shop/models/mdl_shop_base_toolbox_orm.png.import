@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/mdl_shop_base_toolbox_orm.png-9ef22f1ae6f5662
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0

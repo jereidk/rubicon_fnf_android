@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/CameraRise.png-c0a1c990c99fd5bb20b556f2883d43
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0

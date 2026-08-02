@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/kol_gold2_sprite.png-01cc2270bf0f329c83bf6f62
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

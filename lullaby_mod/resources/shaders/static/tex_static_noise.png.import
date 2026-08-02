@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/tex_static_noise.png-8a5dd822b81895dc0c38cbd1
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

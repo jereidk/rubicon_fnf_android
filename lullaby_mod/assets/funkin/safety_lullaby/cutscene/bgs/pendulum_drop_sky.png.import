@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/pendulum_drop_sky.png-b5d783402441c17acd31033
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0

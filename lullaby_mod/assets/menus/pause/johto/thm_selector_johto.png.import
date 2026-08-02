@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/thm_selector_johto.png-0a1d6831316e84cb29cc03
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

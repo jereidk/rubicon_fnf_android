@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/open_scroll_icon.png-89e869024ecc1f1502abfa65
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

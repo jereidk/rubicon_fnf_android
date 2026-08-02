@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/GorillaDog.png-4223f412b688dbe3d2eec8ff1fbc7f
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/spr_back_up_0.png-dd9626f8ac1610e6c15b975eea2
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0

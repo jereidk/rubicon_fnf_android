@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/spritemap1.png-7fa1924a70a294f5ccb98c14e63bc8
 [params]
 
 compress/mode=0
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

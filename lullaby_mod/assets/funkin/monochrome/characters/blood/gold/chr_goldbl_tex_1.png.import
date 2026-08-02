@@ -16,7 +16,7 @@ dest_files=["res://.godot/imported/chr_goldbl_tex_1.png-cf489797552f40b01b99ded2
 [params]
 
 compress/mode=4
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=2
 compress/rdo_quality_loss=0.0
