@@ -185,6 +185,15 @@ jobs:
 
       - name: Import Godot project
         run: |
+          # Run twice: a single --import pass can leave resources generated
+          # mid-scan (e.g. GLTF-embedded material/texture sub-resources)
+          # registered on disk but not yet committed to Godot's UID cache,
+          # so a dependent scene referencing them by UID fails to resolve
+          # until a second pass, where everything is already up to date and
+          # this repeats the scan just to finish registering those UIDs.
+          # Godot's own CI docs recommend this for exactly this class of
+          # "works in editor, breaks in --headless export" issue.
+          $GODOT --headless --import 2>&1
           $GODOT --headless --import 2>&1
 
       - name: Create builds directory
