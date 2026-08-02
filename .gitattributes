@@ -4,3 +4,4 @@
 *.ctex filter=lfs diff=lfs merge=lfs -text
 *.tar.gz filter=lfs diff=lfs merge=lfs -text
 *.lmbake filter=lfs diff=lfs merge=lfs -text
+precompiled_astc_imports/*.res filter=lfs diff=lfs merge=lfs -text

@@ -175,6 +175,24 @@ jobs:
           restore-keys: |
             godot-import-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
+      - name: Restore precompiled ASTC imports
+        run: |
+          # These are pre-run outputs of the two custom ASTC import plugins
+          # (astc_sprite_import, astc_normal_map), committed to the repo
+          # instead of relying solely on the GitHub Actions cache above -
+          # EXHAUSTIVE-quality ASTC compression across ~124 large textures
+          # takes over an hour, and the Actions cache key changes (forcing a
+          # cache miss) any time any tracked png/tscn/etc anywhere in the
+          # project changes. Godot decides whether to skip reimporting a
+          # file by comparing content MD5s (source PNG vs the .md5 sidecar's
+          # source_md5, and the .res output vs its dest_md5) rather than
+          # file timestamps, so this works correctly even on a fresh
+          # checkout where every file's mtime is "now". See
+          # precompiled_astc_imports/README.md for how to regenerate these.
+          mkdir -p .godot/imported
+          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
+          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+
       - name: Build ASTC normal map compressor
         run: |
           cd tools/astc_compress
