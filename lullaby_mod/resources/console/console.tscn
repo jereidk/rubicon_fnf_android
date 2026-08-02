@@ -5417,7 +5417,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../MSAA")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VSync")
+focus_neighbor_bottom = NodePath("../PostProcessing")
 theme = ExtResource("1")
 text = "Screen Space AA: "
 alignment = 0
@@ -5428,10 +5428,37 @@ values_list = [0, 1]
 console = NodePath("../../../../../..")
 tooltip = "A cheaper edge-smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
 
-[node name="VSync" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=275378457 node_paths=PackedStringArray("console")]
+[node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=795425564 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ScreenSpaceAA")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShaderEffects")
+theme = ExtResource("1")
+text = "Post Processing: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_post_processing"
+display_list = ["None", "Low", "High"]
+values_list = [0, 1, 2]
+console = NodePath("../../../../../..")
+tooltip = "Decorative extras like glow and screen effects. Lower settings skip loading them entirely instead of just hiding them."
+
+[node name="ShaderEffects" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=2135525362 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../PostProcessing")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../VSync")
+text = "Reduce Visual Effects"
+property = &"graphics_disable_shader_effects"
+console = NodePath("../../../../../..")
+tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically - use this to get the same boost without dropping the rest of your preset."
+
+[node name="VSync" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=275378457 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ShaderEffects")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MaxFPS")
 theme = ExtResource("1")
