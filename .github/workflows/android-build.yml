@@ -173,9 +173,20 @@ jobs:
           path: |
             .godot/imported
             .godot/uid_cache.bin
+          # No restore-keys on purpose. A restore-keys prefix match serves
+          # the *closest* previous cache on an exact-key miss (i.e. any
+          # commit that touches a hashed file) - Godot's incremental
+          # reimport on top of that stale base doesn't reliably re-persist
+          # every freshly-registered UID to uid_cache.bin before the next
+          # (separate) $GODOT process reads it back, which crashed the
+          # shop scene twice now with "Failed to load resource uid://...".
+          # Without restore-keys, an exact-key miss just starts from an
+          # empty .godot/imported (a real, self-consistent cold import,
+          # only for the specific commit that changed something) instead
+          # of an unreliable incremental patch - the precompiled ASTC
+          # step below keeps that from being anywhere near the ~74min a
+          # truly cold run used to take before those were committed.
           key: godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
-          restore-keys: |
-            godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Restore precompiled ASTC imports
         run: |
