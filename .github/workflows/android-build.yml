@@ -170,10 +170,12 @@ jobs:
       - name: Cache Godot import cache
         uses: actions/cache@v4
         with:
-          path: .godot/imported
-          key: godot-import-v2-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', 'project.godot') }}
+          path: |
+            .godot/imported
+            .godot/uid_cache.bin
+          key: godot-import-v3-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', 'project.godot') }}
           restore-keys: |
-            godot-import-v2-${{ runner.os }}-${{ env.GODOT_VERSION }}-
+            godot-import-v3-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Restore precompiled ASTC imports
         run: |
