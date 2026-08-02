@@ -5368,7 +5368,7 @@ value_max = 1.5
 value_min = 0.25
 suffix = "%"
 console = NodePath("../../../../../..")
-tooltip = "Renders the game at a fraction or multiple of your screen resolution, then scales the image to fit. Lower values run faster but look blurrier."
+tooltip = "How many pixels the Collector actually bothers rendering before stretching it to fill your screen. Turn it down if the shop's chugging."
 
 [node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1736100186 node_paths=PackedStringArray("console")]
 layout_mode = 2

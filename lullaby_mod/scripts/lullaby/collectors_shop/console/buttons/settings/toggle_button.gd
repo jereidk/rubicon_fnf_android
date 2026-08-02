@@ -4,10 +4,13 @@ signal toggle_checkbox
 
 @export var is_activated: bool
 @export var property: StringName
+@export var unlock_flag: StringName
 @onready var checkbox = get_child(0)
 
 func _ready() -> void :
 	super._ready()
+	if not unlock_flag.is_empty():
+		visible = SaveData.get_flag(unlock_flag)
 	is_activated = Settings.get(property)
 	checkbox.position.x = size.x + 60
 	checkbox.check.visible = is_activated
