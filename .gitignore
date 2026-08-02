@@ -21,3 +21,7 @@ debug.keystore
 
 # Logs
 *.log
+
+# Compiled ASTC helper (built fresh by CI, see tools/astc_compress/)
+tools/astc_compress/astc_compress
+.godot/astc_tmp/

@@ -175,6 +175,14 @@ jobs:
           restore-keys: |
             godot-import-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
+      - name: Build ASTC normal map compressor
+        run: |
+          cd tools/astc_compress
+          g++ -O2 -std=c++17 -I thirdparty/astcenc astc_compress.cpp thirdparty/astcenc/astcenc_*.cpp -o astc_compress
+          chmod +x astc_compress
+          cd ../..
+          ls -la tools/astc_compress/astc_compress
+
       - name: Import Godot project
         run: |
           $GODOT --headless --import 2>&1
