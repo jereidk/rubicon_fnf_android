@@ -78,6 +78,13 @@ var display_resolution: Vector2i = Vector2i(1366, 768)
 var display_vsync: DisplayServer.VSyncMode = DisplayServer.VSyncMode.VSYNC_DISABLED
 var display_target_fps: int = 60
 
+## Matches project.godot's window/stretch/aspect="expand" default. Expand
+## fills a wide/ultrawide screen's extra width with more game world - the
+## intended look on desktop, but on a wide phone it reads as the game
+## rendering an oddly stretched-out frame. Keep instead locks the aspect
+## ratio to the design resolution's 16:9 and pillarboxes the rest.
+var display_screen_aspect: Window.ContentScaleAspect = Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND
+
 var graphics_scaling_mode: Viewport.Scaling3DMode = Viewport.Scaling3DMode.SCALING_3D_MODE_BILINEAR
 var graphics_render_scale: float = 1.0
 var graphics_fsr_sharpness: float = 1.0
@@ -220,6 +227,8 @@ func apply_settings() -> void:
 
 	if window.mode == Window.MODE_WINDOWED:
 		window.move_to_center()
+
+	window.content_scale_aspect = display_screen_aspect
 
 	DisplayServer.window_set_vsync_mode(display_vsync, window.get_window_id())
 	Engine.max_fps = display_target_fps
