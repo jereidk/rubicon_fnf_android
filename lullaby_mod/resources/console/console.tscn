@@ -5355,7 +5355,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Resolution")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../QualityPreset")
+focus_neighbor_bottom = NodePath("../Upscaling")
 theme = ExtResource("1")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Render Scale: "
@@ -5370,10 +5370,26 @@ suffix = "%"
 console = NodePath("../../../../../..")
 tooltip = "How many pixels the Collector actually bothers rendering before stretching it to fill your screen. Turn it down if the shop's chugging."
 
-[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1736100186 node_paths=PackedStringArray("console")]
+[node name="Upscaling" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=967536308 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ResScale")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../QualityPreset")
+theme = ExtResource("1")
+text = "Upscaling: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_scaling_mode"
+display_list = ["Bilinear", "FSR", "Nearest"]
+values_list = [0, 1, 5]
+console = NodePath("../../../../../..")
+tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR looks sharper for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
+
+[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1736100186 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Upscaling")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Shadows")
 theme = ExtResource("1")
@@ -5390,16 +5406,32 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../QualityPreset")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MSAA")
+focus_neighbor_bottom = NodePath("../ShadowFilterQuality")
 text = "Shadows"
 property = &"graphics_shadows_enabled"
 console = NodePath("../../../../../..")
 tooltip = "Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging."
 
-[node name="MSAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=339081663 node_paths=PackedStringArray("console")]
+[node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=917660058 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Shadows")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MSAA")
+theme = ExtResource("1")
+text = "Shadow Softness: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_positional_shadow_filter_quality"
+display_list = ["Hard", "Very Low", "Low", "Medium", "High", "Ultra"]
+values_list = [0, 1, 2, 3, 4, 5]
+console = NodePath("../../../../../..")
+tooltip = "How blurred shadow edges are. Hard is the cheapest and has no blur at all. Does nothing while Shadows is off."
+
+[node name="MSAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=339081663 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ShadowFilterQuality")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ScreenSpaceAA")
 theme = ExtResource("1")
