@@ -6172,6 +6172,7 @@ copy_mode = 2
 
 [node name="CRTShader" type="ColorRect" parent="." unique_id=857935410]
 material = SubResource("ShaderMaterial_fgulo")
+color = Color(0, 0, 0, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

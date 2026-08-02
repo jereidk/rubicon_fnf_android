@@ -10108,6 +10108,7 @@ autowrap_mode = 2
 [node name="CameraShader" type="ColorRect" parent="UI" unique_id=2123064070]
 visible = false
 material = SubResource("ShaderMaterial_w8hxk")
+color = Color(0, 0, 0, 0)
 offset_right = 1920.0
 offset_bottom = 1080.0
 metadata/_edit_lock_ = true

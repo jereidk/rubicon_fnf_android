@@ -5547,6 +5547,7 @@ autoplay = &"RESET"
 [node name="RadialBlur" type="ColorRect" parent="Front" unique_id=380721053]
 mouse_filter = 2
 material = SubResource("ShaderMaterial_dn3fh")
+color = Color(0, 0, 0, 0)
 offset_right = 1920.0
 offset_bottom = 1080.0
 

@@ -54,6 +54,7 @@ song_stats = NodePath("Tabs/SongInformation/Margin/Items/Stats")
 
 [node name="Background" type="ColorRect" parent="." unique_id=2043235483]
 material = SubResource("ShaderMaterial_hjwb4")
+color = Color(0, 0, 0, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
