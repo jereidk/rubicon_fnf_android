@@ -173,9 +173,9 @@ jobs:
           path: |
             .godot/imported
             .godot/uid_cache.bin
-          key: godot-import-v3-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', 'project.godot') }}
+          key: godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
           restore-keys: |
-            godot-import-v3-${{ runner.os }}-${{ env.GODOT_VERSION }}-
+            godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Restore precompiled ASTC imports
         run: |
