@@ -24,8 +24,12 @@ func _populate() -> void:
 	var mods := Mods.get_mod_list()
 	if mods.is_empty():
 		var empty_label := Label.new()
-		empty_label.text = "No se encontraron mods en:\n%s" % Mods.get_mods_root()
+		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		if OS.get_name() == "Android" and not Mods.has_mods_root_access():
+			empty_label.text = "Sin acceso a la carpeta de mods.\nActivá \"Acceso a todos los archivos\" para esta app en Ajustes > Apps, y volvé a abrir el juego.\n\n%s" % Mods.get_mods_root()
+		else:
+			empty_label.text = "No se encontraron mods en:\n%s" % Mods.get_mods_root()
 		mod_list_container.add_child(empty_label)
 		return
 

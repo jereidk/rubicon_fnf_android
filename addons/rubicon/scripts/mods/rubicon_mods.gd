@@ -66,7 +66,14 @@ func get_mods_root() -> String:
 
 	var root: String
 	match OS.get_name():
-		"Android", "iOS", "Web":
+		"Android":
+			# Shared external storage, not the app-private user:// sandbox, so mods can be
+			# dropped in with a normal file manager / USB / another app. Requires the
+			# MANAGE_EXTERNAL_STORAGE permission (declared in export_presets.cfg) to be
+			# granted by the user — Android won't prompt for this automatically, it has to
+			# be granted from Settings > Apps > [this app] > All files access.
+			root = "/storage/emulated/0/.Rubicon/mods"
+		"iOS", "Web":
 			root = "user://mods"
 		_:
 			var base_dir: String = OS.get_executable_path().get_base_dir()
@@ -76,6 +83,14 @@ func get_mods_root() -> String:
 
 	_mods_root_cache = root
 	return root
+
+## True once [method get_mods_root] actually exists and is readable. On Android this is
+## false until the user grants "All files access" for the app from system Settings —
+## Godot has no plain GDScript API to trigger or check that grant directly (it needs a
+## native Android plugin), so the mods menu just tells the user to go grant it manually
+## when this is false.
+func has_mods_root_access() -> bool:
+	return DirAccess.dir_exists_absolute(get_mods_root())
 
 ## Re-scans the mods root, reconciles it with the saved enabled/order state, mounts
 ## packs for every active mod and rebuilds the loose-file resolver. Safe to call again

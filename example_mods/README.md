@@ -4,9 +4,14 @@ Rubicon looks for mods in a `mods/` folder:
 
 - **Windows/Linux/macOS (exported build):** next to the game's executable.
 - **Windows/Linux/macOS (running from the Godot editor):** at the project root (`res://mods`), so it's easy to test without hunting for it.
-- **Android/iOS/Web:** under the app's own data directory (`user://mods`), since those platforms don't allow writing next to the executable.
+- **Android:** `/storage/emulated/0/.Rubicon/mods` — shared storage, not the app-private sandbox, so mods can be dropped in with a normal file manager, USB, or another app.
+- **iOS/Web:** under the app's own data directory (`user://mods`), since those platforms don't allow writing to shared storage the way Android does.
 
 Each subfolder of `mods/` is one mod. `Mods.get_mods_root()` (autoload) tells you the exact resolved path at runtime.
+
+### Android permission
+
+Reading/writing `/storage/emulated/0/...` on Android 11+ requires the `MANAGE_EXTERNAL_STORAGE` ("All files access") permission, which is declared in `export_presets.cfg` but **is not granted automatically** — Android doesn't show a normal permission popup for it. The player has to grant it manually the first time: Settings → Apps → Rubicon → Permissions → "Allow access to manage all files" (wording varies by Android version/OEM). `Mods.has_mods_root_access()` reports whether it's currently granted; the mods menu shows a message pointing at this when it isn't. There's no plain GDScript way to request or auto-open that specific settings screen — it would need a small native Android plugin.
 
 ## `mod.json` (optional)
 
