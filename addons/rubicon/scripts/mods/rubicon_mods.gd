@@ -50,7 +50,10 @@ func open_menu() -> void:
 
 	_menu_instance = load(MENU_SCENE).instantiate()
 	_menu_instance.tree_exited.connect(func() -> void: _menu_instance = null)
-	get_tree().root.add_child(_menu_instance)
+	# Deferred: open_menu() can be called while the caller's own scene is still finishing
+	# _ready() (e.g. a button pressed programmatically right at startup), and root is
+	# "busy setting up children" at that point — a direct add_child() would fail then.
+	get_tree().root.add_child.call_deferred(_menu_instance)
 
 func close_menu() -> void:
 	if _menu_instance != null and is_instance_valid(_menu_instance):
