@@ -1,0 +1,7 @@
+{
+	"name": "Example Mod",
+	"description": "Template manifest for a Rubicon mod folder.",
+	"version": "1.0.0",
+	"author": "Your Name",
+	"global": false
+}

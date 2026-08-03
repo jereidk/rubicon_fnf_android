@@ -17,5 +17,9 @@ debug.keystore
 version.txt
 keys/
 
+# Local mods dropped in for testing (runtime mods folder, not project content)
+/mods/
+mods_list.json
+
 # Logs
 *.log

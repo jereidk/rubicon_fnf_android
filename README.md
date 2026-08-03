@@ -26,12 +26,16 @@ We plan to have a wiki to help developers better understand the engine more easi
 
 We like to keep Rubicon short in dependencies, all you really need is [Git](https://git-scm.com) and [Godot](https://godotengine.org), preferably v4.5.1 but it will most likely work in similar versions.
 
-After that, all you need to do is cloning this repository **recursively** as you'll need the submodules for the engine to work:
+After that, all you need to do is clone this repository:
 ```
-git clone --recurse-submodule https://github.com/RubiconTeam/rubicon_fnf
+git clone https://github.com/RubiconTeam/rubicon_fnf
 ```
 
-Although this repository is highly recommended to use Rubicon, its mostly a compilation of our engine's plugins. You can get the engine in its basic form by cloning the [Rubicon Addon](https://github.com/RubiconTeam/rubicon) and optionally but highly recommended, the [Mania Addon](https://github.com/RubiconTeam/rubicon_mania)
+The engine's addons (including [Rubicon](https://github.com/RubiconTeam/rubicon) and the [Mania Addon](https://github.com/RubiconTeam/rubicon_mania)) are vendored directly under `addons/` in this repository, so there's no submodule step to worry about.
+
+## Mods
+
+Rubicon supports a `mods/` folder, similar to Psych Engine. See [`example_mods/README.md`](example_mods/README.md) for how it's structured, and `addons/rubicon/scripts/mods/rubicon_mods.gd` for the autoload (`Mods`) that implements it.
 
 # Contributing
 
