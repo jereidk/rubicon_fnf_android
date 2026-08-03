@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://menus/main_menu/main_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/menu/menuBG.png" id="2_bg"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -19,6 +20,32 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.09, 0.09, 0.11, 1)
+
+[node name="BackgroundImage" type="TextureRect" parent="."]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
 
 [node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -39,6 +66,7 @@ theme_override_constants/separation = 18
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 flat = true
 text = "TEST"
 
@@ -46,6 +74,7 @@ text = "TEST"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 flat = true
 text = "MODS"
 
@@ -53,6 +82,7 @@ text = "MODS"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 flat = true
 text = "OPTIONS"
 
@@ -60,5 +90,6 @@ text = "OPTIONS"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 flat = true
 text = "EXIT"

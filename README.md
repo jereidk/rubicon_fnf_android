@@ -57,3 +57,4 @@ Rubicon Engine's code is licensed under the [Apache License, Version 2.0](https:
 ## Special Credits
 - [firubii](https://github.com/firubii/) - Note system derived from Fantasy Engine ([HoloFunk](https://gamejolt.com/games/holofunk/754195))
 - [cherrythecool](https://github.com/cherrythecool) - [GDAnimate](https://github.com/cherrythecool/gdanimate)
+- Riveren - Main menu background art (`assets/menu/menuBG.png`), from [Psych Engine](https://github.com/ShadowMario/FNF-PsychEngine) (Apache License 2.0)
