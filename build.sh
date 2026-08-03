@@ -76,18 +76,14 @@ update_version_file() {
     echo "version_name=$name" >> "$VERSION_FILE"
 }
 
-# Actualizar export_presets.cfg con las versiones
+# Actualizar export_presets.cfg con las versiones (sobreescribe el valor real que haya
+# committeado, no un placeholder de texto - version/code es int y Godot no puede
+# parsear export_presets.cfg si ese campo no es un entero válido)
 update_export_presets() {
     local code=$1
     local name=$2
-    sed -i "s/__VERSION_CODE__/$code/g" "$EXPORT_PRESETS"
-    sed -i "s/__VERSION_NAME__/$name/g" "$EXPORT_PRESETS"
-}
-
-# Restaurar export_presets.cfg a marcadores de posición
-restore_export_presets() {
-    sed -i "s/version_code=[0-9]*/version_code=__VERSION_CODE__/g" "$EXPORT_PRESETS"
-    sed -i "s/version_name=[0-9.]*/version_name=__VERSION_NAME__/g" "$EXPORT_PRESETS"
+    sed -i "s/^version\/code=[0-9]*/version\/code=$code/" "$EXPORT_PRESETS"
+    sed -i "s/^version\/name=\"[^\"]*\"/version\/name=\"$name\"/" "$EXPORT_PRESETS"
 }
 
 # Inicializar version.txt si no existe
@@ -134,8 +130,10 @@ else
         echo "     -storepass tu_contraseña -keypass tu_contraseña \\"
         echo "     -dname 'CN=Tu Nombre, OU=Tu Organizacion, O=Tu Organizacion, L=Tu Ciudad, ST=Tu Estado, C=XX'"
         echo ""
-        echo "   Luego edita export_presets.cfg y añade la ruta del keystore"
-        echo "   en application/android/signing"
+        echo "   Luego edita export_presets.cfg y añade, bajo [preset.0.options]:"
+        echo "     keystore/release=\"keys/release.keystore\""
+        echo "     keystore/release_user=\"rubiconfnf\""
+        echo "     keystore/release_password=\"tu_contraseña\""
         echo ""
     fi
     

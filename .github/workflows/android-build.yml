@@ -153,6 +153,19 @@ jobs:
         run: |
           mkdir -p builds
 
+      - name: Set build version
+        run: |
+          # Android requires a strictly increasing versionCode to accept an APK as an
+          # update over one already installed (even with a matching signature).
+          # github.run_number always increases across runs of this workflow, so it's a
+          # maintenance-free versionCode source - no need to commit/track a counter.
+          # Overwrites the committed placeholder value in place (export_presets.cfg
+          # must always parse as valid Godot config, so that value has to be a real
+          # int, not a text placeholder - Godot's ConfigFile parser rejects
+          # version/code=__VERSION_CODE__ outright since it's typed as int).
+          sed -i "s/^version\/code=[0-9]*/version\/code=${{ github.run_number }}/" export_presets.cfg
+          sed -i "s/^version\/name=\"[^\"]*\"/version\/name=\"1.0.${{ github.run_number }}-${GITHUB_SHA::7}\"/" export_presets.cfg
+
       - name: Build Android Debug APK
         id: build
         run: |
