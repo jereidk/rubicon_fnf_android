@@ -150,6 +150,11 @@ func _scan_mod_folders(root: String) -> Array[String]:
 			result.append(name)
 		name = dir.get_next()
 	dir.list_dir_end()
+
+	# Directory listing order isn't guaranteed by the OS/filesystem; sort so newly
+	# discovered mods get a stable, reproducible default priority instead of whatever
+	# order readdir() happened to return.
+	result.sort()
 	return result
 
 func _load_mod_info(root: String, folder: String) -> RubiconModInfo:
