@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/mods/rubicon_mods_button.gd" id="1_button"]
+
+[node name="ModsEntryButton" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_button")
+
+[node name="ModsButton" type="Button" parent="."]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 100.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 20
+flat = true
+text = "Mods"

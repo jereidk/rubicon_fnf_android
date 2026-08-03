@@ -19,6 +19,8 @@ extends Node
 
 const MANIFEST_FILENAME := "mod.json"
 const STATE_PATH := "user://mods_list.json"
+const MENU_SCENE := "res://addons/rubicon/scenes/mods/rubicon_mods_menu.tscn"
+const ENTRY_BUTTON_SCENE := "res://addons/rubicon/scenes/mods/rubicon_mods_button.tscn"
 
 ## All mods found on disk, in load priority order (index 0 loads/overrides last, i.e.
 ## has the final say — matches Psych's "top of the list wins").
@@ -26,9 +28,33 @@ var mod_list: Array[RubiconModInfo] = []
 
 var _loose_dirs: Array[String] = []
 var _mods_root_cache: String = ""
+var _menu_instance: Control = null
+var _entry_button: CanvasLayer = null
 
 func _ready() -> void:
 	reload()
+	_entry_button = load(ENTRY_BUTTON_SCENE).instantiate()
+	add_child(_entry_button)
+
+## Shows/hides the always-on-top "Mods" corner button. Useful once a real game-specific
+## menu grows its own entry point into [method open_menu] and this stand-in isn't needed.
+func set_entry_button_visible(value: bool) -> void:
+	if _entry_button != null:
+		_entry_button.visible = value
+
+## Opens the mods menu (see rubicon_mods_menu.gd), on top of whatever is currently
+## running. No-op if it's already open.
+func open_menu() -> void:
+	if _menu_instance != null and is_instance_valid(_menu_instance):
+		return
+
+	_menu_instance = load(MENU_SCENE).instantiate()
+	_menu_instance.tree_exited.connect(func() -> void: _menu_instance = null)
+	get_tree().root.add_child(_menu_instance)
+
+func close_menu() -> void:
+	if _menu_instance != null and is_instance_valid(_menu_instance):
+		_menu_instance.queue_free()
 
 ## Returns the absolute path to the folder that contains mod subfolders.
 ## Desktop: next to the executable (or the project root, when running from the editor).
@@ -110,6 +136,45 @@ func get_mod(folder: String) -> RubiconModInfo:
 		if info.folder_name == folder:
 			return info
 	return null
+
+## Returns the mod currently "in front" — the first enabled or global entry in
+## mod_list — equivalent to Psych's currentModDirectory. Null means the base game
+## (with no active mod) is what's currently playing.
+func get_current_mod() -> RubiconModInfo:
+	for info in mod_list:
+		if info.enabled or info.global:
+			return info
+	return null
+
+## The "Play" action for a mod: turns it on, promotes it to top priority (so it becomes
+## [method get_current_mod]), and reloads the current scene so the change is visible
+## immediately. This is the entry point a mod-selection UI should call.
+func enter_mod(folder: String) -> void:
+	var info := get_mod(folder)
+	if info == null:
+		return
+	if not info.global:
+		info.enabled = true
+	set_mod_priority(folder, 0) # also saves state and re-applies mods
+	close_menu()
+
+	var tree := get_tree()
+	if tree != null:
+		tree.reload_current_scene()
+
+## Turns every non-global mod off (global mods can't be disabled) and reloads the
+## current scene, i.e. "play the unmodded base game".
+func exit_to_base() -> void:
+	for info in mod_list:
+		if not info.global:
+			info.enabled = false
+	_save_state()
+	_apply_mods()
+	close_menu()
+
+	var tree := get_tree()
+	if tree != null:
+		tree.reload_current_scene()
 
 ## Enables/disables a mod and persists the choice. Mods flagged "global" in their
 ## manifest ignore this. Packs already mounted from a .pck stay mounted until restart.

@@ -47,3 +47,9 @@ which checks every enabled (and every `global`) mod folder, in priority order, f
 ## Mod priority / enabling
 
 `Mods.mod_list` is ordered by priority — earlier entries win when multiple mods provide the same loose-file path. The order and each mod's enabled state persist to `user://mods_list.json` (equivalent to Psych's `modsList.txt`) and can be changed from `RubiconModsMenu` (`addons/rubicon/scenes/mods/rubicon_mods_menu.tscn`) or via `Mods.set_mod_enabled(folder, enabled)` / `Mods.set_mod_priority(folder, index)`.
+
+## Playing a mod
+
+Since Rubicon doesn't have a real main menu yet, the `Mods` autoload adds a small always-on-top "Mods" text button (`rubicon_mods_button.tscn`) so you can reach the menu from anywhere right now. Once a real game menu exists, call `Mods.set_entry_button_visible(false)` and have your own menu button call `Mods.open_menu()` instead — the standalone button is just a placeholder for that.
+
+Pressing "Jugar" next to a mod calls `Mods.enter_mod(folder)`: it enables that mod, promotes it to the top of the priority list (making it [`Mods.get_current_mod()`](../addons/rubicon/scripts/mods/rubicon_mods.gd)), and reloads the current scene, mirroring Psych Engine's "the top of your enabled mods list is the mod you're currently in" behavior (`currentModDirectory`). "Jugar sin mods" (`Mods.exit_to_base()`) turns every non-global mod off and reloads, going back to the unmodded base game. The checkbox next to each mod is separate from this — it layers a mod on/off (useful for `global` add-ons) without changing which mod is "in front".
