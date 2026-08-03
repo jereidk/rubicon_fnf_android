@@ -39,10 +39,10 @@ The main way to add or override content (characters, songs, stages, even new scr
 For assets that don't need the full Godot import pipeline (audio, images, JSON, etc.), you can drop loose files directly in your mod folder instead of packing them. Engine/game code that wants to support this calls:
 
 ```gdscript
-Mods.get_path("images/menu/background.png")
+Mods.get_asset_path("images/menu/background.png")
 ```
 
-which checks every enabled (and every `global`) mod folder, in priority order, for `<mod>/images/menu/background.png`, and falls back to `res://images/menu/background.png` if no mod provides it — mirroring Psych Engine's `Paths.modFolders()`. This resolves live, no restart needed, but it's opt-in per feature: it only works for code paths that were written to call `Mods.get_path()` instead of loading straight from `res://`.
+which checks every enabled (and every `global`) mod folder, in priority order, for `<mod>/images/menu/background.png`, and falls back to `res://images/menu/background.png` if no mod provides it — mirroring Psych Engine's `Paths.modFolders()`. This resolves live, no restart needed, but it's opt-in per feature: it only works for code paths that were written to call `Mods.get_asset_path()` instead of loading straight from `res://`.
 
 ## Mod priority / enabling
 

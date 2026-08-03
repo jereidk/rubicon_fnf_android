@@ -9,13 +9,13 @@ extends Node
 ##   project that uses the Rubicon addon, matching "res://" paths to override existing
 ##   content, or new paths to add content that the game already scans for.
 ## - Loose files (images, audio, json, etc.) that aren't part of a pack. These are
-##   resolved on demand through [method get_path], mirroring Psych's modFolders().
+##   resolved on demand through [method get_asset_path], mirroring Psych's modFolders().
 ## - An optional "mod.json" manifest with metadata (name, description, version, author,
 ##   and "global", equivalent to Psych's pack.json "runsGlobally").
 ##
 ## Packs are additive for the lifetime of the process (Godot has no official "unload"
 ## for a mounted pack), so toggling a mod that ships a .pck only takes effect after a
-## restart. Loose-file overrides resolved through [method get_path] apply immediately.
+## restart. Loose-file overrides resolved through [method get_asset_path] apply immediately.
 
 const MANIFEST_FILENAME := "mod.json"
 const STATE_PATH := "user://mods_list.json"
@@ -88,8 +88,10 @@ func reload() -> void:
 
 ## Resolves "relative_path" against every currently active mod folder, in priority
 ## order, falling back to the base game's "res://relative_path" if no mod provides it.
-## Use this for loose-file overrides (e.g. Mods.get_path("images/menu/bg.png")).
-func get_path(relative_path: String) -> String:
+## Use this for loose-file overrides (e.g. Mods.get_asset_path("images/menu/bg.png")).
+## Named get_asset_path (not get_path) because Node already defines get_path() -> NodePath
+## with an incompatible signature; overriding it silently breaks the whole autoload.
+func get_asset_path(relative_path: String) -> String:
 	for mod_dir in _loose_dirs:
 		var candidate := mod_dir.path_join(relative_path)
 		if FileAccess.file_exists(candidate) or DirAccess.dir_exists_absolute(candidate):
