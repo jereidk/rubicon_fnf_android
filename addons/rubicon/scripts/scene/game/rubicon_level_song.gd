@@ -40,6 +40,40 @@ func _ready() -> void:
 	set_process_internal(true)
 	connect(&"child_entered_tree", added_player_child)
 	connect(&"child_exiting_tree", removed_player_child)
+	_apply_mod_audio_overrides()
+
+## Lets a mod replace a song's audio with no compiling required: drop a loose audio
+## file in the mod folder at the same relative path as the original (e.g. a stream
+## loaded from "res://songs/test/resources/Inst.ogg" is overridden by
+## "<mod>/songs/test/resources/Inst.ogg"), and it's loaded and swapped in here.
+## This node is @tool (so it behaves in the editor too), but the "Mods" autoload only
+## exists in an actual running game, not in the editor/import context — skip there.
+func _apply_mod_audio_overrides() -> void:
+	if Engine.is_editor_hint():
+		return
+
+	for player: AudioStreamPlayer in audio_players:
+		_apply_mod_audio_override(player)
+
+func _apply_mod_audio_override(player: AudioStreamPlayer) -> void:
+	if player == null or player.stream == null:
+		return
+
+	var original_path: String = player.stream.resource_path
+	if original_path.is_empty() or not original_path.begins_with("res://"):
+		return
+
+	var relative_path := original_path.trim_prefix("res://")
+	var resolved := Mods.get_asset_path(relative_path)
+	if resolved == original_path:
+		return # no mod provides an override for this stream
+
+	var overridden_stream: AudioStream = load(resolved)
+	if overridden_stream == null:
+		push_warning("RubiconLevelSong: mod audio override failed to load: %s" % resolved)
+		return
+
+	player.stream = overridden_stream
 
 func set_level():
 	if _level == null:
