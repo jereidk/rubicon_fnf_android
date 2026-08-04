@@ -173,20 +173,28 @@ jobs:
           path: |
             .godot/imported
             .godot/uid_cache.bin
-          # No restore-keys on purpose. A restore-keys prefix match serves
-          # the *closest* previous cache on an exact-key miss (i.e. any
-          # commit that touches a hashed file) - Godot's incremental
-          # reimport on top of that stale base doesn't reliably re-persist
-          # every freshly-registered UID to uid_cache.bin before the next
-          # (separate) $GODOT process reads it back, which crashed the
-          # shop scene twice now with "Failed to load resource uid://...".
-          # Without restore-keys, an exact-key miss just starts from an
-          # empty .godot/imported (a real, self-consistent cold import,
-          # only for the specific commit that changed something) instead
-          # of an unreliable incremental patch - the precompiled ASTC
-          # step below keeps that from being anywhere near the ~74min a
-          # truly cold run used to take before those were committed.
+          # restore-keys previously got removed here on the theory that a
+          # prefix-match fallback (serving the *closest* previous cache on
+          # an exact-key miss) was why the shop scene crashed twice with
+          # "Failed to load resource uid://..." - the idea being Godot's
+          # incremental reimport on top of that stale base doesn't reliably
+          # re-persist freshly-registered UIDs to uid_cache.bin before the
+          # next (separate) $GODOT process reads it back.
+          #
+          # That theory doesn't hold up: a build with restore-keys fully
+          # removed (an exact-key miss, genuinely empty .godot/imported,
+          # the "safe" cold-import case this was supposed to guarantee) hit
+          # the exact same crash again - Import step resolved every
+          # ext_resource fine, Export step failed the same uid_cache
+          # lookups regardless. Whatever's actually causing the export-time
+          # UID gap, it isn't restore-keys - that fix never got validated
+          # against a real build before being trusted. Restoring
+          # restore-keys here so commits that don't touch a hashed file get
+          # a useful partial cache instead of a full cold rebuild every
+          # time.
           key: godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
+          restore-keys: |
+            godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Restore precompiled ASTC imports
         run: |
