@@ -64,6 +64,7 @@
 [ext_resource type="Texture2D" uid="uid://ckhxeswokdxg0" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png" id="62"]
 [ext_resource type="Texture2D" uid="uid://ecxvo8jf1mjg" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63"]
 [ext_resource type="Texture2D" uid="uid://d1pa7o5lokrtv" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64"]
+[ext_resource type="Texture2D" uid="uid://c8xtwvjjfnl0x" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics.png" id="203"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
 [ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
@@ -5371,7 +5372,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Resolution")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ResScale")
+focus_neighbor_bottom = NodePath("../VSync")
 theme = ExtResource("1")
 text = "Screen Mode: "
 alignment = 0
@@ -5382,147 +5383,10 @@ values_list = [4, 1]
 console = NodePath("../../../../../..")
 tooltip = "Wide fills a wide screen with extra game world - can look stretched on a wide phone. Normal locks a standard 16:9 frame and pillarboxes the rest."
 
-[node name="ResScale" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=785733148 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ScreenAspect")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Upscaling")
-theme = ExtResource("1")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Render Scale: "
-alignment = 0
-script = ExtResource("50")
-property = &"graphics_render_scale"
-is_percent = true
-increment_amount = 0.05
-value_max = 1.5
-value_min = 0.25
-suffix = "%"
-console = NodePath("../../../../../..")
-tooltip = "How many pixels the Collector actually bothers rendering before stretching it to fill your screen. Turn it down if the shop's chugging."
-
-[node name="Upscaling" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=967536308 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ResScale")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../QualityPreset")
-theme = ExtResource("1")
-text = "Upscaling: "
-alignment = 0
-script = ExtResource("54")
-property = &"graphics_scaling_mode"
-display_list = ["Bilinear", "FSR", "Nearest"]
-values_list = [0, 1, 5]
-console = NodePath("../../../../../..")
-tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR looks sharper for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
-
-[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1736100186 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../Upscaling")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Shadows")
-theme = ExtResource("1")
-text = "Quality Preset: "
-alignment = 0
-script = ExtResource("55")
-display_list = ["Very Low", "Low", "Medium", "High"]
-values_list = [0, 1, 2, 3]
-console = NodePath("../../../../../..")
-tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
-
-[node name="Shadows" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=1473158606 node_paths=PackedStringArray("console") instance=ExtResource("52")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../QualityPreset")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ShadowFilterQuality")
-text = "Shadows"
-property = &"graphics_shadows_enabled"
-console = NodePath("../../../../../..")
-tooltip = "Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging."
-
-[node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=917660058 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../Shadows")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MSAA")
-theme = ExtResource("1")
-text = "Shadow Softness: "
-alignment = 0
-script = ExtResource("54")
-property = &"graphics_positional_shadow_filter_quality"
-display_list = ["Hard", "Very Low", "Low", "Medium", "High", "Ultra"]
-values_list = [0, 1, 2, 3, 4, 5]
-console = NodePath("../../../../../..")
-tooltip = "How blurred shadow edges are. Hard is the cheapest and has no blur at all. Does nothing while Shadows is off."
-
-[node name="MSAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=339081663 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ShadowFilterQuality")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ScreenSpaceAA")
-theme = ExtResource("1")
-text = "Anti-Aliasing (MSAA): "
-alignment = 0
-script = ExtResource("54")
-property = &"graphics_msaa_3d_quality"
-display_list = ["Off", "2x", "4x", "8x"]
-values_list = [0, 1, 2, 3]
-console = NodePath("../../../../../..")
-tooltip = "Smooths jagged edges by rendering extra samples per pixel. Costs GPU time - turn it off first."
-
-[node name="ScreenSpaceAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=153710184 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../MSAA")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../PostProcessing")
-theme = ExtResource("1")
-text = "Screen Space AA: "
-alignment = 0
-script = ExtResource("54")
-property = &"graphics_screen_space_aa_quality"
-display_list = ["Off", "SMAA"]
-values_list = [0, 1]
-console = NodePath("../../../../../..")
-tooltip = "A cheaper edge-smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
-
-[node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=795425564 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ScreenSpaceAA")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ShaderEffects")
-theme = ExtResource("1")
-text = "Post Processing: "
-alignment = 0
-script = ExtResource("54")
-property = &"graphics_post_processing"
-display_list = ["None", "Low", "High"]
-values_list = [0, 1, 2]
-console = NodePath("../../../../../..")
-tooltip = "Decorative extras like glow and screen effects. Lower settings skip loading them entirely instead of just hiding them."
-
-[node name="ShaderEffects" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=2135525362 node_paths=PackedStringArray("console") instance=ExtResource("52")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../PostProcessing")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VSync")
-text = "Reduce Visual Effects"
-property = &"graphics_disable_shader_effects"
-console = NodePath("../../../../../..")
-tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically - use this to get the same boost without dropping the rest of your preset."
-
 [node name="VSync" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=275378457 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ShaderEffects")
+focus_neighbor_top = NodePath("../ScreenAspect")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MaxFPS")
 theme = ExtResource("1")
@@ -5765,6 +5629,154 @@ script = ExtResource("56")
 input = &"fullscreen_toggle"
 console = NodePath("../../../../../..")
 
+[node name="Graphics" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1900773421 node_paths=PackedStringArray("tab_container", "default_focus")]
+visible = false
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 25
+script = ExtResource("34")
+tab_container = NodePath("..")
+default_focus = NodePath("ResScale")
+metadata/_tab_index = 4
+
+[node name="ResScale" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=785733148 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../Upscaling")
+theme = ExtResource("1")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Render Scale: "
+alignment = 0
+script = ExtResource("50")
+property = &"graphics_render_scale"
+is_percent = true
+increment_amount = 0.05
+value_max = 1.5
+value_min = 0.25
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "How many pixels the Collector actually bothers rendering before stretching it to fill your screen. Turn it down if the shop's chugging."
+
+[node name="Upscaling" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=967536308 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ResScale")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../QualityPreset")
+theme = ExtResource("1")
+text = "Upscaling: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_scaling_mode"
+display_list = ["Bilinear", "FSR", "Nearest"]
+values_list = [0, 1, 5]
+console = NodePath("../../../../../..")
+tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR looks sharper for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
+
+[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Upscaling")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../Shadows")
+theme = ExtResource("1")
+text = "Quality Preset: "
+alignment = 0
+script = ExtResource("55")
+display_list = ["Very Low", "Low", "Medium", "High"]
+values_list = [0, 1, 2, 3]
+console = NodePath("../../../../../..")
+tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
+
+[node name="Shadows" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1473158606 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../QualityPreset")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShadowFilterQuality")
+text = "Shadows"
+property = &"graphics_shadows_enabled"
+console = NodePath("../../../../../..")
+tooltip = "Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging."
+
+[node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=917660058 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Shadows")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MSAA")
+theme = ExtResource("1")
+text = "Shadow Softness: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_positional_shadow_filter_quality"
+display_list = ["Hard", "Very Low", "Low", "Medium", "High", "Ultra"]
+values_list = [0, 1, 2, 3, 4, 5]
+console = NodePath("../../../../../..")
+tooltip = "How blurred shadow edges are. Hard is the cheapest and has no blur at all. Does nothing while Shadows is off."
+
+[node name="MSAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=339081663 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ShadowFilterQuality")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ScreenSpaceAA")
+theme = ExtResource("1")
+text = "Anti-Aliasing (MSAA): "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_msaa_3d_quality"
+display_list = ["Off", "2x", "4x", "8x"]
+values_list = [0, 1, 2, 3]
+console = NodePath("../../../../../..")
+tooltip = "Smooths jagged edges by rendering extra samples per pixel. Costs GPU time - turn it off first."
+
+[node name="ScreenSpaceAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=153710184 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MSAA")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../PostProcessing")
+theme = ExtResource("1")
+text = "Screen Space AA: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_screen_space_aa_quality"
+display_list = ["Off", "SMAA"]
+values_list = [0, 1]
+console = NodePath("../../../../../..")
+tooltip = "A cheaper edge-smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
+
+[node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=795425564 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ScreenSpaceAA")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShaderEffects")
+theme = ExtResource("1")
+text = "Post Processing: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_post_processing"
+display_list = ["None", "Low", "High"]
+values_list = [0, 1, 2]
+console = NodePath("../../../../../..")
+tooltip = "Decorative extras like glow and screen effects. Lower settings skip loading them entirely instead of just hiding them."
+
+[node name="ShaderEffects" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=2135525362 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../PostProcessing")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+text = "Reduce Visual Effects"
+property = &"graphics_disable_shader_effects"
+console = NodePath("../../../../../..")
+tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically - use this to get the same boost without dropping the rest of your preset."
+
 [node name="OptionsSections" type="MarginContainer" parent="TabContainer/Settings" unique_id=1405641552]
 layout_mode = 0
 offset_right = 96.0
@@ -5806,7 +5818,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GameplayButton")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MiscButton")
+focus_neighbor_bottom = NodePath("../GraphicsButton")
 script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "collector"
@@ -5824,12 +5836,37 @@ position = Vector2(-239.00002, -8.9999695)
 scale = Vector2(1.2136714, 1.2136713)
 texture = ExtResource("62")
 
-[node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+[node name="GraphicsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1900773422 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(338, 111)
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VisualsButton")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MiscButton")
+script = ExtResource("51")
+settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
+portrait_name = "collector"
+submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
+submenu_index = 4
+backout_node = NodePath(".")
+console = NodePath("../../../../..")
+
+[node name="Graphics" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GraphicsButton" unique_id=1900773423]
+position = Vector2(169, 55)
+texture = ExtResource("203")
+
+[node name="GraphicsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GraphicsButton/Graphics" unique_id=1900773424]
+position = Vector2(-239.00002, -8.9999695)
+scale = Vector2(1.2136714, 1.2136713)
+texture = ExtResource("62")
+
+[node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(338, 111)
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../GraphicsButton")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
 script = ExtResource("51")
