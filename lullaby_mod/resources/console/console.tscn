@@ -5671,10 +5671,10 @@ text = "Upscaling: "
 alignment = 0
 script = ExtResource("54")
 property = &"graphics_scaling_mode"
-display_list = ["Bilinear", "FSR", "Nearest"]
-values_list = [0, 1, 5]
+display_list = ["Bilinear", "FSR", "FSR2", "Nearest"]
+values_list = [0, 1, 2, 5]
 console = NodePath("../../../../../..")
-tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR looks sharper for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
+tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR2 looks the sharpest and adds light anti-aliasing, but needs the Forward+ renderer (desktop only, not the Collector's Shop on Android). FSR looks sharper than Bilinear for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
 
 [node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
 layout_mode = 2
