@@ -260,6 +260,22 @@ jobs:
           $GODOT --headless --import 2>&1
           $GODOT --headless --import 2>&1
 
+      - name: Verify hardcoded uid:// references resolve
+        run: |
+          # Catches the collector-shop crash class before it ships: a bare
+          # "uid://..." string literal in .gd code (SceneChanger.change_to,
+          # preload, change_scene_to_file - no res:// path to fall back to,
+          # unlike a normal ext_resource) that doesn't resolve against
+          # .godot/uid_cache.bin. This has shipped silently before because
+          # nothing checked it - the Import step's own log stays clean even
+          # when this is broken, and it only surfaces as a runtime crash on
+          # whatever menu action actually triggers that specific reference.
+          # See tools/verify_hardcoded_uids.gd for what this doesn't catch
+          # (ext_resource uid mismatches - those degrade gracefully to a
+          # text-path fallback instead of crashing, so they're a quality
+          # issue, not a build-breaking one).
+          $GODOT --headless --script tools/verify_hardcoded_uids.gd 2>&1
+
       - name: Create builds directory
         run: |
           mkdir -p builds
