@@ -2,16 +2,20 @@ extends Control
 class_name ChimeraPictureTakingTouchZone
 
 ## Android touch support for Chimera's picture-taking mechanic
-## (PictureTakingController, mch_picturetaking.gd) - a full-width tap zone
-## (RubiconMechanicHitbox, same reusable widget Safety Lullaby's pendulum
-## and ChimeraHeartbeatTouchZone use), sized once via anchors in the scene
-## rather than following anything on screen. Unlike Heartbeat/Escape, this
-## mechanic has no on-screen prompt of its own to follow and no timing
-## window to hit - PictureTakingController.trigger_flash_and_continue()
-## fires immediately on lullaby_special, whenever it's pressed - so there's
-## nothing for this script to do but show/hide the zone.
+## (PictureTakingController, mch_picturetaking.gd) - a fixed, discrete
+## RubiconActionButton (action_button.gd - the same keycap-styled button the
+## Collector Shop's own Accept/Cancel/F buttons use, and
+## ChimeraHeartbeatTouchZone's own button) sitting in the same bottom-center
+## spot ChimeraEscapeDPad occupies during the crawl mechanic - the two never
+## show at once, so reusing that screen real estate keeps a consistent
+## "big action" spot instead of introducing a second one. Unlike
+## Heartbeat/Escape, this mechanic has no on-screen prompt of its own to
+## follow and no timing window to hit - PictureTakingController.
+## trigger_flash_and_continue() fires immediately on lullaby_special,
+## whenever it's pressed - so there's nothing for this script to do but
+## show/hide the button.
 
-@export var hitbox: Control
+@export var hitbox: Button
 @export var picture_taking: PictureTakingController
 
 func _ready() -> void:
@@ -33,7 +37,4 @@ func _process(_delta: float) -> void:
 		return
 
 	var should_show: bool = picture_taking.mechanic_enabled and not picture_taking.autoplay and not get_tree().paused
-	if should_show != hitbox.visible:
-		hitbox.visible = should_show
-		if not should_show and hitbox.has_method("_release_all"):
-			hitbox.call("_release_all")
+	hitbox.visible = should_show

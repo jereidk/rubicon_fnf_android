@@ -2,11 +2,15 @@ extends Control
 class_name ChimeraHeartbeatTouchZone
 
 ## Android touch support for Chimera's heartbeat mechanic (HeartbeatController,
-## heartbeat_controller.gd). Wraps a RubiconMechanicHitbox (the same reusable
-## translucent tap-zone widget Safety Lullaby's pendulum uses) around the
-## heart sprite's own on-screen position instead of a floating button
-## unrelated to where the heart actually is - same "touch what you see"
-## reasoning as ChimeraEscapeDPad.
+## heartbeat_controller.gd). Wraps a RubiconActionButton (action_button.gd -
+## the same discrete, keycap-styled tap button the Collector Shop's own
+## Accept/Cancel/F buttons use, and ChimeraPictureTakingTouchZone's own
+## button) around the heart sprite's own on-screen position instead of a
+## floating button unrelated to where the heart actually is - same "touch
+## what you see" reasoning as ChimeraEscapeDPad, now expressed as an actual
+## button instead of a big translucent hitbox zone (RubiconMechanicHitbox),
+## matching how the D-pad reads as a set of discrete key-shaped buttons
+## rather than one ambient tap surface.
 ##
 ## The heart lives under a Node3D ("SerenaHeartbeat") purely for scene
 ## organization - it's still a real CanvasItem with an ordinary 2D screen
@@ -15,11 +19,11 @@ class_name ChimeraHeartbeatTouchZone
 ## following it here is a matter of polling its position each frame, not
 ## projecting anything through a 3D camera.
 
-@export var hitbox: Control
+@export var hitbox: Button
 @export var heartbeat: HeartbeatController
 @export var heart_sprite: CanvasItem
 
-@export var hitbox_size: Vector2 = Vector2(260, 260)
+@export var hitbox_size: Vector2 = Vector2(180, 180)
 
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
@@ -44,10 +48,7 @@ func _process(_delta: float) -> void:
 		return
 
 	var should_show: bool = heartbeat.beating_enabled and not heartbeat.autoplay and not get_tree().paused
-	if should_show != hitbox.visible:
-		hitbox.visible = should_show
-		if not should_show and hitbox.has_method("_release_all"):
-			hitbox.call("_release_all")
+	hitbox.visible = should_show
 
 	if not should_show:
 		return

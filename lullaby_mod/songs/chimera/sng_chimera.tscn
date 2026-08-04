@@ -136,9 +136,33 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="203"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_escape_dpad.gd" id="204"]
-[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/mechanic_touch_hitbox.gd" id="205"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/action_button.gd" id="205"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_heartbeat_touch_zone.gd" id="206"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_picture_taking_touch_zone.gd" id="207"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action"]
+bg_color = Color(0.09, 0.09, 0.12, 0.55)
+corner_radius_top_left = 90
+corner_radius_top_right = 90
+corner_radius_bottom_right = 90
+corner_radius_bottom_left = 90
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action_pressed"]
+bg_color = Color(0.95, 0.85, 0.25, 0.65)
+corner_radius_top_left = 90
+corner_radius_top_right = 90
+corner_radius_bottom_right = 90
+corner_radius_bottom_left = 90
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.6)
 
 [sub_resource type="Animation" id="Animation_7ox65"]
 length = 0.001
@@ -15218,12 +15242,18 @@ hitbox = NodePath("Hitbox")
 heartbeat = NodePath("../../Sequences/SerenaHeartbeat/Heart/HeartbeatController")
 heart_sprite = NodePath("../../Sequences/SerenaHeartbeat/Heart")
 
-[node name="Hitbox" type="Control" parent="UILayer/HeartbeatTouchZone"]
+[node name="Hitbox" type="Button" parent="UILayer/HeartbeatTouchZone"]
 visible = false
 layout_mode = 1
-offset_right = 260.0
-offset_bottom = 260.0
+offset_right = 180.0
+offset_bottom = 180.0
 mouse_filter = 1
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_chimera_action")
+theme_override_styles/hover = SubResource("StyleBoxFlat_chimera_action")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_chimera_action_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_chimera_action")
+text = "SPACE"
 script = ExtResource("205")
 action = &"lullaby_special"
 
@@ -15239,15 +15269,27 @@ script = ExtResource("207")
 hitbox = NodePath("Hitbox")
 picture_taking = NodePath("../../Sequences/CameraMechanic")
 
-[node name="Hitbox" type="Control" parent="UILayer/PictureTakingTouchZone"]
+[node name="Hitbox" type="Button" parent="UILayer/PictureTakingTouchZone"]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -210.0
+offset_right = 90.0
+offset_bottom = -30.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
 mouse_filter = 1
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_chimera_action")
+theme_override_styles/hover = SubResource("StyleBoxFlat_chimera_action")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_chimera_action_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_chimera_action")
+text = "SPACE"
 script = ExtResource("205")
 action = &"lullaby_special"
 
