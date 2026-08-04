@@ -5653,13 +5653,28 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 25
 script = ExtResource("34")
 tab_container = NodePath("..")
-default_focus = NodePath("ResScale")
+default_focus = NodePath("QualityPreset")
 metadata/_tab_index = 4
+
+[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ResScale")
+theme = ExtResource("1")
+text = "Quality Preset: "
+alignment = 0
+script = ExtResource("55")
+display_list = ["Very Low", "Low", "Medium", "High"]
+values_list = [0, 1, 2, 3]
+console = NodePath("../../../../../..")
+tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
 
 [node name="ResScale" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=785733148 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath(".")
+focus_neighbor_top = NodePath("../QualityPreset")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Upscaling")
 theme = ExtResource("1")
@@ -5697,7 +5712,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Upscaling")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../QualityPreset")
+focus_neighbor_bottom = NodePath("../Shadows")
 theme = ExtResource("1")
 text = "FSR Sharpness: "
 alignment = 0
@@ -5708,25 +5723,10 @@ values_list = [0.0, 0.5, 1.0, 1.5, 2.0]
 console = NodePath("../../../../../..")
 tooltip = "How sharp the FSR/FSR2 upscale looks. Only does anything when Upscaling is set to FSR or FSR2 and Render Scale is below 100%. Sharper can look crunchy on low render scales; softer hides upscaling artifacts. Free either way - it costs no extra performance."
 
-[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../FSRSharpness")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Shadows")
-theme = ExtResource("1")
-text = "Quality Preset: "
-alignment = 0
-script = ExtResource("55")
-display_list = ["Very Low", "Low", "Medium", "High"]
-values_list = [0, 1, 2, 3]
-console = NodePath("../../../../../..")
-tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
-
 [node name="Shadows" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1473158606 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../QualityPreset")
+focus_neighbor_top = NodePath("../FSRSharpness")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ShadowResolution")
 text = "Shadows"

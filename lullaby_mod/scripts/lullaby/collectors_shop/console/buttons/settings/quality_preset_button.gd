@@ -12,20 +12,33 @@ var initial_text: String
 func _ready() -> void :
 	super._ready()
 	initial_text = text
-	if Settings.get_quality_preset():
-		match Settings.get_quality_preset():
-			Settings.PRESET_VERY_LOW:
-				index = 0
-			Settings.PRESET_LOW:
-				index = 1
-			Settings.PRESET_MEDIUM:
-				index = 2
-			Settings.PRESET_HIGH:
-				index = 3
-		text = initial_text + str(display_list[index])
-	else:
-		index = -1
-		text = initial_text + "Custom"
+	_refresh()
+
+	# Every sibling settings button calls Settings.apply_settings() when it
+	# changes something, and that emits this - so touching any individual
+	# graphics option re-runs the match below and flips this label to
+	# "Custom" live. Without it the label only reflected whatever preset was
+	# active when the Settings tab was first built, and would go on claiming
+	# e.g. "High" after the player had edited their way off it.
+	Settings.applied.connect(_refresh)
+
+## Settings.get_quality_preset() returns the preset whose every tracked
+## value matches the current settings, or null when none does - that null
+## is exactly what "Custom" means here.
+func _refresh() -> void :
+	match Settings.get_quality_preset():
+		Settings.PRESET_VERY_LOW:
+			index = 0
+		Settings.PRESET_LOW:
+			index = 1
+		Settings.PRESET_MEDIUM:
+			index = 2
+		Settings.PRESET_HIGH:
+			index = 3
+		_:
+			index = -1
+
+	text = initial_text + (str(display_list[index]) if index >= 0 else "Custom")
 
 func _input(event: InputEvent) -> void :
 	var direction: int = 0
@@ -39,30 +52,32 @@ func _input(event: InputEvent) -> void :
 	if direction == 0:
 		direction = SettingsButton.get_tap_direction(self, event)
 
-	if direction > 0:
-		if index + 1 < values_list.size():
-			console.play_sound.emit("sfx_soulroom_click")
-			index += 1
-			_apply_preset_for_index()
-			text = initial_text + str(display_list[index])
-			if tween:
-				tween.kill()
-			tween = create_tween()
-			tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.25).set_trans(Tween.TRANS_CUBIC)
-		else:
-			console.play_sound.emit("sfx_soulroom_deny")
-	elif direction < 0:
-		if index - 1 >= 0:
-			console.play_sound.emit("sfx_soulroom_click")
-			index -= 1
-			_apply_preset_for_index()
-			text = initial_text + str(display_list[index])
-			if tween:
-				tween.kill()
-			tween = create_tween()
-			tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.25).set_trans(Tween.TRANS_CUBIC)
-		else:
-			console.play_sound.emit("sfx_soulroom_deny")
+	if direction == 0:
+		return
+
+	# "Custom" (index -1) isn't a position in the list, so stepping off it
+	# can't just be index +/- 1: going right enters at the weakest preset,
+	# going left at the strongest. Without this, left on Custom compared
+	# -2 >= 0 and rejected the input, leaving no way back into the presets
+	# in that direction at all.
+	var next: int = index + direction
+	if index == -1:
+		next = 0 if direction > 0 else values_list.size() - 1
+
+	if next < 0 or next >= values_list.size():
+		console.play_sound.emit("sfx_soulroom_deny")
+		return
+
+	console.play_sound.emit("sfx_soulroom_click")
+	index = next
+	# Applies the preset and calls Settings.apply_settings(), whose applied
+	# signal runs _refresh() - that's what sets the label, here and when a
+	# sibling option knocks us to Custom.
+	_apply_preset_for_index()
+	if tween:
+		tween.kill()
+	tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.25).set_trans(Tween.TRANS_CUBIC)
 
 func _apply_preset_for_index() -> void :
 	match index:
