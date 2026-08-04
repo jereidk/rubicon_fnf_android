@@ -152,7 +152,7 @@ func _exit(right: bool) -> void :
 
 
 func _on_mode_selected(mode: String) -> void :
-	AudioPlayer.stream = load("res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_select.wav")
+	AudioPlayer.stream = load("res://lullaby_mod/resources/audio/sfx/shop/console/sfx_soulroom_select.res")
 	AudioPlayer.play()
 
 	current_mode = mode
