@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/fuckno/vox_fuckno.ogg" id="1_1liwy"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/fuckno/vox_fuckno.res" id="1_1liwy"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/antipiracy/FucknoBack.png" id="2_h35pq"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/antipiracy/FucknoFront.png" id="3_ql8us"]
 [ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/menus/antipiracy/fucklockedin.tres" id="4_qohr5"]
@@ -17,7 +17,7 @@
 [ext_resource type="AnimationLibrary" path="res://lullaby_mod/assets/menus/antipiracy/fuckneverforgets_library.tres" id="15_pgs2p"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/antipiracy/fuckno_crust.png" id="16_tqp5k"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/antipiracy/fuckno_doodii.png" id="17_4i6pq"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.ogg" id="18_0ropd"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.res" id="18_0ropd"]
 
 [sub_resource type="GDScript" id="GDScript_0kdkt"]
 script/source = "extends Node

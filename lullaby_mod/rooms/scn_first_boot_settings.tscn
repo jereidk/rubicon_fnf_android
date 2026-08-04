@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/global/notes/nte_default_hypno.png" id="7_k5kxc"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/debug/settings/lullaby_debug_map_input.gd" id="8_lv6a0"]
 [ext_resource type="Theme" path="res://lullaby_mod/resources/themes/thm_boot_panel_small.tres" id="9_jpoyb"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.ogg" id="10_qsk6x"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/misc/sfx_boot_wind.res" id="10_qsk6x"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ifwi3"]
 font = ExtResource("4_m3e6n")

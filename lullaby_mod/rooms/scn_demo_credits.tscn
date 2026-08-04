@@ -25,9 +25,9 @@
 [ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/collector/angel_wall.tres" id="23_skfya"]
 [ext_resource type="AnimationLibrary" path="res://lullaby_mod/assets/collector/angel_wall_library.tres" id="24_0h6ar"]
 [ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_hypnosis.ttf" id="25_t0ros"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/angel/sfx_angel_ambience.ogg" id="26_ujxpt"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/angel/sfx_angel_speak.mp3" id="27_5vql7"]
-[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_credits.ogg" id="28_bros7"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/angel/sfx_angel_ambience.res" id="26_ujxpt"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/angel/sfx_angel_speak.res" id="27_5vql7"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_credits.res" id="28_bros7"]
 
 [sub_resource type="Gradient" id="Gradient_w6dj5"]
 offsets = PackedFloat32Array(0, 0.49113923, 1)
