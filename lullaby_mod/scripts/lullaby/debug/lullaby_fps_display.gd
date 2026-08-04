@@ -91,7 +91,12 @@ func _ready() -> void :
 	_fps_tracker.resize(60)
 	_fps_tracker.fill(0)
 
-	update_visibility()
+	# Settings owns this now (see Settings.lullaby_debug_display) so it
+	# survives a restart and is reachable from the Misc tab on touch, where
+	# there's no debug_toggle key to cycle it with. Settings is an autoload
+	# declared before this one, so it's already loaded here.
+	_pull_state_from_settings()
+	Settings.applied.connect(_pull_state_from_settings)
 
 func _process(delta: float) -> void :
 	if current_state == CurrentState.NONE:
@@ -232,11 +237,27 @@ func _input(event: InputEvent) -> void :
 
 	if event.is_echo() or not event.is_action_pressed(&"debug_toggle"):
 		return
-	# VERY_SIMPLE ships in every build (it's the default), ADVANCED stays
-	# debug-only, same as before - NONE, VERY_SIMPLE, BASIC in release;
-	# all four in debug.
-	var limit: int = 4 if OS.is_debug_build() else 3
-	current_state = ((current_state + 1) % limit) as CurrentState
+
+	# Write through to Settings rather than just mutating current_state, so
+	# the key and the Misc tab's Debug Display option stay in agreement and
+	# the choice survives a restart. Settings.save() only, not
+	# apply_settings() - nothing else needs reapplying for this, and
+	# _pull_state_from_settings() below does the visual half directly.
+	Settings.lullaby_debug_display = (current_state + 1) % state_count()
+	Settings.save()
+	_pull_state_from_settings()
+
+## VERY_SIMPLE ships in every build (it's the default), ADVANCED stays
+## debug-only, same as before - NONE, VERY_SIMPLE, BASIC in release; all
+## four in debug.
+static func state_count() -> int:
+	return 4 if OS.is_debug_build() else 3
+
+func _pull_state_from_settings() -> void :
+	# Clamped rather than trusted: a settings.ini written by a debug build
+	# (where ADVANCED is reachable) would otherwise select a state a release
+	# build doesn't offer.
+	current_state = clampi(Settings.lullaby_debug_display, 0, state_count() - 1) as CurrentState
 	update_visibility()
 
 func to_memory_format(mem: int) -> String:

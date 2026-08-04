@@ -179,6 +179,16 @@ var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.JOYSTICK
 var lullaby_baby_mode: bool = false
 var lullaby_showcase_mode: bool = false
 
+## Which on-screen debug overlay LullabyFPSDisplay shows (its own
+## CurrentState enum: 0 NONE / 1 VERY_SIMPLE / 2 BASIC / 3 ADVANCED).
+## This used to live only as a runtime var on the display itself, cycled
+## by the debug_toggle key - so it reset to VERY_SIMPLE every launch and,
+## on Android, couldn't be changed at all (no keyboard to press
+## debug_toggle with). Keeping it here makes it settable from the Misc
+## tab and persisted like everything else - save()/load_from() pick it up
+## automatically off the lullaby_ prefix.
+var lullaby_debug_display: int = 1
+
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 

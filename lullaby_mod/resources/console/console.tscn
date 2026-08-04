@@ -5442,7 +5442,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../DeleteSaveData")
+focus_neighbor_bottom = NodePath("../DebugDisplay")
 theme = ExtResource("1")
 text = "Debug Keybind: "
 alignment = 0
@@ -5451,10 +5451,26 @@ input = &"debug_toggle"
 console = NodePath("../../../../../..")
 tooltip = "Toggles debug, displaying current running FPS and memory."
 
-[node name="DeleteSaveData" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1733233463 node_paths=PackedStringArray("console")]
+[node name="DebugDisplay" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../DebugToggle")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../DeleteSaveData")
+theme = ExtResource("1")
+text = "Debug Display: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_debug_display"
+display_list = ["Off", "Simple", "Detailed", "Advanced"]
+values_list = [0, 1, 2, 3]
+console = NodePath("../../../../../..")
+tooltip = "Which debug overlay to show. Simple is just FPS and memory, Detailed adds build/engine info, Advanced adds rendering and memory diagnostics. The Debug Keybind above cycles the same setting."
+
+[node name="DeleteSaveData" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1733233463 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../DebugDisplay")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
 theme = ExtResource("1")
@@ -5665,7 +5681,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ResScale")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../QualityPreset")
+focus_neighbor_bottom = NodePath("../FSRSharpness")
 theme = ExtResource("1")
 text = "Upscaling: "
 alignment = 0
@@ -5676,10 +5692,26 @@ values_list = [0, 1, 2, 5]
 console = NodePath("../../../../../..")
 tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR2 looks the sharpest and adds light anti-aliasing, but needs the Forward+ renderer (desktop only, not the Collector's Shop on Android). FSR looks sharper than Bilinear for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
 
-[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
+[node name="FSRSharpness" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Upscaling")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../QualityPreset")
+theme = ExtResource("1")
+text = "FSR Sharpness: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_fsr_sharpness"
+display_list = ["Sharpest", "Sharp", "Default", "Soft", "Softest"]
+values_list = [0.0, 0.5, 1.0, 1.5, 2.0]
+console = NodePath("../../../../../..")
+tooltip = "How sharp the FSR/FSR2 upscale looks. Only does anything when Upscaling is set to FSR or FSR2 and Render Scale is below 100%. Sharper can look crunchy on low render scales; softer hides upscaling artifacts. Free either way - it costs no extra performance."
+
+[node name="QualityPreset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1736100186 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../FSRSharpness")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../Shadows")
 theme = ExtResource("1")
@@ -5696,16 +5728,32 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../QualityPreset")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ShadowFilterQuality")
+focus_neighbor_bottom = NodePath("../ShadowResolution")
 text = "Shadows"
 property = &"graphics_shadows_enabled"
 console = NodePath("../../../../../..")
 tooltip = "Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging."
 
-[node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=917660058 node_paths=PackedStringArray("console")]
+[node name="ShadowResolution" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../Shadows")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShadowFilterQuality")
+theme = ExtResource("1")
+text = "Shadow Resolution: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_positional_shadow_atlas_size"
+display_list = ["512", "1024", "2048", "4096", "8192"]
+values_list = [512, 1024, 2048, 4096, 8192]
+console = NodePath("../../../../../..")
+tooltip = "Size of the shadow map every light shares. Lower means blockier shadow edges but real GPU and VRAM savings - one of the better knobs on a weak phone. Does nothing while Shadows is off."
+
+[node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=917660058 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ShadowResolution")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MSAA")
 theme = ExtResource("1")
@@ -5739,7 +5787,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../MSAA")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../PostProcessing")
+focus_neighbor_bottom = NodePath("../SSAO")
 theme = ExtResource("1")
 text = "Screen Space AA: "
 alignment = 0
@@ -5750,10 +5798,32 @@ values_list = [0, 1]
 console = NodePath("../../../../../..")
 tooltip = "A cheaper edge-smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
 
-[node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=795425564 node_paths=PackedStringArray("console")]
+[node name="SSAO" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ScreenSpaceAA")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../SSIL")
+text = "Ambient Occlusion"
+property = &"graphics_ssao"
+console = NodePath("../../../../../..")
+tooltip = "Soft contact shadows in corners and where objects meet. Expensive on mobile GPUs for a fairly subtle effect - an easy win to turn off. Only affects the Collector's Shop."
+
+[node name="SSIL" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../SSAO")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../PostProcessing")
+text = "Indirect Lighting"
+property = &"graphics_ssil"
+console = NodePath("../../../../../..")
+tooltip = "Bounced light from nearby surfaces picking up their colour. The single most expensive effect here, and the hardest to notice once the shop is lit - turn it off first. Only affects the Collector's Shop."
+
+[node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=795425564 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../SSIL")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ShaderEffects")
 theme = ExtResource("1")
