@@ -179,6 +179,7 @@ func _process(delta: float) -> void:
 
 		if state == CharacterState.STATE_HOLDING and singing_hold_type == CharacterHoldType.REPEAT:
 			if animation_player.is_playing() and animation_player.current_animation_position > singing_repeat_loop_point:
+				_refresh_last_sing_anim()
 				play(_last_sing_anim, true)
 
 	if dancing_should_dance and state == CharacterState.STATE_DANCING:
@@ -198,6 +199,7 @@ func step_change() -> void:
 		var steps_since_initial:int = cur_step - _last_sing_step
 		var modulo:float = fmod(steps_since_initial, singing_step_time_value)
 		if steps_since_initial >= singing_step_time_value and modulo == 0:
+			_refresh_last_sing_anim()
 			play(_last_sing_anim, true)
 
 	if dancing_should_dance:# and not _handlers_pressed.values().has(true):
@@ -264,6 +266,18 @@ func get_anim_alias_from_result(result:RubiconLevelNoteHitResult) -> StringName:
 	if result.scoring_rating == RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS:
 		current_anim = animations[mode_aliases[current_id + &"_miss"]]
 	return current_anim
+
+## Re-derives _last_sing_anim from the last note result instead of trusting the value
+## cached when the current hold note started. Something outside note events (e.g. a
+## pose-group/animation-set switch driven by a state machine like a trance/hypnosis
+## effect) can change what "animations" maps a lane to mid-hold; without this refresh,
+## a REPEAT/STEP_REPEAT hold keeps looping the stale pre-switch animation (with its own
+## offset) until the note ends, then snaps abruptly to the new one on the next note -
+## exactly the kind of "disordered offset when the animation set changes" glitch this
+## is meant to close.
+func _refresh_last_sing_anim() -> void:
+	if _last_result != null:
+		_last_sing_anim = get_anim_alias_from_result(_last_result)
 
 func update_animation_player(_old: StringName, _new: StringName) -> void:
 	if not transition_update_queued_animations:
