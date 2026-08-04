@@ -208,13 +208,15 @@ jobs:
 
       - name: Restore precompiled lightmap imports
         run: |
-          # Same idea as the ASTC step above, for the project's 3 baked
-          # LightmapGI .exr files - Godot's own stock 2d_array_texture
+          # Same idea as the ASTC step above, for the project's baked
+          # LightmapGI .exr file - Godot's own stock 2d_array_texture
           # importer, not the custom ASTC plugins, but disproportionately
-          # slow on its own (one of them, chimera_base.exr, is ~11% of the
-          # whole Import step by itself: an uncompressed HDR source
-          # compressed twice, once for BPTC and once for ASTC). See
-          # precompiled_lightmap_imports/README.md for how to regenerate.
+          # slow on its own (~11% of the whole Import step by itself: an
+          # uncompressed HDR source compressed twice, once for BPTC and
+          # once for ASTC). See precompiled_lightmap_imports/README.md for
+          # how to regenerate, and why this used to cover 2 more .exr
+          # files that turned out to be dead duplicates instead (deleted,
+          # not precompiled).
           mkdir -p .godot/imported
           cp precompiled_lightmap_imports/*.ctexarray precompiled_lightmap_imports/*.md5 .godot/imported/
           echo "Restored $(ls precompiled_lightmap_imports/*.md5 | wc -l) precompiled lightmap imports"
