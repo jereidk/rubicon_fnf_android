@@ -24,7 +24,7 @@ We plan to have a wiki to help developers better understand the engine more easi
 
 ## Obtaining Rubicon
 
-We like to keep Rubicon short in dependencies, all you really need is [Git](https://git-scm.com) and [Godot](https://godotengine.org), preferably v4.5.1 but it will most likely work in similar versions.
+We like to keep Rubicon short in dependencies, all you really need is [Git](https://git-scm.com) and [Godot](https://godotengine.org), preferably v4.7.1 (the version the CI build pipeline actually targets) but it will most likely work in similar versions.
 
 After that, all you need to do is clone this repository:
 ```
