@@ -192,9 +192,9 @@ jobs:
           # restore-keys here so commits that don't touch a hashed file get
           # a useful partial cache instead of a full cold rebuild every
           # time.
-          key: godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
+          key: godot-import-v5-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
           restore-keys: |
-            godot-import-v4-${{ runner.os }}-${{ env.GODOT_VERSION }}-
+            godot-import-v5-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
       - name: Restore precompiled ASTC imports
         run: |
