@@ -219,6 +219,18 @@ jobs:
           cp precompiled_lightmap_imports/*.ctexarray precompiled_lightmap_imports/*.md5 .godot/imported/
           echo "Restored $(ls precompiled_lightmap_imports/*.md5 | wc -l) precompiled lightmap imports"
 
+      - name: Restore precompiled texture imports
+        run: |
+          # Same idea as the two steps above, for a handful of individually
+          # slow plain PNGs (Godot's stock texture importer, not either
+          # custom ASTC plugin) - each one measured over 10s alone in CI's
+          # Import step. See precompiled_texture_imports/README.md for why
+          # this only covers these 4 and not the ~600 other PNGs/OGGs that
+          # also fall outside precompiled_astc_imports' scope.
+          mkdir -p .godot/imported
+          cp precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5 .godot/imported/
+          echo "Restored $(ls precompiled_texture_imports/*.md5 | wc -l) precompiled texture imports"
+
       - name: Build ASTC normal map compressor
         run: |
           cd tools/astc_compress
