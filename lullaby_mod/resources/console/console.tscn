@@ -65,6 +65,7 @@
 [ext_resource type="Texture2D" uid="uid://ecxvo8jf1mjg" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63"]
 [ext_resource type="Texture2D" uid="uid://d1pa7o5lokrtv" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64"]
 [ext_resource type="Texture2D" uid="uid://c8xtwvjjfnl0x" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics.png" id="203"]
+[ext_resource type="Texture2D" uid="uid://tu6ap7esthlkb" path="res://lullaby_mod/assets/menus/console/options/audio/audio.png" id="204"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
 [ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
@@ -5100,121 +5101,13 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 25
 script = ExtResource("34")
 tab_container = NodePath("..")
-default_focus = NodePath("MasterVolume")
+default_focus = NodePath("Timing")
 metadata/_tab_index = 0
-
-[node name="MasterVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=421946992 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath(".")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MusicVolume")
-theme = ExtResource("1")
-text = "Master Volume: "
-alignment = 0
-script = ExtResource("49")
-property = &"audio_master_volume"
-is_percent = true
-increment_amount = 0.1
-value_max = 1.2
-suffix = "%"
-console = NodePath("../../../../../..")
-tooltip = "Affects overall volume of the game."
-
-[node name="MusicVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=1305379186 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../MasterVolume")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../SFXVolume")
-theme = ExtResource("1")
-text = "Music Volume: "
-alignment = 0
-script = ExtResource("50")
-property = &"audio_music_volume"
-is_percent = true
-increment_amount = 0.1
-value_max = 1.0
-suffix = "%"
-console = NodePath("../../../../../..")
-tooltip = "Set the volume of the game's music, including vocals."
-
-[node name="SFXVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=892500799 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../MusicVolume")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VoiceVolume")
-theme = ExtResource("1")
-text = "SFX Volume: "
-alignment = 0
-script = ExtResource("50")
-property = &"audio_sfx_volume"
-is_percent = true
-increment_amount = 0.1
-value_max = 1.0
-suffix = "%"
-console = NodePath("../../../../../..")
-tooltip = "Affects volume for the sound effects in the game. Floor breaking, unowns, etc."
-
-[node name="VoiceVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=1415698023 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../SFXVolume")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Offset")
-theme = ExtResource("1")
-text = "Voice Volume: "
-alignment = 0
-script = ExtResource("50")
-property = &"audio_vox_volume"
-is_percent = true
-increment_amount = 0.1
-value_max = 1.0
-suffix = "%"
-console = NodePath("../../../../../..")
-tooltip = "Affects volume for the Collector's voice. No need to bring it down."
-
-[node name="Offset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=440580817 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../VoiceVolume")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VisualOffset")
-theme = ExtResource("1")
-text = "Offset: "
-alignment = 0
-script = ExtResource("50")
-property = &"game_offset"
-increment_amount = 1.0
-value_max = 9999.9
-value_min = -9999.9
-suffix = " ms"
-console = NodePath("../../../../../..")
-tooltip = "Adjust input timings, if in case of delays."
-
-[node name="VisualOffset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=1044658612 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../Offset")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Timing")
-theme = ExtResource("1")
-text = "Visual Offset: "
-alignment = 0
-script = ExtResource("50")
-property = &"game_visual_offset"
-increment_amount = 1.0
-value_max = 9999.9
-value_min = -9999.9
-suffix = " ms"
-console = NodePath("../../../../../..")
-tooltip = "Offsets the position of all notes, in case of delays."
 
 [node name="Timing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=355808012 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../VisualOffset")
+focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ChangeKeybinds")
 theme = ExtResource("1")
@@ -5847,6 +5740,125 @@ property = &"graphics_disable_shader_effects"
 console = NodePath("../../../../../..")
 tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically - use this to get the same boost without dropping the rest of your preset."
 
+[node name="Audio" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" node_paths=PackedStringArray("tab_container", "default_focus")]
+visible = false
+custom_maximum_size = Vector2(713, 836)
+clip_contents = true
+layout_mode = 2
+theme_override_constants/separation = 25
+script = ExtResource("34")
+tab_container = NodePath("..")
+default_focus = NodePath("MasterVolume")
+metadata/_tab_index = 5
+
+[node name="MasterVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=421946992 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MusicVolume")
+theme = ExtResource("1")
+text = "Master Volume: "
+alignment = 0
+script = ExtResource("49")
+property = &"audio_master_volume"
+is_percent = true
+increment_amount = 0.1
+value_max = 1.2
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "Affects overall volume of the game."
+
+[node name="MusicVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=1305379186 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MasterVolume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../SFXVolume")
+theme = ExtResource("1")
+text = "Music Volume: "
+alignment = 0
+script = ExtResource("50")
+property = &"audio_music_volume"
+is_percent = true
+increment_amount = 0.1
+value_max = 1.0
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "Set the volume of the game's music, including vocals."
+
+[node name="SFXVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=892500799 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MusicVolume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../VoiceVolume")
+theme = ExtResource("1")
+text = "SFX Volume: "
+alignment = 0
+script = ExtResource("50")
+property = &"audio_sfx_volume"
+is_percent = true
+increment_amount = 0.1
+value_max = 1.0
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "Affects volume for the sound effects in the game. Floor breaking, unowns, etc."
+
+[node name="VoiceVolume" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=1415698023 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../SFXVolume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../Offset")
+theme = ExtResource("1")
+text = "Voice Volume: "
+alignment = 0
+script = ExtResource("50")
+property = &"audio_vox_volume"
+is_percent = true
+increment_amount = 0.1
+value_max = 1.0
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "Affects volume for the Collector's voice. No need to bring it down."
+
+[node name="Offset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=440580817 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../VoiceVolume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../VisualOffset")
+theme = ExtResource("1")
+text = "Offset: "
+alignment = 0
+script = ExtResource("50")
+property = &"game_offset"
+increment_amount = 1.0
+value_max = 9999.9
+value_min = -9999.9
+suffix = " ms"
+console = NodePath("../../../../../..")
+tooltip = "Adjust input timings, if in case of delays."
+
+[node name="VisualOffset" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Audio" unique_id=1044658612 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Offset")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+theme = ExtResource("1")
+text = "Visual Offset: "
+alignment = 0
+script = ExtResource("50")
+property = &"game_visual_offset"
+increment_amount = 1.0
+value_max = 9999.9
+value_min = -9999.9
+suffix = " ms"
+console = NodePath("../../../../../..")
+tooltip = "Offsets the position of all notes, in case of delays."
+
 [node name="OptionsSections" type="MarginContainer" parent="TabContainer/Settings" unique_id=1405641552]
 layout_mode = 0
 offset_right = 96.0
@@ -5865,7 +5877,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath(".")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VisualsButton")
+focus_neighbor_bottom = NodePath("../AudioButton")
 script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
@@ -5881,12 +5893,37 @@ position = Vector2(-238, -1)
 scale = Vector2(1.3536586, 1.3536586)
 texture = ExtResource("60")
 
-[node name="VisualsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2131229385 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+[node name="AudioButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(338, 111)
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GameplayButton")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../VisualsButton")
+script = ExtResource("51")
+settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
+portrait_name = "collector"
+submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
+submenu_index = 5
+backout_node = NodePath(".")
+console = NodePath("../../../../..")
+
+[node name="Audio" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/AudioButton"]
+position = Vector2(169, 55)
+texture = ExtResource("204")
+
+[node name="AudioIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/AudioButton/Audio"]
+position = Vector2(-239.00002, -8.9999695)
+scale = Vector2(1.2136714, 1.2136713)
+texture = ExtResource("62")
+
+[node name="VisualsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2131229385 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(338, 111)
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../AudioButton")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../GraphicsButton")
 script = ExtResource("51")
