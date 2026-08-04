@@ -136,6 +136,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_special_touch_controls.gd" id="202"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="203"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_escape_dpad.gd" id="204"]
 
 [sub_resource type="Animation" id="Animation_7ox65"]
 length = 0.001
@@ -15202,7 +15203,7 @@ offset_right = 276.0
 offset_bottom = 84.0
 text = "Restart"
 
-[node name="SpecialTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("special_button", "heartbeat", "picture_taking", "crawl_timing")]
+[node name="SpecialTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("special_button", "heartbeat", "picture_taking")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -15214,7 +15215,6 @@ script = ExtResource("202")
 special_button = NodePath("SpecialButton")
 heartbeat = NodePath("../../Sequences/SerenaHeartbeat/Heart/HeartbeatController")
 picture_taking = NodePath("../../Sequences/CameraMechanic")
-crawl_timing = NodePath("../../Sequences/EscapingMechanic")
 
 [node name="SpecialButton" type="Button" parent="UILayer/SpecialTouchControls"]
 visible = false
@@ -15228,6 +15228,24 @@ offset_right = 80.0
 offset_bottom = 84.0
 grow_horizontal = 2
 text = "TAP!"
+
+[node name="EscapeDPad" type="Control" parent="UILayer" node_paths=PackedStringArray("crawl_timing", "lane_hitbox")]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -320.0
+offset_right = 150.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+script = ExtResource("204")
+crawl_timing = NodePath("../../Sequences/EscapingMechanic")
+lane_hitbox = NodePath("../MobileControls")
 
 [node name="EndingSFX" type="AudioStreamPlayer" parent="." unique_id=845556602]
 volume_db = -12.0
