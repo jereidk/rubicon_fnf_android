@@ -37,6 +37,7 @@ func go_to_title():
 	await get_tree().create_timer(0.2).timeout
 
 	SaveData.set_flag(&"warning_seen", true)
+	SaveData.save()
 	get_tree().change_scene_to_file("res://lullaby_mod/rooms/scn_boot.tscn")
 
 func _on_no_button_button_down() -> void :

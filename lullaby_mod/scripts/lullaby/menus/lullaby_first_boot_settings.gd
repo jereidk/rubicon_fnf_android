@@ -26,6 +26,7 @@ func open_settings() -> void :
 
 func apply_and_continue() -> void :
 	SaveData.set_flag(&"first_boot_seen", true)
+	SaveData.save()
 
 	Settings.apply_settings()
 	Settings.save()

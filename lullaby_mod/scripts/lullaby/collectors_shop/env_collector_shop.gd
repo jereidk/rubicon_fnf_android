@@ -139,12 +139,14 @@ func _ready() -> void :
 			sequence_controller._animation_player.play("sequence_intro")
 
 		SaveData.set_flag("intro_seen", true)
+		SaveData.save()
 
 	elif SaveData.get_flag(&"credits_scroll_seen") and not SaveData.get_flag("outro_seen"):
 		if sequence_controller != null and sequence_controller._animation_player != null:
 			sequence_controller._animation_player.play("sequence_outro")
 
 		SaveData.set_flag("outro_seen", true)
+		SaveData.save()
 	else:
 		match previous_state:
 			"Kollectadex":
