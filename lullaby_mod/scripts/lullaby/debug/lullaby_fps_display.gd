@@ -25,6 +25,24 @@ var current_state: CurrentState = CurrentState.VERY_SIMPLE
 @export var ram_label: Label
 @export var vram_label: Label
 
+## Rendering/memory diagnostics - ADVANCED only, aimed at "why is this
+## lagging" (draw calls/primitives for GPU-bound frames, process/physics
+## time for CPU-bound frames, node/object counts for leak-style creep).
+@export_group("Diagnostics", "diag_")
+@export var diag_render_method_label: Label
+@export var diag_gpu_label: Label
+@export var diag_draw_calls_label: Label
+@export var diag_primitives_label: Label
+@export var diag_objects_drawn_label: Label
+@export var diag_video_mem_label: Label
+@export var diag_buffer_mem_label: Label
+@export var diag_node_count_label: Label
+@export var diag_orphan_node_label: Label
+@export var diag_object_count_label: Label
+@export var diag_process_time_label: Label
+@export var diag_physics_time_label: Label
+@export var diag_physics_3d_objects_label: Label
+
 ## VERY_SIMPLE (the default) - just "FPS: 60 • Memory: 500 MB", nothing
 ## else. simple_container is a separate node from container (which holds
 ## the Classic/GameInfo/GodotInfo/DebugOnly blocks) since exactly one of
@@ -47,6 +65,18 @@ var _last_ram_used: int = -1
 var _last_ram_peak: int = -1
 var _last_vram_used: int = -1
 
+var _last_draw_calls: int = -1
+var _last_primitives: int = -1
+var _last_objects_drawn: int = -1
+var _last_video_mem: int = -1
+var _last_buffer_mem: int = -1
+var _last_node_count: int = -1
+var _last_orphan_nodes: int = -1
+var _last_object_count: int = -1
+var _last_process_time: int = -1
+var _last_physics_time: int = -1
+var _last_physics_3d_objects: int = -1
+
 func _ready() -> void :
 	game_name_label.text = ProjectSettings.get("application/config/name")
 	game_version_label.text = ProjectSettings.get("application/config/version")
@@ -54,6 +84,9 @@ func _ready() -> void :
 
 	var godot_version: Dictionary = Engine.get_version_info()
 	godot_version_label.text = "%s" % [godot_version["string"]]
+
+	diag_render_method_label.text = RenderingServer.get_current_rendering_method()
+	diag_gpu_label.text = RenderingServer.get_video_adapter_name()
 
 	_fps_tracker.resize(60)
 	_fps_tracker.fill(0)
@@ -116,6 +149,63 @@ func _process(delta: float) -> void :
 	if vram_used != _last_vram_used:
 		_last_vram_used = vram_used
 		vram_label.text = "%s" % [to_memory_format(vram_used)]
+
+	var draw_calls: int = floori(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+	if draw_calls != _last_draw_calls:
+		_last_draw_calls = draw_calls
+		diag_draw_calls_label.text = str(draw_calls)
+
+	var primitives: int = floori(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+	if primitives != _last_primitives:
+		_last_primitives = primitives
+		diag_primitives_label.text = str(primitives)
+
+	var objects_drawn: int = floori(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))
+	if objects_drawn != _last_objects_drawn:
+		_last_objects_drawn = objects_drawn
+		diag_objects_drawn_label.text = str(objects_drawn)
+
+	var video_mem: int = floori(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED))
+	if video_mem != _last_video_mem:
+		_last_video_mem = video_mem
+		diag_video_mem_label.text = to_memory_format(video_mem)
+
+	var buffer_mem: int = floori(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED))
+	if buffer_mem != _last_buffer_mem:
+		_last_buffer_mem = buffer_mem
+		diag_buffer_mem_label.text = to_memory_format(buffer_mem)
+
+	var node_count: int = floori(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+	if node_count != _last_node_count:
+		_last_node_count = node_count
+		diag_node_count_label.text = str(node_count)
+
+	var orphan_nodes: int = floori(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
+	if orphan_nodes != _last_orphan_nodes:
+		_last_orphan_nodes = orphan_nodes
+		diag_orphan_node_label.text = str(orphan_nodes)
+
+	var object_count: int = floori(Performance.get_monitor(Performance.OBJECT_COUNT))
+	if object_count != _last_object_count:
+		_last_object_count = object_count
+		diag_object_count_label.text = str(object_count)
+
+	# Rounded to the nearest 0.1ms - these already jitter every frame, no
+	# point re-stringifying every last float epsilon of noise.
+	var process_time: int = roundi(Performance.get_monitor(Performance.TIME_PROCESS) * 10000.0)
+	if process_time != _last_process_time:
+		_last_process_time = process_time
+		diag_process_time_label.text = "%.1f ms" % (process_time / 10.0)
+
+	var physics_time: int = roundi(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 10000.0)
+	if physics_time != _last_physics_time:
+		_last_physics_time = physics_time
+		diag_physics_time_label.text = "%.1f ms" % (physics_time / 10.0)
+
+	var physics_3d_objects: int = floori(Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS))
+	if physics_3d_objects != _last_physics_3d_objects:
+		_last_physics_3d_objects = physics_3d_objects
+		diag_physics_3d_objects_label.text = str(physics_3d_objects)
 
 func update_visibility() -> void :
 	match current_state:

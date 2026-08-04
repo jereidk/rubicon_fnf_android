@@ -63,7 +63,7 @@ script = ExtResource("1")
 fps_display = NodePath("FpsDisplay")
 settings = NodePath("SettingsMenu")
 
-[node name="FpsDisplay" type="CanvasLayer" parent="." unique_id=801632619 node_paths=PackedStringArray("container", "fps_average_counter", "fps_low_counter", "fps_high_counter", "game_name_label", "game_version_label", "game_type_label", "godot_version_label", "debug_only_section", "ram_label", "vram_label", "simple_container", "simple_label")]
+[node name="FpsDisplay" type="CanvasLayer" parent="." unique_id=801632619 node_paths=PackedStringArray("container", "fps_average_counter", "fps_low_counter", "fps_high_counter", "game_name_label", "game_version_label", "game_type_label", "godot_version_label", "debug_only_section", "ram_label", "vram_label", "diag_render_method_label", "diag_gpu_label", "diag_draw_calls_label", "diag_primitives_label", "diag_objects_drawn_label", "diag_video_mem_label", "diag_buffer_mem_label", "diag_node_count_label", "diag_orphan_node_label", "diag_object_count_label", "diag_process_time_label", "diag_physics_time_label", "diag_physics_3d_objects_label", "simple_container", "simple_label")]
 process_mode = 3
 layer = 256
 script = ExtResource("2")
@@ -78,6 +78,19 @@ godot_version_label = NodePath("MarginContainer/VBoxContainer/GodotInfo/HBoxCont
 debug_only_section = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly")
 ram_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RAM/RAMCounter/Label")
 vram_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VRAM/VRAMCounter/Label")
+diag_render_method_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RenderMethod/RenderMethodCounter/Label")
+diag_gpu_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/GPU/GPUCounter/Label")
+diag_draw_calls_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/DrawCalls/DrawCallsCounter/Label")
+diag_primitives_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Primitives/PrimitivesCounter/Label")
+diag_objects_drawn_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectsDrawn/ObjectsDrawnCounter/Label")
+diag_video_mem_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VideoMem/VideoMemCounter/Label")
+diag_buffer_mem_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/BufferMem/BufferMemCounter/Label")
+diag_node_count_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/NodeCount/NodeCountCounter/Label")
+diag_orphan_node_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/OrphanNodes/OrphanNodesCounter/Label")
+diag_object_count_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectCount/ObjectCountCounter/Label")
+diag_process_time_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ProcessTime/ProcessTimeCounter/Label")
+diag_physics_time_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/PhysicsTime/PhysicsTimeCounter/Label")
+diag_physics_3d_objects_label = NodePath("MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Physics3DObjects/Physics3DObjectsCounter/Label")
 simple_container = NodePath("SimpleMarginContainer")
 simple_label = NodePath("SimpleMarginContainer/PanelContainer/Label")
 
@@ -160,7 +173,7 @@ layout_mode = 2
 layout_mode = 2
 text = "60"
 
-[node name="DebugOnly" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer" unique_id=1577856231]
+[node name="DebugOnly" type="VBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer" unique_id=1577856231]
 layout_mode = 2
 
 [node name="RAM" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1325573978]
@@ -196,6 +209,227 @@ layout_mode = 2
 [node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VRAM/VRAMCounter" unique_id=21701697]
 layout_mode = 2
 text = "0 MB"
+
+[node name="RenderMethod" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=994684355]
+layout_mode = 2
+
+[node name="RenderMethodLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RenderMethod" unique_id=1673429661]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RenderMethod/RenderMethodLabel" unique_id=121838114]
+layout_mode = 2
+text = "Render Method:"
+
+[node name="RenderMethodCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RenderMethod" unique_id=1861311798]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/RenderMethod/RenderMethodCounter" unique_id=1872117478]
+layout_mode = 2
+text = "?"
+
+[node name="GPU" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1824103795]
+layout_mode = 2
+
+[node name="GPULabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/GPU" unique_id=741324193]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/GPU/GPULabel" unique_id=1936395613]
+layout_mode = 2
+text = "GPU:"
+
+[node name="GPUCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/GPU" unique_id=891158067]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/GPU/GPUCounter" unique_id=2100992392]
+layout_mode = 2
+text = "?"
+
+[node name="DrawCalls" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=515884586]
+layout_mode = 2
+
+[node name="DrawCallsLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/DrawCalls" unique_id=680346373]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/DrawCalls/DrawCallsLabel" unique_id=1315493282]
+layout_mode = 2
+text = "Draw Calls:"
+
+[node name="DrawCallsCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/DrawCalls" unique_id=1036793384]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/DrawCalls/DrawCallsCounter" unique_id=447221957]
+layout_mode = 2
+text = "0"
+
+[node name="Primitives" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=901148508]
+layout_mode = 2
+
+[node name="PrimitivesLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Primitives" unique_id=366861098]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Primitives/PrimitivesLabel" unique_id=1977275096]
+layout_mode = 2
+text = "Primitives:"
+
+[node name="PrimitivesCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Primitives" unique_id=1029723557]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Primitives/PrimitivesCounter" unique_id=660686510]
+layout_mode = 2
+text = "0"
+
+[node name="ObjectsDrawn" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1307054354]
+layout_mode = 2
+
+[node name="ObjectsDrawnLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectsDrawn" unique_id=1446933383]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectsDrawn/ObjectsDrawnLabel" unique_id=474399940]
+layout_mode = 2
+text = "Objects Drawn:"
+
+[node name="ObjectsDrawnCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectsDrawn" unique_id=1413764614]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectsDrawn/ObjectsDrawnCounter" unique_id=1288033244]
+layout_mode = 2
+text = "0"
+
+[node name="VideoMem" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=501169362]
+layout_mode = 2
+
+[node name="VideoMemLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VideoMem" unique_id=862144912]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VideoMem/VideoMemLabel" unique_id=1685161917]
+layout_mode = 2
+text = "Video Mem:"
+
+[node name="VideoMemCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VideoMem" unique_id=1673825650]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/VideoMem/VideoMemCounter" unique_id=296052585]
+layout_mode = 2
+text = "0 MB"
+
+[node name="BufferMem" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1240405623]
+layout_mode = 2
+
+[node name="BufferMemLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/BufferMem" unique_id=1679239073]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/BufferMem/BufferMemLabel" unique_id=985019663]
+layout_mode = 2
+text = "Buffer Mem:"
+
+[node name="BufferMemCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/BufferMem" unique_id=1356390092]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/BufferMem/BufferMemCounter" unique_id=1182192973]
+layout_mode = 2
+text = "0 MB"
+
+[node name="NodeCount" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=457712575]
+layout_mode = 2
+
+[node name="NodeCountLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/NodeCount" unique_id=418141474]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/NodeCount/NodeCountLabel" unique_id=541767840]
+layout_mode = 2
+text = "Nodes:"
+
+[node name="NodeCountCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/NodeCount" unique_id=1643970182]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/NodeCount/NodeCountCounter" unique_id=267164485]
+layout_mode = 2
+text = "0"
+
+[node name="OrphanNodes" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=507960426]
+layout_mode = 2
+
+[node name="OrphanNodesLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/OrphanNodes" unique_id=1897594736]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/OrphanNodes/OrphanNodesLabel" unique_id=833495427]
+layout_mode = 2
+text = "Orphan Nodes:"
+
+[node name="OrphanNodesCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/OrphanNodes" unique_id=791573102]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/OrphanNodes/OrphanNodesCounter" unique_id=150511425]
+layout_mode = 2
+text = "0"
+
+[node name="ObjectCount" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1085348261]
+layout_mode = 2
+
+[node name="ObjectCountLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectCount" unique_id=829108864]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectCount/ObjectCountLabel" unique_id=157702956]
+layout_mode = 2
+text = "Objects:"
+
+[node name="ObjectCountCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectCount" unique_id=1196740882]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ObjectCount/ObjectCountCounter" unique_id=1583290483]
+layout_mode = 2
+text = "0"
+
+[node name="ProcessTime" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1698866085]
+layout_mode = 2
+
+[node name="ProcessTimeLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ProcessTime" unique_id=992233238]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ProcessTime/ProcessTimeLabel" unique_id=107418728]
+layout_mode = 2
+text = "Process:"
+
+[node name="ProcessTimeCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ProcessTime" unique_id=114330814]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/ProcessTime/ProcessTimeCounter" unique_id=2119146804]
+layout_mode = 2
+text = "0.0 ms"
+
+[node name="PhysicsTime" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=1525714430]
+layout_mode = 2
+
+[node name="PhysicsTimeLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/PhysicsTime" unique_id=1969957839]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/PhysicsTime/PhysicsTimeLabel" unique_id=451772904]
+layout_mode = 2
+text = "Physics:"
+
+[node name="PhysicsTimeCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/PhysicsTime" unique_id=1755354143]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/PhysicsTime/PhysicsTimeCounter" unique_id=1345775107]
+layout_mode = 2
+text = "0.0 ms"
+
+[node name="Physics3DObjects" type="HBoxContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly" unique_id=484128490]
+layout_mode = 2
+
+[node name="Physics3DObjectsLabel" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Physics3DObjects" unique_id=715415079]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Physics3DObjects/Physics3DObjectsLabel" unique_id=313673824]
+layout_mode = 2
+text = "3D Physics Objects:"
+
+[node name="Physics3DObjectsCounter" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Physics3DObjects" unique_id=1501319642]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="FpsDisplay/MarginContainer/VBoxContainer/VBoxContainer/DebugOnly/Physics3DObjects/Physics3DObjectsCounter" unique_id=990201709]
+layout_mode = 2
+text = "0"
 
 [node name="GameInfo" type="PanelContainer" parent="FpsDisplay/MarginContainer/VBoxContainer" unique_id=989656072]
 layout_mode = 2
