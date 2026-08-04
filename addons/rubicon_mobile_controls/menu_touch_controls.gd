@@ -28,17 +28,26 @@ class_name RubiconMenuTouchControls
 ## now" case - e.g. the Cabinet of Novelties' console sets the shop's
 ## state to BUSY for the whole time it's open (not just its boot
 ## animation), so gating purely on that state would hide the overlay
-## exactly while the player is navigating the console menu. Three slots
-## (OR'd together, same pattern as RubiconActionButton's AND'd
-## visible_source/visible_source2) because the shop has three separate
-## focused sub-states that all need this - console, briefcase, notepad -
-## and none of them is reachable from a single shared state value.
+## exactly while the player is navigating the console menu. The slots are
+## OR'd together (same pattern as RubiconActionButton's AND'd
+## visible_source/visible_source2) because the shop has several separate
+## focused sub-states that each need this - console, briefcase, notepad,
+## kollectadex - and none of them is reachable from a single shared state
+## value.
+##
+## The numbered-slot shape is admittedly a smell, and it already bit once:
+## the kollectadex was simply left out when there were only three slots,
+## which meant the whole "book" screen had no D-pad and no OK/Back buttons
+## on touch at all - it navigates by Godot focus (ui_up/ui_down) plus
+## ui_accept/ui_cancel, every one of which the overlay is what supplies.
 @export var force_active_source: Node
 @export var force_active_property: StringName = &""
 @export var force_active_source2: Node
 @export var force_active_property2: StringName = &""
 @export var force_active_source3: Node
 @export var force_active_property3: StringName = &""
+@export var force_active_source4: Node
+@export var force_active_property4: StringName = &""
 
 ## Optional: whenever this bool property is true, the D-pad is restricted
 ## to its up/down zones only (left/right treated as dead zone, arms
@@ -87,6 +96,8 @@ func _process(_delta: float) -> void:
 		active = bool(force_active_source2.get(force_active_property2))
 	if not active and force_active_source3 != null and not force_active_property3.is_empty():
 		active = bool(force_active_source3.get(force_active_property3))
+	if not active and force_active_source4 != null and not force_active_property4.is_empty():
+		active = bool(force_active_source4.get(force_active_property4))
 
 	if dpad and style_source != null and not style_property.is_empty():
 		var state_value: int = int(style_source.get(style_property))

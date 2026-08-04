@@ -11762,7 +11762,7 @@ camera_to_focus = NodePath("../InterpolatedCamera")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera3D" unique_id=678603634]
 libraries/ = SubResource("AnimationLibrary_6duev")
 
-[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "force_active_source2", "force_active_source3", "style_source", "vertical_only_source")]
+[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "force_active_source2", "force_active_source3", "force_active_source4", "style_source", "vertical_only_source")]
 active_source = NodePath("../../..")
 active_property = &"state"
 inactive_states = Array[int]([0])
@@ -11772,6 +11772,8 @@ force_active_source2 = NodePath("../../../Briefcase")
 force_active_property2 = &"is_focused"
 force_active_source3 = NodePath("../../../Notepad")
 force_active_property3 = &"visible"
+force_active_source4 = NodePath("../../../Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex")
+force_active_property4 = &"focused"
 style_source = NodePath("../../..")
 style_property = &"state"
 style_joystick_states = Array[int]([1])
