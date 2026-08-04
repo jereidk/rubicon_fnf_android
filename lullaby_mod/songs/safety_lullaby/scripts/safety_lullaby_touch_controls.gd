@@ -10,8 +10,9 @@ class_name SafetyLullabyTouchControls
 ## (started and not autoplay), just targeting a big tap zone instead of a
 ## small centered button. A 75ms hit window is hard to land precisely on
 ## a 160px button while also holding a note lane with the other hand;
-## mirrors ChimeraSpecialTouchControls' own dedicated-script pattern
-## (chimera_special_touch_controls.gd) rather than trying to force this
+## mirrors Chimera's own per-mechanic dedicated-script pattern
+## (chimera_escape_dpad.gd, chimera_heartbeat_touch_zone.gd,
+## chimera_picture_taking_touch_zone.gd) rather than trying to force this
 ## into the generic special_button/mechanic_source duck-typing.
 
 ## How long the hitbox stays flashed "pressed" after a showcase-mode

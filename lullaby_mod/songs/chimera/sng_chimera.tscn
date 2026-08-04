@@ -134,9 +134,11 @@
 [ext_resource type="Script" uid="uid://btrjxrci3pbix" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd" id="132"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="200"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
-[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_special_touch_controls.gd" id="202"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="203"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_escape_dpad.gd" id="204"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/mechanic_touch_hitbox.gd" id="205"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_heartbeat_touch_zone.gd" id="206"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_picture_taking_touch_zone.gd" id="207"]
 
 [sub_resource type="Animation" id="Animation_7ox65"]
 length = 0.001
@@ -15203,7 +15205,7 @@ offset_right = 276.0
 offset_bottom = 84.0
 text = "Restart"
 
-[node name="SpecialTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("special_button", "heartbeat", "picture_taking")]
+[node name="HeartbeatTouchZone" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "heartbeat", "heart_sprite")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -15211,23 +15213,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("202")
-special_button = NodePath("SpecialButton")
+script = ExtResource("206")
+hitbox = NodePath("Hitbox")
 heartbeat = NodePath("../../Sequences/SerenaHeartbeat/Heart/HeartbeatController")
-picture_taking = NodePath("../../Sequences/CameraMechanic")
+heart_sprite = NodePath("../../Sequences/SerenaHeartbeat/Heart")
 
-[node name="SpecialButton" type="Button" parent="UILayer/SpecialTouchControls"]
+[node name="Hitbox" type="Control" parent="UILayer/HeartbeatTouchZone"]
 visible = false
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -80.0
-offset_top = 24.0
-offset_right = 80.0
-offset_bottom = 84.0
+offset_right = 260.0
+offset_bottom = 260.0
+mouse_filter = 1
+script = ExtResource("205")
+action = &"lullaby_special"
+
+[node name="PictureTakingTouchZone" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "picture_taking")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-text = "TAP!"
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("207")
+hitbox = NodePath("Hitbox")
+picture_taking = NodePath("../../Sequences/CameraMechanic")
+
+[node name="Hitbox" type="Control" parent="UILayer/PictureTakingTouchZone"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("205")
+action = &"lullaby_special"
 
 [node name="EscapeDPad" type="Control" parent="UILayer" node_paths=PackedStringArray("crawl_timing", "lane_hitbox")]
 layout_mode = 1
