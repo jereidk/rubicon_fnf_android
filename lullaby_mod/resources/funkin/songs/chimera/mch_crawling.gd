@@ -113,9 +113,28 @@ var _path_tween: Tween
 var _next_crawl_is_left: bool = true
 var _mechanic_generation: int = 0
 
+## Touch players are told which key to press on a keyboard they do not have.
+## The four directions happen to read correctly against the escape D-pad's
+## arrows, but "SPACE" does not: lullaby_special is the D-pad's CENTRE zone
+## (see chimera_escape_dpad.gd's ZONE_ACTIONS), and nothing on screen says so.
+##
+## Only the label is swapped, and only the entries that are actually wrong.
+## The directions keep their existing text because it already matches what
+## the player is looking at, and leaving them alone means this cannot drift
+## out of step with the D-pad's own labelling.
+const TOUCH_DISPLAY_NAMES := {
+	&"lullaby_special": "CENTER",
+}
+
 func _ready() -> void :
 	if not Settings.applied.is_connected(_on_settings_changed):
 		Settings.applied.connect(_on_settings_changed)
+
+	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
+	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
+	if settings_enabled and has_touch:
+		for action in TOUCH_DISPLAY_NAMES:
+			input_display_names[action] = TOUCH_DISPLAY_NAMES[action]
 
 func check_completion() -> void :
 	if not succeeded:
