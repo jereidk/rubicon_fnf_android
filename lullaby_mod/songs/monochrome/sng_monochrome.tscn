@@ -83,7 +83,6 @@
 [ext_resource type="PackedScene" uid="uid://ch41dde1qdtxn" path="res://lullaby_mod/resources/funkin/ui/results/lullaby_results_screen.tscn" id="81"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="200"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
-[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/on_screen_keyboard.gd" id="202"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/monochrome/scripts/monochrome_typing_touch_controls.gd" id="203"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="204"]
 
@@ -5818,7 +5817,7 @@ offset_right = 276.0
 offset_bottom = 84.0
 text = "Restart"
 
-[node name="TypingTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("typing_challenge", "keyboard")]
+[node name="TypingTouchControls" type="Control" parent="UILayer" node_paths=PackedStringArray("typing_challenge", "text_input", "raise_targets")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -5828,20 +5827,21 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("203")
 typing_challenge = NodePath("../../Stage/TypingChallenge")
-keyboard = NodePath("Keyboard")
+text_input = NodePath("TextInput")
+raise_targets = [NodePath("../../Stage/TypingChallenge/Unowns"), NodePath("../../Stage/TypingChallenge/UnownLetters")]
 
-[node name="Keyboard" type="Control" parent="UILayer/TypingTouchControls"]
-visible = false
+[node name="TextInput" type="LineEdit" parent="UILayer/TypingTouchControls"]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -320.0
+offset_top = -8.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-script = ExtResource("202")
+caret_blink = false
 
 [node name="UIBlack" type="CanvasLayer" parent="." unique_id=1492806113]
 layer = 64
