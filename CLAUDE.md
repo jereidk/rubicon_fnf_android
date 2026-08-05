@@ -291,6 +291,142 @@ loads - nothing loads gameplay scenes during export.
 
 ---
 
+## Tooling gotchas that cost real time
+
+**GitHub MCP results are often too large for context.** `actions_list` and
+`get_job_logs` regularly exceed the limit and get written to a file instead.
+That is the good path - parse it, do not retry:
+
+```bash
+python3 -c "
+import json,re
+d=json.loads(re.search(r'\{.*\}',open('<saved file>').read(),re.S).group(0))
+r=d['workflow_runs'][0]
+print(r['id'], r['status'], r.get('conclusion','(running)'), r['head_sha'][:8], r['html_url'])
+"
+```
+
+Use `.get('conclusion', ...)` - the key is absent while a run is in progress.
+
+**CI logs arrive as one enormous single line.** Splitting on `\n` yields one
+segment. Split on the timestamp prefix instead:
+
+```python
+re.split(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z ', text)
+```
+
+**Godot's error string is "Failed loading resource", not "Failed to load
+resource".** Grepping for the wrong one hid 72 real errors for a long stretch
+and nearly sent the whole shop investigation down the wrong path.
+
+**The Bash tool times out at ~2 minutes.** Long imports need
+`nohup ... > log 2>&1 &` plus polling. Do not chain `sleep`s - that is
+blocked. A full project import here takes hours (EXHAUSTIVE ASTC); it is
+almost never what you actually need.
+
+**`pkill -f <pattern>` can match and kill your own shell** (exit 144). Kill by
+PID, or accept the process finishing on its own.
+
+**Artifact downloads are blocked** (`productionresultssa*.blob.core.windows.net`,
+proxy policy). Use the MCP log tools instead; do not try to work around it.
+
+---
+
+## CI and builds
+
+Workflow is `.github/workflows/android-build.yml`; trigger with
+`actions_run_trigger` / `run_workflow` on `add-lullaby-mod`. A normal build is
+6-9 minutes. It gets much longer whenever precompiled ASTC output is missing,
+because CI then recompresses at EXHAUSTIVE quality.
+
+There is already a CI gate, `tools/verify_hardcoded_uids.gd`, which fails the
+build if any bare `uid://` literal in a `.gd` does not resolve. It has caught
+a real one.
+
+The `.godot/imported` Actions cache and its `restore-keys` are **not** the
+cause of anything - that was investigated at length and the user was right to
+insist on it. Cached vs cold builds differed because `5ee950a` had deleted 60
+textures that only a cold import regenerates. Do not remove the cache to
+"fix" a symptom.
+
+### Getting LFS objects pushed (user does this from Termux)
+
+`lfs.github.com` is blocked from this environment, so the user pushes those.
+The recipe that finally worked - the `-b` branch flag was missed twice, and
+the LFS rule only exists on `add-lullaby-mod`:
+
+```bash
+pkg install -y git git-lfs gh && gh auth login && gh auth setup-git
+GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --filter=blob:none --sparse \
+  -b add-lullaby-mod https://github.com/jereidk/rubicon_fnf_android.git lfs_tmp
+cd lfs_tmp
+GIT_LFS_SKIP_SMUDGE=1 git sparse-checkout set precompiled_astc_imports
+tar xzf /sdcard/Download/<package>.tar.gz
+git add precompiled_astc_imports/<specific files>
+git lfs status                      # must say (LFS:), not (Git:)
+```
+
+Both `GIT_LFS_SKIP_SMUDGE=1` matter - without it on the sparse-checkout it
+downloads ~420MB of existing LFS content. Never set `git lfs install
+--skip-smudge` globally; it dirties the user's normal clone.
+
+---
+
+## Settings and presets
+
+`Settings` (`menus/settings.gd`) persists any var whose name starts with
+`lullaby_` automatically - adding one is a single line. Engine-level ones
+(`game_centered`, `display_target_fps`, `graphics_*`) already exist.
+
+`LullabyQualityPreset.is_matching()` compares **every** tracked field, so a
+preset that omits one stops matching and the UI shows "Custom". When adding a
+field to the preset, declare it in all four `.tres` files even where the value
+does not change.
+
+Console UI lives in `lullaby_mod/resources/console/console.tscn`. Option
+scripts: `list_button.gd` (enum), toggle/incremental/input variants. Adding an
+option is a node plus `property`/`display_list`/`values_list`, wired to a
+`Settings` var - see the `DebugDisplay` and `NoteLayout` entries as templates.
+The scene is too large to load in this workspace; validate it structurally
+(undeclared/unused resource ids, dangling paths) with a regex pass instead.
+
+---
+
+## Scene structure worth knowing
+
+All three songs share the layout the note-layout applier depends on:
+
+```
+UILayer/GameUI/Player      anchor 0.75, Lane0..3 at x = -225 -75 75 225 (spacing 150)
+UILayer/GameUI/Opponent    anchor 0.25, same lanes
+```
+
+`Stage` is a **ColorRect**, not a 3D world - the strumlines are in screen
+space at the base resolution, so pixel offsets work directly.
+
+**Midscroll is not a setting the code can read.** It is an AnimationTree with
+`centered`/`uncentered` states, and those animations drive exactly two
+properties: `Player:anchor_left` and `Player:anchor_right`. Anything else
+writing those will be overwritten every frame; anything writing lane
+positions or scales does not conflict.
+
+Touch controls (`addons/rubicon_mobile_controls/`) use a numbered-slot
+pattern - `force_active_source1..4`, plus `reserved_controls` and paired
+`hide_sources`/`hide_properties` arrays on the note hitbox. Ugly, but adding a
+case is a scene edit rather than an engine change, which is deliberate.
+
+---
+
+## APK size
+
+438MB -> ~405MB this session, from converting 47 textures to ASTC. Every
+conversion was measured individually; see the texture pipeline section for why
+that matters. Remaining levers are content decisions (texture resolution)
+rather than compression - and lowering resolution is also the VRAM fix, so it
+is the one change that pays twice.
+
+---
+
 ## Working agreements with the user
 
 - Spanish. Direct. They catch real problems - "el restore key no tiene la
