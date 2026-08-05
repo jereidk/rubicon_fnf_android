@@ -92,6 +92,12 @@ var _frames_seen: int = 0
 var _time_since_heartbeat: float = 0.0
 var _time_since_spike: float = 999.0
 var _time_since_census: float = 0.0
+## VRAM as of the previous frame. A stall frame that also uploaded texture
+## memory is a different problem from one that did not: the first is the GPU
+## being fed, the second is pipeline compilation or plain processing. proc
+## counts all idle work together and cannot separate them, so the delta is
+## what distinguishes them.
+var _last_vram: int = 0
 var _last_memory: int = 0
 var _peak_memory: int = 0
 var _lowest_fps: int = -1
@@ -144,6 +150,7 @@ func _ready() -> void:
 	_session_start_ms = Time.get_ticks_msec()
 	_last_memory = OS.get_static_memory_usage()
 	_peak_memory = _last_memory
+	_last_vram = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
 
 	_write_header()
 
@@ -183,13 +190,17 @@ func _process(delta: float) -> void:
 	if _frames_seen > WINDOW_SIZE and _time_since_spike >= SPIKE_COOLDOWN_SECONDS:
 		if frame_ms >= SPIKE_MIN_MS and frame_ms >= median * SPIKE_FACTOR:
 			_time_since_spike = 0.0
+			var vram_now: int = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
+			var vram_delta: float = float(vram_now - _last_vram) / 1048576.0
 			var since_anim: int = Time.get_ticks_msec() - _last_anim_ms
 			var blame: String = ""
 			# Only worth quoting if it started essentially on this frame -
 			# anything older is coincidence, not cause.
 			if not _last_anim.is_empty() and since_anim <= 250:
 				blame = "  after %s (%dms ago)" % [_last_anim, since_anim]
-			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx)%s" % [frame_ms, median, frame_ms / maxf(median, 0.001), blame])
+			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx) vram_delta=%+.1fMB%s" % [
+				frame_ms, median, frame_ms / maxf(median, 0.001), vram_delta, blame,
+			])
 			# A stall this long is not jitter, it is work. Worth paying for a
 			# census on the spot to see what was in the scene when it happened.
 			if Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0 >= CENSUS_ON_PROC_MS:
@@ -199,6 +210,7 @@ func _process(delta: float) -> void:
 	if grew_mb >= MEMORY_JUMP_MB:
 		_entry("MEMORY", "+%.1f MB in one frame" % grew_mb)
 	_last_memory = memory
+	_last_vram = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
 
 	_poll_load_progress()
 
