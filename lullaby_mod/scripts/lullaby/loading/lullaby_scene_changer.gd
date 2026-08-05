@@ -74,6 +74,14 @@ func _complete() -> void :
 	_watching_path = ""
 	get_tree().change_scene_to_packed(packed_scene)
 
+	# Pay for shader compilation here, behind the loading screen, rather than
+	# letting it land on the frame a cutscene first reveals something. See
+	# LullabyShaderPrewarm - the scene has to be in the tree first, which it
+	# is not until the frame after change_scene_to_packed().
+	if Settings.lullaby_shader_prewarm:
+		await get_tree().process_frame
+		await LullabyShaderPrewarm.prewarm(get_tree(), get_tree().current_scene)
+
 	if !awaiting_manual_end:
 		finish_loading_screen()
 
