@@ -119,7 +119,21 @@ func _import(source_file: String, save_path: String, options: Dictionary, _platf
 	var padded_w := w if w % block == 0 else w + (block - (w % block))
 	var padded_h := h if h % block == 0 else h + (block - (h % block))
 	if padded_w != w or padded_h != h:
-		img.resize(padded_w, padded_h)
+		# PAD, never resize. resize() rescales the whole image to the new size,
+		# which silently stretches every pixel by a few thousandths - invisible
+		# on a standalone sprite, fatal on a texture atlas, where each frame's
+		# region comes from a .json in exact source pixels and every one of
+		# them ends up pointing slightly off. That is what broke Gold's
+		# back-turned intro in Monochrome (goldp1's atlas and turnaround
+		# spritemaps are 4035x1534 and 4068x2598, neither a multiple of 8) and
+		# it silently affected 28 textures in total.
+		#
+		# Blitting into a transparent canvas leaves every original pixel at its
+		# original coordinate, so regions stay valid; the padding columns/rows
+		# only exist to fill out the last ASTC block.
+		var padded := Image.create_empty(padded_w, padded_h, false, img.get_format())
+		padded.blit_rect(img, Rect2i(0, 0, w, h), Vector2i.ZERO)
+		img = padded
 
 	if want_mipmaps:
 		img.generate_mipmaps()
