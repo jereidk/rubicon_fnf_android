@@ -186,7 +186,7 @@
 [ext_resource type="Script" uid="uid://cwabht8tmx1r2" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_visible_if_complete.gd" id="181"]
 [ext_resource type="Script" uid="uid://b4l60ki2ipnfm" path="res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_pendulum_string_bones.gd" id="182"]
 [ext_resource type="PackedScene" uid="uid://d28gdehfwypxm" path="res://lullaby_mod/assets/collector/shop/models/prp_mono_jar.gltf" id="183"]
-[ext_resource type="AnimationLibrary" uid="uid://da2tpqhgo4myx" path="res://lullaby_mod/resources/animations/shop/monochrome_jar/mono_jar_library.res" id="184"]
+[ext_resource type="AnimationLibrary" path="res://lullaby_mod/resources/animations/shop/monochrome_jar/mono_jar_library.tres" id="184"]
 [ext_resource type="PackedScene" uid="uid://d4iktkl0k0rli" path="res://lullaby_mod/assets/collector/shop/models/prp_chimera_photos.gltf" id="185"]
 [ext_resource type="PackedScene" uid="uid://b8cux1jom7v3x" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186"]
 [ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187"]

@@ -139,6 +139,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/action_button.gd" id="205"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_heartbeat_touch_zone.gd" id="206"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_picture_taking_touch_zone.gd" id="207"]
+[ext_resource type="Texture2D" uid="uid://dhf1qoiosh3st" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/cut_serena_cinematics_1.png" id="301"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action"]
 bg_color = Color(0.09, 0.09, 0.12, 0.55)
@@ -11386,23 +11387,20 @@ region = Rect2(1913, 2146, 474, 855)
 margin = Rect2(11, 12, 11, 15)
 filter_clip = true
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_nhcdf"]
-load_path = "res://.godot/imported/cut_serena_cinematics_1.png-5be2be5451c1bc57b91df11a9e64aaec.ctex"
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_4mrpj"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(943, 1, 470, 864)
 margin = Rect2(14, 6, 15, 6)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_e5l7x"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(1, 1, 469, 862)
 margin = Rect2(15, 3, 16, 8)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_l6i1s"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(473, 1, 467, 862)
 margin = Rect2(15, 0, 18, 8)
 filter_clip = true
@@ -11426,19 +11424,19 @@ margin = Rect2(11, 12, 11, 15)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ydxyj"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(943, 1, 470, 864)
 margin = Rect2(14, 6, 15, 6)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1e2g5"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(1, 1, 469, 862)
 margin = Rect2(15, 3, 16, 8)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_q1gsh"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(473, 1, 467, 862)
 margin = Rect2(15, 0, 18, 8)
 filter_clip = true
@@ -11552,7 +11550,7 @@ margin = Rect2(0, 0, 0, 3)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_d2f0o"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(1416, 1, 1098, 936)
 filter_clip = true
 
@@ -11563,7 +11561,7 @@ margin = Rect2(0, 0, 1, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2tvxu"]
-atlas = SubResource("CompressedTexture2D_nhcdf")
+atlas = ExtResource("301")
 region = Rect2(2517, 1, 857, 966)
 filter_clip = true
 
