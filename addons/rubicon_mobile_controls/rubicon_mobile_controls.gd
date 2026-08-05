@@ -19,10 +19,25 @@ const MOUSE_TOUCH_INDEX := -1000
 
 ## Fraction of the control's height (from the top) left untouched, so HUD
 ## elements like a pause button aren't covered by the hitbox zones.
+##
+## This is a blunt instrument: it reserves a band across the FULL width to
+## protect a button that only occupies a corner of it. Safety Lullaby gets
+## away with it because its pendulum mechanic's own hitbox sits in that band,
+## so the screen still reads as fully covered - but Monochrome and Chimera
+## have no such mechanic, leaving a dead strip above the lanes with nothing
+## in it. Prefer reserved_controls below and leave this at 0.0: that carves
+## out only the buttons themselves and lets the lanes run the full height.
 @export_range(0.0, 1.0, 0.01) var hitbox_top_percent: float = 0.2:
 	set(value):
 		hitbox_top_percent = value
 		queue_redraw()
+
+## Controls whose on-screen rect is cut out of the lane zones - the pause and
+## restart buttons. A tap inside one of these is ignored here so it reaches
+## the button instead, which is what makes it safe to run the lanes all the
+## way to the top edge. Only counts while the control is actually visible, so
+## a hidden button doesn't leave a dead spot behind it.
+@export var reserved_controls: Array[Control] = []
 
 @export var show_outlines: bool = true:
 	set(value):
@@ -64,6 +79,16 @@ const MOUSE_TOUCH_INDEX := -1000
 ## flow stays in this scene long enough to matter (a straight
 ## change_scene_to_packed makes the whole question moot).
 @export var gameover_source: Node
+
+## Extra "the player is doing something else right now" cases, paired by
+## index: while hide_sources[i]'s hide_properties[i] is true, the hitbox is
+## hidden and releases whatever it was holding. The HUD check above doesn't
+## cover these because the HUD legitimately stays up - Monochrome's typing
+## challenge is the clear one (the system keyboard is on screen and the
+## lanes would sit under the player's thumbs while they type), and there are
+## likely more, which is why this is a list rather than another named slot.
+@export var hide_sources: Array[Node] = []
+@export var hide_properties: Array[StringName] = []
 
 var _touch_to_lane: Dictionary = {}
 var _lane_active_count: Dictionary = {}
@@ -107,6 +132,19 @@ func _update_visibility() -> void:
 			_release_all()
 		visible = false
 		return
+
+	for i in mini(hide_sources.size(), hide_properties.size()):
+		var source: Node = hide_sources[i]
+		if source == null:
+			continue
+		var property: StringName = hide_properties[i]
+		if property.is_empty() or not property in source:
+			continue
+		if bool(source.get(property)):
+			if visible:
+				_release_all()
+			visible = false
+			return
 
 	var hud_visible: bool = true
 	if default_hud:
@@ -216,6 +254,13 @@ func _get_lane_for_position(pos: Vector2) -> int:
 		return -1
 	if pos.x < 0.0 or pos.x >= size.x:
 		return -1
+
+	# Let the buttons keep their own taps. Checked before picking a lane so a
+	# press that starts on the pause button never registers a note at all,
+	# rather than registering one and also pausing.
+	for control in reserved_controls:
+		if control != null and control.visible and control.get_global_rect().has_point(pos):
+			return -1
 
 	var zone_width: float = size.x / float(lane_count)
 	return clampi(int(pos.x / zone_width), 0, lane_count - 1)

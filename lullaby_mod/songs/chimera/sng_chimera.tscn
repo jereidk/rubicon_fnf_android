@@ -15188,7 +15188,11 @@ horizontal_alignment = 1
 vertical_alignment = 2
 script = ExtResource("127")
 
-[node name="MobileControls" parent="UILayer" instance=ExtResource("200")]
+[node name="MobileControls" parent="UILayer" node_paths=PackedStringArray("reserved_controls", "default_hud", "gameover_source") instance=ExtResource("200")]
+hitbox_top_percent = 0.0
+reserved_controls = [NodePath("../SongTouchControls/PauseButton"), NodePath("../SongTouchControls/RestartButton")]
+default_hud = NodePath("../GameUI")
+gameover_source = NodePath("../../ChimeraGameoverModule")
 
 [node name="ShowcaseNoteSync" type="Node" parent="UILayer" node_paths=PackedStringArray("note_controller", "mobile_controls")]
 script = ExtResource("300")
