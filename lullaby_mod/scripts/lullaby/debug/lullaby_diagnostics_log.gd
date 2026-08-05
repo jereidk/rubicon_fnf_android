@@ -27,7 +27,21 @@ extends Node
 ## (draw calls and VRAM up) from a leak (orphan nodes climbing across
 ## heartbeats) - which is exactly the distinction that decides how to fix it.
 
-const LOG_DIR := "user://logs"
+## Godot maps user:// to Android's INTERNAL app storage
+## (/data/user/0/<package>/files), which a player cannot open in a file
+## manager without root - so a log written there may as well not exist. The
+## app-private EXTERNAL directory is visible in any file manager, and an app
+## may write to its own without requesting a single permission on Android
+## 4.4+, so that is preferred and user:// is only the fallback.
+##
+## The package has to be spelled out because Godot exposes no API for it;
+## it must stay in step with export_presets.cfg's package/unique_name. If it
+## ever drifts, the directory simply won't be creatable and the log falls
+## back to user:// rather than failing.
+const ANDROID_PACKAGE := "com.rubicon.fnf"
+const ANDROID_LOG_DIR := "/storage/emulated/0/Android/data/%s/files/logs" % ANDROID_PACKAGE
+const FALLBACK_LOG_DIR := "user://logs"
+
 const MAX_LOG_FILES := 5
 
 ## A frame this much slower than the recent median counts as a spike. 2.5x is
@@ -46,6 +60,7 @@ const WINDOW_SIZE := 120
 const SPIKE_COOLDOWN_SECONDS := 0.5
 
 var log_path: String = ""
+var _log_dir: String = ""
 
 var _file: FileAccess
 var _frame_times: PackedFloat32Array
@@ -200,12 +215,23 @@ func _current_scene_name() -> String:
 func _mb(bytes: int) -> String:
 	return "%.0fMB" % (bytes / 1048576.0)
 
+## Picks the external app directory when it is usable and falls back to
+## user:// otherwise, so a desktop build or a locked-down device still logs.
+func _pick_log_dir() -> String:
+	if OS.get_name() == "Android":
+		if DirAccess.make_dir_recursive_absolute(ANDROID_LOG_DIR) == OK:
+			return ANDROID_LOG_DIR
+		push_warning("diagnostics: cannot use %s, falling back to user://" % ANDROID_LOG_DIR)
+
+	DirAccess.make_dir_recursive_absolute(FALLBACK_LOG_DIR)
+	return FALLBACK_LOG_DIR
+
 func _open_log() -> bool:
-	DirAccess.make_dir_recursive_absolute(LOG_DIR)
+	_log_dir = _pick_log_dir()
 	_rotate()
 
 	var stamp: String = Time.get_datetime_string_from_system(false, true).replace(":", "-").replace(" ", "_")
-	log_path = "%s/lullaby_%s.log" % [LOG_DIR, stamp]
+	log_path = "%s/lullaby_%s.log" % [_log_dir, stamp]
 	_file = FileAccess.open(log_path, FileAccess.WRITE)
 	if _file == null:
 		push_warning("diagnostics: cannot open %s" % log_path)
@@ -215,7 +241,7 @@ func _open_log() -> bool:
 ## Keeps the newest MAX_LOG_FILES. Without this a phone accumulates one file
 ## per launch forever, and the player is the one paying for the space.
 func _rotate() -> void:
-	var dir := DirAccess.open(LOG_DIR)
+	var dir := DirAccess.open(_log_dir)
 	if dir == null:
 		return
 
@@ -227,7 +253,7 @@ func _rotate() -> void:
 
 	var excess: int = files.size() - (MAX_LOG_FILES - 1)
 	for i in maxi(excess, 0):
-		DirAccess.remove_absolute(LOG_DIR.path_join(files[i]))
+		DirAccess.remove_absolute(_log_dir.path_join(files[i]))
 
 func _write_header() -> void:
 	if _file == null:
