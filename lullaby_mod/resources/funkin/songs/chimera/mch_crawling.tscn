@@ -4,6 +4,7 @@
 [ext_resource type="SpriteFrames" uid="uid://5ngnyejddh6e" path="res://lullaby_mod/assets/funkin/chimera/textures/KeyNote.tres" id="2"]
 [ext_resource type="AnimationLibrary" uid="uid://bjwmdsfgwudpk" path="res://lullaby_mod/assets/funkin/chimera/textures/KeyNote_library.tres" id="3"]
 [ext_resource type="Texture2D" uid="uid://csgwifsnrndhh" path="res://lullaby_mod/assets/funkin/chimera/textures/KeyNote_Timing.png" id="4"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_key_prompt_touch.gd" id="5"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_pchp5"]
 font_size = 42
@@ -36,6 +37,13 @@ animation = &"KeyIdle instance "
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Key" unique_id=1439373193]
 libraries/KeyNote_library = ExtResource("3")
+
+[node name="TouchPrompt" type="Control" parent="Key" node_paths=PackedStringArray("mechanic", "keycap", "keycap_label")]
+mouse_filter = 2
+script = ExtResource("5")
+mechanic = NodePath("../..")
+keycap = NodePath("..")
+keycap_label = NodePath("../Label")
 
 [node name="TimingKey" type="Sprite2D" parent="Key" unique_id=1041505835]
 visible = false
