@@ -122,6 +122,20 @@ var _celebi_tween: Tween
 
 var _autoplay_time_passed: float = 0.0
 
+## show_celebi's setter only does anything when the value CHANGES, so starting
+## at false (the default, matching _show_celebi) means it never runs and never
+## hides anything. Celebi is authored visible in mch_typing.tscn - verified
+## identical in the original PC pck, so this isn't a porting mistake in the
+## scene - which left it on screen from the first frame until the mechanic
+## first toggled the property. Applying the starting state here is what the
+## setter can't do for the initial value.
+func _ready() -> void :
+	if Engine.is_editor_hint():
+		return
+
+	if celebi_animator:
+		celebi_animator.get_parent().visible = _show_celebi
+
 func _process(delta: float) -> void :
 	if reference_level == null or reference_level.clock == null or not active or not show_celebi or not prompt_user or challenge_over:
 		return
