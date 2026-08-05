@@ -27,19 +27,30 @@ extends Node
 ## (draw calls and VRAM up) from a leak (orphan nodes climbing across
 ## heartbeats) - which is exactly the distinction that decides how to fix it.
 
-## Godot maps user:// to Android's INTERNAL app storage
-## (/data/user/0/<package>/files), which a player cannot open in a file
-## manager without root - so a log written there may as well not exist. The
-## app-private EXTERNAL directory is visible in any file manager, and an app
-## may write to its own without requesting a single permission on Android
-## 4.4+, so that is preferred and user:// is only the fallback.
+## Where the log goes, in order of preference.
 ##
-## The package has to be spelled out because Godot exposes no API for it;
-## it must stay in step with export_presets.cfg's package/unique_name. If it
-## ever drifts, the directory simply won't be creatable and the log falls
-## back to user:// rather than failing.
+## SHARED is the requested location: a hidden folder at the root of shared
+## storage, so everything the game writes for the player to find lives in one
+## place they can browse to. It is only reachable with the "All files access"
+## permission (MANAGE_EXTERNAL_STORAGE) on Android 11+ - scoped storage
+## forbids writing outside the app's own directory otherwise - and
+## export_presets.cfg currently requests no storage permissions at all, so
+## today this will not be creatable and the next entry is used.
+##
+## ANDROID_APP is the app-private external directory. It shows up in any file
+## manager and needs no permission whatsoever on Android 4.4+, which makes it
+## the reliable option rather than the preferred one.
+##
+## FALLBACK is user://, which Godot maps to INTERNAL app storage
+## (/data/user/0/<package>/files) - unreachable without root, and the reason
+## the log appeared to not exist at all before. Kept last so desktop builds
+## and locked-down devices still log rather than silently doing nothing.
+##
+## The package name has to be spelled out because Godot exposes no API for
+## it; keep it in step with export_presets.cfg's package/unique_name.
 const ANDROID_PACKAGE := "com.rubicon.fnf"
-const ANDROID_LOG_DIR := "/storage/emulated/0/Android/data/%s/files/logs" % ANDROID_PACKAGE
+const SHARED_LOG_DIR := "/storage/emulated/0/.HypnosLullaby/logs"
+const ANDROID_APP_LOG_DIR := "/storage/emulated/0/Android/data/%s/files/logs" % ANDROID_PACKAGE
 const FALLBACK_LOG_DIR := "user://logs"
 
 const MAX_LOG_FILES := 5
@@ -215,16 +226,35 @@ func _current_scene_name() -> String:
 func _mb(bytes: int) -> String:
 	return "%.0fMB" % (bytes / 1048576.0)
 
-## Picks the external app directory when it is usable and falls back to
-## user:// otherwise, so a desktop build or a locked-down device still logs.
+## Walks the preference list and takes the first directory that can actually
+## be created and written to. make_dir_recursive_absolute() returning OK is
+## not proof on its own - a path can appear to succeed and still reject the
+## file - so each candidate is confirmed by opening a real file in it.
 func _pick_log_dir() -> String:
+	var candidates: Array[String] = []
 	if OS.get_name() == "Android":
-		if DirAccess.make_dir_recursive_absolute(ANDROID_LOG_DIR) == OK:
-			return ANDROID_LOG_DIR
-		push_warning("diagnostics: cannot use %s, falling back to user://" % ANDROID_LOG_DIR)
+		candidates.append(SHARED_LOG_DIR)
+		candidates.append(ANDROID_APP_LOG_DIR)
+	candidates.append(FALLBACK_LOG_DIR)
 
-	DirAccess.make_dir_recursive_absolute(FALLBACK_LOG_DIR)
+	for candidate in candidates:
+		if _is_writable(candidate):
+			return candidate
+
+	push_warning("diagnostics: no writable log directory found")
 	return FALLBACK_LOG_DIR
+
+func _is_writable(dir_path: String) -> bool:
+	if DirAccess.make_dir_recursive_absolute(dir_path) != OK and not DirAccess.dir_exists_absolute(dir_path):
+		return false
+
+	var probe: String = dir_path.path_join(".write_probe")
+	var f := FileAccess.open(probe, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.close()
+	DirAccess.remove_absolute(probe)
+	return true
 
 func _open_log() -> bool:
 	_log_dir = _pick_log_dir()
@@ -270,6 +300,7 @@ func _write_header() -> void:
 	_file.store_line("memory    : %d MB" % (OS.get_memory_info().get("physical", 0) / 1048576))
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
+	_file.store_line("dir_used  : %s" % _log_dir)
 	_file.store_line("")
 	_file.flush()
 
