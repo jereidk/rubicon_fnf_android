@@ -48,12 +48,37 @@ func _apply_to_current_scene() -> void:
 		return
 
 	var layout: LullabyNoteLayout = get_layout()
+	var amplification: float = _aspect_amplification()
+
 	_apply_to(scene.get_node_or_null(PLAYER_PATH), layout.player_anchor,
 		layout.player_spacing_scale, layout.player_note_scale, layout.player_y_nudge,
-		layout.player_split_gap)
+		layout.player_split_gap * amplification)
 	_apply_to(scene.get_node_or_null(OPPONENT_PATH), layout.opponent_anchor,
 		layout.opponent_spacing_scale, layout.opponent_note_scale, layout.opponent_y_nudge,
-		layout.opponent_split_gap)
+		layout.opponent_split_gap * amplification)
+
+## The centre channel is not a fixed pixel width in the reference. VSlice
+## derives it from the device's aspect ratio -
+## (width/height) / (design width/height), pinned to 1.0 at the design
+## resolution - because its scale mode keeps the height fixed and lets the
+## width grow, so a wider phone gets proportionally more room between the
+## two lane pairs. A fixed value looks right on exactly one aspect ratio and
+## wrong on every other, which is what the first version shipped.
+##
+## Measured against the real window rather than the viewport: with a stretch
+## mode set, the viewport keeps reporting the design size no matter what the
+## device is, which would make this always return 1.0.
+func _aspect_amplification() -> float:
+	var window: Vector2i = DisplayServer.window_get_size()
+	if window.x <= 0 or window.y <= 0:
+		return 1.0
+
+	var design_width: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1920))
+	var design_height: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 1080))
+	if design_width <= 0.0 or design_height <= 0.0:
+		return 1.0
+
+	return (float(window.x) / float(window.y)) / (design_width / design_height)
 
 func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_scale: float,
 		y_nudge: float, split_gap: float) -> void:
