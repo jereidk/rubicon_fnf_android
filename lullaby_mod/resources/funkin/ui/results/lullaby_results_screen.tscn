@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ch41dde1qdtxn"]
 
 [ext_resource type="Script" uid="uid://cr47gjflxxiuh" path="res://lullaby_mod/scripts/lullaby/menus/lullaby_results_screen.gd" id="1"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/action_button.gd" id="11"]
 [ext_resource type="FontFile" uid="uid://di04sgsnjcavb" path="res://lullaby_mod/resources/fonts/fnt_rosarivo_regular.ttf" id="2"]
 [ext_resource type="SpriteFrames" uid="uid://b1hd642ip03vp" path="res://lullaby_mod/assets/menus/console/intro/ConsoleStartup.res" id="3"]
 [ext_resource type="SpriteFrames" uid="uid://boqsi5mr2wyxg" path="res://lullaby_mod/assets/menus/console/HatTrick.res" id="4"]
@@ -690,6 +691,30 @@ _data = {
 &"spin_in": SubResource("Animation_rkvc4")
 }
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_results_back"]
+bg_color = Color(0.09, 0.09, 0.12, 0.55)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_results_back_pressed"]
+bg_color = Color(1, 1, 1, 0.5)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.6)
+
 [node name="LullabyResultsScreen" type="Control" unique_id=682043524 node_paths=PackedStringArray("results_label", "animation_player", "soultoken_count")]
 layout_mode = 3
 anchors_preset = 15
@@ -830,3 +855,27 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="SubViewport/Offset" unique_id=2001768354]
 libraries/ = SubResource("AnimationLibrary_rkvc4")
+
+[node name="BackButton" type="Button" parent="." node_paths=PackedStringArray("visible_source")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = 230.0
+offset_right = 70.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_results_back")
+theme_override_styles/hover = SubResource("StyleBoxFlat_results_back")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_results_back_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_results_back")
+text = "BACK"
+script = ExtResource("11")
+action = &"ui_accept"
+visible_source = NodePath("..")
+visible_property = &"active"
