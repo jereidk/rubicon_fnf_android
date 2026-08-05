@@ -31,7 +31,7 @@ func _ready() -> void:
 
 	# The first scene of a session is already up by the time this runs, and
 	# no scene-change signal will fire for it.
-	_apply_to_current_scene.call_deferred()
+	_apply_when_scene_ready()
 
 func get_layout() -> LullabyNoteLayout:
 	return LAYOUT_VSLICE if Settings.lullaby_note_layout == 1 else LAYOUT_CLASSIC
@@ -40,7 +40,19 @@ func _on_scene_changed(_path: String) -> void:
 	# The old scene's Controls are gone; holding their authored values would
 	# leak and would never match again anyway.
 	_authored.clear()
-	_apply_to_current_scene.call_deferred()
+	_apply_when_scene_ready()
+
+## get_tree().current_scene is NOT set on the frame change_scene_to_packed()
+## runs - it is assigned on the next one. call_deferred() fires at the end of
+## the current frame, so it looked at the outgoing scene (or at null once it
+## had been unloaded) and quietly applied nothing at all. That is why VSlice
+## appeared to do nothing whatsoever: the layout was correct, it was just
+## never reaching a scene. Waiting two frames puts it after the assignment,
+## and still well inside the loading screen so nothing is seen to move.
+func _apply_when_scene_ready() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_apply_to_current_scene()
 
 func _apply_to_current_scene() -> void:
 	var scene: Node = get_tree().current_scene
