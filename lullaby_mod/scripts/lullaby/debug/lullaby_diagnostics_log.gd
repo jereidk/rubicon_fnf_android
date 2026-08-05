@@ -76,6 +76,11 @@ const SPIKE_COOLDOWN_SECONDS := 0.5
 const CENSUS_SECONDS := 30.0
 const CENSUS_ON_PROC_MS := 300.0
 
+## Progress fractions to report during a threaded load.
+const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.75, 0.9]
+
+const SUMMARY_MINUTES := 2.0
+
 var log_path: String = ""
 var _log_dir: String = ""
 
@@ -94,6 +99,24 @@ var _session_start_ms: int = 0
 
 var _scene_change_started_ms: int = 0
 var _scene_change_memory: int = 0
+
+## While a load is in flight, its path and which progress checkpoints have
+## already been reported. A SCENE_IN of 18726ms says the load is the problem
+## but not which part of it - these turn one number into a curve, so a load
+## that crawls to 40% and then finishes instantly reads differently from one
+## that is slow all the way through.
+var _loading_path: String = ""
+var _load_checkpoints_done: int = 0
+
+## Long-run FPS buckets, one per SUMMARY_MINUTES. Thermal throttling does not
+## announce itself - it looks like the same scene getting slower for no
+## reason - so the only way to see it is to compare the same measurement
+## against itself over time.
+var _bucket_frames: int = 0
+var _bucket_ms_total: float = 0.0
+var _bucket_worst_ms: float = 0.0
+var _time_since_summary: float = 0.0
+var _first_bucket_median: float = 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -160,6 +183,18 @@ func _process(delta: float) -> void:
 	if grew_mb >= MEMORY_JUMP_MB:
 		_entry("MEMORY", "+%.1f MB in one frame" % grew_mb)
 	_last_memory = memory
+
+	_poll_load_progress()
+
+	_bucket_frames += 1
+	_bucket_ms_total += frame_ms
+	if frame_ms > _bucket_worst_ms:
+		_bucket_worst_ms = frame_ms
+
+	_time_since_summary += delta
+	if _time_since_summary >= SUMMARY_MINUTES * 60.0:
+		_time_since_summary = 0.0
+		_write_summary()
 
 	_time_since_census += delta
 	if _time_since_census >= CENSUS_SECONDS:
@@ -229,6 +264,47 @@ func census(reason: String) -> void:
 		reason, players.size(), playing, total_tracks, ", ".join(top), " ".join(classes),
 	])
 
+## Reports how far a threaded load has got, at a few fixed fractions. Cheap
+## enough to poll every frame: load_threaded_get_status() on a path that is
+## not loading returns immediately, and the checkpoint counter means each
+## fraction is only ever logged once.
+func _poll_load_progress() -> void:
+	if _loading_path.is_empty() or _load_checkpoints_done >= LOAD_CHECKPOINTS.size():
+		return
+
+	var progress: Array = [0.0]
+	var status: int = ResourceLoader.load_threaded_get_status(_loading_path, progress)
+	if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		return
+
+	var fraction: float = progress[0]
+	while (_load_checkpoints_done < LOAD_CHECKPOINTS.size()
+			and fraction >= LOAD_CHECKPOINTS[_load_checkpoints_done]):
+		var elapsed: int = Time.get_ticks_msec() - _scene_change_started_ms
+		_entry("LOAD", "%.0f%% at %dms" % [LOAD_CHECKPOINTS[_load_checkpoints_done] * 100.0, elapsed])
+		_load_checkpoints_done += 1
+
+## Compares this stretch of the session against the first one. A phone that
+## has warmed up runs the same scene slower, and that shows up here as the
+## median drifting upward with nothing else in the log changing - which is
+## the difference between "this scene is heavy" and "this device is hot".
+func _write_summary() -> void:
+	if _bucket_frames == 0:
+		return
+
+	var mean_ms: float = _bucket_ms_total / float(_bucket_frames)
+	if _first_bucket_median <= 0.0:
+		_first_bucket_median = mean_ms
+
+	var drift: float = (mean_ms / _first_bucket_median - 1.0) * 100.0
+	_entry("SUMMARY", "frames=%d mean=%.1fms (%.0f fps) worst=%.1fms vs_first=%+.0f%%" % [
+		_bucket_frames, mean_ms, 1000.0 / maxf(mean_ms, 0.001), _bucket_worst_ms, drift,
+	])
+
+	_bucket_frames = 0
+	_bucket_ms_total = 0.0
+	_bucket_worst_ms = 0.0
+
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".
 func mark(what: String) -> void:
@@ -240,11 +316,14 @@ func _on_error_logged(kind: String, message: String, err: int) -> void:
 func _on_scene_change_started(path: String) -> void:
 	_scene_change_started_ms = Time.get_ticks_msec()
 	_scene_change_memory = OS.get_static_memory_usage()
+	_loading_path = path
+	_load_checkpoints_done = 0
 	_entry("SCENE_OUT", path)
 
 func _on_scene_change_finished(path: String) -> void:
 	var took: int = Time.get_ticks_msec() - _scene_change_started_ms
 	var delta_mb: float = float(OS.get_static_memory_usage() - _scene_change_memory) / 1048576.0
+	_loading_path = ""
 	_entry("SCENE_IN", "%s took=%dms memory_delta=%+.1fMB" % [path, took, delta_mb])
 	# The frame window is meaningless across a load, and every frame after one
 	# would otherwise read as a spike against the pre-load median.
