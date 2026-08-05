@@ -63,7 +63,14 @@ const ARM_DIRS := {
 
 @export var radius: float = 130.0
 @export var base_color: Color = Color(0.09, 0.09, 0.12, 0.35)
-@export var pressed_color: Color = Color(0.95, 0.85, 0.25, 0.65)
+@export var pressed_color: Color = Color(1, 1, 1, 0.65)
+
+## The escape mechanic already tells the player which way to crawl, but only
+## through the key prompt - the D-pad itself gave no hint, so the direction
+## you actually have to press is drawn in red instead of the neutral white.
+## It stays lit with no finger on it, since the whole point is to be readable
+## before you reach for it.
+@export var required_color: Color = Color(0.85, 0.15, 0.15, 0.7)
 @export var divider_color: Color = Color(1, 1, 1, 0.6)
 ## How much the 4 non-relevant zones fade out relative to base_color/
 ## divider_color, so the currently-asked-for zone reads as the obvious
@@ -190,13 +197,32 @@ func _dimmed(color: Color) -> Color:
 	return c
 
 func _zone_color(zone: int, current_zone: int) -> Color:
+	var is_required: bool = _is_required_zone(zone)
+	var tint: Color = required_color if is_required else pressed_color
+
 	if zone != current_zone:
-		return _dimmed(base_color)
+		# A required zone stays visible without a finger on it; every other
+		# idle zone dims out the way it always did.
+		return tint if is_required else _dimmed(base_color)
 
 	var is_pressed: bool = _active_touches.values().has(zone)
 	if is_pressed:
-		return pressed_color.lerp(Color(1.0, 1.0, 1.0, pressed_color.a), _flash_amount * 0.7)
-	return pressed_color.lerp(base_color, 0.5)
+		return tint.lerp(Color(1.0, 1.0, 1.0, tint.a), _flash_amount * 0.7)
+	return tint.lerp(base_color, 0.5)
+
+## crawl_timing.current_input is the action the mechanic is waiting on right
+## now, and ZONE_ACTIONS maps each zone to the action it fires - so matching
+## the two is all it takes to know which zone to mark. Duck-typed and empty
+## checked so this stays harmless if the mechanic is idle or unassigned.
+func _is_required_zone(zone: int) -> bool:
+	if crawl_timing == null or not "current_input" in crawl_timing:
+		return false
+
+	var required: StringName = crawl_timing.current_input
+	if required.is_empty():
+		return false
+
+	return ZONE_ACTIONS.get(zone, &"") == required
 
 func _notification(what: int) -> void:
 	match what:

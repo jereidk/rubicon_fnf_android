@@ -77,7 +77,7 @@ const MIN_ZONE_HOLD_SEC: float = 0.05
 	set(value):
 		base_color = value
 		queue_redraw()
-@export var pressed_color: Color = Color(0.95, 0.85, 0.25, 0.65):
+@export var pressed_color: Color = Color(1, 1, 1, 0.65):
 	set(value):
 		pressed_color = value
 		queue_redraw()
