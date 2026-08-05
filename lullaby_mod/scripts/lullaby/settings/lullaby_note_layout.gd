@@ -34,6 +34,15 @@ class_name LullabyNoteLayout extends Resource
 @export var player_spacing_scale: float = 1.0
 @export var opponent_spacing_scale: float = 1.0
 
+## Extra gap opened in the MIDDLE of the strumline, in pixels, split evenly
+## either side of centre. This is the part of VSlice that a uniform spacing
+## multiplier cannot reproduce: its lanes are not evenly spread, they are two
+## pairs with a wide channel between them (left/down .... up/right).
+## StrumNote.hx calls it VSLICE_PLAYER_SPLIT_GAP_COEFF; without it the layout
+## is merely "wider", which is what the first implementation got wrong.
+@export var player_split_gap: float = 0.0
+@export var opponent_split_gap: float = 0.0
+
 ## Multipliers on note size.
 @export var player_note_scale: float = 1.0
 @export var opponent_note_scale: float = 1.0

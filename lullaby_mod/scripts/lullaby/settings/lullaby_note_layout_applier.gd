@@ -49,11 +49,14 @@ func _apply_to_current_scene() -> void:
 
 	var layout: LullabyNoteLayout = get_layout()
 	_apply_to(scene.get_node_or_null(PLAYER_PATH), layout.player_anchor,
-		layout.player_spacing_scale, layout.player_note_scale, layout.player_y_nudge)
+		layout.player_spacing_scale, layout.player_note_scale, layout.player_y_nudge,
+		layout.player_split_gap)
 	_apply_to(scene.get_node_or_null(OPPONENT_PATH), layout.opponent_anchor,
-		layout.opponent_spacing_scale, layout.opponent_note_scale, layout.opponent_y_nudge)
+		layout.opponent_spacing_scale, layout.opponent_note_scale, layout.opponent_y_nudge,
+		layout.opponent_split_gap)
 
-func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_scale: float, y_nudge: float) -> void:
+func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_scale: float,
+		y_nudge: float, split_gap: float) -> void:
 	if strumline == null:
 		return
 
@@ -94,7 +97,16 @@ func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_sca
 	for lane in authored["lanes"]:
 		if not is_instance_valid(lane):
 			continue
-		lane.position.x = authored["lanes"][lane] * spacing_scale
+
+		var x: float = authored["lanes"][lane] * spacing_scale
+		# Push each half outward to open the centre channel. Applied after the
+		# spacing scale and by sign, so the two inner lanes move apart by
+		# split_gap in total while the pairs themselves keep their scaled
+		# spacing - widening the middle without stretching the sides.
+		if split_gap != 0.0 and not is_zero_approx(x):
+			x += (split_gap * 0.5) * signf(x)
+
+		lane.position.x = x
 		lane.scale = Vector2(note_scale, note_scale)
 
 func _lanes_of(strumline: Control) -> Array[Control]:
