@@ -1,4 +1,4 @@
-extends Control
+extends Node2D
 class_name ChimeraKeyPromptTouch
 
 ## Draws the escape mechanic's "press this" prompt as a D-pad direction
@@ -6,15 +6,23 @@ class_name ChimeraKeyPromptTouch
 ##
 ## The mechanic ships one generic keycap sprite (KeyNote.tres has exactly two
 ## animations, idle and press) with the direction written on a Label over it.
-## There are no per-direction textures to swap to, so on touch the keycap is
-## replaced by a shape drawn here.
+## There are no per-direction textures to swap to, so on touch the keycap and
+## its label stop drawing and the shape below is drawn in their place.
 ##
-## Everything is drawn in the escape D-pad's own palette
-## (chimera_escape_dpad.gd's base_color / divider_color / required_color) and
-## uses the same action-to-direction mapping as its ZONE_ACTIONS, so the
-## prompt and the control underneath it cannot disagree - which was the whole
-## complaint. Red matches the D-pad's own "this is the one to press"
-## highlight, so the two read as the same instruction shown twice.
+## Everything uses the same action-to-direction mapping as the escape D-pad's
+## ZONE_ACTIONS, so the prompt and the control underneath it cannot disagree -
+## which was the whole complaint. Red matches the D-pad's own "this is the one
+## to press" highlight, so the two read as one instruction shown twice.
+##
+## This node is a child of Key on purpose. Key is what the mechanic moves to a
+## random position, fades in over appear_time, pops on success/fail and hides
+## between attempts; inheriting its transform and modulate means all of that
+## applies here for free instead of being re-implemented and drifting out of
+## sync. That inheritance is also why the keycap is hidden with
+## self_modulate rather than visible: self_modulate does not propagate to
+## children, so it silences the sprite without taking this node down with it,
+## and nothing in mch_crawling.gd writes self_modulate, whereas it sets
+## key.visible = true on every single show_prompt().
 
 const ACTION_DIRECTIONS := {
 	&"mania_lane0": Vector2.LEFT,
@@ -29,15 +37,17 @@ const ACTION_CENTER := &"lullaby_special"
 
 @export var mechanic: Node
 
-## Hidden while touch controls are in use, since this replaces them.
+## Silenced while touch controls are in use, since this replaces them.
 @export var keycap: CanvasItem
 @export var keycap_label: CanvasItem
 
-@export var radius: float = 62.0
-@export var base_color: Color = Color(0.09, 0.09, 0.12, 0.75)
-@export var accent_color: Color = Color(0.85, 0.15, 0.15, 0.95)
-@export var outline_color: Color = Color(1, 1, 1, 0.6)
-@export var outline_width: float = 3.0
+## Sized to sit inside the TimingKey ring (183x190 at full progress, so 91px
+## of radius) rather than inside the keycap it replaces, since the ring is the
+## one piece of the original prompt that stays on screen.
+@export var radius: float = 70.0
+@export var accent_color: Color = Color(0.85, 0.15, 0.15, 1.0)
+@export var outline_color: Color = Color(1, 1, 1, 0.85)
+@export var outline_width: float = 4.0
 
 var _enabled: bool = false
 var _current: StringName = &""
@@ -55,9 +65,9 @@ func _ready() -> void:
 		return
 
 	if keycap:
-		keycap.visible = false
+		keycap.self_modulate.a = 0.0
 	if keycap_label:
-		keycap_label.visible = false
+		keycap_label.self_modulate.a = 0.0
 
 func _process(_delta: float) -> void:
 	if mechanic == null or not "current_input" in mechanic:
@@ -68,14 +78,19 @@ func _process(_delta: float) -> void:
 		return
 
 	_current = now
-	visible = not _current.is_empty()
 	queue_redraw()
 
+## No filled backing disc, deliberately. Key.modulate is driven from WHITE to
+## BLACK across the attempt as the "time is running out" cue
+## (update_progress_visual), and modulate multiplies down into this node - so a
+## dark disc would have swallowed the arrow drawn on it well before the timer
+## expired. Drawing only the arrow and a thin ring means this darkens exactly
+## the way the keycap it replaced did, which is the behaviour the cue was
+## designed around, and it leaves the expanding TimingKey ring unobscured.
 func _draw() -> void:
 	if not _enabled or _current.is_empty():
 		return
 
-	draw_circle(Vector2.ZERO, radius, base_color)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, outline_color, outline_width, true)
 
 	if _current == ACTION_CENTER:

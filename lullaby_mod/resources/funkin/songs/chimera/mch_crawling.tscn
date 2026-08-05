@@ -38,8 +38,7 @@ animation = &"KeyIdle instance "
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Key" unique_id=1439373193]
 libraries/KeyNote_library = ExtResource("3")
 
-[node name="TouchPrompt" type="Control" parent="Key" node_paths=PackedStringArray("mechanic", "keycap", "keycap_label")]
-mouse_filter = 2
+[node name="TouchPrompt" type="Node2D" parent="Key" node_paths=PackedStringArray("mechanic", "keycap", "keycap_label")]
 script = ExtResource("5")
 mechanic = NodePath("../..")
 keycap = NodePath("..")
