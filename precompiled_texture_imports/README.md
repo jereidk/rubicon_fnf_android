@@ -20,14 +20,17 @@ using Godot's plain `texture` importer rather than either custom ASTC
 plugin.
 
 Covers:
-- `assets/funkin/safety_lullaby/characters/gf/hypnosis-0.png` (a second,
-  unrelated copy of `hypnosis-0.png` also exists under
-  `lullaby_mod/assets/...` - that one already goes through
-  `lullaby.astc_sprite` and is covered by `precompiled_astc_imports/`
-  instead)
 - `lullaby_mod/assets/menus/antipiracy/fuckno_doodii.png`
 - `lullaby_mod/assets/menus/antipiracy/FucknoBack.png`
 - `lullaby_mod/assets/funkin/safety_lullaby/pause/tex_hypno_pause.png`
+
+`assets/funkin/safety_lullaby/characters/gf/hypnosis-0.png` used to be
+covered here too. It has since been switched to the `lullaby.astc_sprite`
+importer (it's a 4096x4096 character atlas, exactly what that plugin is
+for), so its output belongs to `precompiled_astc_imports/` now and its
+old plain-`texture` `.ctex` was dropped. The near-duplicate that lived at
+`lullaby_mod/assets/.../hypnosis-0.png` was deleted outright - it was a
+differently-cropped 3845x3489 re-export that nothing ever referenced.
 
 ## Regenerating
 
