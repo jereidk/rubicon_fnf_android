@@ -11,4 +11,5 @@ screen_space_aa_quality = 0
 post_processing = 0
 ssao = false
 ssil = false
+target_fps = 30
 metadata/_custom_type_script = "uid://dvyolplt7oov0"

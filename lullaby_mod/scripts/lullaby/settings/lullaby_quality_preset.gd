@@ -13,6 +13,14 @@ class_name LullabyQualityPreset extends Resource
 @export var ssao: bool = true
 @export var ssil: bool = true
 
+## Frame rate cap. Not a graphics setting in the usual sense - it does
+## nothing for image quality - but on a device that cannot hold 60 it is
+## worth more than any of the above. Chimera on a moto g53 oscillates
+## between 60fps and sub-20 with spikes past 140ms, and that swing is what
+## reads as stuttering; a phone locked to a rate it can actually sustain
+## feels smooth at half the numbers. 0 means uncapped.
+@export var target_fps: int = 0
+
 ## Only Very Low sets this - strips every decorative/post-processing shader
 ## effect in the project (see LullabySettings.EFFECT_SHADER_PATHS) while
 ## leaving shaders that are a node's actual base material untouched (e.g.
@@ -30,6 +38,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_post_processing == post_processing and
 		settings.graphics_ssao == ssao and
 		settings.graphics_ssil == ssil and
+		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects
 	)
 
@@ -44,4 +53,5 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_post_processing = post_processing
 	settings.graphics_ssao = ssao
 	settings.graphics_ssil = ssil
+	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects

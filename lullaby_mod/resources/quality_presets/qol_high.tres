@@ -7,3 +7,4 @@ script = ExtResource("1")
 name = "High"
 msaa_3d_quality = 2
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
+target_fps = 60
