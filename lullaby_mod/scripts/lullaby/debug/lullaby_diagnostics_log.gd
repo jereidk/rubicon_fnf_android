@@ -347,12 +347,6 @@ func _on_animation_started(anim: StringName, player: AnimationPlayer) -> void:
 	_last_anim = "%s/%s" % [player.name, anim]
 	_last_anim_ms = Time.get_ticks_msec()
 
-## Reported by the scene changer after prewarming, so the log says both what
-## the fix cost and whether it is running at all - a silent no-op would
-## otherwise look exactly like a fix that did not work.
-func prewarmed(nodes_revealed: int, took_ms: int) -> void:
-	_entry("PREWARM", "revealed=%d took=%dms" % [nodes_revealed, took_ms])
-
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".
 func mark(what: String) -> void:
@@ -379,8 +373,12 @@ func _on_scene_change_finished(path: String) -> void:
 	_frame_times.fill(0.0)
 	# Deferred twice over: the scene is swapped in but its own _ready() work
 	# (and anything it starts playing) has not run yet on this frame.
+	# Both deferred by a second: current_scene is not set on the frame the
+	# change happens, so call_deferred() ran against the old scene and the
+	# watcher silently subscribed to nothing - which is why not one SPIKE in
+	# the last device log carried an "after ..." attribution.
 	get_tree().create_timer(1.0).timeout.connect(census.bind("after load"), CONNECT_ONE_SHOT)
-	_watch_animations.call_deferred()
+	get_tree().create_timer(1.0).timeout.connect(_watch_animations, CONNECT_ONE_SHOT)
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:

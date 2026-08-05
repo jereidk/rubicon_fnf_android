@@ -198,12 +198,6 @@ var lullaby_diagnostics_log: bool = true
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
 var lullaby_note_layout: int = 0
-
-## Draws a scene's hidden nodes once behind the loading screen so their
-## shaders compile there instead of mid-song. Costs a little load time and
-## removes multi-second stalls; switchable in case it misbehaves on a device.
-var lullaby_shader_prewarm: bool = true
-
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 
