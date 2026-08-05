@@ -1,5 +1,11 @@
 extends CanvasLayer
 
+## Emitted around a scene load so the diagnostics log can record what
+## was loaded, how long it took and what it cost in memory - the scene
+## transitions are exactly where the game stutters worst on a phone.
+signal scene_change_started(path: String)
+signal scene_change_finished(path: String)
+
 ## Real port of Lullaby's LullabySceneChanger
 ## (lullaby_mod/scripts/lullaby/loading/lullaby_scene_changer.gd), using the
 ## same loading screen scenes/keys the rest of the ported code calls
@@ -49,6 +55,7 @@ func change_to(path: String, loading_screen: StringName = &"hypno", end_manually
 	get_window().gui_disable_input = true
 
 	_watching_path = path
+	scene_change_started.emit(path)
 	_current_loader = loading_screens[loading_screen].instantiate()
 	add_child(_current_loader)
 
@@ -66,6 +73,7 @@ func _complete() -> void:
 
 	var packed_scene: PackedScene = ResourceLoader.load_threaded_get(_watching_path)
 
+	scene_change_finished.emit(_watching_path)
 	_watching_path = ""
 	get_tree().change_scene_to_packed(packed_scene)
 

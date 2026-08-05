@@ -6,11 +6,17 @@ var _text: Label
 
 signal confirmed
 
+## Emitted for every warning and error before its screen is shown, so the
+## diagnostics log keeps a record even when the player dismisses the screen
+## and plays on.
+signal logged(kind: String, message: String, err: int)
+
 func _ready() -> void :
 	layer = RenderingServer.CANVAS_LAYER_MAX
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func show_warning(message: String, err: Error) -> void :
+	logged.emit("warning", message, err)
 	get_tree().paused = true
 
 	_create_screen(Color.BLUE)
@@ -24,6 +30,7 @@ func show_warning(message: String, err: Error) -> void :
 	get_tree().paused = false
 
 func show_error(message: String, err: Error) -> void :
+	logged.emit("error", message, err)
 	print("STOPPING GAME")
 
 	for node in get_tree().root.get_children():

@@ -189,6 +189,12 @@ var lullaby_showcase_mode: bool = false
 ## automatically off the lullaby_ prefix.
 var lullaby_debug_display: int = 1
 
+## Writes a diagnostics log to user://logs (see
+## lullaby_diagnostics_log.gd). On by default: it is quiet, costs a few
+## flushed lines a minute, and is worthless if it has to be switched on
+## after the problem has already happened.
+var lullaby_diagnostics_log: bool = true
+
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 
