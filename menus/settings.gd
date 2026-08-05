@@ -195,6 +195,10 @@ var lullaby_debug_display: int = 1
 ## after the problem has already happened.
 var lullaby_diagnostics_log: bool = true
 
+## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
+## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
+var lullaby_note_layout: int = 0
+
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 

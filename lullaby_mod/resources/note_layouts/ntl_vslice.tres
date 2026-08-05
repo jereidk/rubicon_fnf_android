@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LullabyNoteLayout" format=3]
+
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/settings/lullaby_note_layout.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "VSlice"
+player_anchor = 0.5
+opponent_anchor = 0.16
+player_spacing_scale = 1.35
+opponent_spacing_scale = 0.62
+player_note_scale = 1.25
+opponent_note_scale = 0.62
+player_y_nudge = 0.0
+opponent_y_nudge = 0.0
