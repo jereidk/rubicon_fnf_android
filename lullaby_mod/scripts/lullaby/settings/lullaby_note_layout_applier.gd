@@ -70,8 +70,21 @@ func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_sca
 
 	var authored: Dictionary = _authored[strumline]
 
-	strumline.anchor_left = anchor
-	strumline.anchor_right = anchor
+	# Midscroll is not a property, it is an AnimationTree ("centered" /
+	# "uncentered" states) driving the strumlines' horizontal placement every
+	# frame. Writing an anchor here would be overwritten by the animation on
+	# the next frame - and in between the two you get the distorted layout
+	# that made this show up. So when midscroll is on it owns horizontal
+	# placement outright and only the lane spacing and note size below are
+	# applied on top of it.
+	#
+	# That is not a compromise for VSlice specifically: VSlice wants the
+	# player strumline centred, which is exactly what midscroll already does,
+	# so the two combine into the intended look rather than fighting for it.
+	if not Settings.game_centered:
+		strumline.anchor_left = anchor
+		strumline.anchor_right = anchor
+
 	strumline.offset_top = authored["offset_top"] + y_nudge
 	strumline.offset_bottom = authored["offset_bottom"] + y_nudge
 
