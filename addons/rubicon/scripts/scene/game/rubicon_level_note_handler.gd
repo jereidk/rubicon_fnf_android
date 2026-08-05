@@ -62,6 +62,63 @@ func update_notes() -> void:
 	results.clear()
 	results.resize(data.size())
 
+	prewarm_pool()
+
+## Fills the note pool before the song starts.
+##
+## spawn_note() takes a note out of _note_pool and, when the pool is empty,
+## instantiates one instead - on the main thread, mid-song. The pool starts
+## empty, so every note type pays that cost the first time it appears, and a
+## dense section pays it for a whole batch at once.
+##
+## That is what Chimera's stutters are. The diagnostics log shows frames of
+## 140ms whose script time is only 35ms: instantiate() is engine-side work
+## and does not appear in TIME_PROCESS at all. It also shows orphan nodes
+## climbing to 589 and then flat - this pool filling to its working size -
+## while node counts jump by tens (+72 TextureRect, +45 AnimationPlayer) on
+## exactly the frames that spike.
+##
+## Instantiating them up front moves that cost into the load. This is
+## deliberately NOT the same kind of change as revealing hidden nodes: a
+## prewarmed note is never added to the tree, never made visible and never
+## initialised - it sits in the same array despawn_note() would have put it
+## in, so spawn_note() cannot tell it apart from one that has already been
+## used and freed once.
+func prewarm_pool() -> void:
+	if Engine.is_editor_hint() or _controller == null:
+		return
+
+	# How many of each type can be on screen at once is what the pool has to
+	# cover; anything beyond that is memory spent for nothing. Counting the
+	# chart's own notes per type gives an upper bound for free, capped so a
+	# pathological chart cannot allocate thousands.
+	var wanted: Dictionary = {}
+	for note in data:
+		var note_type: StringName = note.type
+		var define_key: StringName = "%s_%s" % [note_type, get_mode_id()] if not note_type.is_empty() else get_mode_id()
+		wanted[define_key] = mini(wanted.get(define_key, 0) + 1, POOL_PREWARM_MAX)
+
+	var database: Dictionary = get_controller().get_note_database()
+	for define_key in wanted:
+		if not database.has(define_key):
+			continue
+
+		var skin: RubiconLevelNoteMetadata = database[define_key]
+		if skin == null or skin.scene == null:
+			continue
+
+		if not _note_pool.has(define_key):
+			_note_pool[define_key] = Array()
+
+		var pool: Array = _note_pool[define_key]
+		while pool.size() < wanted[define_key]:
+			pool.append(skin.scene.instantiate())
+
+## Cap per note type. Well above what any Lullaby chart keeps on screen at
+## once, and low enough that a broken chart cannot allocate its way out of
+## memory.
+const POOL_PREWARM_MAX := 48
+
 func spawn_note(index : int) -> void:
 	var note_type : StringName = data[index].type
 	var define_key : StringName = "%s_%s" % [note_type, get_mode_id()] if not note_type.is_empty() else get_mode_id()
