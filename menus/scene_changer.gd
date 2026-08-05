@@ -83,7 +83,10 @@ func _complete() -> void:
 	# is not until the frame after change_scene_to_packed().
 	if Settings.lullaby_shader_prewarm:
 		await get_tree().process_frame
-		await LullabyShaderPrewarm.prewarm(get_tree(), get_tree().current_scene)
+		var prewarm_started_ms: int = Time.get_ticks_msec()
+		var revealed: int = await LullabyShaderPrewarm.prewarm(get_tree(), get_tree().current_scene)
+		if DiagnosticsLog.has_method("prewarmed"):
+			DiagnosticsLog.prewarmed(revealed, Time.get_ticks_msec() - prewarm_started_ms)
 
 	if not awaiting_manual_end:
 		finish_loading_screen()

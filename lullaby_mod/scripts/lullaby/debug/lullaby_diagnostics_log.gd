@@ -108,6 +108,16 @@ var _scene_change_memory: int = 0
 var _loading_path: String = ""
 var _load_checkpoints_done: int = 0
 
+## The animation that started most recently, and when. A SPIKE already
+## reports how bad a frame was; this says what had just begun. The first
+## device log could only correlate the two by eye - a census happened to
+## catch SequencePlayer/122_fall near a 2837ms stall - which is enough to
+## form a suspicion and not enough to confirm one. Recorded on every
+## AnimationPlayer in the scene and quoted directly in the spike line.
+var _last_anim: String = ""
+var _last_anim_ms: int = 0
+var _watched_players: Array[AnimationPlayer] = []
+
 ## Long-run FPS buckets, one per SUMMARY_MINUTES. Thermal throttling does not
 ## announce itself - it looks like the same scene getting slower for no
 ## reason - so the only way to see it is to compare the same measurement
@@ -173,7 +183,13 @@ func _process(delta: float) -> void:
 	if _frames_seen > WINDOW_SIZE and _time_since_spike >= SPIKE_COOLDOWN_SECONDS:
 		if frame_ms >= SPIKE_MIN_MS and frame_ms >= median * SPIKE_FACTOR:
 			_time_since_spike = 0.0
-			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx)" % [frame_ms, median, frame_ms / maxf(median, 0.001)])
+			var since_anim: int = Time.get_ticks_msec() - _last_anim_ms
+			var blame: String = ""
+			# Only worth quoting if it started essentially on this frame -
+			# anything older is coincidence, not cause.
+			if not _last_anim.is_empty() and since_anim <= 250:
+				blame = "  after %s (%dms ago)" % [_last_anim, since_anim]
+			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx)%s" % [frame_ms, median, frame_ms / maxf(median, 0.001), blame])
 			# A stall this long is not jitter, it is work. Worth paying for a
 			# census on the spot to see what was in the scene when it happened.
 			if Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0 >= CENSUS_ON_PROC_MS:
@@ -305,6 +321,38 @@ func _write_summary() -> void:
 	_bucket_ms_total = 0.0
 	_bucket_worst_ms = 0.0
 
+## Subscribes to every AnimationPlayer in the new scene so a stall can name
+## what began on it. Connections are dropped implicitly when the old scene is
+## freed; the array is only cleared so it does not hold freed references.
+func _watch_animations() -> void:
+	_watched_players.clear()
+	_last_anim = ""
+
+	var scene: Node = get_tree().current_scene if get_tree() else null
+	if scene == null:
+		return
+
+	var nodes: Array[Node] = [scene]
+	while not nodes.is_empty():
+		var node: Node = nodes.pop_back()
+		var player := node as AnimationPlayer
+		if player != null:
+			_watched_players.append(player)
+			if not player.animation_started.is_connected(_on_animation_started):
+				player.animation_started.connect(_on_animation_started.bind(player))
+		for child in node.get_children():
+			nodes.append(child)
+
+func _on_animation_started(anim: StringName, player: AnimationPlayer) -> void:
+	_last_anim = "%s/%s" % [player.name, anim]
+	_last_anim_ms = Time.get_ticks_msec()
+
+## Reported by the scene changer after prewarming, so the log says both what
+## the fix cost and whether it is running at all - a silent no-op would
+## otherwise look exactly like a fix that did not work.
+func prewarmed(nodes_revealed: int, took_ms: int) -> void:
+	_entry("PREWARM", "revealed=%d took=%dms" % [nodes_revealed, took_ms])
+
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".
 func mark(what: String) -> void:
@@ -332,6 +380,7 @@ func _on_scene_change_finished(path: String) -> void:
 	# Deferred twice over: the scene is swapped in but its own _ready() work
 	# (and anything it starts playing) has not run yet on this frame.
 	get_tree().create_timer(1.0).timeout.connect(census.bind("after load"), CONNECT_ONE_SHOT)
+	_watch_animations.call_deferred()
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:
