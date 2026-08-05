@@ -55,6 +55,7 @@ func _ready() -> void:
 
 	if text_input:
 		text_input.text_changed.connect(_on_text_changed)
+		_set_input_available(false)
 
 func _process(_delta: float) -> void:
 	if not text_input or not typing_challenge:
@@ -67,12 +68,42 @@ func _process(_delta: float) -> void:
 		and not typing_challenge.challenge_over
 	)
 
-	if wants_input and not text_input.has_focus():
-		text_input.grab_focus()
-	elif not wants_input and text_input.has_focus():
-		text_input.release_focus()
+	if wants_input:
+		_set_input_available(true)
+		if not text_input.has_focus():
+			text_input.grab_focus()
+	else:
+		_set_input_available(false)
 
 	_apply_raise(wants_input)
+
+## Releasing focus is not enough on its own. The challenge's flags are reused
+## between rounds (start_challenge() clears challenge_over while active and
+## prompt_user are still set from the round before), so wants_input can blip
+## back on for a frame after the unowns are gone - and a single frame of focus
+## is a whole system keyboard back on screen, sitting over the note lanes.
+##
+## So when input isn't wanted the field is made genuinely unreachable rather
+## than merely unfocused: focus_mode NONE means nothing can hand it focus,
+## and hidden means Godot won't either. virtual_keyboard_hide() is belt and
+## braces for the case where the keyboard is already up when that happens -
+## Godot only lowers it as a side effect of a focus change it can see.
+func _set_input_available(available: bool) -> void:
+	if available:
+		if not text_input.visible:
+			text_input.focus_mode = Control.FOCUS_ALL
+			text_input.visible = true
+		return
+
+	if not text_input.visible and text_input.focus_mode == Control.FOCUS_NONE:
+		return
+
+	if text_input.has_focus():
+		text_input.release_focus()
+	text_input.focus_mode = Control.FOCUS_NONE
+	text_input.visible = false
+	text_input.text = ""
+	DisplayServer.virtual_keyboard_hide()
 
 ## Lifts each target by exactly how much the keyboard overlaps it, and no
 ## more, so nothing moves on a device whose keyboard is short enough to leave
