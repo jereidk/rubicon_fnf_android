@@ -198,6 +198,27 @@ var lullaby_diagnostics_log: bool = true
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
 var lullaby_note_layout: int = 0
+
+## Rubicon addition: the Mobile settings section (gameplay touch controls).
+## All of these are plain lullaby_ vars so save()/load_from() persist them
+## automatically and the quality presets keep matching on graphics_ only.
+
+## 0 = Hitbox (the full-height lane zones), 1 = Touch (tap the falling
+## notes directly). The Touch input mode itself ships separately; the
+## setting and its UI exist from the start so the menu is complete.
+enum MobileControlMode { HITBOX = 0, TOUCH = 1 }
+
+## Where the pendulum mechanic's own hitbox sits: 0 = top strip (the
+## original layout), 1 = bottom strip, 2 = centre band between the lanes.
+enum MechanicHitboxDirection { UP = 0, BOTTOM = 1, CENTER = 2 }
+
+var lullaby_mobile_control_mode: int = MobileControlMode.HITBOX
+var lullaby_hitbox_hint: bool = true
+var lullaby_hitbox_gradient: bool = true
+var lullaby_hitbox_opacity: int = 100
+var lullaby_mechanic_hitbox_direction: int = MechanicHitboxDirection.BOTTOM
+var lullaby_touch_note_hitbox_size: float = 1.0
+var lullaby_show_pause_button: bool = true
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 

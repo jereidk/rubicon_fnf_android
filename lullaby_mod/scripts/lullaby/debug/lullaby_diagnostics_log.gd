@@ -407,7 +407,7 @@ func _entry(kind: String, detail: String) -> void:
 		return
 
 	var seconds: float = float(Time.get_ticks_msec() - _session_start_ms) / 1000.0
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -415,6 +415,8 @@ func _entry(kind: String, detail: String) -> void:
 		_mb(_peak_memory),
 		_mb(int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))),
 		_mb(int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED))),
+		_mb(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED))),
+		Settings.graphics_render_scale,
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)),
@@ -529,6 +531,9 @@ func _write_header() -> void:
 	var physical: int = OS.get_memory_info().get("physical", 0)
 	_file.store_line("memory    : %s" % ("%d MB" % (physical / 1048576) if physical > 0 else "(not reported by OS)"))
 	_file.store_line("max_fps   : %d  vsync=%d" % [Engine.max_fps, DisplayServer.window_get_vsync_mode()])
+	var preset = Settings.get_quality_preset()
+	_file.store_line("preset    : %s" % (preset.name if preset != null else "Custom"))
+	_file.store_line("render_scale : %.2f" % Settings.graphics_render_scale)
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
 	_file.store_line("dir_used  : %s" % _log_dir)

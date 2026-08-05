@@ -493,3 +493,74 @@ is the one change that pays twice.
 - They run the builds; ask before triggering one.
 - They will say when something is urgent. As of this session the only urgent
   thing is Chimera stuttering.
+
+---
+
+## Mobile settings section (Rubicon)
+
+`Settings` tab of the console has a `Mobile` sidebar entry (tab index 6,
+after Audio) with the gameplay touch-control options:
+
+- `GameplayControl` (Hitbox/Touch) shows/hides the two option groups live
+  via `mobile_section_visibility.gd` (watches `Settings.applied`, same
+  pattern as the Quality Preset "Custom" label).
+- Hitbox group: Hint -> `show_outlines`; Gradient -> fill vs pressed
+  distinction; Opacity (0-100, % of the addon's authored 0.03/0.16);
+  Mechanic Hitbox Direction (Up/Bottom/Center, default Bottom).
+- Touch group: `TouchNoteHitboxSize` (0.5-2.0) is the tap radius around
+  each note (base 100px, scaled linearly) and also scales the round red
+  mechanic button (pinned 0.75-1.5x so it never gets untappably small).
+- `NoteLayout` moved here from Gameplay (same ListButton, same property).
+- `ShowPauseButton` hides `UILayer/SongTouchControls/PauseButton`.
+
+All applied live by autoload `MobileControlsApplier`
+(`lullaby_mobile_controls_applier.gd`, same 2-frame pattern as
+`NoteLayout`). It finds the lane hitboxes by group
+`rubicon_mobile_controls` (joined in the addon's `_ready`), the pendulum
+mechanic hitbox by script path, and the pause button by fixed scene path.
+`RubiconMobileControls` gained `hitbox_bottom_percent` and
+`hitbox_center_percent`; Center splits lanes 0-1 above / 2-3 below the
+pendulum band. Only Safety Lullaby has the mechanic, so the direction
+setting does nothing on Monochrome/Chimera (lanes stay full-height).
+
+### Touch mode (Fase 2 - implemented)
+
+In Touch mode the applier (`lullaby_mobile_controls_applier.gd`):
+
+- Sets `gameplay_touch_mode = true` on every `RubiconMobileControls` lane
+  hitbox: hidden, input disabled, holds released (`rubicon_mobile_controls.gd`
+  owns the flag, restored when the mode flips back).
+- Hides the pendulum `RubiconMechanicHitbox` AND stops its parent
+  (`SafetyLullabyTouchControls`) `_process` - it re-shows the hitbox every
+  frame otherwise. `_restore_mechanic_hitbox()` re-enables it when the mode
+  switches back mid-session.
+- Instantiates `LullabyTouchNoteInput` (`lullaby_touch_note_input.gd`), a
+  full-screen overlay that reads the note controller at
+  `UILayer/GameUI/Player`, plus `LullabyMechanicActionButton` (round red,
+  right-centre, dispatches `lullaby_special` like RubiconActionButton) shown
+  only while the pendulum server's `started && !autoplay` (showcase-mode
+  aware). The button is a child of the overlay and scales with
+  `TouchNoteHitboxSize`.
+
+Touch gameplay rules:
+
+- A tap selects the unhit note whose visual centre (rotated arrow
+  container AABB) is nearest, within the radius; only each lane's
+  `note_hit_index` note is a candidate (the engine judges lanes in order).
+- It drives the SAME handler methods the hitbox drives (`_press`/`_release`
+  on the mania lane handlers), so judgment windows, scoring, splash and
+  character animations are untouched. Taps use a synthetic
+  `InputEventScreenTouch`; the handler ignores the event object.
+- Up to 4 simultaneous fingers (one per lane) cover chords; a held finger
+  keeps a hold note until release; second finger on a held lane is ignored.
+- Every visible `Button` in the scene is a reserved zone (pause/restart,
+  Chimera's mechanic buttons, the red button) - taps there never hit notes.
+- Same hide/release-all behaviour as the other overlays: pause menu,
+  gameover, and cutscenes (HUD modulate alpha).
+- `disable_inputs` / `should_autoplay()` block touch input exactly like the
+  engine controller does; physical keys still work in Touch mode.
+
+Sidebar note: the settings sidebar's VBox separation is 20 (was 84) so all
+six entries fit the 640x480 console viewport - measured, at 84 the 5th
+button (Misc) was already mostly off-screen and a 6th would have been
+unreachable.

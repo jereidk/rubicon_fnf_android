@@ -32,6 +32,25 @@ const MOUSE_TOUCH_INDEX := -1000
 		hitbox_top_percent = value
 		queue_redraw()
 
+## Fraction of the control's height (from the bottom) left untouched, for
+## songs whose special-mechanic hitbox sits at the bottom edge (the
+## pendulum mechanic's Bottom direction in the Mobile settings). Mirrors
+## hitbox_top_percent.
+@export_range(0.0, 1.0, 0.01) var hitbox_bottom_percent: float = 0.0:
+	set(value):
+		hitbox_bottom_percent = value
+		queue_redraw()
+
+## Centre band carved out of the lane zones for the mechanic hitbox's
+## Center direction. When set, lanes 0-1 fill the band above it and lanes
+## 2-3 the band below (each half-height, splitting the leftover space), so
+## the mechanic sits between the two lane pairs instead of above or below
+## them.
+@export_range(0.0, 0.5, 0.01) var hitbox_center_percent: float = 0.0:
+	set(value):
+		hitbox_center_percent = value
+		queue_redraw()
+
 ## Controls whose on-screen rect is cut out of the lane zones - the pause and
 ## restart buttons. A tap inside one of these is ignored here so it reaches
 ## the button instead, which is what makes it safe to run the lanes all the
@@ -90,12 +109,36 @@ const MOUSE_TOUCH_INDEX := -1000
 @export var hide_sources: Array[Node] = []
 @export var hide_properties: Array[StringName] = []
 
+## Set by lullaby_mobile_controls_applier.gd while the "Gameplay Control:
+## Touch" mode is active: the lane hitbox goes fully inert (no input, no
+## drawing, holds released) because the Touch overlay owns note input
+## instead. Flipping it back to false restores the hitbox to normal. The
+## applier sets this on every scene load / settings re-apply, so a fresh
+## song scene never starts in a stale state.
+var gameplay_touch_mode: bool = false:
+	set(value):
+		if gameplay_touch_mode == value:
+			return
+		gameplay_touch_mode = value
+		if value:
+			_release_all()
+			visible = false
+			set_process_input(false)
+		else:
+			visible = true
+			set_process_input(true)
+
 var _touch_to_lane: Dictionary = {}
 var _lane_active_count: Dictionary = {}
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
+
+	# Lets lullaby_mobile_controls_applier.gd find every hitbox without each
+	# song scene having to wire anything (the applier's doc comment explains
+	# the rest).
+	add_to_group("rubicon_mobile_controls")
 
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
 	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
@@ -121,6 +164,9 @@ func _process(_delta: float) -> void:
 	_update_visibility()
 
 func _update_visibility() -> void:
+	if gameplay_touch_mode:
+		return
+
 	if get_tree().paused:
 		if visible:
 			_release_all()
@@ -156,12 +202,28 @@ func _update_visibility() -> void:
 
 func _draw() -> void:
 	var top_y: float = size.y * hitbox_top_percent
-	if top_y >= size.y or lane_count <= 0:
+	var bottom_y: float = size.y * (1.0 - hitbox_bottom_percent)
+	if bottom_y <= top_y or lane_count <= 0:
 		return
 
-	var zone_width: float = size.x / float(lane_count)
+	var centre_h: float = size.y * hitbox_center_percent
+	var centre_y: float = top_y + (bottom_y - top_y - centre_h) * 0.5
+	var zones_per_band: int = lane_count / 2
+
 	for i in range(lane_count):
-		var rect := Rect2(i * zone_width, top_y, zone_width, size.y - top_y)
+		var rect: Rect2
+		if centre_h > 0.0 and zones_per_band > 0:
+			# Lanes 0-1 above the centre band, lanes 2-3 below it.
+			var band: int = 0 if i < zones_per_band else 1
+			var in_band: int = i if band == 0 else i - zones_per_band
+			var band_y: float = top_y if band == 0 else centre_y + centre_h
+			var band_h: float = (centre_y - top_y) if band == 0 else (bottom_y - (centre_y + centre_h))
+			var band_width: float = size.x / float(zones_per_band)
+			rect = Rect2(in_band * band_width, band_y, band_width, band_h)
+		else:
+			var zone_width: float = size.x / float(lane_count)
+			rect = Rect2(i * zone_width, top_y, zone_width, bottom_y - top_y)
+
 		var is_pressed: bool = _lane_active_count.get(i, 0) > 0
 		var fill: Color = pressed_fill_color if is_pressed else fill_color
 		if fill.a > 0.0:
@@ -250,7 +312,9 @@ func _release_all() -> void:
 	queue_redraw()
 
 func _get_lane_for_position(pos: Vector2) -> int:
-	if pos.y < size.y * hitbox_top_percent:
+	var top_y: float = size.y * hitbox_top_percent
+	var bottom_y: float = size.y * (1.0 - hitbox_bottom_percent)
+	if pos.y < top_y or pos.y >= bottom_y:
 		return -1
 	if pos.x < 0.0 or pos.x >= size.x:
 		return -1
@@ -261,6 +325,17 @@ func _get_lane_for_position(pos: Vector2) -> int:
 	for control in reserved_controls:
 		if control != null and control.visible and control.get_global_rect().has_point(pos):
 			return -1
+
+	var centre_h: float = size.y * hitbox_center_percent
+	var zones_per_band: int = lane_count / 2
+	if centre_h > 0.0 and zones_per_band > 0:
+		var centre_y: float = top_y + (bottom_y - top_y - centre_h) * 0.5
+		if pos.y >= centre_y and pos.y < centre_y + centre_h:
+			return -1
+		var band_width: float = size.x / float(zones_per_band)
+		if pos.y < centre_y:
+			return clampi(int(pos.x / band_width), 0, zones_per_band - 1)
+		return zones_per_band + clampi(int(pos.x / band_width), 0, zones_per_band - 1)
 
 	var zone_width: float = size.x / float(lane_count)
 	return clampi(int(pos.x / zone_width), 0, lane_count - 1)

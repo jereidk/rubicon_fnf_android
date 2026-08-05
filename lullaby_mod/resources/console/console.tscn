@@ -66,6 +66,9 @@
 [ext_resource type="Texture2D" uid="uid://d1pa7o5lokrtv" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64"]
 [ext_resource type="Texture2D" uid="uid://c8xtwvjjfnl0x" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics.png" id="203"]
 [ext_resource type="Texture2D" uid="uid://tu6ap7esthlkb" path="res://lullaby_mod/assets/menus/console/options/audio/audio.png" id="204"]
+[ext_resource type="Texture2D" uid="uid://bgmebrpx2ig1e" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile.png" id="205"]
+[ext_resource type="Texture2D" uid="uid://crvds4andx3ck" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile_icon.png" id="206"]
+[ext_resource type="Script" uid="uid://ibfakic30xh6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/mobile_section_visibility.gd" id="207"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
 [ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
@@ -5204,7 +5207,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../BabyMode")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../NoteLayout")
+focus_neighbor_bottom = NodePath(".")
 text = "Showcase Mode"
 property = &"lullaby_showcase_mode"
 console = NodePath("../../../../../..")
@@ -5214,21 +5217,6 @@ tooltip = "Watch the game play itself perfectly, hitting every note on its own."
 script = ExtResource("202")
 unlock_flag = &"showcase_mode_unlocked"
 
-[node name="NoteLayout" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ShowcaseMode")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
-theme = ExtResource("1")
-text = "Note Layout: "
-alignment = 0
-script = ExtResource("54")
-property = &"lullaby_note_layout"
-display_list = ["Classic", "VSlice"]
-values_list = [0, 1]
-console = NodePath("../../../../../..")
-tooltip = "How the note lanes are arranged. Classic is the layout the songs were made with. VSlice centres your strumline, makes the notes bigger and spaces the lanes further apart."
 
 [node name="Visuals" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1649986475 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
@@ -5875,6 +5863,154 @@ suffix = " ms"
 console = NodePath("../../../../../..")
 tooltip = "Offsets the position of all notes, in case of delays."
 
+[node name="Mobile" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=2146300001 node_paths=PackedStringArray("tab_container", "default_focus")]
+visible = false
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 25
+script = ExtResource("34")
+tab_container = NodePath("..")
+default_focus = NodePath("GameplayControl")
+metadata/_tab_index = 6
+
+[node name="GameplayControl" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300002 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../HitboxOptions/HitboxHint")
+theme = ExtResource("1")
+text = "Gameplay Control: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_mobile_control_mode"
+display_list = ["Hitbox", "Touch"]
+values_list = [0, 1]
+console = NodePath("../../../../../..")
+tooltip = "How notes are played on touch. Hitbox is the full-height lane zones. Touch lets you tap the falling notes directly - each finger hits the note nearest to it, up to four at once for chords. In Touch mode the lane zones disappear and the pendulum mechanic is played with a round red button instead."
+
+[node name="HitboxOptions" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300003]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="HitboxHint" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/HitboxOptions" unique_id=2146300004 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../../GameplayControl")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../HitboxGradient")
+text = "Hitbox Hint"
+property = &"lullaby_hitbox_hint"
+console = NodePath("../../../../../../..")
+tooltip = "Draws the outline around each lane zone so you can see where one starts and another ends."
+
+[node name="HitboxGradient" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/HitboxOptions" unique_id=2146300005 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../HitboxHint")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../HitboxOpacity")
+text = "Hitbox Gradient"
+property = &"lullaby_hitbox_gradient"
+console = NodePath("../../../../../../..")
+tooltip = "Brightens the zone you are holding so a press reads clearly. Off makes the whole hitbox one flat shade."
+
+[node name="HitboxOpacity" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/HitboxOptions" unique_id=2146300006 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../HitboxGradient")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MechanicHitboxDirection")
+theme = ExtResource("1")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Hitbox Opacity: "
+alignment = 0
+script = ExtResource("50")
+property = &"lullaby_hitbox_opacity"
+increment_amount = 5
+value_max = 100
+value_min = 0
+suffix = "%"
+console = NodePath("../../../../../../..")
+tooltip = "How visible the lane zones are. 100 is the original look; lower fades them out."
+
+[node name="MechanicHitboxDirection" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/HitboxOptions" unique_id=2146300007 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../HitboxOpacity")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../../NoteLayout")
+theme = ExtResource("1")
+text = "Mechanic Hitbox Direction: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_mechanic_hitbox_direction"
+display_list = ["Up", "Bottom", "Center"]
+values_list = [0, 1, 2]
+console = NodePath("../../../../../../..")
+tooltip = "Where the pendulum mechanic's own red hitbox sits. Up is the original top strip. Bottom parks it at the bottom edge. Center puts it between the lane pairs, splitting the lanes above and below it."
+
+[node name="TouchOptions" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300008]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="TouchNoteHitboxSize" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/TouchOptions" unique_id=2146300009 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../../GameplayControl")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../../NoteLayout")
+theme = ExtResource("1")
+text = "Touch Note Hitbox Size: x"
+alignment = 0
+script = ExtResource("50")
+property = &"lullaby_touch_note_hitbox_size"
+increment_amount = 0.25
+value_max = 2.0
+value_min = 0.5
+console = NodePath("../../../../../../..")
+tooltip = "How big the tap target around each falling note is in Touch mode. Smaller means you have to aim; larger is more forgiving and also scales the round red mechanic button."
+
+[node name="NoteLayout" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300010 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../TouchOptions/TouchNoteHitboxSize")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShowPauseButton")
+theme = ExtResource("1")
+text = "Note Layout: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_note_layout"
+display_list = ["Classic", "VSlice"]
+values_list = [0, 1]
+console = NodePath("../../../../../..")
+tooltip = "How the note lanes are arranged. Classic is the layout the songs were made with. VSlice centres your strumline, makes the notes bigger and spaces the lanes further apart."
+
+[node name="ShowPauseButton" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300011 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../NoteLayout")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+text = "Show Pause Button"
+property = &"lullaby_show_pause_button"
+console = NodePath("../../../../../..")
+tooltip = "Shows the round pause button in the corner during songs. Off hides it entirely."
+
+[node name="MobileVisibility" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300012 node_paths=PackedStringArray("game_control", "hitbox_options", "touch_options", "first_hitbox", "last_hitbox", "first_touch", "last_touch", "note_layout")]
+script = ExtResource("207")
+game_control = NodePath("../GameplayControl")
+hitbox_options = NodePath("../HitboxOptions")
+touch_options = NodePath("../TouchOptions")
+first_hitbox = NodePath("../HitboxOptions/HitboxHint")
+last_hitbox = NodePath("../HitboxOptions/MechanicHitboxDirection")
+first_touch = NodePath("../TouchOptions/TouchNoteHitboxSize")
+last_touch = NodePath("../TouchOptions/TouchNoteHitboxSize")
+note_layout = NodePath("../NoteLayout")
+
 [node name="OptionsSections" type="MarginContainer" parent="TabContainer/Settings" unique_id=1405641552]
 layout_mode = 0
 offset_right = 96.0
@@ -5884,7 +6020,7 @@ theme_override_constants/margin_top = 338
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Settings/OptionsSections" unique_id=1877562518]
 layout_mode = 2
-theme_override_constants/separation = 84
+theme_override_constants/separation = 20
 
 [node name="GameplayButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=953757420 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -5991,7 +6127,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GraphicsButton")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
+focus_neighbor_bottom = NodePath("../MobileButton")
 script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "gold"
@@ -6008,6 +6144,31 @@ texture = ExtResource("63")
 position = Vector2(-227, -3)
 scale = Vector2(1.3536586, 1.3536586)
 texture = ExtResource("64")
+
+[node name="MobileButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2146300013 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(338, 111)
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MiscButton")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+script = ExtResource("51")
+settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
+portrait_name = "collector"
+submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
+submenu_index = 6
+backout_node = NodePath(".")
+console = NodePath("../../../../..")
+
+[node name="Mobile" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MobileButton" unique_id=2146300014]
+position = Vector2(169, 55)
+texture = ExtResource("205")
+
+[node name="MobileIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MobileButton/Mobile" unique_id=2146300015]
+position = Vector2(-238, -1)
+scale = Vector2(1.3536586, 1.3536586)
+texture = ExtResource("206")
 
 [node name="Tooltip" type="Label" parent="TabContainer/Settings" unique_id=16871969]
 unique_name_in_owner = true
