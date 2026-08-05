@@ -294,6 +294,38 @@ Still unfixed after this: the multi-second stalls at cutscene starts
 `proc` sitting near 50ms, and loads that keep growing within a session
 (shop: 13.6s first, 25.6s second) under VRAM pressure.
 
+## The cutscene stalls (`122_fall`, `proc` 373-1882ms) - what is known
+
+Read the animation directly out of the scene text rather than by loading it:
+`SequencePlayer`'s library is `SubResource("AnimationLibrary_mao22")` at
+`sng_chimera.tscn:10928`, whose `_data` maps each sequence name to an
+`Animation` sub-resource (`122_fall` -> `Animation_pyq2i`, line 8265).
+
+`122_fall` is only 31 tracks, and three of them matter:
+
+```
+tracks/2  ../hex:visible                                   <- reveals a 3D character
+tracks/0,1 ../Camera3D:rotation, :fov
+tracks/5  animation track -> SerenaFalling/Falling/AnimationPlayer
+```
+
+So the stall lands on the frame a 3D character is revealed and the camera
+swings. `hex.tscn` itself is only 4 nodes - it instances the real model from
+another scene - so the weight is in the glTF-derived model behind it.
+
+**This also explains why the shader prewarm could not have worked**, which was
+never understood at the time it was reverted: it set `visible = true` for two
+frames, but a revealed node **outside the camera frustum is culled and never
+drawn**, and a material that is never drawn never compiles. Revealing
+everything at once cost 34 seconds and compiled almost nothing, because
+almost none of it was on screen. Any future prewarm has to get the things in
+front of a camera, not merely make them visible - which is a much bigger and
+more invasive change than it first appears.
+
+Still unproven: whether the cost is pipeline compilation, texture upload, or
+the second AnimationPlayer that track 5 starts. `proc` counts idle processing
+including engine-side node work, so it does not distinguish them on its own.
+
 ## Open problems
 
 1. **The ~50ms floor in Chimera.** Suspect: note scenes carrying 6
