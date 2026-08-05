@@ -70,6 +70,12 @@ const WINDOW_SIZE := 120
 ## bad moment costs a few lines rather than a few hundred.
 const SPIKE_COOLDOWN_SECONDS := 0.5
 
+## A census walks the whole scene tree, so it is far too expensive to do per
+## frame - every 30s is enough to see a trend without becoming part of the
+## problem it measures.
+const CENSUS_SECONDS := 30.0
+const CENSUS_ON_PROC_MS := 300.0
+
 var log_path: String = ""
 var _log_dir: String = ""
 
@@ -80,6 +86,7 @@ var _frames_seen: int = 0
 
 var _time_since_heartbeat: float = 0.0
 var _time_since_spike: float = 999.0
+var _time_since_census: float = 0.0
 var _last_memory: int = 0
 var _peak_memory: int = 0
 var _lowest_fps: int = -1
@@ -144,16 +151,83 @@ func _process(delta: float) -> void:
 		if frame_ms >= SPIKE_MIN_MS and frame_ms >= median * SPIKE_FACTOR:
 			_time_since_spike = 0.0
 			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx)" % [frame_ms, median, frame_ms / maxf(median, 0.001)])
+			# A stall this long is not jitter, it is work. Worth paying for a
+			# census on the spot to see what was in the scene when it happened.
+			if Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0 >= CENSUS_ON_PROC_MS:
+				census("after %.0fms stall" % frame_ms)
 
 	var grew_mb: float = float(memory - _last_memory) / 1048576.0
 	if grew_mb >= MEMORY_JUMP_MB:
 		_entry("MEMORY", "+%.1f MB in one frame" % grew_mb)
 	_last_memory = memory
 
+	_time_since_census += delta
+	if _time_since_census >= CENSUS_SECONDS:
+		_time_since_census = 0.0
+		census("periodic")
+
 	if _time_since_heartbeat >= HEARTBEAT_SECONDS:
 		_time_since_heartbeat = 0.0
 		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms" % [fps, _lowest_fps, median])
 		_lowest_fps = -1
+
+## A one-off inventory of what the running scene actually contains. This is
+## the entry that answers "why is proc 50ms when draw calls are 120" - the
+## per-frame counters say the GPU is idle and something in processing is not,
+## but not what. The census names the candidates.
+##
+## The animation figures are the reason it exists. Restoring ~3305 bone tracks
+## that had been silently dropped (they referenced Blender dot-names the .gltf
+## exports with underscores) fixed the Collector's and Hex's hands, but a
+## dropped track costs nothing and a resolved one is evaluated every frame -
+## so that fix is the leading suspect for Chimera's frame time, and this
+## measures it instead of guessing. anim_tracks is the total across every
+## playing AnimationPlayer; the heaviest few are named individually.
+func census(reason: String) -> void:
+	var scene: Node = get_tree().current_scene if get_tree() else null
+	if scene == null or _file == null:
+		return
+
+	var counts: Dictionary = {}
+	var players: Array[AnimationPlayer] = []
+	var nodes: Array[Node] = [scene]
+	while not nodes.is_empty():
+		var node: Node = nodes.pop_back()
+		var key: String = node.get_class()
+		counts[key] = counts.get(key, 0) + 1
+		if node is AnimationPlayer:
+			players.append(node)
+		for child in node.get_children():
+			nodes.append(child)
+
+	var playing: int = 0
+	var total_tracks: int = 0
+	var heaviest: Array = []
+	for player in players:
+		if not player.is_playing():
+			continue
+		playing += 1
+		var anim := player.get_animation(player.current_animation)
+		var tracks: int = anim.get_track_count() if anim else 0
+		total_tracks += tracks
+		heaviest.append([tracks, "%s/%s" % [player.name, player.current_animation]])
+
+	heaviest.sort_custom(func(a, b): return a[0] > b[0])
+	var top: PackedStringArray = []
+	for i in mini(4, heaviest.size()):
+		top.append("%s(%d)" % [heaviest[i][1], heaviest[i][0]])
+
+	var by_class: Array = []
+	for key in counts:
+		by_class.append([counts[key], key])
+	by_class.sort_custom(func(a, b): return a[0] > b[0])
+	var classes: PackedStringArray = []
+	for i in mini(8, by_class.size()):
+		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
+
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d | top_anims=[%s] | %s" % [
+		reason, players.size(), playing, total_tracks, ", ".join(top), " ".join(classes),
+	])
 
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".
@@ -176,6 +250,9 @@ func _on_scene_change_finished(path: String) -> void:
 	# would otherwise read as a spike against the pre-load median.
 	_frames_seen = 0
 	_frame_times.fill(0.0)
+	# Deferred twice over: the scene is swapped in but its own _ready() work
+	# (and anything it starts playing) has not run yet on this frame.
+	get_tree().create_timer(1.0).timeout.connect(census.bind("after load"), CONNECT_ONE_SHOT)
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:
@@ -192,20 +269,24 @@ func _entry(kind: String, detail: String) -> void:
 		return
 
 	var seconds: float = float(Time.get_ticks_msec() - _session_start_ms) / 1000.0
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s draw=%d prims=%d objs=%d nodes=%d orphans=%d proc=%.2fms phys=%.2fms scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
 		seconds,
 		kind,
 		detail,
 		_mb(OS.get_static_memory_usage()),
 		_mb(_peak_memory),
 		_mb(int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))),
+		_mb(int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED))),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
 		int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
+		int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
 		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
+		Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0,
 		_current_scene_name(),
 	])
 	# Flushed every entry on purpose: the whole point is to survive a crash or
@@ -290,14 +371,26 @@ func _write_header() -> void:
 		return
 	_file.store_line("Lullaby diagnostics log")
 	_file.store_line("date      : %s" % Time.get_datetime_string_from_system())
-	_file.store_line("version   : %s" % ProjectSettings.get_setting("application/config/version", "?"))
+	# application/config/version is unset in this project, so fall back to the
+	# Android version code, which the build pipeline does bump.
+	var version: String = str(ProjectSettings.get_setting("application/config/version", ""))
+	if version.is_empty():
+		version = "code %s" % ProjectSettings.get_setting("application/config/version_code", "?")
+	_file.store_line("version   : %s" % version)
 	_file.store_line("godot     : %s" % Engine.get_version_info()["string"])
 	_file.store_line("os        : %s %s" % [OS.get_name(), OS.get_version()])
 	_file.store_line("model     : %s" % OS.get_model_name())
-	_file.store_line("cpu       : %s (%d threads)" % [OS.get_processor_name(), OS.get_processor_count()])
+	# get_processor_name() returns "" on Android; the thread count still works
+	# and is the part that matters for judging what can be threaded.
+	var cpu: String = OS.get_processor_name()
+	_file.store_line("cpu       : %s(%d threads)" % ["" if cpu.is_empty() else cpu + " ", OS.get_processor_count()])
 	_file.store_line("gpu       : %s" % RenderingServer.get_video_adapter_name())
 	_file.store_line("renderer  : %s" % RenderingServer.get_current_rendering_method())
-	_file.store_line("memory    : %d MB" % (OS.get_memory_info().get("physical", 0) / 1048576))
+	# get_memory_info()["physical"] reports 0 on Android, so report what the
+	# engine can actually see instead of a misleading zero.
+	var physical: int = OS.get_memory_info().get("physical", 0)
+	_file.store_line("memory    : %s" % ("%d MB" % (physical / 1048576) if physical > 0 else "(not reported by OS)"))
+	_file.store_line("max_fps   : %d  vsync=%d" % [Engine.max_fps, DisplayServer.window_get_vsync_mode()])
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
 	_file.store_line("dir_used  : %s" % _log_dir)
