@@ -268,6 +268,32 @@ loads - nothing loads gameplay scenes during export.
 
 ---
 
+## What the note-pool prewarm actually did (measured)
+
+Confirmed working on device. `orphans` starts at **2416** on the first Chimera
+census instead of climbing from 1 to 589 over minutes - the pool is full
+before the song starts, so `spawn_note()` never instantiates mid-song.
+
+The win shows up in the *lows*, not the average:
+
+| | before | after |
+|---|---|---|
+| typical `fps_low` | 7-20 | 20-30 |
+| spikes per Chimera run | ~15 | ~9 |
+
+Costs about 12MB of RAM (148 -> 160MB in Chimera) for the pooled nodes.
+Worth it.
+
+The spike attribution works now too, and immediately said something new:
+several spikes follow **note-hit and character sing animations**
+(`sturmR_NoteHit_Init`, `chr_serena_sing_library/...`), not sequences. With 6
+AnimationPlayers per note that points back at the note scene's weight.
+
+Still unfixed after this: the multi-second stalls at cutscene starts
+(`proc=1882ms` and `373ms`, both on `122_fall`), the ~30fps ceiling from
+`proc` sitting near 50ms, and loads that keep growing within a session
+(shop: 13.6s first, 25.6s second) under VRAM pressure.
+
 ## Open problems
 
 1. **The ~50ms floor in Chimera.** Suspect: note scenes carrying 6
