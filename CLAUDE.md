@@ -564,3 +564,43 @@ Sidebar note: the settings sidebar's VBox separation is 20 (was 84) so all
 six entries fit the 640x480 console viewport - measured, at 84 the 5th
 button (Misc) was already mostly off-screen and a 6th would have been
 unreachable.
+
+### Four bugs a review of the Touch mode caught
+
+All four shipped in the same commit and none would have shown up in CI.
+
+**`_release()` has to be dispatched unconditionally.** The engine
+(`rubicon_level_note_controller.gd:263-266`) calls `_release()` on every
+key-up with no guard beyond `_should_process()`, and `_release()` is the
+*only* place manual play resets `lane_state` to `LANE_STATE_NEUTRAL`. The
+overlay guarded its release on "is this still the lane's current note",
+which is never true for a tap note (`_press` already advanced
+`note_hit_index` past it), so `lane_state` stuck at `LANE_STATE_HIT`
+forever. `monochrome_note_camera.gd:46-53` sums a camera offset per lane
+in that state, so Monochrome's camera drifted off-centre and stayed
+there. `_release()` is already self-guarding - just call it.
+
+**A runtime Control parented to a song root is in canvas layer 0.** Song
+roots are plain `Node`s, so a Control added to one sits in the default
+canvas, *below* `UILayer` (a CanvasLayer: layer 1, and **6** in
+Monochrome). `UILayer/GameUI` is a full-rect Control on the default
+`MOUSE_FILTER_STOP`, so it swallows every GUI touch first. Note tapping
+survived that (it runs off `_input()`, which precedes GUI), but the
+overlay's own red mechanic `Button` is picked through GUI and so could
+never be pressed - the pendulum was unplayable in Touch mode. Parent
+runtime touch UI to `UILayer`, like every authored touch control already
+is.
+
+**`find_children("*", "Button")` does not see a Control.**
+`ChimeraEscapeDPad extends Control`, so the overlay's "every visible
+Button is reserved" sweep missed it and a tap could drive the pad and hit
+a note at once. The overlay has a `reserved_controls` export for exactly
+this - but nothing populated it (the song scenes set `reserved_controls`
+on the *MobileControls* node, not on the overlay). The applier now copies
+that array over and appends the D-pad.
+
+**`Settings.applied` fires on every single option row.** Anything hooked
+to it that walks a scene tree runs on every keypress in the console - and
+the Collector's Shop tree is enormous. Guard scene-walking appliers on
+"is this actually a song" (`UILayer/GameUI/Player` exists) and do one
+walk, not one per node you are looking for.

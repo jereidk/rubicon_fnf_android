@@ -5961,7 +5961,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../../GameplayControl")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../../NoteLayout")
+focus_neighbor_bottom = NodePath("../TouchHaptics")
 theme = ExtResource("1")
 text = "Touch Note Hitbox Size: x"
 alignment = 0
@@ -5972,6 +5972,17 @@ value_max = 2.0
 value_min = 0.5
 console = NodePath("../../../../../../..")
 tooltip = "How big the tap target around each falling note is in Touch mode. Smaller means you have to aim; larger is more forgiving and also scales the round red mechanic button."
+
+[node name="TouchHaptics" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile/TouchOptions" unique_id=421278241 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../TouchNoteHitboxSize")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../../NoteLayout")
+text = "Vibration"
+property = &"lullaby_touch_haptics"
+console = NodePath("../../../../../../..")
+tooltip = "Buzzes briefly each time you hit a note in Touch mode. Turn it off if the constant vibration bothers you or drains the battery."
 
 [node name="NoteLayout" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300010 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -6008,7 +6019,7 @@ touch_options = NodePath("../TouchOptions")
 first_hitbox = NodePath("../HitboxOptions/HitboxHint")
 last_hitbox = NodePath("../HitboxOptions/MechanicHitboxDirection")
 first_touch = NodePath("../TouchOptions/TouchNoteHitboxSize")
-last_touch = NodePath("../TouchOptions/TouchNoteHitboxSize")
+last_touch = NodePath("../TouchOptions/TouchHaptics")
 note_layout = NodePath("../NoteLayout")
 
 [node name="OptionsSections" type="MarginContainer" parent="TabContainer/Settings" unique_id=1405641552]

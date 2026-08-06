@@ -16,8 +16,17 @@ class_name LullabyTouchNoteInput
 ## Touch mode is active, so no song scene has to be edited. Only the note
 ## at each handler's `note_hit_index` is ever a candidate: the engine
 ## judges lanes in order, so a "future" note cannot be hit without
-## skipping the ones before it. Tapping too early or off-note is a silent
-## ghost (the same LANE_STATE_PUSH the hitbox produces), never a penalty.
+## skipping the ones before it.
+##
+## A tap that lands on no note does nothing at all - it never reaches a
+## handler, so no LANE_STATE_PUSH is produced. That means Touch mode is
+## always effectively ghost-tapping-on and `Settings.game_ghost_tapping`
+## has no effect here, unlike the lane hitbox where an empty-lane press
+## goes through the engine and can be punished. That is a consequence of
+## targeting notes rather than lanes (there is no "the lane you meant"
+## to press when the tap matched nothing), not an oversight - changing it
+## would need a deliberate design decision about what an off-note tap
+## should cost.
 ##
 ## note_controller is duck-typed (a real RubiconLevelNoteController, but
 ## the contract is just `note_handlers` + `should_autoplay()` +
@@ -38,8 +47,14 @@ const LANE_ID_PREFIX := "mania_lane"
 ## local constant so this script has no compile-time dependency on the
 ## rubicon engine classes - everything else here is already duck-typed.
 const HIT_INCOMPLETE := 1
-const HAPTIC_FEEDBACK := true
 const HAPTIC_DURATION_MS := 35
+
+## The authored range of the Touch Note Hitbox Size option (see the
+## TouchNoteHitboxSize row in console.tscn). Everything that scales off
+## that setting clamps to this same pair, so a value that somehow lands
+## outside it degrades identically everywhere.
+const SIZE_SCALE_MIN := 0.5
+const SIZE_SCALE_MAX := 2.0
 
 ## Authoring for the special button (right-centre, 140x140, 30px gap).
 ## Scaled by the Touch Note Hitbox Size setting so a bigger tap target
@@ -78,7 +93,12 @@ const SPECIAL_BUTTON_SIZE := 140.0
 var _touch_to_note: Dictionary = {}
 var _lane_to_touch: Dictionary = {}
 var _reserved: Array[Control] = []
-var _special_scale: float = 1.0
+## Deliberately an impossible scale so the first _update_special_button_size()
+## always applies the offsets. Starting it at 1.0 meant that at the default
+## setting (also 1.0) the very first call early-returned, and the button only
+## ever had a rect because the applier happened to author the same numbers -
+## a silent break the moment either default moved.
+var _special_scale: float = -1.0
 
 func _ready() -> void:
 	add_to_group("lullaby_touch_note_input")
@@ -153,7 +173,7 @@ func _handle_touch(index: int, pos: Vector2, pressed: bool) -> void:
 ## lane that is already being held is skipped so a second finger cannot
 ## double-press the same hold.
 func _find_note_at(pos: Vector2) -> Dictionary:
-	var radius: float = BASE_RADIUS * clampf(Settings.lullaby_touch_note_hitbox_size, 0.25, 4.0)
+	var radius: float = BASE_RADIUS * clampf(Settings.lullaby_touch_note_hitbox_size, SIZE_SCALE_MIN, SIZE_SCALE_MAX)
 	var best: Dictionary = {"lane": -1, "index": -1}
 	var best_distance := radius
 
@@ -228,24 +248,29 @@ func _press_note(hit: Dictionary) -> void:
 
 	var event := InputEventScreenTouch.new()
 	handler.call("_press", event)
-	if HAPTIC_FEEDBACK:
+	if Settings.lullaby_touch_haptics:
 		Input.vibrate_handheld(HAPTIC_DURATION_MS)
 
+## Dispatched unconditionally on finger lift, exactly like the engine does
+## on key release (RubiconLevelNoteController._input calls _release with no
+## guard beyond _should_process). _release() is already self-guarding: it
+## only completes a hold when the lane's *current* note is still
+## HIT_INCOMPLETE, and otherwise just returns lane_state to
+## LANE_STATE_NEUTRAL.
+##
+## This used to be guarded on the note we pressed still being the lane's
+## current one, which is never true for a plain tap note (_press advances
+## note_hit_index past it), so _release() never ran and lane_state stayed
+## LANE_STATE_HIT forever. monochrome_note_camera.gd sums a camera offset
+## for every lane in that state, so Monochrome's camera drifted off-centre
+## after the first tap in each lane and never came back.
 func _release_note(hit: Dictionary) -> void:
 	var handler: Object = _handler_for(hit.lane)
 	if handler == null:
 		return
-	# Only complete the note if it is still the lane's current one AND
-	# still being held - a hold auto-completes at its end, after which
-	# note_hit_index has already advanced and this release must do nothing.
-	if handler.get("note_hit_index") != hit.index:
+	if not handler.has_method("_release") or not handler.has_method("_should_process"):
 		return
-	if not handler.has_method("_release"):
-		return
-	var results: Array = handler.get("results")
-	if hit.index >= results.size() or results[hit.index] == null:
-		return
-	if results[hit.index].get("scoring_hit") != HIT_INCOMPLETE:
+	if not handler.call("_should_process"):
 		return
 
 	var event := InputEventScreenTouch.new()
@@ -309,7 +334,7 @@ func _update_special_button() -> void:
 ## Re-derives the button's offsets from the Touch Note Hitbox Size
 ## setting, only when that scale actually changed (this runs every frame).
 func _update_special_button_size() -> void:
-	var scale: float = 0.5 + 0.5 * clampf(Settings.lullaby_touch_note_hitbox_size, 0.5, 2.0)
+	var scale: float = 0.5 + 0.5 * clampf(Settings.lullaby_touch_note_hitbox_size, SIZE_SCALE_MIN, SIZE_SCALE_MAX)
 	if is_equal_approx(scale, _special_scale):
 		return
 	_special_scale = scale

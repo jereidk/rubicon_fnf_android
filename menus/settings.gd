@@ -218,6 +218,11 @@ var lullaby_hitbox_gradient: bool = true
 var lullaby_hitbox_opacity: int = 100
 var lullaby_mechanic_hitbox_direction: int = MechanicHitboxDirection.BOTTOM
 var lullaby_touch_note_hitbox_size: float = 1.0
+## Short vibration on every note hit in Touch mode. On by default because
+## the tap targets are small and the buzz is the only non-visual confirm
+## the mode has, but on a dense chart it is near-continuous, so it needs
+## to be switchable.
+var lullaby_touch_haptics: bool = true
 var lullaby_show_pause_button: bool = true
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}

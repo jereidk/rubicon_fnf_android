@@ -19,9 +19,22 @@ extends Node
 const MECHANIC_SCRIPT_PATH := "res://addons/rubicon_mobile_controls/mechanic_touch_hitbox.gd"
 const PAUSE_BUTTON_PATH := "UILayer/SongTouchControls/PauseButton"
 const PENDULUM_SERVER_SCRIPT := "res://lullaby_mod/scripts/lullaby/mechanics/safety_lullaby/lullaby_pendulum_server.gd"
+## Chimera's crawl/escape pad. A plain Control, not a Button, so the
+## overlay's own "every visible Button is reserved" sweep cannot see it -
+## it has to be handed over explicitly or a tap would drive the pad and
+## hit a note at the same time.
+const ESCAPE_DPAD_SCRIPT := "res://lullaby_mod/songs/chimera/scripts/chimera_escape_dpad.gd"
 const TOUCH_OVERLAY_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_touch_note_input.gd"
 const MECHANIC_BUTTON_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_mechanic_action_button.gd"
 const CONTROLLER_PATH := "UILayer/GameUI/Player"
+## The songs' CanvasLayer. The overlay has to live under it: a Control
+## parented to the song root sits in the default canvas (layer 0), below
+## UILayer (layer 1, and 6 in Monochrome), where UILayer/GameUI - a
+## full-rect Control on the default MOUSE_FILTER_STOP - swallows every GUI
+## touch first. Note tapping still worked there because it runs off
+## _input(), but the overlay's own red mechanic Button is picked through
+## GUI and so could never be pressed, and drew behind the whole UI.
+const UI_LAYER_PATH := "UILayer"
 const TOUCH_OVERLAY_GROUP := &"lullaby_touch_note_input"
 
 ## Height of the pendulum band per mechanic direction, as a fraction of the
@@ -69,6 +82,15 @@ func _apply_to_current_scene() -> void:
 	# never leave a stale overlay behind.
 	_remove_touch_overlay()
 
+	# Everything below this point is song-only. Settings.applied fires on
+	# every single option the player touches in the console, so without this
+	# the Collector's Shop would walk its (very large) whole node tree twice
+	# per keypress looking for song nodes that cannot exist, and leave a
+	# full-screen overlay running _process in every menu.
+	var controller: Node = scene.get_node_or_null(CONTROLLER_PATH)
+	if controller == null:
+		return
+
 	var opacity: float = clampf(float(Settings.lullaby_hitbox_opacity) / 100.0, 0.0, 1.0)
 	var fill := Color(1, 1, 1, FILL_ALPHA * opacity)
 	var pressed := Color(1, 1, 1, clampf(PRESSED_ALPHA * opacity, 0.0, 1.0))
@@ -92,12 +114,17 @@ func _apply_to_current_scene() -> void:
 	if pause is Control:
 		pause.visible = Settings.lullaby_show_pause_button
 
-	var mechanic: Control = _find_mechanic_hitbox(scene)
+	# One walk for all three script-matched nodes: this runs on every
+	# Settings.applied, and a song scene is big enough that three separate
+	# find_children() sweeps were the most expensive thing here.
+	var found: Dictionary = _find_song_nodes(scene)
+	var mechanic: Control = found.get("mechanic")
+
 	if touch_mode:
 		# The pendulum plays through the round red button now, not the
 		# full-width zone (which would sit on the notes and eat their taps).
 		_disable_mechanic_hitbox(mechanic)
-		_create_touch_overlay(scene)
+		_create_touch_overlay(scene, controller, found)
 	else:
 		# Switching back to Hitbox mid-session must undo the disable above.
 		_restore_mechanic_hitbox(mechanic)
@@ -156,15 +183,25 @@ func _apply_mechanic_layout(mechanic: Control) -> void:
 				mobile.hitbox_bottom_percent = 0.0
 				mobile.hitbox_center_percent = MECHANIC_CENTER_BAND
 
-## The pendulum hitbox is only ever one node and only exists in Safety
-## Lullaby; matching by script resource path keeps this independent of each
-## scene's node names.
-func _find_mechanic_hitbox(scene: Node) -> Control:
+## Single pass for every node this script locates by script resource path
+## (which keeps it independent of each song's node names): the pendulum
+## hitbox and pendulum server, both Safety Lullaby only, and Chimera's
+## escape D-pad. Returns {"mechanic": Control, "pendulum": Node,
+## "escape_dpad": Control}, with missing entries simply absent.
+func _find_song_nodes(scene: Node) -> Dictionary:
+	var found: Dictionary = {}
 	for node in scene.find_children("*", "", true, false):
 		var script: Script = node.get_script()
-		if script != null and script.resource_path == MECHANIC_SCRIPT_PATH:
-			return node as Control
-	return null
+		if script == null:
+			continue
+		match script.resource_path:
+			MECHANIC_SCRIPT_PATH:
+				found["mechanic"] = node as Control
+			PENDULUM_SERVER_SCRIPT:
+				found["pendulum"] = node
+			ESCAPE_DPAD_SCRIPT:
+				found["escape_dpad"] = node as Control
+	return found
 
 func _remove_touch_overlay() -> void:
 	for node in get_tree().get_nodes_in_group(TOUCH_OVERLAY_GROUP):
@@ -196,7 +233,7 @@ func _restore_mechanic_hitbox(mechanic: Control) -> void:
 	if controller != null and controller.has_method("set_process"):
 		controller.set_process(true)
 
-func _create_touch_overlay(scene: Node) -> void:
+func _create_touch_overlay(scene: Node, controller: Node, found: Dictionary) -> void:
 	var overlay_script: Script = load(TOUCH_OVERLAY_SCRIPT)
 	if overlay_script == null:
 		push_error("MobileControlsApplier: failed to load touch overlay script %s" % TOUCH_OVERLAY_SCRIPT)
@@ -204,24 +241,34 @@ func _create_touch_overlay(scene: Node) -> void:
 	var overlay: Control = overlay_script.new()
 	overlay.name = "LullabyTouchNoteInput"
 	# Full-rect so the overlay (and its right-centre special button, which
-	# is anchored against the overlay's rect) covers the whole screen. The
-	# song scene roots are plain Nodes, so the anchorable rect is the
-	# viewport - same rule the MobileControls/SongTouchControls overlays
-	# rely on under their CanvasLayer parents.
+	# is anchored against the overlay's rect) covers the whole screen. Under
+	# a CanvasLayer the anchorable rect is the viewport - the same rule the
+	# MobileControls/SongTouchControls overlays already rely on.
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	overlay.note_controller = scene.get_node_or_null(CONTROLLER_PATH)
+	overlay.note_controller = controller
 
-	# The lane hitboxes already wire per-song HUD/gameover sources; reuse
-	# the first one's so this script does not need per-song paths.
+	# The lane hitboxes already wire per-song HUD/gameover sources and their
+	# own reserved zones; reuse the first one's so this script does not need
+	# per-song paths.
 	for control in get_tree().get_nodes_in_group(&"rubicon_mobile_controls"):
 		if not is_instance_valid(control):
 			continue
 		overlay.default_hud = control.get("default_hud")
 		overlay.gameover_source = control.get("gameover_source")
+		var shared: Array = control.get("reserved_controls")
+		if shared != null:
+			for zone in shared:
+				if zone is Control:
+					overlay.reserved_controls.append(zone)
 		break
 
-	overlay.mechanic_source = _find_pendulum_server(scene)
+	# Not a Button, so the overlay's automatic sweep cannot find it.
+	var escape_dpad = found.get("escape_dpad")
+	if escape_dpad is Control:
+		overlay.reserved_controls.append(escape_dpad)
+
+	overlay.mechanic_source = found.get("pendulum")
 
 	var button_script: Script = load(MECHANIC_BUTTON_SCRIPT)
 	if button_script == null:
@@ -232,25 +279,21 @@ func _create_touch_overlay(scene: Node) -> void:
 		button.name = "TouchSpecialButton"
 		button.set("action", &"lullaby_special")
 		button.visible = false
+		# Anchors only - the offsets are the overlay's to own, derived from
+		# the Touch Note Hitbox Size setting in _update_special_button_size()
+		# before the button is ever shown. Authoring them here as well meant
+		# two copies of the same geometry that only agreed by coincidence.
 		button.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-		button.offset_left = -170.0
-		button.offset_top = -70.0
-		button.offset_right = -30.0
-		button.offset_bottom = 70.0
 		button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 		overlay.add_child(button)
 		overlay.special_button = button
 
+	# Under the song's CanvasLayer, not the scene root - see UI_LAYER_PATH.
+	# Last child of UILayer puts it above the HUD for both drawing and GUI
+	# picking, which is what the red mechanic button needs to be pressable.
+	var parent: Node = scene.get_node_or_null(UI_LAYER_PATH)
+	if parent == null:
+		parent = scene
 	# Added after the button so the overlay's _ready() (which runs when the
 	# subtree enters the tree) already finds it among the reserved Buttons.
-	scene.add_child(overlay)
-
-## The special-mechanic source for the red button. Only Safety Lullaby has
-## one (LullabyPendulumServer); matched by script resource path like
-## _find_mechanic_hitbox so this does not depend on node names.
-func _find_pendulum_server(scene: Node) -> Node:
-	for node in scene.find_children("*", "", true, false):
-		var script: Script = node.get_script()
-		if script != null and script.resource_path == PENDULUM_SERVER_SCRIPT:
-			return node
-	return null
+	parent.add_child(overlay)
