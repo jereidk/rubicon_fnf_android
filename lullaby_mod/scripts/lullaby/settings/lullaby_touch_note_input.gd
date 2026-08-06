@@ -1,52 +1,60 @@
 extends Control
 class_name LullabyTouchNoteInput
 
-## Touch gameplay mode ("Gameplay Control: Touch" in the Mobile settings):
-## the player taps the falling notes themselves instead of the full-height
-## lane hitbox zones. Each tap picks the unhit note whose visual centre is
-## nearest to the finger, within a radius scaled by
-## Settings.lullaby_touch_note_hitbox_size; up to four simultaneous
-## fingers (one per lane) cover chords, and a held finger keeps a hold
-## note held until it is lifted - the engine's own judgment windows and
-## scoring are untouched, because this drives the exact same handler
-## methods (_press/_release) that the lane hitbox drives, just targeted at
-## a specific note instead of a whole lane.
+## Touch gameplay mode ("Gameplay Control: Touch" in the Mobile settings).
 ##
-## Instanced at runtime by lullaby_mobile_controls_applier.gd while the
-## Touch mode is active, so no song scene has to be edited. Only the note
-## at each handler's `note_hit_index` is ever a candidate: the engine
-## judges lanes in order, so a "future" note cannot be hit without
-## skipping the ones before it.
+## Behaves exactly like the lane hitbox (RubiconMobileControls), with two
+## differences: it draws nothing, and its tap zones sit on the STATIC
+## receptor arrows instead of running the full height of the screen.
 ##
-## A tap that lands on no note does nothing at all - it never reaches a
-## handler, so no LANE_STATE_PUSH is produced. That means Touch mode is
-## always effectively ghost-tapping-on and `Settings.game_ghost_tapping`
-## has no effect here, unlike the lane hitbox where an empty-lane press
-## goes through the engine and can be punished. That is a consequence of
-## targeting notes rather than lanes (there is no "the lane you meant"
-## to press when the tap matched nothing), not an oversight - changing it
-## would need a deliberate design decision about what an off-note tap
-## should cost.
+## ## Why the previous version was unplayable
 ##
-## note_controller is duck-typed (a real RubiconLevelNoteController, but
-## the contract is just `note_handlers` + `should_autoplay()` +
-## `disable_inputs`), matching the rest of the touch-addon's style.
+## It tried to be cleverer than the hitbox: each tap searched for the
+## falling note whose on-screen centre was nearest the finger, within a
+## radius. But the player taps the receptor - the static arrow at the
+## strumline - and a note only reaches that point at the instant it should
+## be hit. Any tap made before then (i.e. essentially every tap, since you
+## press *as* the note arrives, not after) found no note within the radius
+## and was silently dropped. It also refused a second finger on a lane that
+## was already held, so chords and holds fought each other. The result was
+## a mode that read as "the touchscreen does not respond".
+##
+## The fix is to stop targeting notes at all. Lanes are what the engine
+## judges; a tap belongs to a lane, and the engine decides whether a note
+## was there. That is precisely what the hitbox does, so this now shares
+## its dispatch path verbatim.
+##
+## ## Dispatch
+##
+## Presses go through RubiconTouchInputHandler (`/root/RubiconTouchInput`),
+## which synthesises an InputEventKey and feeds it to
+## Input.parse_input_event() - the same route RubiconMobileControls uses.
+## RubiconLevelNoteController matches raw InputEvents against its
+## RubiconLevelNoteInputMap, so this reaches the engine through its own
+## front door: judgment windows, scoring, splashes, character animations
+## and lane_state all behave identically to the hitbox and to a physical
+## keyboard, with no per-note bookkeeping here to get out of step.
+##
+## (The previous version called handler._press()/_release() directly. That
+## bypassed the controller and made this script responsible for state the
+## engine already owns - which is how it ended up leaving lane_state stuck
+## at LANE_STATE_HIT and drifting Monochrome's camera.)
+##
+## note_controller is duck-typed (a real RubiconLevelNoteController, but the
+## contract is just `note_handlers` + `should_autoplay()` + `disable_inputs`),
+## matching the rest of the touch-addon's style.
 
 signal note_pressed(lane: int)
 signal note_released(lane: int)
 
 const MOUSE_TOUCH_INDEX := -1000
-const MAX_ACTIVE_TOUCHES := 4
-## Half the lane spacing (160px) plus slack: at the default size the tap
-## radius covers the arrow art and the strumline offset without ever
-## reaching into a neighbouring lane's lane-line.
-const BASE_RADIUS := 100.0
 const LANE_ID_PREFIX := "mania_lane"
 
-## Matches RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE (1). Kept as a
-## local constant so this script has no compile-time dependency on the
-## rubicon engine classes - everything else here is already duck-typed.
-const HIT_INCOMPLETE := 1
+## Fallback lane spacing, used only if the lane positions cannot be read
+## (single lane, or handlers not laid out yet). The real value is measured
+## from the receptors themselves - see _lane_zones().
+const FALLBACK_SPACING := 160.0
+
 const HAPTIC_DURATION_MS := 35
 
 ## The authored range of the Touch Note Hitbox Size option (see the
@@ -90,15 +98,23 @@ const SPECIAL_BUTTON_SIZE := 140.0
 ## automatically - this covers non-Button zones only).
 @export var reserved_controls: Array[Control] = []
 
-var _touch_to_note: Dictionary = {}
-var _lane_to_touch: Dictionary = {}
-var _reserved: Array[Control] = []
+## touch index -> lane, and lane -> how many fingers are currently on it.
+## The refcount is what makes multitouch behave: a second finger landing on
+## a lane that is already held must not re-press it, and lifting one of two
+## fingers must not release the lane while the other is still down. The old
+## version rejected the second finger outright instead, which is why more
+## than a couple of fingers appeared not to work.
+var _touch_to_lane: Dictionary = {}
+var _lane_active_count: Dictionary = {}
+
 ## Deliberately an impossible scale so the first _update_special_button_size()
 ## always applies the offsets. Starting it at 1.0 meant that at the default
 ## setting (also 1.0) the very first call early-returned, and the button only
 ## ever had a rect because the applier happened to author the same numbers -
 ## a silent break the moment either default moved.
 var _special_scale: float = -1.0
+
+var _reserved: Array[Control] = []
 
 func _ready() -> void:
 	add_to_group("lullaby_touch_note_input")
@@ -133,6 +149,8 @@ func _input(event: InputEvent) -> void:
 
 	if event is InputEventScreenTouch:
 		_handle_touch(event.index, event.position, event.pressed)
+	elif event is InputEventScreenDrag:
+		_handle_drag(event.index, event.position)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_handle_touch(MOUSE_TOUCH_INDEX, event.position, event.pressed)
 
@@ -145,81 +163,97 @@ func _controller_accepts_input() -> bool:
 
 func _handle_touch(index: int, pos: Vector2, pressed: bool) -> void:
 	if pressed:
-		if _touch_to_note.has(index) or _lane_to_touch.size() >= MAX_ACTIVE_TOUCHES:
+		if _touch_to_lane.has(index):
 			return
 		if _is_reserved(pos):
 			return
-		var hit := _find_note_at(pos)
-		if hit.lane < 0:
+		var lane: int = _lane_at(pos)
+		if lane < 0:
 			return
-		if _lane_to_touch.has(hit.lane):
-			return
-		_touch_to_note[index] = hit
-		_lane_to_touch[hit.lane] = index
-		_press_note(hit)
-		note_pressed.emit(hit.lane)
+		_touch_to_lane[index] = lane
+		_press_lane(lane)
 	else:
-		if not _touch_to_note.has(index):
+		if not _touch_to_lane.has(index):
 			return
-		var hit: Dictionary = _touch_to_note[index]
-		_touch_to_note.erase(index)
-		if _lane_to_touch.get(hit.lane) == index:
-			_lane_to_touch.erase(hit.lane)
-		_release_note(hit)
-		note_released.emit(hit.lane)
+		var lane: int = _touch_to_lane[index]
+		_touch_to_lane.erase(index)
+		_release_lane(lane)
 
-## Nearest unhit note across the four lanes, within the scaled radius.
-## Only each lane's `note_hit_index` note counts (see class doc) and a
-## lane that is already being held is skipped so a second finger cannot
-## double-press the same hold.
-func _find_note_at(pos: Vector2) -> Dictionary:
-	var radius: float = BASE_RADIUS * clampf(Settings.lullaby_touch_note_hitbox_size, SIZE_SCALE_MIN, SIZE_SCALE_MAX)
-	var best: Dictionary = {"lane": -1, "index": -1}
-	var best_distance := radius
+## Sliding from one receptor to another hands the hold over, exactly like
+## RubiconMobileControls._handle_drag. Leaving every zone holds the lane
+## you started on rather than dropping it, so a finger that drifts slightly
+## off the arrow mid-hold does not break the hold.
+func _handle_drag(index: int, pos: Vector2) -> void:
+	if not _touch_to_lane.has(index):
+		return
+
+	var new_lane: int = _lane_at(pos)
+	var old_lane: int = _touch_to_lane[index]
+	if new_lane < 0 or new_lane == old_lane:
+		return
+
+	_touch_to_lane[index] = new_lane
+	_release_lane(old_lane)
+	_press_lane(new_lane)
+
+## The lane whose receptor zone contains `pos`, or -1.
+func _lane_at(pos: Vector2) -> int:
+	var zones: Dictionary = _lane_zones()
+	for lane: int in zones:
+		if (zones[lane] as Rect2).has_point(pos):
+			return lane
+	return -1
+
+## Tap zones, one per lane, centred on each lane's receptor.
+##
+## The receptor position is the note handler's own global position: each
+## Lane node is a zero-width Control sitting exactly where its static arrow
+## is drawn (offset_left == offset_right in the song scenes), so its global
+## position IS the arrow's centre. Recomputed per query rather than cached
+## because Midscroll animates Player:anchor_left/anchor_right every frame -
+## a cached rect would lag behind the arrows it is supposed to sit on.
+##
+## Zone size comes from the measured spacing between neighbouring lanes, so
+## at scale 1.0 the zones tile edge to edge with no dead gap between them,
+## whatever a given song's layout or the Note Layout setting does.
+func _lane_zones() -> Dictionary:
+	var zones: Dictionary = {}
+	if note_controller == null or not is_instance_valid(note_controller):
+		return zones
 
 	var handlers: Dictionary = note_controller.get("note_handlers")
+	if handlers == null:
+		return zones
+
+	var centres: Dictionary = {}
 	for key: String in handlers:
 		if not key.begins_with(LANE_ID_PREFIX):
 			continue
-		var lane: int = key.trim_prefix(LANE_ID_PREFIX).to_int()
-		if _lane_to_touch.has(lane):
-			continue
-
 		var handler: Object = handlers[key]
-		if handler == null or not handler.has_method("_press"):
+		if handler == null or not is_instance_valid(handler) or not (handler is Control):
 			continue
+		centres[key.trim_prefix(LANE_ID_PREFIX).to_int()] = (handler as Control).global_position
 
-		var index: int = handler.get("note_hit_index")
-		var data: Array = handler.get("data")
-		if index >= data.size():
-			continue
+	var spacing: float = _measure_spacing(centres)
+	var scale: float = clampf(Settings.lullaby_touch_note_hitbox_size, SIZE_SCALE_MIN, SIZE_SCALE_MAX)
+	var extent: Vector2 = Vector2(spacing, spacing) * scale * 0.5
+	for lane: int in centres:
+		zones[lane] = Rect2((centres[lane] as Vector2) - extent, extent * 2.0)
+	return zones
 
-		var graphics: Array = handler.get("graphics")
-		if index >= graphics.size() or graphics[index] == null:
-			continue
-
-		var results: Array = handler.get("results")
-		if index < results.size() and results[index] != null:
-			var scoring_hit: int = results[index].get("scoring_hit")
-			if scoring_hit == HIT_INCOMPLETE:
-				continue
-
-		var center: Vector2 = _note_center(graphics[index])
-		var distance: float = center.distance_to(pos)
-		if distance <= best_distance:
-			best_distance = distance
-			best = {"lane": lane, "index": index}
-
-	return best
-
-## Visual centre of a note in global coordinates: the rotated arrow
-## container's AABB centre when available, falling back to the note's own
-## global position (the lane-line point it crosses the strumline at).
-func _note_center(note: Control) -> Vector2:
-	var container = note.get("reference_container")
-	if container is Control:
-		return container.get_global_rect().get_center()
-	return note.global_position
+## Smallest horizontal gap between neighbouring receptors. Smallest rather
+## than average so zones never overlap on an unevenly spaced layout.
+func _measure_spacing(centres: Dictionary) -> float:
+	var xs: Array = []
+	for lane: int in centres:
+		xs.append((centres[lane] as Vector2).x)
+	if xs.size() < 2:
+		return FALLBACK_SPACING
+	xs.sort()
+	var best: float = INF
+	for i in range(1, xs.size()):
+		best = minf(best, absf(xs[i] - xs[i - 1]))
+	return best if best > 1.0 else FALLBACK_SPACING
 
 ## A tap inside a visible reserved zone (pause button, mechanic buttons,
 ## Chimera's zones...) never counts as a note: those controls consume the
@@ -232,61 +266,45 @@ func _is_reserved(pos: Vector2) -> bool:
 			return true
 	return false
 
-func _press_note(hit: Dictionary) -> void:
-	var handler: Object = _handler_for(hit.lane)
-	if handler == null:
-		return
-	# The note may have been missed/despawned between selection and press
-	# (a frame boundary); only press when it is still the lane's current
-	# note. Otherwise this is a ghost tap, same as the hitbox.
-	if handler.get("note_hit_index") != hit.index:
-		return
-	if not handler.has_method("_press") or not handler.has_method("_should_process"):
-		return
-	if not handler.call("_should_process"):
+func _press_lane(lane: int) -> void:
+	var count: int = _lane_active_count.get(lane, 0)
+	_lane_active_count[lane] = count + 1
+	if count > 0:
 		return
 
-	var event := InputEventScreenTouch.new()
-	handler.call("_press", event)
+	_dispatch(lane, true)
+	note_pressed.emit(lane)
 	if Settings.lullaby_touch_haptics:
 		Input.vibrate_handheld(HAPTIC_DURATION_MS)
 
-## Dispatched unconditionally on finger lift, exactly like the engine does
-## on key release (RubiconLevelNoteController._input calls _release with no
-## guard beyond _should_process). _release() is already self-guarding: it
-## only completes a hold when the lane's *current* note is still
-## HIT_INCOMPLETE, and otherwise just returns lane_state to
-## LANE_STATE_NEUTRAL.
-##
-## This used to be guarded on the note we pressed still being the lane's
-## current one, which is never true for a plain tap note (_press advances
-## note_hit_index past it), so _release() never ran and lane_state stayed
-## LANE_STATE_HIT forever. monochrome_note_camera.gd sums a camera offset
-## for every lane in that state, so Monochrome's camera drifted off-centre
-## after the first tap in each lane and never came back.
-func _release_note(hit: Dictionary) -> void:
-	var handler: Object = _handler_for(hit.lane)
-	if handler == null:
-		return
-	if not handler.has_method("_release") or not handler.has_method("_should_process"):
-		return
-	if not handler.call("_should_process"):
+func _release_lane(lane: int) -> void:
+	var count: int = _lane_active_count.get(lane, 0)
+	if count <= 0:
 		return
 
-	var event := InputEventScreenTouch.new()
-	handler.call("_release", event)
+	count -= 1
+	if count > 0:
+		_lane_active_count[lane] = count
+		return
 
-func _handler_for(lane: int) -> Object:
-	if note_controller == null or not is_instance_valid(note_controller):
-		return null
-	var handlers: Dictionary = note_controller.get("note_handlers")
-	return handlers.get("%s%d" % [LANE_ID_PREFIX, lane])
+	_lane_active_count.erase(lane)
+	_dispatch(lane, false)
+	note_released.emit(lane)
+
+## Same handler the lane hitbox emits into - see the class doc. Looked up
+## by path rather than held as a reference because it is an autoload and
+## this overlay is created and freed repeatedly as the setting changes.
+func _dispatch(lane: int, pressed: bool) -> void:
+	var handler: Node = get_node_or_null(^"/root/RubiconTouchInput")
+	if handler != null and handler.has_method("handle_touch_input"):
+		handler.call("handle_touch_input", lane, pressed)
 
 func _release_all() -> void:
-	for hit: Dictionary in _touch_to_note.values():
-		_release_note(hit)
-	_touch_to_note.clear()
-	_lane_to_touch.clear()
+	for lane: int in _lane_active_count.keys():
+		_dispatch(lane, false)
+		note_released.emit(lane)
+	_lane_active_count.clear()
+	_touch_to_lane.clear()
 
 func _update_visibility() -> void:
 	if get_tree().paused:
@@ -309,7 +327,7 @@ func _update_visibility() -> void:
 	_update_special_button()
 
 func _hide_and_release() -> void:
-	if visible or not _touch_to_note.is_empty():
+	if visible or not _lane_active_count.is_empty():
 		_release_all()
 	visible = false
 	if special_button != null and is_instance_valid(special_button):
