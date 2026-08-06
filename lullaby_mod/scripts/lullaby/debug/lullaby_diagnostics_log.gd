@@ -98,6 +98,8 @@ var _time_since_census: float = 0.0
 ## counts all idle work together and cannot separate them, so the delta is
 ## what distinguishes them.
 var _last_vram: int = 0
+## Previous entry's pipeline total, so each line can report its own delta.
+var _last_pipelines: int = 0
 var _last_memory: int = 0
 var _peak_memory: int = 0
 var _lowest_fps: int = -1
@@ -399,6 +401,32 @@ func _median_frame_ms() -> float:
 	sorted.sort()
 	return sorted[WINDOW_SIZE / 2]
 
+## Running total of GPU render pipelines the engine has had to compile.
+##
+## This is the field that settles the cutscene stalls. `frame` is clamped by
+## Godot at 150ms so it cannot show a real freeze, `proc` showed 1878ms on
+## `122_fall` but covers the whole process step, and every other counter
+## stayed flat through it - vram_delta was +0.0MB (so not texture upload) and
+## ram was flat (so not loading). Compiling a pipeline is the one remaining
+## candidate and, until 4.7 exposed these, the one thing the log could not
+## see at all.
+##
+## Summed across all five sources rather than logged separately: the question
+## is only "did the engine stop to build pipelines on this frame, and how
+## many", and one number per line keeps the entry readable. A jump on exactly
+## the stall frames confirms it; a flat 0 kills it and the search moves on.
+func _pipeline_compilations() -> int:
+	var total: int = 0
+	for info in [
+		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS,
+		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_MESH,
+		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE,
+		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW,
+		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION,
+	]:
+		total += int(RenderingServer.get_rendering_info(info))
+	return total
+
 ## Every entry carries the whole counter set. It makes lines long, but it
 ## means a single line answers "what was happening", instead of having to
 ## correlate it against the nearest heartbeat.
@@ -407,7 +435,10 @@ func _entry(kind: String, detail: String) -> void:
 		return
 
 	var seconds: float = float(Time.get_ticks_msec() - _session_start_ms) / 1000.0
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
+	var pipelines: int = _pipeline_compilations()
+	var pipe_delta: int = pipelines - _last_pipelines
+	_last_pipelines = pipelines
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -423,6 +454,8 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
 		int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
 		int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
+		pipelines,
+		pipe_delta,
 		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
@@ -526,6 +559,12 @@ func _write_header() -> void:
 	_file.store_line("cpu       : %s(%d threads)" % ["" if cpu.is_empty() else cpu + " ", OS.get_processor_count()])
 	_file.store_line("gpu       : %s" % RenderingServer.get_video_adapter_name())
 	_file.store_line("renderer  : %s" % RenderingServer.get_current_rendering_method())
+	_file.store_line("driver    : %s" % RenderingServer.get_video_adapter_api_version())
+	# Pipelines already built by the time the first scene is up. A baseline
+	# matters because the per-entry pipe=N(+D) delta is only meaningful
+	# against it - and if this is already in the thousands, the cutscene
+	# stalls are a small tail of a much larger compile budget.
+	_file.store_line("pipelines : %d compiled at boot" % _pipeline_compilations())
 	# get_memory_info()["physical"] reports 0 on Android, so report what the
 	# engine can actually see instead of a misleading zero.
 	var physical: int = OS.get_memory_info().get("physical", 0)

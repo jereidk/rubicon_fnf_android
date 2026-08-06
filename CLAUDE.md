@@ -201,10 +201,19 @@ counter set so one line answers "what was happening".
 
 How to read it:
 
-- `proc` high, `draw` flat -> CPU/script
+- `proc` high, `draw` flat -> CPU-side
 - `draw`/`vram` high -> GPU
-- **`frame` high but `proc` low -> engine-side work** (instantiation, texture
-  upload). `TIME_PROCESS` only measures GDScript `_process`.
+- **`pipe=N(+D)`** is the running count of GPU pipelines the engine has had to
+  compile, with this entry's delta. A non-zero `+D` on a stall frame means the
+  engine stopped to build shader pipelines - the one cause the log was blind
+  to before 4.7 exposed `RENDERING_INFO_PIPELINE_COMPILATIONS_*`.
+- `proc` is **not** GDScript-only. `TIME_PROCESS` covers the whole process
+  step, including engine-side node and animation work, and it also picks up
+  main-thread waits (it sits at 95-322ms during threaded scene loads, when
+  almost no script is running). So "proc high" does not mean "your script is
+  slow"; it means the frame's process step blocked, whatever on.
+- `frame` is clamped at 150ms, so `proc` is the only field that shows a real
+  freeze's true size - `122_fall` reads `frame=150ms` but `proc=1878ms`.
 - `orphans` climbing then **flat** -> a pool filling, not a leak
 - `SUMMARY vs_first` climbing with nothing else changing -> thermal throttling
 - `LOAD` checkpoints spread out -> resource loading; bunched at the end ->
