@@ -25,3 +25,11 @@ debug.keystore
 # Compiled ASTC helper (built fresh by CI, see tools/astc_compress/)
 tools/astc_compress/astc_compress
 .godot/astc_tmp/
+
+# Godot writes a .uid next to every file it scans, including the pre-run
+# importer outputs parked in these directories. Those are copied straight
+# into .godot/imported/ by name, so their sidecars are pure churn - a local
+# --import run would otherwise leave a dozen untracked files behind.
+precompiled_astc_imports/*.uid
+precompiled_lightmap_imports/*.uid
+precompiled_texture_imports/*.uid
