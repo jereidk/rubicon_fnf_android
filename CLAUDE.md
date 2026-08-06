@@ -650,10 +650,25 @@ Touch gameplay rules:
 - `disable_inputs` / `should_autoplay()` block touch input exactly like the
   engine controller does; physical keys still work in Touch mode.
 
-Sidebar note: the settings sidebar's VBox separation is 20 (was 84) so all
-six entries fit the 640x480 console viewport - measured, at 84 the 5th
-button (Misc) was already mostly off-screen and a 6th would have been
-unreachable.
+Sidebar note: the settings sidebar's VBox separation is 10 (was 84, then
+20). The console's own UI canvas is 1440x1080 (not the 640x480 the
+`ConsoleSubViewport` finally renders it into - that mismatch is what made
+this easy to get wrong twice). At 84 the 5th button (Misc) was already
+mostly off-screen and a 6th would have been unreachable; at 20 - the fix at
+the time - the math still wasn't checked against the real 1080 bound: 6
+buttons x 111 + 5 gaps x 20 + the 338 top margin lands at y=1104, 24px past
+the edge, which is exactly the "MOBILE almost runs off the TV screen" the
+next session's screenshot caught. 10 lands at 1054, with headroom to spare.
+
+The AUDIO/GRAPHICS/MOBILE wordmarks (`tools/console_art/make_wordmark.py`)
+had a second, separate bug: their outline was a uniform-thickness
+`MaxFilter` dilation, which reads as visibly heavier and blockier than the
+real scanned originals (GAMEPLAY/MISC/VISUALS) even at a matching cap
+height - a variable stroke simply has less solid ink overall. Fixed by
+blending a light and a heavy dilation through low-frequency noise (stroke
+width drifts) and perturbing the final threshold with high-frequency noise
+(a jagged, not-antialiased edge) - see the tool's own docstring and
+`tools/console_art/README.md`.
 
 ### Four bugs a review of the Touch mode caught
 

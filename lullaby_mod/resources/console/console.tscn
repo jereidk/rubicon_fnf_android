@@ -6033,7 +6033,7 @@ theme_override_constants/margin_top = 338
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Settings/OptionsSections" unique_id=1877562518]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 10
 
 [node name="GameplayButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=953757420 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)

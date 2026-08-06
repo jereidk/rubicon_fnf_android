@@ -19,3 +19,11 @@ Two constraints the sidebar imposes, both learned the hard way:
 - Every icon is normalised in `console.tscn` so its longest side is 146px.
   Art that does not fill its own canvas therefore renders smaller than
   its neighbours - keep the ink at ~95%+ of the canvas.
+- A uniform-thickness outline reads as visibly heavier/blockier than the
+  scanned originals (`gameplay.png`, `misc.png`, `visuals.png`) even at the
+  same cap height, because a variable stroke has less solid ink overall.
+  `make_wordmark.py` blends a light and a heavy dilation by low-frequency
+  noise and perturbs the threshold with high-frequency noise so the stroke
+  drifts in width and the edge is jagged rather than antialiased - this is
+  what made the first AUDIO/GRAPHICS/MOBILE pass (plain `MaxFilter`
+  dilation) look like clean vector art next to the real scans.

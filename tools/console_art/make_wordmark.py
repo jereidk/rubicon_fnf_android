@@ -1,8 +1,12 @@
-"""Same lettering pass that produced mobile.png, but auto-sizing the canvas
-to a target cap height instead of a fixed one. audio.png (70px caps) and
-graphics.png (56px) were drawn much smaller than gameplay (101), misc (98)
-and visuals (92), which is a large part of why the sidebar column read as
-uneven."""
+"""Auto-sizes the canvas to a target cap height, like the previous pass, but
+replaces the uniform MaxFilter dilation with the same kind of roughness
+marker.py already uses for the icons: stroke width drifts (low-frequency
+noise blends a thin and a thick dilation) and the edge is perturbed by
+higher-frequency noise before thresholding, instead of being cleanly
+antialiased. Without this, AUDIO/GRAPHICS/MOBILE came out as smooth, evenly
+thick "bubble letters" next to GAMEPLAY/MISC/VISUALS' actual scanned-marker
+originals - visually heavier and blockier despite a similar cap height,
+because a uniform stroke reads as more solid ink than a variable one."""
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import numpy as np, sys
 
@@ -15,6 +19,26 @@ OUT, TEXT, TARGET = sys.argv[1], sys.argv[2], int(sys.argv[3])
 MAXW = int(sys.argv[4]) if len(sys.argv) > 4 else 0
 SS = 4
 PAD = 8
+
+
+def noise2(h, w, seed, cell, octaves=1):
+    """Smooth 2-D value noise: a coarse random grid resized up, a couple of
+    octaves summed. No scipy/cv2 in this environment, so this stands in for
+    the Perlin-ish field a real ink-roughness pass would use."""
+    rng = np.random.default_rng(seed)
+    out = np.zeros((h, w), np.float32)
+    amp = 1.0
+    for o in range(octaves):
+        c = max(2, int(cell / (2 ** o)))
+        gh, gw = h // c + 3, w // c + 3
+        grid = rng.uniform(-1, 1, (gh, gw)).astype(np.float32)
+        small = Image.fromarray(((grid + 1) * 127.5).astype(np.uint8))
+        big = small.resize((w, h), Image.BICUBIC)
+        out += (np.array(big, np.float32) / 127.5 - 1.0) * amp
+        amp *= 0.5
+    out /= out.std() if out.std() > 0 else 1.0
+    return out
+
 
 f0 = ImageFont.truetype(FONT, 400)
 metrics = []
@@ -53,9 +77,30 @@ sx = np.clip(xx + fx, 0, w - 1).astype(np.int32)
 sy = np.clip(yy + fy, 0, h - 1).astype(np.int32)
 layer = Image.fromarray(a[sy, sx].astype(np.uint8))
 
-outline = layer.filter(ImageFilter.MaxFilter(int(10 * SS) | 1))
-outline = outline.filter(ImageFilter.GaussianBlur(0.6 * SS)).point(lambda v: 255 if v > 96 else 0)
-fill = layer.filter(ImageFilter.GaussianBlur(0.35 * SS)).point(lambda v: 255 if v > 128 else 0)
+# Variable-width stroke: blend a light and a heavy dilation by a
+# low-frequency noise mask, so the ink is thick in some stretches and thin
+# in others instead of a uniform ring (compare a scanned marker letter to a
+# vector outline - the difference is entirely in this unevenness).
+small_dil = np.array(layer.filter(ImageFilter.MaxFilter(int(7 * SS) | 1)), np.float32)
+big_dil = np.array(layer.filter(ImageFilter.MaxFilter(int(15 * SS) | 1)), np.float32)
+width_mix = noise2(h, w, 11, 26 * SS, octaves=2) * 0.5 + 0.5
+dilated = small_dil * (1 - width_mix) + big_dil * width_mix
+
+# Jagged edge: perturb the threshold with higher-frequency noise so the
+# boundary crosses at different points instead of a smooth antialiased
+# curve - a torn/scanned look rather than clean vector art.
+edge_noise = noise2(h, w, 23, 3 * SS, octaves=2) * 46
+outline = np.where(dilated + edge_noise > 118, 255, 0).astype(np.uint8)
+outline = Image.fromarray(outline).filter(ImageFilter.GaussianBlur(0.35 * SS))
+outline = outline.point(lambda v: 255 if v > 110 else 0)
+# Keeps the jaggedness at the true edge; without this gate the same noise
+# also lit up stray flecks out in the empty background.
+gate = np.array(layer.filter(ImageFilter.MaxFilter(int(19 * SS) | 1)), np.float32) > 10
+outline = Image.fromarray(np.array(outline) * gate.astype(np.uint8))
+
+fill_noise = noise2(h, w, 41, 3 * SS, octaves=2) * 46
+fill_base = np.array(layer.filter(ImageFilter.GaussianBlur(0.35 * SS)), np.float32)
+fill = Image.fromarray(np.where(fill_base + fill_noise > 128, 255, 0).astype(np.uint8))
 
 img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 img.paste((20, 20, 20, 255), (0, 0), outline)
