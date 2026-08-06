@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b3p4arwnoxr8e" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gd" id="1"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/quality_gated_scene_loader.gd" id="303"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console_viewport_gate.gd" id="304"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/menu_touch_controls.tscn" id="202"]
 [ext_resource type="Resource" uid="uid://4l7ftjieh7in" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2"]
 [ext_resource type="Resource" uid="uid://dcnjvtc5155m2" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3"]
@@ -11143,9 +11144,11 @@ can_interact = false
 shape = SubResource("BoxShape3D_ykalx")
 debug_color = Color(0.36743256, 0, 0.70196074, 0.41960785)
 
-[node name="TvViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=937362603]
+[node name="TvViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=937362603 node_paths=PackedStringArray("console_viewport")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7645445, 1.8503802, 4.142391)
 aabb = AABB(-0.001, -0.36605573, -0.4545362, 0.002, 0.8610177, 0.9530177)
+script = ExtResource("304")
+console_viewport = NodePath("../../../Viewports/ConsoleSubViewport")
 
 [node name="TvLightDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=1628976616]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7645445, 1.88679, 3.984003)
@@ -11549,13 +11552,8 @@ autoplay = "fire"
 [node name="Viewports" type="Node" parent="." unique_id=1492244453]
 
 [node name="ConsoleSubViewport" type="SubViewport" parent="Viewports" unique_id=52083909]
-use_taa = true
 anisotropic_filtering_level = 0
-positional_shadow_atlas_size = 1024
-positional_shadow_atlas_quad_0 = 1
-positional_shadow_atlas_quad_1 = 1
-positional_shadow_atlas_quad_2 = 2
-positional_shadow_atlas_quad_3 = 3
+positional_shadow_atlas_size = 0
 size = Vector2i(640, 480)
 
 [node name="Console" parent="Viewports/ConsoleSubViewport" unique_id=523863700 node_paths=PackedStringArray("shop", "sequences", "focus_right_area") instance=ExtResource("188")]
@@ -11836,8 +11834,6 @@ visible_property = &"is_focused"
 [connection signal="mouse_exited" from="UI/Control/Dialogue/Background" to="UI/Control/Dialogue" method="_on_background_mouse_exited"]
 [connection signal="free_soultoken" from="Notepad" to="Notepad" method="_on_free_soultoken"]
 [connection signal="screen_exited" from="Collector/CollectorScreenNotifier" to="." method="collector_unseen"]
-[connection signal="screen_entered" from="Environment/Areas/TvViewportDisabler" to="Viewports/ConsoleSubViewport" method="set_update_mode" binds= [4]]
-[connection signal="screen_exited" from="Environment/Areas/TvViewportDisabler" to="Viewports/ConsoleSubViewport" method="set_update_mode" binds= [0]]
 [connection signal="screen_entered" from="Environment/Areas/TvLightDisabler" to="Environment/shop_base/prp_tv/TVLight" method="show"]
 [connection signal="screen_exited" from="Environment/Areas/TvLightDisabler" to="Environment/shop_base/prp_tv/TVLight" method="hide"]
 [connection signal="screen_entered" from="Environment/Areas/RegisterDisabler" to="Environment/shop_base/prp_register" method="show"]
