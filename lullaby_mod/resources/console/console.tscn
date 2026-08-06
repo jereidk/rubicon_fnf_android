@@ -68,6 +68,8 @@
 [ext_resource type="Texture2D" uid="uid://tu6ap7esthlkb" path="res://lullaby_mod/assets/menus/console/options/audio/audio.png" id="204"]
 [ext_resource type="Texture2D" uid="uid://bgmebrpx2ig1e" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile.png" id="205"]
 [ext_resource type="Texture2D" uid="uid://crvds4andx3ck" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile_icon.png" id="206"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/audio/audio_icon.png" id="208"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics_icon.png" id="209"]
 [ext_resource type="Script" uid="uid://ibfakic30xh6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/mobile_section_visibility.gd" id="207"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
@@ -5278,7 +5280,7 @@ property = &"display_screen_aspect"
 display_list = ["Wide", "Normal"]
 values_list = [4, 1]
 console = NodePath("../../../../../..")
-tooltip = "Wide fills a wide screen with extra game world - can look stretched on a wide phone. Normal locks a standard 16:9 frame and pillarboxes the rest."
+tooltip = "Wide fills a wide screen with extra game world, which can look stretched on a wide phone. Normal locks a standard 16:9 frame and pillarboxes the rest."
 
 [node name="VSync" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=275378457 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5362,7 +5364,7 @@ property = &"lullaby_debug_display"
 display_list = ["Off", "Simple", "Detailed", "Advanced"]
 values_list = [0, 1, 2, 3]
 console = NodePath("../../../../../..")
-tooltip = "Which debug overlay to show. Simple is just FPS and memory, Detailed adds build/engine info, Advanced adds rendering and memory diagnostics. The Debug Keybind above cycles the same setting."
+tooltip = "Which debug overlay to show. Simple is FPS and memory, Detailed adds build info, Advanced adds rendering diagnostics. The keybind above cycles it."
 
 [node name="DeleteSaveData" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1733233463 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5602,7 +5604,7 @@ property = &"graphics_scaling_mode"
 display_list = ["Bilinear", "FSR", "FSR2", "Nearest"]
 values_list = [0, 1, 2, 5]
 console = NodePath("../../../../../..")
-tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR2 looks the sharpest and adds light anti-aliasing, but needs the Forward+ renderer (desktop only, not the Collector's Shop on Android). FSR looks sharper than Bilinear for nearly the same cost. Nearest is the cheapest and blockiest - only for when every bit of GPU time counts."
+tooltip = "How the image is stretched back up when Render Scale is below 100%. FSR2 is the sharpest but desktop only; FSR beats Bilinear for the same cost; Nearest is cheapest."
 
 [node name="FSRSharpness" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5618,7 +5620,7 @@ property = &"graphics_fsr_sharpness"
 display_list = ["Sharpest", "Sharp", "Default", "Soft", "Softest"]
 values_list = [0.0, 0.5, 1.0, 1.5, 2.0]
 console = NodePath("../../../../../..")
-tooltip = "How sharp the FSR/FSR2 upscale looks. Only does anything when Upscaling is set to FSR or FSR2 and Render Scale is below 100%. Sharper can look crunchy on low render scales; softer hides upscaling artifacts. Free either way - it costs no extra performance."
+tooltip = "How sharp the FSR/FSR2 upscale looks. Only does anything with FSR or FSR2 and Render Scale below 100%. Costs no performance either way."
 
 [node name="Shadows" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=1473158606 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
@@ -5645,7 +5647,7 @@ property = &"graphics_positional_shadow_atlas_size"
 display_list = ["512", "1024", "2048", "4096", "8192"]
 values_list = [512, 1024, 2048, 4096, 8192]
 console = NodePath("../../../../../..")
-tooltip = "Size of the shadow map every light shares. Lower means blockier shadow edges but real GPU and VRAM savings - one of the better knobs on a weak phone. Does nothing while Shadows is off."
+tooltip = "Size of the shadow map every light shares. Lower means blockier edges but real GPU and VRAM savings, one of the better knobs on a weak phone. Does nothing while Shadows is off."
 
 [node name="ShadowFilterQuality" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=917660058 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5677,7 +5679,7 @@ property = &"graphics_msaa_3d_quality"
 display_list = ["Off", "2x", "4x", "8x"]
 values_list = [0, 1, 2, 3]
 console = NodePath("../../../../../..")
-tooltip = "Smooths jagged edges by rendering extra samples per pixel. Costs GPU time - turn it off first."
+tooltip = "Smooths jagged edges by rendering extra samples per pixel. Costs GPU time, so turn it off first."
 
 [node name="ScreenSpaceAA" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=153710184 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5693,7 +5695,7 @@ property = &"graphics_screen_space_aa_quality"
 display_list = ["Off", "SMAA"]
 values_list = [0, 1]
 console = NodePath("../../../../../..")
-tooltip = "A cheaper edge-smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
+tooltip = "A cheaper edge smoothing pass than MSAA. Worth trying if MSAA alone is still too slow."
 
 [node name="SSAO" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
@@ -5704,7 +5706,7 @@ focus_neighbor_bottom = NodePath("../SSIL")
 text = "Ambient Occlusion"
 property = &"graphics_ssao"
 console = NodePath("../../../../../..")
-tooltip = "Soft contact shadows in corners and where objects meet. Expensive on mobile GPUs for a fairly subtle effect - an easy win to turn off. Only affects the Collector's Shop."
+tooltip = "Soft contact shadows in corners and where objects meet. Expensive on mobile GPUs for a fairly subtle effect, so an easy win to turn off. Collector's Shop only."
 
 [node name="SSIL" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
@@ -5715,7 +5717,7 @@ focus_neighbor_bottom = NodePath("../PostProcessing")
 text = "Indirect Lighting"
 property = &"graphics_ssil"
 console = NodePath("../../../../../..")
-tooltip = "Bounced light from nearby surfaces picking up their colour. The single most expensive effect here, and the hardest to notice once the shop is lit - turn it off first. Only affects the Collector's Shop."
+tooltip = "Bounced light picking up the colour of nearby surfaces. The most expensive effect here and the hardest to notice, so turn it off first. Collector's Shop only."
 
 [node name="PostProcessing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=795425564 node_paths=PackedStringArray("console")]
 layout_mode = 2
@@ -5742,7 +5744,7 @@ focus_neighbor_bottom = NodePath(".")
 text = "Reduce Visual Effects"
 property = &"graphics_disable_shader_effects"
 console = NodePath("../../../../../..")
-tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically - use this to get the same boost without dropping the rest of your preset."
+tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically; use it to get the same boost without dropping the rest of your preset."
 
 [node name="Audio" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
@@ -5888,7 +5890,7 @@ property = &"lullaby_mobile_control_mode"
 display_list = ["Hitbox", "Touch"]
 values_list = [0, 1]
 console = NodePath("../../../../../..")
-tooltip = "How notes are played on touch. Hitbox is the full-height lane zones. Touch lets you tap the falling notes directly - each finger hits the note nearest to it, up to four at once for chords. In Touch mode the lane zones disappear and the pendulum mechanic is played with a round red button instead."
+tooltip = "How notes are played. Hitbox uses the full height lane zones. Touch lets you tap the falling notes themselves, up to four fingers at once for chords."
 
 [node name="HitboxOptions" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300003]
 layout_mode = 2
@@ -6052,8 +6054,8 @@ position = Vector2(169, 55)
 texture = ExtResource("59")
 
 [node name="GameplayIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GameplayButton/Gameplay" unique_id=1204631900]
-position = Vector2(-238, -1)
-scale = Vector2(1.3536586, 1.3536586)
+position = Vector2(-238, -4)
+scale = Vector2(1.3518519, 1.3518519)
 texture = ExtResource("60")
 
 [node name="AudioButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
@@ -6077,9 +6079,9 @@ position = Vector2(169, 55)
 texture = ExtResource("204")
 
 [node name="AudioIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/AudioButton/Audio"]
-position = Vector2(-239.00002, -8.9999695)
-scale = Vector2(1.2136714, 1.2136713)
-texture = ExtResource("62")
+position = Vector2(-238, -4)
+scale = Vector2(1.3518519, 1.3518519)
+texture = ExtResource("208")
 
 [node name="VisualsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2131229385 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6102,8 +6104,8 @@ position = Vector2(169, 55)
 texture = ExtResource("61")
 
 [node name="VisualsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/VisualsButton/Visuals" unique_id=1547676887]
-position = Vector2(-239.00002, -8.9999695)
-scale = Vector2(1.2136714, 1.2136713)
+position = Vector2(-238, -4)
+scale = Vector2(1.0428572, 1.0428572)
 texture = ExtResource("62")
 
 [node name="GraphicsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1900773422 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
@@ -6127,9 +6129,9 @@ position = Vector2(169, 55)
 texture = ExtResource("203")
 
 [node name="GraphicsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GraphicsButton/Graphics" unique_id=1900773424]
-position = Vector2(-239.00002, -8.9999695)
-scale = Vector2(1.2136714, 1.2136713)
-texture = ExtResource("62")
+position = Vector2(-238, -4)
+scale = Vector2(1.3518519, 1.3518519)
+texture = ExtResource("209")
 
 [node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6152,8 +6154,8 @@ position = Vector2(169, 55)
 texture = ExtResource("63")
 
 [node name="MiscIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton/Misc" unique_id=1872034145]
-position = Vector2(-227, -3)
-scale = Vector2(1.3536586, 1.3536586)
+position = Vector2(-238, -4)
+scale = Vector2(1.364486, 1.364486)
 texture = ExtResource("64")
 
 [node name="MobileButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2146300013 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
@@ -6177,8 +6179,8 @@ position = Vector2(169, 55)
 texture = ExtResource("205")
 
 [node name="MobileIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MobileButton/Mobile" unique_id=2146300015]
-position = Vector2(-238, -1)
-scale = Vector2(1.3536586, 1.3536586)
+position = Vector2(-238, -4)
+scale = Vector2(1.3518519, 1.3518519)
 texture = ExtResource("206")
 
 [node name="Tooltip" type="Label" parent="TabContainer/Settings" unique_id=16871969]
@@ -6186,12 +6188,14 @@ unique_name_in_owner = true
 custom_maximum_size = Vector2(1440, -1)
 layout_mode = 0
 offset_left = 0.73399353
-offset_top = 1032.0
+offset_top = 1012.0
 offset_right = 1440.734
-offset_bottom = 1074.0
+offset_bottom = 1082.0
 theme_override_fonts/font = ExtResource("65")
 text = "test test test test test test test test test test test test test test test test test test test test"
+autowrap_mode = 3
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Cartridges" type="Control" parent="TabContainer" unique_id=1033664902 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
