@@ -42,6 +42,8 @@ class_name RubiconCharacter extends Node
 			var clock:RubiconLevelClock = level_note_controller.get_level_clock()
 			if clock.step_change.is_connected(step_change):
 				clock.step_change.disconnect(step_change)
+			if clock.time_change_set.is_connected(_clock_time_change_set):
+				clock.time_change_set.disconnect(_clock_time_change_set)
 			if clock.animation_player.animation_started.is_connected(song_started):
 				clock.animation_player.animation_started.disconnect(song_started)
 
@@ -58,7 +60,11 @@ class_name RubiconCharacter extends Node
 
 			var clock:RubiconLevelClock = level_note_controller.get_level_clock()
 			clock.step_change.connect(step_change)
+			clock.time_change_set.connect(_clock_time_change_set)
 			clock.animation_player.animation_started.connect(song_started)
+			# The clock may already have settled on a time change before this
+			# character was wired up, in which case no signal is coming.
+			_clock_time_change_set()
 
 @export_group("Singing", "singing_")
 @export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var singing_should_sing:bool = true
@@ -75,7 +81,28 @@ class_name RubiconCharacter extends Node
 
 @export_group("Dancing", "dancing_")
 @export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var dancing_should_dance:bool = true
-@export var dancing_step_interval:int = 8
+## How often to dance, measured in *measures* rather than steps: the actual
+## step interval is derived from the song's current time signature in
+## _recalculate_dance_step().
+##
+## This replaces a fixed `dancing_step_interval = 8`, which silently
+## hardcoded a 4/4 cadence (4 x 4 x 0.5 = 8). Monochrome and Safety Lullaby
+## are 3/4, where the correct interval is 6 - so their characters danced on
+## the wrong beats and cut off whatever animation was running. Worse, the
+## mod's own character scenes already author this property
+## (chr_serena_base.tscn and chr_hypno_safety.tscn both set 0.25, and
+## chr_hypno_safety.tscn animates it mid-song across three tracks); with no
+## such property on the script, every one of those values and tracks was
+## being silently discarded.
+@export var dancing_measure_step:float = 0.5:
+	set(value):
+		if is_equal_approx(_dance_measure_step, value):
+			return
+
+		_dance_measure_step = value
+		_clock_time_change_set()
+	get:
+		return _dance_measure_step
 @export var dancing_force_dance:bool = true
 @export_storage var dancing_animations:Array[StringName] = []:
 	set(value):
@@ -99,6 +126,15 @@ var _last_result:RubiconLevelNoteHitResult
 
 var _last_sing_anim:StringName
 var _last_sing_step:float
+
+## Backing store for dancing_measure_step, plus the two values derived from
+## it and the song's time signature by _recalculate_dance_step(). The
+## offset anchors the interval to the measure the current time change
+## starts on, so a mid-song signature change re-phases the dance instead of
+## keeping the old grid.
+var _dance_measure_step:float = 0.5
+var _dance_step_offset:int = 0
+var _dance_step_interval:int = 8
 
 var _last_dance_step:int
 var _dance_anim_index:int
@@ -202,11 +238,71 @@ func step_change() -> void:
 			_refresh_last_sing_anim()
 			play(_last_sing_anim, true)
 
-	if dancing_should_dance:# and not _handlers_pressed.values().has(true):
+	if _should_dance():
 		var cur_step:int = floori(level_note_controller.get_level_clock().time_step)
 		if state == CharacterState.STATE_RESTING:
-			if cur_step % dancing_step_interval == 0:
+			if (cur_step - _dance_step_offset) % _dance_step_interval == 0:
 				state = CharacterState.STATE_DANCING
+
+## Whether the idle dance is allowed to take over right now.
+##
+## The held-note case is the reason this exists: while the player is holding
+## a mania lane (lane_state == LANE_STATE_HIT) the character must stay on its
+## sing animation, or the dance interrupts the hold visually. This used to be
+## a commented-out clause on the `dancing_should_dance` check in
+## step_change(), which meant the guard did nothing at all.
+func _should_dance() -> bool:
+	if not dancing_should_dance:
+		return false
+
+	if !level_note_controller.should_autoplay() and _handlers_pressed.values().has(true):
+		var handlers: Array = level_note_controller.note_handlers.values()
+		var pressed: Array = _handlers_pressed.values()
+		for i in mini(pressed.size(), handlers.size()):
+			if not pressed[i]:
+				continue
+			# Duck-typed on purpose: lane_state lives on
+			# RubiconLevelManiaNoteHandler, not on the base class, so a typed
+			# access through RubiconLevelNoteHandler would not even parse.
+			# (The decompiled reference annotates it as the base type, which
+			# is the decompiler inferring a type the real source cannot have
+			# had.) LANE_STATE_HIT == 2.
+			var note_handler: Object = handlers[i]
+			if note_handler.get_mode_id() == &"mania" and int(note_handler.get(&"lane_state")) == 2:
+				return false
+
+	return true
+
+## Re-derives the dance grid whenever the song's time change moves. Called
+## on the clock's time_change_set signal and when dancing_measure_step is
+## assigned (including from a scene or an animation track).
+func _clock_time_change_set() -> void:
+	if not _valid_controller():
+		return
+
+	var clock: RubiconLevelClock = level_note_controller.get_level_clock()
+	var time_change: RubiconTimeChange = clock._last_time_change
+	if not time_change:
+		return
+
+	_dance_step_offset = int(RubiconTimeChange.get_step_at_measure(clock.get_time_changes(), time_change.measure))
+	_recalculate_dance_step()
+
+## interval = numerator * denominator * measure_step. For 4/4 at the default
+## 0.5 this is 8 - the value that used to be hardcoded - but for a 3/4 song
+## it is 6, which is what Monochrome and Safety Lullaby actually need.
+func _recalculate_dance_step() -> void:
+	if not _valid_controller():
+		return
+
+	var clock: RubiconLevelClock = level_note_controller.get_level_clock()
+	var time_change: RubiconTimeChange = clock._last_time_change
+	if not time_change:
+		return
+
+	_dance_step_interval = maxi(1, floori(
+		time_change.time_signature_numerator * time_change.time_signature_denominator * _dance_measure_step
+	))
 
 func song_started(anim_name:StringName) -> void:
 	_dance_anim_index = 0

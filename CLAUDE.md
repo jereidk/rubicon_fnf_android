@@ -132,6 +132,44 @@ bone names with dots, the `.gltf` importer writes underscores; 86% of the
 Collector's and Hex's tracks were being discarded without a warning. Fixed
 across ~3305 tracks in `15fa53c`.
 
+**Our Rubicon fork is not the mod's Rubicon, and the scenes were authored
+against theirs.** The extracted scenes set properties and animate tracks
+that only exist on the original engine; where our fork renamed or dropped
+one, the authored value and every track targeting it are discarded in
+silence. This is how Monochrome stayed broken for months: our
+`rubicon_character.gd` had replaced the original's `dancing_measure_step`
+(a per-measure rate, turned into steps via the song's time signature) with
+a fixed `dancing_step_interval = 8`. 4x4x0.5 = 8, so 4/4 songs were right
+by coincidence and Chimera looked fine - but Monochrome and Safety Lullaby
+are **3/4**, where the interval should be 6, so their characters danced on
+the wrong beats and cut off whatever animation was running. On top of that
+`chr_serena_base.tscn` and `chr_hypno_safety.tscn` both author
+`dancing_measure_step = 0.25`, and Hypno's scene *animates* it across three
+tracks - all silently dropped. Restored in the same commit as this note.
+
+**When a port bug survives every data check, decompile the pck's engine and
+diff it.** `/tmp/gdre_tools/gdre_tools.x86_64` (GDRE 2.6.3) does it
+properly - `tools/read_pck_scripts.gd` recovers only *string constants*,
+not identifiers, so "nothing mentions X" is worthless for function and
+property names (verified: `singing_hold_type` returns zero hits even though
+the pck's own scenes assign it). The real recipe:
+
+```bash
+cd /tmp/gdre_tools
+./gdre_tools.x86_64 --headless --extract=<pck> --include="res://addons/rubicon/**" --output=<dir>
+./gdre_tools.x86_64 --headless --decompile=<dir>/path/to/file.gdc --bytecode=4.5.0
+```
+
+`--scripts-only` and `--include` are mutually exclusive. The decompiler
+*infers* type annotations that the real source cannot have had - it
+annotated a handler as `RubiconLevelNoteHandler` and then read `lane_state`
+off it, which only exists on the mania subclass and would not parse. Treat
+its types as hints, not truth.
+
+`gdre_tools.x86_64 --headless --compile=<file.gd> --bytecode=4.5.0` is also
+the fastest syntax check for an engine script, since a fresh test project
+cannot resolve Rubicon's `class_name`s and drowns real errors in noise.
+
 **`git push` for LFS is blocked** - `lfs.github.com` gets a 403 at CONNECT
 from the environment proxy (org policy, do not retry or work around it).
 `github.com` itself is fine. Anything under `precompiled_astc_imports/*.res`

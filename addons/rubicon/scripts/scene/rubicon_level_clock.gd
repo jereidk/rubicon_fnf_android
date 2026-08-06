@@ -63,6 +63,11 @@ var _cached_step: float
 signal measure_change
 signal beat_change
 signal step_change
+## Emitted when the song crosses into a different RubiconTimeChange, i.e.
+## when the time signature or BPM in effect changes. RubiconCharacter needs
+## it to re-derive its dance interval from the new signature - without it a
+## 3/4 song keeps dancing on a 4/4 cadence.
+signal time_change_set
 
 func get_time_precise() -> float:
 	return _current_frame_time + (Time.get_unix_time_from_system() - _relative_time_offset) * 1000.0
@@ -156,7 +161,11 @@ func recalculate_cache() -> void:
 	var changes := get_time_changes()
 	for change: RubiconTimeChange in changes:
 		if change.measure <= time_measure:
-			_last_time_change = change
+			# Guarded so the signal fires on an actual change rather than
+			# every recalculate_cache() call, which runs per frame.
+			if _last_time_change != change:
+				_last_time_change = change
+				time_change_set.emit()
 		else:
 			break
 
