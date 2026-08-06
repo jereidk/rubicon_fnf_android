@@ -275,7 +275,13 @@ func census(reason: String) -> void:
 		var anim := player.get_animation(player.current_animation)
 		var tracks: int = anim.get_track_count() if anim else 0
 		total_tracks += tracks
-		heaviest.append([tracks, "%s/%s" % [player.name, player.current_animation]])
+		# @Ns is the playback position within the current animation, not a
+		# timestamp - it is what turns "122_fall was playing" into "7.5s into
+		# 122_fall", which is what actually locates a stall against a specific
+		# track's keyframe instead of guessing from wall-clock arithmetic.
+		heaviest.append([tracks, "%s/%s@%.1fs" % [
+			player.name, player.current_animation, player.current_animation_position,
+		]])
 
 	heaviest.sort_custom(func(a, b): return a[0] > b[0])
 	var top: PackedStringArray = []
