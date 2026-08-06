@@ -48,9 +48,13 @@ extends Node
 ##
 ## The package name has to be spelled out because Godot exposes no API for
 ## it; keep it in step with export_presets.cfg's package/unique_name.
+## Fallback only - the real package is read back from user:// at runtime by
+## _android_package(), so a build exported under a different package name
+## (a side-by-side test build, say) still logs into its own directory
+## instead of one the OS will not let it write to.
 const ANDROID_PACKAGE := "com.rubicon.fnf"
 const SHARED_LOG_DIR := "/storage/emulated/0/.HypnosLullaby/logs"
-const ANDROID_APP_LOG_DIR := "/storage/emulated/0/Android/data/%s/files/logs" % ANDROID_PACKAGE
+const ANDROID_APP_LOG_DIR_FMT := "/storage/emulated/0/Android/data/%s/files/logs"
 const FALLBACK_LOG_DIR := "user://logs"
 
 const MAX_LOG_FILES := 5
@@ -553,6 +557,22 @@ func _current_scene_name() -> String:
 func _mb(bytes: int) -> String:
 	return "%.0fMB" % (bytes / 1048576.0)
 
+## The package this build actually runs under.
+##
+## Godot exposes no API for it, but user:// resolves to
+## /data/user/0/<package>/files on Android, so it can be read back from
+## there. Hardcoding it meant a build exported under any other package name
+## pointed its log at a directory scoped storage forbids it from writing to,
+## silently falling through to user://logs - internal storage, unreachable
+## without root, i.e. no log at all. Falls back to the constant off-device
+## or if the path ever stops matching that shape.
+func _android_package() -> String:
+	var parts: PackedStringArray = OS.get_user_data_dir().split("/", false)
+	var idx: int = parts.find("files")
+	if idx > 0:
+		return parts[idx - 1]
+	return ANDROID_PACKAGE
+
 ## Walks the preference list and takes the first directory that can actually
 ## be created and written to. make_dir_recursive_absolute() returning OK is
 ## not proof on its own - a path can appear to succeed and still reject the
@@ -561,7 +581,7 @@ func _pick_log_dir() -> String:
 	var candidates: Array[String] = []
 	if OS.get_name() == "Android":
 		candidates.append(SHARED_LOG_DIR)
-		candidates.append(ANDROID_APP_LOG_DIR)
+		candidates.append(ANDROID_APP_LOG_DIR_FMT % _android_package())
 	candidates.append(FALLBACK_LOG_DIR)
 
 	for candidate in candidates:
