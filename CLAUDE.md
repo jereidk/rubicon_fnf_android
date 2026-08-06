@@ -218,6 +218,27 @@ How to read it:
 - `SUMMARY vs_first` climbing with nothing else changing -> thermal throttling
 - `LOAD` checkpoints spread out -> resource loading; bunched at the end ->
   instantiation
+- **`gpu=`/`cpu_render=`** are Godot's own GPU timestamp queries
+  (`RenderingServer.viewport_get_measured_render_time_gpu/cpu`, one frame
+  behind - not a `Viewport` instance method, confirmed the hard way against
+  4.7.1). `proc` cannot tell "CPU busy building draw commands" from "CPU
+  blocked waiting on the GPU" from "GDScript was slow"; a stall with `proc`
+  and `gpu` both high is a real GPU-side cost (shadow atlas repack, a
+  pipeline compiling), `proc` high with `gpu` flat points back at the CPU
+  (skinning, culling/octree inserts, instancing).
+- **`p3d_objs=`/`p3d_pairs=`** are `Performance.PHYSICS_3D_ACTIVE_OBJECTS`/
+  `PHYSICS_3D_COLLISION_PAIRS` - added for the shop's physics cost (10-25x
+  Chimera's, suspected `enable_object_picking`) which was flagged and never
+  actually measured.
+- **CENSUS `lights=N(shadow=M)`** counts currently-visible `Light3D` nodes
+  and how many of those have `shadow_enabled` - Godot exposes no shadow-atlas
+  counter directly, so this is the closest indirect read on whether a new
+  shadow caster lines up with a stall.
+- **CENSUS `top_anims` now carries `@Ns`** - the playing animation's position
+  within itself (e.g. `SequencePlayer/122_fall@7.5s`), not a timestamp. Turns
+  "122_fall was playing" into "7.5s into 122_fall", which is what actually
+  locates a stall against one of its 31 tracks' keyframes instead of
+  reconstructing it from wall-clock arithmetic across log lines.
 
 `frame=150.0ms` recurs because Godot **clamps delta** - real stalls can be
 much worse than the log can show.

@@ -147,6 +147,14 @@ func _ready() -> void:
 		set_process(false)
 		return
 
+	# Opt-in and cheap (a couple of GPU timestamp queries the driver already
+	# supports), but off by default in Godot - without it gpu=/cpu_render=
+	# below would just silently read 0 forever, which looks exactly like "GPU
+	# idle" and would have been a lie. Only exposed on RenderingServer by
+	# viewport RID, not as a Viewport instance method - confirmed in an
+	# isolated project after the instance-method call errored on Window.
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+
 	_frame_times.resize(WINDOW_SIZE)
 	_frame_times.fill(0.0)
 	_session_start_ms = Time.get_ticks_msec()
@@ -255,6 +263,15 @@ func census(reason: String) -> void:
 
 	var counts: Dictionary = {}
 	var players: Array[AnimationPlayer] = []
+	# 122_fall's stall lands within a second of two lights turning on
+	# (Camera3D/OmniLight3D, Environment/Lights/TvLight, both shadow casters).
+	# Godot exposes no shadow-atlas counter, so this is the closest indirect
+	# read: how many shadow-casting lights are actually live right now. If
+	# this jumps on the same census that catches a stall, a new shadow caster
+	# is the leading suspect; if it is already flat well before the stall,
+	# that theory is dead and the search moves on - same logic as pipe=.
+	var lights_visible: int = 0
+	var lights_shadow: int = 0
 	var nodes: Array[Node] = [scene]
 	while not nodes.is_empty():
 		var node: Node = nodes.pop_back()
@@ -262,6 +279,10 @@ func census(reason: String) -> void:
 		counts[key] = counts.get(key, 0) + 1
 		if node is AnimationPlayer:
 			players.append(node)
+		if node is Light3D and node.is_visible_in_tree():
+			lights_visible += 1
+			if node.shadow_enabled:
+				lights_shadow += 1
 		for child in node.get_children():
 			nodes.append(child)
 
@@ -296,8 +317,8 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d | top_anims=[%s] | %s" % [
-		reason, players.size(), playing, total_tracks, ", ".join(top), " ".join(classes),
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d lights=%d(shadow=%d) | top_anims=[%s] | %s" % [
+		reason, players.size(), playing, total_tracks, lights_visible, lights_shadow, ", ".join(top), " ".join(classes),
 	])
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap
@@ -444,7 +465,22 @@ func _entry(kind: String, detail: String) -> void:
 	var pipelines: int = _pipeline_compilations()
 	var pipe_delta: int = pipelines - _last_pipelines
 	_last_pipelines = pipelines
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms scene=%s" % [
+	# proc= is the whole engine process step and cannot tell "the CPU was
+	# busy building draw commands" from "the CPU was blocked waiting on the
+	# GPU" from "GDScript was slow" - three very different fixes. These two
+	# are Godot's own GPU timestamp queries (viewport reports what the
+	# hardware measured, one frame behind), so a stall with proc high and
+	# gpu high is a real GPU cost (e.g. a shadow atlas repack or a pipeline
+	# compiling), while proc high and gpu flat points back at the CPU side
+	# (skinning, culling/octree inserts, instancing) - which "pipe=" alone
+	# could not distinguish from.
+	var gpu_ms: float = 0.0
+	var cpu_render_ms: float = 0.0
+	if is_inside_tree():
+		var vp_rid: RID = get_viewport().get_viewport_rid()
+		gpu_ms = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
+		cpu_render_ms = RenderingServer.viewport_get_measured_render_time_cpu(vp_rid)
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -466,6 +502,14 @@ func _entry(kind: String, detail: String) -> void:
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0,
+		gpu_ms,
+		cpu_render_ms,
+		# The shop's physics cost runs 10-25x Chimera's on nothing but
+		# enable_object_picking's per-frame Area3D raycasts - these two were
+		# flagged as worth measuring and never were, so they ride along here
+		# rather than costing a separate investigation later.
+		int(Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS)),
+		int(Performance.get_monitor(Performance.PHYSICS_3D_COLLISION_PAIRS)),
 		_current_scene_name(),
 	])
 	# Flushed every entry on purpose: the whole point is to survive a crash or
