@@ -121,7 +121,10 @@ func _apply_to(strumline: Control, anchor: float, spacing_scale: float, note_sca
 	# That is not a compromise for VSlice specifically: VSlice wants the
 	# player strumline centred, which is exactly what midscroll already does,
 	# so the two combine into the intended look rather than fighting for it.
-	if not Settings.game_centered:
+	# Which is why selecting VSlice now turns midscroll on outright rather
+	# than leaving it to the player to discover - is_midscroll_active()
+	# reports that, and the console's Midscroll row is locked on to match.
+	if not Settings.is_midscroll_active():
 		strumline.anchor_left = anchor
 		strumline.anchor_right = anchor
 

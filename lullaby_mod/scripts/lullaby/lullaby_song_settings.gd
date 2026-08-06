@@ -22,7 +22,10 @@ func _ready() -> void :
 
 func _update() -> void :
 	settings_downscroll = Settings.game_downscroll
-	settings_centered = Settings.game_centered
+	# is_midscroll_active(), not game_centered: VSlice forces midscroll on
+	# (see Settings.is_midscroll_active). This is the value the songs'
+	# AnimationTrees advance on ("settings_centered" / "not settings_centered").
+	settings_centered = Settings.is_midscroll_active()
 	settings_speed_multiplier = Settings.game_speed_multiplier
 	settings_baby_mode = Settings.lullaby_baby_mode
 	settings_post_processing = Settings.graphics_post_processing

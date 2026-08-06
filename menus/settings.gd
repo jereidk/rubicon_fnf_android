@@ -78,12 +78,14 @@ var display_resolution: Vector2i = Vector2i(1366, 768)
 var display_vsync: DisplayServer.VSyncMode = DisplayServer.VSyncMode.VSYNC_DISABLED
 var display_target_fps: int = 60
 
-## Matches project.godot's window/stretch/aspect="expand" default. Expand
-## fills a wide/ultrawide screen's extra width with more game world - the
-## intended look on desktop, but on a wide phone it reads as the game
-## rendering an oddly stretched-out frame. Keep instead locks the aspect
-## ratio to the design resolution's 16:9 and pillarboxes the rest.
-var display_screen_aspect: Window.ContentScaleAspect = Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND
+## Matches project.godot's window/stretch/aspect. KEEP ("Normal") locks the
+## aspect ratio to the design resolution's 16:9 and pillarboxes the rest;
+## EXPAND ("Wide") instead fills a wide screen's extra width with more game
+## world. Expand is the desktop-intended look and used to be the default, but
+## on a phone it hands the player more world than the stages were authored to
+## cover - Chimera's is visibly broken by it - so Normal is the default now
+## and Wide is an opt-in in the console's Mobile section.
+var display_screen_aspect: Window.ContentScaleAspect = Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_KEEP
 
 var graphics_scaling_mode: Viewport.Scaling3DMode = Viewport.Scaling3DMode.SCALING_3D_MODE_BILINEAR
 var graphics_render_scale: float = 1.0
@@ -106,6 +108,23 @@ var graphics_disable_shader_effects: bool = false
 ## rgb_color_replacement/shd_simple_color_replace's functional note/splash
 ## recoloring) - stripping those would leave meshes flat white or notes
 ## wrongly colored instead of just running leaner.
+##
+## Two entries were removed from this list after Very Low was seen on device:
+##
+## - shd_shop_static_spatial is "smoke for the shop cubes". It is assigned as
+##   surface_material_override 1/2/3 on the shop's glass cubes, so it IS their
+##   appearance - the purple smoke (base_color 0.337,0.043,0.344) is all there
+##   is inside them. Stripping it left the cubes flat white. It is also no
+##   longer expensive: the 12 procedural snoise() evaluations were already
+##   replaced with a single baked-noise texture lookup.
+## - shd_uv_appear is the notepad's Page Display material_override, unshaded,
+##   sampling the page texture - stripping it left a blank white page.
+##
+## The rule this encodes: a ShaderMaterial reached through material_override
+## or a surface override is a candidate for being the only material a mesh
+## has. _strip_surface_shader_material()/_strip_shader_material_property()
+## now refuse to strip when nothing would be left underneath, but the list
+## itself should still only name true effect layers.
 const EFFECT_SHADER_PATHS: Array[String] = [
 	"res://lullaby_mod/resources/shaders/blend_modes/shd_blend_modes.gdshader",
 	"res://lullaby_mod/resources/shaders/blur/shd_radial_blur.gdshader",
@@ -113,7 +132,6 @@ const EFFECT_SHADER_PATHS: Array[String] = [
 	"res://lullaby_mod/resources/shaders/color/shd_hsv.gdshader",
 	"res://lullaby_mod/resources/shaders/distortion/shd_trance_water_hsv_contrast.gdshader",
 	"res://lullaby_mod/resources/shaders/distortion/shd_water_distortion.gdshader",
-	"res://lullaby_mod/resources/shaders/misc/shd_uv_appear.gdshader",
 	"res://lullaby_mod/resources/shaders/misc/shd_yellower.gdshader",
 	"res://lullaby_mod/resources/shaders/shd_blood_arrow.gdshader",
 	"res://lullaby_mod/resources/shaders/shd_crt.gdshader",
@@ -125,7 +143,6 @@ const EFFECT_SHADER_PATHS: Array[String] = [
 	"res://lullaby_mod/resources/shaders/shd_sepia.gdshader",
 	"res://lullaby_mod/resources/shaders/shd_shopregister_glow.gdshader",
 	"res://lullaby_mod/resources/shaders/static/shd_shop_static.gdshader",
-	"res://lullaby_mod/resources/shaders/static/shd_shop_static_spatial.gdshader",
 ]
 
 ## node -> {property_name: original Material}, so toggling the setting back
@@ -198,6 +215,22 @@ var lullaby_diagnostics_log: bool = true
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
 var lullaby_note_layout: int = 0
+
+## Whether the player's strumline should be centred, which is midscroll's
+## "centered" AnimationTree state.
+##
+## VSlice is not a layout that works either way: its whole arrangement assumes
+## a centred player strumline, and the layout applier hands horizontal
+## placement to midscroll rather than fighting the AnimationTree for it. So
+## selecting VSlice turns midscroll on, and the console's Midscroll row is
+## locked on while it is selected (midscroll_lock.gd).
+##
+## game_centered itself is deliberately not written when that happens - it
+## stays as the player set it, so switching back to Classic gives them their
+## own choice back rather than one VSlice made for them. Read this instead of
+## game_centered anywhere the answer is "should the lanes be centred".
+func is_midscroll_active() -> bool:
+	return game_centered or lullaby_note_layout == 1
 
 ## Rubicon addition: the Mobile settings section (gameplay touch controls).
 ## All of these are plain lullaby_ vars so save()/load_from() persist them
@@ -358,15 +391,41 @@ func _strip_shader_material_property(node: Node, property: StringName) -> void:
 	if not (property in node):
 		return
 	var mat: Variant = node.get(property)
-	if mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
-		_stash(node, property, mat)
-		node.set(property, null)
+	if not (mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path)):
+		return
+
+	# material_override replaces every surface material on the mesh. If the
+	# mesh has nothing of its own underneath, nulling it does not "remove an
+	# effect", it removes the object's only material and Godot falls back to
+	# the plain white default - which is how Very Low turned the shop's
+	# purple cubes and the notepad page white.
+	if property == &"material_override" and node is MeshInstance3D and not _mesh_has_own_material(node):
+		return
+
+	_stash(node, property, mat)
+	node.set(property, null)
 
 func _strip_surface_shader_material(node: MeshInstance3D, surface: int) -> void:
 	var mat: Material = node.get_surface_override_material(surface)
-	if mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
-		_stash(node, "surface_material_override/%d" % surface, mat)
-		node.set_surface_override_material(surface, null)
+	if not (mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path)):
+		return
+	if node.mesh.surface_get_material(surface) == null:
+		return
+
+	_stash(node, "surface_material_override/%d" % surface, mat)
+	node.set_surface_override_material(surface, null)
+
+## True when [param node] is a mesh that would still be drawn with a material
+## of its own after its material_override is cleared.
+func _mesh_has_own_material(node: Node) -> bool:
+	if not (node is MeshInstance3D) or node.mesh == null:
+		return false
+	for surface in node.mesh.get_surface_count():
+		if node.get_surface_override_material(surface) != null:
+			return true
+		if node.mesh.surface_get_material(surface) != null:
+			return true
+	return false
 
 func _restore_effect_shaders() -> void:
 	for id: int in _stashed_shader_materials:

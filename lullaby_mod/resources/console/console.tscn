@@ -71,6 +71,7 @@
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/audio/audio_icon.png" id="208"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics_icon.png" id="209"]
 [ext_resource type="Script" uid="uid://ibfakic30xh6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/mobile_section_visibility.gd" id="207"]
+[ext_resource type="Script" uid="uid://cm4y7xk2vnq8t" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/midscroll_lock.gd" id="210"]
 [ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
 [ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
@@ -5179,7 +5180,11 @@ focus_neighbor_bottom = NodePath("../GhostTapping")
 text = "Midscroll"
 property = &"game_centered"
 console = NodePath("../../../../../..")
-tooltip = "Centers your note lanes in the middle of the screen instead of off to the side."
+tooltip = "Centers your note lanes in the middle of the screen instead of off to the side. Always on while the VSlice note layout is selected, which is built around it."
+
+[node name="MidscrollLock" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay/Midscroll" unique_id=2146300016 node_paths=PackedStringArray("toggle")]
+script = ExtResource("210")
+toggle = NodePath("..")
 
 [node name="GhostTapping" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=93099427 node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2
@@ -5254,7 +5259,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../WindowMode")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ScreenAspect")
+focus_neighbor_bottom = NodePath("../VSync")
 theme = ExtResource("1")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Resolution: "
@@ -5266,26 +5271,10 @@ values_list = [Vector2i(640, 360), Vector2i(1280, 720), Vector2i(1366, 768), Vec
 console = NodePath("../../../../../..")
 tooltip = "Set the game's resolution in pixels."
 
-[node name="ScreenAspect" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=212449971 node_paths=PackedStringArray("console")]
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../Resolution")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../VSync")
-theme = ExtResource("1")
-text = "Screen Mode: "
-alignment = 0
-script = ExtResource("54")
-property = &"display_screen_aspect"
-display_list = ["Wide", "Normal"]
-values_list = [4, 1]
-console = NodePath("../../../../../..")
-tooltip = "Wide fills a wide screen with extra game world, which can look stretched on a wide phone. Normal locks a standard 16:9 frame and pillarboxes the rest."
-
 [node name="VSync" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" unique_id=275378457 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../ScreenAspect")
+focus_neighbor_top = NodePath("../Resolution")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../MaxFPS")
 theme = ExtResource("1")
@@ -5991,7 +5980,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../TouchOptions/TouchNoteHitboxSize")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ShowPauseButton")
+focus_neighbor_bottom = NodePath("../ScreenAspect")
 theme = ExtResource("1")
 text = "Note Layout: "
 alignment = 0
@@ -6002,10 +5991,26 @@ values_list = [0, 1]
 console = NodePath("../../../../../..")
 tooltip = "How the note lanes are arranged. Classic is the layout the songs were made with. VSlice centres your strumline, makes the notes bigger and spaces the lanes further apart."
 
-[node name="ShowPauseButton" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300011 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+[node name="ScreenAspect" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=212449971 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteLayout")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ShowPauseButton")
+theme = ExtResource("1")
+text = "Screen Mode: "
+alignment = 0
+script = ExtResource("54")
+property = &"display_screen_aspect"
+display_list = ["Normal", "Wide"]
+values_list = [1, 4]
+console = NodePath("../../../../../..")
+tooltip = "Normal locks a standard 16:9 frame and pillarboxes the rest, which is how the songs are authored. Wide fills a wide screen with extra game world, which can show past what a stage was built to cover."
+
+[node name="ShowPauseButton" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300011 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ScreenAspect")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
 text = "Show Pause Button"
@@ -6115,7 +6120,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../VisualsButton")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MiscButton")
+focus_neighbor_bottom = NodePath("../MobileButton")
 script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "collector"
@@ -6133,39 +6138,14 @@ position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
 texture = ExtResource("209")
 
-[node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+[node name="MobileButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2146300013 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(338, 111)
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../GraphicsButton")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../MobileButton")
-script = ExtResource("51")
-settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
-portrait_name = "gold"
-submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
-submenu_index = 2
-backout_node = NodePath(".")
-console = NodePath("../../../../..")
-
-[node name="Misc" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton" unique_id=1947891812]
-position = Vector2(169, 55)
-texture = ExtResource("63")
-
-[node name="MiscIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton/Misc" unique_id=1872034145]
-position = Vector2(-238, -4)
-scale = Vector2(1.364486, 1.364486)
-texture = ExtResource("64")
-
-[node name="MobileButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2146300013 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
-self_modulate = Color(1, 1, 1, 0)
-custom_minimum_size = Vector2(338, 111)
-layout_mode = 2
-focus_neighbor_left = NodePath(".")
-focus_neighbor_top = NodePath("../MiscButton")
-focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
+focus_neighbor_bottom = NodePath("../MiscButton")
 script = ExtResource("51")
 settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
 portrait_name = "collector"
@@ -6182,6 +6162,31 @@ texture = ExtResource("205")
 position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
 texture = ExtResource("206")
+
+[node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(338, 111)
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MobileButton")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+script = ExtResource("51")
+settings_portraits = NodePath("../../../PortraitBox/SettingsPortraits")
+portrait_name = "gold"
+submenu = NodePath("../../../PortraitBox/SettingsSubmenu")
+submenu_index = 2
+backout_node = NodePath(".")
+console = NodePath("../../../../..")
+
+[node name="Misc" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton" unique_id=1947891812]
+position = Vector2(169, 55)
+texture = ExtResource("63")
+
+[node name="MiscIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton/Misc" unique_id=1872034145]
+position = Vector2(-238, -4)
+scale = Vector2(1.364486, 1.364486)
+texture = ExtResource("64")
 
 [node name="Tooltip" type="Label" parent="TabContainer/Settings" unique_id=16871969]
 unique_name_in_owner = true

@@ -98,6 +98,38 @@ func _ready() -> void :
 	_pull_state_from_settings()
 	Settings.applied.connect(_pull_state_from_settings)
 
+	_align_to_design_frame()
+	get_viewport().size_changed.connect(_align_to_design_frame)
+	Settings.applied.connect(_align_to_design_frame)
+
+## Keeps the overlay inside the 16:9 frame it was authored for, whatever the
+## Screen Mode is.
+##
+## "Wide" (CONTENT_SCALE_ASPECT_EXPAND) does not scale the canvas down, it
+## widens it: on a 1600x720 phone the base 1920x1080 canvas becomes 2400x1080
+## with its origin at the physical screen corner, so this top-left overlay is
+## pushed out past the frame every other UI element sits in. "Normal" (KEEP)
+## keeps the canvas at 1920x1080 and centres it, leaving pillarbox bars.
+##
+## Half the extra canvas width is exactly the gap between the two, so shifting
+## the CanvasLayer by it draws the overlay where Normal would put it. Done
+## here rather than through Window.content_scale_aspect on purpose - that
+## property is window-wide, so using it would move the whole game, which is
+## what LullabyForceScreenAspect exists for and is not wanted here.
+func _align_to_design_frame() -> void:
+	var layer: CanvasLayer = self as CanvasLayer
+	var window: Window = get_window()
+	if layer == null or window == null:
+		return
+
+	var offset: Vector2 = Vector2.ZERO
+	if window.content_scale_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND:
+		var extra: Vector2 = get_viewport().get_visible_rect().size - Vector2(window.content_scale_size)
+		offset = (extra * 0.5).floor().max(Vector2.ZERO)
+
+	if layer.offset != offset:
+		layer.offset = offset
+
 func _process(delta: float) -> void :
 	if current_state == CurrentState.NONE:
 		return
