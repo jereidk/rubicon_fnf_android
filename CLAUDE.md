@@ -650,25 +650,31 @@ Touch gameplay rules:
 - `disable_inputs` / `should_autoplay()` block touch input exactly like the
   engine controller does; physical keys still work in Touch mode.
 
-Sidebar note: the settings sidebar's VBox separation is 10 (was 84, then
-20). The console's own UI canvas is 1440x1080 (not the 640x480 the
-`ConsoleSubViewport` finally renders it into - that mismatch is what made
-this easy to get wrong twice). At 84 the 5th button (Misc) was already
-mostly off-screen and a 6th would have been unreachable; at 20 - the fix at
-the time - the math still wasn't checked against the real 1080 bound: 6
-buttons x 111 + 5 gaps x 20 + the 338 top margin lands at y=1104, 24px past
-the edge, which is exactly the "MOBILE almost runs off the TV screen" the
-next session's screenshot caught. 10 lands at 1054, with headroom to spare.
+Sidebar note: the settings sidebar is `separation = 20`, `margin_top = 205`.
+The console's own UI canvas is 1440x1080 (not the 640x480 the
+`ConsoleSubViewport` renders it into - that mismatch is what made this easy
+to get wrong repeatedly).
+
+**Read the pck before guessing at this layout.** The original PC mod has
+only **three** sections (Gameplay, Visuals, Misc) at `separation = 84`,
+`margin_top = 338`: 3x111 + 2x84 = 501, spanning y=338..839, centred at
+y≈588. Our six sections inherited a `margin_top` that was only ever
+correct for three, which is why the column sat too low and MOBILE ended up
+against the bottom edge. Shrinking `separation` (84 -> 20 -> 10) kept
+"fixing" the overflow while leaving the column bottom-heavy and off-centre,
+because separation was never the problem - the top margin was. 6x111 +
+5x20 = 766 centred on the original's y≈588 gives `margin_top = 205`
+(y=205..971), same visual axis as the PC layout.
 
 The AUDIO/GRAPHICS/MOBILE wordmarks (`tools/console_art/make_wordmark.py`)
-had a second, separate bug: their outline was a uniform-thickness
-`MaxFilter` dilation, which reads as visibly heavier and blockier than the
-real scanned originals (GAMEPLAY/MISC/VISUALS) even at a matching cap
-height - a variable stroke simply has less solid ink overall. Fixed by
-blending a light and a heavy dilation through low-frequency noise (stroke
-width drifts) and perturbing the final threshold with high-frequency noise
-(a jagged, not-antialiased edge) - see the tool's own docstring and
-`tools/console_art/README.md`.
+had a separate history worth not repeating: a uniform `MaxFilter` outline
+read as heavier and blockier than the scanned originals, but "breaking up"
+the edge with high-frequency noise was worse - ~21 isolated specks per word
+against the originals' 0-1, and edges that read as splattered paint. The
+originals are **not** jagged: they are soft, slightly blurred, and carry a
+grey scan halo, with the unevenness in stroke *width* rather than in the
+boundary. Measure it - count connected components in the alpha, and compare
+against `gameplay.png`/`misc.png` - rather than judging by eye.
 
 ### Four bugs a review of the Touch mode caught
 

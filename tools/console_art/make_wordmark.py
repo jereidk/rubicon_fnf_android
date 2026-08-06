@@ -1,12 +1,22 @@
-"""Auto-sizes the canvas to a target cap height, like the previous pass, but
-replaces the uniform MaxFilter dilation with the same kind of roughness
-marker.py already uses for the icons: stroke width drifts (low-frequency
-noise blends a thin and a thick dilation) and the edge is perturbed by
-higher-frequency noise before thresholding, instead of being cleanly
-antialiased. Without this, AUDIO/GRAPHICS/MOBILE came out as smooth, evenly
-thick "bubble letters" next to GAMEPLAY/MISC/VISUALS' actual scanned-marker
-originals - visually heavier and blockier despite a similar cap height,
-because a uniform stroke reads as more solid ink than a variable one."""
+"""Auto-sizes the canvas to a target cap height and gives the outline the
+uneven, paper-like quality of the scanned originals.
+
+Two failed attempts are worth knowing about, because the fix is the
+opposite of what it looks like:
+
+1. A uniform `MaxFilter` dilation reads as noticeably heavier and blockier
+   than GAMEPLAY/MISC/VISUALS even at a matching cap height - an even
+   stroke is simply more solid ink than a variable one.
+2. So the next pass broke the edge up with high-frequency noise on the
+   threshold. That was wrong in the other direction: it produced ~21
+   isolated specks per word (the originals have 0-1) and edges that read
+   as splattered paint. **The originals are not jagged.** They are soft and
+   slightly blurred, with a grey halo from the scan; the unevenness lives
+   in the stroke WIDTH, not in the boundary.
+
+So: thickness drifts via low-frequency noise only, the boundary gets a
+long-wavelength wobble rather than a break-up, and a soft grey halo sits
+outside the ink."""
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import numpy as np, sys
 
@@ -79,30 +89,29 @@ layer = Image.fromarray(a[sy, sx].astype(np.uint8))
 
 # Variable-width stroke: blend a light and a heavy dilation by a
 # low-frequency noise mask, so the ink is thick in some stretches and thin
-# in others instead of a uniform ring (compare a scanned marker letter to a
-# vector outline - the difference is entirely in this unevenness).
-small_dil = np.array(layer.filter(ImageFilter.MaxFilter(int(7 * SS) | 1)), np.float32)
-big_dil = np.array(layer.filter(ImageFilter.MaxFilter(int(15 * SS) | 1)), np.float32)
-width_mix = noise2(h, w, 11, 26 * SS, octaves=2) * 0.5 + 0.5
-dilated = small_dil * (1 - width_mix) + big_dil * width_mix
+# in others instead of a uniform ring. Single octave and a wide cell - any
+# higher-frequency term here turns into speckle rather than weight.
+thin = np.array(layer.filter(ImageFilter.MaxFilter(int(8 * SS) | 1)), np.float32)
+thick = np.array(layer.filter(ImageFilter.MaxFilter(int(13 * SS) | 1)), np.float32)
+width_mix = noise2(h, w, 11, 30 * SS, octaves=1) * 0.5 + 0.5
+dilated = thin * (1 - width_mix) + thick * width_mix
 
-# Jagged edge: perturb the threshold with higher-frequency noise so the
-# boundary crosses at different points instead of a smooth antialiased
-# curve - a torn/scanned look rather than clean vector art.
-edge_noise = noise2(h, w, 23, 3 * SS, octaves=2) * 46
-outline = np.where(dilated + edge_noise > 118, 255, 0).astype(np.uint8)
-outline = Image.fromarray(outline).filter(ImageFilter.GaussianBlur(0.35 * SS))
-outline = outline.point(lambda v: 255 if v > 110 else 0)
-# Keeps the jaggedness at the true edge; without this gate the same noise
-# also lit up stray flecks out in the empty background.
-gate = np.array(layer.filter(ImageFilter.MaxFilter(int(19 * SS) | 1)), np.float32) > 10
-outline = Image.fromarray(np.array(outline) * gate.astype(np.uint8))
+# Long-wavelength boundary wobble, then a plain blur+threshold. The blur is
+# what keeps the edge smooth; the LANCZOS downscale at the end turns it
+# into the soft, slightly-out-of-focus edge the scans have.
+wobble = noise2(h, w, 23, 16 * SS, octaves=1) * 14.0
+outline = Image.fromarray(np.clip(dilated + wobble, 0, 255).astype(np.uint8))
+outline = outline.filter(ImageFilter.GaussianBlur(0.6 * SS)).point(lambda v: 255 if v > 96 else 0)
 
-fill_noise = noise2(h, w, 41, 3 * SS, octaves=2) * 46
-fill_base = np.array(layer.filter(ImageFilter.GaussianBlur(0.35 * SS)), np.float32)
-fill = Image.fromarray(np.where(fill_base + fill_noise > 128, 255, 0).astype(np.uint8))
+fill = layer.filter(ImageFilter.GaussianBlur(0.35 * SS)).point(lambda v: 255 if v > 128 else 0)
 
 img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+# Soft grey halo just outside the ink. Every scanned original carries one -
+# it is what makes their edge read as ink on paper instead of a cut-out -
+# and without it these sat visibly crisper than their neighbours.
+halo = outline.filter(ImageFilter.MaxFilter(int(3 * SS) | 1))
+halo = halo.filter(ImageFilter.GaussianBlur(2.2 * SS)).point(lambda v: int(v * 0.42))
+img.paste((70, 70, 70, 255), (0, 0), halo)
 img.paste((20, 20, 20, 255), (0, 0), outline)
 img.paste((255, 255, 255, 255), (0, 0), fill)
 
