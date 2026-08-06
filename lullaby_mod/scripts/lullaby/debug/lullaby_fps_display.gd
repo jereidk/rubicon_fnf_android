@@ -1,4 +1,11 @@
-class_name LullabyFPSDisplay extends Node
+## Declared CanvasLayer, not Node, because that is what atl_debug.tscn's
+## FpsDisplay node actually is and _align_to_design_frame() needs the layer's
+## own `offset`. A script may extend any ancestor of its node's type, so this
+## used to say `extends Node` and worked - right up until something tried to
+## reach a CanvasLayer property through `self`, which is a static type error
+## that fails the WHOLE script to parse. The node then has no script at all,
+## and the overlay draws every container it was authored with, frozen.
+class_name LullabyFPSDisplay extends CanvasLayer
 
 enum CurrentState
 {
@@ -117,18 +124,17 @@ func _ready() -> void :
 ## property is window-wide, so using it would move the whole game, which is
 ## what LullabyForceScreenAspect exists for and is not wanted here.
 func _align_to_design_frame() -> void:
-	var layer: CanvasLayer = self as CanvasLayer
 	var window: Window = get_window()
-	if layer == null or window == null:
+	if window == null:
 		return
 
-	var offset: Vector2 = Vector2.ZERO
+	var aligned: Vector2 = Vector2.ZERO
 	if window.content_scale_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND:
 		var extra: Vector2 = get_viewport().get_visible_rect().size - Vector2(window.content_scale_size)
-		offset = (extra * 0.5).floor().max(Vector2.ZERO)
+		aligned = (extra * 0.5).floor().max(Vector2.ZERO)
 
-	if layer.offset != offset:
-		layer.offset = offset
+	if offset != aligned:
+		offset = aligned
 
 func _process(delta: float) -> void :
 	if current_state == CurrentState.NONE:
