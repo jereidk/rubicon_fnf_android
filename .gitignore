@@ -15,8 +15,10 @@
 *.apk
 *.apk.idsig
 *.keystore
-builds/*.apk
-builds/*.pck
+# Everything under builds/, not just the APK: exporting locally also leaves
+# .idsig sidecars, and splitting a >30MB APK for delivery leaves part files.
+# The directory is output-only, so ignoring it wholesale is the intent.
+builds/
 debug.keystore
 
 # Logs
