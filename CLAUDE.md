@@ -322,9 +322,57 @@ almost none of it was on screen. Any future prewarm has to get the things in
 front of a camera, not merely make them visible - which is a much bigger and
 more invasive change than it first appears.
 
-Still unproven: whether the cost is pipeline compilation, texture upload, or
-the second AnimationPlayer that track 5 starts. `proc` counts idle processing
-including engine-side node work, so it does not distinguish them on its own.
+### What it is not (three candidates eliminated)
+
+The "31 tracks, three of them matter" reading above undersold it. Listing
+every track shows `122_fall` is a **mass first-draw event**: on one frame it
+reveals six things that have never been rendered, and turns a light on.
+
+```
+../hex:visible                              4 unique materials, skinned, 12 blend shapes
+../SerenaFalling:visible                    + its own AnimationPlayer (track 5)
+SerenaBrokenArm/SerenaBrokenArm:visible
+../Environment/chimera_house/floorfucked:visible     (swaps out floornormal)
+../Environment/chimera_house/window_001/_004:visible
+../Environment/chimera_house/mdl_chimera_camera:visible
+../Camera3D/OmniLight3D:visible + :light_energy      <- a light switches ON
+../Environment/Lights/TvLight:light_energy
+../Camera3D:rotation, :fov                  camera swings to face all of it
+```
+
+A light appearing changes the lighting permutation every lit material has to
+be compiled for, so it is not merely six new meshes - it can invalidate
+pipeline variants for things already on screen.
+
+Three of the candidates that were open are now closed:
+
+- **Not texture upload.** The stall frames log `vram_delta=+0.0MB`, and VRAM
+  sits flat at 318MB across the whole song. Nothing is being uploaded.
+- **Not resource loading.** `ram` is flat at ~160MB over the same window, and
+  no `LOAD` entry is anywhere near it.
+- **Not the AnimationMixer track cache.** This was the best guess: Hex carries
+  **2122 bone tracks across 18 animations** on a 113-bone skeleton, and
+  `_update_caches()` walks every animation in the player, not just the one
+  being played. Measured in a synthetic project on the real 4.7.1 binary
+  (113 bones, 118 tracks/anim, timing the first `play()`): the cost does scale
+  with the total - 0.13ms at 2 animations, 1.00ms at 18 (2124 tracks), 1.68ms
+  at 36 - but the magnitude is off by three orders of magnitude. Even a phone
+  20x slower than the build machine pays ~20ms, not 1900ms.
+
+That leaves first-draw pipeline compilation, which now also has a size that
+fits: Hex alone is four distinct skinned + morph-target pipelines, and mobile
+Vulkan can spend several hundred ms on one of those.
+
+It also explains an ordering detail that otherwise looks backwards:
+`114_hexapproach` reveals Hex earlier and only costs ~140ms, while `122_fall`
+costs 1900ms. The expensive frame is not the first time Hex exists, it is the
+frame where six unseen models **and** a new light all land in the camera at
+once.
+
+Worth trying, and deliberately narrower than the prewarm that broke the shop:
+put only this cast in front of a small off-screen SubViewport camera for a
+frame during the loading screen. It touches no song-scene visibility state,
+which is what made the previous attempt reveal the console's Codes tab.
 
 ## Open problems
 
@@ -335,8 +383,10 @@ including engine-side node work, so it does not distinguish them on its own.
    This one fix would address VRAM, slow loads, loads-getting-slower, and
    throttling together.
 3. **Multi-second `proc` stalls at cutscene starts** (`104_photographysesh`,
-   `114_hexapproach`) - separate from the note pool, still unexplained. The
-   now-working `SPIKE ... after X` attribution should name them.
+   `114_hexapproach`, `122_fall`). Narrowed to first-draw pipeline compilation
+   - texture upload, resource loading and the AnimationMixer track cache are
+   all ruled out, see the `122_fall` section. The untried fix is a prewarm
+   that puts just that cutscene's cast in front of an off-screen camera.
 4. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.
