@@ -11,6 +11,12 @@ var data : Array[RubiChartNote]
 var graphics : Array[RubiconLevelNote]
 var results : Array[RubiconLevelNoteHitResult]
 
+## Data indexes whose combo was broken by something other than the note's
+## own judgment - today only a misplay (a press with no note in range while
+## allow_misplays is off). update_performance() zeroes the running combo
+## when it walks over one of these.
+var break_combo_indexes : Array[int] = []
+
 var note_spawn_start : int = 0
 var note_spawn_end : int = 0
 var note_hit_index : int = 0
@@ -341,6 +347,8 @@ func _is_inside_of_incomplete_note(millisecond_position : float) -> bool:
 func _roll_hit_back() -> void:
 	note_hit_index -= 1
 	last_hit_note_index -= 1
+
+	break_combo_indexes.erase(note_hit_index)
 
 	var controller: RubiconLevelNoteController = get_controller()
 	results[note_hit_index].reset(RubiconLevelNoteHitResult.Hit.HIT_NONE)

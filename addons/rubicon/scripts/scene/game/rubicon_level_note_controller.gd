@@ -23,6 +23,20 @@ class_name RubiconLevelNoteController extends Control
 # TODO: These could probably be named better.
 @export var disable_inputs: bool = false
 
+## Timing offsets, both in milliseconds, restored from the mod's own Rubicon.
+##
+## offset_input shifts when a press is judged (the player's audio latency);
+## offset_note_position shifts where notes are drawn (their video latency).
+## They are deliberately separate: fixing a display delay by moving the
+## judgment window would desync hits from the music.
+##
+## Without these the console's Offset and Visual Offset rows had nothing to
+## drive - lullaby_song_settings.gd assigns both behind an `in` check, so
+## they silently did nothing on this engine build.
+@export_group("Offsets", "offset_")
+@export var offset_input: float = 0.0
+@export var offset_note_position: float = 0.0
+
 @export_group("Performance", "performance_")
 @export var performance_accuracy_percent: float = 100
 
@@ -121,6 +135,12 @@ func update_performance() -> void:
 	results.sort_custom(RubiconLevelNoteHitResult.compare_results_by_time_hit)
 	for result in results:
 		total_value += result.scoring_value
+
+		# A misplay breaks the combo at the note it happened next to, even
+		# though that note's own judgment may be fine.
+		if result.handler.break_combo_indexes.has(result.data_index):
+			current_combo = 0
+			continue
 
 		match result.scoring_rating:
 			RubiconLevelNoteHitResult.Judgment.JUDGMENT_OKAY, RubiconLevelNoteHitResult.Judgment.JUDGMENT_BAD, RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS:

@@ -67,6 +67,7 @@
 [ext_resource type="SpriteFrames" uid="uid://ck10htn5q2pyq" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/ui_safety_lullaby_pause.tres" id="59"]
 [ext_resource type="PackedScene" uid="uid://dvfvkuer308wg" path="res://lullaby_mod/songs/sng_debugger.tscn" id="60"]
 [ext_resource type="PackedScene" uid="uid://ch41dde1qdtxn" path="res://lullaby_mod/resources/funkin/ui/results/lullaby_results_screen.tscn" id="61"]
+[ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="62"]
 
 [sub_resource type="Animation" id="Animation_l4lak"]
 length = 0.001
@@ -3532,6 +3533,9 @@ note_controller = NodePath("../UILayer/GameUI/Player")
 starting_health = 50.0
 starting_health = 50.0
 metadata/_custom_type_script = "uid://dl1v7li3unik0"
+
+[node name="RubiconHealthModuleManiaGhostTap" type="Node" parent="HealthModule" unique_id=2114273966]
+script = ExtResource("62")
 
 [node name="IntroSkipModule" type="Node" parent="." unique_id=231779980 node_paths=PackedStringArray("skips")]
 script = ExtResource("23")

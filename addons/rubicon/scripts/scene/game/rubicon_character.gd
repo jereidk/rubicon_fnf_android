@@ -1,6 +1,11 @@
 @tool
 class_name RubiconCharacter extends Node
 
+## Lets child behaviour nodes hook the controller's signals without owning
+## the wiring themselves - RubiconCharacterManiaMisplay uses it to
+## (dis)connect from every mania handler's `misplayed`.
+signal note_controller_connected(connected: bool)
+
 @export var animation_player:AnimationPlayer:
 	set(value):
 		if value == animation_player:
@@ -47,6 +52,8 @@ class_name RubiconCharacter extends Node
 			if clock.animation_player.animation_started.is_connected(song_started):
 				clock.animation_player.animation_started.disconnect(song_started)
 
+			note_controller_connected.emit(false)
+
 		level_note_controller = value
 		notify_property_list_changed()
 		update_configuration_warnings()
@@ -65,6 +72,8 @@ class_name RubiconCharacter extends Node
 			# The clock may already have settled on a time change before this
 			# character was wired up, in which case no signal is coming.
 			_clock_time_change_set()
+
+			note_controller_connected.emit(true)
 
 @export_group("Singing", "singing_")
 @export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var singing_should_sing:bool = true

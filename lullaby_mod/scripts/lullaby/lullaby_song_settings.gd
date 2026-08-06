@@ -32,11 +32,11 @@ func _update() -> void :
 		controller.inputs = Settings.get_level_note_inputs()
 		controller.scroll_speed_multiplier *= Settings.game_speed_multiplier
 
-		# Rubicon note: this engine build's RubiconLevelNoteController has no
-		# offset_input/offset_note_position (input/visual timing offset) and
-		# RubiconLevelManiaNoteHandler has no allow_misplays (ghost-tap
-		# toggle) — those settings are still exposed in the console UI but
-		# don't have anything to drive yet on this engine version.
+		# offset_input (judgment timing) and offset_note_position (note
+		# drawing) both exist again - they were missing from this fork, so
+		# the console's Offset and Visual Offset rows silently did nothing.
+		# The `in` guards stay: they cost nothing and keep this working if a
+		# controller subclass ever drops them again.
 		if "offset_input" in controller:
 			controller.offset_input = Settings.game_offset
 		if "offset_note_position" in controller:

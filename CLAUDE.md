@@ -147,6 +147,22 @@ the wrong beats and cut off whatever animation was running. On top of that
 `dancing_measure_step = 0.25`, and Hypno's scene *animates* it across three
 tracks - all silently dropped. Restored in the same commit as this note.
 
+**Diff the whole engine, not just the script you suspect.** Decompiling all
+80 of the pck's addon scripts and comparing `@export`/`func`/`signal` sets
+against ours found four more live gaps in one pass: `offset_input` /
+`offset_note_position` (the console's Offset and Visual Offset rows drove
+nothing), and the entire misplay subsystem - `allow_misplays`, the
+`misplayed` signal, `break_combo_indexes`, `note_controller_connected`, and
+two whole scripts (`RubiconCharacterManiaMisplay`,
+`RubiconHealthModuleManiaMisplay`). **All three songs** depend on the
+health-module one (`get_dependencies` confirms it), so ghost tapping cost
+nothing anywhere in the port. Restored alongside the dance-interval fix.
+
+The tell for this class of bug is a defensive guard in our own code: a
+`if "x" in node:` or `has_signal(&"y")` around something the mod's scenes
+already reference usually means someone hit the gap, worked around it, and
+moved on.
+
 **When a port bug survives every data check, decompile the pck's engine and
 diff it.** `/tmp/gdre_tools/gdre_tools.x86_64` (GDRE 2.6.3) does it
 properly - `tools/read_pck_scripts.gd` recovers only *string constants*,

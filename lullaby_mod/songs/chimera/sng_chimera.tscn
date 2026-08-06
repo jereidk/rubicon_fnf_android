@@ -140,6 +140,7 @@
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_heartbeat_touch_zone.gd" id="206"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_picture_taking_touch_zone.gd" id="207"]
 [ext_resource type="Texture2D" uid="uid://dhf1qoiosh3st" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/cut_serena_cinematics_1.png" id="301"]
+[ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="302"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action"]
 bg_color = Color(0.09, 0.09, 0.12, 0.55)
@@ -13913,6 +13914,9 @@ note_controller = NodePath("../UILayer/GameUI/Player")
 starting_health = 50.0
 starting_health = 50.0
 metadata/_custom_type_script = "uid://dl1v7li3unik0"
+
+[node name="RubiconHealthModuleManiaGhostTap" type="Node" parent="RubiconHealthModule" unique_id=637137017]
+script = ExtResource("302")
 
 [node name="ChimeraGameoverModule" type="Node" parent="." unique_id=125807061 node_paths=PackedStringArray("health_module")]
 script = ExtResource("19")

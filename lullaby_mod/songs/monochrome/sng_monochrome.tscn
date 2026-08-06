@@ -85,6 +85,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/song_touch_controls.gd" id="201"]
 [ext_resource type="Script" path="res://lullaby_mod/songs/monochrome/scripts/monochrome_typing_touch_controls.gd" id="203"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="204"]
+[ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="205"]
 
 [sub_resource type="Animation" id="Animation_w1qyd"]
 length = 0.001
@@ -5908,6 +5909,9 @@ note_controller = NodePath("../UILayer/GameUI/Player")
 starting_health = 50.0
 starting_health = 50.0
 metadata/_custom_type_script = "uid://dl1v7li3unik0"
+
+[node name="RubiconHealthModuleManiaGhostTap" type="Node" parent="HealthModule" unique_id=1188754891]
+script = ExtResource("205")
 
 [node name="ResultsScreen" type="CanvasLayer" parent="." unique_id=103539037]
 layer = 65

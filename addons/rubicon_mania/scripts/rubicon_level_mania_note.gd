@@ -51,7 +51,7 @@ func _process(delta: float) -> void:
 		reference_container.rotation = final_rotation
 		reference_graphic.rotation = -final_rotation
 	
-	var current_time : float = controller.get_level_clock().time_milliseconds
+	var current_time : float = controller.get_level_clock().time_milliseconds + controller.offset_note_position
 	var current_start_position : float = controller.chart.scroll_multiplier * controller.scroll_speed_multiplier * handler.data[data_index].get_graphical_start_position_relative(current_time)
 	
 	# Positioning

@@ -9,9 +9,21 @@ enum LaneState {
 
 @export var global_direction : float = -1.571
 
+## When false, pressing a lane with no note in range breaks the combo and
+## emits [signal misplayed] - the "ghost tapping off" behaviour. Restored
+## from the mod's own Rubicon, where the console's Ghost Tapping row drives
+## it through lullaby_song_settings.gd.
+@export var allow_misplays : bool = true
+
 @export_group("Lane", "lane_")
 @export var lane_id : int = 0
 @export var lane_state : LaneState
+
+## Emitted on a press that hit nothing while misplays are disallowed.
+## RubiconCharacterManiaMisplay plays the miss animation off it,
+## RubiconHealthModuleManiaMisplay docks health, and LullabyVocalMuter
+## mutes the vocal track.
+signal misplayed(lane_id: int)
 
 func _init() -> void:
 	settings = load("res://addons/rubicon_mania/resources/default_settings.tres")
@@ -88,7 +100,7 @@ func _press(event : InputEvent) -> void:
 		controller.handler_just_pressed.emit(get_unique_id())
 		return
 	
-	var precise_time : float = controller.get_level_clock().get_time_precise()
+	var precise_time : float = controller.get_level_clock().get_time_precise() + controller.offset_input
 	var bad_window : float = settings.judgment_window_bad * settings.leniency_multiplier
 	var hit_time : float = data[note_hit_index].get_millisecond_start_position() - precise_time
 	while data[note_hit_index].get_millisecond_start_position() <= -bad_window:
@@ -110,13 +122,19 @@ func _press(event : InputEvent) -> void:
 	else:
 		lane_state = LaneState.LANE_STATE_PUSH
 
+		if not allow_misplays:
+			if not break_combo_indexes.has(note_hit_index - 1):
+				break_combo_indexes.append(note_hit_index - 1)
+
+			misplayed.emit(lane_id)
+
 	just_pressed.emit()
 	controller.handler_just_pressed.emit(get_unique_id())
 
 func _release(event : InputEvent) -> void:
 	var controller: RubiconLevelNoteController = get_controller()
 	if note_hit_index < data.size() and results[note_hit_index] != null and results[note_hit_index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE:
-		hit_note(note_hit_index, controller.get_level_clock().get_time_precise(), RubiconLevelNoteHitResult.Hit.HIT_COMPLETE)
+		hit_note(note_hit_index, controller.get_level_clock().get_time_precise() + controller.offset_input, RubiconLevelNoteHitResult.Hit.HIT_COMPLETE)
 		note_hit_index += 1
 		controller.update_performance()
 
