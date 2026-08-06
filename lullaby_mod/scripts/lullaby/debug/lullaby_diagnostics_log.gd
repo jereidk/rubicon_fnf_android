@@ -272,6 +272,20 @@ func census(reason: String) -> void:
 	# that theory is dead and the search moves on - same logic as pipe=.
 	var lights_visible: int = 0
 	var lights_shadow: int = 0
+	# Every prior census of Chimera happened to land during a cutscene, where
+	# "playing" AnimationPlayers sat at 5-17 - nowhere near the ~240 the
+	# 40-notes-on-screen x 6-AnimationPlayers-each theory implies. That
+	# theory is not dead, it was never actually tested: Note.tscn drives 4 of
+	# its 6 AnimationPlayers through an AnimationTree state machine, which
+	# does not call play() on them and so never shows up as "playing" here -
+	# an AnimationTree can be doing real per-frame blend work while every
+	# AnimationPlayer beneath it reads is_playing()==false. trees_active
+	# and notes_visible are the two counters that were missing to actually
+	# catch a dense-note moment instead of another cutscene.
+	var trees_total: int = 0
+	var trees_active: int = 0
+	var notes_total: int = 0
+	var notes_visible: int = 0
 	var nodes: Array[Node] = [scene]
 	while not nodes.is_empty():
 		var node: Node = nodes.pop_back()
@@ -279,10 +293,18 @@ func census(reason: String) -> void:
 		counts[key] = counts.get(key, 0) + 1
 		if node is AnimationPlayer:
 			players.append(node)
+		if node is AnimationTree:
+			trees_total += 1
+			if node.active:
+				trees_active += 1
 		if node is Light3D and node.is_visible_in_tree():
 			lights_visible += 1
 			if node.shadow_enabled:
 				lights_shadow += 1
+		if node is RubiconLevelNote:
+			notes_total += 1
+			if node.is_visible_in_tree():
+				notes_visible += 1
 		for child in node.get_children():
 			nodes.append(child)
 
@@ -317,8 +339,9 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d lights=%d(shadow=%d) | top_anims=[%s] | %s" % [
-		reason, players.size(), playing, total_tracks, lights_visible, lights_shadow, ", ".join(top), " ".join(classes),
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) lights=%d(shadow=%d) | top_anims=[%s] | %s" % [
+		reason, players.size(), playing, total_tracks, trees_total, trees_active,
+		notes_total, notes_visible, lights_visible, lights_shadow, ", ".join(top), " ".join(classes),
 	])
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap

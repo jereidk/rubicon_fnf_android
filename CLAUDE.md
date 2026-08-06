@@ -234,6 +234,16 @@ How to read it:
   and how many of those have `shadow_enabled` - Godot exposes no shadow-atlas
   counter directly, so this is the closest indirect read on whether a new
   shadow caster lines up with a stall.
+- **CENSUS `trees=N(active=M)` / `notes=N(visible=M)`** - added because every
+  prior Chimera census happened to land during a cutscene, where `playing`
+  AnimationPlayers sat at 5-17, nowhere near the ~240 the "40 notes on screen
+  x 6 AnimationPlayers each" theory (see the note-scene section below)
+  implies. That theory was never actually tested, not ruled out: `Note.tscn`
+  drives 4 of its 6 AnimationPlayers through an `AnimationTree` state
+  machine, which never calls `.play()` on them, so they read
+  `is_playing()==false` no matter how much per-frame blend work the tree is
+  doing. `trees_active`/`notes_visible` are the counters that were missing to
+  actually catch a dense-note moment instead of another cutscene.
 - **CENSUS `top_anims` now carries `@Ns`** - the playing animation's position
   within itself (e.g. `SequencePlayer/122_fall@7.5s`), not a timestamp. Turns
   "122_fall was playing" into "7.5s into 122_fall", which is what actually
