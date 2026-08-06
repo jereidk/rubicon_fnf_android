@@ -15188,11 +15188,13 @@ horizontal_alignment = 1
 vertical_alignment = 2
 script = ExtResource("127")
 
-[node name="MobileControls" parent="UILayer" node_paths=PackedStringArray("reserved_controls", "default_hud", "gameover_source") instance=ExtResource("200")]
+[node name="MobileControls" parent="UILayer" node_paths=PackedStringArray("reserved_controls", "default_hud", "gameover_source", "hide_sources") instance=ExtResource("200")]
 hitbox_top_percent = 0.0
 reserved_controls = [NodePath("../SongTouchControls/PauseButton"), NodePath("../SongTouchControls/RestartButton")]
 default_hud = NodePath("../GameUI")
 gameover_source = NodePath("../../ChimeraGameoverModule")
+hide_sources = [NodePath("../EscapeDPad")]
+hide_properties = Array[StringName]([&"mechanic_active"])
 
 [node name="ShowcaseNoteSync" type="Node" parent="UILayer" node_paths=PackedStringArray("note_controller", "mobile_controls")]
 script = ExtResource("300")
@@ -15295,7 +15297,7 @@ text = "SPACE"
 script = ExtResource("205")
 action = &"lullaby_special"
 
-[node name="EscapeDPad" type="Control" parent="UILayer" node_paths=PackedStringArray("crawl_timing", "lane_hitbox")]
+[node name="EscapeDPad" type="Control" parent="UILayer" node_paths=PackedStringArray("crawl_timing")]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -15311,7 +15313,6 @@ grow_vertical = 0
 mouse_filter = 1
 script = ExtResource("204")
 crawl_timing = NodePath("../../Sequences/EscapingMechanic")
-lane_hitbox = NodePath("../MobileControls")
 
 [node name="EndingSFX" type="AudioStreamPlayer" parent="." unique_id=845556602]
 volume_db = -12.0

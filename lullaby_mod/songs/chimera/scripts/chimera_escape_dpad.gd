@@ -30,12 +30,39 @@ signal zone_released(zone: int)
 
 @export var crawl_timing: CrawlTimingController
 
-## Chimera's own 4-lane note hitbox (MobileControls) has no default_hud/
-## gameover_source wired up in sng_chimera.tscn, so it never hides itself
-## during cutscenes (see rubicon_mobile_controls.gd _process()'s guard) -
-## it would otherwise sit drawn underneath this pad for the whole escape
-## sequence. Optional: left unset, this pad just doesn't touch it.
-@export var lane_hitbox: Control
+## True for the whole escape sequence, so the 4-lane note hitbox can hide
+## itself for that stretch instead of sitting drawn underneath. Read by
+## RubiconMobileControls through its hide_sources/hide_properties pair
+## (wired in sng_chimera.tscn), the same hook Monochrome's typing challenge
+## uses.
+##
+## Deliberately wider than _mechanic_wants_input(), which this pad uses for
+## its own visibility: that one is per attempt, and goes false in the gaps
+## between prompts. The lanes must stay hidden across those gaps too - the
+## escape sequence owns the screen from start to finish - so this tracks
+## `mode` instead of `attempt_active`. autoplay is not excluded either:
+## nothing is being played on the lanes during the crawl regardless of who
+## is driving it.
+##
+## This pad used to write `lane_hitbox.visible` directly instead, on the
+## since-outdated premise that Chimera's MobileControls had no default_hud/
+## gameover_source and therefore never hid itself. It has both now, and the
+## direct write had become a bug: on hiding, it forced the hitbox visible
+## regardless of the HUD's fade, of pause, of gameover, and - worst - of
+## gameplay_touch_mode, whose entire job is to keep the lane hitbox hidden.
+## That forced reveal is the flash between escape prompts, and it is why the
+## flash happened in Touch mode too, where nothing ever corrects it back.
+##
+## Computed rather than a mirrored bool: read live it cannot go stale, so it
+## does not matter whether MobileControls processes before or after this node.
+var mechanic_active: bool:
+	get:
+		if crawl_timing == null:
+			return false
+		return crawl_timing.mode in [
+			CrawlTimingController.CrawlingStatus.TRAVELING,
+			CrawlTimingController.CrawlingStatus.OPENING,
+		]
 
 ## Zone layout: up/right/down/left arms (matching CrawlTimingController's
 ## own input_display_names arrow mapping) plus a center zone for the
@@ -111,8 +138,6 @@ func _process(_delta: float) -> void:
 	if should_show != visible:
 		visible = should_show
 		mouse_filter = Control.MOUSE_FILTER_STOP if should_show else Control.MOUSE_FILTER_IGNORE
-		if lane_hitbox:
-			lane_hitbox.visible = not should_show
 		if not should_show:
 			_release_all()
 
