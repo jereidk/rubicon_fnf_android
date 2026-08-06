@@ -104,6 +104,8 @@ var _time_since_census: float = 0.0
 var _last_vram: int = 0
 ## Previous entry's pipeline total, so each line can report its own delta.
 var _last_pipelines: int = 0
+## Last graphics summary written, so SETTINGS only logs real changes.
+var _last_graphics_summary: String = ""
 var _last_memory: int = 0
 var _peak_memory: int = 0
 var _lowest_fps: int = -1
@@ -178,6 +180,15 @@ func _ready() -> void:
 		SceneChanger.scene_change_started.connect(_on_scene_change_started)
 	if SceneChanger.has_signal("scene_change_finished"):
 		SceneChanger.scene_change_finished.connect(_on_scene_change_finished)
+
+	# The header records the graphics settings once, at boot - which is before
+	# first_boot_settings runs and before the player can touch anything. A log
+	# whose header says "High" while the session actually ran on something
+	# else is worse than no record at all: it was read as ground truth and
+	# sent a whole investigation down the wrong path. Log them again whenever
+	# they change, so every entry can be attributed to the settings in force.
+	if Settings.has_signal("applied"):
+		Settings.applied.connect(_on_settings_applied)
 
 func _process(delta: float) -> void:
 	var frame_ms: float = delta * 1000.0
@@ -343,9 +354,10 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) lights=%d(shadow=%d) | top_anims=[%s] | %s" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) lights=%d(shadow=%d) | %s | top_anims=[%s] | %s" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active,
-		notes_total, notes_visible, lights_visible, lights_shadow, ", ".join(top), " ".join(classes),
+		notes_total, notes_visible, lights_visible, lights_shadow,
+		_graphics_summary(), ", ".join(top), " ".join(classes),
 	])
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap
@@ -414,6 +426,43 @@ func _watch_animations() -> void:
 func _on_animation_started(anim: StringName, player: AnimationPlayer) -> void:
 	_last_anim = "%s/%s" % [player.name, anim]
 	_last_anim_ms = Time.get_ticks_msec()
+
+## The graphics settings actually in force, as one line.
+##
+## Every one of these is a per-pixel cost, which is what matters now that
+## gpu= has shown Chimera to be GPU-bound rather than CPU-bound: the frame
+## is 38ms and the GPU accounts for 38.8ms of it, while draw calls and
+## primitives barely correlate with it. Knowing which of shadows / MSAA /
+## post-processing / render scale was on turns "the GPU was busy" into
+## "the GPU was busy doing X".
+func _graphics_summary() -> String:
+	var msaa_names := ["off", "2x", "4x", "8x"]
+	var msaa: int = clampi(int(Settings.graphics_msaa_3d_quality), 0, 3)
+	var preset = Settings.get_quality_preset()
+	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s target_fps=%d" % [
+		preset.name if preset != null else "Custom",
+		Settings.graphics_render_scale,
+		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
+		msaa_names[msaa],
+		"on" if Settings.graphics_shadows_enabled else "off",
+		Settings.graphics_positional_shadow_atlas_size,
+		Settings.graphics_positional_shadow_filter_quality,
+		"on" if Settings.graphics_ssao else "off",
+		"on" if Settings.graphics_ssil else "off",
+		int(Settings.graphics_post_processing),
+		"off" if Settings.graphics_disable_shader_effects else "on",
+		Settings.display_target_fps,
+	]
+
+## Settings.applied fires on every option row the player touches, so this
+## rate-limits to actual changes - otherwise scrolling the console would
+## bury the log in identical lines.
+func _on_settings_applied() -> void:
+	var summary: String = _graphics_summary()
+	if summary == _last_graphics_summary:
+		return
+	_last_graphics_summary = summary
+	_entry("SETTINGS", summary)
 
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".
@@ -663,9 +712,10 @@ func _write_header() -> void:
 	var physical: int = OS.get_memory_info().get("physical", 0)
 	_file.store_line("memory    : %s" % ("%d MB" % (physical / 1048576) if physical > 0 else "(not reported by OS)"))
 	_file.store_line("max_fps   : %d  vsync=%d" % [Engine.max_fps, DisplayServer.window_get_vsync_mode()])
-	var preset = Settings.get_quality_preset()
-	_file.store_line("preset    : %s" % (preset.name if preset != null else "Custom"))
-	_file.store_line("render_scale : %.2f" % Settings.graphics_render_scale)
+	# Boot-time snapshot only - first_boot_settings and the player can both
+	# change these afterwards, which is why _on_settings_applied() logs a
+	# SETTINGS entry on every real change rather than trusting this line.
+	_file.store_line("graphics  : %s (at boot)" % _graphics_summary())
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
 	_file.store_line("dir_used  : %s" % _log_dir)
