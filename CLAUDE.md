@@ -241,6 +241,52 @@ Two things to know before reading its output:
   Node`, so Chimera's `hex` had its perfectly valid Node3D `transform`
   reported missing. 128 nodes are skipped this way and the count is printed.
 
+### The animation-track sweep
+
+Authored properties are only half of it - Godot drops a **track** whose
+NodePath does not resolve, or whose property the target does not have, just as
+silently:
+
+```bash
+python3 tools/collect_animation_tracks.py > tracks.json
+godot --headless --script tools/audit_animation_tracks.gd -- tracks.json
+```
+
+**7747 tracks across 62 scenes, and every finding is present in the pck too -
+no port regression exists here.** What is left, all of it dead in the original
+mod as well:
+
+- `Console:input_active` (3 tracks) - `console.gd` has no such property, in the
+  pck either.
+- `HeartbeatController:path_mode` (4) and Chimera's `Camera3D:follow_enabled` /
+  `:path_follow` (2) - same, and that Camera3D is a plain scriptless `Camera3D`
+  on both sides.
+
+Getting from 197 raw hits to 9 was almost entirely fixing the tool, and the
+four corrections are the reusable part:
+
+1. **Key the scene root `"."`, never by its own name.** A child of the root is
+   written `parent="."`, so its path is just its name - and this project really
+   does give a child the root's name (`cut_boyfriend_scream`, every pause
+   menu). Keying both the same way merges them and 24 tracks aimed at the child
+   resolve to nothing.
+2. **Mark `.gltf`/`.scn` instances opaque.** 304 tracks aim into a skeleton
+   that came from a glTF. Their subtree is unreadable from text, so they are
+   unchecked - reporting them as broken buries everything else.
+3. **A script with its own `_get_property_list()` cannot be checked.**
+   `RubiconCharacter` builds `sing_left`/`miss_up`/... from
+   `mania_anim_aliases` that way; 99 tracks drive them and they are correct on
+   both engines. Detect the method via `get_script_method_list()` and skip.
+4. **`%Name` is a unique-name lookup** resolved against the scene owner at
+   runtime and cannot be followed from text (6 tracks).
+
+And one thing the sweep genuinely cannot know: **a track aimed at a node
+created at runtime looks identical to a dead one.** Monochrome's `scene`
+animation drives `../BloodCutscene/...`, `../BoyfriendScream` and
+`../MonoCloseup` - 16 tracks, none of those nodes in the .tscn, all three
+instantiated by `BloodCutsceneLoader` from uid paths. Read the output; do not
+turn it into a build gate.
+
 ### Tools for this: diff the port against the pck directly
 
 Three scripts, all mounting the pck read-only:
