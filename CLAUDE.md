@@ -490,9 +490,55 @@ much worse than the log can show.
 
 ## Measured facts about performance (moto g53)
 
-- Chimera: ~30fps, `proc` 30-50ms, `draw` **21-56**, `prims` ~23000. The GPU
-  is idle. **Graphics presets cannot help**; that is why Very Low changed
-  nothing.
+- **Chimera's 30fps ceiling is the GPU, and the old note here saying "the GPU
+  is idle, graphics presets cannot help" was wrong.** That claim came from
+  reading `proc` alone, before the log measured GPU time at all, and it sent
+  the whole investigation at GDScript and node counts for months. The numbers,
+  from `91066500-lullaby_20260806_152409.log`, 43 Chimera heartbeats:
+
+  | | frame | gpu | cpu_render | phys | draw | prims |
+  |---|---|---|---|---|---|---|
+  | Chimera | 38.1ms | **38.8ms** | 2.13 | 0.61 | 39 | 21189 |
+  | Collector's Shop | 33.3ms* | 17.3ms | 1.02 | - | 72 | 17056 |
+
+  \* the shop is *capped*, not slow - 33.3ms exactly, target_fps was 30.
+
+  `gpu` and `frame` are the same number in Chimera. The CPU spends 2ms
+  building the frame and then waits. Whatever the fix is, it is on the GPU
+  side.
+
+- **It is not draw calls and not geometry.** In the same session at the same
+  render scale, the shop draws *more* (72 calls vs 39) with comparable
+  primitives and costs less than half the GPU time. Chimera does less work by
+  every count-based measure and takes 2.2x as long, so the cost is per-pixel,
+  not per-object.
+
+- **It is not 3D resolution either, or not only.** `scale=0.50` throughout that
+  run - the 3D was already rendering at 800x360 - and it still cost ~39ms.
+
+- **This GPU is expensive on fullscreen blending.** `intro.tscn` is a 2D menu
+  with **13 draw calls and zero lights** and it costs **20.6ms** of GPU. 2D is
+  not affected by `scaling_3d_scale`, so that is pure fill on overlapping
+  full-screen layers - a third of a 60fps budget for a menu.
+
+- **What is still open, and the test that closes it.** The one structural
+  difference the census shows between the two scenes is shadow casters:
+  Chimera `lights=13(shadow=5)`, the shop `lights=14(shadow=0)` - more lights,
+  no shadows, half the cost. That is the best current suspect, together with
+  Chimera's rain/godrays layers. It is **not proven**, because
+  `lights=N(shadow=M)` counts nodes with `shadow_enabled` regardless of whether
+  the engine renders them (`graphics_shadows_enabled` off sets the atlas to 0),
+  and that log predates `82a135b` and so does not record which graphics options
+  were in force - the player was on a Custom setup, having nudged render scale
+  to 0.55 and back.
+
+  Since `82a135b` every CENSUS carries the full graphics summary and any change
+  emits a `SETTINGS` line, so the attribution problem is fixed. The test is two
+  Chimera runs toggling one row at a time in the console's Graphics tab -
+  `Shadows` (`graphics_shadows_enabled`), then `Reduce Visual Effects`
+  (`graphics_disable_shader_effects`) - and reading `gpu=` for each. Do not
+  change the preset, which moves several options at once and is what made the
+  earlier "Very Low changed nothing" conclusion uninterpretable.
 - VRAM: 625MB in the Collector's Shop, ~410MB in Chimera. Very high for this
   device and the likely reason loads get *slower* over a session (the same
   scene went 11.9s -> 26.6s).
@@ -647,9 +693,12 @@ which is what made the previous attempt reveal the console's Codes tab.
 
 ## Open problems
 
-1. **The ~50ms floor in Chimera.** Suspect: note scenes carrying 6
-   AnimationPlayers each. Needs measuring before touching - it is core
-   gameplay.
+1. **Chimera's 30fps ceiling is GPU-bound** (`gpu` 38.8ms against a 38.1ms
+   frame). Measured, see the performance section. The note scenes' 6
+   AnimationPlayers each are a CPU cost and were the old suspect here; with
+   `cpu_render` at 2.1ms and `proc` no longer the limiting number, they are not
+   what holds the frame. Next step is the two-run shadows / visual-effects A/B
+   described in that section - not a code change.
 2. **VRAM.** Only lowering texture *resolution* helps (target 1024-2048).
    This one fix would address VRAM, slow loads, loads-getting-slower, and
    throttling together.
