@@ -11824,7 +11824,6 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("300")
 mouse_controller = NodePath("../../../MouseController")
-visible_property = &"is_focused"
 
 [connection signal="voice_entry_finished" from="." to="UI/Control/Dialogue" method="_on_collector_shop_voice_entry_finished"]
 [connection signal="voice_entry_finished" from="." to="Environment/Areas/TriggerExit" method="_on_collector_shop_voice_entry_finished"]

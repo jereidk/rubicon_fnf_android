@@ -187,6 +187,60 @@ the mod's `stage_transform` applies when a `symbol` does not resolve. All nine
 `Animation.json` files in this project have no stage matrix, so it costs
 nothing today - but a new atlas that has one would be drawn untransformed.
 
+### The full API sweep, and where it now stands
+
+Decompiling **all 87** of the pck's addon scripts (not just `addons/rubicon/**`,
+which is all the earlier sweep covered) and diffing top-level member
+declarations against ours leaves exactly **two** scripts with anything missing,
+out of 80 in common:
+
+- `gdanimate/animate_symbol.gd` - the whole rewrite. `offset` is restored;
+  `centered` is a deliberate no-op here; `speed_scale`, `autoplay`, `loop`,
+  `atlases`/`atlas_index` and the backbuffer-cache internals are API this fork
+  does not have and no scene in this project authors.
+- `rubicon_level_note_controller.gd` - `_get_result_count_of_rating`, a private
+  helper. Not a gap: ours computes the same six `performance_hits_*` counters
+  in one pass instead of six.
+
+Do not trust a regex that keys on `@export` for this. An earlier pass flagged
+`mania_directions` as missing from `rubicon_character.gd` when it is right
+there at line 425 - the multiline `@export_storage` above it fooled the
+pattern. Match top-level `var`/`const`/`func`/`signal` declarations instead and
+ignore decorators.
+
+Seven scripts exist in the pck and not here: gdanimate's `sparrow/` pair (no
+asset uses the sparrow format - all nine atlases are adobe) and the
+`camera_preview`, `parallax2d_preview` and `model_to_atlas` editor plugins,
+which nothing references.
+
+### The sweep that actually catches this class of bug
+
+An API diff only finds what the *mod's* engine had. The sharper question is
+which authored values are being dropped **right now**, whatever the cause:
+
+```bash
+python3 tools/collect_authored_properties.py > authored.json
+godot --headless --script tools/audit_authored_properties.gd -- authored.json
+```
+
+Across 3536 nodes in every `.tscn` in the project this is down to a single
+finding, the known-harmless `centered`. It found `AnimateSymbol.offset` and one
+stale line of our own (`visible_property` on the shop's `TouchAimReticle`, left
+behind when that script was rewritten).
+
+Two things to know before reading its output:
+
+- **Filter dynamic properties or the real findings drown.** Names built at
+  runtime through `_get_property_list()` - `popup/item_N/*`, `item_N/*`,
+  `joint_constraints/*`, `parameters/*`, `bone_name`, `blend_times` - are
+  invisible to `ClassDB` and were 40 of the first run's 46 "findings".
+- **A node whose class cannot be pinned down must be excluded, not guessed.**
+  Scripts stored inline as `script = SubResource("GDScript_...")`, and instance
+  chains that bottom out in a `.gltf`, have no readable class. Falling back to
+  the script's own base type is worse than skipping: `RubiconCharacter extends
+  Node`, so Chimera's `hex` had its perfectly valid Node3D `transform`
+  reported missing. 128 nodes are skipped this way and the count is printed.
+
 ### Tools for this: diff the port against the pck directly
 
 Three scripts, all mounting the pck read-only:
