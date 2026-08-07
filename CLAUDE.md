@@ -163,6 +163,58 @@ The tell for this class of bug is a defensive guard in our own code: a
 already reference usually means someone hit the gap, worked around it, and
 moved on.
 
+**`gdanimate` is a different version too, not just Rubicon.** The mod ships
+gdanimate with `adobe/` + `sparrow/`; ours is a rewrite with `adobe/` +
+`parser/`, and `AnimateSymbol`'s exports do not match:
+
+| mod | ours |
+|---|---|
+| `symbol` (name **or prefix**) | `symbol` (exact name) |
+| `speed_scale`, `autoplay`, `loop` | `loop_mode` (enum string) |
+| `centered`, **`offset`** | *(offset restored; centered deliberately not - see below)* |
+| `atlases: Array[AnimateAtlas]` + `atlas_index` | `atlas: String` (directory) |
+
+`offset` was authored on two nodes and silently dropped by our fork, which is
+what put Gold's back-turned intro pose in the wrong place in Monochrome. The
+mod applies it as the seed of the draw transform - `Transform2D.IDENTITY
+.translated(draw_info.offset)` in its `adobe_atlas.gd` - so ours now does the
+same in `_draw()`. `centered` is only read on the sparrow path, which we do
+not have, and all nine atlases here are adobe, so it is a no-op and was left
+out on purpose rather than added as dead API.
+
+Our parser also never reads the stage instance matrix (`AN.SI...MX/M3D`) that
+the mod's `stage_transform` applies when a `symbol` does not resolve. All nine
+`Animation.json` files in this project have no stage matrix, so it costs
+nothing today - but a new atlas that has one would be drawn untransformed.
+
+### Tools for this: diff the port against the pck directly
+
+Three scripts, all mounting the pck read-only:
+
+```bash
+godot --headless --script tools/diff_pck_scene.gd -- <port_path> <pc_path>
+godot --headless --script tools/diff_pck_file.gd  -- <pc_path> <out_path>
+godot --headless --script tools/diff_pck_texture.gd -- <pc_path> <port_path>
+```
+
+`diff_pck_scene.gd` dumps every authored node property and expands any
+`AnimationLibrary` to per-animation track paths, without instantiating - it is
+what proved `chr_goldp1.tscn` and `sng_monochrome.tscn` are byte-equivalent to
+the mod's (18 nodes / 198 animations and 138 nodes / 125 animations, identical
+track counts and paths), which is what narrowed Monochrome's remaining bugs
+down to the engine instead of the data. `diff_pck_file.gd` is for the things
+the resource loader never sees - gdanimate reads `Animation.json` and
+`spritemap*.json` with `FileAccess`, so `get_dependencies()` says nothing
+about them.
+
+**A cropped spritemap is not automatically a bug.** `8b0e901` cropped dead
+transparent padding from 11 atlases, and the sizes no longer match the
+`meta.size` their `spritemap*.json` declares (goldp1/turnaround is 4068x2598
+against a declared 4096x4096). That looks alarming and is fine: regions are
+absolute pixel rects from the top-left, and every region still fits inside
+every cropped texture. The check that matters is `max(x+w), max(y+h)` over
+`ATLAS.SPRITES` versus the real PNG size, not the declared size.
+
 **When a port bug survives every data check, decompile the pck's engine and
 diff it.** `/tmp/gdre_tools/gdre_tools.x86_64` (GDRE 2.6.3) does it
 properly - `tools/read_pck_scripts.gd` recovers only *string constants*,
@@ -182,9 +234,34 @@ annotated a handler as `RubiconLevelNoteHandler` and then read `lane_state`
 off it, which only exists on the mania subclass and would not parse. Treat
 its types as hints, not truth.
 
-`gdre_tools.x86_64 --headless --compile=<file.gd> --bytecode=4.5.0` is also
-the fastest syntax check for an engine script, since a fresh test project
-cannot resolve Rubicon's `class_name`s and drowns real errors in noise.
+`gdre_tools.x86_64 --headless --compile=<file.gd> --bytecode=4.5.0` is the
+fastest syntax check for an engine script - but **it only tokenises. It does
+not run the type analyser, and it will happily accept code Godot refuses to
+load.** Do not use it as the only check on a script you are about to ship.
+
+That gap shipped a broken build. `lullaby_fps_display.gd` said `extends Node`
+while sitting on a `CanvasLayer` (legal - a script may extend any ancestor of
+its node's type), and reaching the layer's own `offset` through
+`self as CanvasLayer` is an *invalid cast* at analysis time. GDRE compiled it
+without complaint; on device the whole script failed to parse, the node ran
+with no script at all, and the debug overlay drew every container it was
+authored with, frozen, with nothing ever calling `update_visibility()`.
+
+The check that catches it is Godot's own analyser against a throwaway project:
+
+```bash
+mkdir -p /tmp/parsecheck
+printf 'config_version=5\n[application]\nconfig/name="p"\n' > /tmp/parsecheck/project.godot
+godot --headless --path /tmp/parsecheck --check-only --script <abs path to file.gd> 2>&1 \
+  | grep "Parse Error" | grep -vE 'not declared in the current scope|Could not find type|Preload file'
+```
+
+The filter drops exactly the noise an isolated project always produces -
+autoloads (`Settings`, `SceneChanger`), `class_name`s and `preload()` targets
+it cannot see. Anything that survives the filter is real. Compare against the
+same file at `HEAD` before believing a leftover: some scripts (gdanimate's
+`animate_symbol.gd`) already emit "Cannot infer the type of X" from the
+unresolvable `class_name`s and always have.
 
 **`git push` for LFS is blocked** - `lfs.github.com` gets a 403 at CONNECT
 from the environment proxy (org policy, do not retry or work around it).

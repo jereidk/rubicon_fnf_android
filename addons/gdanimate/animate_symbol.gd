@@ -35,6 +35,32 @@ class_name AnimateSymbol extends Node2D
 ## Keeps track of whether or not the sprite is being animated automatically.
 @export var playing: bool = false
 
+## Translation applied to everything this symbol draws, on top of the node's
+## own transform.
+##
+## Restored from the version of gdanimate the mod was authored against, where
+## it is applied as the seed of the draw transform
+## ([code]Transform2D.IDENTITY.translated(draw_info.offset)[/code] in that
+## version's adobe_atlas.gd). This fork's rewrite dropped the property, so
+## every scene that authored a value for it had that value silently discarded
+## and drew its symbol at the node's bare position instead.
+##
+## Two nodes in this project author it: chr_goldp1.tscn's AuraPose - Gold's
+## back-turned intro pose in Monochrome, at (-562.595, -457.83) - and
+## cut_mono_closeup.tscn's Vultures, at (64, -6).
+##
+## The companion `centered` property from that version is deliberately NOT
+## restored: it is only read on the sparrow draw path, which this fork does
+## not have, and all nine Adobe atlases in this project go through the adobe
+## path where it is a no-op. mch_typing.tscn's Celebi authors `centered =
+## false`, and that value changes nothing on either engine.
+@export var offset: Vector2 = Vector2.ZERO:
+	set(v):
+		if offset == v:
+			return
+		offset = v
+		queue_redraw()
+
 ## Defines what happens when the end of the animation is reached.
 ## [br][br]Loop loops the animation forever and Play Once just stops.
 @export_enum('Loop', 'Play Once') var loop_mode: String = 'Loop'
@@ -258,5 +284,5 @@ func _draw() -> void:
 	
 	if not is_instance_valid(_timeline):
 		return
-	_current_transform = Transform2D.IDENTITY
+	_current_transform = Transform2D.IDENTITY.translated(offset)
 	_draw_timeline(_timeline, frame)
