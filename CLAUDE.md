@@ -473,6 +473,53 @@ Moved to Basis (mode 4) rather than VRAM Compressed (mode 2): both land at the
 same ~1 byte/pixel on device, but Basis is content-aware so these mostly-flat
 UI sheets stay small in the APK instead of adding ~15MB of ASTC.
 
+### ASTC 8x8 is not an option for this project's art - measured
+
+The obvious next move is converting the 337 Basis textures to ASTC 8x8: Basis
+transcodes to about 1 byte/pixel on device, ASTC 8x8 is 0.25, so it would take
+**510MB of VRAM down to 128MB and shave ~75MB off the APK**. By a wide margin
+the biggest lever anywhere in this port, and with no atlas risk at all, since
+compression does not touch a texture's dimensions.
+
+It does not survive contact with the art:
+
+```bash
+godot --headless --script tools/measure_astc_quality.gd -- <png> 8x8
+```
+
+| | PSNR | worst channel error |
+|---|---|---|
+| `grass.png` | 18.9 dB | 255/255 |
+| `hypnobald.png` | 23.4 dB | 255/255 |
+| `rock.png` | 26.9 dB | 255/255 |
+| `foreground_trees.png` | 30.4 dB | 255/255 |
+| `spritemap1.png` | 36.0 dB | 255/255 |
+| `front_trees.png` | 45.9 dB | 84/255 |
+| `end_bg.png` | 51.9 dB | 15/255 |
+
+Nine of fifteen hit a 255/255 worst-case error. It is not detail loss, it is
+the **alpha channel**: nearly all of this art is hard-edged cutout - foliage,
+characters over transparency - and 8x8 fringes every boundary. `end_bg.png`,
+the one opaque background in the set, is the only clean result, which is the
+tell.
+
+Two things this changes about the older notes above:
+
+- "on a dense texture ASTC is much smaller" was about **file size** and never
+  checked quality. Density is not the predictor; **hard alpha edges** are.
+- **Read the worst-case channel error, not the PSNR.** A sharp UI sheet can
+  average well and still swing individual pixels black-to-white:
+  `settings_icons.png` is 40.9 dB at 8x8 with a worst error of 186/255.
+
+Caveat before trusting a marginal result: the tool uses Godot's own encoder,
+not the EXHAUSTIVE-quality `tools/astc_compress` the custom importer runs.
+Godot's is faster and worse, so these are a lower bound - a texture that passes
+here definitely passes, one that fails narrowly might survive EXHAUSTIVE.
+
+**Open question this raises:** the 445MB already on `lullaby.astc_sprite` at
+block size 8 were measured for size when they were converted, never for
+quality. Given the numbers above, they are worth a look.
+
 **Changing the compression mode cannot break an atlas.** It does not touch the
 texture's dimensions, so every `AtlasTexture` region and every
 `spritemap*.json` rect still lands where it did. That is what makes this safe
