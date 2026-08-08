@@ -148,6 +148,10 @@ const EFFECT_SHADER_PATHS: Array[String] = [
 ## node -> {property_name: original Material}, so toggling the setting back
 ## off can restore exactly what was there rather than guessing a default.
 var _stashed_shader_materials: Dictionary = {}
+
+## node instance id -> the BackBufferCopy.copy_mode it had before the effects
+## setting disabled it. See _strip_backbuffer_copy().
+var _stashed_copy_modes: Dictionary = {}
 var _watching_new_nodes: bool = false
 
 var audio_master_volume: float = 1.2:
@@ -380,6 +384,32 @@ func _strip_effect_shaders_from_node(node: Node) -> void:
 	if node is MeshInstance3D and node.mesh:
 		for surface in node.mesh.get_surface_count():
 			_strip_surface_shader_material(node, surface)
+	_strip_backbuffer_copy(node)
+
+## The screen copies the stripped shaders were reading.
+##
+## shd_blend_modes samples hint_screen_texture, so every node using it needs a
+## BackBufferCopy - and intro.tscn has five, one per overlay-blended fog layer.
+## A full framebuffer copy is about the most expensive thing there is on a
+## tile-based mobile GPU: it forces the tile to resolve out to memory. That is
+## why intro.tscn measures 20.6ms of GPU with 13 draw calls, 40 objects and
+## **168 primitives** - it is not drawing anything, it is copying the screen
+## five times.
+##
+## Nulling the material does not stop this. A BackBufferCopy copies whether or
+## not anything still samples the result, so before this the setting removed
+## the shader maths and kept the entire cost. With the materials gone nothing
+## reads the screen texture, so disabling the copy is free.
+func _strip_backbuffer_copy(node: Node) -> void:
+	if not (node is BackBufferCopy):
+		return
+	if node.copy_mode == BackBufferCopy.COPY_MODE_DISABLED:
+		return
+
+	# Kept in its own map rather than going through _stash(), which stores
+	# Materials and whose restore loop would try to assign one back here.
+	_stashed_copy_modes[node.get_instance_id()] = node.copy_mode
+	node.copy_mode = BackBufferCopy.COPY_MODE_DISABLED
 
 func _stash(node: Node, property: StringName, material: Material) -> void:
 	var id: int = node.get_instance_id()
@@ -439,6 +469,12 @@ func _restore_effect_shaders() -> void:
 			else:
 				node.set(property, mat)
 	_stashed_shader_materials.clear()
+
+	for id: int in _stashed_copy_modes:
+		var node: Object = instance_from_id(id)
+		if is_instance_valid(node) and node is BackBufferCopy:
+			node.copy_mode = _stashed_copy_modes[id]
+	_stashed_copy_modes.clear()
 
 func get_input_name(action: StringName) -> String:
 	if not input_map.has(action):

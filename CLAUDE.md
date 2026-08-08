@@ -319,6 +319,29 @@ Two things the tool has to get right, and got wrong first:
 - **Ancestor visibility.** `PhoneGlow` sets no `visible` of its own but lives
   under a cutscene group that ships hidden.
 
+**`intro.tscn`'s 20.6ms is five framebuffer copies, not drawing.** It has 40
+objects, 13 draw calls and **168 primitives** - it is barely drawing anything.
+What it does is copy the screen five times: `shd_blend_modes` samples
+`hint_screen_texture`, so each of the four overlay-blended 3283x1046 fog
+sprites needs a `BackBufferCopy`, and there are five in the scene
+(`scn_game_intro.tscn` has five too). A full framebuffer copy forces a
+tile-based GPU to resolve out to memory, which is the most expensive single
+thing you can ask it for.
+
+Nulling the material did **not** stop this: a `BackBufferCopy` copies whether
+or not anything still samples the result, so "Reduce Visual Effects" removed
+the shader maths and kept the whole cost. `_strip_backbuffer_copy()` now
+disables the copy too, which is free once the materials that read it are gone.
+
+The same "the setting removes the shader but not the cost" shape is worth
+checking for elsewhere. `shd_godrays` is in `EFFECT_SHADER_PATHS` but sits on
+Chimera's `Ray` **BoxMesh resource**, not on the node, so the stripper never
+sees it - harmless today only because `Ray` ships `visible = false`.
+
+This does not explain Chimera. It has one `BackBufferCopy` and it is inside
+`UILayer/RainParent/Rain`, which is hidden; its other large canvas items are
+empty `Control`s that draw nothing.
+
 Worth knowing and deliberately not changed here: `TvLight` has
 `light_energy = 0` with `shadow_enabled = true` and `omni_range = 43.9`, so it
 emits nothing while still rendering a shadow cubemap over the whole scene.
