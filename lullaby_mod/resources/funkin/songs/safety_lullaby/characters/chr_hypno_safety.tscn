@@ -7,7 +7,14 @@
 [ext_resource type="Texture2D" uid="uid://burgn8gikum6l" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/teenulum_blurred.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://cbwto56h5vegv" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/teenulum_active.png" id="7"]
 [ext_resource type="Texture2D" uid="uid://b78crkiivpit0" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/chr_hypno_sl_light.png" id="8"]
-[ext_resource type="Resource" uid="uid://nq3rih7iohw6b" path="res://lullaby_mod/resources/gdanimate_atlases/atl_hypno_world.tres" id="GDA_atl_hypno_world"]
+[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="AdobeAtlasScript"]
+
+[sub_resource type="Resource" id="AtlasHypnoWorld"]
+script = ExtResource("AdobeAtlasScript")
+folder_path = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/hypno_world/"
+clip_texture_uvs = false
+format = "adobe"
+metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="Animation" id="Animation_qqqi6"]
 length = 0.001
@@ -1022,7 +1029,7 @@ light_mask = 81
 position = Vector2(-230.00002, -538.46155)
 script = ExtResource("2")
 symbol = "Hypno Sprites/Idle Pose"
-atlases = [ExtResource("GDA_atl_hypno_world")]
+atlases = [SubResource("AtlasHypnoWorld")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite" unique_id=2034205607]
 libraries/ = SubResource("AnimationLibrary_t0htw")

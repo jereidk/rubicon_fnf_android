@@ -7,8 +7,25 @@
 [ext_resource type="AudioStream" uid="uid://co4ww7fx0p1a2" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_celebi_pulse1.wav" id="6"]
 [ext_resource type="AudioStream" uid="uid://db5vnxlm46p48" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_celeby_pulse2.wav" id="7"]
 [ext_resource type="AudioStream" uid="uid://coit346ixsfnk" path="res://lullaby_mod/resources/audio/sfx/monochrome/sfx_celebi_kill.wav" id="8"]
-[ext_resource type="Resource" uid="uid://1pg3b044wu4ja" path="res://lullaby_mod/resources/gdanimate_atlases/atl_celebi.tres" id="GDA_atl_celebi"]
-[ext_resource type="Resource" uid="uid://9dpwit58bycaa" path="res://lullaby_mod/resources/gdanimate_atlases/atl_flyby.tres" id="GDA_atl_flyby"]
+[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="AdobeAtlasScript"]
+
+[sub_resource type="Resource" id="AtlasCelebi"]
+script = ExtResource("AdobeAtlasScript")
+folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
+format = "adobe"
+metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
+
+[sub_resource type="Resource" id="AtlasCelebiTick"]
+script = ExtResource("AdobeAtlasScript")
+folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/celebi/"
+format = "adobe"
+metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
+
+[sub_resource type="Resource" id="AtlasFlyby"]
+script = ExtResource("AdobeAtlasScript")
+folder_path = "res://lullaby_mod/assets/funkin/monochrome/mechanics/unown/flyby/"
+format = "adobe"
+metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
 
 [sub_resource type="Curve" id="Curve_gggye"]
 _data = [Vector2(0, 0), 0.0, 0.3159763, 0, 0, Vector2(0.49812737, 0.49285716), 3.367506, 3.367506, 0, 0, Vector2(0.7602997, 1), 0.0064551276, 0.0, 0, 0]
@@ -529,7 +546,7 @@ position = Vector2(344, 498)
 script = ExtResource("3")
 frame = 180
 centered = false
-atlases = [ExtResource("GDA_atl_celebi")]
+atlases = [SubResource("AtlasCelebi")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="TickPulse" type="Node2D" parent="Celebi" unique_id=379908661]
@@ -538,7 +555,7 @@ scale = Vector2(0.99999994, 0.99999994)
 script = ExtResource("3")
 symbol = "Export/Celebi tick blast"
 frame = 24
-atlases = [ExtResource("GDA_atl_celebi")]
+atlases = [SubResource("AtlasCelebiTick")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Celebi/TickPulse" unique_id=1456615111]
@@ -580,7 +597,7 @@ scale = Vector2(1.5, 1.5)
 script = ExtResource("3")
 symbol = " "
 frame = 31
-atlases = [ExtResource("GDA_atl_flyby")]
+atlases = [SubResource("AtlasFlyby")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Unowns" unique_id=593638639]

@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="AdobeAtlas" load_steps=2 format=3 uid="uid://l0d208y52a4zd"]
-
-[ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="1"]
-
-[resource]
-script = ExtResource("1")
-folder_path = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
-metadata/_custom_type_script = "uid://dkyyuwqo0dy7q"
