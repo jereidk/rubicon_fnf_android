@@ -23,6 +23,9 @@
 [ext_resource type="AudioStream" uid="uid://bvyj6husngpbd" path="res://lullaby_mod/songs/monochrome/resources/mus_mono_inst.ogg" id="22"]
 [ext_resource type="AudioStream" uid="uid://f7l7niq7muiv" path="res://lullaby_mod/songs/monochrome/resources/mus_mono_glod.ogg" id="23"]
 [ext_resource type="AudioStream" uid="uid://bmvfi8kxvt4k5" path="res://lullaby_mod/songs/monochrome/resources/mus_mono_bf.ogg" id="24"]
+[ext_resource type="Resource" uid="uid://y1m80yjsuffxc" path="res://lullaby_mod/resources/gdanimate_atlases/atl_frontnown2.tres" id="GDA_atl_frontnown2"]
+[ext_resource type="Resource" uid="uid://7wjjv9toklv6c" path="res://lullaby_mod/resources/gdanimate_atlases/atl_frontnowns1.tres" id="GDA_atl_frontnowns1"]
+[ext_resource type="Resource" uid="uid://jbndttumbp8ca" path="res://lullaby_mod/resources/gdanimate_atlases/atl_unown_vultures.tres" id="GDA_atl_unown_vultures"]
 
 [sub_resource type="Animation" id="Animation_3mra3"]
 length = 0.001
@@ -4178,7 +4181,7 @@ position = Vector2(3.000061, 3.9932861)
 script = ExtResource("6")
 symbol = "WhatAnIndividual"
 offset = Vector2(64, -6)
-atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/unown_vultures/"
+atlases = [ExtResource("GDA_atl_unown_vultures")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CrawlBack/Vultures" unique_id=1718588648]
@@ -4196,12 +4199,12 @@ libraries/ = SubResource("AnimationLibrary_wr1if")
 [node name="Frontowns1" type="Node2D" parent="CrawlBack" unique_id=1317040778]
 script = ExtResource("6")
 symbol = " "
-atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnowns1/"
+atlases = [ExtResource("GDA_atl_frontnowns1")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="Frontowns2" type="Node2D" parent="CrawlBack" unique_id=790940945]
 script = ExtResource("6")
-atlas = "res://lullaby_mod/assets/funkin/monochrome/cutscene/pre_blood/Frontnown2/"
+atlases = [ExtResource("GDA_atl_frontnown2")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="CloserUp" type="Control" parent="." unique_id=1548468611]

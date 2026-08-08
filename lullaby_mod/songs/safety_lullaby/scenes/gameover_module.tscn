@@ -17,6 +17,7 @@
 [ext_resource type="AudioStream" uid="uid://bajcmumvgvbvu" path="res://lullaby_mod/resources/audio/mus/mus_gameover_sl_loop.ogg" id="16"]
 [ext_resource type="AudioStream" uid="uid://k3rg0o8qt6e5" path="res://lullaby_mod/resources/audio/mus/mus_gameover_sl.ogg" id="17"]
 [ext_resource type="AudioStream" uid="uid://dddhb08g0lh66" path="res://lullaby_mod/resources/audio/sfx/safety_lullaby/sfx_sl_retry.ogg" id="18"]
+[ext_resource type="Resource" uid="uid://l0d208y52a4zd" path="res://lullaby_mod/resources/gdanimate_atlases/atl_gf.tres" id="GDA_atl_gf"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rk0es"]
 blend_mode = 1
@@ -725,7 +726,7 @@ scale = Vector2(1.225, 1.225)
 script = ExtResource("7")
 symbol = "gameover_intro"
 frame = 84
-atlas = "res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/"
+atlases = [ExtResource("GDA_atl_gf")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GameOver/InitialScene/AnimateSymbol" unique_id=704275565]

@@ -8,6 +8,8 @@
 [ext_resource type="AnimationLibrary" uid="uid://cg2y8qkxkrsw3" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/chr_goldp1_atlas_LIBRARY.res" id="7"]
 [ext_resource type="AnimationLibrary" uid="uid://bjgf2pjpo4pu3" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/chr_goldp1_jumpscare_library.tres" id="8"]
 [ext_resource type="AnimationLibrary" uid="uid://2a6if3bweoly" path="res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/chr_goldp1_spe_tex_library.tres" id="9"]
+[ext_resource type="Resource" uid="uid://k0rzfp2zxswnb" path="res://lullaby_mod/resources/gdanimate_atlases/atl_atlas.tres" id="GDA_atl_atlas"]
+[ext_resource type="Resource" uid="uid://m9zrh8vlq2hic" path="res://lullaby_mod/resources/gdanimate_atlases/atl_turnaround.tres" id="GDA_atl_turnaround"]
 
 [sub_resource type="Animation" id="Animation_oyb2x"]
 resource_name = "0_aura"
@@ -4112,7 +4114,7 @@ volume_db = 6.0
 position = Vector2(-419, -390)
 script = ExtResource("5")
 symbol = "_EXPORT/Mono head rip"
-atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/"
+atlases = [ExtResource("GDA_atl_atlas")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/BodySymbol" unique_id=843395131]
@@ -4122,7 +4124,7 @@ libraries/goldp1_atlas_LIBRARY = ExtResource("7")
 position = Vector2(-511, -605)
 script = ExtResource("5")
 symbol = "_EXPORT/Mono idle head"
-atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/atlas/"
+atlases = [ExtResource("GDA_atl_atlas")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/HeadSymbol" unique_id=1306259301]
@@ -4133,7 +4135,7 @@ position = Vector2(-407, -117)
 script = ExtResource("5")
 symbol = "_MISC/mono backshot idle"
 offset = Vector2(-562.595, -457.83)
-atlas = "res://lullaby_mod/assets/funkin/monochrome/characters/goldp1/turnaround/"
+atlases = [ExtResource("GDA_atl_turnaround")]
 metadata/_custom_type_script = "uid://c5ju3u657fyae"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Parts/AuraPose" unique_id=1292084778]
