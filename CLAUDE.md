@@ -473,52 +473,56 @@ Moved to Basis (mode 4) rather than VRAM Compressed (mode 2): both land at the
 same ~1 byte/pixel on device, but Basis is content-aware so these mostly-flat
 UI sheets stay small in the APK instead of adding ~15MB of ASTC.
 
-### ASTC 8x8 is not an option for this project's art - measured
+### All Basis textures moved to ASTC 8x8
 
-The obvious next move is converting the 337 Basis textures to ASTC 8x8: Basis
-transcodes to about 1 byte/pixel on device, ASTC 8x8 is 0.25, so it would take
-**510MB of VRAM down to 128MB and shave ~75MB off the APK**. By a wide margin
-the biggest lever anywhere in this port, and with no atlas risk at all, since
-compression does not touch a texture's dimensions.
+337 textures moved from `compress/mode=4` to the project's own
+`lullaby.astc_sprite` importer at block size 8, EXHAUSTIVE quality. Basis
+transcodes to about 1 byte/pixel on device, ASTC 8x8 is 0.25, so:
 
-It does not survive contact with the art:
+**VRAM 510MB -> 128MB, and the ASTC payload totals 128MB against 203MB of PNG
+sources.** By a wide margin the biggest change in the port.
 
-```bash
-godot --headless --script tools/measure_astc_quality.gd -- <png> 8x8
-```
+This was the user's call, made against a quality measurement that argued the
+other way, and the measurement is left here rather than deleted because the
+numbers are still the numbers - `tools/measure_astc_quality.gd`:
 
 | | PSNR | worst channel error |
 |---|---|---|
 | `grass.png` | 18.9 dB | 255/255 |
 | `hypnobald.png` | 23.4 dB | 255/255 |
 | `rock.png` | 26.9 dB | 255/255 |
-| `foreground_trees.png` | 30.4 dB | 255/255 |
 | `spritemap1.png` | 36.0 dB | 255/255 |
 | `front_trees.png` | 45.9 dB | 84/255 |
 | `end_bg.png` | 51.9 dB | 15/255 |
 
-Nine of fifteen hit a 255/255 worst-case error. It is not detail loss, it is
-the **alpha channel**: nearly all of this art is hard-edged cutout - foliage,
-characters over transparency - and 8x8 fringes every boundary. `end_bg.png`,
-the one opaque background in the set, is the only clean result, which is the
-tell.
+The worst-case errors are in the **alpha channel** - this art is hard-edged
+cutout, and 8x8 fringes every boundary; `end_bg.png`, the one opaque
+background, is the only clean result. Two caveats on those numbers: the tool
+uses Godot's encoder rather than EXHAUSTIVE, and `sprite_importer.gd`'s own
+header records that the two measured **~0.4dB apart** at the same block size,
+so EXHAUSTIVE is not a large reprieve. If fringing shows up on device, this
+commit is the thing to revert.
 
-Two things this changes about the older notes above:
+Things this touched that are easy to miss:
 
-- "on a dense texture ASTC is much smaller" was about **file size** and never
-  checked quality. Density is not the predictor; **hard alpha edges** are.
-- **Read the worst-case channel error, not the PSNR.** A sharp UI sheet can
-  average well and still swing individual pixels black-to-white:
-  `settings_icons.png` is 40.9 dB at 8x8 with a worst error of 186/255.
-
-Caveat before trusting a marginal result: the tool uses Godot's own encoder,
-not the EXHAUSTIVE-quality `tools/astc_compress` the custom importer runs.
-Godot's is faster and worse, so these are a lower bound - a texture that passes
-here definitely passes, one that fails narrowly might survive EXHAUSTIVE.
-
-**Open question this raises:** the 445MB already on `lullaby.astc_sprite` at
-block size 8 were measured for size when they were converted, never for
-quality. Given the numbers above, they are worth a look.
+- **The importer pads, it does not resize** (`9b07a65`), blitting into a
+  transparent canvas at (0,0). Regions therefore stay valid - 41 of the
+  converted textures are region-sliced and are unaffected. But the texture's
+  *reported size* grows to the next multiple of 8, so **82 textures used whole
+  get up to 7px of transparent padding** on the right and bottom. 375 were
+  already a multiple of 8.
+- **UIDs and output hashes are unchanged** - only the extension moves, `.ctex`
+  to `.res`, because the hash is the md5 of the `res://` source path.
+- **A stale precompiled pair had to go.** `FucknoBack.png` was in
+  `precompiled_texture_imports/` as a `.ctex`, which its `.import` no longer
+  expects. Deleting it emptied that directory, and the workflow's
+  `cp precompiled_texture_imports/*.ctex` had no guard - an empty glob would
+  have failed the build. It is `nullglob`-guarded now.
+- **CI will pay for this once.** EXHAUSTIVE 8x8 measured 5.2s for 4096x1170 on
+  8 threads here, so ~9 minutes for all 510 Mpx locally and proportionally
+  more on a smaller runner. `precompiled_astc_imports/*.res` is Git LFS, which
+  this environment cannot push, so the outputs have to be generated and pushed
+  from a real machine to make it a one-off.
 
 **Changing the compression mode cannot break an atlas.** It does not touch the
 texture's dimensions, so every `AtlasTexture` region and every

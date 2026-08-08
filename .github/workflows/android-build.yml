@@ -229,15 +229,21 @@ jobs:
 
       - name: Restore precompiled texture imports
         run: |
-          # Same idea as the two steps above, for a handful of individually
-          # slow plain PNGs (Godot's stock texture importer, not either
-          # custom ASTC plugin) - each one measured over 10s alone in CI's
-          # Import step. See precompiled_texture_imports/README.md for why
-          # this only covers these 4 and not the ~600 other PNGs/OGGs that
-          # also fall outside precompiled_astc_imports' scope.
+          # Same idea as the two steps above, for individually slow plain PNGs
+          # on Godot's stock texture importer (not either custom ASTC plugin).
+          #
+          # This directory can legitimately be empty: moving a texture onto the
+          # ASTC importer makes its .ctex here stale - the .import now expects a
+          # .res - so the pair has to be deleted, and everything it used to hold
+          # has been. The glob must not be allowed to fail the build when that
+          # happens, which is what an unguarded `cp *.ctex` does.
           mkdir -p .godot/imported
-          cp precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_texture_imports/*.md5 | wc -l) precompiled texture imports"
+          shopt -s nullglob
+          files=(precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5)
+          if [ ${#files[@]} -gt 0 ]; then
+            cp "${files[@]}" .godot/imported/
+          fi
+          echo "Restored $(ls precompiled_texture_imports/*.md5 2>/dev/null | wc -l) precompiled texture imports"
 
       - name: Build ASTC normal map compressor
         run: |
