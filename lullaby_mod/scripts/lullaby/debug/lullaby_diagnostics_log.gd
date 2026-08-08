@@ -439,7 +439,12 @@ func _graphics_summary() -> String:
 	var msaa_names := ["off", "2x", "4x", "8x"]
 	var msaa: int = clampi(int(Settings.graphics_msaa_3d_quality), 0, 3)
 	var preset = Settings.get_quality_preset()
-	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s target_fps=%d" % [
+	var aniso_names := ["off", "2x", "4x", "8x", "16x"]
+	var aniso: int = clampi(int(Settings.graphics_anisotropic_filtering), 0, 4)
+	# aniso/lod/light_fade are logged because they are only ever set by a
+	# preset - on Custom they sit at their defaults and do nothing, which is
+	# invisible otherwise and made a whole run unattributable once.
+	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f target_fps=%d" % [
 		preset.name if preset != null else "Custom",
 		Settings.graphics_render_scale,
 		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
@@ -451,6 +456,9 @@ func _graphics_summary() -> String:
 		"on" if Settings.graphics_ssil else "off",
 		int(Settings.graphics_post_processing),
 		"off" if Settings.graphics_disable_shader_effects else "on",
+		aniso_names[aniso],
+		Settings.graphics_mesh_lod_threshold,
+		Settings.graphics_light_distance_fade,
 		Settings.display_target_fps,
 	]
 

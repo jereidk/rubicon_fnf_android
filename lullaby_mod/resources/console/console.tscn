@@ -5729,11 +5729,63 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../PostProcessing")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
+focus_neighbor_bottom = NodePath("../Anisotropic")
 text = "Reduce Visual Effects"
 property = &"graphics_disable_shader_effects"
 console = NodePath("../../../../../..")
 tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically; use it to get the same boost without dropping the rest of your preset."
+
+[node name="Anisotropic" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=2146300017 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ShaderEffects")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../MeshLOD")
+theme = ExtResource("1")
+text = "Texture Filtering: "
+alignment = 0
+script = ExtResource("54")
+property = &"graphics_anisotropic_filtering"
+display_list = ["Off", "2x", "4x", "8x", "16x"]
+values_list = [0, 1, 2, 3, 4]
+console = NodePath("../../../../../..")
+tooltip = "Sharpness of textures viewed at an angle. Costs memory bandwidth on every textured pixel, which is what this phone runs out of first - Off is barely visible at a low render scale."
+
+[node name="MeshLOD" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=2146300018 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Anisotropic")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../LightCulling")
+theme = ExtResource("1")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Mesh Detail Distance: "
+alignment = 0
+script = ExtResource("50")
+property = &"graphics_mesh_lod_threshold"
+increment_amount = 1.0
+value_max = 16.0
+value_min = 0.0
+console = NodePath("../../../../../..")
+tooltip = "How soon distant models drop to a simpler version. 0 keeps full detail everywhere; higher swaps sooner and draws less. Costs nothing to raise - the simpler versions are built at import time."
+
+[node name="LightCulling" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Graphics" unique_id=2146300019 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MeshLOD")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+theme = ExtResource("1")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Light Culling: "
+alignment = 0
+script = ExtResource("50")
+property = &"graphics_light_distance_fade"
+increment_amount = 0.5
+value_max = 12.0
+value_min = 0.0
+console = NodePath("../../../../../..")
+tooltip = "Stops small lights being drawn once the camera is far from them, as a multiple of each light's own reach. 0 is off; lower culls more. Every light reaching a pixel is shaded on that pixel, so this is the strongest lever in a busy scene."
 
 [node name="Audio" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
