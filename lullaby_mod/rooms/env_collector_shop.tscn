@@ -11144,11 +11144,12 @@ can_interact = false
 shape = SubResource("BoxShape3D_ykalx")
 debug_color = Color(0.36743256, 0, 0.70196074, 0.41960785)
 
-[node name="TvViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=937362603 node_paths=PackedStringArray("console_viewport")]
+[node name="TvViewportDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=937362603 node_paths=PackedStringArray("console_viewport", "background_container")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7645445, 1.8503802, 4.142391)
 aabb = AABB(-0.001, -0.36605573, -0.4545362, 0.002, 0.8610177, 0.9530177)
 script = ExtResource("304")
 console_viewport = NodePath("../../../Viewports/ConsoleSubViewport")
+background_container = NodePath("../../../Viewports/ConsoleSubViewport/Console/console_bg/Control/SubViewportContainer")
 
 [node name="TvLightDisabler" type="VisibleOnScreenNotifier3D" parent="Environment/Areas" unique_id=1628976616]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7645445, 1.88679, 3.984003)

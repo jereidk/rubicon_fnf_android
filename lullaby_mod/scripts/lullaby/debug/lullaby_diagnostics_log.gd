@@ -146,6 +146,21 @@ var _last_anim: String = ""
 var _last_anim_ms: int = 0
 var _watched_players: Array[AnimationPlayer] = []
 
+## Every SubViewport in the current scene, with GPU timing switched on.
+##
+## gpu= only ever covered the MAIN viewport - RenderingServer measures per
+## viewport RID, and get_viewport() on an autoload is the root window - so a
+## scene doing much of its rendering into SubViewports read as "the GPU is
+## fine, this is CPU" when it was neither. The Collector's Shop is exactly
+## that case: thirteen spikes at frame=68-141ms with gpu pinned at 13.5ms
+## and byte-identical draw/prims/objs, because the console's own 1440x1080
+## 3D background viewport was never part of that number.
+##
+## Refreshed on scene change and on every census rather than per entry: the
+## walk is the same one _watch_animations() does and a spike burst must not
+## pay for it.
+var _sub_viewports: Array[SubViewport] = []
+
 ## Long-run FPS buckets, one per SUMMARY_MINUTES. Thermal throttling does not
 ## announce itself - it looks like the same scene getting slower for no
 ## reason - so the only way to see it is to compare the same measurement
@@ -289,6 +304,10 @@ func census(reason: String) -> void:
 	var scene: Node = get_tree().current_scene if get_tree() else null
 	if scene == null or _file == null:
 		return
+
+	# Cheap here (the census already walks the whole tree) and it picks up
+	# SubViewports that a sequence instantiated after the scene loaded.
+	_refresh_sub_viewports()
 
 	var counts: Dictionary = {}
 	var players: Array[AnimationPlayer] = []
@@ -450,6 +469,30 @@ func _watch_animations() -> void:
 		for child in node.get_children():
 			nodes.append(child)
 
+	_refresh_sub_viewports()
+
+## Collects the scene's SubViewports and enables the same GPU/CPU timestamp
+## queries the main viewport already has. Off by default per viewport, so
+## without this the sums below would read a flat 0 and look like "no
+## SubViewport cost", which is the failure mode this whole field exists to
+## stop repeating.
+func _refresh_sub_viewports() -> void:
+	_sub_viewports.clear()
+
+	var scene: Node = get_tree().current_scene if get_tree() else null
+	if scene == null:
+		return
+
+	var nodes: Array[Node] = [scene]
+	while not nodes.is_empty():
+		var node: Node = nodes.pop_back()
+		var viewport := node as SubViewport
+		if viewport != null:
+			_sub_viewports.append(viewport)
+			RenderingServer.viewport_set_measure_render_time(viewport.get_viewport_rid(), true)
+		for child in node.get_children():
+			nodes.append(child)
+
 func _on_animation_started(anim: StringName, player: AnimationPlayer) -> void:
 	_last_anim = "%s/%s" % [player.name, anim]
 	_last_anim_ms = Time.get_ticks_msec()
@@ -471,7 +514,7 @@ func _graphics_summary() -> String:
 	# aniso/lod/light_fade are logged because they are only ever set by a
 	# preset - on Custom they sit at their defaults and do nothing, which is
 	# invisible otherwise and made a whole run unattributable once.
-	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f target_fps=%d" % [
+	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d" % [
 		preset.name if preset != null else "Custom",
 		Settings.graphics_render_scale,
 		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
@@ -486,6 +529,7 @@ func _graphics_summary() -> String:
 		aniso_names[aniso],
 		Settings.graphics_mesh_lod_threshold,
 		Settings.graphics_light_distance_fade,
+		Engine.physics_ticks_per_second,
 		Settings.display_target_fps,
 	]
 
@@ -609,7 +653,23 @@ func _entry(kind: String, detail: String) -> void:
 	#         back into the tree instead of being reused where it stood.
 	var churn: Dictionary = RubiconLevelNoteHandler.take_churn_stats()
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	# The other half of gpu=, and the half that was missing. A SubViewport
+	# whose update mode is DISABLED is not rendering this frame and is left
+	# out of both sums, which is what makes sub_px= readable as "pixels the
+	# GPU is actually being asked for on top of the main viewport".
+	var sub_gpu_ms: float = 0.0
+	var sub_live: int = 0
+	var sub_pixels: int = 0
+	for viewport: SubViewport in _sub_viewports:
+		if not is_instance_valid(viewport):
+			continue
+		if viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED:
+			continue
+		sub_live += 1
+		sub_pixels += viewport.size.x * viewport.size.y
+		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
+
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM spawn=%d despawn=%d park=%d inst=%d churn=%.2fms churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -633,6 +693,10 @@ func _entry(kind: String, detail: String) -> void:
 		Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0,
 		gpu_ms,
 		cpu_render_ms,
+		sub_live,
+		_sub_viewports.size(),
+		sub_gpu_ms,
+		float(sub_pixels) / 1048576.0,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
