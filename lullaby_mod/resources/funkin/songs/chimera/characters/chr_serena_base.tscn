@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dqqqiv8d0q8gc" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1"]
 [ext_resource type="SpriteFrames" uid="uid://5o3whkjnp1rq" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/sing/serena_sing.tres" id="3"]
+[ext_resource type="Script" uid="uid://35qsfr36xk1u" path="res://addons/rubicon_mania/scripts/rubicon_character_mania_misplay.gd" id="CharacterMisplayScript"]
 
 [sub_resource type="Animation" id="Animation_u0f5w"]
 length = 1.5
@@ -773,3 +774,7 @@ light_bake_mode = 1
 distance_fade_enabled = true
 spot_range = 1.514
 spot_angle = 64.57
+
+[node name="RubiconCharacterManiaGhostTap" type="Node" parent="."]
+script = ExtResource("CharacterMisplayScript")
+metadata/_custom_type_script = "uid://35qsfr36xk1u"

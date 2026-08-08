@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c5ju3u657fyae" path="res://addons/gdanimate/animate_symbol.gd" id="3"]
 [ext_resource type="AnimationLibrary" uid="uid://bm0175y8ncrkx" path="res://lullaby_mod/assets/funkin/safety_lullaby/characters/gf/gf_LIBRARY.res" id="5"]
 [ext_resource type="Script" uid="uid://dkyyuwqo0dy7q" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="AdobeAtlasScript"]
+[ext_resource type="Script" uid="uid://35qsfr36xk1u" path="res://addons/rubicon_mania/scripts/rubicon_character_mania_misplay.gd" id="CharacterMisplayScript"]
 
 [sub_resource type="Resource" id="AtlasGf"]
 script = ExtResource("AdobeAtlasScript")
@@ -903,3 +904,7 @@ libraries/miss = SubResource("AnimationLibrary_utjkj")
 libraries/trance = SubResource("AnimationLibrary_g5vwj")
 autoplay = &"dance_idle"
 next/intro = &"dance_idle"
+
+[node name="RubiconCharacterManiaGhostTap" type="Node" parent="."]
+script = ExtResource("CharacterMisplayScript")
+metadata/_custom_type_script = "uid://35qsfr36xk1u"
