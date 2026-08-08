@@ -287,6 +287,44 @@ animation drives `../BloodCutscene/...`, `../BoyfriendScream` and
 instantiated by `BloodCutsceneLoader` from uid paths. Read the output; do not
 turn it into a build gate.
 
+### What each scene actually asks the GPU for
+
+```bash
+python3 tools/audit_gpu_cost.py
+```
+
+Lists per scene the always-on shadow casters and the full-frame CanvasItems
+carrying a shader, split by whether the node ships visible. That split is the
+whole point: a node authored `visible = false` is switched on by a sequence for
+a few seconds and is **not** part of the steady-state frame cost.
+
+The result explains the shop-vs-Chimera gap exactly:
+
+- **Chimera is the only gameplay scene in the project with an always-on shadow
+  caster** - two, `MoonSpotlight` and `TvLight`. Every other scene has none,
+  and the shop, with more lights and more draw calls, costs 17.3ms against
+  Chimera's 38.8ms.
+- Chimera's `Rain`, `NTSC` and the `Ray` godray box all ship `visible = false`,
+  so they are **not** the steady cost. That kills the old "rain/godrays" theory
+  for the 30fps ceiling - they are cutscene-only.
+- **The shadow atlas does not scale with `graphics_render_scale`.** That is why
+  dropping render scale to 0.50 did not help: the colour pass halved to
+  800x360, the shadow maps kept rendering at the full atlas size.
+
+Two things the tool has to get right, and got wrong first:
+
+- **`editor_only = true` lights do not render at runtime.** Chimera's
+  `EditorMoonDoNotDelete` is a shadow-casting DirectionalLight3D and would
+  otherwise look like the worst offender in the project.
+- **Ancestor visibility.** `PhoneGlow` sets no `visible` of its own but lives
+  under a cutscene group that ships hidden.
+
+Worth knowing and deliberately not changed here: `TvLight` has
+`light_energy = 0` with `shadow_enabled = true` and `omni_range = 43.9`, so it
+emits nothing while still rendering a shadow cubemap over the whole scene.
+`122_fall` animates its energy, so switching its shadow off is a look decision,
+not a free win - measure it before touching it.
+
 ### Tools for this: diff the port against the pck directly
 
 Three scripts, all mounting the pck read-only:
