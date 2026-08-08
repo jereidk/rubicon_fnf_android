@@ -36,6 +36,7 @@ Debugger="*res://lullaby_mod/autoloads/atl_debug.tscn"
 DiagnosticsLog="*res://lullaby_mod/scripts/lullaby/debug/lullaby_diagnostics_log.gd"
 NoteLayout="*res://lullaby_mod/scripts/lullaby/settings/lullaby_note_layout_applier.gd"
 MobileControlsApplier="*res://lullaby_mod/scripts/lullaby/settings/lullaby_mobile_controls_applier.gd"
+LightBudget="*res://lullaby_mod/scripts/lullaby/settings/lullaby_light_budget_applier.gd"
 VolumeSlider="*res://menus/volume_slider/volume_slider.tscn"
 
 [display]

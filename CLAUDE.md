@@ -797,12 +797,31 @@ a default, a `.tres` does not declare it, and the preset therefore ships the
 default. Grep for what each `.tres` actually declares before assuming a preset
 does anything.
 
-|  | render scale | shadow atlas | shadow filter | aniso | mesh LOD |
-|---|---|---|---|---|---|
-| High | 1.00 | 4096 | 2 | 4x | 1.0 |
-| Medium | 0.85 | 2048 | 1 | 2x | 2.0 |
-| Low | 0.65 | 1024 | 0 | off | 4.0 |
-| Very Low | 0.50 | shadows off | 0 | off | 8.0 |
+|  | render scale | shadow atlas | shadow filter | aniso | mesh LOD | light fade |
+|---|---|---|---|---|---|---|
+| High | 1.00 | 4096 | 2 | 4x | 1.0 | off |
+| Medium | 0.85 | 2048 | 1 | 2x | 2.0 | off |
+| Low | 0.65 | 1024 | 0 | off | 4.0 | x3 |
+| Very Low | 0.50 | shadows off | 0 | off | 8.0 | x2 |
+
+**Chimera's real-time lights**, which is what "light fade" acts on. They split
+cleanly into local and scene-wide, and the house is about 10 units across:
+
+| light | range | energy | gone at x3 | gone at x2 |
+|---|---|---|---|---|
+| SerenaBase | 1.51 | 1.07 | 6.1 | 4.5 |
+| CrawlDoorLight | 1.75 | 0.265 | 7.0 | 5.2 |
+| CameraMechanic | 3.16 | 1.0 | 12.6 | 9.5 |
+| OutsideGrassLight | 5.81 | 0.28 | 23.2 | 17.4 |
+| Camera3D's own | 6.51 | 2.35 | 26.0 | 19.5 |
+| AmbLight | 18.14 | 2.87 | 72.6 | 54.4 |
+| MoonSpotlight | 21.46 | 0.37 | 85.8 | 64.4 |
+| TvLight | 43.93 | 0.0 | 175.7 | 131.8 |
+
+Only the four small dim ones ever fade; the four that light the whole scene
+never reach their distance, and the camera's own light rides the camera so its
+distance is always ~0. Most of these live inside instanced sub-scenes, so a
+scan of `sng_chimera.tscn` alone finds four lights, not eight.
 
 What was wrong before:
 

@@ -106,6 +106,10 @@ var graphics_post_processing: PostProcessing = PostProcessing.HIGH
 ## apply to the whole viewport, so they help every scene rather than one.
 var graphics_anisotropic_filtering: int = 2
 var graphics_mesh_lod_threshold: float = 1.0
+
+## Multiplier on a light's own range past which it stops being rendered, applied
+## by MobileLightBudget. 0 = off, which is what High and Medium ship.
+var graphics_light_distance_fade: float = 0.0
 var graphics_disable_shader_effects: bool = false
 
 ## Decorative/post-processing shaders only - screen distortions, blur, CRT/

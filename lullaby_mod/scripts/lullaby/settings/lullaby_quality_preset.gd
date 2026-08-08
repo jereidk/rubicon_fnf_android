@@ -34,6 +34,17 @@ var anisotropic_filtering: int = 2
 ## the LODs at import time, so this costs nothing to turn on.
 @export_range(0.0, 16.0, 0.5) var mesh_lod_threshold: float = 1.0
 
+## Multiplier on each light's own range, past which the light stops being
+## rendered - see lullaby_light_budget_applier.gd. 0 disables the pass.
+##
+## The mobile renderer evaluates every omni/spot light that reaches a fragment,
+## and Chimera's cost tracks screen coverage at a constant light count, so
+## fewer lights per pixel is the lever that matches the measurement. Deriving
+## the distance from the light's own range means small local lights (candles, a
+## phone glow) drop out when the camera leaves them while scene-wide lights
+## never do, without tuning a number per scene.
+@export_range(0.0, 12.0, 0.5) var light_distance_fade: float = 0.0
+
 ## Frame rate cap. Not a graphics setting in the usual sense - it does
 ## nothing for image quality - but on a device that cannot hold 60 it is
 ## worth more than any of the above. Chimera on a moto g53 oscillates
@@ -61,6 +72,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_ssil == ssil and
 		settings.graphics_anisotropic_filtering == anisotropic_filtering and
 		settings.graphics_mesh_lod_threshold == mesh_lod_threshold and
+		settings.graphics_light_distance_fade == light_distance_fade and
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects
 	)
@@ -78,5 +90,6 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_ssil = ssil
 	settings.graphics_anisotropic_filtering = anisotropic_filtering
 	settings.graphics_mesh_lod_threshold = mesh_lod_threshold
+	settings.graphics_light_distance_fade = light_distance_fade
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects

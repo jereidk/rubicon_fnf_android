@@ -12,4 +12,5 @@ msaa_3d_quality = 2
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
 anisotropic_filtering = 2
 mesh_lod_threshold = 1.0
+light_distance_fade = 0.0
 target_fps = 60
