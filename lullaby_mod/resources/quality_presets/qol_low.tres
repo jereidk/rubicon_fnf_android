@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1")
 name = "Low"
+render_scale = 0.65
 scaling_3d_mode = 5
 positional_shadow_atlas_size = 1024
 positional_shadow_filter_quality = 0
