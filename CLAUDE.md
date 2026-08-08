@@ -454,6 +454,35 @@ them.
 **ASTC does not reduce VRAM here.** Basis was already transcoded to a
 compressed GPU format on device. Only *resolution* reduces VRAM.
 
+**But `compress/mode=0` (Lossless) does, and it is the worst offender in the
+project.** Lossless is not compressed on the GPU at all - it is RGBA8, four
+bytes per pixel. The earlier note here said to leave the 66 mode=0 textures
+alone because they are 4.5MB as PNGs and 9.1MB as ASTC; that was about **APK
+size** and is still true, but as **VRAM** they were catastrophic:
+
+| | | RGBA8 | compressed |
+|---|---|---|---|
+| `settings_icons.png` | 4096x2048 | 33.6 MB | 8.4 MB |
+| `OptionsBox.png` | 2048x2048 | 16.8 MB | 4.2 MB |
+| `training_icons.png` | 4096x512 | 8.4 MB | 2.1 MB |
+| `ConsoleStartup.png` | 2048x1024 | 8.4 MB | 2.1 MB |
+| `lil_ector.png` | 256x2048 | 2.1 MB | 0.5 MB |
+
+Five console UI textures, 69.2MB of VRAM between them, 1.7MB of PNG on disk.
+Moved to Basis (mode 4) rather than VRAM Compressed (mode 2): both land at the
+same ~1 byte/pixel on device, but Basis is content-aware so these mostly-flat
+UI sheets stay small in the APK instead of adding ~15MB of ASTC.
+
+**Changing the compression mode cannot break an atlas.** It does not touch the
+texture's dimensions, so every `AtlasTexture` region and every
+`spritemap*.json` rect still lands where it did. That is what makes this safe
+where rescaling a sheet is not - the 129 region-sliced sheets above 2048 would
+each need every region rewritten in lockstep, and this repo has been broken by
+exactly that class of change before.
+
+`tex_static_noise.png` and the app icons stay lossless on purpose: the first is
+sampled as data by `shd_shop_static_spatial`, and lossy noise is artefacts.
+
 **The importer used to `img.resize()` to reach a multiple of the block size**,
 which rescales rather than pads and shifted every pixel a few thousandths.
 Invisible on a standalone sprite, fatal on an atlas whose regions come from a
