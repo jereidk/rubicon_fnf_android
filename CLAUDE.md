@@ -582,6 +582,43 @@ much worse than the log can show.
   not affected by `scaling_3d_scale`, so that is pure fill on overlapping
   full-screen layers - a third of a 60fps budget for a menu.
 
+- **Nothing accumulates across the song, except geometry, and geometry is not
+  the cost.** Chasing "do earlier cutscene stages stay on screen": `objs` and
+  `draw` rise and fall all song and are back to 45 objects / 16 draw calls near
+  the end, so drawn objects do not pile up. `prims` **does** - its floor goes
+  from ~10.2k to ~34.5k and never returns, so something is revealed and not
+  hidden again. It costs almost nothing: first 60s is 10414 prims at 38.9ms,
+  last 30s is 34511 prims at 42.5ms. 3.3x the geometry for +9% GPU.
+
+  All three counters are uncorrelated with GPU time: `objs` +0.16, `draw`
+  +0.24, `prims` +0.26. And there are counter-examples in both directions -
+  16671 prims at 19.5ms against 10312 prims at 38.9ms.
+
+- **The cost tracks which sequence is on screen, at a constant shadow count.**
+  This is the sharpest thing in the log and it *weakens the shadow theory
+  above*, so read it before acting on that one:
+
+  | | sequence | prims | shadows | gpu |
+  |---|---|---|---|---|
+  | costly | `101_prelude` | 10312 | 4 | 38.9ms |
+  | costly | `107_turnaround` | 29233 | 4 | 46.5ms |
+  | **cheap** | `scene@133` | 16671 | 4 | **19.5ms** |
+  | **cheap** | `123_crawling` | 26390 | 4 | **24.0ms** |
+  | costly | `125_outro` | 34511 | 4 | 43.0ms |
+
+  Same four shadow casters throughout, 10-11 visible lights throughout, and the
+  GPU swings 2.2x. **Chimera already runs at ~50fps for a ~40-second stretch.**
+  Whatever the ceiling is, it is not a fixed per-frame cost - it is per-pixel
+  work that depends on what fills the frame, which points at overdraw and at
+  the mobile renderer evaluating 10-11 lights per fragment on wide shots of the
+  house.
+
+- **"Lowering the render scale did not help" was never actually measured.**
+  Chimera has only ever been logged at `scale=0.50`; there is no sample of it
+  at 1.0, so the slope is unknown. Running it at 0.35 and at 0.75 and seeing
+  whether `gpu` tracks the pixel count is the cheapest way to confirm or kill
+  the fill-rate reading, and it is a better first test than the shadows A/B.
+
 - **What is still open, and the test that closes it.** The one structural
   difference the census shows between the two scenes is shadow casters:
   Chimera `lights=13(shadow=5)`, the shop `lights=14(shadow=0)` - more lights,
