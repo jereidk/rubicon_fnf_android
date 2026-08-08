@@ -25,6 +25,12 @@ class_name ChimeraHeartbeatTouchZone
 
 @export var hitbox_size: Vector2 = Vector2(180, 180)
 
+## Showcase Mode only; see LullabyShowcase.
+const SHOWCASE_TOUCH_INDEX: int = -1000
+const SHOWCASE_FLASH_SECONDS: float = 0.1
+
+var _was_beaten: bool = false
+
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
 	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
@@ -47,8 +53,23 @@ func _process(_delta: float) -> void:
 	if not hitbox or not heartbeat or not heart_sprite:
 		return
 
-	var should_show: bool = heartbeat.beating_enabled and not heartbeat.autoplay and not get_tree().paused
+	var should_show: bool = (heartbeat.beating_enabled
+		and LullabyShowcase.mechanic_controls_visible(heartbeat.autoplay)
+		and not get_tree().paused)
 	hitbox.visible = should_show
+
+	# In Showcase Mode the mechanic plays itself, so the button flashes on
+	# each automatic beat instead of sitting inert. has_beaten is watched
+	# rather than hooking a signal because heartbeat_controller.gd is carried
+	# over from the pck and matches it line for line - adding a signal there
+	# would be a divergence for a purely cosmetic feature. It is set true in
+	# heart_beat() and cleared in reset_timer(), so the false->true edge is
+	# exactly one beat.
+	var beaten: bool = heartbeat.has_beaten
+	if beaten and not _was_beaten and should_show:
+		LullabyShowcase.flash_control(hitbox, get_tree(), SHOWCASE_TOUCH_INDEX,
+			SHOWCASE_FLASH_SECONDS)
+	_was_beaten = beaten
 
 	if not should_show:
 		return

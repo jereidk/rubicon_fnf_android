@@ -82,9 +82,10 @@ func _update_visibility() -> void:
 	# Showcase Mode wants this hitbox visibly flashing along with the
 	# pendulum's own autoplay hits (see _on_pendulum_hit below), so it
 	# stays shown during autoplay instead of hiding like normal autoplay
-	# (e.g. the debug "Autoplay?" toggle) does.
-	var showing_off: bool = Settings.lullaby_showcase_mode
-	var mechanic_active: bool = pendulum_server.started and (not pendulum_server.autoplay or showing_off)
+	# (e.g. the debug "Autoplay?" toggle) does. The rule itself lives in
+	# LullabyShowcase now - Chimera needs the same one.
+	var mechanic_active: bool = (pendulum_server.started
+		and LullabyShowcase.mechanic_controls_visible(pendulum_server.autoplay))
 	var hud_visible: bool = true
 	if default_hud:
 		hud_visible = default_hud.visible and default_hud.modulate.a > 0.01
@@ -92,9 +93,5 @@ func _update_visibility() -> void:
 	hitbox.visible = mechanic_active and hud_visible
 
 func _on_pendulum_hit() -> void:
-	if not Settings.lullaby_showcase_mode or not hitbox or not hitbox.has_method("_handle_touch"):
-		return
-
-	hitbox.call("_handle_touch", SHOWCASE_TOUCH_INDEX, true)
-	var timer: SceneTreeTimer = get_tree().create_timer(SHOWCASE_HIT_FLASH_SECONDS)
-	timer.timeout.connect(func(): hitbox.call("_handle_touch", SHOWCASE_TOUCH_INDEX, false))
+	LullabyShowcase.flash_control(hitbox, get_tree(), SHOWCASE_TOUCH_INDEX,
+		SHOWCASE_HIT_FLASH_SECONDS)

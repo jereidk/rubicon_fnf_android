@@ -16,6 +16,12 @@ class_name ChimeraPictureTakingTouchZone
 ## show/hide the button.
 
 @export var hitbox: Button
+
+## Showcase Mode only; see LullabyShowcase.
+const SHOWCASE_TOUCH_INDEX: int = -1000
+const SHOWCASE_FLASH_SECONDS: float = 0.1
+
+var _last_autoplay_elapsed: float = 0.0
 @export var picture_taking: PictureTakingController
 
 func _ready() -> void:
@@ -36,5 +42,21 @@ func _process(_delta: float) -> void:
 	if not hitbox or not picture_taking:
 		return
 
-	var should_show: bool = picture_taking.mechanic_enabled and not picture_taking.autoplay and not get_tree().paused
+	var should_show: bool = (picture_taking.mechanic_enabled
+		and LullabyShowcase.mechanic_controls_visible(picture_taking.autoplay)
+		and not get_tree().paused)
 	hitbox.visible = should_show
+
+	# Same as the heartbeat zone: flash on each automatic shot in Showcase
+	# Mode. mch_picturetaking.gd counts up _autoplay_time_passed and resets it
+	# to zero when it fires, so a drop in that value is one shot. Read rather
+	# than signalled for the same reason - that file is the pck's.
+	# get() on a property the mechanic does not have returns null, and a null
+	# into a typed float is a runtime error, so the name is checked first.
+	var elapsed: float = 0.0
+	if "_autoplay_time_passed" in picture_taking:
+		elapsed = picture_taking.get("_autoplay_time_passed")
+	if should_show and picture_taking.autoplay and elapsed < _last_autoplay_elapsed:
+		LullabyShowcase.flash_control(hitbox, get_tree(), SHOWCASE_TOUCH_INDEX,
+			SHOWCASE_FLASH_SECONDS)
+	_last_autoplay_elapsed = elapsed

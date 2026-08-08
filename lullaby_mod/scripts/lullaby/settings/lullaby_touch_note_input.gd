@@ -343,11 +343,10 @@ func _update_special_button() -> void:
 	var started: bool = "started" in mechanic_source and bool(mechanic_source.get("started"))
 	var autoplay: bool = "autoplay" in mechanic_source and bool(mechanic_source.get("autoplay"))
 	# Showcase mode wants the mechanic controls visible and flashing along
-	# with the pendulum's autoplay hits, same rule as
-	# SafetyLullabyTouchControls.
-	var showing_off: bool = Settings.lullaby_showcase_mode
+	# with the mechanic's autoplay hits; the rule is shared with
+	# SafetyLullabyTouchControls and both Chimera zones.
 	_update_special_button_size()
-	special_button.visible = started and (not autoplay or showing_off)
+	special_button.visible = started and LullabyShowcase.mechanic_controls_visible(autoplay)
 
 ## Re-derives the button's offsets from the Touch Note Hitbox Size
 ## setting, only when that scale actually changed (this runs every frame).
