@@ -107,11 +107,36 @@ func _import(source_file: String, save_path: String, options: Dictionary, _platf
 		push_error("astc_sprite: helper binary not found at %s - build it first (see tools/astc_compress/)" % tool_path)
 		return ERR_FILE_NOT_FOUND
 
+	# Decoded from a buffer rather than by path on purpose.
+	#
+	# Image.load("res://...") warns "Loaded resource as image file, this will
+	# not work on export" whenever an .import exists for the path - fair for
+	# runtime code, meaningless here, since _import() only ever runs on the
+	# build machine where the source PNG is on disk by definition. It is just
+	# noise, but it is one line per texture: the cold build that reimported
+	# everything printed it 498 times, which is exactly how a real error gets
+	# buried in an import log.
+	#
+	# Image.load_from_file() does NOT avoid it - it calls load() internally and
+	# warns identically (verified against 4.7.1). Only the buffer decoders skip
+	# the res:// check. _get_recognized_extensions() is ["png"], and all 498
+	# sources are .png, so PNG is the only decoder needed; anything else falls
+	# back to load() rather than silently importing nothing.
 	var img := Image.new()
-	var err := img.load(source_file)
-	if err != OK:
-		push_error("astc_sprite: failed to load %s (%s)" % [source_file, err])
-		return err
+	if source_file.get_extension().to_lower() == "png":
+		var bytes := FileAccess.get_file_as_bytes(source_file)
+		if bytes.is_empty():
+			push_error("astc_sprite: cannot read %s" % source_file)
+			return ERR_CANT_OPEN
+		var png_err := img.load_png_from_buffer(bytes)
+		if png_err != OK:
+			push_error("astc_sprite: failed to decode %s (%s)" % [source_file, png_err])
+			return png_err
+	else:
+		var err := img.load(source_file)
+		if err != OK:
+			push_error("astc_sprite: failed to load %s (%s)" % [source_file, err])
+			return err
 	img.convert(Image.FORMAT_RGBA8)
 
 	var w := img.get_width()
