@@ -789,6 +789,44 @@ put only this cast in front of a small off-screen SubViewport camera for a
 frame during the loading screen. It touches no song-scene visibility state,
 which is what made the previous attempt reveal the console's Codes tab.
 
+## The quality preset ladder, and the gaps that kept being in it
+
+Three separate times now the presets turned out not to lower the thing they
+claimed to. The pattern is always the same: `LullabyQualityPreset`'s field has
+a default, a `.tres` does not declare it, and the preset therefore ships the
+default. Grep for what each `.tres` actually declares before assuming a preset
+does anything.
+
+|  | render scale | shadow atlas | shadow filter | aniso | mesh LOD |
+|---|---|---|---|---|---|
+| High | 1.00 | 4096 | 2 | 4x | 1.0 |
+| Medium | 0.85 | 2048 | 1 | 2x | 2.0 |
+| Low | 0.65 | 1024 | 0 | off | 4.0 |
+| Very Low | 0.50 | shadows off | 0 | off | 8.0 |
+
+What was wrong before:
+
+- **Render scale existed only on Very Low.** High, Medium and Low all rendered
+  3D at full resolution, on a project that is provably per-pixel bound.
+- **Medium's shadow cost was identical to High's** - it declared neither the
+  atlas size nor the filter quality, and Low reduced the atlas while leaving
+  filter quality at the most expensive setting.
+- **`anisotropic_filtering` and `mesh_lod_threshold` were not wired up at
+  all.** Godot exposes both on `Viewport`; the project sat on the engine
+  defaults (4x anisotropic, a 1-pixel LOD threshold that means LODs never
+  engage) on every preset including Very Low. Both are viewport-wide, so they
+  are the two levers that help *every* scene rather than one.
+
+`SCALING_3D_MODE_NEAREST = 5` is a real value in 4.7.1 - Low and Very Low
+setting `scaling_3d_mode = 5` is correct and is the cheapest upscaler, not the
+out-of-range bug it looks like. Verify enum values against the running binary
+(`ClassDB.class_get_enum_constants`) rather than from memory.
+
+`is_matching()` compares every tracked field, so a preset that omits one still
+matches as long as the omitted default equals what it wants - but declare new
+fields in all four files anyway, or the next person reading the table above
+will draw the wrong conclusion.
+
 ## Open problems
 
 1. **Chimera's 30fps ceiling is GPU-bound** (`gpu` 38.8ms against a 38.1ms

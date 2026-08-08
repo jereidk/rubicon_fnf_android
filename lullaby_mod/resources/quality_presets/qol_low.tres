@@ -13,5 +13,7 @@ screen_space_aa_quality = 0
 post_processing = 0
 ssao = false
 ssil = false
+anisotropic_filtering = 0
+mesh_lod_threshold = 4.0
 target_fps = 60
 metadata/_custom_type_script = "uid://dvyolplt7oov0"

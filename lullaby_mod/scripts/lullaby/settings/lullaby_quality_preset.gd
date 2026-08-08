@@ -13,6 +13,27 @@ class_name LullabyQualityPreset extends Resource
 @export var ssao: bool = true
 @export var ssil: bool = true
 
+## Texture sampling quality, as Viewport.AnisotropicFiltering
+## (0 = 1x/off, 1 = 2x, 2 = 4x, 3 = 8x, 4 = 16x).
+##
+## The project was leaving this at the engine default of 4x everywhere. It is a
+## per-sample bandwidth cost on every textured pixel, and this device is bound
+## on exactly that - Chimera's GPU time tracks how much of the screen is
+## covered, not how many objects or primitives there are. At Low's 0.65 render
+## scale on a 720p phone the difference between 4x and off is not visible;
+## the bandwidth is.
+@export_enum("Off (1x)", "2x", "4x", "8x", "16x")
+var anisotropic_filtering: int = 2
+
+## Viewport.mesh_lod_threshold, in pixels: how small a mesh's detail has to get
+## before the engine swaps in a cheaper LOD.
+##
+## Also left at the engine default of 1.0, which effectively means LODs never
+## kick in. Raising it makes distant geometry drop detail sooner, which cuts
+## both vertex work and the fragments those triangles cover. Godot generates
+## the LODs at import time, so this costs nothing to turn on.
+@export_range(0.0, 16.0, 0.5) var mesh_lod_threshold: float = 1.0
+
 ## Frame rate cap. Not a graphics setting in the usual sense - it does
 ## nothing for image quality - but on a device that cannot hold 60 it is
 ## worth more than any of the above. Chimera on a moto g53 oscillates
@@ -38,6 +59,8 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_post_processing == post_processing and
 		settings.graphics_ssao == ssao and
 		settings.graphics_ssil == ssil and
+		settings.graphics_anisotropic_filtering == anisotropic_filtering and
+		settings.graphics_mesh_lod_threshold == mesh_lod_threshold and
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects
 	)
@@ -53,5 +76,7 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_post_processing = post_processing
 	settings.graphics_ssao = ssao
 	settings.graphics_ssil = ssil
+	settings.graphics_anisotropic_filtering = anisotropic_filtering
+	settings.graphics_mesh_lod_threshold = mesh_lod_threshold
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects

@@ -98,6 +98,14 @@ var graphics_msaa_3d_quality: Viewport.MSAA = Viewport.MSAA.MSAA_4X
 var graphics_ssao: bool = true
 var graphics_ssil: bool = true
 var graphics_post_processing: PostProcessing = PostProcessing.HIGH
+
+## Viewport.anisotropic_filtering_level (0 = off/1x .. 4 = 16x) and
+## Viewport.mesh_lod_threshold, both of which this project had been leaving at
+## the engine defaults (4x and 1.0 pixel) on every preset. They are the two
+## per-pixel knobs Godot already exposes that nothing here was using, and they
+## apply to the whole viewport, so they help every scene rather than one.
+var graphics_anisotropic_filtering: int = 2
+var graphics_mesh_lod_threshold: float = 1.0
 var graphics_disable_shader_effects: bool = false
 
 ## Decorative/post-processing shaders only - screen distortions, blur, CRT/
@@ -325,6 +333,9 @@ func apply_settings() -> void:
 	window.fsr_sharpness = graphics_fsr_sharpness
 	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
 	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
+
+	window.anisotropic_filtering_level = clampi(graphics_anisotropic_filtering, 0, 4) as Viewport.AnisotropicFiltering
+	window.mesh_lod_threshold = maxf(0.0, graphics_mesh_lod_threshold)
 
 	window.msaa_3d = graphics_msaa_3d_quality
 	window.screen_space_aa = graphics_screen_space_aa_quality
