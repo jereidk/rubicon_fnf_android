@@ -168,7 +168,7 @@ func get_symbols()->String:
 	if not string.is_empty():
 		string.remove_char(string.length()- 1)
 
-	return("" if string.is_empty() else" ,")+ string
+	return(""if string.is_empty()else " ,")+ string
 
 
 func get_length_of(symbol:StringName)->int:
@@ -178,7 +178,7 @@ func get_length_of(symbol:StringName)->int:
 	if symbols.has(symbol):
 		return symbols[symbol].length
 
-	return0
+	return 0
 
 
 func draw_symbol(target:AdobeSymbol, parent:RID,
@@ -286,7 +286,7 @@ func draw_symbol(target:AdobeSymbol, parent:RID,
 						t,
 					)
 
-		if (not is_clipper) and layer_parent== parent:
+		if (not is_clipper)and layer_parent== parent:
 			if rendered:
 				if is_instance_valid(material):
 					var use_material:bool= blend_mode!= AdobeSymbolInstance.AdobeBlendMode.NORMAL
@@ -476,7 +476,7 @@ func load_symbol_directory(optimized:bool, dir:DirAccess, folder:String= "")->vo
 	dir.list_dir_begin()
 	var name:String= dir.get_next()
 	while name!= "":
-		if dir.current_is_dir() and name!= "." and name!= "..":
+		if dir.current_is_dir()and name!= "."and name!= "..":
 			load_symbol_directory(optimized, DirAccess.open(dir.get_current_dir()+ "/"+ name), folder+ name+ "/")
 		elif name.get_extension()== "json":
 			var raw:String= FileAccess.get_file_as_string(dir.get_current_dir()+ "/"+ name)
@@ -543,7 +543,7 @@ func load_frame(optimized:bool, frame:Dictionary)->AdobeLayerFrame:
 
 	var elements:Array= get_pair(optimized, frame, "elements", "E")
 	for element:Dictionary in elements:
-		if element.has("SYMBOL_Instance") or element.has("SI"):
+		if element.has("SYMBOL_Instance")or element.has("SI"):
 			gd_frame.elements.push_back(load_symbol_instance(optimized, element))
 		else:
 			gd_frame.elements.push_back(load_atlas_sprite(optimized, element))
@@ -568,7 +568,7 @@ func load_symbol_instance(optimized:bool, element:Dictionary)->AdobeSymbolInstan
 		symbol_instance.transform= parse_matrix(get_pair(optimized, element, "Matrix3D", "M3D"))
 
 	if has_pair(optimized, element, "blend", "B"):
-		symbol_instance.blend_mode= get_pair(optimized, element, "blend", "B") as AdobeSymbolInstance.AdobeBlendMode
+		symbol_instance.blend_mode= get_pair(optimized, element, "blend", "B")as AdobeSymbolInstance.AdobeBlendMode
 
 	if has_pair(optimized, element, "color", "C"):
 		symbol_instance.color_matrix= AdobeColorMatrix.parse(optimized, get_pair(optimized, element, "color", "C"))
@@ -602,13 +602,13 @@ func load_symbol_instance(optimized:bool, element:Dictionary)->AdobeSymbolInstan
 	if optimized:
 		symbol_instance.type= (
 			AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
-			if type== "MC" else
+			if type== "MC"else
 			AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
 		)
 	else:
 		symbol_instance.type= (
 			AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
-			if type== "movieclip" else
+			if type== "movieclip"else
 			AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
 		)
 

@@ -5,7 +5,7 @@ class_name SparrowAtlas
 
 
 @export var texture:Texture2D= null
-@export_file_path("*.xml") var sparrow_path:String= "":
+@export_file_path("*.xml")var sparrow_path:String= "":
 	set(v):
 		sparrow_path= v
 		parse()
@@ -49,7 +49,7 @@ func parse()->void :
 			continue
 
 		var node_name:String= xml.get_node_name().to_lower()
-		if node_name== "textureatlas" and not is_instance_valid(texture):
+		if node_name== "textureatlas"and not is_instance_valid(texture):
 			texture= load("%s/%s"%[
 					sparrow_path.get_base_dir(),
 					xml.get_named_attribute_value_safe("imagePath")
@@ -104,7 +104,7 @@ func parse()->void :
 			continue
 		var numbers:String= frame.name.right(4)
 		var cutout:String= frame.name.left(-4)
-		if (not symbols.has(cutout)) and numbers.is_valid_int():
+		if (not symbols.has(cutout))and numbers.is_valid_int():
 			symbols.push_back(cutout)
 
 
@@ -123,8 +123,8 @@ func get_frame_filtered(frame:int, prefix:String)->SparrowFrame:
 		var skip_frame:bool= false
 		if symbols.has(prefix):
 			skip_frame= not (
-				cur_frame.name.begins_with(prefix) and
-				(cur_frame.name.length()- 4== prefix.length()) and
+				cur_frame.name.begins_with(prefix)and
+				(cur_frame.name.length()- 4== prefix.length())and
 				(cur_frame.name.right(4).is_valid_int())
 			)
 		else:
@@ -147,8 +147,8 @@ func get_count_filtered(prefix:String)->int:
 	for frame:SparrowFrame in frames:
 		if symbols.has(prefix):
 			count+= int(
-				frame.name.begins_with(prefix) and
-				(frame.name.length()- 4== prefix.length()) and
+				frame.name.begins_with(prefix)and
+				(frame.name.length()- 4== prefix.length())and
 				(frame.name.right(4).is_valid_int())
 			)
 		else:

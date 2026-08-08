@@ -5,7 +5,7 @@ extends Node2D
 class_name AnimateSymbol
 
 
-@export_placeholder("Name or Prefix") var symbol:String= "":
+@export_placeholder("Name or Prefix")var symbol:String= "":
 	set(value):
 		if symbol!= value:
 			frame_dirty= true
@@ -32,7 +32,7 @@ class_name AnimateSymbol
 		if not internal_setting_frame:
 			frame_timer= 0.0
 
-@export_range(0.0, 10.0, 0.01, "or_greater") var speed_scale:float= 1.0
+@export_range(0.0, 10.0, 0.01, "or_greater")var speed_scale:float= 1.0
 
 @export var autoplay:bool= false
 @export var playing:bool= false
@@ -76,9 +76,9 @@ class_name AnimateSymbol
 
 		atlas_index= value
 
-@export_tool_button("Cache Current", "Save") var atlas_cache:Callable= cache_current
-@export_tool_button("Reparse Current", "Reload") var atlas_reload:Callable= reparse_current
-@export_tool_button("Make AnimationLibrary", "AnimationLibrary") var atlas_make_player:Callable= make_player_from_current
+@export_tool_button("Cache Current", "Save")var atlas_cache:Callable= cache_current
+@export_tool_button("Reparse Current", "Reload")var atlas_reload:Callable= reparse_current
+@export_tool_button("Make AnimationLibrary", "AnimationLibrary")var atlas_make_player:Callable= make_player_from_current
 
 var frame_timer:float= 0.0
 var internal_canvas_items:Array[RID]= []
@@ -173,7 +173,7 @@ func _process(delta:float)->void :
 
 	if atlas.wants_redraw():
 		queue_redraw()
-	elif last_screen_transform!= get_backbuffer_transform() and not frame_dirty:
+	elif last_screen_transform!= get_backbuffer_transform()and not frame_dirty:
 		last_screen_transform= get_backbuffer_transform()
 
 		if atlas is AdobeAtlas:
@@ -193,7 +193,7 @@ func _process(delta:float)->void :
 	frame_timer+= delta* speed_scale
 	if frame_timer>= 1.0/ fps:
 		var amount:int= floori(frame_timer* fps)
-		if frame== get_animation_length()- 1 and (not loop) and amount> 0:
+		if frame== get_animation_length()- 1 and (not loop)and amount> 0:
 			internal_setting_frame= false
 			playing= false
 			return
@@ -281,7 +281,7 @@ func _draw_adobe(atlas:AdobeAtlas, draw_info:AnimateDrawInfo)->void :
 func get_animation_length(use_custom:bool= false, custom:String= "")->int:
 	var atlas:AnimateAtlas= get_atlas()
 	if not is_instance_valid(atlas):
-		return0
+		return 0
 
 	match atlas.format:
 		"sparrow":
@@ -291,7 +291,7 @@ func get_animation_length(use_custom:bool= false, custom:String= "")->int:
 		_:
 			pass
 
-	return0
+	return 0
 
 
 func validate_frame(value:int, length:int= -1)->int:

@@ -293,10 +293,14 @@ def render(identifiers, constants, token_lines, token_columns, tokens):
         # Two bare words must not fuse. The token table gives most keywords a
         # trailing space but nothing puts one *before* them, which is how
         # "@export var" came back as "@exportvar" and "func _enter_tree" as
-        # "func_enter_tree". Anything that starts with a word character and
-        # follows something that ends with one needs a separator.
-        if (line and not line.endswith(" ") and text[:1].isidentifier()
-                and (line[-1].isalnum() or line[-1] in "_)\"']")):
+        # "func_enter_tree". Keying this on identifiers alone was not enough -
+        # "return" followed by a literal produced "return24.0" and
+        # 'return"Unknown"', both syntax errors. The rule is about word
+        # characters and quotes, not about which token type it is; "(" after an
+        # identifier is a call and must stay glued.
+        if (line and not line.endswith(" ") and text
+                and (line[-1].isalnum() or line[-1] == "_")
+                and (text[0].isalnum() or text[0] in "_\"'&^@$")):
             line += " "
         line += text
         prev_kind = g

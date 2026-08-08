@@ -7,8 +7,8 @@ class_name AnimateAtlas
 
 @export_storage var format:String= "placeholder"
 
-@export_tool_button("Parse", "Reload") var parse_atlas:Callable= parse
-@export_tool_button("Cache", "Save") var cache_atlas:Callable= cache
+@export_tool_button("Parse", "Reload")var parse_atlas:Callable= parse
+@export_tool_button("Cache", "Save")var cache_atlas:Callable= cache
 var ask_redraw:bool= true
 var ask_reload_list:bool= true
 
@@ -27,15 +27,15 @@ func draw_on(canvas_item:RID, draw_info:AnimateDrawInfo)->void :
 
 
 func get_framerate()->float:
-	return24.0
+	return 24.0
 
 
 func get_base_dir()->String:
-	return"Unknown"
+	return "Unknown"
 
 
 func get_filename()->String:
-	return"Unknown"
+	return "Unknown"
 
 
 func wants_redraw()->bool:
