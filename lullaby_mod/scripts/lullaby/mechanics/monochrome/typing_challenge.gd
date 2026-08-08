@@ -12,7 +12,7 @@ class_name TypingChallenge extends Node
 		if val != _show_celebi:
 			if val:
 				$Celebi.scale = celebi_start_scale
-				$Celebi.modulate = Color(0.247, 0.247, 0.247, 1.0)
+				$Celebi.modulate = Color("333333")
 
 				celebi_animator.get_parent().visible = true
 				celebi_animator.play(celebi_enter_animation)
@@ -360,7 +360,7 @@ func start_challenge() -> void :
 func _celebi_tween_func(progress: float) -> void :
 	var curve_progress: float = celebi_curve.sample(progress)
 	$Celebi.scale = lerp(celebi_start_scale, celebi_end_scale, curve_progress)
-	$Celebi.modulate = lerp(Color(0.247, 0.247, 0.247, 1.0), Color(1.0, 1.0, 1.0, 1.0), curve_progress)
+	$Celebi.modulate = lerp(Color("333333"), Color("ffffff"), curve_progress)
 
 
 func end_challenge() -> void :

@@ -287,6 +287,48 @@ animation drives `../BloodCutscene/...`, `../BoyfriendScream` and
 instantiated by `BloodCutsceneLoader` from uid paths. Read the output; do not
 turn it into a build gate.
 
+### The string-pool sweep (the one that catches re-typed code)
+
+The two sweeps above check *data* - authored properties and animation tracks.
+Neither can see a script that was retyped by hand and drifted while doing it,
+because the drifted version still parses and still refers to real nodes.
+
+An exported `.gdc` is a binary token stream whose identifier and constant
+tables survive intact, so for anything the port carried over, the pck holds
+every node name, property name, animation name, path and literal the original
+used. Anything in that list absent from our source is a drift point:
+
+```bash
+godot --headless --script tools/sweep_pck_strings.gd                 # summary
+godot --headless --script tools/sweep_pck_strings.gd -- monochrome   # detail
+```
+
+At the time it was written: 249 scripts compared, 46 with at least one missing
+string, 92 total. That low number is the useful part - the port is faithful,
+so the hits are worth reading one at a time.
+
+**It found two real bugs on its first run**, both the same root cause: hex
+colours converted by hand instead of kept as hex.
+
+- `heartbeat_controller.gd` faded Chimera's ECG line to `Color.DARK_GRAY`
+  where the original used `Color("333333")`. Godot's `DARK_GRAY` is CSS
+  `darkgray`, `#a9a9a9` - **3.31x brighter** than `#333333`, and a light grey
+  despite the name. Two occurrences, success and miss.
+- `typing_challenge.gd` dimmed Celebi with `Color(0.247, 0.247, 0.247)` where
+  the original used `Color("333333")`. `0x33/255` is `0.2`; `0.247` is `0x3F`.
+  1.23x. Two occurrences.
+
+Prefer `Color("rrggbb")` over both float triples and the named constants when
+porting - it keeps the literal comparable to the pck and this sweep can then
+see it. `Color.DARK_GRAY` in particular should be treated as a porting smell.
+
+Caveats: a miss can be legitimate - the port may have moved a value into the
+scene (Peepers' colours are authored on its ColorRect, correctly), renamed
+something deliberately, or split one script into two. The `_is_meaningful`
+filter drops mostly-punctuation runs from the token bytes, but admits 6/8-digit
+hex outright, since hex literals carry no letters and are exactly the
+high-value case. Read the hits; do not bulk-fix them.
+
 ### What each scene actually asks the GPU for
 
 ```bash

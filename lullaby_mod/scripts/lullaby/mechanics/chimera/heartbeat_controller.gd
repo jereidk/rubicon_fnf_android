@@ -213,12 +213,12 @@ func successful_beat() -> void :
 
 	beats_successful += 1
 
-	line_reference.default_color = Color.WHITE
+	line_reference.default_color = Color("ffffff")
 	if _line_color_tween and _line_color_tween.is_running():
 		_line_color_tween.kill()
 
 	_line_color_tween = line_reference.create_tween()
-	_line_color_tween.tween_property(line_reference, "default_color", Color.DARK_GRAY, 0.5)
+	_line_color_tween.tween_property(line_reference, "default_color", Color("333333"), 0.5)
 	_line_color_tween.play()
 
 	if beating_rate > beating_rate_below_threshold:
@@ -239,7 +239,7 @@ func missed_beat() -> void :
 		_line_color_tween.kill()
 
 	_line_color_tween = line_reference.create_tween()
-	_line_color_tween.tween_property(line_reference, "default_color", Color.DARK_GRAY, 0.5)
+	_line_color_tween.tween_property(line_reference, "default_color", Color("333333"), 0.5)
 	_line_color_tween.play()
 
 	if starting_miss_immunity > 0:
