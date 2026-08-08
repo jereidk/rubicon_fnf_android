@@ -35,3 +35,4 @@ tools/astc_compress/astc_compress
 precompiled_astc_imports/*.uid
 precompiled_lightmap_imports/*.uid
 precompiled_texture_imports/*.uid
+__pycache__/
