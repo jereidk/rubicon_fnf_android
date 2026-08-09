@@ -100,6 +100,14 @@ class_name TypingChallenge extends Node
 
 signal challenge_started
 signal challenge_fail(failure: int)
+
+## Emitted from succeed(), the counterpart to challenge_fail.
+##
+## Purely additive - nothing in Monochrome connects it, and the challenge
+## behaves the same whether anyone listens. Added so the Training tab can
+## count words landed as well as words dropped; challenge_fail was the only
+## outcome this script announced.
+signal challenge_success
 signal force_second_fail
 
 var fail_count: int = 0
@@ -463,6 +471,7 @@ func end_challenge() -> void :
 func succeed() -> void :
 	passed_challenge = true
 	challenge_over = true
+	challenge_success.emit()
 
 	celebi_sound_tick.stop()
 	celebi_sound_tick_danger.stop()

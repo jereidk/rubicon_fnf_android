@@ -96,7 +96,7 @@ func _build_pendulum(packed: PackedScene) -> void:
 	server.add_child(pendulum)
 
 	server.started = true
-	_count_misses(server, [&"pendulum_missed", &"mechanic_failed"])
+	_count(server, [&"pendulum_success"], [&"pendulum_missed", &"mechanic_failed"])
 
 ## heartbeat_controller.gd already exposes initialize()/stop() as tool
 ## buttons for playtesting in the editor, which is exactly a training
@@ -120,7 +120,7 @@ func _build_pulse(packed: PackedScene) -> void:
 		push_error("Training: mch_heartbeat has no node with initialize()")
 		return
 	controller.call(&"initialize")
-	_count_misses(controller, [&"mechanic_failed"])
+	_count(controller, [&"beat_hit"], [&"mechanic_failed"])
 
 ## The one that is not drop-in. Monochrome wires reference_level,
 ## bar_animation and health_module from the song; two of those exist here and
@@ -152,7 +152,7 @@ func _build_typing(packed: PackedScene) -> void:
 	if "prompt_user" in typing:
 		typing.set(&"prompt_user", true)
 
-	_count_misses(typing, [&"challenge_fail"])
+	_count(typing, [&"challenge_success"], [&"challenge_fail"])
 
 ## The overlay owns the exit, the pause, the end of the drill and the
 ## readout. Kept as its own node rather than folded in here so that the host
@@ -198,18 +198,24 @@ func _on_exit_requested() -> void:
 	_leaving = true
 	SceneChanger.change_to(SHOP_SCENE, &"hypno", true)
 
-## Every mechanic reports a failure of some kind; only the pendulum reports
-## its successes. Whatever each one has is routed to the same counter.
-func _count_misses(node: Node, signals: Array[StringName]) -> void:
+## Each mechanic's own vocabulary for the same two outcomes, routed to the
+## overlay's two counters. beat_hit and challenge_success were added to
+## heartbeat_controller.gd and typing_challenge.gd for this; the pendulum
+## server already announced both sides.
+func _count(node: Node, hit_signals: Array[StringName], miss_signals: Array[StringName]) -> void:
 	if _overlay == null:
 		return
+	_connect_all(node, hit_signals, _overlay.record_hit)
+	_connect_all(node, miss_signals, _overlay.record_miss)
+
+func _connect_all(node: Node, signals: Array[StringName], handler: Callable) -> void:
 	for name: StringName in signals:
 		if not node.has_signal(name):
 			continue
 		# challenge_fail carries a failure code and mechanic_failed carries
 		# nothing; connecting a signal with arguments to a zero-arg method is
 		# an error, so unbind however many it actually has.
-		var callable: Callable = _overlay.record_miss
+		var callable: Callable = handler
 		var arg_count: int = _signal_arg_count(node, name)
 		if arg_count > 0:
 			callable = callable.unbind(arg_count)

@@ -19,6 +19,7 @@ const LAYER := 40
 
 enum State { RUNNING, PAUSED, FINISHED }
 
+var hits: int = 0
 var misses: int = 0
 
 var _state: State = State.RUNNING
@@ -102,11 +103,14 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	_refresh_stats()
 
-## Counted rather than scored. All three mechanics report a failure of some
-## kind - pendulum_missed, challenge_fail, mechanic_failed - but only the
-## pendulum reports its successes, so a hit counter would be blank for two
-## of the three. Misses and time survived are the two numbers every drill
-## can honestly produce.
+## Counted rather than scored. Every mechanic now reports both sides -
+## pendulum_success/pendulum_missed were already there, and beat_hit and
+## challenge_success were added to the other two alongside the failures they
+## already announced.
+func record_hit() -> void:
+	hits += 1
+	_refresh_stats()
+
 func record_miss() -> void:
 	misses += 1
 	_refresh_stats()
@@ -114,7 +118,17 @@ func record_miss() -> void:
 func _refresh_stats() -> void:
 	if _stats == null:
 		return
-	_stats.text = "MISSES  %d\nTIME  %d:%02d" % [misses, int(_elapsed) / 60, int(_elapsed) % 60]
+	_stats.text = "HITS  %d\nMISSES  %d\nTIME  %d:%02d" % [
+		hits, misses, int(_elapsed) / 60, int(_elapsed) % 60,
+	]
+
+## Only when there is something to divide by - a drill you exited before the
+## first beat should say nothing rather than "0%".
+func _accuracy() -> String:
+	var total: int = hits + misses
+	if total <= 0:
+		return ""
+	return "ACCURACY  %d%%" % int(round(100.0 * float(hits) / float(total)))
 
 func pause_session() -> void:
 	if _state != State.RUNNING:
@@ -131,8 +145,8 @@ func finish_session(reason: String) -> void:
 
 func _show_panel(state: State, title: String) -> void:
 	_state = state
-	_title.text = "%s\n\nMISSES  %d\nTIME  %d:%02d" % [
-		title, misses, int(_elapsed) / 60, int(_elapsed) % 60,
+	_title.text = "%s\n\nHITS  %d\nMISSES  %d\nTIME  %d:%02d\n%s" % [
+		title, hits, misses, int(_elapsed) / 60, int(_elapsed) % 60, _accuracy(),
 	]
 	# Resuming a drill that has ended is meaningless; restarting it is not.
 	_panel.get_node(^"RESUME").visible = state == State.PAUSED

@@ -72,6 +72,15 @@ var _autoplay: bool:
 
 signal mechanic_failed
 
+## Emitted from successful_beat(), the counterpart to mechanic_failed.
+##
+## Purely additive - nothing in Chimera connects it, and the mechanic behaves
+## exactly as before whether anyone listens or not. It exists because the
+## Training tab's readout could only ever count failures otherwise: the
+## pendulum server already reports pendulum_success, and this side had the
+## number (beats_successful, right below) without a way to tell anyone.
+signal beat_hit
+
 func initialize() -> void :
 	if verbose:
 		print("Started heartbeat.")
@@ -212,6 +221,7 @@ func successful_beat() -> void :
 	miss_streak = 0
 
 	beats_successful += 1
+	beat_hit.emit()
 
 	line_reference.default_color = Color("ffffff")
 	if _line_color_tween and _line_color_tween.is_running():
