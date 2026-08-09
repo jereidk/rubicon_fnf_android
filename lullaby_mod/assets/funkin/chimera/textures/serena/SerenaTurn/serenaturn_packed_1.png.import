@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://zcirg6v8z8hj"
+path="res://.godot/imported/serenaturn_packed_1.png-31211a42b9a53bbf14a6573768334d0f.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/SerenaTurn/serenaturn_packed_1.png"
+dest_files=["res://.godot/imported/serenaturn_packed_1.png-31211a42b9a53bbf14a6573768334d0f.res"]
 
 [params]
 

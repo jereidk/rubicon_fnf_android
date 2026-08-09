@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://ubmwoonf0t53"
+path="res://.godot/imported/disorient_packed_1.png-69ba6ca133a03c618acbb759559dc546.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/disoriented/disorient_packed_1.png"
+dest_files=["res://.godot/imported/disorient_packed_1.png-69ba6ca133a03c618acbb759559dc546.res"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://10f85yyepmo2b"
+path="res://.godot/imported/cut_mono_looking_up_packed_1.png-489d4d93b4261c1cd3992cd627d58e90.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_mono_looking_up_packed_1.png"
+dest_files=["res://.godot/imported/cut_mono_looking_up_packed_1.png-489d4d93b4261c1cd3992cd627d58e90.res"]
 
 [params]
 

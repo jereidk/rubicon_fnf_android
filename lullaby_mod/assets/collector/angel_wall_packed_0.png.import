@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://1jgsb6fxzrofh"
+path="res://.godot/imported/angel_wall_packed_0.png-7dd1a5491a7231e5eb063c7bd7c80d77.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/collector/angel_wall_packed_0.png"
+dest_files=["res://.godot/imported/angel_wall_packed_0.png-7dd1a5491a7231e5eb063c7bd7c80d77.res"]
 
 [params]
 

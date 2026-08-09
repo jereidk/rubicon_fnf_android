@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://bsfgfhjaxnbr"
+path="res://.godot/imported/cut_boyfriend_scream_packed_0.png-f22668856dc6658c46d3e0f428689b34.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_boyfriend_scream_packed_0.png"
+dest_files=["res://.godot/imported/cut_boyfriend_scream_packed_0.png-f22668856dc6658c46d3e0f428689b34.res"]
 
 [params]
 

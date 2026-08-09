@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://1rauabhm34p6b"
+path="res://.godot/imported/fucknofinger_packed_0.png-a54bc16601ec13a4901c7ac4b05f3c93.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/menus/antipiracy/fucknofinger_packed_0.png"
+dest_files=["res://.godot/imported/fucknofinger_packed_0.png-a54bc16601ec13a4901c7ac4b05f3c93.res"]
 
 [params]
 

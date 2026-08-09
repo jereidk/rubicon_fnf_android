@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://qz74q815sjtx"
+path="res://.godot/imported/serena_reaching_packed_0.png-4fccfdf71153bc638c41000fa46abf8b.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/disoriented/serena_reaching_packed_0.png"
+dest_files=["res://.godot/imported/serena_reaching_packed_0.png-4fccfdf71153bc638c41000fa46abf8b.res"]
 
 [params]
 

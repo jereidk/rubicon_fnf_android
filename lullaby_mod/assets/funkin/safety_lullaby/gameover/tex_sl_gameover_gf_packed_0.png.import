@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://19chjfjfladia"
+path="res://.godot/imported/tex_sl_gameover_gf_packed_0.png-82abcbc1436d0c03b17f67dd9e274a81.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/safety_lullaby/gameover/tex_sl_gameover_gf_packed_0.png"
+dest_files=["res://.godot/imported/tex_sl_gameover_gf_packed_0.png-82abcbc1436d0c03b17f67dd9e274a81.res"]
 
 [params]
 

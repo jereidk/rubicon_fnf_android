@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://10g0frusu6zbq"
+path="res://.godot/imported/chr_goldbl_tex_packed_0.png-5e65fb2be89ea7e30458e5d06110097a.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/monochrome/characters/blood/gold/chr_goldbl_tex_packed_0.png"
+dest_files=["res://.godot/imported/chr_goldbl_tex_packed_0.png-5e65fb2be89ea7e30458e5d06110097a.res"]
 
 [params]
 

@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://1snw21hvs8rry"
+path="res://.godot/imported/Running_Serena_Knees_packed_1.png-e0a4ac28fe02a183b5d2c7be9ddf575a.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/Running_Serena_Knees_packed_1.png"
+dest_files=["res://.godot/imported/Running_Serena_Knees_packed_1.png-e0a4ac28fe02a183b5d2c7be9ddf575a.res"]
 
 [params]
 
