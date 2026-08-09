@@ -6,12 +6,22 @@ class_name RubiChartRow extends Resource
 @export var starts : Array[RubiChartNote]
 @export var ends : Array[RubiChartNote]
 
+## The section this row belongs to, held weakly.
+##
+## A section owns its rows through its own rows array, so a row owning the
+## section back is a reference cycle - and Resource is RefCounted, so a cycle
+## never reaches zero. See RubiChartNote.starting_row for the measurement.
+##
+## measure_time is still computed on assignment rather than on read: it
+## depends only on the section's measure and this row's own offset, both
+## fixed, so nothing needs the reference again afterwards.
 var section : RubiChartSection :
-	get: 
-		return _section
+	get:
+		return _section.get_ref() if _section != null else null
 	set(value):
-		_section = value
-		_measure_time = _section.measure + (offset / float(quant))
+		_section = weakref(value) if value != null else null
+		if value != null:
+			_measure_time = value.measure + (offset / float(quant))
 
 var measure_time : float:
 	get:
@@ -21,7 +31,7 @@ var millisecond_time : float:
 	get:
 		return _millisecond_time
 
-var _section : RubiChartSection
+var _section : WeakRef
 var _measure_time : float
 var _millisecond_time : float
 
