@@ -47,7 +47,7 @@ class_name MonochromeTypingTouchControls
 ## selects when the player prefers the game's own keys, so it is a real input
 ## method and not only a showcase prop - see _on_drawn_key_pressed.
 ##
-## Bigger than RubiconOnScreenKeyboard's default on purpose: 96px keys are
+## Bigger than RubiconPaintedKeyboard's default on purpose: 96px keys are
 ## comfortable thumb targets on a phone and still legible from across a room
 ## in a showcase, so one size serves both uses.
 @export var drawn_key_size: Vector2 = Vector2(96, 96)
@@ -57,14 +57,14 @@ class_name MonochromeTypingTouchControls
 ## Gap between the bottom of the keyboard and the bottom of the screen.
 @export var drawn_bottom_margin: float = 56.0
 
-## Keycap styling. The keys are plain Buttons on Godot's default theme
-## otherwise, which is nearly black and leaves nothing for a flash to lift.
+## Keycap styling. Godot's default Button theme is nearly black and leaves
+## nothing for a flash to lift, so the keys carry their own colours.
 @export var drawn_key_color: Color = Color("2f2f36")
 @export var drawn_label_color: Color = Color("e8e8ee")
 @export var drawn_font_size: int = 34
 
 ## How long a key stays lit after the autoplay presses it, and what colour it
-## goes. This is the pressed key's background, not a modulate multiplier -
+## goes. This replaces the keycap's colour rather than multiplying it -
 ## multiplying a near-black keycap is what made the first version invisible.
 @export var drawn_flash_seconds: float = 0.22
 @export var drawn_flash_color: Color = Color("d8c24a")
@@ -72,12 +72,11 @@ class_name MonochromeTypingTouchControls
 var _base_positions: PackedVector2Array
 var _draining: bool = false
 
-var _drawn_keyboard: RubiconOnScreenKeyboard
-## Uppercase character -> that key's Button, read back out of the built
-## keyboard rather than by changing on_screen_keyboard.gd, which is one of
-## the scripts carried over from the pck.
-var _drawn_keys: Dictionary = {}
-var _drawn_tweens: Dictionary = {}
+## Painted rather than built out of Buttons: 28 Buttons on rounded styleboxes
+## cost 255 unbatchable draw calls whenever the keyboard was up, measured on
+## device against two censuses with an identical scene population. See
+## painted_keyboard.gd.
+var _drawn_keyboard: RubiconPaintedKeyboard
 ## Watching this advance is how a typed letter is spotted;
 ## TypingChallenge._autoplay_process emits no signal, and that file is the
 ## pck's too.
@@ -142,6 +141,7 @@ func _process_drawn_keyboard(showing: bool) -> float:
 	if not showing:
 		if _drawn_keyboard:
 			_drawn_keyboard.visible = false
+			_drawn_keyboard.clear_flashes()
 		_last_letters_passed = -1
 		return 0.0
 
@@ -153,79 +153,36 @@ func _process_drawn_keyboard(showing: bool) -> float:
 	_drawn_keyboard.visible = true
 	_layout_drawn_keyboard()
 	_flash_typed_key()
-	return _drawn_keyboard.size.y + drawn_bottom_margin
+	return _drawn_keyboard.get_block_size().y + drawn_bottom_margin
 
-## RubiconOnScreenKeyboard builds its keys in _ready(), so every exported
-## value has to be set before it enters the tree.
+## The keyboard reads its exported values in _ready() to lay its keys out, so
+## all of them are set before it enters the tree.
 func _build_drawn_keyboard() -> void:
-	_drawn_keyboard = RubiconOnScreenKeyboard.new()
+	_drawn_keyboard = RubiconPaintedKeyboard.new()
 	_drawn_keyboard.name = "DrawnKeyboard"
 	_drawn_keyboard.key_size = drawn_key_size
 	_drawn_keyboard.key_gap = drawn_key_gap
 	_drawn_keyboard.space_width = drawn_space_width
-	_drawn_keyboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drawn_keyboard.key_color = drawn_key_color
+	_drawn_keyboard.label_color = drawn_label_color
+	_drawn_keyboard.font_size = drawn_font_size
+	_drawn_keyboard.flash_seconds = drawn_flash_seconds
+	_drawn_keyboard.flash_color = drawn_flash_color
 	add_child(_drawn_keyboard)
-
-	# It hides itself when there is no touchscreen and then never builds its
-	# keys, which on a desktop run would leave an empty Control here.
-	if _drawn_keyboard.get_child_count() == 0:
-		_drawn_keyboard.queue_free()
-		_drawn_keyboard = null
-		return
 
 	# Tappable, because this is a real input method when the player picks
 	# In-Game and not only a showcase prop. In showcase nobody taps it, so
 	# the connection simply never fires there.
 	_drawn_keyboard.key_pressed.connect(_on_drawn_key_pressed)
 
-	for button in _find_buttons(_drawn_keyboard):
-		# _make_key() labels letter keys with the uppercase character and the
-		# space bar with the word SPACE, so the text is the key's identity.
-		_drawn_keys[button.text] = button
-		_style_drawn_key(button)
-
-## The keys are plain Buttons wearing Godot's default theme, which is a very
-## dark grey. Multiplying modulate on that barely changes anything - the first
-## version's flash was being applied correctly and was invisible on screen -
-## so the keys get their own keycap styling here, both to make them read as
-## keys and to give the flash something bright enough to lift.
-##
-## Done from this side rather than in on_screen_keyboard.gd, which is one of
-## the scripts carried over from the pck and is also what normal touch play
-## would use if it ever came back.
-func _style_drawn_key(button: Button) -> void:
-	var box := StyleBoxFlat.new()
-	box.bg_color = drawn_key_color
-	box.set_corner_radius_all(10)
-	box.border_width_bottom = 4
-	box.border_color = drawn_key_color.darkened(0.35)
-	button.add_theme_stylebox_override("normal", box)
-	button.add_theme_stylebox_override("hover", box)
-	button.add_theme_stylebox_override("pressed", box)
-	button.add_theme_stylebox_override("disabled", box)
-	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	button.add_theme_color_override("font_color", drawn_label_color)
-	button.add_theme_font_size_override("font_size", drawn_font_size)
-
 ## Centres the keyboard horizontally and sits it above the bottom edge. Done
-## every frame rather than once because the rows only report a real size
-## after their containers have laid out, and because the viewport can change
-## size (rotation, or the render-scale settings).
+## every frame rather than once because the viewport can change size
+## (rotation, or the render-scale settings) and this control is what decides
+## how far the unowns have to be lifted.
 func _layout_drawn_keyboard() -> void:
-	var rows: Control = _drawn_keyboard.get_child(0) as Control
-	if rows == null:
-		return
-
-	var wanted: Vector2 = rows.get_combined_minimum_size()
+	var wanted: Vector2 = _drawn_keyboard.get_block_size()
 	if wanted.x <= 0.0 or wanted.y <= 0.0:
 		return
-
-	# The keyboard's own Control never sizes itself to its rows - it just
-	# parents them - so both are set here, which is what keeps the block
-	# square to the screen instead of hanging off the top-left corner.
-	rows.size = wanted
-	rows.position = Vector2.ZERO
-	_drawn_keyboard.size = wanted
 
 	var area: Vector2 = size if size.x > 0.0 else get_viewport_rect().size
 	_drawn_keyboard.position = Vector2(
@@ -253,34 +210,9 @@ func _flash_typed_key() -> void:
 
 	if typed.is_empty():
 		return
-	_flash_key(typed.to_upper())
-
-## Lights the key by tweening its keycap colour back down from the flash
-## colour, so the key itself changes rather than being multiplied.
-func _flash_key(key: String) -> void:
-	var button: Button = _drawn_keys.get(key)
-	if button == null or not is_instance_valid(button):
-		return
-
-	var box: StyleBoxFlat = button.get_theme_stylebox("normal") as StyleBoxFlat
-	if box == null:
-		return
-
-	# Same reason RubiconActionButton._flash() kills its own tween first: two
-	# tweens writing the same property can leave a key stuck lit.
-	var previous: Tween = _drawn_tweens.get(button)
-	if previous and previous.is_valid():
-		previous.kill()
-
-	box.bg_color = drawn_flash_color
-	box.border_color = drawn_flash_color.darkened(0.35)
-	var tween: Tween = button.create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(box, "bg_color", drawn_key_color, drawn_flash_seconds) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(box, "border_color", drawn_key_color.darkened(0.35),
-		drawn_flash_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_drawn_tweens[button] = tween
+	# The keyboard is keyed by label, and only letters are ever flashed - the
+	# loop above skips spaces, so the space bar is never lit from here.
+	_drawn_keyboard.flash(typed.to_upper())
 
 ## The mechanic is the single source of truth for what has been typed, the
 ## same as the LineEdit path - this only forwards the character.
@@ -288,15 +220,6 @@ func _on_drawn_key_pressed(character: String) -> void:
 	if typing_challenge == null or typing_challenge.autoplay:
 		return
 	typing_challenge.input_letter(character)
-
-func _find_buttons(node: Node) -> Array[Button]:
-	var out: Array[Button] = []
-	for child in node.get_children():
-		var button := child as Button
-		if button != null:
-			out.append(button)
-		out.append_array(_find_buttons(child))
-	return out
 
 ## Releasing focus is not enough on its own. The challenge's flags are reused
 ## between rounds (start_challenge() clears challenge_over while active and
