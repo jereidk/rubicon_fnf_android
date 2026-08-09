@@ -358,6 +358,33 @@ jobs:
           sed -i "s/^version\/code=.*/version\/code=${NEW_CODE}/" export_presets.cfg
           echo "version/code set to ${NEW_CODE}"
 
+          # And stamp the same build into project.godot, which is a different
+          # file: the diagnostics log reads application/config/version out of
+          # ProjectSettings, and nothing had ever written it, so every log
+          # header has said "version : code ?" since the log existed. That
+          # cost real time - a log was read as evidence about a build it did
+          # not come from, because nothing in it said otherwise.
+          #
+          # Not committed: this runs after the harvest step, and that step
+          # only ever stages precompiled_astc_imports.
+          python3 - "$NEW_CODE" "${{ github.sha }}" <<'PY'
+          import re, sys
+
+          code, sha = sys.argv[1], sys.argv[2][:8]
+          stamp = "%s-%s" % (code, sha)
+          text = open("project.godot", encoding="utf-8").read()
+
+          line = 'config/version="%s"\n' % stamp
+          if re.search(r'^config/version=', text, re.M):
+              text = re.sub(r'^config/version=.*\n', line, text, count=1, flags=re.M)
+          else:
+              # Straight after config/name, which every project.godot has.
+              text = re.sub(r'^(config/name=.*\n)', r'\1' + line, text, count=1, flags=re.M)
+
+          open("project.godot", "w", encoding="utf-8").write(text)
+          print("application/config/version set to %s" % stamp)
+          PY
+
       - name: Build Android Debug APK
         id: build
         run: |
