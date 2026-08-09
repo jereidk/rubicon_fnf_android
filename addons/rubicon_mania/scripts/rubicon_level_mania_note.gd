@@ -56,7 +56,18 @@ func initialize(handler : RubiconLevelNoteHandler, data_index : int) -> void:
 	var controller : RubiconLevelNoteController = get_mania_handler().get_controller()
 	reference_container.offset_right = floor(controller.chart.scroll_multiplier * controller.scroll_speed_multiplier * (handler.data[data_index].get_graphical_end_position() - handler.data[data_index].get_graphical_start_position()))
 
+## Split from the body so the whole call can be timed past its early
+## returns - see RubiconLevelNoteHandler.note_process_usec.
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		_process_note(delta)
+		return
+
+	var began : int = Time.get_ticks_usec()
+	_process_note(delta)
+	RubiconLevelNoteHandler.note_process_usec += Time.get_ticks_usec() - began
+
+func _process_note(delta: float) -> void:
 	if not Engine.is_editor_hint():
 		# Before the early return: a note still has to settle into its
 		# direction on the frames where the level itself is not running yet.

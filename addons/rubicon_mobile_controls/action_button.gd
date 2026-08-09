@@ -59,6 +59,9 @@ var _flash_tween: Tween
 var _label_column: VBoxContainer
 var _verb_label: Label
 var _binding_label: Label
+## Whatever the scene authored as the Button's own text, kept so a button
+## that ends up with nothing else to show can fall back to it.
+var _authored_text: String = ""
 ## 0 = keyboard/mouse, 1 = gamepad. Starts on keyboard because that is what
 ## the InputMap's first binding is for every action here.
 var _last_device_family: int = 0
@@ -137,9 +140,9 @@ func _build_label() -> void:
 		return
 
 	# The generated label replaces the Button's own text rather than sitting
-	# next to it. Cleared even with no verb: the two would otherwise draw on
-	# top of each other, which is what a binding-only button would have done
-	# to the results screen's authored "BACK".
+	# next to it, so the two cannot draw on top of each other. Kept rather
+	# than thrown away, because it is also the fallback - see _refresh_label.
+	_authored_text = text
 	text = ""
 
 	var column := VBoxContainer.new()
@@ -185,6 +188,22 @@ func _refresh_label() -> void:
 	# An action with nothing bound to it still needs its verb; it just has no
 	# key to advertise, and an empty line would push the verb off centre.
 	_binding_label.visible = not binding.is_empty()
+
+	# A button with no verb and no resolvable binding would otherwise render
+	# nothing at all, and these buttons are a 7%-white rectangle - with no
+	# label there is no button, which is exactly how the results screen's way
+	# out and the death screens' prompts went missing on the device. A key
+	# name was never a sensible label on a phone in the first place; the text
+	# the scene authored is.
+	if not _verb_label.visible and not _binding_label.visible:
+		# Last resort, so the invariant holds no matter how the button was
+		# authored: the action's own name, spelled out. It reads badly on
+		# purpose - it means someone shipped a button with no verb, no text
+		# and an action nothing is bound to, and a visibly wrong label is
+		# how that gets noticed instead of shipping as a dead rectangle.
+		text = _authored_text if not _authored_text.is_empty() else String(action).capitalize()
+	else:
+		text = ""
 
 ## Preferred binding for [member action], following whichever kind of device
 ## was last used, and falling back to the first binding of any kind rather

@@ -138,8 +138,20 @@ func _ready() -> void:
 
 	_pump.adopt_children_of(self)
 
+## Split from the body so the whole call - including the base handler's
+## spawn/despawn walk - can be timed past its early returns. See
+## RubiconLevelNoteHandler.note_process_usec.
 func _process(delta: float) -> void:
-	super(delta)
+	if Engine.is_editor_hint():
+		_process_lane(delta)
+		return
+
+	var began : int = Time.get_ticks_usec()
+	_process_lane(delta)
+	note_process_usec += Time.get_ticks_usec() - began
+
+func _process_lane(delta: float) -> void:
+	super._process(delta)
 
 	if not Engine.is_editor_hint():
 		_pump.pump(delta)

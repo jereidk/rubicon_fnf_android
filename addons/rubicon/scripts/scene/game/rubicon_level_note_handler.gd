@@ -75,6 +75,23 @@ static var churn_usec : int = 0
 ## felt, rather than the worst one lane happened to do on its own.
 static var churn_peak_usec : int = 0
 
+## Total time inside the _process of every note and every lane, since the
+## last read - the whole call, not just the churn block inside it.
+##
+## churn_usec already answers "what does spawning and despawning cost": it is
+## 0.28ms/frame, which is how that got ruled out. This answers the larger
+## question churn_usec cannot, which is how much of the frame's script time
+## these objects account for at all.
+##
+## It exists because guessing failed twice. The note and lane state machines
+## were measured at 15.5us per note per frame and cut by 77% in a bench, and
+## on the device the change moved nothing - because the bench timed notes at
+## rest, which is not a state a song is ever in. Rather than guess a third
+## time at what the remaining 8ms is, this measures the part that can be
+## measured, so the next log either indicts the notes and lanes or clears
+## them.
+static var note_process_usec : int = 0
+
 static var _churn_frame : int = -1
 static var _churn_frame_usec : int = 0
 
@@ -89,6 +106,7 @@ static func take_churn_stats() -> Dictionary:
 		&"instantiated": churn_instantiated,
 		&"usec": churn_usec,
 		&"peak_usec": churn_peak_usec,
+		&"note_usec": note_process_usec,
 	}
 	churn_spawned = 0
 	churn_despawned = 0
@@ -96,6 +114,7 @@ static func take_churn_stats() -> Dictionary:
 	churn_instantiated = 0
 	churn_usec = 0
 	churn_peak_usec = 0
+	note_process_usec = 0
 	return stats
 
 static func _record_churn(begin_usec : int) -> void:

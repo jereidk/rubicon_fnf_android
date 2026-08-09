@@ -878,5 +878,6 @@ show_binding = true
 binding_font_size = 24
 script = ExtResource("11")
 action = &"ui_accept"
+verb = "BACK"
 visible_source = NodePath("..")
 visible_property = &"active"

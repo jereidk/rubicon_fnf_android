@@ -732,6 +732,15 @@ func _entry(kind: String, detail: String) -> void:
 	if window_s > 0.0:
 		churn_rate = (float(churn[&"usec"]) / 1000.0) / window_s
 
+	# Same rate, same reason, for the whole _process of every note and lane
+	# rather than just the churn block inside it. Read against script=: if
+	# notes= is a small part of it, whatever is making Monochrome's frames
+	# expensive is not the notes, and the next thing to time is somewhere
+	# else entirely.
+	var note_rate: float = 0.0
+	if window_s > 0.0:
+		note_rate = (float(churn[&"note_usec"]) / 1000.0) / window_s
+
 	var script_ms: float = float(_script_usec) / 1000.0
 	var script_peak_ms: float = float(_script_peak_usec) / 1000.0
 	_script_peak_usec = 0
@@ -752,7 +761,7 @@ func _entry(kind: String, detail: String) -> void:
 		sub_pixels += viewport.size.x * viewport.size.y
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -788,6 +797,7 @@ func _entry(kind: String, detail: String) -> void:
 		int(churn[&"instantiated"]),
 		churn_rate,
 		float(churn[&"peak_usec"]) / 1000.0,
+		note_rate,
 		# The shop's physics cost runs 10-25x Chimera's on nothing but
 		# enable_object_picking's per-frame Area3D raycasts - these two were
 		# flagged as worth measuring and never were, so they ride along here
