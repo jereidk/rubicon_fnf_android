@@ -90,7 +90,7 @@ func _process(delta: float) -> void :
 	_noise_time += noise_speed * delta
 	trauma = maxf(trauma - trauma_decay * delta, 0.0)
 
-	var amount: = pow(trauma, trauma_power)
+	var amount: = pow(trauma, trauma_power) * _shake_scale()
 
 	var shake_offset: = Vector2(
 		_noise.get_noise_2d(_noise_time, 0.0), 
@@ -186,3 +186,15 @@ func _start_shake() -> void :
 		shake_started.emit()
 
 	set_process(true)
+
+
+## Global shake multiplier from the console's Misc > Screen Shake row.
+##
+## Fetched by node name rather than through the Settings class: this is a
+## @tool script, so it also runs in the editor where no autoload exists, and
+## get_node_or_null keeps it at full strength there instead of erroring.
+func _shake_scale() -> float:
+	var settings: Node = get_node_or_null(^"/root/Settings")
+	if settings == null:
+		return 1.0
+	return clampf(float(settings.get(&"lullaby_screen_shake")) / 100.0, 0.0, 1.0)

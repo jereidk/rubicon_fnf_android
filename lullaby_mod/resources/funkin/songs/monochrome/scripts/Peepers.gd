@@ -128,7 +128,7 @@ func _update_parent_shake() -> void :
 	container.position = _base_position + Vector2(
 		sin(_time * violent_shake_speed), 
 		cos(_time * violent_shake_speed * 1.37)
-	) * violent_shake_amount
+	) * violent_shake_amount * _shake_scale()
 
 
 func _update_unown_wobble() -> void :
@@ -217,3 +217,15 @@ func _get_parallax_unowns(node: Node, unowns: Array[ColorRect]) -> void :
 			unowns.append(child)
 
 		_get_parallax_unowns(child, unowns)
+
+
+## Global shake multiplier from the console's Misc > Screen Shake row.
+##
+## Fetched by node name rather than through the Settings class: this is a
+## @tool script, so it also runs in the editor where no autoload exists, and
+## get_node_or_null keeps it at full strength there instead of erroring.
+func _shake_scale() -> float:
+	var settings: Node = get_node_or_null(^"/root/Settings")
+	if settings == null:
+		return 1.0
+	return clampf(float(settings.get(&"lullaby_screen_shake")) / 100.0, 0.0, 1.0)

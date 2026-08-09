@@ -98,6 +98,7 @@
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/keyboard_icon_hacks_button.png" id="200"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/hacks_tab.gd" id="201"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/hide_if_locked.gd" id="202"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/diagnostics_path_label.gd" id="diagpath"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hlefr"]
 render_priority = 0
@@ -5416,7 +5417,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../DebugToggle")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../DeleteSaveData")
+focus_neighbor_bottom = NodePath("../ScreenShake")
 theme = ExtResource("1")
 text = "Debug Display: "
 alignment = 0
@@ -5427,10 +5428,62 @@ values_list = [0, 1, 2, 3]
 console = NodePath("../../../../../..")
 tooltip = "Which debug overlay to show. Simple is FPS and memory, Detailed adds build info, Advanced adds rendering diagnostics. The keybind above cycles it."
 
-[node name="DeleteSaveData" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1733233463 node_paths=PackedStringArray("console")]
+[node name="ScreenShake" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../DebugDisplay")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ClockFormat")
+theme = ExtResource("1")
+text = "Screen Shake: "
+alignment = 0
+script = ExtResource("50")
+property = &"lullaby_screen_shake"
+increment_amount = 5
+value_max = 100
+value_min = 0
+suffix = "%"
+console = NodePath("../../../../../..")
+tooltip = "How hard jumpscares and hits throw the picture around. On a phone the whole screen is in your hand, so full strength reads a lot harder than it does on a monitor. 0 holds the camera still."
+
+[node name="ClockFormat" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ScreenShake")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../DiagnosticsLog")
+theme = ExtResource("1")
+text = "Clock: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_clock_24h"
+display_list = ["12 Hour", "24 Hour"]
+values_list = [false, true]
+console = NodePath("../../../../../..")
+tooltip = "Which clock the Memory Card header up there reads in."
+
+[node name="DiagnosticsLog" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../ClockFormat")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../DeleteSaveData")
+text = "Diagnostics Log"
+property = &"lullaby_diagnostics_log"
+console = NodePath("../../../../../..")
+tooltip = "Writes a performance and error log to storage, which is what a bug report needs attached. Takes effect the next time the game starts. The path below is where this session's went."
+
+[node name="DiagnosticsPath" type="Label" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc"]
+layout_mode = 2
+theme = ExtResource("1")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+autowrap_mode = 2
+script = ExtResource("diagpath")
+[node name="DeleteSaveData" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1733233463 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../DiagnosticsLog")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath(".")
 theme = ExtResource("1")
@@ -5440,6 +5493,7 @@ alignment = 0
 script = ExtResource("57")
 console = NodePath("../../../../../..")
 tooltip = "Deletes all save data for FNF Lullaby. Start from the beginning."
+
 
 [node name="LilEctor" type="AnimatedSprite2D" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1339668073]
 position = Vector2(352.29382, 664)

@@ -296,6 +296,24 @@ var lullaby_touch_note_hitbox_size: float = 1.0
 var lullaby_touch_haptics: bool = true
 var lullaby_show_pause_button: bool = true
 
+## Global multiplier on in-game camera/sprite shake, as a percent.
+##
+## Pairs with game_flashing_lights: the same reason exists for shake. A
+## jumpscare that throws the whole screen around reads very differently in a
+## hand than it does on a monitor, and there was no way to turn it down.
+##
+## Scales the three real shakes - CameraShake2D (Monochrome's jumpscare
+## camera), SpriteShake2D and Peepers' violent parent shake. Deliberately
+## not the two [shake] BBCode text effects (specialkey.gd,
+## text_collector_effect.gd): those are typography, not the screen moving,
+## and killing them would just make the prompts look broken. Nor Chimera's
+## pause-menu shaky camera, which is a menu's style rather than a jolt.
+var lullaby_screen_shake: int = 100
+
+## 24-hour clock on the console's Memory Card header, which otherwise
+## hardcodes am/pm (see time.gd).
+var lullaby_clock_24h: bool = false
+
 ## Which keyboard Monochrome's typing mechanic uses.
 ##
 ## SYSTEM focuses a hidden LineEdit, which is what makes Android raise the

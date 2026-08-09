@@ -14,16 +14,18 @@ func update_time() -> void :
 	var day: int = time["day"]
 	var month: int = time["month"]
 
-	var ampm: String = "am"
-	if hour >= 12:
-		ampm = "pm"
-		if hour > 12:
-			hour -= 12
-	if hour == 0:
-		hour = 12
+	var suffix: String = ""
+	if not Settings.lullaby_clock_24h:
+		suffix = "am"
+		if hour >= 12:
+			suffix = "pm"
+			if hour > 12:
+				hour -= 12
+		if hour == 0:
+			hour = 12
 
 	var month_names: Array[String] = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", 
 		"Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."]
 	var month_name = month_names[month - 1]
 
-	text = "%02d:%02d%s | %s %02d" % [hour, minute, ampm, month_name, day]
+	text = "%02d:%02d%s | %s %02d" % [hour, minute, suffix, month_name, day]
