@@ -9722,13 +9722,14 @@ one_shot = true
 unique_name_in_owner = true
 one_shot = true
 
-[node name="MouseController" type="Node" parent="." unique_id=1439659422 node_paths=PackedStringArray("root", "camera", "ray_cast", "hand_animation_tree")]
+[node name="MouseController" type="Node" parent="." unique_id=1439659422 node_paths=PackedStringArray("root", "camera", "ray_cast", "hand_animation_tree", "touch_controls")]
 script = ExtResource("34")
 ray_length = 15.0
 root = NodePath("..")
 camera = NodePath("../InterpolatedCamera")
 ray_cast = NodePath("../RayCast3D")
 hand_animation_tree = NodePath("../InterpolatedCamera/PlayerHand/AnimationTree")
+touch_controls = NodePath("../UI/Control/TouchControls")
 should_cast_ray = true
 metadata/_custom_type_script = "uid://f854gqdvv8p6"
 

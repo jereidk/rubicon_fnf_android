@@ -10,6 +10,10 @@ extends Node
 @export var ray_cast: RayCast3D
 @export var hand_animation_tree: AnimationTree
 
+## The on-screen touch overlay, so a tap on one of its own controls is not
+## mistaken for a tap on the world behind it - see _tap_on_overlay().
+@export var touch_controls: Control
+
 
 @warning_ignore("int_as_enum_without_cast", "int_as_enum_without_match")
 var override_cursor_shape: Input.CursorShape = -1
@@ -28,6 +32,27 @@ const EDGE_PERCENT: = 0.4
 			ray_cast.enabled = value
 
 var colliding: = false
+
+## Where a touch confirm aims once the camera is locked (FOCUSED).
+##
+## The aim and the confirm are two separate taps on touch: the aim used to
+## be read live from the emulated mouse position, and the confirm can only
+## come from the OK button (see _is_confirm_event). Android's "emulate
+## mouse from touch" moves that position on EVERY tap - including the one
+## that presses OK - so by the time the confirm arrived the ray had already
+## swung across to wherever the OK button sits, and whatever the player had
+## actually tapped was never what got triggered.
+##
+## That made every FOCUSED-state raycast target in the shop unreachable on
+## touch: the Collector, his hat, the Kollectadex, the board, the plush,
+## the jar, the string, the photos. The one that always worked, the TV's
+## Power button, works precisely because it bypasses the raycast
+## (RubiconActionButton.direct_target).
+##
+## So latch it: a tap on the 3D world sets the aim and it stays there until
+## the next one. Vector2.INF means "nothing tapped yet", which reads as the
+## screen centre.
+var touch_aim: Vector2 = Vector2.INF
 
 var _hand_state: StringName = &""
 var _last_shop_state: CollectorShop.ShopStates
@@ -57,6 +82,70 @@ func _is_free_look() -> bool:
 	return root != null and root.state == root.ShopStates.FREE_LOOK
 
 
+## Screen point the raycast aims at, in viewport coordinates.
+##
+## On touch during FREE_LOOK it is the screen centre - i.e. wherever the
+## joystick has left the camera looking - because the raw touch position
+## can't drive FREE_LOOK's big zone-entry areas the way a real mouse cursor
+## does (see is_touch_controls_active()).
+##
+## That doesn't hold once FOCUSED: the camera is locked wherever the zoom-in
+## animation left it (_process() below only pans during FREE_LOOK), so a
+## fixed centre point can only ever reach whatever that animation happened
+## to centre - the console screen, say, but not a separate prop like the
+## power button sitting elsewhere on the same console. There is no joystick
+## left to move a crosshair with either, so aiming is by tapping the thing,
+## same as desktop's mouse - but from the latched [member touch_aim] rather
+## than live, for the reason written on it.
+##
+## Public because touch_aim_reticle.gd draws the crosshair at this point.
+func get_aim_position() -> Vector2:
+	if not is_touch_controls_active():
+		return get_viewport().get_mouse_position()
+
+	if _is_free_look() or touch_aim == Vector2.INF:
+		return get_viewport().get_visible_rect().size * 0.5
+
+	return touch_aim
+
+
+## _unhandled_input, not _input: a tap the GUI already took - OK, Back, the
+## F button, the Power button - never reaches here, so pressing one of them
+## leaves the aim pointing at whatever the player tapped before it, which is
+## the whole point.
+##
+## RubiconVirtualDPad is the exception: it reads touches in _input() and
+## does not mark them handled, so its taps do arrive here. _tap_on_overlay()
+## covers it (and re-covers the buttons, harmlessly).
+func _unhandled_input(event: InputEvent) -> void :
+	if not is_touch_controls_active():
+		return
+
+	var touch: = event as InputEventScreenTouch
+	if touch == null or not touch.pressed:
+		return
+
+	if _tap_on_overlay(touch.position):
+		return
+
+	touch_aim = touch.position
+
+
+func _tap_on_overlay(point: Vector2) -> bool:
+	if touch_controls == null or not touch_controls.visible:
+		return false
+
+	for child in touch_controls.get_children():
+		var control: = child as Control
+		if control == null or not control.visible:
+			continue
+
+		if control.get_global_rect().has_point(point):
+			return true
+
+	return false
+
+
 func _physics_process(_delta: float) -> void :
 	if not _can_ray_cast():
 		colliding = false
@@ -66,27 +155,7 @@ func _physics_process(_delta: float) -> void :
 			Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 		return
 
-	# On touch during FREE_LOOK, aim from screen center (i.e. wherever the
-	# joystick has left the camera looking) instead of the touch/emulated-
-	# mouse position - see is_touch_controls_active()'s doc comment for why
-	# raw touch position can't drive FREE_LOOK's big zone-entry areas the
-	# way a real mouse cursor does.
-	#
-	# That doesn't hold once FOCUSED: the camera is locked wherever the
-	# zoom-in animation left it (_process() below only pans during
-	# FREE_LOOK), so a fixed center point can only ever reach whatever that
-	# animation happened to center - e.g. the console screen, but not a
-	# separate prop like the power button sitting elsewhere on the same
-	# console. There's no joystick left to move a crosshair with anyway, so
-	# fall back to the raw touch position here, same as desktop's mouse -
-	# tap directly on the small thing you want, same as you'd click it.
-	var aim_position: Vector2
-	if is_touch_controls_active() and _is_free_look():
-		aim_position = get_viewport().get_visible_rect().size * 0.5
-	else:
-		aim_position = get_viewport().get_mouse_position()
-
-	ray_cast.target_position = camera.project_ray_normal(aim_position) * ray_length
+	ray_cast.target_position = camera.project_ray_normal(get_aim_position()) * ray_length
 
 	if root:
 		ray_cast.collision_mask = root.state
@@ -132,6 +201,11 @@ func _update_hand_from_shop_state() -> void :
 		return
 
 	_last_shop_state = root.state
+
+	# A state change means a camera move, so the last tap now points at
+	# something else entirely. Back to the centre until the player picks a
+	# new target.
+	touch_aim = Vector2.INF
 
 	match root.state:
 		root.ShopStates.FREE_LOOK:
