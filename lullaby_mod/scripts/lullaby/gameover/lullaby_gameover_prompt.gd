@@ -51,17 +51,11 @@ class_name LullabyGameoverPrompt extends CanvasLayer
 @export var canvas_layer: int = 32
 
 var _buttons: Dictionary[StringName, RubiconActionButton] = {}
-var _bind_type: int = LullabyInputBinds.BindType.KBM
 
 func _ready() -> void :
 	layer = canvas_layer
 
 	_build()
-	_refresh_labels()
-
-	if Settings.has_signal(&"applied"):
-		Settings.applied.connect(_refresh_labels)
-
 	visible = _is_available()
 
 func _build() -> void :
@@ -80,7 +74,13 @@ func _build() -> void :
 		var button: RubiconActionButton = RubiconActionButton.new()
 		button.name = String(action)
 		button.action = action
-		button.custom_minimum_size = Vector2(260, 64)
+		# verb + show_binding is the same verb-over-key label the dpad's
+		# OK/BACK/BAG buttons use, so the whole game states an action one way.
+		# RubiconActionButton owns the text, including re-reading it when the
+		# player rebinds or picks up a gamepad.
+		button.verb = prompts[action]
+		button.show_binding = true
+		button.custom_minimum_size = Vector2(260, 76)
 		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		if button_theme != null:
 			button.theme = button_theme
@@ -89,28 +89,6 @@ func _build() -> void :
 
 func _process(_delta: float) -> void :
 	visible = _is_available()
-
-## -1 is "this event says nothing about the device family" - a screen touch,
-## or the synthetic InputEventAction the buttons themselves dispatch. Those
-## must not flip a gamepad player's labels back to keyboard glyphs, and the
-## synthetic one would otherwise re-render the labels on every tap.
-func _input(event: InputEvent) -> void :
-	var bind_type: int = LullabyInputBinds.type_of(event)
-	if bind_type == -1 or bind_type == _bind_type:
-		return
-
-	_bind_type = bind_type
-	_refresh_labels()
-
-func _refresh_labels() -> void :
-	for action: StringName in _buttons:
-		var bind: String = LullabyInputBinds.text_for(action, _bind_type)
-		# An action with nothing bound to it still needs a tappable button,
-		# it just cannot advertise a key for it.
-		if bind.is_empty():
-			_buttons[action].text = prompts[action]
-		else:
-			_buttons[action].text = "%s   %s" % [prompts[action], bind]
 
 func _is_available() -> bool:
 	if available_source == null or available_property.is_empty():

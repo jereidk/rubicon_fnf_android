@@ -19,6 +19,9 @@ const GLYPH_COLOR := Color(1, 1, 1, 0.92)
 func _ready() -> void:
 	# RubiconActionButton._ready() sets FOCUS_NONE and wires the
 	# press+release dispatch (and the flash on button_down).
+	# The glyph below already says what this button is for, so it takes the
+	# key line only - a verb printed over the pendulum would just cover it.
+	show_binding = true
 	super()
 	text = ""
 

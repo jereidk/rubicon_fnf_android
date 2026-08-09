@@ -8,10 +8,15 @@ class_name LullabyInputBinds
 ## action usually has several events bound (a key AND a gamepad button), so
 ## which one to show depends on what the player last touched.
 ##
-## Extracted from shop_bind_ui.gd, which is still the only place that does
-## the $action$ substitution in a Label - this is the same resolution it
-## always did, minus the duplicate that would otherwise have appeared in
-## lullaby_gameover_prompt.gd.
+## Extracted from shop_bind_ui.gd, which does the $action$ substitution in a
+## Label - this is the same resolution it always did.
+##
+## RubiconActionButton has a resolver of its own and that is deliberate, not
+## a duplicate to be merged: everything in addons/rubicon_mobile_controls
+## reads only ProjectSettings and has to keep loading in a project with no
+## Settings autoload at all, so its version is InputMap-only. This one adds
+## the Settings.input_game fallback for actions that never reach the
+## InputMap. If you collapse the two, the addon stops standing alone.
 
 enum BindType {
 	KBM,

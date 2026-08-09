@@ -10,6 +10,43 @@ class_name RubiconActionButton
 
 @export var action: StringName = &"ui_accept"
 
+## What the button DOES, on the top line. Set this and the button labels
+## itself as verb-over-key ("OK" over "Enter"), reading the key from
+## whatever [member action] is currently bound to.
+##
+## Leave it empty and the authored [member text] is left exactly as it is,
+## so nothing that has not opted in changes.
+##
+## This exists because the labels had drifted into two conventions at once:
+## the cartridge button said "F" (a key), while Accept and Cancel said "OK"
+## and "Back" (verbs). Worse, "F" was plain authored text - rebind
+## open_cartridge_bag and the button went on claiming F. A verb alone hides
+## which key does the same thing on a keyboard; a key alone says nothing
+## about what the button is for on a phone, where there is no keyboard to
+## relate it to. Both lines, and the key one generated.
+@export var verb: String = "":
+	set(value):
+		verb = value
+		if is_node_ready():
+			_refresh_label()
+
+## Add the generated key line. Off by default so no button that has not
+## opted in changes what it displays.
+##
+## Usable on its own, with an empty [member verb], for a button that already
+## says what it does some other way - LullabyMechanicActionButton draws a
+## pendulum glyph and would only be hidden by a word on top of it, but still
+## benefits from saying which key does the same thing.
+@export var show_binding: bool = false:
+	set(value):
+		show_binding = value
+		if is_node_ready():
+			_refresh_label()
+
+## Point size of the generated key line. The verb keeps the button's own
+## theme font size.
+@export var binding_font_size: int = 18
+
 ## Optional: bypass the action/raycast system entirely and call this area's
 ## trigger() straight away instead. For a contextual button that always
 ## means one specific, unambiguous thing while visible (e.g. "Power" for
@@ -19,6 +56,12 @@ class_name RubiconActionButton
 @export var direct_target: TriggerArea3D
 
 var _flash_tween: Tween
+
+var _verb_label: Label
+var _binding_label: Label
+## 0 = keyboard/mouse, 1 = gamepad. Starts on keyboard because that is what
+## the InputMap's first binding is for every action here.
+var _last_device_family: int = 0
 
 ## Optional: only show this button while this bool property is true (e.g.
 ## a contextual shortcut like "F / Switch Cartridge" that only means
@@ -47,6 +90,23 @@ func _ready() -> void:
 	# have this same fix; this button just never got it.
 	focus_mode = Control.FOCUS_NONE
 
+	_build_label()
+	_refresh_label()
+
+	# Soft dependency, by node name rather than by class: this addon is kept
+	# free of the mod's autoloads (everything else in it reads only
+	# ProjectSettings), and it has to keep loading in a project that has no
+	# Settings at all. When there is one, rebinding a key in the console
+	# updates these labels straight away.
+	#
+	# The InputMap is what gets read either way, not Settings.input_game -
+	# settings.gd applies every rebind into the InputMap
+	# (action_erase_events/action_add_event), so the engine's own map is the
+	# live truth and input_game is just its persisted copy.
+	var settings: Node = get_node_or_null(^"/root/Settings")
+	if settings != null and settings.has_signal(&"applied"):
+		settings.applied.connect(_refresh_label)
+
 	pressed.connect(_dispatch)
 	button_down.connect(_flash)
 
@@ -67,6 +127,103 @@ func _compute_visible() -> bool:
 	if v and visible_source2 != null and not visible_property2.is_empty():
 		v = bool(visible_source2.get(visible_property2))
 	return v
+
+## Two stacked Labels rather than one with a newline: Button renders its own
+## text through a single-line TextLine, and the two halves want different
+## font sizes anyway. The container is IGNORE all the way down so the Button
+## underneath still receives every touch.
+func _build_label() -> void:
+	if (verb.is_empty() and not show_binding) or _verb_label != null:
+		return
+
+	# The generated label replaces the Button's own text rather than sitting
+	# next to it - but only when there is a verb to replace it with.
+	if not verb.is_empty():
+		text = ""
+
+	var column := VBoxContainer.new()
+	column.name = "GeneratedLabel"
+	column.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Centred when it is a two-line label, tucked under whatever the button
+	# draws for itself when it is only the key line.
+	column.alignment = BoxContainer.ALIGNMENT_CENTER if not verb.is_empty() else BoxContainer.ALIGNMENT_END
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 0)
+	add_child(column)
+
+	_verb_label = Label.new()
+	_verb_label.name = "Verb"
+	_verb_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_verb_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# These buttons are fixed-size tap targets, so a long verb has to clip
+	# rather than push the button's own layout around.
+	_verb_label.clip_text = true
+	column.add_child(_verb_label)
+
+	_binding_label = Label.new()
+	_binding_label.name = "Binding"
+	_binding_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_binding_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_binding_label.clip_text = true
+	_binding_label.add_theme_font_size_override("font_size", binding_font_size)
+	# Dimmed so the verb stays the thing you read first.
+	_binding_label.modulate = Color(1.0, 1.0, 1.0, 0.7)
+	column.add_child(_binding_label)
+
+func _refresh_label() -> void:
+	if _verb_label == null:
+		return
+
+	_verb_label.text = verb
+	_verb_label.visible = not verb.is_empty()
+
+	var binding: String = _binding_text() if show_binding else ""
+	_binding_label.text = binding
+	# An action with nothing bound to it still needs its verb; it just has no
+	# key to advertise, and an empty line would push the verb off centre.
+	_binding_label.visible = not binding.is_empty()
+
+## Preferred binding for [member action], following whichever kind of device
+## was last used, and falling back to the first binding of any kind rather
+## than to nothing.
+func _binding_text() -> String:
+	if not InputMap.has_action(action):
+		return ""
+
+	var events: Array[InputEvent] = InputMap.action_get_events(action)
+	if events.is_empty():
+		return ""
+
+	var chosen: InputEvent = events[0]
+	for event: InputEvent in events:
+		if _device_family(event) == _last_device_family:
+			chosen = event
+			break
+
+	# as_text() spells a key out as e.g. "Enter (Physical)", which is noise
+	# on a button this size.
+	return chosen.as_text().replace(" (Physical)", "").replace(" - Physical", "")
+
+## -1 for events that say nothing about the device in use - a screen touch,
+## or the synthetic InputEventAction this button itself dispatches. Those
+## must not flip a gamepad player's labels back to keyboard glyphs.
+func _device_family(event: InputEvent) -> int:
+	if event is InputEventKey or event is InputEventMouseButton:
+		return 0
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		return 1
+	return -1
+
+func _input(event: InputEvent) -> void:
+	if _verb_label == null:
+		return
+
+	var family: int = _device_family(event)
+	if family == -1 or family == _last_device_family:
+		return
+
+	_last_device_family = family
+	_refresh_label()
 
 func _dispatch() -> void:
 	if direct_target != null:
