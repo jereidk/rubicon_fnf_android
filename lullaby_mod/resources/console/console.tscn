@@ -5227,6 +5227,7 @@ script = ExtResource("202")
 unlock_flag = &"showcase_mode_unlocked"
 
 [node name="SpeedHack" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=3057231952 node_paths=PackedStringArray("console")]
+visible = false
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ShowcaseMode")
@@ -5241,6 +5242,10 @@ display_list = ["0.5x", "0.75x", "1x", "1.25x", "1.5x", "2x"]
 values_list = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
 console = NodePath("../../../../../..")
 tooltip = "Plays the whole song, music included, faster or slower. The hit windows do not move with it, so slower is easier and faster is harder. The music changes pitch."
+
+[node name="LullabyHideIfLocked" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay/SpeedHack" unique_id=3057231954]
+script = ExtResource("202")
+unlock_flag = &"speed_hack_unlocked"
 
 
 [node name="Visuals" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1649986475 node_paths=PackedStringArray("tab_container", "default_focus")]

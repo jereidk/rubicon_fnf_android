@@ -5,6 +5,15 @@ extends Node
 signal new_cartridge_selected(cart: StringName)
 signal tokens_changed(count: int)
 
+## Emitted when a flag's value actually changes.
+##
+## Without it, anything that shows or hides itself off a flag can only read it
+## once, at _ready. Entering an unlock code in the Codes tab set the flag and
+## saved it, and the row it unlocked stayed hidden until the console was
+## rebuilt - so the reward for the code only appeared after loading a song and
+## coming back, which reads exactly like the code not having worked.
+signal flag_changed(flag: StringName, value: bool)
+
 const VERSION_MAJOR = 1
 const VERSION_MINOR = 0
 const VERSION_PATCH = 0
@@ -48,6 +57,7 @@ var flags: Dictionary[StringName, bool] = {
 	&"chimera_passed_seen": false,
 
 	&"showcase_mode_unlocked": false,
+	&"speed_hack_unlocked": false,
 
 	&"console_area_seen": false, 
 	&"console_boot_seen": false, 
@@ -103,7 +113,12 @@ func has_flag(flag: StringName) -> bool:
 
 
 func set_flag(flag: StringName, value: bool) -> void :
+	# Only on a real change, so a listener cannot be woken by a write that
+	# said the same thing - load_from() rewrites every flag it reads.
+	var changed: bool = not flags.has(flag) or flags[flag] != value
 	flags[flag] = value
+	if changed:
+		flag_changed.emit(flag, value)
 
 
 func has_passed_song(song: StringName) -> bool:

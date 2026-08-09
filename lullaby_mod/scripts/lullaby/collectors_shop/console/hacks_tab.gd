@@ -12,6 +12,7 @@ const CODES: Dictionary[String, StringName] = {
 	"IAMDEAD": &"monochrome",
 	"SERENAHEX": &"chimera",
 	"SHOWCASE": &"showcase_mode",
+	"SPEEDHACK": &"speed_hack",
 }
 
 @export var code_input: LineEdit
