@@ -49,5 +49,14 @@ func _update() -> void :
 			var handler: RubiconLevelNoteHandler = controller.note_handlers[handler_id]
 			if handler is RubiconLevelManiaNoteHandler and "allow_misplays" in handler:
 				handler.allow_misplays = settings_ghost_tapping
+			# An autoplayed lane normally loses its HIT state inside the same
+			# frame it gains it, so the receptor never plays its confirm and
+			# the strumline sits there dead while the notes go past. See
+			# lane_autoplay_hit_lingers. Only ever turned on for a showcase:
+			# the only strumline autoplayed during a real run is the
+			# opponent's, and all three songs hide it, so switching this on
+			# generally would change nothing except how faithful the port is.
+			if "lane_autoplay_hit_lingers" in handler:
+				handler.lane_autoplay_hit_lingers = LullabyShowcase.is_active()
 			if handler.settings != null and "leniency_multiplier" in handler.settings:
 				handler.settings.leniency_multiplier = Settings.game_timing_leniency

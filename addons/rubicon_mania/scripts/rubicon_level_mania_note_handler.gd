@@ -19,6 +19,32 @@ enum LaneState {
 @export var lane_id : int = 0
 @export var lane_state : LaneState
 
+## Whether an autoplayed hit keeps the lane lit long enough to be seen.
+##
+## hit_note() sets lane_state to HIT, and the autoplay branch of _process
+## clears it again - both inside the same _process call, because that branch
+## runs immediately after the super() that hit the note. The lane's
+## AnimationTree is a child and so processes after its handler, which means
+## it only ever observes NEUTRAL: the "neutral -> hit_init" transition that
+## draws the receptor's confirm never fires, and an autoplayed lane does not
+## light up at all.
+##
+## That is upstream behaviour, read out of the PC pck rather than assumed,
+## and it is invisible in a normal run - the only autoplayed strumline is the
+## opponent's, and all three songs hide it. It stops being invisible the
+## moment something deliberately puts an autoplayed strumline on screen,
+## which is exactly what Lullaby's Showcase Mode does.
+##
+## One frame is the whole fix: the tree needs a single evaluation to reach
+## hit_init, and "hit -> neutral" is an at-end transition, so the confirm
+## plays out on its own once the state clears afterwards. Off by default, so
+## nothing that has not asked for it changes.
+@export var lane_autoplay_hit_lingers : bool = false
+
+## Process frame on which lane_state last became HIT, so the clear can tell
+## "the hit was this frame" from "the hit was an earlier one".
+var _lane_hit_frame : int = -1
+
 ## Emitted on a press that hit nothing while misplays are disallowed.
 ## RubiconCharacterManiaMisplay plays the miss animation off it,
 ## RubiconHealthModuleManiaMisplay docks health, and LullabyVocalMuter
@@ -33,6 +59,7 @@ func hit_note(index : int, time_when_hit : float, hit_type : RubiconLevelNoteHit
 
 	if results[index].scoring_rating < RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS and results[index].scoring_rating != RubiconLevelNoteHitResult.Judgment.JUDGMENT_NONE:
 		lane_state = LaneState.LANE_STATE_HIT
+		_lane_hit_frame = Engine.get_process_frames()
 
 	if hit_type == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE:
 		results[index].scoring_value = 0.25
@@ -89,7 +116,11 @@ func _process(delta: float) -> void:
 		return
 	
 	if get_controller().should_autoplay() and note_hit_index > 0 and lane_state == LaneState.LANE_STATE_HIT and (results[note_hit_index - 1] == null or results[note_hit_index - 1].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_COMPLETE):
-		lane_state = LaneState.LANE_STATE_NEUTRAL
+		# See lane_autoplay_hit_lingers: clearing this on the frame it was set
+		# is what stops an autoplayed lane ever lighting up.
+		var lit_this_frame : bool = lane_autoplay_hit_lingers and _lane_hit_frame == Engine.get_process_frames()
+		if not lit_this_frame:
+			lane_state = LaneState.LANE_STATE_NEUTRAL
 
 func _press(event : InputEvent) -> void:
 	var controller: RubiconLevelNoteController = get_controller()
