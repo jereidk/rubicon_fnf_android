@@ -2,6 +2,14 @@ name: Android Build
 
 on:
   workflow_dispatch:
+    inputs:
+      precompile_match:
+        description: >-
+          Leave empty for a normal build. Set to a glob to also harvest the
+          imports it matches into precompiled_astc_imports/ and commit them
+          to this branch, e.g. *_packed_*.png
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -28,7 +36,12 @@ jobs:
   build:
     name: Build Android APK
     runs-on: ubuntu-latest
-    
+
+    # Only so the harvest step below can push what it collected. Every other
+    # step in this job reads.
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -265,6 +278,52 @@ jobs:
           # "works in editor, breaks in --headless export" issue.
           $GODOT --headless --import 2>&1
           $GODOT --headless --import 2>&1
+
+      - name: Harvest precompiled imports and commit them
+        if: ${{ inputs.precompile_match != '' }}
+        run: |
+          # Why this runs here rather than on someone's machine: the .res
+          # files are LFS objects, and the only place that reliably has both
+          # a full checkout and permission to upload them is this runner.
+          #
+          # And why it is worth having at all - measured on run 31320235299,
+          # which was a normal build of 37m42s:
+          #
+          #   Import Godot project   34m33s   (92% of the wall clock)
+          #   of which _packed_      34m33s   (100% of the reimports)
+          #
+          # Godot reimported 51 files that run. 48 were the atlas sheets
+          # b26ade9 repacked, at 55-107s each, because nothing had ever
+          # committed their compiled output. Everything else in the project
+          # came out of the Actions cache untouched. Filling those 48 in
+          # takes the build to roughly four minutes.
+          #
+          # The harvest reads .godot/imported directly rather than an
+          # exported APK, so it does not depend on the export succeeding and
+          # cannot pick up a stale artifact - the import that produced these
+          # files ran seconds ago, in this job, from this commit.
+          python3 tools/harvest_precompiled_imports.py .godot/imported \
+            --match "${{ inputs.precompile_match }}"
+
+          if [ -z "$(git status --porcelain -- precompiled_astc_imports)" ]; then
+            echo "Nothing new to commit - everything matching is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Scoped to the one directory: the checkout is sparse, and a bare
+          # `git add -A` in a sparse working tree is how you accidentally
+          # commit the deletion of everything the sparse filter excluded.
+          git add precompiled_astc_imports
+          git commit -m "Precompile the imports matching ${{ inputs.precompile_match }}
+
+          Harvested from .godot/imported by the build that produced them, so
+          each .res is the output of the source PNG at this commit. The .md5
+          sidecars are what Godot's reimport-skip check reads back.
+
+          See tools/verify_precompiled_astc.gd to check the pairs."
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Verify hardcoded uid:// references resolve
         run: |

@@ -9,10 +9,16 @@ single build. The Actions cache does not save you - its key hashes every
 png/tscn/tres/gd in the project, so it misses on any commit at all.
 
 Usage:
-    python3 tools/precompile_from_apk.py APK --match '*_packed_*.png'
-    python3 tools/precompile_from_apk.py APK              # refresh what exists
-    python3 tools/precompile_from_apk.py APK --all        # read the warning
+    python3 tools/harvest_precompiled_imports.py APK --match '*_packed_*.png'
+    python3 tools/harvest_precompiled_imports.py .godot/imported --match '*.png'
+    python3 tools/harvest_precompiled_imports.py SOURCE           # refresh what exists
+    python3 tools/harvest_precompiled_imports.py SOURCE --all     # read the warning
     ... plus --dry-run on any of the above.
+
+SOURCE is either an APK or a directory of already-imported resources. The
+directory form is what CI uses: the runner has just run --headless --import,
+so .godot/imported holds the authoritative output and there is no APK to
+unpack. It also means the harvest does not depend on an export succeeding.
 
 Adding is opt-in, and that is deliberate. A real APK contains the compiled
 form of every texture in the project, but this directory has never held all
@@ -79,6 +85,14 @@ def apk_index(zf):
     return found
 
 
+def dir_index(root):
+    """Same index, for a directory of imported resources."""
+    found = {}
+    for path in glob.glob(os.path.join(root, "*.res")):
+        found[os.path.basename(path)] = path
+    return found
+
+
 def main(argv):
     flags = [a for a in argv[1:] if a.startswith("-")]
     args = [a for a in argv[1:] if not a.startswith("-")]
@@ -96,16 +110,24 @@ def main(argv):
         print(__doc__)
         return 2
 
-    apk_path = args[0]
-    if not os.path.exists(apk_path):
-        print("no existe: %s" % apk_path)
+    source_arg = args[0]
+    if not os.path.exists(source_arg):
+        print("no existe: %s" % source_arg)
         return 1
     if not os.path.isdir(OUT_DIR):
         print("ejecuta esto desde la raiz del repo (no encuentro %s/)" % OUT_DIR)
         return 1
 
-    zf = zipfile.ZipFile(apk_path)
-    in_apk = apk_index(zf)
+    from_dir = os.path.isdir(source_arg)
+    if from_dir:
+        zf = None
+        available = dir_index(source_arg)
+        read_bytes = lambda key: open(available[key], "rb").read()
+    else:
+        zf = zipfile.ZipFile(source_arg)
+        available = apk_index(zf)
+        read_bytes = lambda key: zf.read(available[key])
+    in_apk = available
 
     written, already, absent, skipped = 0, 0, [], 0
     written_bytes = 0
@@ -136,7 +158,7 @@ def main(argv):
             absent.append(source)
             continue
 
-        data = zf.read(in_apk[res_name])
+        data = read_bytes(res_name)
         source_md5 = hashlib.md5(open(source, "rb").read()).hexdigest()
         dest_md5 = hashlib.md5(data).hexdigest()
 
@@ -164,20 +186,20 @@ def main(argv):
         written += 1
 
     print("")
-    print("APK            : %s" % apk_path)
+    print("origen         : %s (%s)" % (source_arg, "directorio" if from_dir else "APK"))
     print("ya al dia      : %d" % already)
     print("%s: %d  (%.1f MB a LFS)" % (
         "escribiria    " if dry_run else "escritos      ", written, written_bytes / 1e6))
     print("no pedidos     : %d  (usa --match o --all)" % skipped)
-    print("sin .res en el APK: %d" % len(absent))
+    print("sin .res en el origen: %d" % len(absent))
     for path in absent[:20]:
         print("    %s" % path)
     if len(absent) > 20:
         print("    ... y %d mas" % (len(absent) - 20))
     if absent:
         print("")
-        print("Un fuente sin .res en el APK significa que el APK es anterior a el.")
-        print("Reconstruye el APK desde este commit antes de fiarte del resultado.")
+        print("Un fuente sin .res en el origen significa que el origen es anterior a el.")
+        print("Reimporta o reconstruye desde este commit antes de fiarte del resultado.")
 
     print("")
     print("Ahora verifica:")
