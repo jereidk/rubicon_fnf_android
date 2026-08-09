@@ -58,6 +58,20 @@ const PRESSED_ALPHA := 0.16
 ## goes above it.
 const FLAT_FILL_ALPHA := 0.16
 const FLAT_PRESSED_ALPHA := 0.34
+
+## The pendulum band's own authored values (mechanic_touch_hitbox.gd). It is
+## red rather than white and sits at its own alphas, so it gets its own set
+## instead of borrowing the lanes' - only the alpha is scaled, never the hue.
+##
+## Hint, Gradient and Opacity did nothing to this band until now, which was
+## its own inconsistency: it is a hitbox, it is in the Hitbox group of
+## options, and the three rows that claim to style hitboxes skipped it.
+const MECHANIC_COLOR := Color(1, 0, 0)
+const MECHANIC_FILL_ALPHA := 0.08
+const MECHANIC_PRESSED_ALPHA := 0.28
+const MECHANIC_FLAT_FILL_ALPHA := 0.28
+const MECHANIC_FLAT_PRESSED_ALPHA := 0.50
+const MECHANIC_OUTLINE_ALPHA := 0.55
 ## The outline's own default alpha. It was left out of the opacity scaling,
 ## so at 0% the fills vanished and the outlines stayed at full strength -
 ## the setting visibly did not do what it says.
@@ -148,6 +162,26 @@ func _apply_to_current_scene() -> void:
 		# Switching back to Hitbox mid-session must undo the disable above.
 		_restore_mechanic_hitbox(mechanic)
 		_apply_mechanic_layout(mechanic)
+		_apply_mechanic_style(mechanic, gradient, opacity)
+
+## Same three rows as the lanes, on the band's own red palette. Note the
+## property is show_outline here, singular - RubiconMechanicHitbox draws one
+## zone where RubiconMobileControls draws several.
+func _apply_mechanic_style(mechanic: Control, gradient: bool, opacity: float) -> void:
+	if mechanic == null or not is_instance_valid(mechanic):
+		return
+
+	var rest_alpha: float = MECHANIC_FILL_ALPHA if gradient else MECHANIC_FLAT_FILL_ALPHA
+	var press_alpha: float = MECHANIC_PRESSED_ALPHA if gradient else MECHANIC_FLAT_PRESSED_ALPHA
+
+	mechanic.show_outline = Settings.lullaby_hitbox_hint
+	mechanic.gradient_fill = gradient
+	mechanic.fill_color = _mechanic_alpha(rest_alpha * opacity)
+	mechanic.pressed_fill_color = _mechanic_alpha(press_alpha * opacity)
+	mechanic.outline_color = _mechanic_alpha(MECHANIC_OUTLINE_ALPHA * opacity)
+
+func _mechanic_alpha(alpha: float) -> Color:
+	return Color(MECHANIC_COLOR.r, MECHANIC_COLOR.g, MECHANIC_COLOR.b, clampf(alpha, 0.0, 1.0))
 
 func _apply_mechanic_layout(mechanic: Control) -> void:
 	if mechanic == null:

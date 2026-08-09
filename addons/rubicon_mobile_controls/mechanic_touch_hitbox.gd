@@ -25,6 +25,29 @@ signal released
 @export var show_outline: bool = true
 @export var outline_color: Color = Color(1, 0, 0, 0.55)
 @export var outline_width: float = 2.0
+## Fade the fill along the band instead of filling it flat - same option as
+## RubiconMobileControls.gradient_fill, and driven by the same console row.
+##
+## The notch is what makes this more than a copy: the zone is an L, drawn as
+## two non-overlapping rects, so a gradient computed per rect would restart
+## at the seam and read as two blocks. _gradient_color_at() samples the
+## control's FULL height instead, so both rects take their colours from one
+## ramp and the seam disappears.
+@export var gradient_fill: bool = false:
+	set(value):
+		if gradient_fill == value:
+			return
+		gradient_fill = value
+		queue_redraw()
+
+## Alpha multiplier at the faded end. 0 fades to nothing.
+@export_range(0.0, 1.0, 0.05) var gradient_falloff: float = 0.0:
+	set(value):
+		if is_equal_approx(gradient_falloff, value):
+			return
+		gradient_falloff = value
+		queue_redraw()
+
 @export var fill_color: Color = Color(1, 0, 0, 0.08)
 @export var pressed_fill_color: Color = Color(1, 0, 0, 0.28)
 
@@ -88,7 +111,7 @@ func _draw() -> void:
 
 	if notch.size == Vector2.ZERO:
 		if fill.a > 0.0:
-			draw_rect(Rect2(Vector2.ZERO, size), fill, true)
+			_draw_fill(Rect2(Vector2.ZERO, size), fill)
 		if show_outline:
 			draw_rect(Rect2(Vector2.ZERO, size), outline_color, false, outline_width)
 		return
@@ -99,12 +122,45 @@ func _draw() -> void:
 	# so the cut reads as intentional instead of the outline just stopping.
 	if fill.a > 0.0:
 		for fill_rect in _fill_rects(notch):
-			draw_rect(fill_rect, fill, true)
+			_draw_fill(fill_rect, fill)
 
 	if show_outline:
 		var points: PackedVector2Array = _hexagon_points(notch)
 		points.append(points[0])
 		draw_polyline(points, outline_color, outline_width, true)
+
+func _draw_fill(rect: Rect2, color: Color) -> void:
+	if not gradient_fill:
+		draw_rect(rect, color, true)
+		return
+
+	# Four points, a colour per corner: one draw call, interpolated on the
+	# GPU. The two colours come from the control's own height rather than
+	# this rect's, which is what keeps the ramp continuous across the L.
+	draw_polygon(
+		PackedVector2Array([
+			rect.position,
+			rect.position + Vector2(rect.size.x, 0.0),
+			rect.end,
+			rect.position + Vector2(0.0, rect.size.y),
+		]),
+		PackedColorArray([
+			_gradient_color_at(color, rect.position.y),
+			_gradient_color_at(color, rect.position.y),
+			_gradient_color_at(color, rect.end.y),
+			_gradient_color_at(color, rect.end.y),
+		])
+	)
+
+## Strongest at the bottom of the band, fading upward - the same rule the
+## lane hitboxes use, so the two read as one system whichever way Mechanic
+## Direction has pinned this band.
+func _gradient_color_at(base: Color, y: float) -> Color:
+	if size.y <= 0.0:
+		return base
+	var t: float = clampf(y / size.y, 0.0, 1.0)
+	var factor: float = gradient_falloff + (1.0 - gradient_falloff) * t
+	return Color(base.r, base.g, base.b, base.a * factor)
 
 ## Two non-overlapping rects covering the full zone minus the notch corner.
 func _fill_rects(notch: Rect2) -> Array[Rect2]:

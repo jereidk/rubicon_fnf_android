@@ -137,9 +137,10 @@ func _build_label() -> void:
 		return
 
 	# The generated label replaces the Button's own text rather than sitting
-	# next to it - but only when there is a verb to replace it with.
-	if not verb.is_empty():
-		text = ""
+	# next to it. Cleared even with no verb: the two would otherwise draw on
+	# top of each other, which is what a binding-only button would have done
+	# to the results screen's authored "BACK".
+	text = ""
 
 	var column := VBoxContainer.new()
 	column.name = "GeneratedLabel"
