@@ -81,6 +81,12 @@ signal mechanic_failed
 ## number (beats_successful, right below) without a way to tell anyone.
 signal beat_hit
 
+## The other half, from missed_beat(). Emitted before the immunity check
+## below returns, because a beat you dropped is a beat you dropped whether
+## or not this one was forgiven - mechanic_failed is the separate, terminal
+## thing. Additive like beat_hit: nothing in Chimera connects it.
+signal beat_missed
+
 func initialize() -> void :
 	if verbose:
 		print("Started heartbeat.")
@@ -243,6 +249,8 @@ func successful_beat() -> void :
 func missed_beat() -> void :
 	if verbose:
 		print("Fail :(")
+
+	beat_missed.emit()
 
 	line_reference.default_color = Color.RED
 	if _line_color_tween and _line_color_tween.is_running():

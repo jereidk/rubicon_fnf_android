@@ -27,6 +27,19 @@ extends Node
 ## "finished" of their own, so the instrumental player's is the one available.
 @export var instrumental: AudioStreamPlayer
 
+## Your lanes. Switched to autoplay for a training session, which is the fix
+## for two problems at once.
+##
+## The test level ships a full four-lane chart you are expected to play, and
+## the health module drives itself off that controller's note_changed - so a
+## Typing drill could end with OUT OF HEALTH because you dropped NOTES while
+## the mechanic went perfectly. The panel would blame the wrong thing.
+##
+## Autoplay rather than removing the notes: the pendulum and the heartbeat
+## are timed against the song, and the lanes are the visible beat. They stay
+## as the metronome, they stop being a second task.
+@export var player_notes: Node
+
 ## Words to practise with. Monochrome's own list is story text; these are
 ## neutral and short enough to land inside one pass.
 const TRAINING_WORDS: Array[String] = [
@@ -57,6 +70,7 @@ func _ready() -> void:
 	# must not take the overlay down with it.
 	_build_overlay()
 	_watch_session()
+	_free_the_notes()
 
 	var path: String = String(LullabyTraining.SCENES.get(mechanic, ""))
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -96,7 +110,7 @@ func _build_pendulum(packed: PackedScene) -> void:
 	server.add_child(pendulum)
 
 	server.started = true
-	_count(server, [&"pendulum_success"], [&"pendulum_missed", &"mechanic_failed"])
+	_count(server, [&"pendulum_success"], [&"pendulum_missed"], [&"mechanic_failed"])
 
 ## heartbeat_controller.gd already exposes initialize()/stop() as tool
 ## buttons for playtesting in the editor, which is exactly a training
@@ -120,7 +134,7 @@ func _build_pulse(packed: PackedScene) -> void:
 		push_error("Training: mch_heartbeat has no node with initialize()")
 		return
 	controller.call(&"initialize")
-	_count(controller, [&"beat_hit"], [&"mechanic_failed"])
+	_count(controller, [&"beat_hit"], [&"beat_missed"], [&"mechanic_failed"])
 
 ## The one that is not drop-in. Monochrome wires reference_level,
 ## bar_animation and health_module from the song; two of those exist here and
@@ -152,7 +166,7 @@ func _build_typing(packed: PackedScene) -> void:
 	if "prompt_user" in typing:
 		typing.set(&"prompt_user", true)
 
-	_count(typing, [&"challenge_success"], [&"challenge_fail"])
+	_count(typing, [&"challenge_success"], [&"challenge_fail"], [])
 
 ## The overlay owns the exit, the pause, the end of the drill and the
 ## readout. Kept as its own node rather than folded in here so that the host
@@ -174,6 +188,24 @@ func _watch_session() -> void:
 
 	if instrumental != null and instrumental.has_signal(&"finished"):
 		instrumental.connect(&"finished", _on_song_finished)
+
+## Notes become scenery. should_autoplay() gates both the input path and the
+## judging, so with this on your lanes hit themselves and stop feeding the
+## health module anything you did or did not do.
+func _free_the_notes() -> void:
+	if player_notes == null or not is_instance_valid(player_notes):
+		return
+	if "autoplay" in player_notes:
+		player_notes.set(&"autoplay", true)
+
+## What the songs treat as losing the mechanic. Safety Lullaby wires
+## LullabyPendulumServer.mechanic_failed straight into the health module's
+## health_depleted, so this is the same ending, reached the same way - and
+## now the only thing that can end a drill early, since the notes no longer
+## touch health.
+func _on_mechanic_failed() -> void:
+	if _overlay != null:
+		_overlay.finish_session("MECHANIC FAILED")
 
 func _on_died() -> void:
 	if _overlay != null:
@@ -202,11 +234,17 @@ func _on_exit_requested() -> void:
 ## overlay's two counters. beat_hit and challenge_success were added to
 ## heartbeat_controller.gd and typing_challenge.gd for this; the pendulum
 ## server already announced both sides.
-func _count(node: Node, hit_signals: Array[StringName], miss_signals: Array[StringName]) -> void:
+## mechanic_failed is terminal, not a miss: the pendulum only emits it once
+## retention has already run out over many drops, and Safety Lullaby treats
+## it as death. Typing has no terminal signal - a dropped word is just a
+## dropped word there.
+func _count(node: Node, hit_signals: Array[StringName], miss_signals: Array[StringName],
+		fail_signals: Array[StringName]) -> void:
 	if _overlay == null:
 		return
 	_connect_all(node, hit_signals, _overlay.record_hit)
 	_connect_all(node, miss_signals, _overlay.record_miss)
+	_connect_all(node, fail_signals, _on_mechanic_failed)
 
 func _connect_all(node: Node, signals: Array[StringName], handler: Callable) -> void:
 	for name: StringName in signals:
