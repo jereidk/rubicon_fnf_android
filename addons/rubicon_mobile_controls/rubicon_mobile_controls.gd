@@ -41,11 +41,15 @@ const MOUSE_TOUCH_INDEX := -1000
 		hitbox_bottom_percent = value
 		queue_redraw()
 
-## Centre band carved out of the lane zones for the mechanic hitbox's
-## Center direction. When set, lanes 0-1 fill the band above it and lanes
-## 2-3 the band below (each half-height, splitting the leftover space), so
-## the mechanic sits between the two lane pairs instead of above or below
-## them.
+## Centre channel carved out of the lane zones for the mechanic hitbox's
+## Center direction, as a fraction of this control's WIDTH. Lanes 0-1 sit to
+## its left and 2-3 to its right, all at full height, so the row reads
+## left | down | mechanic | up | right.
+##
+## This used to be a fraction of the height, which stacked the lanes into a
+## 2x2 grid with a full-width strip through the middle - Center taken as
+## "centred vertically" rather than as a channel between the lanes. The
+## mechanic is a tall thin band between the two pairs, not a horizon.
 @export_range(0.0, 0.5, 0.01) var hitbox_center_percent: float = 0.0:
 	set(value):
 		hitbox_center_percent = value
@@ -206,20 +210,21 @@ func _draw() -> void:
 	if bottom_y <= top_y or lane_count <= 0:
 		return
 
-	var centre_h: float = size.y * hitbox_center_percent
-	var centre_y: float = top_y + (bottom_y - top_y - centre_h) * 0.5
-	var zones_per_band: int = lane_count / 2
+	var centre_w: float = size.x * hitbox_center_percent
+	var centre_x: float = (size.x - centre_w) * 0.5
+	var zones_per_side: int = lane_count / 2
 
 	for i in range(lane_count):
 		var rect: Rect2
-		if centre_h > 0.0 and zones_per_band > 0:
-			# Lanes 0-1 above the centre band, lanes 2-3 below it.
-			var band: int = 0 if i < zones_per_band else 1
-			var in_band: int = i if band == 0 else i - zones_per_band
-			var band_y: float = top_y if band == 0 else centre_y + centre_h
-			var band_h: float = (centre_y - top_y) if band == 0 else (bottom_y - (centre_y + centre_h))
-			var band_width: float = size.x / float(zones_per_band)
-			rect = Rect2(in_band * band_width, band_y, band_width, band_h)
+		if centre_w > 0.0 and zones_per_side > 0:
+			# Lanes 0-1 left of the centre channel, lanes 2-3 right of it,
+			# every one of them full height.
+			var side: int = 0 if i < zones_per_side else 1
+			var in_side: int = i if side == 0 else i - zones_per_side
+			var side_x: float = 0.0 if side == 0 else centre_x + centre_w
+			var side_w: float = centre_x if side == 0 else size.x - (centre_x + centre_w)
+			var zone_w: float = side_w / float(zones_per_side)
+			rect = Rect2(side_x + in_side * zone_w, top_y, zone_w, bottom_y - top_y)
 		else:
 			var zone_width: float = size.x / float(lane_count)
 			rect = Rect2(i * zone_width, top_y, zone_width, bottom_y - top_y)
@@ -326,16 +331,20 @@ func _get_lane_for_position(pos: Vector2) -> int:
 		if control != null and control.visible and control.get_global_rect().has_point(pos):
 			return -1
 
-	var centre_h: float = size.y * hitbox_center_percent
-	var zones_per_band: int = lane_count / 2
-	if centre_h > 0.0 and zones_per_band > 0:
-		var centre_y: float = top_y + (bottom_y - top_y - centre_h) * 0.5
-		if pos.y >= centre_y and pos.y < centre_y + centre_h:
+	var centre_w: float = size.x * hitbox_center_percent
+	var zones_per_side: int = lane_count / 2
+	if centre_w > 0.0 and zones_per_side > 0:
+		var centre_x: float = (size.x - centre_w) * 0.5
+		# The channel itself belongs to the mechanic, so a tap there is not a
+		# note - same as the band was before, just on the other axis.
+		if pos.x >= centre_x and pos.x < centre_x + centre_w:
 			return -1
-		var band_width: float = size.x / float(zones_per_band)
-		if pos.y < centre_y:
-			return clampi(int(pos.x / band_width), 0, zones_per_band - 1)
-		return zones_per_band + clampi(int(pos.x / band_width), 0, zones_per_band - 1)
+		if pos.x < centre_x:
+			var left_w: float = centre_x / float(zones_per_side)
+			return clampi(int(pos.x / left_w), 0, zones_per_side - 1)
+		var right_w: float = (size.x - (centre_x + centre_w)) / float(zones_per_side)
+		return zones_per_side + clampi(int((pos.x - (centre_x + centre_w)) / right_w),
+			0, zones_per_side - 1)
 
 	var zone_width: float = size.x / float(lane_count)
 	return clampi(int(pos.x / zone_width), 0, lane_count - 1)

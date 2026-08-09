@@ -49,6 +49,10 @@ const MECHANIC_CENTER_BAND := 0.2
 ## restores exactly what the scene shipped with instead of compounding.
 const FILL_ALPHA := 0.03
 const PRESSED_ALPHA := 0.16
+## The outline's own default alpha. It was left out of the opacity scaling,
+## so at 0% the fills vanished and the outlines stayed at full strength -
+## the setting visibly did not do what it says.
+const OUTLINE_ALPHA := 0.35
 
 func _ready() -> void:
 	if SceneChanger.has_signal("scene_change_finished"):
@@ -109,6 +113,7 @@ func _apply_to_current_scene() -> void:
 			control.show_outlines = Settings.lullaby_hitbox_hint
 			control.fill_color = fill
 			control.pressed_fill_color = pressed
+			control.outline_color = Color(1, 1, 1, OUTLINE_ALPHA * opacity)
 
 	var pause: Control = scene.get_node_or_null(PAUSE_BUTTON_PATH)
 	if pause is Control:
@@ -172,8 +177,14 @@ func _apply_mechanic_layout(mechanic: Control) -> void:
 				mobile.hitbox_bottom_percent = MECHANIC_BAND
 				mobile.hitbox_center_percent = 0.0
 		Settings.MechanicHitboxDirection.CENTER:
-			mechanic.anchor_top = 0.5 - MECHANIC_CENTER_BAND * 0.5
-			mechanic.anchor_bottom = 0.5 + MECHANIC_CENTER_BAND * 0.5
+			# A tall channel between the two lane pairs, not a horizon across
+			# the screen: left | down | mechanic | up | right. The anchors set
+			# above this match assume a full-width band, so both axes are
+			# overridden here.
+			mechanic.anchor_left = 0.5 - MECHANIC_CENTER_BAND * 0.5
+			mechanic.anchor_right = 0.5 + MECHANIC_CENTER_BAND * 0.5
+			mechanic.anchor_top = 0.0
+			mechanic.anchor_bottom = 1.0
 			mechanic.offset_top = 0.0
 			mechanic.offset_bottom = 0.0
 			mechanic.notch_corner = mechanic.NOTCH_NONE
