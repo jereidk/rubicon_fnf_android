@@ -9,8 +9,17 @@ single build. The Actions cache does not save you - its key hashes every
 png/tscn/tres/gd in the project, so it misses on any commit at all.
 
 Usage:
-    python3 tools/precompile_from_apk.py path/to/rubicon-release.apk
-    python3 tools/precompile_from_apk.py path/to/apk --dry-run
+    python3 tools/precompile_from_apk.py APK --match '*_packed_*.png'
+    python3 tools/precompile_from_apk.py APK              # refresh what exists
+    python3 tools/precompile_from_apk.py APK --all        # read the warning
+    ... plus --dry-run on any of the above.
+
+Adding is opt-in, and that is deliberate. A real APK contains the compiled
+form of every texture in the project, but this directory has never held all
+of them - only the slow ones - because each entry is an LFS object that every
+clone and every CI checkout then has to pull. Run with --all and you commit
+some 400 more of them. So by default this only refreshes entries that are
+already here, and --match names what to add.
 
 The Android export writes imported resources as loose files under
 assets/.godot/imported/ inside the APK rather than packing them, so they can
@@ -30,6 +39,7 @@ Afterwards, verify with:
     godot --headless --path . --script tools/verify_precompiled_astc.gd
 """
 
+import fnmatch
 import glob
 import hashlib
 import os
@@ -70,8 +80,18 @@ def apk_index(zf):
 
 
 def main(argv):
+    flags = [a for a in argv[1:] if a.startswith("-")]
     args = [a for a in argv[1:] if not a.startswith("-")]
-    dry_run = "--dry-run" in argv[1:]
+    dry_run = "--dry-run" in flags
+    add_all = "--all" in flags
+    patterns = [f[len("--match="):] for f in flags if f.startswith("--match=")]
+    # Also accept the "--match PAT" spelling, which is what people type.
+    rest = argv[1:]
+    for i, a in enumerate(rest):
+        if a == "--match" and i + 1 < len(rest):
+            patterns.append(rest[i + 1])
+            if rest[i + 1] in args:
+                args.remove(rest[i + 1])
     if len(args) != 1:
         print(__doc__)
         return 2
@@ -87,7 +107,15 @@ def main(argv):
     zf = zipfile.ZipFile(apk_path)
     in_apk = apk_index(zf)
 
-    written, already, absent = 0, 0, []
+    written, already, absent, skipped = 0, 0, [], 0
+    written_bytes = 0
+
+    def wanted(source, has_entry):
+        """Refresh what is already tracked; add only what was asked for."""
+        if add_all or has_entry:
+            return True
+        return any(fnmatch.fnmatch(source, pat) or fnmatch.fnmatch(os.path.basename(source), pat)
+                   for pat in patterns)
 
     for imp_path, text in astc_sources():
         source = imp_path[: -len(".import")]
@@ -116,11 +144,16 @@ def main(argv):
         res_out = os.path.join(OUT_DIR, res_name)
         md5_out = os.path.join(OUT_DIR, base + ".md5")
 
-        if os.path.exists(res_out) and os.path.exists(md5_out):
-            if open(md5_out).read().split('"')[1] == source_md5:
-                already += 1
-                continue
+        has_entry = os.path.exists(res_out) and os.path.exists(md5_out)
+        if has_entry and open(md5_out).read().split('"')[1] == source_md5:
+            already += 1
+            continue
 
+        if not wanted(source, has_entry):
+            skipped += 1
+            continue
+
+        written_bytes += len(data)
         if dry_run:
             print("  escribiria %s" % res_name)
         else:
@@ -133,7 +166,9 @@ def main(argv):
     print("")
     print("APK            : %s" % apk_path)
     print("ya al dia      : %d" % already)
-    print("%s: %d" % ("escribiria    " if dry_run else "escritos      ", written))
+    print("%s: %d  (%.1f MB a LFS)" % (
+        "escribiria    " if dry_run else "escritos      ", written, written_bytes / 1e6))
+    print("no pedidos     : %d  (usa --match o --all)" % skipped)
     print("sin .res en el APK: %d" % len(absent))
     for path in absent[:20]:
         print("    %s" % path)
