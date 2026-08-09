@@ -23,6 +23,7 @@
 [ext_resource type="Resource" uid="uid://csifqf5pyurw8" path="res://songs/test/data/test_Player.tres" id="22_7o1jy"]
 [ext_resource type="Resource" uid="uid://d3gd5egsmfwfp" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_lseq1"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="24_mblctl"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/training/lullaby_training_host.gd" id="25_train"]
 
 [sub_resource type="Resource" id="Resource_pwsoq"]
 script = ExtResource("4_gd4mu")
@@ -259,3 +260,9 @@ offset_right = 240.0
 lane_id = 3
 
 [node name="MobileControls" parent="UILayer" unique_id=3812004417 instance=ExtResource("24_mblctl")]
+
+[node name="TrainingHost" type="Node" parent="." node_paths=PackedStringArray("ui_parent", "level", "health_module")]
+script = ExtResource("25_train")
+ui_parent = NodePath("../UILayer/UI")
+level = NodePath("..")
+health_module = NodePath("../RubiconHealthModule")

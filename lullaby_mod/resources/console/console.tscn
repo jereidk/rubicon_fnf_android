@@ -4598,7 +4598,7 @@ focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("28")
-disabled = true
+disabled = false
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Training")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_training")
@@ -6502,6 +6502,7 @@ layout_mode = 2
 focus_neighbor_right = NodePath("../PulseButton")
 focus_neighbor_bottom = NodePath("../../TypingButton")
 script = ExtResource("79")
+mechanic = 1
 console = NodePath("../../../../../..")
 box = NodePath("PendulumBox")
 
@@ -6534,6 +6535,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath("../PendulumButton")
 focus_neighbor_bottom = NodePath("../../TypingButton")
 script = ExtResource("79")
+mechanic = 2
 console = NodePath("../../../../../..")
 box = NodePath("PulseBox")
 
@@ -6566,6 +6568,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 focus_neighbor_top = NodePath("../HBoxContainer/PendulumButton")
 script = ExtResource("79")
+mechanic = 3
 console = NodePath("../../../../..")
 box = NodePath("TypingBox")
 
