@@ -78,8 +78,8 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_accept_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_accept")
 script = ExtResource("3")
 action = &"open_cartridge_bag"
-verb = "BAG"
 show_binding = true
+binding_font_size = 30
 
 [node name="AcceptButton" type="Button" parent="."]
 layout_mode = 1
@@ -101,8 +101,8 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_accept_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_accept")
 script = ExtResource("3")
 action = &"ui_accept"
-verb = "OK"
 show_binding = true
+binding_font_size = 30
 
 [node name="CancelButton" type="Button" parent="."]
 layout_mode = 1
@@ -124,5 +124,5 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_accept_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_accept")
 script = ExtResource("3")
 action = &"ui_cancel"
-verb = "BACK"
 show_binding = true
+binding_font_size = 30

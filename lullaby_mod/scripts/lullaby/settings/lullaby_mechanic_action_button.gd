@@ -25,6 +25,14 @@ func _ready() -> void:
 	super()
 	text = ""
 
+	# RubiconActionButton centres the key line, which is right when the key
+	# is the whole label. Here the glyph below owns the middle of the button,
+	# so the key sits under it and steps back out of the way.
+	if _label_column != null:
+		_label_column.alignment = BoxContainer.ALIGNMENT_END
+	if _binding_label != null:
+		_binding_label.modulate = Color(1.0, 1.0, 1.0, 0.7)
+
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = BG_COLOR
 	# Larger than any real button; StyleBoxFlat clamps the radius to the

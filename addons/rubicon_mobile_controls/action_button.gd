@@ -10,20 +10,19 @@ class_name RubiconActionButton
 
 @export var action: StringName = &"ui_accept"
 
-## What the button DOES, on the top line. Set this and the button labels
-## itself as verb-over-key ("OK" over "Enter"), reading the key from
-## whatever [member action] is currently bound to.
+## Optional line above the key, for what the button DOES.
+##
+## The rule across the game is: a button shows its key, and shows a verb as
+## well only where nothing else on screen already says what that key does.
+## The console's buttons take the key alone, because the mod's own legend
+## sits right under them ("[Enter] Accept / [Escape] Back") and saying it
+## twice in two different vocabularies is exactly the inconsistency this
+## replaced - Accept said "OK" and Cancel said "Back" while the cartridge
+## button said "F". The death screen's prompt has no such legend, so its
+## buttons carry both.
 ##
 ## Leave it empty and the authored [member text] is left exactly as it is,
 ## so nothing that has not opted in changes.
-##
-## This exists because the labels had drifted into two conventions at once:
-## the cartridge button said "F" (a key), while Accept and Cancel said "OK"
-## and "Back" (verbs). Worse, "F" was plain authored text - rebind
-## open_cartridge_bag and the button went on claiming F. A verb alone hides
-## which key does the same thing on a keyboard; a key alone says nothing
-## about what the button is for on a phone, where there is no keyboard to
-## relate it to. Both lines, and the key one generated.
 @export var verb: String = "":
 	set(value):
 		verb = value
@@ -57,6 +56,7 @@ class_name RubiconActionButton
 
 var _flash_tween: Tween
 
+var _label_column: VBoxContainer
 var _verb_label: Label
 var _binding_label: Label
 ## 0 = keyboard/mouse, 1 = gamepad. Starts on keyboard because that is what
@@ -144,9 +144,7 @@ func _build_label() -> void:
 	var column := VBoxContainer.new()
 	column.name = "GeneratedLabel"
 	column.set_anchors_preset(Control.PRESET_FULL_RECT)
-	# Centred when it is a two-line label, tucked under whatever the button
-	# draws for itself when it is only the key line.
-	column.alignment = BoxContainer.ALIGNMENT_CENTER if not verb.is_empty() else BoxContainer.ALIGNMENT_END
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 0)
 	add_child(column)
@@ -166,9 +164,13 @@ func _build_label() -> void:
 	_binding_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_binding_label.clip_text = true
 	_binding_label.add_theme_font_size_override("font_size", binding_font_size)
-	# Dimmed so the verb stays the thing you read first.
-	_binding_label.modulate = Color(1.0, 1.0, 1.0, 0.7)
+	# Dimmed only when it is the second line - with no verb the key IS the
+	# label and has to read as strongly as any other button's text.
+	if not verb.is_empty():
+		_binding_label.modulate = Color(1.0, 1.0, 1.0, 0.7)
 	column.add_child(_binding_label)
+
+	_label_column = column
 
 func _refresh_label() -> void:
 	if _verb_label == null:

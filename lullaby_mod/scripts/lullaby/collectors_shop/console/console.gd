@@ -28,6 +28,10 @@ static var has_booted: bool = false
 @export var focus_right_area: FocusArea3D
 
 var in_submenu: bool = false
+
+## Process frame of the last accepted back_out(), so a single press cannot
+## step out two levels. See back_out().
+var _last_back_frame: int = -1
 var backout_focus: Button
 
 var in_home: bool
@@ -68,12 +72,41 @@ func back_out() -> void :
 	if booting:
 		return
 
+	# One level per frame. ui_cancel can reach here from more than one place
+	# at once - the on-screen Back button dispatches a synthetic
+	# InputEventAction, and native_back_button_handler.gd dispatches the same
+	# action on Android's hardware Back - and two in one frame would step out
+	# two levels, e.g. straight past the category list to the Home tab.
+	#
+	# Insurance rather than a diagnosis: the reported "one press, two levels"
+	# is most likely the freeze fixed below, which delayed the first press's
+	# result long enough to invite a second. This costs nothing either way.
+	var frame: int = Engine.get_process_frames()
+	if frame == _last_back_frame:
+		return
+	_last_back_frame = frame
+
 	play_sound.emit("sfx_soulroom_back")
 
 	if in_submenu:
 		in_submenu = false
 		backout_focus.grab_focus()
-		Settings.apply_settings()
+		# save() only. The apply_settings() that used to sit here was a
+		# redundant full re-apply and it is what froze the console for about
+		# a second every time you left a category: it rebuilds every viewport
+		# setting, erases and re-adds every InputMap action, and runs
+		# _apply_shader_effects_setting(), which on Very Low walks the whole
+		# scene tree - and the Collector's Shop tree is enormous.
+		#
+		# Nothing is left unapplied without it. Every settings row applies its
+		# own change the moment it is made: list_button.gd:35/48,
+		# toggle_button.gd:26, incremental_button.gd:38, input_button.gd:31
+		# and quality_preset_button.gd:99 all call apply_settings() directly,
+		# and the rows that do not (check_box.gd is only the tick's
+		# animation, window_mode_button.gd defers to ListButton via super)
+		# never mutate a setting themselves. quality_preset_button.gd's own
+		# comment already called this "the only other apply_settings() caller
+		# here", which is exactly the redundancy.
 		Settings.save()
 	else:
 		if tab_container.current_tab == 0 and sequences:

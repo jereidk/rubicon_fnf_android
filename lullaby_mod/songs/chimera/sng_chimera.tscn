@@ -15327,8 +15327,8 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_chimera_action_pressed
 theme_override_styles/focus = SubResource("StyleBoxFlat_chimera_action")
 script = ExtResource("205")
 action = &"lullaby_special"
-verb = "SPECIAL"
 show_binding = true
+binding_font_size = 26
 
 [node name="PictureTakingTouchZone" type="Control" parent="UILayer" node_paths=PackedStringArray("hitbox", "picture_taking")]
 layout_mode = 1
@@ -15364,8 +15364,8 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_chimera_action_pressed
 theme_override_styles/focus = SubResource("StyleBoxFlat_chimera_action")
 script = ExtResource("205")
 action = &"lullaby_special"
-verb = "SPECIAL"
 show_binding = true
+binding_font_size = 26
 
 [node name="EscapeDPad" type="Control" parent="UILayer" node_paths=PackedStringArray("crawl_timing")]
 layout_mode = 1
