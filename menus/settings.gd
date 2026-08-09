@@ -171,6 +171,8 @@ var _stashed_shader_materials: Dictionary = {}
 ## setting disabled it. See _strip_backbuffer_copy().
 var _stashed_copy_modes: Dictionary = {}
 var _watching_new_nodes: bool = false
+## Same, for the SubViewport render scale.
+var _watching_new_viewports: bool = false
 
 var audio_master_volume: float = 1.2:
 	set(v):
@@ -389,6 +391,7 @@ func apply_settings() -> void:
 
 	window.scaling_3d_mode = graphics_scaling_mode
 	window.scaling_3d_scale = graphics_render_scale
+	_apply_subviewport_render_scale()
 	window.fsr_sharpness = graphics_fsr_sharpness
 	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
 	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
@@ -444,6 +447,70 @@ func apply_settings() -> void:
 			InputMap.action_add_event(action_name, input_event)
 
 	applied.emit()
+
+## Nodes whose SubViewport must keep rendering at its authored size, by
+## group. Nothing is in it yet; it exists because "render everything smaller"
+## is wrong for a viewport whose pixels are read rather than looked at - a
+## mask, or anything sampled for a picking test.
+const SUBVIEWPORT_NATIVE_GROUP := &"native_resolution_viewport"
+
+## Render scale, applied to SubViewports as well as to the window.
+##
+## The window has honoured this setting since the graphics rows existed;
+## SubViewports never did, and they are not a rounding error. The shop's
+## three are 640x480, 1240x928 and 480x960 - 1.92M pixels authored, against
+## 0.29M for the whole screen at scale 0.50 - and the device log measures
+## them at 2.93M live pixels and 3.67ms of a 15.04ms GPU frame. A quarter of
+## the shop's GPU time was going to render targets four times the resolution
+## of the screen showing them.
+##
+## size_2d_override keeps the 2D coordinate space the UI inside was laid out
+## against, so only the render target shrinks - the same split the main
+## viewport makes between window size and render scale. Without it every
+## Control inside would reflow against a smaller rect, which is a layout
+## change, not a performance one.
+##
+## Re-entrant: the override, not the current size, is the authored size once
+## this has run, or repeated applies would scale an already-scaled viewport.
+func _apply_subviewport_render_scale() -> void:
+	# A scene loaded later brings its own SubViewports, and they would render
+	# at full size until the next time the settings happened to be applied -
+	# which for the shop is never, since nothing reapplies them on entering a
+	# room. Same reason the shader stripper watches node_added.
+	if not _watching_new_viewports:
+		get_tree().node_added.connect(_on_node_added_scale_viewport)
+		_watching_new_viewports = true
+
+	_scale_subviewports_under(get_tree().root)
+
+func _on_node_added_scale_viewport(node: Node) -> void:
+	if node is SubViewport:
+		_scale_subviewport(node)
+
+func _scale_subviewports_under(node: Node) -> void:
+	if node is SubViewport:
+		_scale_subviewport(node)
+
+	for child: Node in node.get_children():
+		_scale_subviewports_under(child)
+
+func _scale_subviewport(viewport: SubViewport) -> void:
+	if viewport.is_in_group(SUBVIEWPORT_NATIVE_GROUP):
+		return
+
+	# First time through, the size in the scene file is the authored size.
+	# After that it is the override, because size itself has been scaled.
+	var authored: Vector2i = viewport.size_2d_override
+	if authored.x <= 0 or authored.y <= 0:
+		authored = viewport.size
+		viewport.size_2d_override = authored
+		viewport.size_2d_override_stretch = true
+
+	# One pixel minimum: a zero-sized render target is an error, and a scale
+	# row can go low.
+	viewport.size = Vector2i(
+		maxi(1, int(round(float(authored.x) * graphics_render_scale))),
+		maxi(1, int(round(float(authored.y) * graphics_render_scale))))
 
 ## Very Low toggles this on; every other preset off. Strips the current
 ## tree's effect ShaderMaterials (stashing originals to restore if the
