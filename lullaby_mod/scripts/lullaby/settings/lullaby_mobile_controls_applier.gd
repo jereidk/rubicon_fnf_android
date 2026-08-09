@@ -45,19 +45,22 @@ const MECHANIC_BAND := 0.2
 ## then fill the top 40% and lanes 2-3 the bottom 40%.
 const MECHANIC_CENTER_BAND := 0.2
 
-## The addon's own authored values, kept here so turning an option back on
-## restores exactly what the scene shipped with instead of compounding.
-const FILL_ALPHA := 0.03
+## A lane is never filled at rest. Hint draws its border and nothing else;
+## the fill is touch feedback and only exists under a finger.
+##
+## It used to carry a resting fill in both modes - 0.03 with Gradient on and
+## a flat 0.16 with it off - and that flat one was the "grey graphic over
+## the whole screen" reported on device. Monochrome and Chimera both author
+## hitbox_top_percent = 0.0, so a lane is the full height of the screen and
+## four of them are the whole screen: a flat 16% white veil over the entire
+## frame, appearing and disappearing with the typing mechanic because
+## hide_sources/hide_properties tie the lanes to TypingChallenge.active. It
+## read as a bug in the song because the PC mod has nothing like it - PC has
+## no touch hitbox at all.
+##
+## Gradient no longer changes how much is drawn, only its shape: the same
+## peak either way, flat across the lane or fading along its length.
 const PRESSED_ALPHA := 0.16
-
-## Flat mode's own pair. It used to reuse PRESSED_ALPHA for both, so with
-## Gradient off a lane looked identical pressed and at rest - the setting
-## quietly took the touch feedback away along with the gradient, which is
-## not what its name says it does. The resting level stays where it was
-## (a flat lane has to be readable without being touched); pressing now
-## goes above it.
-const FLAT_FILL_ALPHA := 0.16
-const FLAT_PRESSED_ALPHA := 0.34
 
 ## The pendulum band's own authored values (mechanic_touch_hitbox.gd). It is
 ## red rather than white and sits at its own alphas, so it gets its own set
@@ -66,11 +69,13 @@ const FLAT_PRESSED_ALPHA := 0.34
 ## Hint, Gradient and Opacity did nothing to this band until now, which was
 ## its own inconsistency: it is a hitbox, it is in the Hitbox group of
 ## options, and the three rows that claim to style hitboxes skipped it.
+##
+## Same rule as the lanes: no resting fill, Hint draws the border, the fill
+## is the press. The band is narrower than a lane so it never veiled the
+## screen the way they did, but Hint is one setting and it should mean the
+## same thing everywhere it applies.
 const MECHANIC_COLOR := Color(1, 0, 0)
-const MECHANIC_FILL_ALPHA := 0.08
 const MECHANIC_PRESSED_ALPHA := 0.28
-const MECHANIC_FLAT_FILL_ALPHA := 0.28
-const MECHANIC_FLAT_PRESSED_ALPHA := 0.50
 const MECHANIC_OUTLINE_ALPHA := 0.55
 ## The outline's own default alpha. It was left out of the opacity scaling,
 ## so at 0% the fills vanished and the outlines stayed at full strength -
@@ -121,14 +126,12 @@ func _apply_to_current_scene() -> void:
 	var opacity: float = clampf(float(Settings.lullaby_hitbox_opacity) / 100.0, 0.0, 1.0)
 	var gradient: bool = Settings.lullaby_hitbox_gradient
 
-	# Gradient on: a lane is nearly invisible at rest and fades in along its
-	# own height, then lights up when touched. Gradient off: a flat, plainly
-	# visible lane that still brightens under a finger. Either way pressing
-	# does something, and Opacity scales all of it.
-	var rest_alpha: float = FILL_ALPHA if gradient else FLAT_FILL_ALPHA
-	var press_alpha: float = PRESSED_ALPHA if gradient else FLAT_PRESSED_ALPHA
-	var fill := Color(1, 1, 1, clampf(rest_alpha * opacity, 0.0, 1.0))
-	var pressed := Color(1, 1, 1, clampf(press_alpha * opacity, 0.0, 1.0))
+	# Hint on: the four borders, always, and nothing else. Hint off: nothing
+	# at all. In both cases a lane fills only while it is being touched, and
+	# Gradient decides whether that fill is flat or fades along the lane.
+	# Opacity scales the border and the press together.
+	var fill := Color(1, 1, 1, 0.0)
+	var pressed := Color(1, 1, 1, clampf(PRESSED_ALPHA * opacity, 0.0, 1.0))
 
 	for control in get_tree().get_nodes_in_group(&"rubicon_mobile_controls"):
 		if not is_instance_valid(control):
@@ -171,13 +174,10 @@ func _apply_mechanic_style(mechanic: Control, gradient: bool, opacity: float) ->
 	if mechanic == null or not is_instance_valid(mechanic):
 		return
 
-	var rest_alpha: float = MECHANIC_FILL_ALPHA if gradient else MECHANIC_FLAT_FILL_ALPHA
-	var press_alpha: float = MECHANIC_PRESSED_ALPHA if gradient else MECHANIC_FLAT_PRESSED_ALPHA
-
 	mechanic.show_outline = Settings.lullaby_hitbox_hint
 	mechanic.gradient_fill = gradient
-	mechanic.fill_color = _mechanic_alpha(rest_alpha * opacity)
-	mechanic.pressed_fill_color = _mechanic_alpha(press_alpha * opacity)
+	mechanic.fill_color = _mechanic_alpha(0.0)
+	mechanic.pressed_fill_color = _mechanic_alpha(MECHANIC_PRESSED_ALPHA * opacity)
 	mechanic.outline_color = _mechanic_alpha(MECHANIC_OUTLINE_ALPHA * opacity)
 
 func _mechanic_alpha(alpha: float) -> Color:
