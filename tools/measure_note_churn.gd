@@ -58,9 +58,12 @@ func _run() -> void:
 	var worst_usec: int = 0
 
 	while elapsed < seconds:
-		var window: float = 0.0
-		while window < SAMPLE_SECONDS:
-			window += await process_frame
+		# SceneTree.process_frame carries no arguments, so awaiting it yields
+		# null rather than a delta; the window has to be timed off the clock.
+		var began: int = Time.get_ticks_msec()
+		while Time.get_ticks_msec() - began < int(SAMPLE_SECONDS * 1000.0):
+			await process_frame
+		var window: float = float(Time.get_ticks_msec() - began) / 1000.0
 		elapsed += window
 
 		var churn: Dictionary = RubiconLevelNoteHandler.take_churn_stats()

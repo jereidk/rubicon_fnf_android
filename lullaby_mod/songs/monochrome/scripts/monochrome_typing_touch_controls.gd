@@ -57,17 +57,35 @@ class_name MonochromeTypingTouchControls
 ## Gap between the bottom of the keyboard and the bottom of the screen.
 @export var drawn_bottom_margin: float = 56.0
 
-## Keycap styling. Godot's default Button theme is nearly black and leaves
-## nothing for a flash to lift, so the keys carry their own colours.
-@export var drawn_key_color: Color = Color("2f2f36")
-@export var drawn_label_color: Color = Color("e8e8ee")
+## Keycap styling, taken from Monochrome's own art rather than from a neutral
+## dark theme. Everything in this song is drawn the same way - a near-black
+## shape behind a heavy chalk outline, on a black stage - so the keys are
+## built to the same rule instead of looking like a phone keyboard that
+## wandered in:
+##
+##   the cap is the stage's black with the faintest lift, so 28 of them along
+##   the bottom of the screen do not become the brightest thing on it;
+##
+##   the outline and the letters are the chalk the note arrows and the cracks
+##   across the stage are drawn in - sampled at #f8e0e0 on screen, which is
+##   warm only because the unowns' glow bleeds into it, so it is cooled back
+##   to the tone the art actually uses;
+##
+##   and a typed key goes to the unowns' red. That colour is exactly #ff0000
+##   across 220k pixels of tex_mch_unown.png - it is the one saturated thing
+##   in the whole song, which is what makes it read instantly as "this is the
+##   letter" and why gold was the wrong choice here.
+@export var drawn_key_color: Color = Color("15131a")
+@export var drawn_outline_color: Color = Color("d8d2cc")
+@export var drawn_outline_width: float = 3.0
+@export var drawn_label_color: Color = Color("f0ebe6")
 @export var drawn_font_size: int = 34
 
 ## How long a key stays lit after the autoplay presses it, and what colour it
 ## goes. This replaces the keycap's colour rather than multiplying it -
 ## multiplying a near-black keycap is what made the first version invisible.
 @export var drawn_flash_seconds: float = 0.22
-@export var drawn_flash_color: Color = Color("d8c24a")
+@export var drawn_flash_color: Color = Color("ff0000")
 
 var _base_positions: PackedVector2Array
 var _draining: bool = false
@@ -164,6 +182,8 @@ func _build_drawn_keyboard() -> void:
 	_drawn_keyboard.key_gap = drawn_key_gap
 	_drawn_keyboard.space_width = drawn_space_width
 	_drawn_keyboard.key_color = drawn_key_color
+	_drawn_keyboard.outline_color = drawn_outline_color
+	_drawn_keyboard.outline_width = drawn_outline_width
 	_drawn_keyboard.label_color = drawn_label_color
 	_drawn_keyboard.font_size = drawn_font_size
 	_drawn_keyboard.flash_seconds = drawn_flash_seconds

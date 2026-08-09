@@ -49,6 +49,12 @@ const CORNER_SEGMENTS := 4
 ## units. Stands in for the antialiasing a StyleBoxFlat does for free.
 const FEATHER := 1.0
 
+## How much deeper than the flash colour a lit key's edge goes. Monochrome
+## flashes at the unowns' #ff0000, and this lands its rim on #c60000 - which
+## is the second most common red in tex_mch_unown.png, so the lit key ends up
+## built out of the same two reds the unowns themselves are.
+const EDGE_FLASH_DARKEN := 0.223
+
 const SPACE_LABEL := "SPACE"
 
 @export var key_size: Vector2 = Vector2(96, 96):
@@ -75,6 +81,17 @@ const SPACE_LABEL := "SPACE"
 ## border: the darker shape underneath, the lighter face on top of it, inset
 ## by this much at the bottom only.
 @export var key_lip: float = 4.0
+
+## Border on all four sides, in the same shape as the lip. Zero leaves the
+## cap with a bottom lip only, which is what every caller had before this
+## existed. Above zero the cap reads as outlined rather than raised, which is
+## what a song whose whole art style is heavy outlines wants.
+@export var outline_width: float = 0.0
+
+## Only used when outline_width is above zero. Below it the edge stays a
+## darkened key_color, so a caller that sets no outline gets exactly the old
+## raised keycap.
+@export var outline_color: Color = Color("000000")
 
 @export var key_color: Color = Color("2f2f36")
 @export var label_color: Color = Color("e8e8ee")
@@ -207,14 +224,27 @@ func _draw() -> void:
 	for label in _key_rects:
 		var rect: Rect2 = _key_rects[label]
 		var lit: float = _flash_amount(label)
-		var face: Color = key_color.lerp(flash_color, lit)
-		var lip: Color = face.darkened(0.35)
 
-		_append_round_rect(points, colors, indices, rect, corner_radius, lip)
-		if key_lip > 0.0 and rect.size.y > key_lip:
-			var face_rect := Rect2(rect.position,
-				Vector2(rect.size.x, rect.size.y - key_lip))
-			_append_round_rect(points, colors, indices, face_rect, corner_radius, face)
+		# Both the face and the edge light up, so a flash reads as the whole
+		# key glowing rather than as its middle changing colour.
+		#
+		# The edge goes to a darkened flash colour rather than to the flash
+		# colour itself, for two reasons: a lit key then has a bright core
+		# inside a deeper rim, which is how a glow is shaped, and a pale
+		# outline lerping straight to a saturated colour passes through a
+		# washed-out tint on the way - chalk heading for red goes pink at
+		# half fade, and pink is in nothing this is ever likely to theme.
+		var face: Color = key_color.lerp(flash_color, lit)
+		var edge_base: Color = outline_color if outline_width > 0.0 \
+			else key_color.darkened(0.35)
+		var edge: Color = edge_base.lerp(flash_color.darkened(EDGE_FLASH_DARKEN), lit)
+
+		_append_round_rect(points, colors, indices, rect, corner_radius, edge)
+
+		var face_rect: Rect2 = _face_rect(rect)
+		if face_rect.size.x > 0.0 and face_rect.size.y > 0.0:
+			_append_round_rect(points, colors, indices, face_rect,
+				maxf(corner_radius - outline_width, 0.0), face)
 
 	RenderingServer.canvas_item_add_triangle_array(
 		get_canvas_item(), indices, points, colors)
@@ -226,11 +256,20 @@ func _draw() -> void:
 	var ascent: float = _font.get_ascent(font_size)
 	var descent: float = _font.get_descent(font_size)
 	for label in _key_rects:
-		var rect: Rect2 = _key_rects[label]
-		var baseline: float = rect.position.y \
-			+ (rect.size.y - key_lip + ascent - descent) * 0.5
-		draw_string(_font, Vector2(rect.position.x, baseline), label,
-			HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, font_size, label_color)
+		var face_rect: Rect2 = _face_rect(_key_rects[label])
+		var baseline: float = face_rect.position.y \
+			+ (face_rect.size.y + ascent - descent) * 0.5
+		draw_string(_font, Vector2(face_rect.position.x, baseline), label,
+			HORIZONTAL_ALIGNMENT_CENTER, face_rect.size.x, font_size, label_color)
+
+## The lit part of a cap: the whole key less the outline on every side and
+## the lip along the bottom. Shared so the glyph pass, which runs separately
+## to keep the letters batching, cannot drift out of step with the shape it
+## is centring on.
+func _face_rect(rect: Rect2) -> Rect2:
+	var inset := Vector2(outline_width, outline_width)
+	return Rect2(rect.position + inset,
+		rect.size - inset * 2.0 - Vector2(0.0, key_lip))
 
 ## Appends one rounded rectangle as a triangle fan around its centre, plus a
 ## one-pixel feathered skirt around the outside. Every call adds to the same
