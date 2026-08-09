@@ -329,6 +329,43 @@ filter drops mostly-punctuation runs from the token bytes, but admits 6/8-digit
 hex outright, since hex literals carry no letters and are exactly the
 high-value case. Read the hits; do not bulk-fix them.
 
+### `gpu=` only ever measured the main viewport
+
+`RenderingServer.viewport_get_measured_render_time_gpu()` takes a viewport
+RID, and the log passed the root window's. **Every SubViewport in the scene
+was outside that number.** This is what made the Collector's Shop read as a
+CPU problem: thirteen spikes at `frame=68-141ms` with `gpu` pinned at
+13.48-13.75ms and byte-identical `draw=80 prims=13389 objs=267`. Subtract
+`proc` (a per-second maximum, 34.6ms) and `gpu` (13.5ms) from a 141ms frame
+and ~90ms is unaccounted - it was rendering the log could not see.
+
+The console carried it. `console_bg`'s SubViewport is **1440x1080 with
+`own_world_3d`, a WorldEnvironment with fog and a DirectionalLight3D** -
+1.56 Mpx of 3D against the main viewport's 800x360 at `scale=0.50` - and it
+lives inside a `Control` that is never hidden, so it rendered for the whole
+shop session, *including* while the player free-looks away from the TV and
+`TvViewportDisabler` has the outer viewport disabled. The Home tab's
+`IconSubViewport` is another 1440x1080 with six icon models.
+
+Both now render at 720x540 (`stretch_shrink = 2`; the console ends up inside
+a 640x480 viewport scaled 0.45/0.41, so 1440x1080 was ~2.2x oversampled to
+begin with), and the gate hides `console_bg`'s container along with the
+outer viewport.
+
+**Setting `render_target_update_mode` on a SubViewport owned by a
+`SubViewportContainer` does nothing.** The container overwrites it from its
+own `is_visible_in_tree()` on every visibility notification - `ALWAYS` when
+visible, `DISABLED` when not. An authored value in the `.tscn` is inert and
+a manual set survives only until the next visibility change (verified
+against 4.7.1). Toggling the container's `visible` is the supported way.
+Do **not** blanket-show containers to switch them back on: restore what each
+one had, or only manage the one you can prove is always visible. Revealing
+hidden containers is exactly what made the reverted shader prewarm open the
+console on a screen the player never chose.
+
+Since this, every log line carries `sub=live/total sub_gpu=Xms sub_px=YM`.
+Per-viewport timing is off by default, so the collection walk enables it.
+
 ### What each scene actually asks the GPU for
 
 ```bash
@@ -911,6 +948,31 @@ put only this cast in front of a small off-screen SubViewport camera for a
 frame during the loading screen. It touches no song-scene visibility state,
 which is what made the previous attempt reveal the console's Codes tab.
 
+**That prewarm exists now** - `PreloadCamera` (`lullaby_preload_camera.gd`),
+a `Camera3D` that makes itself current during the loading screen and plays a
+`precache` animation which reveals things and sweeps 15 positions at
+`fov = 120` before handing over to the real camera. It costs ~2.2s and
+compiles ~90 pipelines on Chimera.
+
+**But it did not cover `122_fall`, which is the stall that is still there.**
+Diff the sequence's `:visible` tracks against the precache's and five were
+missing: `SerenaFalling`, `floorfucked`, `window_001`, `window_004`,
+`mdl_chimera_camera` (`floornormal` ships visible and is already warm). Added
+in the same commit as the SubViewport work. The general recipe when a
+cutscene still stalls:
+
+```bash
+# list what a sequence reveals, then diff against Animation_pnfws (precache)
+python3 - <<'PY'   # see the tracks dump in this file's git history
+PY
+```
+
+Restoring afterwards is free: precache's track 0 is an `animation` track that
+replays `SequencePlayer`'s `RESET` five times, and `RESET` already carries all
+127 of these paths. That is why `hex:visible = true` in the precache does not
+leave Hex on screen, and why anything else added there is safe the same way -
+**check the path is in RESET before adding it.**
+
 ## The quality preset ladder, and the gaps that kept being in it
 
 Three separate times now the presets turned out not to lower the thing they
@@ -918,6 +980,26 @@ claimed to. The pattern is always the same: `LullabyQualityPreset`'s field has
 a default, a `.tres` does not declare it, and the preset therefore ships the
 default. Grep for what each `.tres` actually declares before assuming a preset
 does anything.
+
+A fourth variant of the same failure, and it is not a `.tres` problem:
+**`positional_shadow_atlas_size` covers omni and spot lights only.** A
+`DirectionalLight3D` renders into a completely separate atlas that the
+Graphics tab's "Shadows" row never touched, so "off" was not fully off and
+the 4096/2048/1024/512 ladder never reached it.
+`RenderingServer.directional_shadow_atlas_set_size()` and
+`directional_soft_shadow_filter_set_quality()` now follow the same row and
+the same numbers.
+
+**Physics is a preset field now (60 / 60 / 30 / 30 Hz).** A sweep for
+`_physics_process`/`_integrate_forces` across the whole repo finds exactly
+three users and none is timing-critical: Safety Lullaby's `lamp_flicker.gd`
+accumulates delta, the shop's `mouse_controller.gd` re-aims the hover
+raycast, and Rubicon drives notes off the audio clock in `_process`. The
+shop spends 3-6ms of a 24ms frame on 19 Area3Ds and 31 collision pairs with
+`p3d_objs=0` - not one active rigid body. `Engine.max_physics_steps_per_frame`
+also drops 8 -> 4 everywhere: a 141ms frame was asking for eight catch-up
+physics steps inside the frame that was already late, and below two ticks of
+frame time the cap never engages at all.
 
 |  | render scale | shadow atlas | shadow filter | aniso | mesh LOD | light fade |
 |---|---|---|---|---|---|---|
