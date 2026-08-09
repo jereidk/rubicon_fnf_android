@@ -823,7 +823,7 @@ tracks/60/keys = {
 }
 tracks/61/type = "value"
 tracks/61/imported = false
-tracks/61/enabled = true
+tracks/61/enabled = false
 tracks/61/path = NodePath("../Stage/UnownKing/TextureRect:visible")
 tracks/61/interp = 1
 tracks/61/loop_wrap = true
@@ -947,7 +947,7 @@ tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0, 20.041666),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false]
 }
 tracks/5/type = "value"
@@ -971,7 +971,7 @@ tracks/6/loop_wrap = true
 tracks/6/keys = {
 "times": PackedFloat32Array(0, 19.666666, 152.08333),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/7/type = "value"
@@ -983,7 +983,7 @@ tracks/7/loop_wrap = true
 tracks/7/keys = {
 "times": PackedFloat32Array(0, 35.583332, 70.594, 72.756, 100.965, 103.12699, 107.912, 110.083336, 122.4128, 124.666664, 135.924, 138.08598, 145),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/8/type = "animation"
@@ -1049,7 +1049,7 @@ tracks/13/loop_wrap = true
 tracks/13/keys = {
 "times": PackedFloat32Array(0, 151.375, 266.625, 329.375),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true]
 }
 tracks/14/type = "value"
@@ -1061,7 +1061,7 @@ tracks/14/loop_wrap = true
 tracks/14/keys = {
 "times": PackedFloat32Array(0, 145, 231.54546, 238.18182, 266.625, 329.375, 364.7159),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false]
 }
 tracks/15/type = "value"
@@ -1073,7 +1073,7 @@ tracks/15/loop_wrap = true
 tracks/15/keys = {
 "times": PackedFloat32Array(0, 122.431816, 122.47727, 122.61364, 122.65909, 122.77273, 122.84091, 218.875, 218.96591, 219.04167, 219.13258, 219.25, 219.34091, 231.45454, 231.54546, 231.72728, 231.81818, 232, 232.09091, 232.27272, 232.375, 329.36365, 330.9091),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/16/type = "value"
@@ -1085,7 +1085,7 @@ tracks/16/loop_wrap = true
 tracks/16/keys = {
 "times": PackedFloat32Array(0, 73, 84, 110.25, 121, 149.70833, 155.79167, 187.72728, 194, 219.18182, 226),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/17/type = "value"
@@ -1097,7 +1097,7 @@ tracks/17/loop_wrap = true
 tracks/17/keys = {
 "times": PackedFloat32Array(0, 69, 84, 99.454544, 121, 134.36363, 155.79167, 187.72728, 194, 219.18182, 226),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/18/type = "value"
@@ -1121,7 +1121,7 @@ tracks/19/loop_wrap = true
 tracks/19/keys = {
 "times": PackedFloat32Array(0, 75.258, 84, 111.15909, 121, 150.29167, 155.79167, 189.75, 194, 220.27272, 226),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/20/type = "value"
@@ -1157,7 +1157,7 @@ tracks/22/loop_wrap = true
 tracks/22/keys = {
 "times": PackedFloat32Array(0, 330.36365),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/23/type = "animation"
@@ -1199,7 +1199,7 @@ tracks/26/loop_wrap = true
 tracks/26/keys = {
 "times": PackedFloat32Array(0, 266.45456, 294.58334),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/27/type = "value"
@@ -1233,7 +1233,7 @@ tracks/29/loop_wrap = true
 tracks/29/keys = {
 "times": PackedFloat32Array(0, 240.99751, 242.125),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/30/type = "value"
@@ -1267,7 +1267,7 @@ tracks/32/loop_wrap = true
 tracks/32/keys = {
 "times": PackedFloat32Array(0, 330.29166),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/33/type = "animation"
@@ -1347,7 +1347,7 @@ tracks/39/loop_wrap = true
 tracks/39/keys = {
 "times": PackedFloat32Array(0, 240.9966, 241.66469, 241.72626, 241.8536, 241.90959, 242.03784),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false, true, false, true, false, true]
 }
 tracks/40/type = "value"
@@ -1359,7 +1359,7 @@ tracks/40/loop_wrap = true
 tracks/40/keys = {
 "times": PackedFloat32Array(0, 314.0396, 326.19223),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/41/type = "value"
@@ -1371,7 +1371,7 @@ tracks/41/loop_wrap = true
 tracks/41/keys = {
 "times": PackedFloat32Array(0, 314.0396, 326.19223),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/42/type = "value"
@@ -1407,7 +1407,7 @@ tracks/44/loop_wrap = true
 tracks/44/keys = {
 "times": PackedFloat32Array(0, 232.41667, 233.41667, 236.70834, 237.5, 249.83333, 252),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false]
 }
 tracks/45/type = "value"
@@ -1469,7 +1469,7 @@ tracks/49/loop_wrap = true
 tracks/49/keys = {
 "times": PackedFloat32Array(0, 314.25, 326.08334),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/50/type = "value"
@@ -1481,7 +1481,7 @@ tracks/50/loop_wrap = true
 tracks/50/keys = {
 "times": PackedFloat32Array(0, 314.16666, 326.08334),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/51/type = "value"
@@ -1529,7 +1529,7 @@ tracks/54/loop_wrap = true
 tracks/54/keys = {
 "times": PackedFloat32Array(0, 91.541664, 92.958336, 151.91667, 205.375, 232.41667, 241, 242.08333, 266.54166, 330.04166),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true]
 }
 tracks/55/type = "value"
@@ -1589,7 +1589,7 @@ tracks/59/loop_wrap = true
 tracks/59/keys = {
 "times": PackedFloat32Array(0, 241, 242),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false, true]
 }
 tracks/60/type = "value"
@@ -1642,7 +1642,7 @@ tracks/63/loop_wrap = true
 tracks/63/keys = {
 "times": PackedFloat32Array(0, 241, 242.125, 266.41666, 330.20834, 368.75),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false, true, false, true, false]
 }
 tracks/64/type = "value"
@@ -1678,7 +1678,7 @@ tracks/66/loop_wrap = true
 tracks/66/keys = {
 "times": PackedFloat32Array(0, 34.5, 151.625, 266.08334, 331.16666, 363.83334),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, true, false, true, false]
 }
 tracks/67/type = "value"
@@ -1895,19 +1895,19 @@ tracks/82/loop_wrap = true
 tracks/82/keys = {
 "times": PackedFloat32Array(0, 19.833334, 26, 151.75, 154.5, 155.83333, 158.58333, 159.79167, 162.54167, 163.83333, 166.58333, 198.04167, 200.79167, 202.125, 204.875, 206.08333, 208.83333, 210.125, 212.875),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
 tracks/83/type = "value"
 tracks/83/imported = false
-tracks/83/enabled = true
+tracks/83/enabled = false
 tracks/83/path = NodePath("../Stage/UnownKing/TextureRect:visible")
 tracks/83/interp = 0
 tracks/83/loop_wrap = true
 tracks/83/keys = {
 "times": PackedFloat32Array(0, 266.6364, 330.20834),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false, true]
 }
 tracks/84/type = "value"
@@ -1919,7 +1919,7 @@ tracks/84/loop_wrap = true
 tracks/84/keys = {
 "times": PackedFloat32Array(0, 266.6364, 330.2083),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false, true]
 }
 
@@ -2700,7 +2700,7 @@ tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0, 1.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, true]
 }
 tracks/2/type = "value"
@@ -3223,7 +3223,7 @@ tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0, 2.090909),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false]
 }
 
@@ -3452,7 +3452,7 @@ tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 3.2727273, 34),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/1/type = "value"
@@ -3464,7 +3464,7 @@ tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0, 18.9647),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false]
 }
 tracks/2/type = "value"
@@ -3476,7 +3476,7 @@ tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0, 3.2727275, 7.2727275),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/3/type = "value"
@@ -3488,7 +3488,7 @@ tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 7.2727275, 9.636364),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/4/type = "value"
@@ -3512,7 +3512,7 @@ tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 7.2727275, 9.636364),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/6/type = "value"
@@ -3524,7 +3524,7 @@ tracks/6/loop_wrap = true
 tracks/6/keys = {
 "times": PackedFloat32Array(0, 9.636364, 13.818182),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/7/type = "value"
@@ -3536,7 +3536,7 @@ tracks/7/loop_wrap = true
 tracks/7/keys = {
 "times": PackedFloat32Array(0, 9.636364, 13.818182),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/8/type = "animation"
@@ -3558,7 +3558,7 @@ tracks/9/loop_wrap = true
 tracks/9/keys = {
 "times": PackedFloat32Array(0, 13.818182),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/10/type = "value"
@@ -3594,7 +3594,7 @@ tracks/12/loop_wrap = true
 tracks/12/keys = {
 "times": PackedFloat32Array(0, 12.363636, 13.818182),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/13/type = "animation"
@@ -3628,7 +3628,7 @@ tracks/15/loop_wrap = true
 tracks/15/keys = {
 "times": PackedFloat32Array(0, 19.181818),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, false]
 }
 tracks/16/type = "value"
@@ -3640,7 +3640,7 @@ tracks/16/loop_wrap = true
 tracks/16/keys = {
 "times": PackedFloat32Array(0, 14.545455),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/17/type = "animation"
@@ -3662,7 +3662,7 @@ tracks/18/loop_wrap = true
 tracks/18/keys = {
 "times": PackedFloat32Array(0, 34),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, true]
 }
 tracks/19/type = "animation"
@@ -3694,7 +3694,7 @@ tracks/21/loop_wrap = true
 tracks/21/keys = {
 "times": PackedFloat32Array(0, 13.818182, 14.818182),
 "transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true, false]
 }
 tracks/22/type = "value"
@@ -3706,7 +3706,7 @@ tracks/22/loop_wrap = true
 tracks/22/keys = {
 "times": PackedFloat32Array(0, 33.81818),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, true]
 }
 tracks/23/type = "value"
@@ -3718,7 +3718,7 @@ tracks/23/loop_wrap = true
 tracks/23/keys = {
 "times": PackedFloat32Array(0, 34),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [true, true]
 }
 
@@ -4130,7 +4130,7 @@ tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/3/type = "value"
@@ -4142,7 +4142,7 @@ tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/4/type = "value"
@@ -4154,7 +4154,7 @@ tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0, 0.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/5/type = "value"
@@ -4539,7 +4539,7 @@ tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/3/type = "value"
@@ -4551,7 +4551,7 @@ tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.125),
 "transitions": PackedFloat32Array(1, 1),
-"update": 1,
+"update": 0,
 "values": [false, true]
 }
 tracks/4/type = "value"
@@ -5244,6 +5244,7 @@ script = ExtResource("20")
 libraries/ = SubResource("AnimationLibrary_jdah6")
 
 [node name="TextureRect" type="TextureRect" parent="Stage/UnownKing" unique_id=556937602]
+visible = false
 offset_right = 1920.0
 offset_bottom = 1080.0
 pivot_offset_ratio = Vector2(0.5, 0.5)
