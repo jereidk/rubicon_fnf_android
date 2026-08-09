@@ -82,6 +82,33 @@ const MOUSE_TOUCH_INDEX := -1000
 		fill_color = value
 		queue_redraw()
 
+## Fade each lane's fill out along its length instead of filling it flat.
+##
+## The console's "Hitbox Gradient" row used to mean something else entirely:
+## nothing here drew a gradient, and the applier faked the setting by making
+## the resting fill equal the pressed fill, so "gradient off" silently cost
+## you the press feedback as well. This draws the real thing, and the two
+## settings stop being entangled.
+##
+## draw_rect() cannot do it, so the fill becomes a four-point polygon with a
+## colour per corner - one draw call per lane, interpolated on the GPU,
+## rather than a stack of sliced rects.
+@export var gradient_fill: bool = false:
+	set(value):
+		if gradient_fill == value:
+			return
+		gradient_fill = value
+		queue_redraw()
+
+## Alpha multiplier at the faded end of the gradient. 0 fades to nothing;
+## raise it if the lanes need to stay readable along their whole length.
+@export_range(0.0, 1.0, 0.05) var gradient_falloff: float = 0.0:
+	set(value):
+		if is_equal_approx(gradient_falloff, value):
+			return
+		gradient_falloff = value
+		queue_redraw()
+
 @export var pressed_fill_color: Color = Color(1, 1, 1, 0.16):
 	set(value):
 		pressed_fill_color = value
@@ -232,9 +259,28 @@ func _draw() -> void:
 		var is_pressed: bool = _lane_active_count.get(i, 0) > 0
 		var fill: Color = pressed_fill_color if is_pressed else fill_color
 		if fill.a > 0.0:
-			draw_rect(rect, fill, true)
+			if gradient_fill:
+				_draw_gradient_rect(rect, fill)
+			else:
+				draw_rect(rect, fill, true)
 		if show_outlines:
 			draw_rect(rect, outline_color, false, outline_width)
+
+## Strongest at the bottom of the zone, fading upward - the lane reads as
+## rising from where the thumb actually is. Holds for the Up and Centre
+## mechanic directions too, since every zone fades along its own height
+## rather than along the screen's.
+func _draw_gradient_rect(rect: Rect2, color: Color) -> void:
+	var faded := Color(color.r, color.g, color.b, color.a * gradient_falloff)
+	draw_polygon(
+		PackedVector2Array([
+			rect.position,
+			rect.position + Vector2(rect.size.x, 0.0),
+			rect.end,
+			rect.position + Vector2(0.0, rect.size.y),
+		]),
+		PackedColorArray([faded, faded, color, color])
+	)
 
 func _notification(what: int) -> void:
 	match what:

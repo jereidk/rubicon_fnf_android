@@ -49,6 +49,15 @@ const MECHANIC_CENTER_BAND := 0.2
 ## restores exactly what the scene shipped with instead of compounding.
 const FILL_ALPHA := 0.03
 const PRESSED_ALPHA := 0.16
+
+## Flat mode's own pair. It used to reuse PRESSED_ALPHA for both, so with
+## Gradient off a lane looked identical pressed and at rest - the setting
+## quietly took the touch feedback away along with the gradient, which is
+## not what its name says it does. The resting level stays where it was
+## (a flat lane has to be readable without being touched); pressing now
+## goes above it.
+const FLAT_FILL_ALPHA := 0.16
+const FLAT_PRESSED_ALPHA := 0.34
 ## The outline's own default alpha. It was left out of the opacity scaling,
 ## so at 0% the fills vanished and the outlines stayed at full strength -
 ## the setting visibly did not do what it says.
@@ -96,12 +105,16 @@ func _apply_to_current_scene() -> void:
 		return
 
 	var opacity: float = clampf(float(Settings.lullaby_hitbox_opacity) / 100.0, 0.0, 1.0)
-	var fill := Color(1, 1, 1, FILL_ALPHA * opacity)
-	var pressed := Color(1, 1, 1, clampf(PRESSED_ALPHA * opacity, 0.0, 1.0))
-	if not Settings.lullaby_hitbox_gradient:
-		# No gradient: the pressed state stops standing out, so the fill uses
-		# the stronger level to keep the zones visible at rest.
-		fill = pressed
+	var gradient: bool = Settings.lullaby_hitbox_gradient
+
+	# Gradient on: a lane is nearly invisible at rest and fades in along its
+	# own height, then lights up when touched. Gradient off: a flat, plainly
+	# visible lane that still brightens under a finger. Either way pressing
+	# does something, and Opacity scales all of it.
+	var rest_alpha: float = FILL_ALPHA if gradient else FLAT_FILL_ALPHA
+	var press_alpha: float = PRESSED_ALPHA if gradient else FLAT_PRESSED_ALPHA
+	var fill := Color(1, 1, 1, clampf(rest_alpha * opacity, 0.0, 1.0))
+	var pressed := Color(1, 1, 1, clampf(press_alpha * opacity, 0.0, 1.0))
 
 	for control in get_tree().get_nodes_in_group(&"rubicon_mobile_controls"):
 		if not is_instance_valid(control):
@@ -111,6 +124,7 @@ func _apply_to_current_scene() -> void:
 		control.gameplay_touch_mode = touch_mode
 		if not touch_mode:
 			control.show_outlines = Settings.lullaby_hitbox_hint
+			control.gradient_fill = gradient
 			control.fill_color = fill
 			control.pressed_fill_color = pressed
 			control.outline_color = Color(1, 1, 1, OUTLINE_ALPHA * opacity)
