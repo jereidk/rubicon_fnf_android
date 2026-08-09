@@ -30,10 +30,28 @@ const TRAINING_WORDS: Array[String] = [
 	"slower", "hold", "ready", "calm",
 ]
 
+const SHOP_SCENE := "res://lullaby_mod/rooms/env_collector_shop.tscn"
+
+## Set the moment an exit is accepted, so the release half of one tap cannot
+## start a second one - the same guard the death screens needed.
+var _leaving: bool = false
+
+## Only true for a training session, so nothing below touches the test level
+## when the main menu opens it as its placeholder.
+var _training: bool = false
+
 func _ready() -> void:
 	var mechanic: LullabyTraining.Mechanic = LullabyTraining.take_request()
 	if mechanic == LullabyTraining.Mechanic.NONE:
 		return
+
+	_training = true
+	# Before the mechanic, not after: the test level has no pause menu, no
+	# gameover module and no exit of any kind - its MobileControls is a bare
+	# placeholder Control - so without this there is no way out of a training
+	# session at all except killing the app. A mechanic that fails to build
+	# must not take the exit down with it.
+	_add_exit()
 
 	var path: String = String(LullabyTraining.SCENES.get(mechanic, ""))
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -126,6 +144,40 @@ func _build_typing(packed: PackedScene) -> void:
 		typing.set(&"active", true)
 	if "prompt_user" in typing:
 		typing.set(&"prompt_user", true)
+
+## A tappable EXIT plus the ui_cancel handler behind it. The button dispatches
+## that same action, so touch and keyboard land in one place; ui_cancel is
+## also Android's hardware Back, which is what a phone player will reach for
+## first and which nothing in this level answered.
+func _add_exit() -> void:
+	var host: Control = _hud()
+	if host == null:
+		return
+
+	var button: RubiconActionButton = RubiconActionButton.new()
+	button.name = "TrainingExit"
+	button.action = &"ui_cancel"
+	button.verb = "EXIT"
+	# Top-left. The lanes own the bottom and the centre, and the judgment
+	# popup owns the middle.
+	button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	button.offset_left = 32.0
+	button.offset_top = 32.0
+	button.custom_minimum_size = Vector2(180, 72)
+	button.size = button.custom_minimum_size
+	host.add_child(button)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _training or _leaving:
+		return
+	# is_action_pressed, not is_action: every synthetic action here arrives as
+	# a press and then a release, and the release would be a second exit.
+	if not event.is_action_pressed(&"ui_cancel"):
+		return
+
+	_leaving = true
+	get_viewport().set_input_as_handled()
+	SceneChanger.change_to(SHOP_SCENE, &"hypno", true)
 
 func _hud() -> Control:
 	if ui_parent != null and is_instance_valid(ui_parent):
