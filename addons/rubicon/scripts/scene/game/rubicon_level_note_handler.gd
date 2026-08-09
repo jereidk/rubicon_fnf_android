@@ -27,6 +27,88 @@ var pressed: bool = false
 var _controller : RubiconLevelNoteController
 var _note_pool : Dictionary[StringName, Array]
 
+## Notes that have been used and are waiting to be used again, still children
+## of this handler.
+##
+## Taking a note out of the tree and putting it back is the expensive half of
+## spawning one. The funkin mania note is 21 nodes carrying 5 AnimationPlayers
+## and 3 AnimationTrees, and every one of those mixers marks its track cache
+## dirty on NOTIFICATION_ENTER_TREE and rebuilds it - resolving a NodePath per
+## track - the next time it processes. Doing that for a stream of notes is
+## what the diagnostics log sees as node counts swinging 1088 <-> 1928 within
+## a second while orphan counts move the other way, and it is why the frame
+## spikes get blamed on whichever lane animation happened to start on the same
+## frame: the animation is not the cost, it is only what the blame heuristic
+## can see.
+##
+## A parked note skips all of it - it never leaves the tree, so no mixer is
+## ever invalidated. Hiding it and disabling its process_mode is what stops it
+## costing anything while it waits.
+var _parked_notes : Dictionary[StringName, Array]
+
+## Accounting for what note churn actually costs, read and cleared by the
+## diagnostics log.
+##
+## The log can already see that it is happening - node counts swing by
+## hundreds within a second while orphan counts move the other way, which is
+## notes entering and leaving the tree in bulk - but not how much of the
+## frame it is. proc= cannot answer that either: it is the whole engine
+## process step, and Godot reports it as a per-second maximum rather than
+## per frame, so a 73ms proc says only that one frame in that second was bad.
+##
+## Static because every handler in a level contributes to the same frame, and
+## because this addon must not know that the mod's logger exists. Nothing
+## here allocates and nothing here runs on a frame with no churn.
+static var churn_spawned : int = 0
+static var churn_despawned : int = 0
+## Of those spawns, how many reused a note that had stayed in the tree. Once
+## the parked set has filled this should equal spawn, and every tree
+## operation the handler used to do has gone.
+static var churn_unparked : int = 0
+## Spawns that missed the pool and had to instantiate mid-song. Should be
+## zero after prewarm_pool(); anything else means the prewarm undercounted.
+static var churn_instantiated : int = 0
+## Total time in the spawn/despawn block since the last read.
+static var churn_usec : int = 0
+## Worst single frame since the last read, summed across every handler that
+## churned on that frame - which is the figure that matches what the player
+## felt, rather than the worst one lane happened to do on its own.
+static var churn_peak_usec : int = 0
+
+static var _churn_frame : int = -1
+static var _churn_frame_usec : int = 0
+
+## Reads the counters and clears them, so each caller sees the interval since
+## the previous call rather than a total since boot. Returns usec; the caller
+## decides how to present them.
+static func take_churn_stats() -> Dictionary:
+	var stats := {
+		&"spawned": churn_spawned,
+		&"despawned": churn_despawned,
+		&"unparked": churn_unparked,
+		&"instantiated": churn_instantiated,
+		&"usec": churn_usec,
+		&"peak_usec": churn_peak_usec,
+	}
+	churn_spawned = 0
+	churn_despawned = 0
+	churn_unparked = 0
+	churn_instantiated = 0
+	churn_usec = 0
+	churn_peak_usec = 0
+	return stats
+
+static func _record_churn(begin_usec : int) -> void:
+	var spent : int = Time.get_ticks_usec() - begin_usec
+	churn_usec += spent
+
+	var frame : int = Engine.get_process_frames()
+	if frame != _churn_frame:
+		_churn_frame = frame
+		_churn_frame_usec = 0
+	_churn_frame_usec += spent
+	churn_peak_usec = maxi(churn_peak_usec, _churn_frame_usec)
+
 func get_controller() -> RubiconLevelNoteController:
 	return _controller
 
@@ -125,25 +207,51 @@ func prewarm_pool() -> void:
 ## memory.
 const POOL_PREWARM_MAX := 48
 
+## How many notes of each type a handler keeps parked in its own tree.
+##
+## The diagnostics log peaks at 22 notes alive across every lane at once, so
+## per lane this is several times the working set and the handler stops
+## touching the tree entirely after the first bars. The cap exists only so a
+## pathological chart cannot grow the scene tree without bound; past it,
+## despawning falls back to taking the note out of the tree as before.
+const PARK_MAX := 24
+
 func spawn_note(index : int) -> void:
 	var note_type : StringName = data[index].type
 	var define_key : StringName = "%s_%s" % [note_type, get_mode_id()] if not note_type.is_empty() else get_mode_id()
 	if not _note_pool.has(define_key):
 		_note_pool[define_key] = Array()
 
-	var graphic : RubiconLevelNote = _note_pool[define_key].pop_back()
+	churn_spawned += 1
+
+	# Preferred over the pool because it costs no tree operation at all: the
+	# note is already a child, and the mixers inside it were never
+	# invalidated.
+	var graphic : RubiconLevelNote = _take_parked_note(define_key)
+	var was_parked : bool = graphic != null
+
+	if graphic == null:
+		graphic = _note_pool[define_key].pop_back()
 	if graphic == null:
 		var skin : RubiconLevelNoteMetadata = get_controller().get_note_database()[define_key]
 		var packed : PackedScene = skin.scene
 
 		graphic = packed.instantiate()
+		churn_instantiated += 1
 
 	graphic.initialize(self, index)
 
+	# Parked notes keep the name of whatever they were last used for, so a
+	# live note can occasionally find its own name taken by a parked sibling
+	# and get a suffix from Godot. Nothing reads these names - sorting is by
+	# child index and lookups go through graphics[] - so this is only ever a
+	# cosmetic wrinkle in the remote scene tree, and it costs the same sibling
+	# name scan add_child() was already doing.
 	graphic.name = "Note %s" % index
 	graphics[index] = graphic
 
-	add_child(graphic)
+	if not was_parked:
+		add_child(graphic)
 
 	## Temporary removal of seeing notes in editor scene tree
 	#if Engine.is_editor_hint():
@@ -155,14 +263,57 @@ func despawn_note(index : int) -> void:
 	var note_type : StringName = data[index].type
 	var graphic : RubiconLevelNote = graphics[index]
 
-	remove_child(graphic)
+	churn_despawned += 1
 
 	var define_key : StringName = "%s_%s" % [note_type, get_mode_id()] if not note_type.is_empty() else get_mode_id()
-	_note_pool[define_key].append(graphic)
+	if not _park_note(define_key, graphic):
+		remove_child(graphic)
+		_note_pool[define_key].append(graphic)
 
 	## Temporary removal of seeing notes in editor scene tree
 	# graphics[index].owner = null
 	graphics[index] = null
+
+## Hides a finished note and stops it processing, leaving it in the tree.
+## Returns false when it should be taken out of the tree the old way instead
+## - the parked set is full, or this is the editor, whose behaviour is left
+## exactly as it was.
+func _park_note(define_key : StringName, graphic : RubiconLevelNote) -> bool:
+	if Engine.is_editor_hint() or graphic == null:
+		return false
+
+	if not _parked_notes.has(define_key):
+		_parked_notes[define_key] = Array()
+
+	var parked : Array = _parked_notes[define_key]
+	if parked.size() >= PARK_MAX:
+		return false
+
+	graphic.visible = false
+	# Inherited by the whole subtree, which is what stops the note's five
+	# AnimationPlayers and three AnimationTrees while it waits. Hiding alone
+	# would leave every one of them ticking.
+	graphic.process_mode = Node.PROCESS_MODE_DISABLED
+	# RubiconLevelNote._exit_tree() is what used to clear this, and a parked
+	# note never leaves the tree.
+	graphic.missed = false
+
+	parked.append(graphic)
+	return true
+
+func _take_parked_note(define_key : StringName) -> RubiconLevelNote:
+	if not _parked_notes.has(define_key):
+		return null
+
+	var parked : Array = _parked_notes[define_key]
+	if parked.is_empty():
+		return null
+
+	var graphic : RubiconLevelNote = parked.pop_back()
+	graphic.process_mode = Node.PROCESS_MODE_INHERIT
+	graphic.visible = true
+	churn_unparked += 1
+	return graphic
 
 func hit_note(index : int, time_when_hit : float, hit_type : RubiconLevelNoteHitResult.Hit) -> void:
 	var result : RubiconLevelNoteHitResult
@@ -226,11 +377,21 @@ func hit_note(index : int, time_when_hit : float, hit_type : RubiconLevelNoteHit
 
 	controller.note_changed.emit(result, has_ending_row)
 
+## Frees the notes the pool is holding, which are orphans and so would leak
+## otherwise. Parked notes are not touched here: they are children, and the
+## engine frees them with the handler.
+##
+## Cleared afterwards because leaving the freed instances in the dictionary
+## makes every entry a dangling reference, and a handler that leaves the tree
+## and comes back - which NOTIFICATION_PARENTED does allow - would then pop
+## one of them out of the pool and spawn it.
 func _exit_tree() -> void:
 	for pool: Array in _note_pool.values():
 		for value: Variant in pool:
 			if value is Node:
 				value.free()
+
+	_note_pool.clear()
 
 func _notification(what: int) -> void:
 	match what:
@@ -295,6 +456,13 @@ func _process(delta: float) -> void:
 	while note_spawn_end - 1 > 0 and data[note_spawn_end - 1].get_millisecond_start_position() - millisecond_position > spawning_bound_maximum:
 		note_spawn_end -= 1
 
+	# Timed as one block rather than per note: what is being asked is "how
+	# much of this frame went to note churn", and the answer has to include
+	# the loops themselves, which walk the whole chart on either side of the
+	# spawn window every frame. Two clock reads on a frame that churns
+	# nothing is not worth guarding against.
+	var churn_begin : int = Time.get_ticks_usec()
+
 	for i in range(0, note_spawn_start):
 		if graphics[i] != null:
 			despawn_note(i)
@@ -306,6 +474,8 @@ func _process(delta: float) -> void:
 	for i in range(note_spawn_start, note_spawn_end):
 		if graphics[i] == null:
 			spawn_note(i)
+
+	_record_churn(churn_begin)
 
 	if note_hit_index >= data.size():
 		return

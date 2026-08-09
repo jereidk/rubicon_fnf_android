@@ -26,6 +26,20 @@ extends Node
 ## tell a CPU-bound stall (process time up, draw calls flat) from a GPU one
 ## (draw calls and VRAM up) from a leak (orphan nodes climbing across
 ## heartbeats) - which is exactly the distinction that decides how to fix it.
+##
+## Two of those counters are read far more often than they are read
+## correctly, so they are worth spelling out:
+##
+##   proc=  is Performance.TIME_PROCESS, which Godot resets once a second.
+##          It is the WORST frame in that second, not the frame's own process
+##          time and not an average. A menu sitting at a solid 60fps reports
+##          proc=20ms routinely. Compare median= (this file's own rolling
+##          median of real frame times) to judge the typical frame, and read
+##          proc= as "how bad the worst hitch in that second was".
+##
+##   draw=  is a count of draw calls, not a duration. It says how much work
+##          was handed to the GPU, not how long the GPU took - gpu= says
+##          that, and it is a real hardware timestamp.
 
 ## Where the log goes, in order of preference.
 ##
@@ -301,9 +315,22 @@ func census(reason: String) -> void:
 	var trees_active: int = 0
 	var notes_total: int = 0
 	var notes_visible: int = 0
+	## Notes the handlers are holding in the tree between uses. Counted, but
+	## deliberately not walked into: they are hidden and process-disabled, so
+	## counting their 21 nodes, 5 AnimationPlayers and 3 AnimationTrees each
+	## would put up to a few hundred idle mixers into trees= and make every
+	## census after this change unreadable against every census before it.
+	## The engine's own nodes= still includes them, which is where the cost
+	## of keeping them around is supposed to show.
+	var notes_parked: int = 0
 	var nodes: Array[Node] = [scene]
 	while not nodes.is_empty():
 		var node: Node = nodes.pop_back()
+
+		if node is RubiconLevelNote and node.process_mode == Node.PROCESS_MODE_DISABLED:
+			notes_parked += 1
+			continue
+
 		var key: String = node.get_class()
 		counts[key] = counts.get(key, 0) + 1
 		if node is AnimationPlayer:
@@ -354,9 +381,9 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) lights=%d(shadow=%d) | %s | top_anims=[%s] | %s" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) parked=%d lights=%d(shadow=%d) | %s | top_anims=[%s] | %s" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active,
-		notes_total, notes_visible, lights_visible, lights_shadow,
+		notes_total, notes_visible, notes_parked, lights_visible, lights_shadow,
 		_graphics_summary(), ", ".join(top), " ".join(classes),
 	])
 
@@ -564,7 +591,25 @@ func _entry(kind: String, detail: String) -> void:
 		var vp_rid: RID = get_viewport().get_viewport_rid()
 		gpu_ms = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
 		cpu_render_ms = RenderingServer.viewport_get_measured_render_time_cpu(vp_rid)
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
+
+	# What note churn cost since the previous entry. nodes= and orphans=
+	# swinging against each other already showed that notes were streaming in
+	# and out of the tree in bulk, but not what it was worth in milliseconds,
+	# and neither proc= nor cpu_render= can be made to say: the first is a
+	# per-second maximum over the whole process step, the second only counts
+	# building the render commands. spawn/despawn is a count of notes, churn
+	# the total time in the handlers' spawn block, and churn_max the worst
+	# single frame in the interval - which is the one that matches a stutter.
+	#
+	# Two of these should sit at a known value once a song is running, and are
+	# worth checking before reading anything else into a line:
+	#   inst= should be 0. Anything else is a note that missed the prewarmed
+	#         pool and had to instantiate mid-song.
+	#   park= should equal spawn=. Anything less is a note that had to be put
+	#         back into the tree instead of being reused where it stood.
+	var churn: Dictionary = RubiconLevelNoteHandler.take_churn_stats()
+
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -588,6 +633,12 @@ func _entry(kind: String, detail: String) -> void:
 		Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0,
 		gpu_ms,
 		cpu_render_ms,
+		int(churn[&"spawned"]),
+		int(churn[&"despawned"]),
+		int(churn[&"unparked"]),
+		int(churn[&"instantiated"]),
+		float(churn[&"usec"]) / 1000.0,
+		float(churn[&"peak_usec"]) / 1000.0,
 		# The shop's physics cost runs 10-25x Chimera's on nothing but
 		# enable_object_picking's per-frame Area3D raycasts - these two were
 		# flagged as worth measuring and never were, so they ride along here
@@ -601,9 +652,16 @@ func _entry(kind: String, detail: String) -> void:
 	_file.flush()
 
 ## Guarded because the last entry is written from NOTIFICATION_PREDELETE, by
-## which point get_tree() is already null - reading current_scene there threw
-## on every shutdown and cost the log its final line's context.
+## which point the node is already out of the tree - reading current_scene
+## there threw on every shutdown and cost the log its final line's context.
+##
+## Asked with is_inside_tree() rather than by null-checking get_tree(), which
+## prints an engine error of its own before returning null and so traded one
+## noisy shutdown line for another.
 func _current_scene_name() -> String:
+	if not is_inside_tree():
+		return "-"
+
 	var tree: SceneTree = get_tree()
 	if tree == null:
 		return "-"
