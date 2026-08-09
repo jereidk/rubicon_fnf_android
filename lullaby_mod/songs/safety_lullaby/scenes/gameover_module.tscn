@@ -708,8 +708,9 @@ _data = {
 &"retry": SubResource("Animation_krlo0")
 }
 
-[node name="SafetyLullabyGameoverModule" type="Node2D" unique_id=149765497 node_paths=PackedStringArray("animation_player", "music", "baby_mode_speaker")]
+[node name="SafetyLullabyGameoverModule" type="Node2D" unique_id=149765497 node_paths=PackedStringArray("animation_player", "music", "baby_mode_speaker", "retry_prompt")]
 script = ExtResource("1")
+retry_prompt = NodePath("RetryPrompt")
 animation_player = NodePath("GameOver/AnimationPlayer")
 music = NodePath("GameOver/GameOver")
 baby_mode_lines = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")]

@@ -22,10 +22,12 @@ class_name LullabyGameoverPrompt extends CanvasLayer
 
 ## Action name -> the verb shown on its button, in display order.
 ##
-## Both death screens accept exactly one action today. It is a dictionary
-## rather than a single exported action so a screen that grows a second one
-## (an exit-to-shop, say) needs no code change here.
-@export var prompts: Dictionary[StringName, String] = {&"ui_accept": "RETRY"}
+## ui_cancel is Android's hardware Back button as well as Esc, so EXIT is
+## reachable the way a phone player would already expect to leave a screen.
+@export var prompts: Dictionary[StringName, String] = {
+	&"ui_accept": "RETRY",
+	&"ui_cancel": "EXIT",
+}
 
 ## The song's own pause-menu theme, so the prompt reads as part of that song
 ## rather than as a default Godot button - Monochrome is johto, Safety

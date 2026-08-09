@@ -367,8 +367,9 @@ _data = {
 &"over_start": SubResource("Animation_lx3ey")
 }
 
-[node name="MonochromeGameover" type="Node2D" unique_id=1253215415 node_paths=PackedStringArray("animation_player", "boyfriend_scene", "baby_mode_speaker")]
+[node name="MonochromeGameover" type="Node2D" unique_id=1253215415 node_paths=PackedStringArray("animation_player", "boyfriend_scene", "baby_mode_speaker", "retry_prompt")]
 script = ExtResource("1")
+retry_prompt = NodePath("RetryPrompt")
 animation_player = NodePath("AnimationPlayer")
 boyfriend_scene = NodePath("BoyfriendScene")
 baby_mode_speaker = NodePath("BabyModeSpeaker")
