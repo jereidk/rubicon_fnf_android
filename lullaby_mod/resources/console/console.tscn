@@ -6032,7 +6032,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../TouchOptions/TouchNoteHitboxSize")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../ScreenAspect")
+focus_neighbor_bottom = NodePath("../MobileKeyboardType")
 theme = ExtResource("1")
 text = "Note Layout: "
 alignment = 0
@@ -6043,10 +6043,26 @@ values_list = [0, 1]
 console = NodePath("../../../../../..")
 tooltip = "How the note lanes are arranged. Classic is the layout the songs were made with. VSlice centres your strumline, makes the notes bigger and spaces the lanes further apart."
 
-[node name="ScreenAspect" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=212449971 node_paths=PackedStringArray("console")]
+[node name="MobileKeyboardType" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300012 node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../NoteLayout")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../ScreenAspect")
+theme = ExtResource("1")
+text = "Keyboard: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_mobile_keyboard_type"
+display_list = ["System", "In-Game"]
+values_list = [0, 1]
+console = NodePath("../../../../../..")
+tooltip = "Which keyboard Monochrome's typing mechanic uses. System raises your phone's own keyboard, with your layout, language and autocorrect. In-Game draws the game's keys instead, for when your keyboard covers too much of the screen. Showcase Mode always uses In-Game, because your phone's keyboard cannot be shown typing by itself."
+
+[node name="ScreenAspect" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=212449971 node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../MobileKeyboardType")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../ShowPauseButton")
 theme = ExtResource("1")

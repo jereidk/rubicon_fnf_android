@@ -273,6 +273,21 @@ var lullaby_touch_note_hitbox_size: float = 1.0
 ## to be switchable.
 var lullaby_touch_haptics: bool = true
 var lullaby_show_pause_button: bool = true
+
+## Which keyboard Monochrome's typing mechanic uses.
+##
+## SYSTEM focuses a hidden LineEdit, which is what makes Android raise the
+## player's own keyboard - their layout, language, autocorrect and swipe.
+## IN_GAME draws the game's own keys instead, for players whose keyboard
+## covers too much of the screen or whose suggestion strip fights the song.
+##
+## Showcase Mode ignores this and always uses IN_GAME: the system keyboard
+## belongs to another app, so nothing can show its keys being pressed, and
+## raising it over a showcase would cover the song. See
+## monochrome_typing_touch_controls.gd.
+enum MobileKeyboardType { SYSTEM = 0, IN_GAME = 1 }
+
+var lullaby_mobile_keyboard_type: int = MobileKeyboardType.SYSTEM
 var input_game: Dictionary = {}
 var input_map: Dictionary = {}
 

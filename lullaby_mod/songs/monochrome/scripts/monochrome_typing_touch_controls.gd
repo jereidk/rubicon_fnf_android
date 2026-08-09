@@ -37,45 +37,47 @@ class_name MonochromeTypingTouchControls
 ## actually ends, so this absorbs that difference.
 @export var raise_margin: float = 120.0
 
-@export_group("Showcase")
+@export_group("Drawn keyboard")
 
 ## Showcase Mode cannot use the system keyboard: it belongs to another app
 ## (Gboard, or whatever the player installed), is drawn in its own window,
 ## and nothing can highlight its keys - not Godot, not Android. So showcase
 ## gets the drawn keyboard this screen used to use instead, which is ours and
-## can therefore be animated. It is only ever built in showcase, so normal
-## play still gets the native keyboard and none of this exists.
+## can therefore be animated. It is also what the Mobile > Keyboard setting
+## selects when the player prefers the game's own keys, so it is a real input
+## method and not only a showcase prop - see _on_drawn_key_pressed.
 ##
-## Bigger than the touch default on purpose: nobody taps this one, so the key
-## size is for legibility at a distance rather than for thumbs.
-@export var showcase_key_size: Vector2 = Vector2(96, 96)
-@export var showcase_key_gap: float = 10.0
-@export var showcase_space_width: float = 460.0
+## Bigger than RubiconOnScreenKeyboard's default on purpose: 96px keys are
+## comfortable thumb targets on a phone and still legible from across a room
+## in a showcase, so one size serves both uses.
+@export var drawn_key_size: Vector2 = Vector2(96, 96)
+@export var drawn_key_gap: float = 10.0
+@export var drawn_space_width: float = 460.0
 
 ## Gap between the bottom of the keyboard and the bottom of the screen.
-@export var showcase_bottom_margin: float = 56.0
+@export var drawn_bottom_margin: float = 56.0
 
 ## Keycap styling. The keys are plain Buttons on Godot's default theme
 ## otherwise, which is nearly black and leaves nothing for a flash to lift.
-@export var showcase_key_color: Color = Color("2f2f36")
-@export var showcase_label_color: Color = Color("e8e8ee")
-@export var showcase_font_size: int = 34
+@export var drawn_key_color: Color = Color("2f2f36")
+@export var drawn_label_color: Color = Color("e8e8ee")
+@export var drawn_font_size: int = 34
 
 ## How long a key stays lit after the autoplay presses it, and what colour it
 ## goes. This is the pressed key's background, not a modulate multiplier -
 ## multiplying a near-black keycap is what made the first version invisible.
-@export var showcase_flash_seconds: float = 0.22
-@export var showcase_flash_color: Color = Color("d8c24a")
+@export var drawn_flash_seconds: float = 0.22
+@export var drawn_flash_color: Color = Color("d8c24a")
 
 var _base_positions: PackedVector2Array
 var _draining: bool = false
 
-var _showcase_keyboard: RubiconOnScreenKeyboard
+var _drawn_keyboard: RubiconOnScreenKeyboard
 ## Uppercase character -> that key's Button, read back out of the built
 ## keyboard rather than by changing on_screen_keyboard.gd, which is one of
 ## the scripts carried over from the pck.
-var _showcase_keys: Dictionary = {}
-var _showcase_tweens: Dictionary = {}
+var _drawn_keys: Dictionary = {}
+var _drawn_tweens: Dictionary = {}
 ## Watching this advance is how a typed letter is spotted;
 ## TypingChallenge._autoplay_process emits no signal, and that file is the
 ## pck's too.
@@ -102,12 +104,23 @@ func _process(_delta: float) -> void:
 	if not text_input or not typing_challenge:
 		return
 
-	var wants_input: bool = (
+	var challenge_wants: bool = (
 		typing_challenge.active
 		and typing_challenge.prompt_user
-		and not typing_challenge.autoplay
 		and not typing_challenge.challenge_over
 	)
+
+	# Showcase overrides the setting rather than reading it. The system
+	# keyboard is another app's window - its keys cannot be shown being
+	# pressed, and raising it would cover the song - so a showcase always
+	# gets the drawn one no matter what the player picked.
+	var drawn: bool = (LullabyShowcase.is_active()
+		or Settings.lullaby_mobile_keyboard_type == Settings.MobileKeyboardType.IN_GAME)
+
+	# The hidden LineEdit is only ever focused for the system keyboard. On the
+	# drawn path it stays unreachable, which is what keeps Android from
+	# raising its keyboard behind ours.
+	var wants_input: bool = challenge_wants and not typing_challenge.autoplay and not drawn
 
 	if wants_input:
 		_set_input_available(true)
@@ -116,59 +129,60 @@ func _process(_delta: float) -> void:
 	else:
 		_set_input_available(false)
 
-	var showcase_height: float = _process_showcase_keyboard()
-	_apply_raise(wants_input, showcase_height)
+	var drawn_height: float = _process_drawn_keyboard(drawn and challenge_wants)
+	_apply_raise(wants_input, drawn_height)
 
-## Returns how much of the screen the showcase keyboard is covering, in
-## viewport units, so the unowns can be lifted clear of it exactly the way
-## they are lifted clear of the system one. Zero whenever it isn't shown.
-func _process_showcase_keyboard() -> float:
-	# The challenge is what decides there is typing to show; autoplay is not
-	# checked, because in showcase it is always on and that is the point.
-	var showing: bool = (LullabyShowcase.is_active()
-		and typing_challenge.active
-		and typing_challenge.prompt_user
-		and not typing_challenge.challenge_over)
-
+## Returns how much of the screen the drawn keyboard is covering, in viewport
+## units, so the unowns can be lifted clear of it exactly the way they are
+## lifted clear of the system one. Zero whenever it isn't shown.
+##
+## Autoplay is deliberately not part of `showing`: in showcase it is always
+## on, and the keyboard staying up is the entire point.
+func _process_drawn_keyboard(showing: bool) -> float:
 	if not showing:
-		if _showcase_keyboard:
-			_showcase_keyboard.visible = false
+		if _drawn_keyboard:
+			_drawn_keyboard.visible = false
 		_last_letters_passed = -1
 		return 0.0
 
-	if _showcase_keyboard == null:
-		_build_showcase_keyboard()
-		if _showcase_keyboard == null:
+	if _drawn_keyboard == null:
+		_build_drawn_keyboard()
+		if _drawn_keyboard == null:
 			return 0.0
 
-	_showcase_keyboard.visible = true
-	_layout_showcase_keyboard()
+	_drawn_keyboard.visible = true
+	_layout_drawn_keyboard()
 	_flash_typed_key()
-	return _showcase_keyboard.size.y + showcase_bottom_margin
+	return _drawn_keyboard.size.y + drawn_bottom_margin
 
 ## RubiconOnScreenKeyboard builds its keys in _ready(), so every exported
 ## value has to be set before it enters the tree.
-func _build_showcase_keyboard() -> void:
-	_showcase_keyboard = RubiconOnScreenKeyboard.new()
-	_showcase_keyboard.name = "ShowcaseKeyboard"
-	_showcase_keyboard.key_size = showcase_key_size
-	_showcase_keyboard.key_gap = showcase_key_gap
-	_showcase_keyboard.space_width = showcase_space_width
-	_showcase_keyboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_showcase_keyboard)
+func _build_drawn_keyboard() -> void:
+	_drawn_keyboard = RubiconOnScreenKeyboard.new()
+	_drawn_keyboard.name = "DrawnKeyboard"
+	_drawn_keyboard.key_size = drawn_key_size
+	_drawn_keyboard.key_gap = drawn_key_gap
+	_drawn_keyboard.space_width = drawn_space_width
+	_drawn_keyboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_drawn_keyboard)
 
 	# It hides itself when there is no touchscreen and then never builds its
 	# keys, which on a desktop run would leave an empty Control here.
-	if _showcase_keyboard.get_child_count() == 0:
-		_showcase_keyboard.queue_free()
-		_showcase_keyboard = null
+	if _drawn_keyboard.get_child_count() == 0:
+		_drawn_keyboard.queue_free()
+		_drawn_keyboard = null
 		return
 
-	for button in _find_buttons(_showcase_keyboard):
+	# Tappable, because this is a real input method when the player picks
+	# In-Game and not only a showcase prop. In showcase nobody taps it, so
+	# the connection simply never fires there.
+	_drawn_keyboard.key_pressed.connect(_on_drawn_key_pressed)
+
+	for button in _find_buttons(_drawn_keyboard):
 		# _make_key() labels letter keys with the uppercase character and the
 		# space bar with the word SPACE, so the text is the key's identity.
-		_showcase_keys[button.text] = button
-		_style_showcase_key(button)
+		_drawn_keys[button.text] = button
+		_style_drawn_key(button)
 
 ## The keys are plain Buttons wearing Godot's default theme, which is a very
 ## dark grey. Multiplying modulate on that barely changes anything - the first
@@ -179,26 +193,26 @@ func _build_showcase_keyboard() -> void:
 ## Done from this side rather than in on_screen_keyboard.gd, which is one of
 ## the scripts carried over from the pck and is also what normal touch play
 ## would use if it ever came back.
-func _style_showcase_key(button: Button) -> void:
+func _style_drawn_key(button: Button) -> void:
 	var box := StyleBoxFlat.new()
-	box.bg_color = showcase_key_color
+	box.bg_color = drawn_key_color
 	box.set_corner_radius_all(10)
 	box.border_width_bottom = 4
-	box.border_color = showcase_key_color.darkened(0.35)
+	box.border_color = drawn_key_color.darkened(0.35)
 	button.add_theme_stylebox_override("normal", box)
 	button.add_theme_stylebox_override("hover", box)
 	button.add_theme_stylebox_override("pressed", box)
 	button.add_theme_stylebox_override("disabled", box)
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	button.add_theme_color_override("font_color", showcase_label_color)
-	button.add_theme_font_size_override("font_size", showcase_font_size)
+	button.add_theme_color_override("font_color", drawn_label_color)
+	button.add_theme_font_size_override("font_size", drawn_font_size)
 
 ## Centres the keyboard horizontally and sits it above the bottom edge. Done
 ## every frame rather than once because the rows only report a real size
 ## after their containers have laid out, and because the viewport can change
 ## size (rotation, or the render-scale settings).
-func _layout_showcase_keyboard() -> void:
-	var rows: Control = _showcase_keyboard.get_child(0) as Control
+func _layout_drawn_keyboard() -> void:
+	var rows: Control = _drawn_keyboard.get_child(0) as Control
 	if rows == null:
 		return
 
@@ -211,12 +225,12 @@ func _layout_showcase_keyboard() -> void:
 	# square to the screen instead of hanging off the top-left corner.
 	rows.size = wanted
 	rows.position = Vector2.ZERO
-	_showcase_keyboard.size = wanted
+	_drawn_keyboard.size = wanted
 
 	var area: Vector2 = size if size.x > 0.0 else get_viewport_rect().size
-	_showcase_keyboard.position = Vector2(
+	_drawn_keyboard.position = Vector2(
 		roundf((area.x - wanted.x) * 0.5),
-		roundf(area.y - wanted.y - showcase_bottom_margin))
+		roundf(area.y - wanted.y - drawn_bottom_margin))
 
 ## input_letter() consumes current_word[letters_passed] and advances, and it
 ## skips runs of spaces first, so the counter can jump by more than one. The
@@ -244,7 +258,7 @@ func _flash_typed_key() -> void:
 ## Lights the key by tweening its keycap colour back down from the flash
 ## colour, so the key itself changes rather than being multiplied.
 func _flash_key(key: String) -> void:
-	var button: Button = _showcase_keys.get(key)
+	var button: Button = _drawn_keys.get(key)
 	if button == null or not is_instance_valid(button):
 		return
 
@@ -254,19 +268,26 @@ func _flash_key(key: String) -> void:
 
 	# Same reason RubiconActionButton._flash() kills its own tween first: two
 	# tweens writing the same property can leave a key stuck lit.
-	var previous: Tween = _showcase_tweens.get(button)
+	var previous: Tween = _drawn_tweens.get(button)
 	if previous and previous.is_valid():
 		previous.kill()
 
-	box.bg_color = showcase_flash_color
-	box.border_color = showcase_flash_color.darkened(0.35)
+	box.bg_color = drawn_flash_color
+	box.border_color = drawn_flash_color.darkened(0.35)
 	var tween: Tween = button.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(box, "bg_color", showcase_key_color, showcase_flash_seconds) \
+	tween.tween_property(box, "bg_color", drawn_key_color, drawn_flash_seconds) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(box, "border_color", showcase_key_color.darkened(0.35),
-		showcase_flash_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_showcase_tweens[button] = tween
+	tween.tween_property(box, "border_color", drawn_key_color.darkened(0.35),
+		drawn_flash_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_drawn_tweens[button] = tween
+
+## The mechanic is the single source of truth for what has been typed, the
+## same as the LineEdit path - this only forwards the character.
+func _on_drawn_key_pressed(character: String) -> void:
+	if typing_challenge == null or typing_challenge.autoplay:
+		return
+	typing_challenge.input_letter(character)
 
 func _find_buttons(node: Node) -> Array[Button]:
 	var out: Array[Button] = []
@@ -308,7 +329,7 @@ func _set_input_available(available: bool) -> void:
 ## Lifts each target by exactly how much the keyboard overlaps it, and no
 ## more, so nothing moves on a device whose keyboard is short enough to leave
 ## it clear anyway.
-func _apply_raise(wants_input: bool, showcase_height: float = 0.0) -> void:
+func _apply_raise(wants_input: bool, drawn_height: float = 0.0) -> void:
 	var overlap_source: float = 0.0
 	var viewport_height: float = get_viewport_rect().size.y
 
@@ -321,12 +342,12 @@ func _apply_raise(wants_input: bool, showcase_height: float = 0.0) -> void:
 		var keyboard_height: float = float(DisplayServer.virtual_keyboard_get_height()) * to_viewport
 		if keyboard_height > 0.0:
 			overlap_source = viewport_height - keyboard_height
-	elif showcase_height > 0.0:
-		# The showcase keyboard is already in viewport units - it is a Control
-		# in this scene, not an OS window - so it needs no conversion. The two
-		# are mutually exclusive in practice (showcase forces autoplay, which
-		# clears wants_input) but the branch keeps them from ever stacking.
-		overlap_source = viewport_height - showcase_height
+	elif drawn_height > 0.0:
+		# The drawn keyboard is already in viewport units - it is a Control in
+		# this scene, not an OS window - so it needs no conversion. The two are
+		# mutually exclusive by construction (wants_input is false whenever the
+		# drawn keyboard is up) but the branch keeps them from ever stacking.
+		overlap_source = viewport_height - drawn_height
 
 	for i in raise_targets.size():
 		var target: Node2D = raise_targets[i]
