@@ -29,7 +29,7 @@ func _ready() -> void:
 	note_controller.handler_just_released.connect(_on_handler_released)
 
 func _on_handler_pressed(handler_name: StringName) -> void:
-	if not Settings.lullaby_showcase_mode:
+	if not _should_mirror():
 		return
 
 	var lane: int = _lane_for(handler_name)
@@ -42,7 +42,7 @@ func _on_handler_pressed(handler_name: StringName) -> void:
 		timer.timeout.connect(mobile_controls._release_lane.bind(lane))
 
 func _on_handler_released(handler_name: StringName) -> void:
-	if not Settings.lullaby_showcase_mode:
+	if not _should_mirror():
 		return
 
 	var lane: int = _lane_for(handler_name)
@@ -50,6 +50,19 @@ func _on_handler_released(handler_name: StringName) -> void:
 		return
 
 	mobile_controls._release_lane(lane)
+
+## Touch mode hands note input to LullabyTouchNoteInput and leaves this
+## hitbox hidden with its input off, so pressing its lanes would light up
+## something nobody can see. Worse, the press outlives the mode: _release_all
+## already ran when touch mode was switched on, so a press landing after that
+## would still be held if the player switched back mid-song, and the hitbox
+## would return with a lane stuck down.
+func _should_mirror() -> bool:
+	if not Settings.lullaby_showcase_mode:
+		return false
+	if mobile_controls == null or not is_instance_valid(mobile_controls):
+		return false
+	return not mobile_controls.gameplay_touch_mode
 
 func _lane_for(handler_name: StringName) -> int:
 	var name_string: String = String(handler_name)

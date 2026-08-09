@@ -98,6 +98,11 @@ const SPECIAL_BUTTON_SIZE := 140.0
 ## automatically - this covers non-Button zones only).
 @export var reserved_controls: Array[Control] = []
 
+## Showcase Mode only; see LullabyShowcase and _connect_showcase_flash.
+const SHOWCASE_HIT_SIGNAL := &"pendulum_hit"
+const SHOWCASE_TOUCH_INDEX: int = -1000
+const SHOWCASE_FLASH_SECONDS: float = 0.1
+
 ## touch index -> lane, and lane -> how many fingers are currently on it.
 ## The refcount is what makes multitouch behave: a second finger landing on
 ## a lane that is already held must not re-press it, and lifting one of two
@@ -123,7 +128,32 @@ func _ready() -> void:
 	# blocking the buttons beneath it while still seeing every touch.
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_collect_reserved()
+	_connect_showcase_flash()
 	tree_exiting.connect(_release_all)
+
+## In Showcase Mode the mechanic plays itself and its control stays on screen
+## (see _update_special_button), so the button flashes on each automatic hit
+## the way the Hitbox mode's mechanic zone does. Without this the button sat
+## there visible and inert for the whole of a showcase.
+##
+## Duck-typed on the signal for the same reason mechanic_source itself is
+## duck-typed: the mechanics share no base class. Today the applier only ever
+## wires the pendulum here, which is the one with a hit signal - Chimera's
+## mechanics carry their own buttons and flash those themselves.
+func _connect_showcase_flash() -> void:
+	if mechanic_source == null or not is_instance_valid(mechanic_source):
+		return
+	if not mechanic_source.has_signal(SHOWCASE_HIT_SIGNAL):
+		return
+	if mechanic_source.is_connected(SHOWCASE_HIT_SIGNAL, _on_showcase_mechanic_hit):
+		return
+	mechanic_source.connect(SHOWCASE_HIT_SIGNAL, _on_showcase_mechanic_hit)
+
+func _on_showcase_mechanic_hit() -> void:
+	# flash_control is a no-op outside showcase, so a real player's own taps
+	# keep the button's ordinary pressed styling instead of being overridden.
+	LullabyShowcase.flash_control(special_button, get_tree(),
+		SHOWCASE_TOUCH_INDEX, SHOWCASE_FLASH_SECONDS)
 
 func _process(_delta: float) -> void:
 	_update_visibility()
