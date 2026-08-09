@@ -17,7 +17,23 @@ enum LaneState {
 
 @export_group("Lane", "lane_")
 @export var lane_id : int = 0
-@export var lane_state : LaneState
+
+## The lane's AnimationTree is twenty-four advance_expressions reading this
+## and lane_id, evaluated every frame for as long as the lane exists. Since
+## nothing else can move that state machine, the tree is only advanced from
+## here - see RubiconMixerPump, and _pump below.
+##
+## Guarded so that assigning the value it already holds does not count as a
+## change: _process reassigns NEUTRAL on autoplayed lanes, and _press
+## reassigns PUSH on every press that hits nothing.
+@export var lane_state : LaneState:
+	set(value):
+		if lane_state == value:
+			return
+
+		lane_state = value
+		if _pump != null:
+			_pump.wake()
 
 ## Whether an autoplayed hit keeps the lane lit long enough to be seen.
 ##
@@ -44,6 +60,10 @@ enum LaneState {
 ## Process frame on which lane_state last became HIT, so the clear can tell
 ## "the hit was this frame" from "the hit was an earlier one".
 var _lane_hit_frame : int = -1
+
+## The lane's own AnimationTree. Direct children only - the notes are
+## children too, and each one pumps the three trees it carries itself.
+var _pump : RubiconMixerPump = RubiconMixerPump.new()
 
 ## Emitted on a press that hit nothing while misplays are disallowed.
 ## RubiconCharacterManiaMisplay plays the miss animation off it,
@@ -110,11 +130,23 @@ func get_mode_id() -> StringName:
 func get_unique_id() -> StringName:
 	return "mania_lane%s" % lane_id 
 
+func _ready() -> void:
+	# The editor keeps the stock behaviour, so the scene previews the way it
+	# always has.
+	if Engine.is_editor_hint():
+		return
+
+	_pump.adopt_children_of(self)
+
 func _process(delta: float) -> void:
 	super(delta)
+
+	if not Engine.is_editor_hint():
+		_pump.pump(delta)
+
 	if not _should_process():
 		return
-	
+
 	if get_controller().should_autoplay() and note_hit_index > 0 and lane_state == LaneState.LANE_STATE_HIT and (results[note_hit_index - 1] == null or results[note_hit_index - 1].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_COMPLETE):
 		# See lane_autoplay_hit_lingers: clearing this on the frame it was set
 		# is what stops an autoplayed lane ever lighting up.

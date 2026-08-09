@@ -16,14 +16,37 @@ class_name RubiconLevelManiaNote extends RubiconLevelNote
 
 var _last_final_rotation : float = INF
 
+## DirectionTree, MissedTree and HeldTree. Their state machines read only
+## lane_id, was_hit() and was_missed(), so they are advanced only when one of
+## those has moved rather than every frame. See RubiconMixerPump.
+var _pump : RubiconMixerPump = RubiconMixerPump.new()
+var _last_was_hit : bool = false
+var _last_was_missed : bool = false
+
 func get_mania_handler() -> RubiconLevelManiaNoteHandler:
 	return _handler
 
+func _ready() -> void:
+	# The editor keeps the stock behaviour, so the scene previews the way it
+	# always has.
+	if Engine.is_editor_hint():
+		return
+
+	_pump.adopt_children_of(self)
+
 func initialize(handler : RubiconLevelNoteHandler, data_index : int) -> void:
 	super(handler, data_index)
-	
+
 	lane_id = get_mania_handler().lane_id
-	
+
+	# A reused note arrives holding whatever the last one left behind - a
+	# different direction, or still greyed out from a miss. Waking here is
+	# what walks it back. Note this runs before _ready() for a note taken
+	# from the pool, which is why the pump only stores the request.
+	_last_was_hit = false
+	_last_was_missed = false
+	_pump.wake()
+
 	var final_rotation : float = get_mania_handler().global_direction + local_direction
 	position = Vector2(cos(final_rotation), sin(final_rotation)) * 5000.0
 	
@@ -34,9 +57,21 @@ func initialize(handler : RubiconLevelNoteHandler, data_index : int) -> void:
 	reference_container.offset_right = floor(controller.chart.scroll_multiplier * controller.scroll_speed_multiplier * (handler.data[data_index].get_graphical_end_position() - handler.data[data_index].get_graphical_start_position()))
 
 func _process(delta: float) -> void:
+	if not Engine.is_editor_hint():
+		# Before the early return: a note still has to settle into its
+		# direction on the frames where the level itself is not running yet.
+		var hit : bool = was_hit()
+		var missed_now : bool = was_missed()
+		if hit != _last_was_hit or missed_now != _last_was_missed:
+			_last_was_hit = hit
+			_last_was_missed = missed_now
+			_pump.wake()
+
+		_pump.pump(delta)
+
 	if not _should_process():
 		return
-	
+
 	var handler : RubiconLevelManiaNoteHandler = get_mania_handler()
 	var controller : RubiconLevelNoteController = handler.get_controller()
 	
