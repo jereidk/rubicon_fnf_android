@@ -55,8 +55,20 @@ func initialize(time_changes : Array[RubiconTimeChange]) -> void:
 	for s in range(1, scroll_velocities.size()):
 		var current : RubiChartScrollVelocity = scroll_velocities[s]
 		var previous : RubiChartScrollVelocity = scroll_velocities[s - 1]
-		
+
 		current.initialize_with_previous(time_changes, previous)
+
+	# Last, because a note's cached graphical position is an answer about the
+	# velocities that were only just recomputed. Re-initialising a chart the
+	# editor has been editing has to throw the old answers away.
+	RubiChartScrollVelocity.clear_memo()
+	for section in sections:
+		for row in section.rows:
+			for start in row.starts:
+				start.clear_position_cache()
+
+			for end in row.ends:
+				end.clear_position_cache()
 
 func get_notes_of_id(id : String, include_ends : bool = false) -> Array[RubiChartNote]:
 	var notes : Array[RubiChartNote]
