@@ -823,7 +823,7 @@ tracks/60/keys = {
 }
 tracks/61/type = "value"
 tracks/61/imported = false
-tracks/61/enabled = true
+tracks/61/enabled = false
 tracks/61/path = NodePath("../Stage/UnownKing/TextureRect:visible")
 tracks/61/interp = 1
 tracks/61/loop_wrap = true
@@ -1900,7 +1900,7 @@ tracks/82/keys = {
 }
 tracks/83/type = "value"
 tracks/83/imported = false
-tracks/83/enabled = true
+tracks/83/enabled = false
 tracks/83/path = NodePath("../Stage/UnownKing/TextureRect:visible")
 tracks/83/interp = 0
 tracks/83/loop_wrap = true
@@ -5244,6 +5244,7 @@ script = ExtResource("20")
 libraries/ = SubResource("AnimationLibrary_jdah6")
 
 [node name="TextureRect" type="TextureRect" parent="Stage/UnownKing" unique_id=556937602]
+visible = false
 offset_right = 1920.0
 offset_bottom = 1080.0
 pivot_offset_ratio = Vector2(0.5, 0.5)
