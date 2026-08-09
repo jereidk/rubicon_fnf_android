@@ -1,30 +1,30 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://bv7m04curkqp3"]
 
-[ext_resource type="Texture2D" uid="uid://rah2icr2u55m" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/running_grass.png" id="1"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/Running_Grass_packed_0.png" id="packed_0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hclmr"]
-atlas = ExtResource("1")
-region = Rect2(1, 1, 1439, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 1439, 1080)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_xbs35"]
-atlas = ExtResource("1")
-region = Rect2(1443, 1, 1439, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(1450, 2, 1439, 1080)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_iu20b"]
-atlas = ExtResource("1")
-region = Rect2(1, 1084, 1439, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 1090, 1439, 1080)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8pve6"]
-atlas = ExtResource("1")
-region = Rect2(1, 2167, 1439, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(1450, 1090, 1439, 1080)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_35x6m"]
-atlas = ExtResource("1")
-region = Rect2(1443, 1084, 1439, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2178, 1439, 1080)
 filter_clip = true
 
 [resource]

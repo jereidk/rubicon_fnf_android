@@ -1,0 +1,14 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_mono_collectorhand_packed_0.png"
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

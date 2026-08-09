@@ -1,53 +1,53 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://dop88wqvlo1b2"]
 
-[ext_resource type="Texture2D" uid="uid://x4cwoux7xg75" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/cut_mono_boyfriendscream_0.png" id="1"]
-[ext_resource type="Texture2D" uid="uid://dhm687t2abeah" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/scream/cut_mono_boyfriendscream_1.png" id="2"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_boyfriend_scream_packed_0.png" id="packed_0"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/cut_boyfriend_scream_packed_1.png" id="packed_1"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u0d03"]
-atlas = ExtResource("1")
-region = Rect2(1, 1, 1854, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 1854, 1080)
 margin = Rect2(47, 0, 66, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wx7af"]
-atlas = ExtResource("1")
-region = Rect2(1845, 1084, 1813, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(1866, 2, 1813, 1080)
 margin = Rect2(34, 0, 107, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fjhyq"]
-atlas = ExtResource("1")
-region = Rect2(1, 1084, 1841, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 1090, 1841, 1080)
 margin = Rect2(10, 0, 79, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qsb8s"]
-atlas = ExtResource("1")
-region = Rect2(1, 2167, 1759, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(1850, 1090, 1759, 1080)
 margin = Rect2(62, 0, 161, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1onj1"]
-atlas = ExtResource("1")
-region = Rect2(1858, 1, 1765, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2178, 1765, 1080)
 margin = Rect2(34, 0, 155, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hxb7t"]
-atlas = ExtResource("1")
-region = Rect2(1763, 2167, 1710, 1080)
+atlas = ExtResource("packed_0")
+region = Rect2(1778, 2178, 1710, 1080)
 margin = Rect2(54, 0, 210, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qx0ng"]
-atlas = ExtResource("2")
-region = Rect2(1791, 1, 1739, 1078)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 2, 1739, 1078)
 margin = Rect2(27, 2, 181, 2)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vtt1q"]
-atlas = ExtResource("2")
-region = Rect2(1, 1, 1787, 1067)
+atlas = ExtResource("packed_1")
+region = Rect2(1746, 2, 1787, 1067)
 margin = Rect2(24, 13, 133, 13)
 filter_clip = true
 

@@ -1,0 +1,14 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/chimera/textures/serena/disoriented/disorient_packed_3.png"
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

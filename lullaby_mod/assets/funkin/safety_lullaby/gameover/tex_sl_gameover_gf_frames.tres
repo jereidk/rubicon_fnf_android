@@ -1,124 +1,124 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://c8ptpqacnugls"]
 
-[ext_resource type="Texture2D" uid="uid://5gyn2vhl55k" path="res://lullaby_mod/assets/funkin/safety_lullaby/gameover/tex_sl_gameover_gf.png" id="1"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/safety_lullaby/gameover/tex_sl_gameover_gf_packed_0.png" id="packed_0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_51vdh"]
-atlas = ExtResource("1")
-region = Rect2(1626, 2, 795, 710)
+atlas = ExtResource("packed_0")
+region = Rect2(2418, 2226, 795, 710)
 margin = Rect2(0, 18, 46, 59)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8lct0"]
-atlas = ExtResource("1")
-region = Rect2(1594, 1445, 783, 706)
+atlas = ExtResource("packed_0")
+region = Rect2(3218, 2226, 783, 706)
 margin = Rect2(13, 23, 58, 63)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sbhu2"]
-atlas = ExtResource("1")
-region = Rect2(784, 2178, 780, 711)
+atlas = ExtResource("packed_0")
+region = Rect2(1634, 2226, 780, 711)
 margin = Rect2(29, 27, 61, 58)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_31o4p"]
-atlas = ExtResource("1")
-region = Rect2(2, 721, 807, 712)
+atlas = ExtResource("packed_0")
+region = Rect2(1610, 1490, 807, 712)
 margin = Rect2(30, 27, 34, 57)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_il0mq"]
-atlas = ExtResource("1")
-region = Rect2(818, 2, 806, 712)
+atlas = ExtResource("packed_0")
+region = Rect2(2426, 1490, 806, 712)
 margin = Rect2(34, 27, 35, 57)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ngaba"]
-atlas = ExtResource("1")
-region = Rect2(2, 721, 807, 712)
+atlas = ExtResource("packed_0")
+region = Rect2(3242, 1490, 807, 712)
 margin = Rect2(30, 27, 34, 57)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3fpvj"]
-atlas = ExtResource("1")
-region = Rect2(818, 2, 806, 712)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2226, 806, 712)
 margin = Rect2(34, 27, 35, 57)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qtrod"]
-atlas = ExtResource("1")
-region = Rect2(2, 721, 807, 712)
+atlas = ExtResource("packed_0")
+region = Rect2(818, 2226, 807, 712)
 margin = Rect2(30, 27, 34, 57)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ig37i"]
-atlas = ExtResource("1")
-region = Rect2(1566, 2153, 684, 748)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 684, 748)
 margin = Rect2(86, 0, 157, 21)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ls3y3"]
-atlas = ExtResource("1")
-region = Rect2(2, 2, 814, 717)
+atlas = ExtResource("packed_0")
+region = Rect2(786, 1490, 814, 717)
 margin = Rect2(27, 29, 27, 52)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yors8"]
-atlas = ExtResource("1")
-region = Rect2(2, 2170, 780, 728)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 1490, 780, 728)
 margin = Rect2(34, 35, 61, 41)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vfxly"]
-atlas = ExtResource("1")
-region = Rect2(2, 1435, 776, 733)
+atlas = ExtResource("packed_0")
+region = Rect2(690, 2, 776, 733)
 margin = Rect2(33, 36, 65, 36)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nre8k"]
-atlas = ExtResource("1")
-region = Rect2(818, 716, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(1474, 2, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bvnao"]
-atlas = ExtResource("1")
-region = Rect2(1626, 714, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(2258, 2, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mf403"]
-atlas = ExtResource("1")
-region = Rect2(784, 1447, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(3042, 2, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cyjvq"]
-atlas = ExtResource("1")
-region = Rect2(1626, 714, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 754, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_c3eme"]
-atlas = ExtResource("1")
-region = Rect2(784, 1447, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(786, 754, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tjjpo"]
-atlas = ExtResource("1")
-region = Rect2(1626, 714, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(1570, 754, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1uw0a"]
-atlas = ExtResource("1")
-region = Rect2(784, 1447, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(2354, 754, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i75iq"]
-atlas = ExtResource("1")
-region = Rect2(1626, 714, 774, 729)
+atlas = ExtResource("packed_0")
+region = Rect2(3138, 754, 774, 729)
 margin = Rect2(34, 36, 67, 40)
 filter_clip = true
 

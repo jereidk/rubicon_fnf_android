@@ -1,39 +1,39 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://f3xqdcjkubau"]
 
-[ext_resource type="Texture2D" uid="uid://xstpxgnswgpy" path="res://lullaby_mod/assets/funkin/chimera/textures/house_outside/door/door_open.png" id="1"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/textures/house_outside/door/door_open_packed_0.png" id="packed_0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3dtla"]
-atlas = ExtResource("1")
-region = Rect2(1, 1, 879, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 879, 719)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u6ibs"]
-atlas = ExtResource("1")
-region = Rect2(1, 723, 873, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(890, 2, 873, 719)
 margin = Rect2(6, 0, 6, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0i7ml"]
-atlas = ExtResource("1")
-region = Rect2(877, 723, 855, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(1770, 2, 855, 719)
 margin = Rect2(24, 0, 24, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6p3la"]
-atlas = ExtResource("1")
-region = Rect2(883, 1, 799, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 730, 799, 719)
 margin = Rect2(80, 0, 80, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lvp3r"]
-atlas = ExtResource("1")
-region = Rect2(1685, 1, 726, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(810, 730, 726, 719)
 margin = Rect2(153, 0, 153, 0)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uqtyl"]
-atlas = ExtResource("1")
-region = Rect2(1735, 723, 717, 719)
+atlas = ExtResource("packed_0")
+region = Rect2(1546, 730, 717, 719)
 margin = Rect2(162, 0, 162, 0)
 filter_clip = true
 
