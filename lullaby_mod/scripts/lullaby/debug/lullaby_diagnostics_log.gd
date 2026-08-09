@@ -407,6 +407,19 @@ func census(reason: String) -> void:
 	## The engine's own nodes= still includes them, which is where the cost
 	## of keeping them around is supposed to show.
 	var notes_parked: int = 0
+	## Effect shaders still attached and still drawing, split three ways.
+	##
+	## Reduce Visual Effects claims to strip every material whose shader is in
+	## Settings.EFFECT_SHADER_PATHS, and the log only ever recorded whether the
+	## setting was on (sha_fx=), never whether it did anything. Safety Lullaby
+	## measures 12.6ms of GPU at 5 draw calls and 42.6ms at 10, with 72 and 80
+	## primitives - five extra full-screen passes for 30ms, on a scene that
+	## authors exactly three always-on full-screen effect ColorRects. Whether
+	## those three are still running with sha_fx=off is the question, and it
+	## needs a counter rather than an argument.
+	var fx_live: int = 0
+	var fx_effect: int = 0
+	var fx_fullscreen: int = 0
 	var nodes: Array[Node] = [scene]
 	while not nodes.is_empty():
 		var node: Node = nodes.pop_back()
@@ -427,6 +440,17 @@ func census(reason: String) -> void:
 			lights_visible += 1
 			if node.shadow_enabled:
 				lights_shadow += 1
+		# Material first, visibility second: is_visible_in_tree() walks to the
+		# root, and the shop has thousands of CanvasItems against a handful
+		# carrying a ShaderMaterial.
+		if node is CanvasItem:
+			var mat: Material = node.material
+			if mat is ShaderMaterial and mat.shader != null and node.is_visible_in_tree():
+				fx_live += 1
+				if Settings.EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
+					fx_effect += 1
+					if _covers_screen(node):
+						fx_fullscreen += 1
 		if node is RubiconLevelNote:
 			notes_total += 1
 			if node.is_visible_in_tree():
@@ -465,11 +489,26 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) parked=%d lights=%d(shadow=%d) | %s | top_anims=[%s] | %s" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) parked=%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d) | %s | top_anims=[%s] | %s" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active,
 		notes_total, notes_visible, notes_parked, lights_visible, lights_shadow,
+		fx_live, fx_effect, fx_fullscreen,
 		_graphics_summary(), ", ".join(top), " ".join(classes),
 	])
+
+## Whether a visible CanvasItem covers most of the frame, which is what makes
+## a shader on it a full-screen pass rather than a decoration on one sprite.
+## Controls carry a rect; anything else is counted as not full-screen rather
+## than guessed at from a texture and a transform.
+func _covers_screen(node: CanvasItem) -> bool:
+	var control := node as Control
+	if control == null:
+		return false
+	var screen: Vector2 = node.get_viewport_rect().size
+	if screen.x <= 0.0 or screen.y <= 0.0:
+		return false
+	var rect: Vector2 = control.get_global_rect().size
+	return rect.x >= screen.x * 0.8 and rect.y >= screen.y * 0.8
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap
 ## enough to poll every frame: load_threaded_get_status() on a path that is
