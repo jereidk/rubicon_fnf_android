@@ -23,6 +23,10 @@ extends Node
 @export var level: Node
 @export var health_module: Node
 
+## The end-of-song signal. RubiconLevelClock and RubiconLevel have no
+## "finished" of their own, so the instrumental player's is the one available.
+@export var instrumental: AudioStreamPlayer
+
 ## Words to practise with. Monochrome's own list is story text; these are
 ## neutral and short enough to land inside one pass.
 const TRAINING_WORDS: Array[String] = [
@@ -36,22 +40,23 @@ const SHOP_SCENE := "res://lullaby_mod/rooms/env_collector_shop.tscn"
 ## start a second one - the same guard the death screens needed.
 var _leaving: bool = false
 
-## Only true for a training session, so nothing below touches the test level
-## when the main menu opens it as its placeholder.
-var _training: bool = false
+var _overlay: LullabyTrainingOverlay
+var _requested: LullabyTraining.Mechanic = LullabyTraining.Mechanic.NONE
 
 func _ready() -> void:
 	var mechanic: LullabyTraining.Mechanic = LullabyTraining.take_request()
 	if mechanic == LullabyTraining.Mechanic.NONE:
 		return
 
-	_training = true
+	_requested = mechanic
+
 	# Before the mechanic, not after: the test level has no pause menu, no
 	# gameover module and no exit of any kind - its MobileControls is a bare
 	# placeholder Control - so without this there is no way out of a training
 	# session at all except killing the app. A mechanic that fails to build
-	# must not take the exit down with it.
-	_add_exit()
+	# must not take the overlay down with it.
+	_build_overlay()
+	_watch_session()
 
 	var path: String = String(LullabyTraining.SCENES.get(mechanic, ""))
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -91,6 +96,7 @@ func _build_pendulum(packed: PackedScene) -> void:
 	server.add_child(pendulum)
 
 	server.started = true
+	_count_misses(server, [&"pendulum_missed", &"mechanic_failed"])
 
 ## heartbeat_controller.gd already exposes initialize()/stop() as tool
 ## buttons for playtesting in the editor, which is exactly a training
@@ -114,6 +120,7 @@ func _build_pulse(packed: PackedScene) -> void:
 		push_error("Training: mch_heartbeat has no node with initialize()")
 		return
 	controller.call(&"initialize")
+	_count_misses(controller, [&"mechanic_failed"])
 
 ## The one that is not drop-in. Monochrome wires reference_level,
 ## bar_animation and health_module from the song; two of those exist here and
@@ -145,39 +152,74 @@ func _build_typing(packed: PackedScene) -> void:
 	if "prompt_user" in typing:
 		typing.set(&"prompt_user", true)
 
-## A tappable EXIT plus the ui_cancel handler behind it. The button dispatches
-## that same action, so touch and keyboard land in one place; ui_cancel is
-## also Android's hardware Back, which is what a phone player will reach for
-## first and which nothing in this level answered.
-func _add_exit() -> void:
-	var host: Control = _hud()
-	if host == null:
-		return
+	_count_misses(typing, [&"challenge_fail"])
 
-	var button: RubiconActionButton = RubiconActionButton.new()
-	button.name = "TrainingExit"
-	button.action = &"ui_cancel"
-	button.verb = "EXIT"
-	# Top-left. The lanes own the bottom and the centre, and the judgment
-	# popup owns the middle.
-	button.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	button.offset_left = 32.0
-	button.offset_top = 32.0
-	button.custom_minimum_size = Vector2(180, 72)
-	button.size = button.custom_minimum_size
-	host.add_child(button)
+## The overlay owns the exit, the pause, the end of the drill and the
+## readout. Kept as its own node rather than folded in here so that the host
+## stays "build the mechanic" and nothing else.
+func _build_overlay() -> void:
+	_overlay = LullabyTrainingOverlay.new()
+	_overlay.name = "TrainingOverlay"
+	_overlay.exit_requested.connect(_on_exit_requested)
+	_overlay.restart_requested.connect(_on_restart_requested)
+	add_child(_overlay)
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not _training or _leaving:
-		return
-	# is_action_pressed, not is_action: every synthetic action here arrives as
-	# a press and then a release, and the release would be a second exit.
-	if not event.is_action_pressed(&"ui_cancel"):
-		return
+## The two ways a drill ends on its own. Neither exists in this level: there
+## is no gameover module to catch health_depleted, and nothing at all happens
+## when the chart runs out, so the instrumental finishing is the end-of-song
+## signal - the clock and the level do not have one.
+func _watch_session() -> void:
+	if health_module != null and health_module.has_signal(&"health_depleted"):
+		health_module.connect(&"health_depleted", _on_died)
 
+	if instrumental != null and instrumental.has_signal(&"finished"):
+		instrumental.connect(&"finished", _on_song_finished)
+
+func _on_died() -> void:
+	if _overlay != null:
+		_overlay.finish_session("OUT OF HEALTH")
+
+func _on_song_finished() -> void:
+	if _overlay != null:
+		_overlay.finish_session("DRILL OVER")
+
+## Restart puts the same request back before reloading, so the drill comes
+## up again instead of the plain placeholder level.
+func _on_restart_requested() -> void:
+	if _leaving:
+		return
 	_leaving = true
-	get_viewport().set_input_as_handled()
+	LullabyTraining.requested = _requested
+	SceneChanger.change_to(LullabyTraining.TEST_SONG, &"hypno")
+
+func _on_exit_requested() -> void:
+	if _leaving:
+		return
+	_leaving = true
 	SceneChanger.change_to(SHOP_SCENE, &"hypno", true)
+
+## Every mechanic reports a failure of some kind; only the pendulum reports
+## its successes. Whatever each one has is routed to the same counter.
+func _count_misses(node: Node, signals: Array[StringName]) -> void:
+	if _overlay == null:
+		return
+	for name: StringName in signals:
+		if not node.has_signal(name):
+			continue
+		# challenge_fail carries a failure code and mechanic_failed carries
+		# nothing; connecting a signal with arguments to a zero-arg method is
+		# an error, so unbind however many it actually has.
+		var callable: Callable = _overlay.record_miss
+		var arg_count: int = _signal_arg_count(node, name)
+		if arg_count > 0:
+			callable = callable.unbind(arg_count)
+		node.connect(name, callable)
+
+func _signal_arg_count(node: Node, name: StringName) -> int:
+	for info: Dictionary in node.get_signal_list():
+		if StringName(info.get("name", "")) == name:
+			return (info.get("args", []) as Array).size()
+	return 0
 
 func _hud() -> Control:
 	if ui_parent != null and is_instance_valid(ui_parent):

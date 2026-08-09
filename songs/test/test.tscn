@@ -261,8 +261,9 @@ lane_id = 3
 
 [node name="MobileControls" parent="UILayer" unique_id=3812004417 instance=ExtResource("24_mblctl")]
 
-[node name="TrainingHost" type="Node" parent="." node_paths=PackedStringArray("ui_parent", "level", "health_module")]
+[node name="TrainingHost" type="Node" parent="." node_paths=PackedStringArray("ui_parent", "level", "health_module", "instrumental")]
 script = ExtResource("25_train")
 ui_parent = NodePath("../UILayer/UI")
 level = NodePath("..")
 health_module = NodePath("../RubiconHealthModule")
+instrumental = NodePath("../RubiconLevelSongModule/Instrumental")
