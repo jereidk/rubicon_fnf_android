@@ -25,6 +25,7 @@ var misses: int = 0
 var _state: State = State.RUNNING
 var _elapsed: float = 0.0
 var _stats: Label
+var _dim: ColorRect
 var _panel: VBoxContainer
 var _title: Label
 var _first_button: Button
@@ -66,6 +67,19 @@ func _build() -> void:
 	exit_button.custom_minimum_size = Vector2(180, 72)
 	exit_button.size = exit_button.custom_minimum_size
 	root.add_child(exit_button)
+
+	# The panel sits over live gameplay, which on Chimera's heartbeat is a
+	# bright red line and on Monochrome a white stage. Without something
+	# behind it the text competes with whatever is moving underneath.
+	# MOUSE_FILTER_STOP as well as opaque: while the panel is up, a tap on
+	# the world behind it should hit the dim and stop, not reach the lanes.
+	_dim = ColorRect.new()
+	_dim.name = "Dim"
+	_dim.color = Color(0, 0, 0, 0.72)
+	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_dim.visible = false
+	root.add_child(_dim)
 
 	_panel = VBoxContainer.new()
 	_panel.name = "Panel"
@@ -150,6 +164,7 @@ func _show_panel(state: State, title: String) -> void:
 	]
 	# Resuming a drill that has ended is meaningless; restarting it is not.
 	_panel.get_node(^"RESUME").visible = state == State.PAUSED
+	_dim.visible = true
 	_panel.visible = true
 	get_tree().paused = true
 
@@ -160,6 +175,7 @@ func _on_resume() -> void:
 	if _state != State.PAUSED:
 		return
 	_state = State.RUNNING
+	_dim.visible = false
 	_panel.visible = false
 	get_tree().paused = false
 

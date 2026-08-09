@@ -149,6 +149,21 @@ func _ready() -> void :
 		SaveData.save()
 	else:
 		match previous_state:
+			# Coming back from a training drill. Without this you reload into
+			# the shop entrance and have to walk to the TV again, which after
+			# a thirty-second drill is most of the round trip.
+			#
+			# FocusConsole.trigger() is the same path the player's own click
+			# takes - it plays focus_console, fades the music in, sets
+			# console.focused and grabs the Cartridges focus - so this borrows
+			# it whole rather than reimplementing four of those five things.
+			# Deferred because trigger() reaches into the console living in a
+			# SubViewport, which is not built yet this frame; and guarded by
+			# its own ShopConsolePower/can_interact checks, so if the TV is off
+			# you simply land in the ordinary shop.
+			"Console":
+				default_shop(false)
+				_return_to_console.call_deferred()
 			"Kollectadex":
 				default_entry()
 				music.volume_linear = 0.0
@@ -196,6 +211,17 @@ func _input(event: InputEvent) -> void :
 		# over the same AnimationPlayer.
 		if state == ShopStates.FOCUSED and (console == null or not console.focused):
 			sequence_controller.animation_player.play(&"focus_center")
+
+## Path is fixed rather than exported because this is only ever the one
+## area, and an export would be a fifth thing to keep wired for a case that
+## already degrades safely when it finds nothing.
+const CONSOLE_AREA_PATH := ^"Environment/Areas/FocusConsole"
+
+func _return_to_console() -> void :
+	var area: Node = get_node_or_null(CONSOLE_AREA_PATH)
+	if area == null or not area.has_method("trigger"):
+		return
+	area.call("trigger")
 
 func default_shop(play_voicelines: bool = true) -> void :
 	default_entry()

@@ -228,6 +228,10 @@ func _on_exit_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	# The shop reads this static in its own _ready() and puts you back at the
+	# TV instead of at the entrance. Nothing wrote it before now - the
+	# "Kollectadex" case next to it has been waiting for a writer.
+	CollectorShop.previous_state = "Console"
 	SceneChanger.change_to(SHOP_SCENE, &"hypno", true)
 
 ## Each mechanic's own vocabulary for the same two outcomes, routed to the
