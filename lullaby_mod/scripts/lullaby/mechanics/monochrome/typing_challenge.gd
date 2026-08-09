@@ -148,7 +148,7 @@ func _process(delta: float) -> void :
 		return
 
 	if autoplay and prompt_user:
-		_autoplay_process(delta)
+		_autoplay_process(delta, time_left)
 
 	if time_left > 6:
 		celebi_tick_sprite.modulate.a = 0.4
@@ -170,14 +170,83 @@ func _process(delta: float) -> void :
 
 	_celebi_last_second = celebi_second
 
-func _autoplay_process(delta: float) -> void :
+## One letter every fifth of a second, which is the rate the mechanic has
+## always autoplayed at, and still the rate of the debug autoplay toggle.
+const AUTOPLAY_INTERVAL := 0.2
+
+## How much of the time still on the clock a showcase run is allowed to spend
+## on the letters it has left. The rest is margin - the challenge ends the
+## moment the last letter lands, so this is not a deadline being approached,
+## it is how much of the window is deliberately left unused.
+const SHOWCASE_AUTOPLAY_BUDGET := 0.6
+
+## And an upper bound on the interval, so a challenge with a generous timer
+## does not end up typing at one letter per second. Just over half a second
+## reads as somebody typing rather than as a machine, and still clears a
+## ten-letter word in under six.
+const SHOWCASE_AUTOPLAY_MAX_INTERVAL := 0.55
+
+## Floor for the showcase rate, which is deliberately FASTER than
+## AUTOPLAY_INTERVAL rather than equal to it.
+##
+## The fixed 0.2s rate cannot type every word in every window this song sets:
+## "John Monochrome" is 14 keystrokes, the fourth challenge runs from 189.75s
+## to 192.5s, and 14 x 0.2 = 2.8s does not fit in 2.75s. The word is drawn
+## with pick_random() from a list of 19, so roughly one run in twenty loses
+## that challenge to the clock with nobody at fault. On PC that never
+## mattered - autoplay is a debug toggle nobody watches - but a showcase that
+## randomly fails is a broken showcase, so here the rate is allowed to go
+## below 0.2s when that is what finishing needs.
+##
+## Twenty letters a second, only ever reached if a word is far tighter than
+## anything this song actually asks for.
+const SHOWCASE_AUTOPLAY_MIN_INTERVAL := 0.05
+
+func _autoplay_process(delta: float, time_left: float) -> void :
 	_autoplay_time_passed += delta
 
-	if _autoplay_time_passed < 0.2:
+	if _autoplay_time_passed < _autoplay_interval(time_left):
 		return
 
 	input_letter(current_word[letters_passed])
 	_autoplay_time_passed = 0.0
+
+## Autoplay exists for two different reasons and they want different speeds.
+##
+## For the debug toggle it only has to not lose, and 0.2s does that, so that
+## path is left exactly as it was. In Showcase Mode the autoplay IS the thing
+## being watched - and five keystrokes a second is not something a person
+## does, so the drawn keyboard flickers rather than reading as typing.
+##
+## Rather than pick a slower constant and hope it fits, the interval is
+## spread across the time actually left over the letters actually left.
+##
+## That cannot overrun the challenge by construction. Each letter spends a
+## fixed fraction of what is still on the clock, so the remaining time falls
+## by a factor of (1 - budget/letters_left) each step and the last letter
+## still lands with 40% of its own slice to spare - no arithmetic about the
+## word or the window has to be right for that to hold. It also adapts to
+## whatever time_end the song's animation set, and self-corrects: if a
+## stutter eats a moment, the next interval is computed from the clock as it
+## now stands rather than from what was planned.
+func _autoplay_interval(time_left: float) -> float:
+	if not LullabyShowcase.is_active():
+		return AUTOPLAY_INTERVAL
+
+	# input_letter() walks over runs of spaces without spending an interval
+	# on them, so the letters left are the non-space ones. Counting the
+	# spaces would make it type faster than intended, not slower.
+	var keystrokes_left: int = 0
+	for i in range(letters_passed, current_word.length()):
+		if current_word[i] != " ":
+			keystrokes_left += 1
+
+	if keystrokes_left <= 0 or time_left <= 0.0:
+		return AUTOPLAY_INTERVAL
+
+	var spread: float = (time_left * SHOWCASE_AUTOPLAY_BUDGET) / keystrokes_left
+	return clampf(spread, SHOWCASE_AUTOPLAY_MIN_INTERVAL,
+		SHOWCASE_AUTOPLAY_MAX_INTERVAL)
 
 func _input(event: InputEvent) -> void :
 	if autoplay:
