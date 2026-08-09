@@ -74,12 +74,11 @@ func _build() -> void :
 		var button: RubiconActionButton = RubiconActionButton.new()
 		button.name = String(action)
 		button.action = action
-		# verb + show_binding is the same verb-over-key label the dpad's
-		# OK/BACK/BAG buttons use, so the whole game states an action one way.
-		# RubiconActionButton owns the text, including re-reading it when the
-		# player rebinds or picks up a gamepad.
+		# The verb alone here. Everywhere else a button shows its key, but
+		# those all sit under the mod's own key legend; a death screen has no
+		# legend to be consistent with, and RETRY / EXIT is what the player
+		# needs to read at a glance. show_binding stays off (its default).
 		button.verb = prompts[action]
-		button.show_binding = true
 		button.custom_minimum_size = Vector2(260, 76)
 		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		if button_theme != null:

@@ -19,7 +19,11 @@ func _on_button_pressed():
 	console.play_sound.emit("sfx_soulroom_select_alt")
 	is_activated = not is_activated
 	toggle_checkbox.emit()
-	if is_activated:
+	# Only Baby Mode's own row. This is the base class for EVERY toggle in
+	# the console, so the unguarded version played the Collector's "baby
+	# mode on" line whenever any checkbox anywhere was switched on -
+	# Downscroll, Ghost Tapping, Shadows, Ambient Occlusion, all of them.
+	if is_activated and property == &"lullaby_baby_mode":
 		console.shop.play_voiceline_group("babyon", true)
 
 	Settings.set(property, is_activated)
