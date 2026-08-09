@@ -19,9 +19,25 @@ static var skip_first_part: bool = true;
 ## _current_loader while the first loading screen is still parented to a
 ## CanvasLayer at layer 128, so the song restarted and played correctly
 ## underneath a black loading screen that nothing owned any more. That is
-## the bug in the screenshot. safety_lullaby_gameover.gd already had this
-## guard, which is why only Monochrome showed it.
+## the bug in the screenshot.
+##
+## Safety Lullaby had the same hole and it is not visible there, which is
+## why only Monochrome was reported: its live module retries with
+## reload_current_scene() instead of going through SceneChanger, so a double
+## tap queued two reloads rather than orphaning a loading screen. Guarded
+## too, in safety_lullaby_gameover_module.gd. (The transitioning guard in
+## safety_lullaby_gameover.gd protects nothing - nothing instances that
+## script; see the module's own docstring.)
 var _transitioning: bool = false
+
+## Whether a retry would be accepted right now. Read by
+## LullabyGameoverPrompt so the on-screen button appears exactly when the
+## screen is listening, and disappears the moment it stops - the same
+## condition _input() below tests, rather than a second copy of it that
+## could drift.
+var can_retry: bool:
+	get:
+		return not _transitioning and boyfriend_scene != null and boyfriend_scene.visible
 
 func _ready() -> void :
 	if skip_first_part:
@@ -35,10 +51,7 @@ func _on_animation_changed(_old: StringName, new: StringName) -> void :
 		baby_mode_speaker.play()
 
 func _input(event: InputEvent) -> void :
-	if _transitioning:
-		return
-
-	if not boyfriend_scene.visible or event.is_echo() or not event.is_pressed():
+	if not can_retry or event.is_echo() or not event.is_pressed():
 		return
 
 	# ui_accept's default InputMap is Enter/Space/gamepad A - no mouse or

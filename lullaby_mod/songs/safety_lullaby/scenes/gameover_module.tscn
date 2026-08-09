@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://c4mfqbt20c5gl"]
 
 [ext_resource type="Script" uid="uid://dlv7skq2qsntt" path="res://lullaby_mod/scripts/lullaby/gameover/safety_lullaby_gameover_module.gd" id="1"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/gameover/lullaby_gameover_prompt.gd" id="19"]
+[ext_resource type="Theme" uid="uid://cv36qjnmg1jxd" path="res://lullaby_mod/assets/menus/pause/kanto/thm_kanto.tres" id="20"]
 [ext_resource type="AudioStream" uid="uid://bf620bsg2e6b3" path="res://lullaby_mod/resources/audio/vox/reactives/re_baby_mode/dying/vox_collector_babydie_1.ogg" id="2"]
 [ext_resource type="AudioStream" uid="uid://c8nw7hmlvfatg" path="res://lullaby_mod/resources/audio/vox/reactives/re_baby_mode/dying/vox_collector_babydie_2.ogg" id="3"]
 [ext_resource type="AudioStream" uid="uid://batuadq07imjq" path="res://lullaby_mod/resources/audio/vox/reactives/re_baby_mode/dying/vox_collector_babydie_3.ogg" id="4"]
@@ -870,3 +872,9 @@ libraries/ = SubResource("AnimationLibrary_m01pn")
 [node name="BabyModeSpeaker" type="AudioStreamPlayer" parent="." unique_id=1622948502]
 volume_db = 4.0
 bus = &"Voice"
+
+[node name="RetryPrompt" type="CanvasLayer" parent="." node_paths=PackedStringArray("available_source")]
+script = ExtResource("19")
+button_theme = ExtResource("20")
+available_source = NodePath("..")
+available_property = &"can_retry"

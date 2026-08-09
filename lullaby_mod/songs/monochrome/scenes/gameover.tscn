@@ -7,6 +7,8 @@
 [ext_resource type="SpriteFrames" uid="uid://doluplyfghxcq" path="res://lullaby_mod/assets/funkin/monochrome/gameover/tex_mono_gameover_gold_frames.res" id="5"]
 [ext_resource type="SpriteFrames" uid="uid://ctr6qloeo8clf" path="res://lullaby_mod/assets/funkin/monochrome/gameover/tex_mono_gameover_bf_frames.res" id="6"]
 [ext_resource type="AudioStream" uid="uid://53reytqf853y" path="res://lullaby_mod/resources/audio/mus/mus_gameover_mono.ogg" id="7"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/gameover/lullaby_gameover_prompt.gd" id="8"]
+[ext_resource type="Theme" uid="uid://lwdkok4rj2sg" path="res://lullaby_mod/assets/menus/pause/johto/thm_johto.tres" id="9"]
 
 [sub_resource type="Animation" id="Animation_otl62"]
 length = 0.001
@@ -430,3 +432,9 @@ volume_db = 8.0
 bus = &"Voice"
 
 [connection signal="animation_changed" from="AnimationPlayer" to="." method="_on_animation_changed"]
+
+[node name="RetryPrompt" type="CanvasLayer" parent="." node_paths=PackedStringArray("available_source")]
+script = ExtResource("8")
+button_theme = ExtResource("9")
+available_source = NodePath("..")
+available_property = &"can_retry"

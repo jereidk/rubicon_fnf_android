@@ -25,6 +25,28 @@ class_name SafetyLullabyGameoverModule
 
 var activated: bool = false
 
+## Set the moment a retry is accepted, so the second half of a single tap
+## cannot start a second one.
+##
+## One tap is two events on Android - emulate_mouse_from_touch turns a
+## finger into an InputEventScreenTouch AND an emulated
+## InputEventMouseButton, and the is_tap test below accepts both. Without
+## this, _input() ran twice, both copies awaited the same
+## animation_finished, and both resumed on the same emission, so
+## reload_current_scene() was called twice in one frame. Monochrome had the
+## same hole and it was worse there, because it retries through
+## SceneChanger: the second change_to() orphaned the first loading screen
+## on a CanvasLayer at layer 128 and left it covering the running song.
+var _retrying: bool = false
+
+## Whether a retry would be accepted right now - the same condition
+## _input() tests, exposed for LullabyGameoverPrompt so the on-screen
+## button appears exactly when the screen is listening rather than from a
+## second copy of the rule that could drift.
+var can_retry: bool:
+	get:
+		return activated and not _retrying
+
 ## True from the moment health hits zero (before the cutscene even starts
 ## playing), false again on a fresh scene load. Local/instance-scoped on
 ## purpose instead of reusing the static LullabyGameoverModule.has_died -
@@ -41,7 +63,7 @@ func _ready() -> void :
 
 
 func _input(event: InputEvent) -> void :
-	if not activated or event.is_echo() or not event.is_pressed():
+	if not can_retry or event.is_echo() or not event.is_pressed():
 		return
 
 	# ui_accept's default InputMap is Enter/Space/gamepad A - no mouse or
@@ -56,6 +78,7 @@ func _input(event: InputEvent) -> void :
 	if not (event.is_action(&"ui_accept") or is_tap):
 		return
 
+	_retrying = true
 	animation_player.play(&"retry")
 	if music:
 		music.stop()
