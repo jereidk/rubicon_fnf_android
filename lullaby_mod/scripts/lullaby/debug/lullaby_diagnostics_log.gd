@@ -40,6 +40,16 @@ extends Node
 ##   draw=  is a count of draw calls, not a duration. It says how much work
 ##          was handed to the GPU, not how long the GPU took - gpu= says
 ##          that, and it is a real hardware timestamp.
+##
+## script= exists because those two plus churn= still left most of a bad
+## frame unexplained: Monochrome's spikes run 45-144ms with gpu at 12ms,
+## cpu_render at 1ms and note churn at 0.3ms, which accounts for about a
+## tenth of the frame. It brackets the whole per-frame processing pass -
+## every node's _process, and the internal processing AnimationPlayer and
+## AnimationTree run alongside it - so a spike now splits into "the main
+## thread was busy" (script high) and "the main thread was waiting" (script
+## low, and the time is in the render/present path instead). Those two want
+## opposite fixes, and nothing in this log could tell them apart.
 
 ## Where the log goes, in order of preference.
 ##
@@ -128,6 +138,49 @@ var _session_start_ms: int = 0
 var _scene_change_started_ms: int = 0
 var _scene_change_memory: int = 0
 
+## Brackets the frame's processing pass. This node runs first (see
+## PROCESS_FIRST) and stamps the start; _ScriptTail runs last and measures
+## the span.
+##
+## Read one frame behind on purpose, and that is not a rounding error: this
+## node's _process is the first thing in the frame, so the only completed
+## span available to it is the previous frame's - which is exactly the frame
+## the `delta` it was handed describes. The two line up.
+var _script_begin_usec: int = 0
+var _script_usec: int = 0
+var _script_peak_usec: int = 0
+
+## When the previous entry was written, so per-interval counters can be
+## reported as rates instead of as totals over an unknown window.
+var _last_entry_ms: int = 0
+
+## Priorities far outside anything gameplay uses, so this brackets every
+## other node rather than landing in the middle of them.
+const PROCESS_FIRST := -100000
+const PROCESS_LAST := 100000
+
+## Closes the bracket opened by the log's own _process. A separate node
+## because process_priority orders whole nodes - one node cannot run both
+## first and last.
+##
+## Its priority is set by the creator rather than in here: an inner class
+## does not see the outer script's constants, and reading PROCESS_LAST from
+## this scope would not resolve.
+class _ScriptTail extends Node:
+	var log_node: Node
+
+	func _ready() -> void:
+		process_mode = Node.PROCESS_MODE_ALWAYS
+
+	func _process(_delta: float) -> void:
+		if log_node == null:
+			return
+		log_node._close_script_bracket(Time.get_ticks_usec())
+
+func _close_script_bracket(now_usec: int) -> void:
+	_script_usec = now_usec - _script_begin_usec
+	_script_peak_usec = maxi(_script_peak_usec, _script_usec)
+
 ## While a load is in flight, its path and which progress checkpoints have
 ## already been reported. A SCENE_IN of 18726ms says the load is the problem
 ## but not which part of it - these turn one number into a curve, so a load
@@ -173,6 +226,7 @@ var _first_bucket_median: float = 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	process_priority = PROCESS_FIRST
 
 	if not Settings.lullaby_diagnostics_log:
 		set_process(false)
@@ -190,9 +244,16 @@ func _ready() -> void:
 	# isolated project after the instance-method call errored on Window.
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 
+	var tail := _ScriptTail.new()
+	tail.name = "ScriptTail"
+	tail.log_node = self
+	tail.process_priority = PROCESS_LAST
+	add_child(tail)
+
 	_frame_times.resize(WINDOW_SIZE)
 	_frame_times.fill(0.0)
 	_session_start_ms = Time.get_ticks_msec()
+	_last_entry_ms = _session_start_ms
 	_last_memory = OS.get_static_memory_usage()
 	_peak_memory = _last_memory
 	_last_vram = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
@@ -220,6 +281,11 @@ func _ready() -> void:
 		Settings.applied.connect(_on_settings_applied)
 
 func _process(delta: float) -> void:
+	# Opens the bracket _ScriptTail closes. First statement on purpose: this
+	# node has the lowest process_priority in the tree, so everything else
+	# that runs this frame runs after this line.
+	_script_begin_usec = Time.get_ticks_usec()
+
 	var frame_ms: float = delta * 1000.0
 
 	var median: float = _median_frame_ms()
@@ -651,7 +717,25 @@ func _entry(kind: String, detail: String) -> void:
 	#         pool and had to instantiate mid-song.
 	#   park= should equal spawn=. Anything less is a note that had to be put
 	#         back into the tree instead of being reused where it stood.
+	#
+	# churn is a RATE, in ms per second of wall clock. It was a total at
+	# first, which turned out to be unreadable: every _entry() clears the
+	# counters and entries do not arrive on a fixed cadence - a spike or a
+	# census lands between two heartbeats and takes most of the interval with
+	# it - so churn=100ms and churn=5ms could be the same cost measured over
+	# very different windows, and one log had exactly that pair four seconds
+	# apart. churn_max is per frame and was always unambiguous.
 	var churn: Dictionary = RubiconLevelNoteHandler.take_churn_stats()
+	var now_ms: int = Time.get_ticks_msec()
+	var window_s: float = float(now_ms - _last_entry_ms) / 1000.0
+	_last_entry_ms = now_ms
+	var churn_rate: float = 0.0
+	if window_s > 0.0:
+		churn_rate = (float(churn[&"usec"]) / 1000.0) / window_s
+
+	var script_ms: float = float(_script_usec) / 1000.0
+	var script_peak_ms: float = float(_script_peak_usec) / 1000.0
+	_script_peak_usec = 0
 
 	# The other half of gpu=, and the half that was missing. A SubViewport
 	# whose update mode is DISABLED is not rendering this frame and is left
@@ -669,7 +753,7 @@ func _entry(kind: String, detail: String) -> void:
 		sub_pixels += viewport.size.x * viewport.size.y
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM spawn=%d despawn=%d park=%d inst=%d churn=%.2fms churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -697,11 +781,13 @@ func _entry(kind: String, detail: String) -> void:
 		_sub_viewports.size(),
 		sub_gpu_ms,
 		float(sub_pixels) / 1048576.0,
+		script_ms,
+		script_peak_ms,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
 		int(churn[&"instantiated"]),
-		float(churn[&"usec"]) / 1000.0,
+		churn_rate,
 		float(churn[&"peak_usec"]) / 1000.0,
 		# The shop's physics cost runs 10-25x Chimera's on nothing but
 		# enable_object_picking's per-frame Area3D raycasts - these two were
