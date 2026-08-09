@@ -53,17 +53,17 @@ extends Node
 
 ## Where the log goes, in order of preference.
 ##
-## SHARED is the requested location: a hidden folder at the root of shared
-## storage, so everything the game writes for the player to find lives in one
-## place they can browse to. It is only reachable with the "All files access"
-## permission (MANAGE_EXTERNAL_STORAGE) on Android 11+ - scoped storage
-## forbids writing outside the app's own directory otherwise - and
-## export_presets.cfg currently requests no storage permissions at all, so
-## today this will not be creatable and the next entry is used.
-##
 ## ANDROID_APP is the app-private external directory. It shows up in any file
-## manager and needs no permission whatsoever on Android 4.4+, which makes it
-## the reliable option rather than the preferred one.
+## manager and needs no permission whatsoever on Android 4.4+.
+##
+## There used to be a first choice above it: a hidden folder at the root of
+## shared storage, so everything the game writes for the player to find lived
+## in one place. Reaching it needs "All files access"
+## (MANAGE_EXTERNAL_STORAGE), which was the only permission this build asked
+## for, and the device logs show it was never used anyway - every session
+## reports dir_used as the app-private path, because that entry is tried
+## first once the shared one fails. Dropping both means the APK requests no
+## permissions at all and nothing about where the log lands changes.
 ##
 ## FALLBACK is user://, which Godot maps to INTERNAL app storage
 ## (/data/user/0/<package>/files) - unreachable without root, and the reason
@@ -77,7 +77,6 @@ extends Node
 ## (a side-by-side test build, say) still logs into its own directory
 ## instead of one the OS will not let it write to.
 const ANDROID_PACKAGE := "com.rubicon.fnf"
-const SHARED_LOG_DIR := "/storage/emulated/0/.HypnosLullaby/logs"
 const ANDROID_APP_LOG_DIR_FMT := "/storage/emulated/0/Android/data/%s/files/logs"
 const FALLBACK_LOG_DIR := "user://logs"
 
@@ -845,7 +844,6 @@ func _android_package() -> String:
 func _pick_log_dir() -> String:
 	var candidates: Array[String] = []
 	if OS.get_name() == "Android":
-		candidates.append(SHARED_LOG_DIR)
 		candidates.append(ANDROID_APP_LOG_DIR_FMT % _android_package())
 	candidates.append(FALLBACK_LOG_DIR)
 
