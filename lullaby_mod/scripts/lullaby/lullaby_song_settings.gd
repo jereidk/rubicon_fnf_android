@@ -31,6 +31,8 @@ func _update() -> void :
 	settings_post_processing = Settings.graphics_post_processing
 	settings_autoplay = Settings.game_autoplay or LullabyShowcase.is_active()
 
+	_apply_speed_hack(Settings.lullaby_speed_hack)
+
 	for controller: RubiconLevelNoteController in playable_controllers:
 		controller.inputs = Settings.get_level_note_inputs()
 		controller.scroll_speed_multiplier *= Settings.game_speed_multiplier
@@ -60,3 +62,56 @@ func _update() -> void :
 				handler.lane_autoplay_hit_lingers = LullabyShowcase.is_active()
 			if handler.settings != null and "leniency_multiplier" in handler.settings:
 				handler.settings.leniency_multiplier = Settings.game_timing_leniency
+
+## Plays the song at `rate` times its tempo.
+##
+## Cheap here because of how a level keeps time: the clock reads its position
+## straight off one AnimationPlayer (see RubiconLevelClock.time_milliseconds),
+## and that animation drives the chart, the camera, the characters and every
+## mechanic keyed to the song. Scaling it scales all of them at once, and the
+## notes follow because they position themselves from the clock.
+##
+## The audio is the only thing that does not, since it runs free once
+## started, so every player gets a matching pitch_scale. That makes the song
+## higher or lower pitched, which Godot gives no way around - there is no
+## time-stretch for an AudioStreamPlayer - and is what every other engine's
+## speed hack does too.
+##
+## RubiconLevelSong.check_for_desync() then keeps them locked: it compares
+## the reference player's position against the animation's every measure and
+## re-seeks the audio if they drift past 45ms. Both sides are scaled by the
+## same factor, so that check goes on working untouched.
+func _apply_speed_hack(rate: float) -> void:
+	var level: RubiconLevel = _find_level()
+	if level == null or level.clock == null:
+		return
+
+	var timeline: AnimationPlayer = level.clock.animation_player
+	if timeline != null:
+		timeline.speed_scale = rate
+
+	for song: RubiconLevelSong in _find_songs(level):
+		for player: AudioStreamPlayer in song.audio_players:
+			if player != null:
+				player.pitch_scale = rate
+
+## The level this settings node belongs to. Walked rather than exported: the
+## three songs do not agree on what the clock node is called - Monochrome and
+## Chimera have "RubiconLevelClock", safety_lullaby has "Clock" - so anything
+## that goes by name works in two scenes out of three, which is worse than
+## not working at all.
+func _find_level() -> RubiconLevel:
+	var node: Node = self
+	while node != null:
+		if node is RubiconLevel:
+			return node
+		node = node.get_parent()
+	return null
+
+func _find_songs(root: Node) -> Array[RubiconLevelSong]:
+	var out: Array[RubiconLevelSong] = []
+	for child in root.get_children():
+		if child is RubiconLevelSong:
+			out.append(child)
+		out.append_array(_find_songs(child))
+	return out

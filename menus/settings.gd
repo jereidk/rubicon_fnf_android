@@ -218,6 +218,22 @@ var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.JOYSTICK
 var lullaby_baby_mode: bool = false
 var lullaby_showcase_mode: bool = false
 
+## Plays the whole song faster or slower. Not the same as
+## game_speed_multiplier above, which only changes how fast the notes travel
+## toward you: here the chart, the music and everything keyed to the song
+## move together, so the song really is at a different tempo.
+##
+## Applied by lullaby_song_settings.gd. Deliberately does NOT touch the
+## judgment windows - they are in milliseconds of song time, so at 1.5x a
+## Perfect is 1.5x harder to land in real time and at 0.5x it is easier,
+## which is the entire point of practising with it.
+##
+## A short list rather than a slider: easier to hit on a phone, and every
+## value is an exact binary fraction, so what is written to the save file
+## comes back matching an entry in the list instead of landing between two
+## (ListButton looks the current value up with values_list.find()).
+var lullaby_speed_hack: float = 1.0
+
 ## Which on-screen debug overlay LullabyFPSDisplay shows (its own
 ## CurrentState enum: 0 NONE / 1 VERY_SIMPLE / 2 BASIC / 3 ADVANCED).
 ## This used to live only as a runtime var on the display itself, cycled

@@ -203,7 +203,15 @@ const SHOWCASE_AUTOPLAY_MAX_INTERVAL := 0.55
 const SHOWCASE_AUTOPLAY_MIN_INTERVAL := 0.05
 
 func _autoplay_process(delta: float, time_left: float) -> void :
-	_autoplay_time_passed += delta
+	# Counted in song time, not in real time.
+	#
+	# time_left comes off the clock, so it shrinks twice as fast when the
+	# song is playing at 2x - while delta does not. Left in real seconds the
+	# autoplay would keep typing at its usual pace against a deadline
+	# arriving twice as quickly, and lose a challenge it can normally clear.
+	# Taken from the clock's own speed rather than from the setting, so it is
+	# right whatever moved it.
+	_autoplay_time_passed += delta * _song_speed()
 
 	if _autoplay_time_passed < _autoplay_interval(time_left):
 		return
@@ -229,6 +237,16 @@ func _autoplay_process(delta: float, time_left: float) -> void :
 ## whatever time_end the song's animation set, and self-corrects: if a
 ## stutter eats a moment, the next interval is computed from the clock as it
 ## now stands rather than from what was planned.
+## How many seconds of song pass per real second. 1.0 unless something is
+## scaling the timeline - Settings.lullaby_speed_hack, today.
+func _song_speed() -> float:
+	if reference_level == null or reference_level.clock == null:
+		return 1.0
+	var timeline: AnimationPlayer = reference_level.clock.animation_player
+	if timeline == null or timeline.speed_scale <= 0.0:
+		return 1.0
+	return timeline.speed_scale
+
 func _autoplay_interval(time_left: float) -> float:
 	if not LullabyShowcase.is_active():
 		return AUTOPLAY_INTERVAL
