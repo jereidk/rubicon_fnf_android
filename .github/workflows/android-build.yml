@@ -325,6 +325,16 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
+      - name: Verify the diagnostics log's format strings
+        run: |
+          # A GDScript format string with more placeholders than arguments
+          # does not raise and does not stop the game: `String % Array`
+          # returns the string unformatted. The log then writes
+          # "ram=%s gpu=%.2fms ..." for every line of the session and looks
+          # like a working file until someone parses it. One build and one
+          # play session were lost to exactly that.
+          python3 tools/verify_log_format.py
+
       - name: Verify hardcoded uid:// references resolve
         run: |
           # Catches the collector-shop crash class before it ships: a bare

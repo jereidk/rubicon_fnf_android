@@ -883,6 +883,7 @@ func _entry(kind: String, detail: String) -> void:
 		_sub_viewports.size(),
 		sub_gpu_ms,
 		float(sub_pixels) / 1048576.0,
+		biggest_name,
 		script_ms,
 		script_peak_ms,
 		int(churn[&"spawned"]),
