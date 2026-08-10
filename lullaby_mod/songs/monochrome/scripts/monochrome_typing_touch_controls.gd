@@ -22,6 +22,24 @@ class_name MonochromeTypingTouchControls
 ## focus when the challenge stops prompting dismisses the system keyboard
 ## without having to call any platform API.
 
+## True while a keyboard - the system one or the drawn one - is actually on
+## screen for this challenge.
+##
+## The note lanes have to get out of the way while the player is typing, and
+## RubiconMobileControls was pointed at TypingChallenge.active to decide
+## that. But active is a song animation track that stays true for the whole
+## bout - 11 seconds at 73-84, again at 110-121, and so on - while the
+## keyboard only wants the screen for `active and prompt_user and not
+## challenge_over`. Finish the word in three seconds and challenge_over goes
+## true, the keyboard leaves, and the lanes stayed hidden and inert for the
+## remaining eight while notes kept arriving. Reported from the device as
+## "you cannot press the notes until the hitbox comes back".
+##
+## So the lanes now hide on the condition that actually puts a keyboard over
+## them, which is this, computed in the same place and the same frame as the
+## keyboard itself.
+var keyboard_showing: bool = false
+
 @export var typing_challenge: TypingChallenge
 @export var text_input: LineEdit
 
@@ -148,6 +166,8 @@ func _process(_delta: float) -> void:
 
 	var drawn_height: float = _process_drawn_keyboard(drawn and challenge_wants)
 	_apply_raise(wants_input, drawn_height)
+
+	keyboard_showing = wants_input or (drawn and challenge_wants)
 
 ## Returns how much of the screen the drawn keyboard is covering, in viewport
 ## units, so the unowns can be lifted clear of it exactly the way they are

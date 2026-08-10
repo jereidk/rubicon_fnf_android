@@ -5786,8 +5786,8 @@ hitbox_top_percent = 0.0
 reserved_controls = [NodePath("../SongTouchControls/PauseButton"), NodePath("../SongTouchControls/RestartButton")]
 default_hud = NodePath("../GameUI")
 gameover_source = NodePath("../../GameoverModule")
-hide_sources = [NodePath("../../Stage/TypingChallenge")]
-hide_properties = Array[StringName]([&"active"])
+hide_sources = [NodePath("../TypingTouchControls")]
+hide_properties = Array[StringName]([&"keyboard_showing"])
 
 [node name="ShowcaseNoteSync" type="Node" parent="UILayer" node_paths=PackedStringArray("note_controller", "mobile_controls")]
 script = ExtResource("300")
