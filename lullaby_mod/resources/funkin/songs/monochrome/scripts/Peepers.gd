@@ -78,10 +78,54 @@ var _has_base_position: bool = false
 var _shader_dirty: bool = true
 var _unowns: Array[ColorRect]
 
+## Resolved once alongside _unowns, because everything below used to be
+## re-derived per eye per frame: `"_time" in unown`, has_method(), call(),
+## `"glow_node" in unown` and a cast of unown.material. That is a dictionary
+## lookup or a dynamic dispatch 128 times a frame for answers that cannot
+## change while the scene is loaded.
+var _eye_times: Array[bool] = []
+var _eye_wobbles: Array[bool] = []
+var _eye_glows: Array[Node] = []
+var _eye_materials: Array[ShaderMaterial] = []
+## The distinct materials, after the 128 became 6. eye_style is one value for
+## the whole field, so it needs writing once per material and not once per
+## eye - which with shared materials would be 128 writes of the same value to
+## the same six objects.
+var _unique_materials: Array[ShaderMaterial] = []
+var _settings_node: Node
+var _settings_looked_up: bool = false
+
 
 func _ready() -> void :
 	_capture_base_position()
 	_update_unown_shaders()
+	_apply_child_processing()
+
+
+## Each eye runs its own _process for the wobble, and each glow runs another
+## for its scale and rotation - 256 callbacks a frame on top of this node's
+## own loops. Godot does not skip _process for an invisible node, so they all
+## kept running through every stretch of the song where Peepers is hidden,
+## which on Monochrome is most of it.
+##
+## _process() here already returns early when hidden, so _time stops
+## advancing and the children have nothing new to react to anyway.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		_apply_child_processing()
+
+
+func _apply_child_processing() -> void:
+	if not is_inside_tree():
+		return
+
+	var on: bool = visible
+	var unowns: Array[ColorRect] = _get_unowns()
+	for index: int in range(unowns.size()):
+		unowns[index].set_process(on)
+		var glow: Node = _eye_glows[index]
+		if glow != null:
+			glow.set_process(on)
 
 
 func _process(delta: float) -> void :
@@ -137,12 +181,14 @@ func _update_unown_wobble() -> void :
 	if not movement_enabled:
 		final_wobble_intensity = 0.0
 
-	for unown: ColorRect in _get_unowns():
-		if "_time" in unown:
-			unown._time = _time
+	var unowns: Array[ColorRect] = _get_unowns()
+	for index: int in range(unowns.size()):
+		var unown: ColorRect = unowns[index]
+		if _eye_times[index]:
+			unown.set(&"_time", _time)
 
-		if unown.has_method("set_wobble_intensity"):
-			unown.call("set_wobble_intensity", final_wobble_intensity)
+		if _eye_wobbles[index]:
+			unown.set(&"wobble_intensity", final_wobble_intensity)
 
 
 func _update_unown_shaders() -> void :
@@ -156,6 +202,11 @@ func _update_unown_shaders() -> void :
 		_shader_dirty = false
 		return
 
+	# Once per material rather than once per eye: the six materials are
+	# shared by all 128 now, and eye_style is a single value for the field.
+	for material: ShaderMaterial in _unique_materials:
+		material.set_shader_parameter(EYE_STYLE_PARAMETER, eye_style)
+
 	for index: int in range(unown_count):
 		_update_unown_shader(unowns[index], index, unown_count)
 
@@ -163,11 +214,10 @@ func _update_unown_shaders() -> void :
 
 
 func _update_unown_shader(unown: ColorRect, index: int, unown_count: int) -> void :
-	if "_time" in unown:
-		unown._time = _time
+	if _eye_times[index]:
+		unown.set(&"_time", _time)
 
-	var shader_material: ShaderMaterial = unown.material as ShaderMaterial
-	if shader_material == null:
+	if _eye_materials[index] == null:
 		return
 
 	var stagger_index: int = index
@@ -182,14 +232,14 @@ func _update_unown_shader(unown: ColorRect, index: int, unown_count: int) -> voi
 		shader_hold_progress = _get_staggered_progress(hold_progress, stagger_index, unown_count)
 
 	unown.modulate.a = maxf(shader_progress, shader_hold_progress)
-	shader_material.set_shader_parameter(EYE_STYLE_PARAMETER, eye_style)
 
-	if not "glow_node" in unown or unown.glow_node == null:
+	var glow: Node = _eye_glows[index]
+	if glow == null:
 		return
 
-	unown.glow_node.progress_value = shader_progress
-	unown.glow_node.hold_progress_value = shader_hold_progress
-	unown.glow_node.eye_style = eye_style
+	glow.set(&"progress_value", shader_progress)
+	glow.set(&"hold_progress_value", shader_hold_progress)
+	glow.set(&"eye_style", eye_style)
 
 
 func _get_staggered_progress(base_progress: float, index: int, unown_count: int) -> float:
@@ -207,8 +257,32 @@ func _get_unowns() -> Array[ColorRect]:
 	if _unowns.is_empty():
 		var container: Node = _get_unown_container()
 		_get_parallax_unowns(container, _unowns)
+		_cache_eye_lookups()
 
 	return _unowns
+
+
+## The per-eye answers that never change once the scene is built.
+func _cache_eye_lookups() -> void:
+	_eye_times.clear()
+	_eye_wobbles.clear()
+	_eye_glows.clear()
+	_eye_materials.clear()
+	_unique_materials.clear()
+
+	for unown: ColorRect in _unowns:
+		_eye_times.append("_time" in unown)
+		_eye_wobbles.append(unown.has_method("set_wobble_intensity"))
+
+		var glow: Node = null
+		if "glow_node" in unown:
+			glow = unown.glow_node
+		_eye_glows.append(glow)
+
+		var material: ShaderMaterial = unown.material as ShaderMaterial
+		_eye_materials.append(material)
+		if material != null and not _unique_materials.has(material):
+			_unique_materials.append(material)
 
 
 func _get_parallax_unowns(node: Node, unowns: Array[ColorRect]) -> void :
@@ -225,7 +299,13 @@ func _get_parallax_unowns(node: Node, unowns: Array[ColorRect]) -> void :
 ## @tool script, so it also runs in the editor where no autoload exists, and
 ## get_node_or_null keeps it at full strength there instead of erroring.
 func _shake_scale() -> float:
-	var settings: Node = get_node_or_null(^"/root/Settings")
-	if settings == null:
+	# Looked up once. This runs inside _update_parent_shake(), which runs
+	# every frame, and a get_node_or_null() per frame for a node that cannot
+	# appear or disappear mid-scene is a lookup for nothing.
+	if not _settings_looked_up:
+		_settings_looked_up = true
+		_settings_node = get_node_or_null(^"/root/Settings")
+
+	if _settings_node == null:
 		return 1.0
-	return clampf(float(settings.get(&"lullaby_screen_shake")) / 100.0, 0.0, 1.0)
+	return clampf(float(_settings_node.get(&"lullaby_screen_shake")) / 100.0, 0.0, 1.0)

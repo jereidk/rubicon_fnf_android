@@ -68,6 +68,8 @@ var _viewport: Viewport
 var _viewport_center: Vector2
 var _texture_size: Vector2
 var _is_editor: bool
+var _rotation_offset_radians: float = 0.0
+var _rotation_offset_degrees: float = NAN
 
 
 func _ready() -> void :
@@ -108,14 +110,26 @@ func _get_shader_material() -> ShaderMaterial:
 
 func _update_glow(force_transform_update: bool = false) -> void :
 	_update_scale_and_position_if_needed(force_transform_update)
-	_update_alpha()
+
+	# Only on the forced path. Every input _update_alpha() reads - eye_style,
+	# progress_value, hold_progress_value - is a setter that already calls it
+	# on change, so running it again every frame recomputed the same alpha
+	# 128 times a frame across the field. alpha_multiplier and
+	# follow_shader_progress have no setter, which is why the editor keeps
+	# the per-frame call (_process passes _is_editor).
+	if force_transform_update:
+		_update_alpha()
 
 	if not point_to_viewport_center or _viewport == null:
 		return
 
+	if not is_equal_approx(_rotation_offset_degrees, rotation_offset_degrees):
+		_rotation_offset_degrees = rotation_offset_degrees
+		_rotation_offset_radians = deg_to_rad(rotation_offset_degrees)
+
 	var to_center: Vector2 = _viewport_center - global_position
 	if to_center.x != 0.0:
-		global_rotation = to_center.angle() + deg_to_rad(rotation_offset_degrees)
+		global_rotation = to_center.angle() + _rotation_offset_radians
 
 
 func _update_alpha() -> void :

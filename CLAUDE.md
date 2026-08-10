@@ -163,9 +163,14 @@ The tell for this class of bug is a defensive guard in our own code: a
 already reference usually means someone hit the gap, worked around it, and
 moved on.
 
-**`gdanimate` is a different version too, not just Rubicon.** The mod ships
-gdanimate with `adobe/` + `sparrow/`; ours is a rewrite with `adobe/` +
-`parser/`, and `AnimateSymbol`'s exports do not match:
+**`gdanimate` used to be a different version too. It is not any more** - the
+addon now matches the mod's, `adobe/` + `sparrow/`, with `atlases`,
+`atlas_index` and `use_backbuffer_cache` all present. The table below is kept
+because the *reasons* in it still explain why `offset` was restored and
+`centered` was not, but do not use it as a list of what is missing. What
+follows it about the stage instance matrix is still true.
+
+The version that mattered when this was written:
 
 | mod | ours |
 |---|---|
@@ -1049,6 +1054,45 @@ out-of-range bug it looks like. Verify enum values against the running binary
 matches as long as the omitted default equals what it wants - but declare new
 fields in all four files anyway, or the next person reading the table above
 will draw the wrong conclusion.
+
+## Peepers is half of Monochrome's frame
+
+`Peepers.tscn` - the wall of eyes - is 132 nodes carrying 128 ColorRects, and
+it is the single most expensive thing in the song. Measured on device across
+28 heartbeats with it visible against 79 without:
+
+| | on | off |
+|---|---|---|
+| draw | 270 | 32 |
+| gpu | 10.84ms | 9.55ms |
+| cpu_render | 1.65ms | 0.76ms |
+| script | 10.14ms | 6.89ms |
+| script_max | 38.28ms | 20.62ms |
+| fps_low | 20.5 | 29 |
+
+Two separate causes, both fixed, and both worth knowing as shapes:
+
+**128 unique ShaderMaterials where 6 would do.** All 128 eyes use the same
+shader; the materials differed only in `rect_size`, which the shader reads
+solely as `aspect = rect_size.x / rect_size.y` - and every eye is square, so
+all 126 distinct values were no-ops. A unique material per item is a unique
+bind per item, so nothing batched. The parameters that actually vary are
+`eye_size_variant` (3) and `eye_position` (2). **Before assuming a per-item
+material is needed, check what the shader does with the parameter that
+differs.**
+
+**256 `_process` callbacks that ran while hidden.** Each eye runs its own
+`_process` for the wobble and each glow runs another for scale and rotation.
+Godot does not skip `_process` for an invisible node, so all 256 kept firing
+through every stretch where Peepers is hidden - which is most of the song.
+They were provably doing nothing: `Peepers._process` returns early when
+hidden, so `_time` freezes, and every child recomputed the same position,
+alpha and rotation from frozen inputs. `NOTIFICATION_VISIBILITY_CHANGED` now
+gates `set_process` on all of them.
+
+`fx=N(effect=M full=K)` in the CENSUS line is what found this: it counts
+visible CanvasItems carrying a ShaderMaterial, and it tracked the song's
+`Stage/Peepers:visible` keys one for one against `draw`.
 
 ## Open problems
 

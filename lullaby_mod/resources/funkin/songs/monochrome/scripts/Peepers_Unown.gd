@@ -27,6 +27,15 @@ var _time: float = 0.0
 var _base_position: Vector2 = Vector2.ZERO
 var _has_base_position: bool = false
 
+## The wobble axis, derived from wobble_direction_degrees. It was recomputed
+## in _process - a deg_to_rad, a cos, a sin and an orthogonal() - for a value
+## that only changes if someone edits the export. With 128 eyes that was 256
+## trig calls a frame for a constant. Recomputed when the source changes, so
+## dragging the slider in the editor still works.
+var _direction: Vector2 = Vector2.RIGHT
+var _side_direction: Vector2 = Vector2.DOWN
+var _direction_degrees: float = NAN
+
 
 func _ready() -> void :
 	_base_position = position
@@ -41,14 +50,16 @@ func _process(_delta: float) -> void :
 	if not wobble_enabled:
 		return
 
-	var rot: = deg_to_rad(wobble_direction_degrees)
-	var direction: = Vector2(cos(rot), sin(rot))
-	var side_direction: = direction.orthogonal()
+	if not is_equal_approx(_direction_degrees, wobble_direction_degrees):
+		_direction_degrees = wobble_direction_degrees
+		var rot: float = deg_to_rad(wobble_direction_degrees)
+		_direction = Vector2(cos(rot), sin(rot))
+		_side_direction = _direction.orthogonal()
 
 	var scaled_time: = _time * wobble_speed
 	position = _base_position + (
-		direction * sin(scaled_time)
-		+ (side_direction * cos(scaled_time * y_speed_multiplier) * wobble_side_amount)
+		_direction * sin(scaled_time)
+		+ (_side_direction * cos(scaled_time * y_speed_multiplier) * wobble_side_amount)
 	) * wobble_amount * wobble_intensity
 
 
