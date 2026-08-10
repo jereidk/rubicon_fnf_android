@@ -104,7 +104,29 @@ const CENSUS_SECONDS := 30.0
 const CENSUS_ON_PROC_MS := 300.0
 
 ## Progress fractions to report during a threaded load.
-const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.75, 0.9]
+##
+## Dense between 0.50 and 0.75 because that band is the entire problem. The
+## Collector's Shop loads in 5963ms the first time in a session and 23822ms
+## and 21677ms after that, and the checkpoints put every second of the
+## difference in one place:
+##
+##            0 -> 50%     50 -> 75%    total
+##   first     1906ms       3973ms      5963ms
+##   second    1578ms      22164ms     23822ms
+##   third     1950ms      19594ms     21677ms
+##
+## VRAM climbs by the same ~82MB across that band both times (27->109 cold,
+## 61->143 warm), so it is the same texture work taking 5.6x as long, not
+## more of it. That also kills the note in this repo that blamed VRAM
+## pressure for loads getting slower: VRAM went from 625MB to 164MB with the
+## ASTC work and the degradation did not move.
+##
+## The only thing that is very different at the start of the band is the
+## resource cache: 378 entries cold against 18972 and 21431 warm. Six more
+## checkpoints turn "somewhere in here" into either a smooth crawl - which
+## points at per-load overhead scaling with the cache - or a stall at one
+## fraction, which points at one specific resource.
+const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9]
 
 const SUMMARY_MINUTES := 2.0
 
