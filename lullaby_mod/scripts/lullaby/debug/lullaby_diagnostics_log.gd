@@ -811,16 +811,29 @@ func _entry(kind: String, detail: String) -> void:
 	var sub_gpu_ms: float = 0.0
 	var sub_live: int = 0
 	var sub_pixels: int = 0
+	# Which one is the biggest, by name. sub_px= says how many pixels the
+	# SubViewports cost in total and never which of them spends them: the
+	# shop authors three, 0.48 Mpx between them once the render scale has
+	# been applied, and the device measures 1.0-1.4 Mpx across four to six
+	# live ones - so half of it comes from viewports inside instanced
+	# sub-scenes that no gate in the room scene can see. A total cannot be
+	# acted on; a name can.
+	var biggest_name: String = "-"
+	var biggest_pixels: int = 0
 	for viewport: SubViewport in _sub_viewports:
 		if not is_instance_valid(viewport):
 			continue
 		if viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED:
 			continue
 		sub_live += 1
-		sub_pixels += viewport.size.x * viewport.size.y
+		var pixels: int = viewport.size.x * viewport.size.y
+		sub_pixels += pixels
+		if pixels > biggest_pixels:
+			biggest_pixels = pixels
+			biggest_name = "%s(%dx%d)" % [viewport.name, viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
