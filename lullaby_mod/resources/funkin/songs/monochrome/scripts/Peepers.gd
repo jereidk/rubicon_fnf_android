@@ -94,6 +94,7 @@ var _eye_materials: Array[ShaderMaterial] = []
 var _unique_materials: Array[ShaderMaterial] = []
 var _settings_node: Node
 var _settings_looked_up: bool = false
+var _last_wobble_intensity: float = NAN
 
 
 func _ready() -> void :
@@ -166,7 +167,13 @@ func _update_parent_shake() -> void :
 		_capture_base_position()
 
 	if not violent_shake_enabled or not movement_enabled:
-		container.position = _base_position
+		# Only when it is not already there. Control.set_position() has no
+		# early-out: it recomputes the anchors and calls _size_changed(),
+		# which notifies every descendant. This container has 128 eyes and
+		# their 128 glows under it, so writing the same position every frame
+		# was a 256-node layout notification for no movement at all.
+		if container.position != _base_position:
+			container.position = _base_position
 		return
 
 	container.position = _base_position + Vector2(
@@ -181,13 +188,20 @@ func _update_unown_wobble() -> void :
 	if not movement_enabled:
 		final_wobble_intensity = 0.0
 
+	# The intensity is one number for the whole field and changes only when
+	# wobble_intensity or movement_enabled do - a handful of times a song.
+	# It was being written to all 128 eyes every frame.
+	var push_intensity: bool = not is_equal_approx(_last_wobble_intensity, final_wobble_intensity)
+	if push_intensity:
+		_last_wobble_intensity = final_wobble_intensity
+
 	var unowns: Array[ColorRect] = _get_unowns()
 	for index: int in range(unowns.size()):
 		var unown: ColorRect = unowns[index]
 		if _eye_times[index]:
 			unown.set(&"_time", _time)
 
-		if _eye_wobbles[index]:
+		if push_intensity and _eye_wobbles[index]:
 			unown.set(&"wobble_intensity", final_wobble_intensity)
 
 

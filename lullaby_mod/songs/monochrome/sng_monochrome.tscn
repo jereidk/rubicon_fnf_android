@@ -86,6 +86,7 @@
 [ext_resource type="Script" path="res://lullaby_mod/songs/monochrome/scripts/monochrome_typing_touch_controls.gd" id="203"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="204"]
 [ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="205"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/lullaby_effect_rect_gate.gd" id="301"]
 
 [sub_resource type="Animation" id="Animation_w1qyd"]
 length = 0.001
@@ -5545,6 +5546,7 @@ libraries/ = SubResource("AnimationLibrary_oat7m")
 autoplay = &"RESET"
 
 [node name="RadialBlur" type="ColorRect" parent="Front" unique_id=380721053]
+script = ExtResource("301")
 mouse_filter = 2
 material = SubResource("ShaderMaterial_dn3fh")
 color = Color(0, 0, 0, 0)

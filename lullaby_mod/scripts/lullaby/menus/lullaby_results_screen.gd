@@ -16,8 +16,32 @@ const FLAGS_FOR_CREDITS: Array[StringName] = [&"safety_lullaby_beaten", &"monoch
 
 var active: bool = false
 
+## The 3D render behind the results art: its own world, its own
+## WorldEnvironment, a Camera3D and a DirectionalLight3D with shadows on.
+##
+## This screen is instanced in all three songs and shipped hidden, and the
+## viewport had no update mode of its own, so it sat in every song scene as
+## the largest live SubViewport in the tree - a shadow-casting 3D render for
+## a screen nobody sees until the song ends. Authored DISABLED now and turned
+## on here, which works because it hangs off this Control directly: a
+## SubViewportContainer would overwrite the mode from its own visibility on
+## every notification and an authored value would be inert.
+@export var render_viewport: SubViewport
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and render_viewport != null:
+		render_viewport.render_target_update_mode = (
+			SubViewport.UPDATE_ALWAYS if is_visible_in_tree() else SubViewport.UPDATE_DISABLED
+		)
+
 
 func _ready() -> void :
+	if render_viewport == null:
+		render_viewport = get_node_or_null(^"SubViewport") as SubViewport
+	if render_viewport != null and is_visible_in_tree():
+		render_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
 	if target_timeline:
 		target_timeline.animation_finished.connect(_on_song_finished)
 

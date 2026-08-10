@@ -50,6 +50,16 @@ func _process(_delta: float) -> void :
 	if not wobble_enabled:
 		return
 
+	# A wobble of zero amplitude puts the node exactly on _base_position, and
+	# it is already there from the frame the intensity reached zero. Peepers
+	# holds every eye at intensity 0 whenever movement is off, so without
+	# this all 128 kept computing a sine and writing back a position they
+	# already had. Node2D.set_position() has no early-out either.
+	if is_zero_approx(wobble_amount * wobble_intensity):
+		if position != _base_position:
+			position = _base_position
+		return
+
 	if not is_equal_approx(_direction_degrees, wobble_direction_degrees):
 		_direction_degrees = wobble_direction_degrees
 		var rot: float = deg_to_rad(wobble_direction_degrees)
