@@ -203,10 +203,67 @@ func _process(delta: float) -> void:
 	internal_setting_frame = false
 
 
+## Total time inside every AnimateSymbol._draw() since the last read, and
+## the worst single call, split by which path it took.
+##
+## The two paths cost wildly different amounts. When nothing changed, _draw()
+## re-runs the cached backbuffer path and returns. When the animation frame
+## advanced, frame_dirty forces a full rebuild: every canvas item RID this
+## symbol owns is freed and the whole symbol tree is walked and recreated
+## from the parsed JSON. Gold's atlas is 154 symbols, 401 layers and 4266
+## elements, and the busiest symbol under _EXPORT is 1431 elements across 47
+## layers - rebuilt at the atlas framerate, 24 times a second.
+##
+## Monochrome's device log names AnimationPlayer/goldp1_atlas_LIBRARY/_EXPORT
+## in three of its nine spikes, one of them at script=78.91ms on a frame
+## whose GPU was 10.12ms. That is the shape of this rebuild, but "is the
+## shape of" is not a measurement, and the last two times something here was
+## optimised on a shape it moved nothing on device.
+##
+## Kept as plain statics with no autoload dependency, same as
+## RubiconLevelNoteHandler's churn counters - this addon stays free of the
+## mod's singletons and the log reads these when it wants them.
+static var draw_usec: int = 0
+static var draw_peak_usec: int = 0
+static var rebuild_usec: int = 0
+static var rebuild_count: int = 0
+static var cached_count: int = 0
+
+## Reads the counters and clears them, so each caller sees the interval since
+## its own previous call rather than a total since boot.
+static func take_draw_stats() -> Dictionary:
+	var stats := {
+		&"usec": draw_usec,
+		&"peak_usec": draw_peak_usec,
+		&"rebuild_usec": rebuild_usec,
+		&"rebuilds": rebuild_count,
+		&"cached": cached_count,
+	}
+	draw_usec = 0
+	draw_peak_usec = 0
+	rebuild_usec = 0
+	rebuild_count = 0
+	cached_count = 0
+	return stats
+
 func _draw() -> void:
+	var begin_usec: int = Time.get_ticks_usec()
+	var rebuilt: bool = _draw_impl()
+	var spent: int = Time.get_ticks_usec() - begin_usec
+
+	draw_usec += spent
+	draw_peak_usec = maxi(draw_peak_usec, spent)
+	if rebuilt:
+		rebuild_usec += spent
+		rebuild_count += 1
+	else:
+		cached_count += 1
+
+## Returns true when it took the full-rebuild path rather than the cached one.
+func _draw_impl() -> bool:
 	var atlas: AnimateAtlas = get_atlas()
 	if not is_instance_valid(atlas):
-		return
+		return false
 
 	var draw_info: AnimateDrawInfo = AnimateDrawInfo.new(
 		symbol,
@@ -225,7 +282,7 @@ func _draw() -> void:
 
 	if atlas is AdobeAtlas and atlas.use_backbuffer_cache:
 		_draw_adobe(atlas as AdobeAtlas, draw_info)
-		return
+		return false
 
 	frame_dirty = false
 	RenderingServer.canvas_item_clear(get_canvas_item())
@@ -246,6 +303,8 @@ func _draw() -> void:
 			_draw_adobe(atlas as AdobeAtlas, draw_info)
 		_:
 			pass
+
+	return true
 
 
 func _draw_sparrow(atlas: SparrowAtlas, draw_info: AnimateDrawInfo) -> void:

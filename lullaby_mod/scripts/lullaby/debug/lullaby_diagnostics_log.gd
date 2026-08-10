@@ -780,6 +780,26 @@ func _entry(kind: String, detail: String) -> void:
 	if window_s > 0.0:
 		note_rate = (float(churn[&"note_usec"]) / 1000.0) / window_s
 
+	# The 2D atlas animations, same rate and the same reason as notes=.
+	#
+	# notes= answered its question: 100-170ms/s in Monochrome, so 1.7-2.3ms of
+	# a 16.7ms frame. Real, but nowhere near enough to explain script_max at
+	# 11-36ms on every heartbeat of a song whose GPU sits at 11ms with 5ms to
+	# spare. gdanimate is the other large per-frame thing in that scene, and
+	# three of the nine spikes name Gold's atlas library.
+	#
+	# rebuild= vs cached= is the part that matters: the cached path returns
+	# almost immediately, the rebuild path frees every canvas item RID the
+	# symbol owns and walks the whole symbol tree again. If rebuild_ms is
+	# most of anim2d and anim2d is most of script, that is the fix, and it is
+	# a fix inside one addon rather than in gameplay code.
+	var anim: Dictionary = AnimateSymbol.take_draw_stats()
+	var anim_rate: float = 0.0
+	var anim_rebuild_rate: float = 0.0
+	if window_s > 0.0:
+		anim_rate = (float(anim[&"usec"]) / 1000.0) / window_s
+		anim_rebuild_rate = (float(anim[&"rebuild_usec"]) / 1000.0) / window_s
+
 	var script_ms: float = float(_script_usec) / 1000.0
 	var script_peak_ms: float = float(_script_peak_usec) / 1000.0
 	_script_peak_usec = 0
@@ -800,7 +820,7 @@ func _entry(kind: String, detail: String) -> void:
 		sub_pixels += viewport.size.x * viewport.size.y
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -837,6 +857,11 @@ func _entry(kind: String, detail: String) -> void:
 		churn_rate,
 		float(churn[&"peak_usec"]) / 1000.0,
 		note_rate,
+		anim_rate,
+		anim_rebuild_rate,
+		int(anim[&"rebuilds"]),
+		float(anim[&"peak_usec"]) / 1000.0,
+		int(anim[&"cached"]),
 		# The shop's physics cost runs 10-25x Chimera's on nothing but
 		# enable_object_picking's per-frame Area3D raycasts - these two were
 		# flagged as worth measuring and never were, so they ride along here
