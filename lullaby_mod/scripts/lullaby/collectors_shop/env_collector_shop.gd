@@ -200,6 +200,23 @@ func _input(event: InputEvent) -> void :
 		return
 
 	if event.is_action(&"ui_cancel"):
+		# Every guard below, on one line, the moment the player presses Back.
+		#
+		# The board screen was reported as impossible to leave, and reading
+		# the scene says it should be leavable: sequence_board sets state to
+		# FOCUSED, FocusBoard takes over current_area so no sibling's
+		# is_focused-gated handler can swallow the press first, and nothing
+		# between here and the root marks the event handled. One of those is
+		# false on the device and static reading cannot say which, so it says
+		# so itself.
+		if DiagnosticsLog != null:
+			DiagnosticsLog.mark("ui_cancel state=%s console_focused=%s area=%s handled=%s" % [
+				ShopStates.keys()[state] if state < ShopStates.size() else state,
+				"?" if console == null else str(console.focused),
+				"none" if current_area == null else current_area.name,
+				str(get_viewport().is_input_handled()),
+			])
+
 		# While the console is actively grabbing GUI focus for Home-tab/
 		# submenu navigation (Console.focused, set by focus_console.gd's
 		# trigger() - see FocusConsoleEntry's own doc comment), let
