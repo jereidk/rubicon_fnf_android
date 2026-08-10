@@ -92,6 +92,17 @@ static var churn_peak_usec : int = 0
 ## them.
 static var note_process_usec : int = 0
 
+## The lanes' own half of that number, so the two can be told apart.
+##
+## note_process_usec sums both, and the device says the cost is ~125us per
+## object per frame whether there are 20 notes on screen or none: 58.9ms/s
+## with zero notes and eight lanes, 221.2ms/s with twenty notes and eight
+## lanes. A flat per-object cost that does not care how many notes exist
+## means the eight lanes alone are a 1ms/frame floor in every song, before a
+## single note is drawn - and nothing here could say whether that floor is
+## the lanes or the notes, because one counter held both.
+static var lane_process_usec : int = 0
+
 static var _churn_frame : int = -1
 static var _churn_frame_usec : int = 0
 
@@ -107,6 +118,7 @@ static func take_churn_stats() -> Dictionary:
 		&"usec": churn_usec,
 		&"peak_usec": churn_peak_usec,
 		&"note_usec": note_process_usec,
+		&"lane_usec": lane_process_usec,
 	}
 	churn_spawned = 0
 	churn_despawned = 0
@@ -115,6 +127,7 @@ static func take_churn_stats() -> Dictionary:
 	churn_usec = 0
 	churn_peak_usec = 0
 	note_process_usec = 0
+	lane_process_usec = 0
 	return stats
 
 static func _record_churn(begin_usec : int) -> void:

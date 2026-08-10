@@ -148,7 +148,9 @@ func _process(delta: float) -> void:
 
 	var began : int = Time.get_ticks_usec()
 	_process_lane(delta)
-	note_process_usec += Time.get_ticks_usec() - began
+	var spent : int = Time.get_ticks_usec() - began
+	note_process_usec += spent
+	lane_process_usec += spent
 
 func _process_lane(delta: float) -> void:
 	super._process(delta)

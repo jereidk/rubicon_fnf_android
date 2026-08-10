@@ -798,8 +798,10 @@ func _entry(kind: String, detail: String) -> void:
 	# expensive is not the notes, and the next thing to time is somewhere
 	# else entirely.
 	var note_rate: float = 0.0
+	var lane_rate: float = 0.0
 	if window_s > 0.0:
 		note_rate = (float(churn[&"note_usec"]) / 1000.0) / window_s
+		lane_rate = (float(churn[&"lane_usec"]) / 1000.0) / window_s
 
 	# The 2D atlas animations, same rate and the same reason as notes=.
 	#
@@ -854,7 +856,7 @@ func _entry(kind: String, detail: String) -> void:
 			biggest_name = "%s(%dx%d)" % [viewport.name, viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -892,6 +894,7 @@ func _entry(kind: String, detail: String) -> void:
 		churn_rate,
 		float(churn[&"peak_usec"]) / 1000.0,
 		note_rate,
+		lane_rate,
 		anim_rate,
 		anim_rebuild_rate,
 		int(anim[&"rebuilds"]),
