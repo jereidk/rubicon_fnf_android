@@ -32,6 +32,7 @@ script = ExtResource("2")
 glow_node = NodePath("Glow")
 
 [node name="Glow" type="Sprite2D" parent="." unique_id=1975840849 node_paths=PackedStringArray("target_color_rect")]
+z_index = 1
 material = ExtResource("3")
 position = Vector2(29.99997, 29.998508)
 rotation = 1.6183758

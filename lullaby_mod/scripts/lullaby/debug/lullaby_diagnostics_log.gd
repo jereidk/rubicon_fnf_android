@@ -105,28 +105,27 @@ const CENSUS_ON_PROC_MS := 300.0
 
 ## Progress fractions to report during a threaded load.
 ##
-## Dense between 0.50 and 0.75 because that band is the entire problem. The
-## Collector's Shop loads in 5963ms the first time in a session and 23822ms
-## and 21677ms after that, and the checkpoints put every second of the
-## difference in one place:
+## Dense right after 0.50, because that is where the whole thing lives.
 ##
-##            0 -> 50%     50 -> 75%    total
-##   first     1906ms       3973ms      5963ms
-##   second    1578ms      22164ms     23822ms
-##   third     1950ms      19594ms     21677ms
+## The Collector's Shop loads in about 5s the first time in a session and
+## 17-24s after that. Splitting 0.50-0.75 said the difference was all in
+## that band; splitting it again said it is all in the first 5% of it:
 ##
-## VRAM climbs by the same ~82MB across that band both times (27->109 cold,
-## 61->143 warm), so it is the same texture work taking 5.6x as long, not
-## more of it. That also kills the note in this repo that blamed VRAM
-## pressure for loads getting slower: VRAM went from 625MB to 164MB with the
-## ASTC work and the degradation did not move.
+##            0 -> 50%   50 -> 55%   55 -> 90%   total
+##   cold      2253ms      2690ms       118ms     5062ms
+##   warm      2216ms     14856ms        73ms    17147ms
 ##
-## The only thing that is very different at the start of the band is the
-## resource cache: 378 entries cold against 18972 and 21431 warm. Six more
-## checkpoints turn "somewhere in here" into either a smooth crawl - which
-## points at per-load overhead scaling with the cache - or a stall at one
-## fraction, which points at one specific resource.
-const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9]
+## Same +72MB of VRAM across that band both times, and everything from 0.55
+## to 0.90 finishes inside 100ms. So it is one chunk of the dependency list,
+## uploading the same textures, taking 5.5x as long once the resource cache
+## holds 21000 entries instead of 650 - a stall at a point, not a crawl.
+##
+## It also killed the note in this repo that blamed VRAM pressure: VRAM went
+## from 625MB to 164MB with the ASTC work and the degradation did not move.
+##
+## 1% steps now, because at this resolution the answer is either one
+## resource or a handful of them.
+const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.51, 0.52, 0.53, 0.54, 0.55, 0.6, 0.75, 0.9]
 
 const SUMMARY_MINUTES := 2.0
 
