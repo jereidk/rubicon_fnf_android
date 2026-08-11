@@ -148,6 +148,47 @@ var _time_since_census: float = 0.0
 var _last_vram: int = 0
 ## Previous entry's pipeline total, so each line can report its own delta.
 var _last_pipelines: int = 0
+var _last_frames_drawn: int = 0
+var _last_frames_processed: int = 0
+
+## Input events seen since the last entry, and when the last one arrived.
+##
+## This is the counter the 60/40 report needed and nobody had. The tester
+## found that Monochrome settles at 40fps when you stop touching the hitbox
+## and returns to 60 when you play again, and - the tell - that it does not
+## happen while screen recording. Nothing in the game does that; it is
+## Android's touch-boost DVFS raising the clocks while you touch and letting
+## them fall while you do not. Every timing in this log is wall-clock
+## milliseconds, so they all inflate together when the governor steps down,
+## and SUMMARY vs_first cannot tell that apart from thermal throttling.
+##
+## idle= is seconds since the last input event. A quiet stretch measured at
+## idle=8s and a busy one at idle=0.0s are not comparable numbers, and until
+## now the log gave no way to know which kind a heartbeat was. It also puts
+## a number on input activity itself: the shop's dead Back button showed up
+## as forty MARK lines, which only exist because that one handler was
+## instrumented by hand.
+##
+## Lower bound by construction: an autoload is an earlier sibling than the
+## main scene, so anything that calls set_input_as_handled() before this
+## runs is not counted. Good enough for "was the player touching the screen",
+## which is the whole question.
+var _in_touch: int = 0
+var _in_key: int = 0
+var _in_action: int = 0
+var _in_other: int = 0
+var _last_input_ms: int = 0
+
+func _input(event: InputEvent) -> void:
+	_last_input_ms = Time.get_ticks_msec()
+	if event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton:
+		_in_touch += 1
+	elif event is InputEventKey:
+		_in_key += 1
+	elif event is InputEventAction:
+		_in_action += 1
+	else:
+		_in_other += 1
 ## Last graphics summary written, so SETTINGS only logs real changes.
 var _last_graphics_summary: String = ""
 var _last_memory: int = 0
@@ -209,6 +250,10 @@ func _close_script_bracket(now_usec: int) -> void:
 var _loading_path: String = ""
 var _load_checkpoints_done: int = 0
 
+## How often to sample a load in flight, and when the last sample went out.
+const LOADING_ENTRY_MS := 1000
+var _last_loading_entry_ms: int = 0
+
 ## The scene being left, and whether its cache residue has been reported for
 ## this load yet.
 ##
@@ -229,6 +274,11 @@ var _load_checkpoints_done: int = 0
 ## after the tree that used them was unloaded.
 var _outgoing_scene_path: String = ""
 var _residue_reported: bool = true
+
+## Hard cap on the RESIDUE walk. A song's graph is thousands of paths and
+## this runs on a frame that is already loading; the entry says when it hit
+## the cap so a truncated count is never read as a whole one.
+const RESIDUE_MAX_PATHS := 1500
 
 ## The animation that started most recently, and when. A SPIKE already
 ## reports how bad a frame was; this says what had just begun. The first
@@ -259,6 +309,11 @@ var _sub_viewports: Array[SubViewport] = []
 ## announce itself - it looks like the same scene getting slower for no
 ## reason - so the only way to see it is to compare the same measurement
 ## against itself over time.
+## Class counts from the previous census of the current scene, for delta=[].
+## Cleared on scene change so the first census of a scene never diffs against
+## a different one.
+var _last_census_counts: Dictionary = {}
+
 var _bucket_frames: int = 0
 var _bucket_ms_total: float = 0.0
 var _bucket_worst_ms: float = 0.0
@@ -462,6 +517,22 @@ func census(reason: String) -> void:
 	var fx_live: int = 0
 	var fx_effect: int = 0
 	var fx_fullscreen: int = 0
+	## Distinct ShaderMaterial instances behind fx_live - see the comment at
+	## the point it is filled.
+	var fx_materials: Dictionary = {}
+	## AnimationTrees the mixer pump has taken off the engine's callback.
+	var trees_manual: int = 0
+	## Paths of the shadow-casting lights that are actually visible.
+	var shadow_names: Array[String] = []
+	## AudioStreamPlayers in the scene, and how many are actually playing.
+	##
+	## Monochrome authors a voiceline player per line and the shop authors
+	## dozens; each playing stream is a mixer channel and each one that is
+	## merely *present* still costs a node. audio= in the counter line is
+	## Performance.AUDIO_OUTPUT_LATENCY, a device figure that says nothing
+	## about how much the scene is asking for.
+	var audio_total: int = 0
+	var audio_playing: int = 0
 	var nodes: Array[Node] = [scene]
 	while not nodes.is_empty():
 		var node: Node = nodes.pop_back()
@@ -478,10 +549,24 @@ func census(reason: String) -> void:
 			trees_total += 1
 			if node.active:
 				trees_active += 1
+			# RubiconMixerPump switches trees to MANUAL and advances them
+			# itself for 0.35s after an input, so a tree left on the engine's
+			# own callback is one the pump is not managing. active= cannot
+			# tell those apart and they cost completely differently.
+			if node.callback_mode_process == AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL:
+				trees_manual += 1
 		if node is Light3D and node.is_visible_in_tree():
 			lights_visible += 1
 			if node.shadow_enabled:
 				lights_shadow += 1
+				# Named, because "Monochrome has one shadow caster" is not
+				# actionable and "Monochrome's one shadow caster is the
+				# results screen's DirectionalLight3D, in a SubViewport, for
+				# a screen nobody has seen yet" is. Chimera's 30fps ceiling
+				# is still pinned on shadow casters that were only ever
+				# counted.
+				if shadow_names.size() < 4:
+					shadow_names.append(_scene_relative_path(node))
 		# Material first, visibility second: is_visible_in_tree() walks to the
 		# root, and the shop has thousands of CanvasItems against a handful
 		# carrying a ShaderMaterial.
@@ -489,10 +574,23 @@ func census(reason: String) -> void:
 			var mat: Material = node.material
 			if mat is ShaderMaterial and mat.shader != null and node.is_visible_in_tree():
 				fx_live += 1
+				# A unique material per item is a unique bind per item, and
+				# nothing batches. Peepers shipped 128 ShaderMaterials that
+				# differed only in a parameter the shader could not use, and
+				# collapsing them to 6 is half of why Monochrome's draw p90
+				# went 283 -> 51. fx=N(uniq=M) makes that ratio visible
+				# everywhere instead of only where somebody happened to open
+				# the scene: N far above M is fine, N == M on a wall of
+				# identical items is the smell.
+				fx_materials[mat.get_instance_id()] = true
 				if Settings.EFFECT_SHADER_PATHS.has(mat.shader.resource_path):
 					fx_effect += 1
 					if _covers_screen(node):
 						fx_fullscreen += 1
+		if node is AudioStreamPlayer or node is AudioStreamPlayer2D or node is AudioStreamPlayer3D:
+			audio_total += 1
+			if node.playing:
+				audio_playing += 1
 		if node is RubiconLevelNote:
 			notes_total += 1
 			if node.is_visible_in_tree():
@@ -531,11 +629,42 @@ func census(reason: String) -> void:
 	for i in mini(8, by_class.size()):
 		classes.append("%s=%d" % [by_class[i][1], by_class[i][0]])
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d) notes=%d(visible=%d) parked=%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d) | %s | top_anims=[%s] | %s" % [
-		reason, players.size(), playing, total_tracks, trees_total, trees_active,
-		notes_total, notes_visible, notes_parked, lights_visible, lights_shadow,
-		fx_live, fx_effect, fx_fullscreen,
-		_graphics_summary(), ", ".join(top), " ".join(classes),
+	# What changed since the last census of this same scene, biggest movers
+	# first.
+	#
+	# The absolute counts are a snapshot and the interesting thing is almost
+	# always the difference: Monochrome's 136ms stall census reads
+	# Sprite2D=154 ColorRect=146 AnimationPlayer=129, which is only
+	# meaningful next to the census before it. Reset on scene change so the
+	# first census of a scene never diffs against a different one.
+	var class_delta: PackedStringArray = []
+	if not _last_census_counts.is_empty():
+		var moved: Array = []
+		for key in counts:
+			var change: int = counts[key] - int(_last_census_counts.get(key, 0))
+			if change != 0:
+				moved.append([absi(change), "%s%+d" % [key, change]])
+		for key in _last_census_counts:
+			if not counts.has(key):
+				moved.append([int(_last_census_counts[key]), "%s-%d" % [key, _last_census_counts[key]]])
+		moved.sort_custom(func(a, b): return a[0] > b[0])
+		for i in mini(6, moved.size()):
+			class_delta.append(moved[i][1])
+	_last_census_counts = counts
+
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) | %s | top_anims=[%s] | shadows=[%s] | %s | delta=[%s]" % [
+		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
+		notes_total, notes_visible, notes_parked,
+		audio_total, audio_playing,
+		# Monochrome and Safety Lullaby are 2D scenes and every touch overlay
+		# in the project is 2D, and the log only ever carried the 3D pair -
+		# so the shop was measured and the songs were not.
+		int(Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)),
+		int(Performance.get_monitor(Performance.PHYSICS_2D_COLLISION_PAIRS)),
+		lights_visible, lights_shadow,
+		fx_live, fx_effect, fx_fullscreen, fx_materials.size(),
+		_graphics_summary(), ", ".join(top), ", ".join(shadow_names),
+		" ".join(classes), " ".join(class_delta),
 	])
 
 ## Whether a visible CanvasItem covers most of the frame, which is what makes
@@ -571,6 +700,25 @@ func _poll_load_progress() -> void:
 	_report_cache_residue()
 
 	var fraction: float = progress[0]
+
+	# A line a second for as long as the load runs, whatever the fraction is
+	# doing.
+	#
+	# The checkpoints answer "how far did it get", and on the shop's warm
+	# load that turned out not to be enough: 50% at 1991ms and 51% at
+	# 17933ms, so 15.9 seconds of the 18.0-second load sit inside one
+	# checkpoint interval with nothing recorded in between. What is recorded
+	# either side says it is not stuck - vram climbs 62->145MB across it and
+	# the loading screen keeps rendering - so the shape of that climb is the
+	# measurement, and only a fixed-interval sample can draw it. Every entry
+	# already carries ram/vram/res, so this is one extra line per second and
+	# no new counters.
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms - _last_loading_entry_ms >= LOADING_ENTRY_MS:
+		_last_loading_entry_ms = now_ms
+		_entry("LOADING", "%.1f%% at %dms" % [
+			fraction * 100.0, now_ms - _scene_change_started_ms,
+		])
 	while (_load_checkpoints_done < LOAD_CHECKPOINTS.size()
 			and fraction >= LOAD_CHECKPOINTS[_load_checkpoints_done]):
 		var elapsed: int = Time.get_ticks_msec() - _scene_change_started_ms
@@ -596,23 +744,61 @@ func _report_cache_residue() -> void:
 	_residue_reported = true
 
 	var packed_cached: bool = ResourceLoader.has_cached(_outgoing_scene_path)
-	var deps: PackedStringArray = ResourceLoader.get_dependencies(_outgoing_scene_path)
-	var cached: int = 0
-	var examples: Array[String] = []
-	for dep in deps:
-		# Entries are "uid::type::path" or "type::path"; the path is last.
-		var path: String = dep.get_slice("::", dep.count("::"))
-		if path.is_empty() or not ResourceLoader.has_cached(path):
-			continue
-		cached += 1
-		if examples.size() < 3:
-			examples.append(path.get_file())
 
-	_entry("RESIDUE", "%s packed=%s deps=%d/%d %s" % [
+	# Breadth-first over the whole graph, not just the scene's own header.
+	# One level deep said 21000 resources are held and named none of them,
+	# because a song's direct dependencies are a few dozen scenes and the
+	# resources are inside those. RESIDUE_MAX_PATHS is what keeps this from
+	# turning into the recursive walk it deliberately was not: the cap is
+	# reported, so a truncated answer never reads as a complete one.
+	var seen: Dictionary = {}
+	var queue: Array[String] = [_outgoing_scene_path]
+	seen[_outgoing_scene_path] = true
+	var visited: int = 0
+	var cached: int = 0
+	var by_kind: Dictionary = {}
+	var examples: Array[String] = []
+
+	while not queue.is_empty() and visited < RESIDUE_MAX_PATHS:
+		var path: String = queue.pop_front()
+		visited += 1
+
+		if ResourceLoader.has_cached(path):
+			cached += 1
+			# Grouped by extension because that is what says *what* is being
+			# held: .res is the texture importer's output, .tscn/.scn a
+			# scene, .tres a resource someone authored. "1400 textures still
+			# cached" and "3 scenes still cached" are different bugs.
+			var kind: String = path.get_extension()
+			by_kind[kind] = by_kind.get(kind, 0) + 1
+			if examples.size() < 4 and path != _outgoing_scene_path:
+				examples.append(path.get_file())
+
+		# get_dependencies() reads the file's own header; it does not load
+		# it, and it works on paths whose resources are not importable here.
+		for dep in ResourceLoader.get_dependencies(path):
+			# Entries are "uid::type::path" or a bare path; path is last.
+			var dep_path: String = dep.get_slice("::", dep.count("::"))
+			if dep_path.is_empty() or seen.has(dep_path):
+				continue
+			seen[dep_path] = true
+			queue.append(dep_path)
+
+	var kinds: Array = []
+	for kind in by_kind:
+		kinds.append([by_kind[kind], kind])
+	kinds.sort_custom(func(a, b): return a[0] > b[0])
+	var kind_parts: PackedStringArray = []
+	for i in mini(5, kinds.size()):
+		kind_parts.append("%s=%d" % [kinds[i][1], kinds[i][0]])
+
+	_entry("RESIDUE", "%s packed=%s cached=%d/%d%s [%s] %s" % [
 		_outgoing_scene_path.get_file(),
 		"yes" if packed_cached else "no",
 		cached,
-		deps.size(),
+		visited,
+		" (capped)" if visited >= RESIDUE_MAX_PATHS else "",
+		" ".join(kind_parts),
 		", ".join(examples),
 	])
 
@@ -763,6 +949,8 @@ func _on_scene_change_started(path: String) -> void:
 	var outgoing: Node = get_tree().current_scene if get_tree() else null
 	_outgoing_scene_path = outgoing.scene_file_path if outgoing != null else ""
 	_residue_reported = _outgoing_scene_path.is_empty()
+	_last_loading_entry_ms = Time.get_ticks_msec()
+	_last_census_counts.clear()
 	_entry("SCENE_OUT", path)
 
 func _on_scene_change_finished(path: String) -> void:
@@ -804,17 +992,48 @@ func _median_frame_ms() -> float:
 ## is only "did the engine stop to build pipelines on this frame, and how
 ## many", and one number per line keeps the entry readable. A jump on exactly
 ## the stall frames confirms it; a flat 0 kills it and the search moves on.
+## The five pipeline-compilation counters Godot exposes, in print order.
+## Named rather than inlined because both the total and the per-source
+## breakdown walk the same list.
+const PIPELINE_SOURCES: Array[Dictionary] = [
+	{&"label": "can", &"info": RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS},
+	{&"label": "mesh", &"info": RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_MESH},
+	{&"label": "surf", &"info": RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE},
+	{&"label": "draw", &"info": RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW},
+	{&"label": "spec", &"info": RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION},
+]
+
+## Per-source pipeline totals at the previous entry, for the deltas.
+var _last_pipeline_sources: PackedInt32Array = PackedInt32Array()
+
 func _pipeline_compilations() -> int:
 	var total: int = 0
-	for info in [
-		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS,
-		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_MESH,
-		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE,
-		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW,
-		RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION,
-	]:
-		total += int(RenderingServer.get_rendering_info(info))
+	for source in PIPELINE_SOURCES:
+		total += int(RenderingServer.get_rendering_info(source[&"info"]))
 	return total
+
+## Which kind of pipeline the engine compiled since the last entry.
+##
+## pipe=N(+D) says the engine stopped to build D pipelines and never which
+## D. That matters because the two open pipeline questions have opposite
+## answers: the multi-second cutscene stalls should be mesh/surface work
+## (a skinned character with morph targets drawn for the first time), while
+## the Collector's Shop compiling +134 pipelines on its *second* load -
+## more than the +53 its first load cost, for a scene whose materials the
+## process has already seen - should be canvas if it is the console's 2D UI
+## and mesh if it is the room. One counter cannot tell those apart; five
+## can.
+func _pipeline_breakdown() -> String:
+	if _last_pipeline_sources.size() != PIPELINE_SOURCES.size():
+		_last_pipeline_sources.resize(PIPELINE_SOURCES.size())
+		_last_pipeline_sources.fill(0)
+
+	var parts: PackedStringArray = []
+	for i in PIPELINE_SOURCES.size():
+		var now: int = int(RenderingServer.get_rendering_info(PIPELINE_SOURCES[i][&"info"]))
+		parts.append("%s+%d" % [PIPELINE_SOURCES[i][&"label"], now - _last_pipeline_sources[i]])
+		_last_pipeline_sources[i] = now
+	return " ".join(parts)
 
 ## Every entry carries the whole counter set. It makes lines long, but it
 ## means a single line answers "what was happening", instead of having to
@@ -827,6 +1046,23 @@ func _entry(kind: String, detail: String) -> void:
 	var pipelines: int = _pipeline_compilations()
 	var pipe_delta: int = pipelines - _last_pipelines
 	_last_pipelines = pipelines
+	# Must be read once per entry and in this order - it stores its own
+	# per-source baseline, so calling it twice would zero the second read.
+	var pipe_sources: String = _pipeline_breakdown()
+
+	# Frames the engine actually drew against frames it processed. Godot can
+	# run a process step without presenting - and everything else in this
+	# line is per-frame, so a stretch where those two diverge makes every
+	# other counter mean something different. It is also the only read the
+	# log has on the governor: a phone that has dropped its clocks processes
+	# and draws in lockstep at a lower rate, a phone that is blocked on the
+	# GPU or on vsync does not.
+	var frames_drawn: int = Engine.get_frames_drawn()
+	var frames_processed: int = int(Engine.get_process_frames())
+	var drawn_delta: int = frames_drawn - _last_frames_drawn
+	var processed_delta: int = frames_processed - _last_frames_processed
+	_last_frames_drawn = frames_drawn
+	_last_frames_processed = frames_processed
 	# proc= is the whole engine process step and cannot tell "the CPU was
 	# busy building draw commands" from "the CPU was blocked waiting on the
 	# GPU" from "GDScript was slow" - three very different fixes. These two
@@ -881,9 +1117,16 @@ func _entry(kind: String, detail: String) -> void:
 	# else entirely.
 	var note_rate: float = 0.0
 	var lane_rate: float = 0.0
+	# The two sub-blocks of a lane's _process that are not churn - the chart
+	# bounds walk and the mixer pump. lanes= minus churn= minus these two is
+	# what is genuinely left in the rest of the function.
+	var bounds_rate: float = 0.0
+	var pump_rate: float = 0.0
 	if window_s > 0.0:
 		note_rate = (float(churn[&"note_usec"]) / 1000.0) / window_s
 		lane_rate = (float(churn[&"lane_usec"]) / 1000.0) / window_s
+		bounds_rate = (float(churn[&"bounds_usec"]) / 1000.0) / window_s
+		pump_rate = (float(churn[&"pump_usec"]) / 1000.0) / window_s
 
 	# The 2D atlas animations, same rate and the same reason as notes=.
 	#
@@ -938,7 +1181,7 @@ func _entry(kind: String, detail: String) -> void:
 			biggest_name = "%s(%dx%d)" % [_scene_relative_path(viewport), viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -956,6 +1199,15 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
 		pipelines,
 		pipe_delta,
+		pipe_sources,
+		drawn_delta,
+		processed_delta,
+		_in_touch + _in_key + _in_action + _in_other,
+		_in_touch,
+		_in_key,
+		_in_action,
+		_in_other,
+		float(Time.get_ticks_msec() - _last_input_ms) / 1000.0,
 		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
@@ -977,11 +1229,16 @@ func _entry(kind: String, detail: String) -> void:
 		float(churn[&"peak_usec"]) / 1000.0,
 		note_rate,
 		lane_rate,
+		bounds_rate,
+		pump_rate,
 		anim_rate,
 		anim_rebuild_rate,
 		int(anim[&"rebuilds"]),
 		float(anim[&"peak_usec"]) / 1000.0,
 		int(anim[&"cached"]),
+		int(anim[&"symbols"]),
+		anim[&"worst"] if not String(anim[&"worst"]).is_empty() else "-",
+		float(anim[&"worst_usec"]) / 1000.0,
 		# The shop's physics cost runs 10-25x Chimera's on nothing but
 		# enable_object_picking's per-frame Area3D raycasts - these two were
 		# flagged as worth measuring and never were, so they ride along here
@@ -990,6 +1247,14 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.PHYSICS_3D_COLLISION_PAIRS)),
 		_current_scene_name(),
 	])
+	# Counts, not rates, and cleared here so each line covers the interval
+	# since the previous one - same contract as churn= and anim2d=. idle= is
+	# deliberately not cleared: it is a timestamp, not a tally.
+	_in_touch = 0
+	_in_key = 0
+	_in_action = 0
+	_in_other = 0
+
 	# Flushed every entry on purpose: the whole point is to survive a crash or
 	# a force-close, and a buffered tail is exactly the part worth reading.
 	_file.flush()

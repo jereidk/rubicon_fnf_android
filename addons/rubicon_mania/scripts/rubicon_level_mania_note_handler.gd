@@ -156,7 +156,9 @@ func _process_lane(delta: float) -> void:
 	super._process(delta)
 
 	if not Engine.is_editor_hint():
+		var pump_begin : int = Time.get_ticks_usec()
 		_pump.pump(delta)
+		pump_usec += Time.get_ticks_usec() - pump_begin
 
 	if not _should_process():
 		return

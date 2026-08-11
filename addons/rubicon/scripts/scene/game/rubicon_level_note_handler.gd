@@ -103,6 +103,18 @@ static var note_process_usec : int = 0
 ## the lanes or the notes, because one counter held both.
 static var lane_process_usec : int = 0
 
+## The two sub-blocks inside a lane's _process that are not churn.
+##
+## lanes= says the eight lanes cost 0.77ms/frame with zero notes on screen,
+## and churn= says 0.30ms of that is the spawn/despawn block. The remaining
+## 0.47ms/frame is unattributed, and there are only two candidates big
+## enough to hold it: the four `while` loops that walk the chart's spawn
+## bounds forward and back every frame, and RubiconMixerPump.pump(). Timing
+## both leaves a remainder that is genuinely the rest of the function, so
+## the next log either names the floor or proves there is no single owner.
+static var bounds_usec : int = 0
+static var pump_usec : int = 0
+
 static var _churn_frame : int = -1
 static var _churn_frame_usec : int = 0
 
@@ -119,6 +131,8 @@ static func take_churn_stats() -> Dictionary:
 		&"peak_usec": churn_peak_usec,
 		&"note_usec": note_process_usec,
 		&"lane_usec": lane_process_usec,
+		&"bounds_usec": bounds_usec,
+		&"pump_usec": pump_usec,
 	}
 	churn_spawned = 0
 	churn_despawned = 0
@@ -128,6 +142,8 @@ static func take_churn_stats() -> Dictionary:
 	churn_peak_usec = 0
 	note_process_usec = 0
 	lane_process_usec = 0
+	bounds_usec = 0
+	pump_usec = 0
 	return stats
 
 static func _record_churn(begin_usec : int) -> void:
@@ -463,6 +479,12 @@ func _process(delta: float) -> void:
 
 	var millisecond_position : float = get_controller().get_level_clock().time_milliseconds
 
+	# Bracketed together because all four loops are the same walk: they step
+	# note_spawn_start/end over the chart to keep the spawn window in sync
+	# with the clock, forward on play and backward on a rewind, and they run
+	# whether or not anything is on screen.
+	var bounds_begin : int = Time.get_ticks_usec()
+
 	# Handle going forward
 	while note_spawn_start < data.size() and data[note_spawn_start].get_millisecond_end_position() - millisecond_position < spawning_bound_minimum:
 		note_spawn_start += 1
@@ -487,6 +509,8 @@ func _process(delta: float) -> void:
 
 	while note_spawn_end - 1 > 0 and data[note_spawn_end - 1].get_millisecond_start_position() - millisecond_position > spawning_bound_maximum:
 		note_spawn_end -= 1
+
+	bounds_usec += Time.get_ticks_usec() - bounds_begin
 
 	# Timed as one block rather than per note: what is being asked is "how
 	# much of this frame went to note churn", and the answer has to include

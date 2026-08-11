@@ -228,6 +228,20 @@ static var draw_peak_usec: int = 0
 static var rebuild_usec: int = 0
 static var rebuild_count: int = 0
 static var cached_count: int = 0
+## The single most expensive symbol since the last read, and by how much.
+##
+## anim2d= says gdanimate spent 95-113ms/s rebuilding at 219-288 rebuilds a
+## second, which is 1.6-1.9ms of every frame, and names nobody. peak_usec
+## already says the worst single call was 4-5ms; this says which node made
+## it, which is the difference between "gdanimate is expensive" and "one
+## symbol in Gold's atlas is expensive". Cheap: one comparison per _draw()
+## and a name copied only when the record is beaten.
+static var worst_name: String = ""
+static var worst_usec: int = 0
+## Distinct symbols that drew at all since the last read. rebuilds/cached
+## are per call; this is per node, which is what turns "250 rebuilds/s" into
+## "25 symbols at their 24fps" or "6 symbols rebuilding far too often".
+static var _drawn_ids: Dictionary = {}
 
 ## Reads the counters and clears them, so each caller sees the interval since
 ## its own previous call rather than a total since boot.
@@ -238,12 +252,18 @@ static func take_draw_stats() -> Dictionary:
 		&"rebuild_usec": rebuild_usec,
 		&"rebuilds": rebuild_count,
 		&"cached": cached_count,
+		&"worst": worst_name,
+		&"worst_usec": worst_usec,
+		&"symbols": _drawn_ids.size(),
 	}
 	draw_usec = 0
 	draw_peak_usec = 0
 	rebuild_usec = 0
 	rebuild_count = 0
 	cached_count = 0
+	worst_name = ""
+	worst_usec = 0
+	_drawn_ids.clear()
 	return stats
 
 func _draw() -> void:
@@ -253,6 +273,12 @@ func _draw() -> void:
 
 	draw_usec += spent
 	draw_peak_usec = maxi(draw_peak_usec, spent)
+	_drawn_ids[get_instance_id()] = true
+	if spent > worst_usec:
+		worst_usec = spent
+		# Built only when the record is actually beaten, so the common case
+		# pays a comparison and nothing else.
+		worst_name = "%s/%s" % [name, symbol] if not symbol.is_empty() else name
 	if rebuilt:
 		rebuild_usec += spent
 		rebuild_count += 1
