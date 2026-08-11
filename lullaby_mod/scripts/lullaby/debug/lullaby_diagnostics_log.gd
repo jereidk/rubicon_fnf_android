@@ -209,6 +209,27 @@ func _close_script_bracket(now_usec: int) -> void:
 var _loading_path: String = ""
 var _load_checkpoints_done: int = 0
 
+## The scene being left, and whether its cache residue has been reported for
+## this load yet.
+##
+## res= (Performance.OBJECT_RESOURCE_COUNT) does not come back down after
+## Monochrome. Measured across one session: the Collector's Shop runs at
+## res=1880, Monochrome takes it to 23548, and the *next* shop load starts
+## from res=21047 and settles at 22650 - about 21000 resources outliving the
+## scene that created them, with orphans back at 2, so the nodes were freed
+## and their resources were not. The same load then took 18.0s against 5.6s
+## cold, all of it in one band, uploading 83MB of VRAM at 5.2MB/s where the
+## cold load managed 18MB/s.
+##
+## That is the "loads get slower within a session" problem, and it is not
+## VRAM pressure - VRAM went 625MB to 164MB with the ASTC work and this did
+## not move. The question left is what still holds those resources, and the
+## cheapest read on it is whether the outgoing scene's own PackedScene, and
+## the resources it depends on, are still in the loader cache one second
+## after the tree that used them was unloaded.
+var _outgoing_scene_path: String = ""
+var _residue_reported: bool = true
+
 ## The animation that started most recently, and when. A SPIKE already
 ## reports how bad a frame was; this says what had just begun. The first
 ## device log could only correlate the two by eye - a census happened to
@@ -544,12 +565,56 @@ func _poll_load_progress() -> void:
 	if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		return
 
+	# The old scene is unloaded before the request goes out, so by the time
+	# the loader reports any progress at all its tree is gone and anything
+	# still cached is being held by something else.
+	_report_cache_residue()
+
 	var fraction: float = progress[0]
 	while (_load_checkpoints_done < LOAD_CHECKPOINTS.size()
 			and fraction >= LOAD_CHECKPOINTS[_load_checkpoints_done]):
 		var elapsed: int = Time.get_ticks_msec() - _scene_change_started_ms
 		_entry("LOAD", "%.0f%% at %dms" % [LOAD_CHECKPOINTS[_load_checkpoints_done] * 100.0, elapsed])
 		_load_checkpoints_done += 1
+
+## Names what the scene we just left is still holding in the loader cache.
+##
+## Runs once per load, on the first frame the loader reports progress, which
+## is after unload_current_scene(). Everything it touches is a lookup:
+## get_dependencies() reads the file's dependency header without loading it
+## (this is how the shop crash and the Hex animation bug were both found),
+## and has_cached() is a hash lookup. One level deep on purpose - the
+## recursive walk of a song is thousands of paths and this runs on a frame
+## that is already loading.
+##
+## Reads as `RESIDUE <scene> packed=yes deps=412/517 ...` - the first three
+## still-cached dependencies are named because "412 of 517" says how much is
+## held and the names say by what.
+func _report_cache_residue() -> void:
+	if _residue_reported or _outgoing_scene_path.is_empty():
+		return
+	_residue_reported = true
+
+	var packed_cached: bool = ResourceLoader.has_cached(_outgoing_scene_path)
+	var deps: PackedStringArray = ResourceLoader.get_dependencies(_outgoing_scene_path)
+	var cached: int = 0
+	var examples: Array[String] = []
+	for dep in deps:
+		# Entries are "uid::type::path" or "type::path"; the path is last.
+		var path: String = dep.get_slice("::", dep.count("::"))
+		if path.is_empty() or not ResourceLoader.has_cached(path):
+			continue
+		cached += 1
+		if examples.size() < 3:
+			examples.append(path.get_file())
+
+	_entry("RESIDUE", "%s packed=%s deps=%d/%d %s" % [
+		_outgoing_scene_path.get_file(),
+		"yes" if packed_cached else "no",
+		cached,
+		deps.size(),
+		", ".join(examples),
+	])
 
 ## Compares this stretch of the session against the first one. A phone that
 ## has warmed up runs the same scene slower, and that shows up here as the
@@ -618,6 +683,20 @@ func _refresh_sub_viewports() -> void:
 		for child in node.get_children():
 			nodes.append(child)
 
+## Where a node sits relative to the current scene root, for the log.
+##
+## sub_top= used to print viewport.name, and "SubViewport" is what every one
+## of them is called. Monochrome's log named a live SubViewport(256x256) that
+## matches nothing authored anywhere in its tree - the only SubViewport in
+## any scene it can reach is the results screen's, which is the Godot default
+## 512x512 (checked against the 4.7.1 binary, not from memory) and ships
+## UPDATE_DISABLED. A name cannot be looked up; a path can.
+func _scene_relative_path(node: Node) -> String:
+	var scene: Node = get_tree().current_scene if get_tree() else null
+	if scene == null or not scene.is_ancestor_of(node):
+		return str(node.get_path())
+	return str(scene.get_path_to(node))
+
 func _on_animation_started(anim: StringName, player: AnimationPlayer) -> void:
 	_last_anim = "%s/%s" % [player.name, anim]
 	_last_anim_ms = Time.get_ticks_msec()
@@ -681,6 +760,9 @@ func _on_scene_change_started(path: String) -> void:
 	_scene_change_memory = OS.get_static_memory_usage()
 	_loading_path = path
 	_load_checkpoints_done = 0
+	var outgoing: Node = get_tree().current_scene if get_tree() else null
+	_outgoing_scene_path = outgoing.scene_file_path if outgoing != null else ""
+	_residue_reported = _outgoing_scene_path.is_empty()
 	_entry("SCENE_OUT", path)
 
 func _on_scene_change_finished(path: String) -> void:
@@ -853,7 +935,7 @@ func _entry(kind: String, detail: String) -> void:
 		sub_pixels += pixels
 		if pixels > biggest_pixels:
 			biggest_pixels = pixels
-			biggest_name = "%s(%dx%d)" % [viewport.name, viewport.size.x, viewport.size.y]
+			biggest_name = "%s(%dx%d)" % [_scene_relative_path(viewport), viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
 	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d) p3d_objs=%d p3d_pairs=%d scene=%s" % [
