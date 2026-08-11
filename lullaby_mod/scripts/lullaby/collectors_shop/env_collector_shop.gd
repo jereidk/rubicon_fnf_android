@@ -226,7 +226,18 @@ func _input(event: InputEvent) -> void :
 		# does this fire, fully zooming the camera back out - otherwise
 		# both handlers would fire on the very same keypress and fight
 		# over the same AnimationPlayer.
-		if state == ShopStates.FOCUSED and (console == null or not console.focused):
+		# ... and the area the player is actually looking at, because a flag
+		# on its own is not enough. Console.focused is what decides whether
+		# the console gets this press, and until focus_console.gd's
+		# _focus_changed() it had no writer that could ever clear it from
+		# outside the console. Requiring the console's area to be the
+		# current one as well means a stale flag can only ever cost the
+		# console its own Back handling, never the whole shop's.
+		var at_console: bool = (console != null and console.focused
+				and current_area != null
+				and current_area == get_node_or_null(CONSOLE_AREA_PATH))
+
+		if state == ShopStates.FOCUSED and not at_console:
 			sequence_controller.animation_player.play(&"focus_center")
 
 ## Path is fixed rather than exported because this is only ever the one
