@@ -155,7 +155,26 @@ func _process(_delta: float) -> void:
 	# The hidden LineEdit is only ever focused for the system keyboard. On the
 	# drawn path it stays unreachable, which is what keeps Android from
 	# raising its keyboard behind ours.
-	var wants_input: bool = challenge_wants and not typing_challenge.autoplay and not drawn
+	# The system keyboard is raised on `active` rather than on prompt_user,
+	# which is a couple of seconds earlier, because it does not appear for
+	# free: Android animates it in, and that animation comes out of the
+	# player's typing window rather than out of the song.
+	#
+	# The windows are short and get shorter - prompt_user to time_end runs
+	# 6.7s, 6.3s, 4.2s, 2.75s and 3.1s across the five bouts - so half a
+	# second of keyboard animation is up to a fifth of the last ones. That is
+	# the difference the device reported between the system keyboard and the
+	# drawn one, which appears instantly and needs none of this.
+	#
+	# The two seconds it borrows are already dead: show_celebi comes up at
+	# 69 and active at 73 against prompt_user at 75.26, so the game has been
+	# announcing the challenge for six seconds by then.
+	var keyboard_wants: bool = (
+		typing_challenge.active
+		and not typing_challenge.challenge_over
+	)
+
+	var wants_input: bool = keyboard_wants and not typing_challenge.autoplay and not drawn
 
 	if wants_input:
 		_set_input_available(true)
@@ -332,6 +351,17 @@ func _on_text_changed(new_text: String) -> void:
 		return
 
 	if new_text.is_empty():
+		return
+
+	# The field is focused before the challenge asks for input, to get the
+	# keyboard animated in ahead of time. Anything typed in that gap has to
+	# be dropped rather than fed through: input_letter() has no guard of its
+	# own, so an early keystroke would be judged against current_word, count
+	# as a wrong letter and take 0.25s off the deadline.
+	if not typing_challenge.prompt_user:
+		_draining = true
+		text_input.text = ""
+		_draining = false
 		return
 
 	_draining = true
