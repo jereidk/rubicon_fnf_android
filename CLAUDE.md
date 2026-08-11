@@ -1055,6 +1055,33 @@ matches as long as the omitted default equals what it wants - but declare new
 fields in all four files anyway, or the next person reading the table above
 will draw the wrong conclusion.
 
+## The 60/40 flip is the CPU governor, and it is a headroom readout
+
+Reported from the device: in Monochrome, stop touching the hitbox and the
+frame rate settles at 40; take your turn again and it goes back to 60. The
+tester then found the tell - **it does not happen while screen recording.**
+
+Nothing in the game does this. There is no `low_processor_usage_mode`
+anywhere, in project.godot or in code; `Engine.max_fps` is the target fps
+(60) and is only ever touched by lullaby_error_handler.gd, which drops it to
+1 for the error screen and restores it. Screen recording keeps the SoC busy
+enough that the clocks stay up, which is exactly the shape of Android's
+touch-boost DVFS: touching raises the clocks, idling lets them fall.
+
+**Do not chase it in the game.** But do read what it says: 60 -> 40 is a
+1.50x slowdown, so a 16.7ms frame becomes 25ms. A frame with real headroom
+never crosses the line - 8ms at boosted clocks is about 12ms at 0.65x and
+still inside the budget. Crossing it means the frame was already at the
+edge, which is the argument for every optimisation in the sections below.
+
+It also puts a caveat on every log in this repo: **a heartbeat taken while
+the player was not touching the screen was measured at reduced clocks.**
+gpu=, script= and the rest are wall-clock milliseconds, so they all inflate
+together when the governor steps down, and `SUMMARY vs_first` cannot tell
+that apart from thermal throttling. Compare like with like - a quiet stretch
+against a quiet stretch - and treat a spread between two runs of the same
+section as suspect unless both were equally busy.
+
 ## Peepers is half of Monochrome's frame
 
 `Peepers.tscn` - the wall of eyes - is 132 nodes carrying 128 ColorRects, and
