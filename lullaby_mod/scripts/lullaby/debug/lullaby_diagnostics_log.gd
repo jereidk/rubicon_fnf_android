@@ -752,7 +752,14 @@ func census(reason: String) -> void:
 			# tell those apart and they cost completely differently.
 			if node.callback_mode_process == AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL:
 				trees_manual += 1
-		if node is Light3D and node.is_visible_in_tree():
+		# editor_only lights are not rendered in a running game, so counting
+		# one is worse than not counting it: Chimera's
+		# Environment/Lights/EditorMoonDoNotDelete is an editor_only
+		# DirectionalLight3D with shadows on, and it showed up in shadows=[]
+		# looking like one of the song's three shadow casters when the real
+		# count is two. tools/audit_gpu_cost.py already had to learn this;
+		# the census had not.
+		if node is Light3D and node.is_visible_in_tree() and not node.editor_only:
 			lights_visible += 1
 			if node.shadow_enabled:
 				lights_shadow += 1
