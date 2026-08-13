@@ -129,6 +129,32 @@ const LOAD_CHECKPOINTS: PackedFloat32Array = [0.25, 0.5, 0.51, 0.52, 0.53, 0.54,
 
 const SUMMARY_MINUTES := 2.0
 
+## Frame-time histogram buckets, in milliseconds, chosen around the vsync
+## intervals of a 60Hz panel rather than around round numbers.
+##
+## median= and worst= cannot answer the question these were added for. Safety
+## Lullaby and Chimera both report frame=33.30ms, and 33.30ms is exactly two
+## vsync intervals at 60Hz - which has two completely different explanations
+## that no counter in this log could separate:
+##
+##   a pacing lock - the frame misses its deadline by a hair, the compositor
+##   holds it for the next interval, and every frame lands on 33.3ms whatever
+##   the real work costs. The fix is to find the small overrun.
+##
+##   genuine load - the work really does take 25-40ms and the numbers scatter
+##   across that range. The fix is to find the big cost.
+##
+## A histogram tells them apart on sight. Everything piled in one bucket with
+## nothing on either side is a lock; a spread is load. The 20-28 bucket is the
+## discriminator: it is the range no vsync-locked frame can land in.
+const FRAME_BUCKET_EDGES: PackedFloat32Array = [12.0, 20.0, 28.0, 40.0, 60.0, 100.0]
+const FRAME_BUCKET_LABELS: PackedStringArray = ["<12", "12-20", "20-28", "28-40", "40-60", "60-100", "100+"]
+
+## How close to an exact multiple of the refresh interval a frame has to land
+## to count as vsync-aligned. Half a millisecond either way of 16.67 is far
+## tighter than any real workload holds by accident.
+const VSYNC_TOLERANCE_MS := 0.7
+
 var log_path: String = ""
 var _log_dir: String = ""
 
@@ -218,6 +244,8 @@ var _peak_note_usec: int = 0
 var _peak_lane_usec: int = 0
 var _peak_bounds_usec: int = 0
 var _peak_pump_usec: int = 0
+var _peak_char_usec: int = 0
+var _peak_chars: int = 0
 
 ## When the previous entry was written, so per-interval counters can be
 ## reported as rates instead of as totals over an unknown window.
@@ -263,6 +291,8 @@ func _close_script_bracket(now_usec: int) -> void:
 	_peak_lane_usec = RubiconLevelNoteHandler.frame_lane_usec
 	_peak_bounds_usec = RubiconLevelNoteHandler.frame_bounds_usec
 	_peak_pump_usec = RubiconLevelNoteHandler.frame_pump_usec
+	_peak_char_usec = RubiconCharacter.frame_process_usec
+	_peak_chars = RubiconCharacter.frame_process_count
 
 ## While a load is in flight, its path and which progress checkpoints have
 ## already been reported. A SCENE_IN of 18726ms says the load is the problem
@@ -342,6 +372,21 @@ var _bucket_worst_ms: float = 0.0
 var _time_since_summary: float = 0.0
 var _first_bucket_median: float = 0.0
 
+## Frame-time histogram for the interval since the last HEARTBEAT, plus how
+## many of those frames landed on an exact multiple of the refresh interval.
+var _frame_hist: PackedInt32Array = PackedInt32Array()
+var _hist_frames: int = 0
+var _hist_aligned: int = 0
+
+## The panel's refresh interval in milliseconds, read once at boot.
+##
+## Hardcoding 16.67 would have made the histogram lie on any 90Hz or 120Hz
+## phone, and "everything is aligned" is exactly the kind of wrong answer that
+## reads as a finding. screen_get_refresh_rate() returns a negative value when
+## the platform does not know, which is what the fallback covers.
+var _refresh_hz: float = 60.0
+var _refresh_ms: float = 1000.0 / 60.0
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_priority = PROCESS_FIRST
@@ -370,6 +415,14 @@ func _ready() -> void:
 
 	_frame_times.resize(WINDOW_SIZE)
 	_frame_times.fill(0.0)
+	_frame_hist.resize(FRAME_BUCKET_LABELS.size())
+	_frame_hist.fill(0)
+
+	var hz: float = DisplayServer.screen_get_refresh_rate()
+	if hz > 0.0:
+		_refresh_hz = hz
+		_refresh_ms = 1000.0 / hz
+
 	_session_start_ms = Time.get_ticks_msec()
 	_last_entry_ms = _session_start_ms
 	_last_memory = OS.get_static_memory_usage()
@@ -418,6 +471,8 @@ func _process(delta: float) -> void:
 	var memory: int = OS.get_static_memory_usage()
 	if memory > _peak_memory:
 		_peak_memory = memory
+
+	_record_frame_shape(frame_ms)
 
 	_time_since_heartbeat += delta
 	_time_since_spike += delta
@@ -469,7 +524,9 @@ func _process(delta: float) -> void:
 
 	if _time_since_heartbeat >= HEARTBEAT_SECONDS:
 		_time_since_heartbeat = 0.0
-		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms" % [fps, _lowest_fps, median])
+		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms %s" % [
+			fps, _lowest_fps, median, _take_frame_shape(),
+		])
 		_lowest_fps = -1
 
 ## A one-off inventory of what the running scene actually contains. This is
@@ -916,6 +973,55 @@ func _report_cache_residue() -> void:
 		", ".join(examples),
 	])
 
+## Files one frame into the histogram and checks it against the refresh clock.
+##
+## Two counters, both cheap enough to run every frame - a compare chain and an
+## fmod - which is the point: a histogram assembled from sampled frames would
+## miss exactly the tail it exists to describe.
+func _record_frame_shape(frame_ms: float) -> void:
+	if _frame_hist.size() != FRAME_BUCKET_LABELS.size():
+		_frame_hist.resize(FRAME_BUCKET_LABELS.size())
+		_frame_hist.fill(0)
+
+	var bucket: int = FRAME_BUCKET_EDGES.size()
+	for i in FRAME_BUCKET_EDGES.size():
+		if frame_ms < FRAME_BUCKET_EDGES[i]:
+			bucket = i
+			break
+	_frame_hist[bucket] += 1
+	_hist_frames += 1
+
+	# Rounded to the nearest whole interval, so 33.3ms is "two intervals" and
+	# 25ms is not near any of them. Frames faster than one interval are not
+	# counted as aligned - the compositor cannot have paced those.
+	var intervals: float = roundf(frame_ms / _refresh_ms)
+	if intervals >= 1.0 and absf(frame_ms - intervals * _refresh_ms) <= VSYNC_TOLERANCE_MS:
+		_hist_aligned += 1
+
+## Renders the histogram and clears it for the next interval.
+##
+## Empty buckets are left out. A HEARTBEAT at a solid 60fps then reads
+## `hist=[12-20:300] vsync=99%@60Hz` - one bucket, everything aligned - and a
+## scene that is genuinely working too hard spreads across three or four with
+## vsync well under half. Those are the two answers this was built to tell
+## apart, and the difference is visible without reading a single number.
+func _take_frame_shape() -> String:
+	var parts: PackedStringArray = []
+	for i in mini(_frame_hist.size(), FRAME_BUCKET_LABELS.size()):
+		if _frame_hist[i] > 0:
+			parts.append("%s:%d" % [FRAME_BUCKET_LABELS[i], _frame_hist[i]])
+
+	var aligned_pct: float = 0.0
+	if _hist_frames > 0:
+		aligned_pct = 100.0 * float(_hist_aligned) / float(_hist_frames)
+
+	var shape: String = "hist=[%s] vsync=%.0f%%@%.0fHz" % [" ".join(parts), aligned_pct, _refresh_hz]
+
+	_frame_hist.fill(0)
+	_hist_frames = 0
+	_hist_aligned = 0
+	return shape
+
 ## Compares this stretch of the session against the first one. A phone that
 ## has warmed up runs the same scene slower, and that shows up here as the
 ## median drifting upward with nothing else in the log changing - which is
@@ -1268,15 +1374,31 @@ func _entry(kind: String, detail: String) -> void:
 	var peak_lane_ms: float = float(_peak_lane_usec) / 1000.0
 	var peak_bounds_ms: float = float(_peak_bounds_usec) / 1000.0
 	var peak_pump_ms: float = float(_peak_pump_usec) / 1000.0
-	# Everything in that frame that is not one of the four above. This is the
-	# number to watch: if it is most of script_max, the notes are cleared and
-	# whatever owns the spike has never been timed.
-	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms)
+	var peak_char_ms: float = float(_peak_char_usec) / 1000.0
+	# Everything in that frame that none of the named counters claim. This is
+	# the number to watch: if it is most of script_max, whatever owns the spike
+	# has still never been timed.
+	#
+	# notes= and chars= are the only two subtracted, and that is not an
+	# oversight: lanes=, bounds= and pump= are all measured *inside* the note
+	# total, so subtracting them as well would remove the same microseconds two
+	# and three times over and report a remainder smaller than the truth. They
+	# are printed as a breakdown of notes=, not as siblings of it.
+	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms)
+	var peak_chars: int = _peak_chars
 	_script_peak_usec = 0
 	_peak_note_usec = 0
 	_peak_lane_usec = 0
 	_peak_bounds_usec = 0
 	_peak_pump_usec = 0
+	_peak_char_usec = 0
+	_peak_chars = 0
+
+	# The characters' running total, as a rate, same contract as notes=.
+	var char_stats: Dictionary = RubiconCharacter.take_process_stats()
+	var char_rate: float = 0.0
+	if window_s > 0.0:
+		char_rate = (float(char_stats[&"usec"]) / 1000.0) / window_s
 
 	# The other half of gpu=, and the half that was missing. A SubViewport
 	# whose update mode is DISABLED is not rendering this frame and is left
@@ -1307,7 +1429,7 @@ func _entry(kind: String, detail: String) -> void:
 			biggest_name = "%s(%dx%d)" % [_scene_relative_path(viewport), viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -1347,7 +1469,8 @@ func _entry(kind: String, detail: String) -> void:
 		biggest_name,
 		script_ms,
 		script_peak_ms,
-		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms, peak_rest_ms,
+		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms,
+		peak_char_ms, peak_chars, peak_rest_ms,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
@@ -1358,6 +1481,7 @@ func _entry(kind: String, detail: String) -> void:
 		lane_rate,
 		bounds_rate,
 		pump_rate,
+		char_rate,
 		anim_rate,
 		anim_rebuild_rate,
 		int(anim[&"rebuilds"]),

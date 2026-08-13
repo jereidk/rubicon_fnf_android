@@ -151,6 +151,49 @@ var _dance_anim_size:int
 
 var _handlers_pressed: Dictionary[StringName, bool]
 
+## What every character's _process costs, for the diagnostics log.
+##
+## script_max= is the biggest unattributed number this project has: Monochrome
+## records one 19.52ms frame per second against a 4.76ms median, and once
+## notes, lanes, the chart bounds walk and the mixer pump are all subtracted
+## the remainder is still most of it. Characters are the largest named thing
+## left in the process pass that has never been timed - a song runs two or
+## three of them, each polling the clock and asking its AnimationPlayer what
+## it is doing, every frame, forever.
+##
+## Same shape as RubiconLevelNoteHandler's counters and for the same reason:
+## a running total for the rate, plus a per-frame bucket that the log's peak
+## snapshot can read at the instant a record frame is closed. Statics rather
+## than a per-character field because the question is what the characters cost
+## together, and the log has no handle on any individual one.
+static var process_usec : int = 0
+static var frame_process_usec : int = 0
+## Characters that ran this frame, so a rate can be read per character rather
+## than only in aggregate.
+static var frame_process_count : int = 0
+static var _frame_mark : int = -1
+
+## Clears the per-frame bucket the first time it is touched on a new frame.
+##
+## Called by each character before it adds its own time, so the bucket is
+## always this frame's rather than an ever-growing total. It cannot be reset
+## from the log's own _process: the log runs at PROCESS_FIRST, and a note or a
+## character that processes before it would have its time thrown away.
+static func roll_frame() -> void:
+	var frame : int = Engine.get_process_frames()
+	if frame == _frame_mark:
+		return
+	_frame_mark = frame
+	frame_process_usec = 0
+	frame_process_count = 0
+
+## Reads the running total and clears it, so each log entry covers the
+## interval since the previous one.
+static func take_process_stats() -> Dictionary:
+	var stats : Dictionary = {&"usec": process_usec}
+	process_usec = 0
+	return stats
+
 enum CharacterHoldType {
 	## Characters will play hold notes once, as if it wasn't a hold note.
 	NONE,
@@ -212,7 +255,24 @@ func note_changed(result:RubiconLevelNoteHitResult, has_ending_row:bool = false)
 
 			play(_last_sing_anim, true)
 
+## Split from the body so the whole call can be timed past its early return -
+## see process_usec. The early return is most of the cost being asked about:
+## _valid_references() runs on every character on every frame whether or not
+## anything follows it.
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		_process_character(delta)
+		return
+
+	var began : int = Time.get_ticks_usec()
+	_process_character(delta)
+	var spent : int = Time.get_ticks_usec() - began
+	process_usec += spent
+	roll_frame()
+	frame_process_usec += spent
+	frame_process_count += 1
+
+func _process_character(_delta: float) -> void:
 	if !_valid_references():
 		return
 

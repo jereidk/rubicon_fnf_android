@@ -43,8 +43,10 @@ func _run() -> void:
 	_check("y trae SUS notas, no las del otro frame", note == 300, "%d" % note)
 	_check("y sus lanes", lane == 200, "%d" % lane)
 
-	var rest: float = float(peak - note) / 1000.0
-	_check("rest es lo que no son notas", is_equal_approx(rest, 8.7), "%.2f ms" % rest)
+	# rest= is not checked here. It subtracts characters as well now, and a
+	# copy of that formula in two tests is a copy that goes stale in one of
+	# them - test_character_timing owns it, against the log's own fields
+	# rather than against arithmetic repeated in the test.
 
 	# A later cheaper frame must not overwrite the record or its breakdown.
 	_frame(log_node, 1000, 900, 900, 100, 50)
