@@ -1275,6 +1275,81 @@ case is a scene edit rather than an engine change, which is deliberate.
 
 ---
 
+## iOS
+
+There is an iOS build now: preset `iOS` in `export_presets.cfg`,
+`.github/workflows/ios-build.yml`, `workflow_dispatch` only. It produces an
+**unsigned** IPA, because every sideloader (AltStore, SideStore, Sideloadly,
+TrollStore) re-signs with the installing user's own Apple ID and would strip
+anything signed here. So the workflow needs no Apple account, no certificate
+and no secret.
+
+The port needed no code changes at all. There is no GDExtension anywhere, no
+Android native plugin, no `JavaClassWrapper`, and the only platform branch in
+the repo is `OS.get_name() == "Android"` in `_pick_log_dir()`, which already
+falls through to `user://logs`. `user_data/accessible_from_files_app` puts
+`UIFileSharingEnabled` in the Info.plist, so that directory is reachable from
+the Files app and the diagnostics log can be retrieved the same way as on
+Android.
+
+**Godot exports the Xcode project fine from Linux** - verified against the
+4.7.1 binary here, producing a complete `.xcodeproj`, `.xcframework` and pck.
+Only the `.ipa` step needs macOS ("`.ipa` can only be built on macOS. Leaving
+Xcode project without building the package." is the exporter's own message).
+The workflow still does everything on `macos-latest` rather than splitting the
+job, because the alternative is shuttling an ~800MB Xcode project between two
+jobs as an artifact.
+
+Things that cost time, in the order they bit:
+
+- **Do not write the preset from memory.** Half a dozen plausible option names
+  do not exist in 4.7.1: there is no `architectures/arm64` (iOS is arm64-only
+  and has no such option), no `capabilities/push_notifications`, no
+  `storyboard/use_launch_screen_storyboard`, no `icons/spotlight_40x40`. Dump
+  the real ones out of the binary instead:
+
+  ```bash
+  strings -n 4 godot | grep -E '^(architectures|capabilities|user_data|storyboard|icons)/[a-z0-9_@]+$' | sort -u
+  ```
+
+  All 45 keys in the preset were checked against that list.
+
+- **`application/app_store_team_id` is required even with
+  `export_project_only=true`.** Empty gives "App Store Team ID not specified."
+  and no export. It is committed as the placeholder `0000000000`; xcodebuild
+  runs with `CODE_SIGNING_ALLOWED=NO`, which ignores `DEVELOPMENT_TEAM`
+  entirely, so nothing ever resolves it.
+
+- **A missing `rendering/textures/vram_compression/import_etc2_astc` fails the
+  export with an *empty* error message.** Literally "due to configuration
+  errors:" and then nothing - `test_etc2()` has no text of its own. This
+  project already sets it (project.godot:120); it only showed up in a
+  throwaway test project and cost half an hour of bisecting the preset. If an
+  iOS or Android export ever fails with an empty reason, check that setting
+  first.
+
+- **The destination directory has to exist.** Godot reports "Target folder
+  does not exist or is inaccessible" rather than creating it, so the workflow
+  runs `mkdir -p builds/ios` first.
+
+- **macOS keeps export templates in
+  `~/Library/Application Support/Godot/export_templates/<version>/`**, not the
+  `~/.local/share/godot/...` the Android workflow uses. Only `ios.zip` (200MB)
+  is unpacked out of the 1.2GB tpz.
+
+The scheme, target and `PRODUCT_NAME` are all the basename of `export_path`
+(`lullaby`), which is why `XCODE_SCHEME` in the workflow and the preset's
+`export_path` have to change together. Configurations are `Debug` and
+`Release`; the generated scheme uses `Debug`.
+
+`tools/make_ios_icon.py` builds the required opaque 1024x1024 icon from the
+Android adaptive pair. `Icon.png` is Godot's stock 205x199 default and is not
+usable - iOS masks its own squircle, so the source must be square, opaque and
+without pre-rounded corners.
+
+Untested, and only a device can settle it: whether it runs. iOS is stricter
+about memory than Android and the shop peaks at ~229MB RAM plus ~236MB VRAM.
+
 ## APK size
 
 438MB -> ~405MB this session, from converting 47 textures to ASTC. Every
