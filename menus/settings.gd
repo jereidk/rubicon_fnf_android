@@ -170,6 +170,11 @@ var _stashed_shader_materials: Dictionary = {}
 ## node instance id -> the BackBufferCopy.copy_mode it had before the effects
 ## setting disabled it. See _strip_backbuffer_copy().
 var _stashed_copy_modes: Dictionary = {}
+
+## Nodes this setting hid because, with their effect shader gone, they draw
+## nothing at all. Kept apart from _stashed_shader_materials for the same
+## reason _stashed_copy_modes is: its restore loop assigns Materials back.
+var _stashed_visibility: Dictionary = {}
 var _watching_new_nodes: bool = false
 ## Same, for the SubViewport render scale.
 var _watching_new_viewports: bool = false
@@ -591,6 +596,44 @@ func _strip_shader_material_property(node: Node, property: StringName) -> void:
 
 	_stash(node, property, mat)
 	node.set(property, null)
+	_hide_if_it_draws_nothing(node, property)
+
+## Hides a node whose only reason to be drawn was the shader just removed.
+##
+## Same shape as _strip_backbuffer_copy above, and the same lesson: the
+## setting was removing the maths and keeping the cost. Safety Lullaby
+## authors five full-screen effect ColorRects across its own scene and
+## Petina (WaterEffect, RadialEffect, SquiggleLayer, Rain, NTSC), Monochrome
+## authors a sixth, and every one of them is Color(0, 0, 0, 0) - fully
+## transparent, because the shader was what put anything on screen. With the
+## material nulled they keep being rasterised and alpha-blended across the
+## whole frame to produce nothing.
+##
+## That is most of what Very Low costs in that song. The device log measures
+## Safety Lullaby at gpu=6.52ms with draw=6/prims=424 and gpu=42.11ms with
+## draw=11/prims=434 - five extra draw calls for +35ms on identical
+## geometry, and at draw=11 the GPU also reads 22.1ms and 12.9ms in other
+## sections, so it tracks full-screen passes and nothing else. fx= reads 0
+## throughout, which says the materials really were stripped and the cost
+## stayed anyway.
+##
+## Deliberately narrow. Only a ColorRect, only when its colour is fully
+## transparent, and only for the `material` slot - a Sprite2D or TextureRect
+## still has its texture to draw after the shader goes (Safety's `Glow` is
+## exactly that), and hiding one of those would remove art the player is
+## meant to see. This is the same guard _mesh_has_own_material() applies on
+## the 3D side, where nulling material_override once turned the shop's cubes
+## and the notepad page white.
+func _hide_if_it_draws_nothing(node: Node, property: StringName) -> void:
+	if property != &"material" or not (node is ColorRect):
+		return
+	if not is_zero_approx(node.color.a):
+		return
+	if not node.visible:
+		return
+
+	_stashed_visibility[node.get_instance_id()] = true
+	node.visible = false
 
 func _strip_surface_shader_material(node: MeshInstance3D, surface: int) -> void:
 	var mat: Material = node.get_surface_override_material(surface)
@@ -632,6 +675,15 @@ func _restore_effect_shaders() -> void:
 		if is_instance_valid(node) and node is BackBufferCopy:
 			node.copy_mode = _stashed_copy_modes[id]
 	_stashed_copy_modes.clear()
+
+	# Only ever puts back a true this setting itself turned off, so a node
+	# something else hid in the meantime is not revealed by turning the
+	# effects back on.
+	for id: int in _stashed_visibility:
+		var node: Object = instance_from_id(id)
+		if is_instance_valid(node) and node is CanvasItem:
+			node.visible = true
+	_stashed_visibility.clear()
 
 func get_input_name(action: StringName) -> String:
 	if not input_map.has(action):
