@@ -29,18 +29,51 @@ var active: bool = false
 @export var render_viewport: SubViewport
 
 
+## Switches the 3D render on or off.
+##
+## The first version of this drove the mode off is_visible_in_tree(), and
+## the device log says it never turned anything off: the viewport reads live
+## in 87 of 106 Monochrome lines, and from the first census after load in all
+## three songs, at 0.6-0.89ms of GPU each frame. `visible` is simply not the
+## question being asked here -
+##
+##   - Chimera and Safety Lullaby never author `visible` on this instance at
+##     all, so it is true for the whole song. The screen draws nothing the
+##     player can see (its own animations bring ScalingFella, the label and
+##     FadingColor up from zero), but the flag says visible and the gate
+##     dutifully switched the render on and left it there.
+##   - Monochrome is the only one that authors `visible = false`, and it is
+##     also the only one whose song animation drives
+##     `ResultsScreen/LullabyResultsScreen:visible` as a track - which is why
+##     that one flips mid-song and the other two never do.
+##
+## So the mode follows what actually presents the screen instead: nothing
+## renders until _on_song_finished() starts the `show` animation, which is
+## the only place in the project that plays it. Visibility is still honoured
+## in the one safe direction - going invisible switches the render off - but
+## it can no longer switch anything on.
+func _set_viewport_live(live: bool) -> void:
+	if render_viewport == null:
+		return
+	render_viewport.render_target_update_mode = (
+		SubViewport.UPDATE_ALWAYS if live else SubViewport.UPDATE_DISABLED
+	)
+
+
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_VISIBILITY_CHANGED and render_viewport != null:
-		render_viewport.render_target_update_mode = (
-			SubViewport.UPDATE_ALWAYS if is_visible_in_tree() else SubViewport.UPDATE_DISABLED
-		)
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree():
+		_set_viewport_live(false)
 
 
 func _ready() -> void :
 	if render_viewport == null:
 		render_viewport = get_node_or_null(^"SubViewport") as SubViewport
-	if render_viewport != null and is_visible_in_tree():
-		render_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	# Unconditionally off. The viewport holds a spinning soultoken that
+	# SoultokenSprite only reveals during `show_tokens`, so there is nothing
+	# to render until the song is over - and the DirectionalLight3D inside it
+	# is the only shadow caster Monochrome has, which is what the census's
+	# shadows=[...] finally named.
+	_set_viewport_live(false)
 
 	if target_timeline:
 		target_timeline.animation_finished.connect(_on_song_finished)
@@ -128,6 +161,11 @@ func _on_song_finished(_anim_name: StringName) -> void :
 			results_label.text += "\n\nNEW GRADE!!!"
 
 	if animation_player:
+		# On here rather than at the first frame it is needed. `show` runs for
+		# seconds before `show_tokens` reveals SoultokenSprite, so the token
+		# has the whole opening to render at least once and the texture is
+		# never blank on the frame it appears.
+		_set_viewport_live(true)
 		animation_player.play(&"show")
 
 
