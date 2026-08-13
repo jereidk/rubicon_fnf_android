@@ -5,24 +5,18 @@ name: iOS Build
 # macOS job onto it would make every Android build wait for a runner that is
 # scarcer and slower to start. Nothing here is shared with it except the
 # precompiled-import directories, which are just files in the repo.
+# Dispatch only. It briefly also carried a push trigger, because GitHub
+# registers dispatchable workflows from the DEFAULT branch and answered 404
+# for one it had only ever seen on a feature branch. A copy of this file now
+# sits on main purely to register it, so the trigger is unnecessary and a
+# macOS runner no longer queues behind ordinary pushes.
+#
+# Dispatch it against the branch that carries the mod, not against main:
+# main has export_presets.cfg but none of precompiled_astc_imports/,
+# tools/astc_compress/ or tools/verify_log_format.py, so the run would fail
+# at the first restore step. That resolves itself when the branch merges.
 on:
-  # workflow_dispatch alone is not enough while this file lives only on a
-  # feature branch: GitHub registers dispatchable workflows from the default
-  # branch, so the API answers 404 for one it has never seen there. It starts
-  # working the moment this reaches main, and is kept for that.
   workflow_dispatch:
-  # Until then, push is the trigger that does work from a branch - it runs the
-  # workflow file out of the pushed commit. Scoped to the files that actually
-  # change what the iOS build produces, so ordinary work on the branch does
-  # not queue a macOS runner behind it.
-  push:
-    branches:
-      - add-lullaby-mod
-    paths:
-      - '.github/workflows/ios-build.yml'
-      - 'export_presets.cfg'
-      - 'icons/ios_app_1024.png'
-      - 'tools/make_ios_icon.py'
 
 permissions:
   contents: read
