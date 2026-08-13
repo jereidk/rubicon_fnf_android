@@ -480,6 +480,9 @@ func census(reason: String) -> void:
 	# this jumps on the same census that catches a stall, a new shadow caster
 	# is the leading suspect; if it is already flat well before the stall,
 	# that theory is dead and the search moves on - same logic as pipe=.
+	## Visible, opaque, full-frame CanvasItems, deepest last - which is
+	## roughly draw order, so the last one named is the one on top.
+	var covers: Array[String] = []
 	var lights_visible: int = 0
 	var lights_shadow: int = 0
 	# Every prior census of Chimera happened to land during a cutscene, where
@@ -571,6 +574,15 @@ func census(reason: String) -> void:
 		# root, and the shop has thousands of CanvasItems against a handful
 		# carrying a ShaderMaterial.
 		if node is CanvasItem:
+			# Anything visible, opaque and big enough to hide the game. The
+			# fx= pass above only looks at items carrying a shader, so a
+			# plain black ColorRect - which is exactly what Chimera puts over
+			# its own song - was invisible to every counter in this log.
+			if _covers_screen(node) and node.is_visible_in_tree():
+				var opacity: float = _opaque_coverage(node)
+				if opacity >= 0.95:
+					covers.append("%s@%.2f" % [_scene_relative_path(node), opacity])
+
 			var mat: Material = node.material
 			if mat is ShaderMaterial and mat.shader != null and node.is_visible_in_tree():
 				fx_live += 1
@@ -652,7 +664,7 @@ func census(reason: String) -> void:
 			class_delta.append(moved[i][1])
 	_last_census_counts = counts
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) | %s | top_anims=[%s] | shadows=[%s] | %s | delta=[%s]" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | %s | delta=[%s]" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
 		notes_total, notes_visible, notes_parked,
 		audio_total, audio_playing,
@@ -662,8 +674,9 @@ func census(reason: String) -> void:
 		int(Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)),
 		int(Performance.get_monitor(Performance.PHYSICS_2D_COLLISION_PAIRS)),
 		lights_visible, lights_shadow,
-		fx_live, fx_effect, fx_fullscreen, fx_materials.size(),
+		fx_live, fx_effect, fx_fullscreen, fx_materials.size(), covers.size(),
 		_graphics_summary(), ", ".join(top), ", ".join(shadow_names),
+		", ".join(covers.slice(0, 6)),
 		" ".join(classes), " ".join(class_delta),
 	])
 
@@ -680,6 +693,29 @@ func _covers_screen(node: CanvasItem) -> bool:
 		return false
 	var rect: Vector2 = control.get_global_rect().size
 	return rect.x >= screen.x * 0.8 and rect.y >= screen.y * 0.8
+
+## How completely a CanvasItem hides what is behind it, 0-1.
+##
+## The product of every alpha that applies: the item's own modulate and
+## self_modulate, a ColorRect's colour, and every ancestor's modulate up to
+## the scene root - because a rect at full alpha inside a parent faded to
+## zero hides nothing, and the log would otherwise report it as a cover.
+##
+## Anything with a material is reported at face value; a shader can do
+## whatever it likes with the alpha it is handed, and guessing is worse than
+## saying what the scene asked for.
+func _opaque_coverage(node: CanvasItem) -> float:
+	var alpha: float = node.modulate.a * node.self_modulate.a
+	var rect := node as ColorRect
+	if rect != null:
+		alpha *= rect.color.a
+
+	var parent: Node = node.get_parent()
+	while parent is CanvasItem:
+		alpha *= (parent as CanvasItem).modulate.a
+		parent = parent.get_parent()
+
+	return alpha
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap
 ## enough to poll every frame: load_threaded_get_status() on a path that is
