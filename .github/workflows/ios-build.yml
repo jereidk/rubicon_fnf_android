@@ -17,6 +17,18 @@ name: iOS Build
 # at the first restore step. That resolves itself when the branch merges.
 on:
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: >-
+          release uses Godot's release engine template and builds the app in
+          Xcode's Release configuration; debug uses the debug template and
+          configuration. Neither is signed either way.
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
 
 permissions:
   contents: read
@@ -213,7 +225,27 @@ jobs:
           # it - the exporter reports "Target folder does not exist or is
           # inaccessible" rather than creating it.
           mkdir -p builds/ios
-          $GODOT --headless --export-debug "iOS" builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj 2>&1
+
+          # Two separate debug/release axes on iOS, and the first pass at
+          # this workflow got both wrong: --export-debug picks which engine
+          # template goes into the xcframework, and -configuration below
+          # picks how Xcode builds the app around it. Measured on the real
+          # 4.7.1 templates, a debug engine runs GDScript 1.1-1.56x slower
+          # than a release one - unevenly, with method calls worst - so a
+          # debug default would ship the slow one and distort any timing
+          # taken on it.
+          BUILD_TYPE="${{ inputs.build_type }}"
+          BUILD_TYPE="${BUILD_TYPE:-release}"
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            EXPORT_FLAG="--export-debug"; XC_CONFIG="Debug"
+          else
+            EXPORT_FLAG="--export-release"; XC_CONFIG="Release"
+          fi
+          echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+          echo "XC_CONFIG=$XC_CONFIG" >> $GITHUB_ENV
+          echo "Exporting iOS with $EXPORT_FLAG (Xcode configuration $XC_CONFIG)"
+
+          $GODOT --headless $EXPORT_FLAG "iOS" builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj 2>&1
           ls -la builds/ios
 
       - name: Build unsigned .app
@@ -230,7 +262,7 @@ jobs:
           xcodebuild \
             -project "builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj" \
             -scheme "${{ env.XCODE_SCHEME }}" \
-            -configuration Debug \
+            -configuration "$XC_CONFIG" \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/dd" \
@@ -247,7 +279,7 @@ jobs:
           # and nothing else required. Built by hand rather than with
           # `xcodebuild -exportArchive`, which insists on an export options
           # plist and a signing identity.
-          APP="$RUNNER_TEMP/dd/Build/Products/Debug-iphoneos/${{ env.XCODE_SCHEME }}.app"
+          APP="$RUNNER_TEMP/dd/Build/Products/$XC_CONFIG-iphoneos/${{ env.XCODE_SCHEME }}.app"
           if [ ! -d "$APP" ]; then
             echo "No .app at $APP"
             find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name '*.app' || true
