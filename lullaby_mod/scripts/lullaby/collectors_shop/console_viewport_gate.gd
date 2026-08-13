@@ -36,7 +36,7 @@ extends VisibleOnScreenNotifier3D
 ## session - including while the player is free-looking away from the TV
 ## and this gate has the OUTER viewport disabled.
 ##
-## Hence background_container below. Note that setting
+## Hence nested_containers below. Note that setting
 ## render_target_update_mode on a SubViewport owned by a SubViewportContainer
 ## does not work: the container overwrites it from its own
 ## is_visible_in_tree() on every visibility notification (ALWAYS when
@@ -45,11 +45,27 @@ extends VisibleOnScreenNotifier3D
 ## 4.7.1. Toggling the container's visibility is therefore the supported
 ## way to switch a nested viewport off, and it is what this does.
 ##
-## Only console_bg's container is managed here, deliberately. The Home and
-## Credits containers are already gated correctly by the TabContainer
-## hiding their tabs, and blanket-showing containers is exactly what made
-## the reverted shader prewarm open the console on a screen the player
-## never chose (see CLAUDE.md).
+## This used to manage console_bg's container only, on the reasoning that
+## the Home and Credits containers "are already gated correctly by the
+## TabContainer hiding their tabs". The device log falsified that: sub_top=
+## names Viewports/ConsoleSubViewport/Console/TabContainer/Home/
+## IconSubViewport/SubViewport(720x540) as the biggest live SubViewport in
+## the shop, at 2.3ms of GPU, with four of seven live. The reasoning had one
+## axis too few - the TabContainer gates WHICH TAB is showing, not whether
+## the TV is on screen at all, so the Home tab's six icon models kept
+## rendering their own 3D world the whole time the player was free-looking
+## around the room with the outer viewport already disabled.
+##
+## Both nested containers are managed now. Credits' is the larger of the
+## two on paper (1440x1080 with no stretch_shrink, against Home's 720x540)
+## though it is only live while Credits is the open tab.
+##
+## Restoring them is safe for the reason blanket-showing containers was not:
+## visibility is a conjunction. Both of these sit under a TabContainer tab,
+## so setting a container's own `visible` back to true re-enables it only if
+## the TabContainer is also showing that tab - it cannot open a screen the
+## player did not choose, which is what the reverted shader prewarm did.
+## Both ship with no `visible` of their own, so true is what they had.
 
 ## SubViewport.UpdateMode. Named here rather than passed as the bare 4/0
 ## the scene connections used, which said nothing about intent.
@@ -58,9 +74,11 @@ const UPDATE_ALWAYS := 4
 
 @export var console_viewport: SubViewport
 
-## The SubViewportContainer wrapping console_bg's 3D background. Hidden
-## while the TV is off screen so its nested viewport stops rendering.
-@export var background_container: Control
+## Every SubViewportContainer inside the console that owns a nested
+## SubViewport, hidden while the TV is off screen so those viewports stop
+## rendering. Setting render_target_update_mode on them directly does not
+## work - see the note above - so the container's visibility is the lever.
+@export var nested_containers: Array[Control] = []
 
 var _switches: int = 0
 var _last_switch_msec: int = 0
@@ -85,8 +103,10 @@ func _set_mode(mode: int, label: String) -> void:
 	# the TV screen still shows the console with the background on it; the
 	# frame it comes back, the outer viewport redraws against the nested
 	# texture's own last content, which is that same image. Nothing blanks.
-	if background_container != null and is_instance_valid(background_container):
-		background_container.visible = mode == UPDATE_ALWAYS
+	var live: bool = mode == UPDATE_ALWAYS
+	for container in nested_containers:
+		if container != null and is_instance_valid(container):
+			container.visible = live
 
 	_switches += 1
 	var now: int = Time.get_ticks_msec()
