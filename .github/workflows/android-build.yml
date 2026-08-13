@@ -3,6 +3,17 @@ name: Android Build
 on:
   workflow_dispatch:
     inputs:
+      build_type:
+        description: >-
+          release uses Godot's release engine template; debug uses the debug
+          one. Both are signed with the same release keystore afterwards, so
+          both install as updates over each other.
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
       precompile_match:
         description: >-
           Leave empty for a normal build. Set to a glob to also harvest the
@@ -395,14 +406,50 @@ jobs:
           print("application/config/version set to %s" % stamp)
           PY
 
-      - name: Build Android Debug APK
+      - name: Build Android APK
         id: build
         run: |
-          $GODOT --headless --export-debug "Android Debug" builds/android_debug.apk 2>&1
-          
-          if [ -f builds/android_debug.apk ]; then
-            echo "APK_SIZE=$(du -h builds/android_debug.apk | cut -f1)" >> $GITHUB_OUTPUT
-            echo "apk_path=builds/android_debug.apk" >> $GITHUB_OUTPUT
+          # Which engine template goes in the APK, which is a different
+          # question from which key signs it. Every build this project has
+          # ever shipped used --export-debug and was then re-signed with the
+          # release keystore, so the APK on the tester's phone has been a
+          # debug engine wearing a release signature.
+          #
+          # That is not free. A debug template compiles in DEBUG_ENABLED, the
+          # remote debugger and the profiler, and - the part that matters
+          # here - runs GDScript with its per-instruction debug bookkeeping
+          # for line numbers and stack traces. This project's two unexplained
+          # costs are both of that shape: Monochrome's script_max sits at
+          # 19.5ms median and 80.9ms worst with no subsystem accounting for
+          # more than ~3ms of it, and seven of the shop's spikes are 50-150ms
+          # frames where gpu, script, cpu_render and phys together sum to 26.
+          #
+          # So this is worth an A/B rather than a switch flipped on faith.
+          # Both are kept, release is the default, and the two are directly
+          # comparable because the same keystore signs both.
+          #
+          # package/signed=false on the release preset on purpose: Godot
+          # refuses to export release with signing on unless the preset
+          # carries keystore/release credentials ("Could not find release
+          # keystore, unable to export"), and putting the key in the preset
+          # is worse than leaving apksigner to do it from the secret, which
+          # is what already keeps every build installable over the last one.
+          BUILD_TYPE="${{ inputs.build_type }}"
+          BUILD_TYPE="${BUILD_TYPE:-release}"
+
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            PRESET="Android Debug"; FLAG="--export-debug"; OUT="builds/android_debug.apk"
+          else
+            PRESET="Android Release"; FLAG="--export-release"; OUT="builds/android_release.apk"
+          fi
+          echo "Exporting preset '$PRESET' with $FLAG"
+
+          $GODOT --headless $FLAG "$PRESET" "$OUT" 2>&1
+
+          if [ -f "$OUT" ]; then
+            echo "APK_SIZE=$(du -h "$OUT" | cut -f1)" >> $GITHUB_OUTPUT
+            echo "apk_path=$OUT" >> $GITHUB_OUTPUT
+            echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
             echo "build_success=true" >> $GITHUB_OUTPUT
           else
             echo "build_success=false" >> $GITHUB_OUTPUT
@@ -418,7 +465,7 @@ jobs:
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
             --ks-key-alias ${{ secrets.KEY_ALIAS }} \
             --out builds/rubicon-release.apk \
-            builds/android_debug.apk
+            "${{ steps.build.outputs.apk_path }}"
 
           echo "Signed APK: builds/rubicon-release.apk"
           ls -lh builds/

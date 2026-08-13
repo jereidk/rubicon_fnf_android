@@ -1777,6 +1777,14 @@ func _write_header() -> void:
 		version = "code %s" % ProjectSettings.get_setting("application/config/version_code", "?")
 	_file.store_line("version   : %s" % version)
 	_file.store_line("godot     : %s" % Engine.get_version_info()["string"])
+	# Which engine template this APK carries, which is NOT the same question
+	# as which key signed it. Every build before this one exported
+	# --export-debug and was then re-signed with the release keystore, so the
+	# APK on the phone was a debug engine wearing a release signature - and a
+	# debug template runs GDScript with its per-instruction bookkeeping for
+	# line numbers and stack traces. Two logs are only comparable if each
+	# says which one it came from, and nothing in the header did.
+	_file.store_line("template  : %s" % ("debug" if OS.is_debug_build() else "release"))
 	_file.store_line("os        : %s %s" % [OS.get_name(), OS.get_version()])
 	_file.store_line("model     : %s" % OS.get_model_name())
 	# get_processor_name() returns "" on Android; the thread count still works
