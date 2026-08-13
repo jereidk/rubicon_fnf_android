@@ -1579,7 +1579,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -1593,7 +1593,12 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
-		int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
+		# Node::orphan_node_count is DEBUG_ENABLED-only, so this is a flat 0 in
+		# a release build - and 0 orphans is exactly what a healthy note pool
+		# is NOT (it should read ~2400 after prewarm_pool). Reporting n/a
+		# keeps anyone from reading the absence as a result.
+		(str(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)))
+			if OS.is_debug_build() else "n/a"),
 		int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
 		pipelines,
 		pipe_delta,
@@ -1689,6 +1694,19 @@ func _current_scene_name() -> String:
 	return scene.scene_file_path.get_file() if scene and not scene.scene_file_path.is_empty() else "?"
 
 func _mb(bytes: int) -> String:
+	# Measured against the real 4.7.1 export templates rather than assumed:
+	# Godot's memory accounting is compiled out of a release template.
+	# MEMORY_STATIC, MEMORY_STATIC_MAX, OS.get_static_memory_usage() and
+	# OS.get_static_memory_peak_usage() all return exactly 0 there, while
+	# OBJECT_COUNT, OBJECT_RESOURCE_COUNT and OBJECT_NODE_COUNT survive.
+	#
+	# Printing that 0 as "0MB" would be worse than printing nothing: a log
+	# reading ram=0MB peak=0MB reads as "this build uses no memory", and this
+	# project has already lost time to a counter that was quietly lying (gpu=
+	# covering only the main viewport, for months). n/a says the number does
+	# not exist in this build.
+	if bytes <= 0 and not OS.is_debug_build():
+		return "n/a"
 	return "%.0fMB" % (bytes / 1048576.0)
 
 ## The package this build actually runs under.
