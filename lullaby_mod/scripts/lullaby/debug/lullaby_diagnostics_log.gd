@@ -327,6 +327,40 @@ var _last_loading_entry_ms: int = 0
 var _incoming_deps: PackedStringArray = PackedStringArray()
 var _incoming_cached: Dictionary = {}
 
+## The paths of _incoming_deps that were still uncached at the last sample.
+##
+## The per-second probe used to re-walk the whole list every time, which is
+## the wrong shape twice over: it re-asks about paths whose answer can no
+## longer change, and it costs the same at the end of a load as at the start,
+## when by then there is almost nothing left to find. This shrinks instead,
+## so the probe gets cheaper exactly as the load gets busier.
+var _incoming_pending: PackedStringArray = PackedStringArray()
+
+## What every probe in this file has cost so far on the current load, in
+## microseconds, and how long the two graph walks took.
+##
+## This exists because a device log could not answer whether these probes
+## were free. The shop's first load in the release APK took 38.0s against
+## 5.6s for the same scene in the last debug APK, and six commits separate
+## those two builds - three of them touching the shop, one adding the walks
+## below - so "the probe did it" and "the release template did it" were both
+## guesses with nothing to separate them. Measuring what the probe costs is
+## cheaper than another A/B build, and settles it in whichever log comes
+## next: if `probe=` reads tens of milliseconds, the probe is not the 32
+## seconds and the search moves on.
+var _probe_usec: int = 0
+var _incoming_walk_usec: int = 0
+var _residue_walk_usec: int = 0
+
+## Wall-clock ceiling on either graph walk, in microseconds.
+##
+## Both run on the main thread, on the frame a load starts, and both read a
+## file header per path - which for an imported resource means parsing its
+## .import as well. A cap on the number of paths does not bound that, because
+## the per-path cost is a device-side unknown; a cap on time does. Truncation
+## is reported, so a short answer never reads as a complete one.
+const PROBE_BUDGET_USEC := 120_000
+
 ## Consecutive LOADING samples that reported the same progress fraction, and
 ## when the run of them started.
 ##
@@ -377,12 +411,17 @@ const INCOMING_MAX_PATHS := 1200
 func _collect_incoming_deps(path: String) -> void:
 	_incoming_deps = PackedStringArray()
 	_incoming_cached.clear()
+	_incoming_pending = PackedStringArray()
+	_incoming_walk_usec = 0
 	if path.is_empty():
 		return
 
+	var started: int = Time.get_ticks_usec()
 	var seen: Dictionary = {path: true}
 	var queue: Array[String] = [path]
 	while not queue.is_empty() and _incoming_deps.size() < INCOMING_MAX_PATHS:
+		if Time.get_ticks_usec() - started > PROBE_BUDGET_USEC:
+			break
 		var current: String = queue.pop_front()
 		_incoming_deps.append(current)
 		for dep in ResourceLoader.get_dependencies(current):
@@ -392,26 +431,35 @@ func _collect_incoming_deps(path: String) -> void:
 			seen[dep_path] = true
 			queue.append(dep_path)
 
+	_incoming_pending = _incoming_deps.duplicate()
+	_incoming_walk_usec = Time.get_ticks_usec() - started
+	_probe_usec += _incoming_walk_usec
+
 ## How many of the incoming scene's dependencies are cached now, and which
 ## ones arrived since the last sample.
 func _incoming_progress() -> String:
 	if _incoming_deps.is_empty():
 		return "deps=-"
 
-	var cached: int = 0
+	var started: int = Time.get_ticks_usec()
 	var arrived: Array[String] = []
-	for path in _incoming_deps:
+	# Only the paths that were still uncached last time. A cached resource
+	# cannot go back to uncached while the load that wants it is in flight,
+	# so re-asking is work whose answer is already known - and the list this
+	# walks shrinks by exactly the count that just arrived.
+	var still_pending: PackedStringArray = PackedStringArray()
+	for path in _incoming_pending:
 		if not ResourceLoader.has_cached(path):
-			continue
-		cached += 1
-		if _incoming_cached.has(path):
+			still_pending.append(path)
 			continue
 		_incoming_cached[path] = true
 		if arrived.size() < 4:
 			arrived.append(path.get_file())
+	_incoming_pending = still_pending
+	_probe_usec += Time.get_ticks_usec() - started
 
 	return "deps=%d/%d%s" % [
-		cached, _incoming_deps.size(),
+		_incoming_cached.size(), _incoming_deps.size(),
 		"" if arrived.is_empty() else " +" + " +".join(arrived),
 	]
 
@@ -1053,15 +1101,22 @@ func _report_cache_residue() -> void:
 	# resources are inside those. RESIDUE_MAX_PATHS is what keeps this from
 	# turning into the recursive walk it deliberately was not: the cap is
 	# reported, so a truncated answer never reads as a complete one.
+	var started: int = Time.get_ticks_usec()
 	var seen: Dictionary = {}
 	var queue: Array[String] = [_outgoing_scene_path]
 	seen[_outgoing_scene_path] = true
 	var visited: int = 0
 	var cached: int = 0
+	var capped: bool = false
 	var by_kind: Dictionary = {}
 	var examples: Array[String] = []
 
 	while not queue.is_empty() and visited < RESIDUE_MAX_PATHS:
+		# Same time budget as the incoming walk, and for the same reason: this
+		# runs on a frame that is already loading.
+		if Time.get_ticks_usec() - started > PROBE_BUDGET_USEC:
+			capped = true
+			break
 		var path: String = queue.pop_front()
 		visited += 1
 
@@ -1094,12 +1149,16 @@ func _report_cache_residue() -> void:
 	for i in mini(5, kinds.size()):
 		kind_parts.append("%s=%d" % [kinds[i][1], kinds[i][0]])
 
-	_entry("RESIDUE", "%s packed=%s cached=%d/%d%s [%s] %s" % [
+	_residue_walk_usec = Time.get_ticks_usec() - started
+	_probe_usec += _residue_walk_usec
+
+	_entry("RESIDUE", "%s packed=%s cached=%d/%d%s walk=%.1fms [%s] %s" % [
 		_outgoing_scene_path.get_file(),
 		"yes" if packed_cached else "no",
 		cached,
 		visited,
-		" (capped)" if visited >= RESIDUE_MAX_PATHS else "",
+		" (capped)" if capped or visited >= RESIDUE_MAX_PATHS else "",
+		_residue_walk_usec / 1000.0,
 		" ".join(kind_parts),
 		", ".join(examples),
 	])
@@ -1305,8 +1364,17 @@ func _on_scene_change_started(path: String) -> void:
 	_stall_fraction = -1.0
 	_stall_samples = 0
 	_stall_cached_at_start = 0
+	_probe_usec = 0
+	_residue_walk_usec = 0
 	_collect_incoming_deps(path)
-	_entry("SCENE_OUT", path)
+	# deps=/walk= are what this file costs the load it is measuring. Named on
+	# the way out as well as the way in, because the walk happens here and a
+	# load that never finishes still records what the walk took.
+	_entry("SCENE_OUT", "%s deps=%d walk=%.1fms%s" % [
+		path, _incoming_deps.size(), _incoming_walk_usec / 1000.0,
+		" (capped)" if _incoming_deps.size() >= INCOMING_MAX_PATHS
+			or _incoming_walk_usec > PROBE_BUDGET_USEC else "",
+	])
 
 func _on_scene_change_finished(path: String) -> void:
 	# Before _loading_path is cleared, so a load that stalled and then simply
@@ -1315,7 +1383,12 @@ func _on_scene_change_finished(path: String) -> void:
 	var took: int = Time.get_ticks_msec() - _scene_change_started_ms
 	var delta_mb: float = float(OS.get_static_memory_usage() - _scene_change_memory) / 1048576.0
 	_loading_path = ""
-	_entry("SCENE_IN", "%s took=%dms memory_delta=%+.1fMB" % [path, took, delta_mb])
+	# probe= is every microsecond this file spent measuring the load, against
+	# took= for the load itself. The one number that says whether the
+	# diagnostics are part of what they are reporting.
+	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB" % [
+		path, took, _probe_usec / 1000.0, delta_mb,
+	])
 	# The frame window is meaningless across a load, and every frame after one
 	# would otherwise read as a spike against the pre-load median.
 	_frames_seen = 0
