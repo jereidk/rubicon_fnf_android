@@ -6,7 +6,23 @@ name: iOS Build
 # scarcer and slower to start. Nothing here is shared with it except the
 # precompiled-import directories, which are just files in the repo.
 on:
+  # workflow_dispatch alone is not enough while this file lives only on a
+  # feature branch: GitHub registers dispatchable workflows from the default
+  # branch, so the API answers 404 for one it has never seen there. It starts
+  # working the moment this reaches main, and is kept for that.
   workflow_dispatch:
+  # Until then, push is the trigger that does work from a branch - it runs the
+  # workflow file out of the pushed commit. Scoped to the files that actually
+  # change what the iOS build produces, so ordinary work on the branch does
+  # not queue a macOS runner behind it.
+  push:
+    branches:
+      - add-lullaby-mod
+    paths:
+      - '.github/workflows/ios-build.yml'
+      - 'export_presets.cfg'
+      - 'icons/ios_app_1024.png'
+      - 'tools/make_ios_icon.py'
 
 permissions:
   contents: read
