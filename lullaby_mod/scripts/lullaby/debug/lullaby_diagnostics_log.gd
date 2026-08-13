@@ -306,6 +306,115 @@ var _load_checkpoints_done: int = 0
 const LOADING_ENTRY_MS := 1000
 var _last_loading_entry_ms: int = 0
 
+## The incoming scene's dependency graph, and which of its paths were already
+## in the loader cache at the previous sample.
+##
+## This is the counter the load stall needs, and the per-second LOADING
+## samples are what showed it was needed. The shop's second load sits at
+## exactly 50.0% for fifteen consecutive seconds with VRAM flat at 112MB and
+## res moving +3 a second - it is not uploading slowly, it is doing nothing
+## at all - and then finishes in one burst. Chimera does the same for eleven
+## seconds at 170MB. Same duration in two scenes of very different size, so
+## it is a fixed cost, and the fraction being pinned to one value says the
+## loader is inside a single dependency.
+##
+## Godot exposes no way to ask which one. But has_cached() answers it from
+## the outside: walk the incoming scene's graph, sample which paths are
+## cached once a second, and the paths that flip from uncached to cached on
+## the sample the stall ends are the ones it was stuck on. Named in the
+## LOADING line as `+name.ext` so the log reads as a timeline of what
+## arrived when.
+var _incoming_deps: PackedStringArray = PackedStringArray()
+var _incoming_cached: Dictionary = {}
+
+## Consecutive LOADING samples that reported the same progress fraction, and
+## when the run of them started.
+##
+## The curve is readable but nobody should have to read sixteen lines to see
+## that eleven of them are identical. STALL reports the window once, when it
+## breaks, with how long it lasted and how many dependencies arrived in the
+## meantime - a load that goes quiet for eleven seconds and then lands 424
+## resources in one sample is a completely different bug from one that
+## crawls, and this says which happened in one line.
+const STALL_SAMPLES := 3
+var _stall_fraction: float = -1.0
+var _stall_since_ms: int = 0
+var _stall_samples: int = 0
+var _stall_cached_at_start: int = 0
+
+## Reports a run of identical progress samples, if it was long enough.
+##
+## Called both when the fraction moves and when the load finishes, and the
+## second caller is the one that matters: the shop pins at exactly 50.0% and
+## then completes, so the run never "breaks" - it ends. Emitting only on a
+## change meant the one case this was built for produced no STALL line at
+## all, which a 20000-node test load caught by sitting at 0.0% for 71
+## samples and finishing silently.
+func _flush_stall(now_ms: int, cached_now: int) -> void:
+	if _stall_samples < STALL_SAMPLES:
+		return
+	_entry("STALL", "%.1f%% for %.1fs, %d deps arrived while stuck" % [
+		_stall_fraction * 100.0,
+		float(now_ms - _stall_since_ms) / 1000.0,
+		cached_now - _stall_cached_at_start,
+	])
+	_stall_samples = 0
+
+## Names for ResourceLoader.ThreadLoadStatus, checked against the binary
+## rather than assumed: 0 INVALID_RESOURCE, 1 IN_PROGRESS, 2 FAILED,
+## 3 LOADED.
+const THREAD_STATUS_NAMES := ["invalid", "in_progress", "failed", "loaded"]
+
+## Cap on the incoming-graph walk, same reasoning as RESIDUE_MAX_PATHS: this
+## runs once per scene change, on the frame the loading screen goes up.
+const INCOMING_MAX_PATHS := 1200
+
+## Collects the paths the incoming scene depends on, breadth-first.
+##
+## Runs against the file rather than the loaded resource, so it works before
+## anything has been loaded - which is the whole point, since the answer is
+## needed while the load is still in flight.
+func _collect_incoming_deps(path: String) -> void:
+	_incoming_deps = PackedStringArray()
+	_incoming_cached.clear()
+	if path.is_empty():
+		return
+
+	var seen: Dictionary = {path: true}
+	var queue: Array[String] = [path]
+	while not queue.is_empty() and _incoming_deps.size() < INCOMING_MAX_PATHS:
+		var current: String = queue.pop_front()
+		_incoming_deps.append(current)
+		for dep in ResourceLoader.get_dependencies(current):
+			var dep_path: String = dep.get_slice("::", dep.count("::"))
+			if dep_path.is_empty() or seen.has(dep_path):
+				continue
+			seen[dep_path] = true
+			queue.append(dep_path)
+
+## How many of the incoming scene's dependencies are cached now, and which
+## ones arrived since the last sample.
+func _incoming_progress() -> String:
+	if _incoming_deps.is_empty():
+		return "deps=-"
+
+	var cached: int = 0
+	var arrived: Array[String] = []
+	for path in _incoming_deps:
+		if not ResourceLoader.has_cached(path):
+			continue
+		cached += 1
+		if _incoming_cached.has(path):
+			continue
+		_incoming_cached[path] = true
+		if arrived.size() < 4:
+			arrived.append(path.get_file())
+
+	return "deps=%d/%d%s" % [
+		cached, _incoming_deps.size(),
+		"" if arrived.is_empty() else " +" + " +".join(arrived),
+	]
+
 ## The scene being left, and whether its cache residue has been reported for
 ## this load yet.
 ##
@@ -887,8 +996,23 @@ func _poll_load_progress() -> void:
 	var now_ms: int = Time.get_ticks_msec()
 	if now_ms - _last_loading_entry_ms >= LOADING_ENTRY_MS:
 		_last_loading_entry_ms = now_ms
-		_entry("LOADING", "%.1f%% at %dms" % [
-			fraction * 100.0, now_ms - _scene_change_started_ms,
+		var cached_before: int = _incoming_cached.size()
+		var progress_text: String = _incoming_progress()
+
+		# Same fraction as last sample? Bank it. Different? Report the run
+		# that just ended, if it was long enough to matter.
+		if is_equal_approx(fraction, _stall_fraction):
+			_stall_samples += 1
+		else:
+			_flush_stall(now_ms, cached_before)
+			_stall_fraction = fraction
+			_stall_since_ms = now_ms
+			_stall_samples = 1
+			_stall_cached_at_start = cached_before
+
+		_entry("LOADING", "%.1f%% at %dms %s status=%s" % [
+			fraction * 100.0, now_ms - _scene_change_started_ms, progress_text,
+			THREAD_STATUS_NAMES[status] if status >= 0 and status < THREAD_STATUS_NAMES.size() else str(status),
 		])
 	while (_load_checkpoints_done < LOAD_CHECKPOINTS.size()
 			and fraction >= LOAD_CHECKPOINTS[_load_checkpoints_done]):
@@ -1171,9 +1295,16 @@ func _on_scene_change_started(path: String) -> void:
 	_residue_reported = _outgoing_scene_path.is_empty()
 	_last_loading_entry_ms = Time.get_ticks_msec()
 	_last_census_counts.clear()
+	_stall_fraction = -1.0
+	_stall_samples = 0
+	_stall_cached_at_start = 0
+	_collect_incoming_deps(path)
 	_entry("SCENE_OUT", path)
 
 func _on_scene_change_finished(path: String) -> void:
+	# Before _loading_path is cleared, so a load that stalled and then simply
+	# finished still reports the window.
+	_flush_stall(Time.get_ticks_msec(), _incoming_cached.size())
 	var took: int = Time.get_ticks_msec() - _scene_change_started_ms
 	var delta_mb: float = float(OS.get_static_memory_usage() - _scene_change_memory) / 1048576.0
 	_loading_path = ""
@@ -1414,8 +1545,14 @@ func _entry(kind: String, detail: String) -> void:
 	# live ones - so half of it comes from viewports inside instanced
 	# sub-scenes that no gate in the room scene can see. A total cannot be
 	# acted on; a name can.
-	var biggest_name: String = "-"
-	var biggest_pixels: int = 0
+	## The live SubViewports by pixel count, biggest first.
+	##
+	## sub_top used to name only the largest, which was enough to find the
+	## shop's Home-tab icon viewport but not enough to see what else is on:
+	## the shop authors seven and runs four to six of them, and one name out
+	## of six leaves the rest anonymous. Three is where the line stops
+	## growing faster than it informs.
+	var live_viewports: Array = []
 	for viewport: SubViewport in _sub_viewports:
 		if not is_instance_valid(viewport):
 			continue
@@ -1424,12 +1561,18 @@ func _entry(kind: String, detail: String) -> void:
 		sub_live += 1
 		var pixels: int = viewport.size.x * viewport.size.y
 		sub_pixels += pixels
-		if pixels > biggest_pixels:
-			biggest_pixels = pixels
-			biggest_name = "%s(%dx%d)" % [_scene_relative_path(viewport), viewport.size.x, viewport.size.y]
+		live_viewports.append([pixels, "%s(%dx%d)" % [
+			_scene_relative_path(viewport), viewport.size.x, viewport.size.y,
+		]])
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	live_viewports.sort_custom(func(a, b): return a[0] > b[0])
+	var top_viewports: PackedStringArray = []
+	for i in mini(3, live_viewports.size()):
+		top_viewports.append(live_viewports[i][1])
+	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
+
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -1456,6 +1599,16 @@ func _entry(kind: String, detail: String) -> void:
 		_in_action,
 		_in_other,
 		float(Time.get_ticks_msec() - _last_input_ms) / 1000.0,
+		# How long since the audio thread last mixed a buffer. It runs off
+		# the main thread, so on a frame the main thread has blocked this
+		# keeps ticking normally - and when it does NOT, the block is
+		# somewhere both threads contend on (a loader mutex, the allocator)
+		# rather than in rendering or script. The load stall is exactly the
+		# case where that distinction decides where to look next: eleven
+		# seconds with nothing uploading and nothing allocating is either a
+		# thread waiting on I/O or a thread waiting on a lock, and audio is
+		# the only clock in this log that is not the main thread's.
+		AudioServer.get_time_since_last_mix() * 1000.0,
 		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
