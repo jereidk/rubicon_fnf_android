@@ -115,8 +115,37 @@ static var lane_process_usec : int = 0
 static var bounds_usec : int = 0
 static var pump_usec : int = 0
 
+## The same four numbers as above, but for the frame being processed right
+## now rather than summed over the interval.
+##
+## A rate cannot hold a spike. notes= says 1.86ms/frame and script_max= says
+## 19.52ms, and an average of 1.86 is exactly what you would see whether the
+## cost is flat or whether one frame in sixty costs 19ms and the rest cost
+## nothing. These let the log snapshot what the worst frame was actually made
+## of, which is the difference between naming the owner and shrugging.
+##
+## Reset lazily on first write of a new frame, the same way the churn peak
+## already worked - no per-frame callback and nothing to keep in sync.
+static var frame_note_usec : int = 0
+static var frame_lane_usec : int = 0
+static var frame_bounds_usec : int = 0
+static var frame_pump_usec : int = 0
+
 static var _churn_frame : int = -1
 static var _churn_frame_usec : int = 0
+static var _frame_mark : int = -1
+
+## Starts a new per-frame bucket when the frame number moves on.
+static func _roll_frame() -> void:
+	var frame : int = Engine.get_process_frames()
+	if frame == _frame_mark:
+		return
+
+	_frame_mark = frame
+	frame_note_usec = 0
+	frame_lane_usec = 0
+	frame_bounds_usec = 0
+	frame_pump_usec = 0
 
 ## Reads the counters and clears them, so each caller sees the interval since
 ## the previous call rather than a total since boot. Returns usec; the caller
@@ -510,7 +539,10 @@ func _process(delta: float) -> void:
 	while note_spawn_end - 1 > 0 and data[note_spawn_end - 1].get_millisecond_start_position() - millisecond_position > spawning_bound_maximum:
 		note_spawn_end -= 1
 
-	bounds_usec += Time.get_ticks_usec() - bounds_begin
+	var bounds_spent : int = Time.get_ticks_usec() - bounds_begin
+	bounds_usec += bounds_spent
+	_roll_frame()
+	frame_bounds_usec += bounds_spent
 
 	# Timed as one block rather than per note: what is being asked is "how
 	# much of this frame went to note churn", and the answer has to include

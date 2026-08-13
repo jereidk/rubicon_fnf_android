@@ -65,7 +65,10 @@ func _process(delta: float) -> void:
 
 	var began : int = Time.get_ticks_usec()
 	_process_note(delta)
-	RubiconLevelNoteHandler.note_process_usec += Time.get_ticks_usec() - began
+	var spent : int = Time.get_ticks_usec() - began
+	RubiconLevelNoteHandler.note_process_usec += spent
+	RubiconLevelNoteHandler._roll_frame()
+	RubiconLevelNoteHandler.frame_note_usec += spent
 
 func _process_note(delta: float) -> void:
 	if not Engine.is_editor_hint():

@@ -151,6 +151,9 @@ func _process(delta: float) -> void:
 	var spent : int = Time.get_ticks_usec() - began
 	note_process_usec += spent
 	lane_process_usec += spent
+	_roll_frame()
+	frame_note_usec += spent
+	frame_lane_usec += spent
 
 func _process_lane(delta: float) -> void:
 	super._process(delta)
@@ -158,7 +161,10 @@ func _process_lane(delta: float) -> void:
 	if not Engine.is_editor_hint():
 		var pump_begin : int = Time.get_ticks_usec()
 		_pump.pump(delta)
-		pump_usec += Time.get_ticks_usec() - pump_begin
+		var pump_spent : int = Time.get_ticks_usec() - pump_begin
+		pump_usec += pump_spent
+		_roll_frame()
+		frame_pump_usec += pump_spent
 
 	if not _should_process():
 		return

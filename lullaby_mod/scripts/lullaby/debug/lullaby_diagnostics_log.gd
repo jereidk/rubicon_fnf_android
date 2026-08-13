@@ -210,6 +210,14 @@ var _scene_change_memory: int = 0
 var _script_begin_usec: int = 0
 var _script_usec: int = 0
 var _script_peak_usec: int = 0
+## What the worst frame since the last read was made of. Captured at the
+## moment the record is beaten, so these describe one single frame rather
+## than four independent maxima that may have happened on four different
+## ones.
+var _peak_note_usec: int = 0
+var _peak_lane_usec: int = 0
+var _peak_bounds_usec: int = 0
+var _peak_pump_usec: int = 0
 
 ## When the previous entry was written, so per-interval counters can be
 ## reported as rates instead of as totals over an unknown window.
@@ -240,7 +248,21 @@ class _ScriptTail extends Node:
 
 func _close_script_bracket(now_usec: int) -> void:
 	_script_usec = now_usec - _script_begin_usec
-	_script_peak_usec = maxi(_script_peak_usec, _script_usec)
+	if _script_usec <= _script_peak_usec:
+		return
+
+	# The frame that beats the record is the only one whose breakdown is
+	# worth keeping. script_max= has been the biggest unattributed number in
+	# this log for days - 19.52ms against a 4.76ms median - and the
+	# sub-counters beside it are rates, which cannot hold a spike: an average
+	# of 1.86ms/frame looks the same whether the cost is flat or whether one
+	# frame in sixty costs everything. Snapshotting here turns that one
+	# number into a list of names plus a remainder.
+	_script_peak_usec = _script_usec
+	_peak_note_usec = RubiconLevelNoteHandler.frame_note_usec
+	_peak_lane_usec = RubiconLevelNoteHandler.frame_lane_usec
+	_peak_bounds_usec = RubiconLevelNoteHandler.frame_bounds_usec
+	_peak_pump_usec = RubiconLevelNoteHandler.frame_pump_usec
 
 ## While a load is in flight, its path and which progress checkpoints have
 ## already been reported. A SCENE_IN of 18726ms says the load is the problem
@@ -1186,7 +1208,19 @@ func _entry(kind: String, detail: String) -> void:
 
 	var script_ms: float = float(_script_usec) / 1000.0
 	var script_peak_ms: float = float(_script_peak_usec) / 1000.0
+	var peak_note_ms: float = float(_peak_note_usec) / 1000.0
+	var peak_lane_ms: float = float(_peak_lane_usec) / 1000.0
+	var peak_bounds_ms: float = float(_peak_bounds_usec) / 1000.0
+	var peak_pump_ms: float = float(_peak_pump_usec) / 1000.0
+	# Everything in that frame that is not one of the four above. This is the
+	# number to watch: if it is most of script_max, the notes are cleared and
+	# whatever owns the spike has never been timed.
+	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms)
 	_script_peak_usec = 0
+	_peak_note_usec = 0
+	_peak_lane_usec = 0
+	_peak_bounds_usec = 0
+	_peak_pump_usec = 0
 
 	# The other half of gpu=, and the half that was missing. A SubViewport
 	# whose update mode is DISABLED is not rendering this frame and is left
@@ -1217,7 +1251,7 @@ func _entry(kind: String, detail: String) -> void:
 			biggest_name = "%s(%dx%d)" % [_scene_relative_path(viewport), viewport.size.x, viewport.size.y]
 		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%d res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -1257,6 +1291,7 @@ func _entry(kind: String, detail: String) -> void:
 		biggest_name,
 		script_ms,
 		script_peak_ms,
+		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms, peak_rest_ms,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
