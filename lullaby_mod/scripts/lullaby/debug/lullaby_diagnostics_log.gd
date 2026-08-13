@@ -502,6 +502,12 @@ func census(reason: String) -> void:
 	# this jumps on the same census that catches a stall, a new shadow caster
 	# is the leading suspect; if it is already flat well before the stall,
 	# that theory is dead and the search moves on - same logic as pipe=.
+	## Screen area covered by everything visible, in pixels, and what the
+	## single biggest contributor is.
+	var overdraw_px: float = 0.0
+	var overdraw_items: int = 0
+	var overdraw_top_px: float = 0.0
+	var overdraw_top: String = ""
 	## Visible, opaque, full-frame CanvasItems, deepest last - which is
 	## roughly draw order, so the last one named is the one on top.
 	var covers: Array[String] = []
@@ -600,10 +606,19 @@ func census(reason: String) -> void:
 			# fx= pass above only looks at items carrying a shader, so a
 			# plain black ColorRect - which is exactly what Chimera puts over
 			# its own song - was invisible to every counter in this log.
-			if _covers_screen(node) and node.is_visible_in_tree():
-				var opacity: float = _opaque_coverage(node)
-				if opacity >= 0.95:
-					covers.append("%s@%.2f" % [_scene_relative_path(node), opacity])
+			if node.is_visible_in_tree():
+				var area: float = _screen_area(node)
+				if area > 0.0:
+					overdraw_px += area
+					overdraw_items += 1
+					if area > overdraw_top_px:
+						overdraw_top_px = area
+						overdraw_top = _scene_relative_path(node)
+
+				if _covers_screen(node):
+					var opacity: float = _opaque_coverage(node)
+					if opacity >= 0.95:
+						covers.append("%s@%.2f" % [_scene_relative_path(node), opacity])
 
 			var mat: Material = node.material
 			if mat is ShaderMaterial and mat.shader != null and node.is_visible_in_tree():
@@ -686,7 +701,7 @@ func census(reason: String) -> void:
 			class_delta.append(moved[i][1])
 	_last_census_counts = counts
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | %s | delta=[%s]" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | %s | delta=[%s]" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
 		notes_total, notes_visible, notes_parked,
 		audio_total, audio_playing,
@@ -697,6 +712,9 @@ func census(reason: String) -> void:
 		int(Performance.get_monitor(Performance.PHYSICS_2D_COLLISION_PAIRS)),
 		lights_visible, lights_shadow,
 		fx_live, fx_effect, fx_fullscreen, fx_materials.size(), covers.size(),
+		overdraw_px / maxf(1.0, _screen_px()), overdraw_items,
+		overdraw_top if not overdraw_top.is_empty() else "-",
+		overdraw_top_px / maxf(1.0, _screen_px()),
 		_graphics_summary(), ", ".join(top), ", ".join(shadow_names),
 		", ".join(covers.slice(0, 6)),
 		" ".join(classes), " ".join(class_delta),
@@ -715,6 +733,44 @@ func _covers_screen(node: CanvasItem) -> bool:
 		return false
 	var rect: Vector2 = control.get_global_rect().size
 	return rect.x >= screen.x * 0.8 and rect.y >= screen.y * 0.8
+
+## Area of the frame this CanvasItem draws over, in pixels, clipped to the
+## screen.
+##
+## Summed across everything visible this gives an overdraw factor: how many
+## times the frame is painted. It is the one thing left that can explain
+## Safety Lullaby and Chimera sitting at 30fps with 40 draw calls and 890
+## primitives, after script, shaders, lights, textures, presentation and
+## thermal throttling were each ruled out with numbers - Monochrome carries
+## three times the texture weight of Chimera and holds 60.
+##
+## Geometry only, deliberately: alpha is not folded in, because a sprite at
+## 10% alpha still costs a full blend on a tile GPU and hiding it behind a
+## weighting would under-report the exact thing being hunted.
+func _screen_area(node: CanvasItem) -> float:
+	var screen: Rect2 = Rect2(Vector2.ZERO, node.get_viewport_rect().size)
+	if screen.size.x <= 0.0 or screen.size.y <= 0.0:
+		return 0.0
+
+	var rect: Rect2
+	var control := node as Control
+	if control != null:
+		rect = control.get_global_rect()
+	elif node.has_method("get_rect"):
+		# Sprite2D and friends report a local rect; the transform puts it on
+		# the screen and gives its axis-aligned bounds.
+		rect = node.get_global_transform() * (node.call("get_rect") as Rect2)
+	else:
+		# A Node2D with no rect of its own draws through its children, which
+		# are walked separately - counting it too would double up.
+		return 0.0
+
+	return rect.intersection(screen).get_area()
+
+## The frame's own area, for turning a pixel sum into a multiple of it.
+func _screen_px() -> float:
+	var size: Vector2 = get_tree().root.get_visible_rect().size
+	return size.x * size.y
 
 ## How completely a CanvasItem hides what is behind it, 0-1.
 ##
