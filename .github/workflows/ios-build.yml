@@ -1,0 +1,282 @@
+name: iOS Build
+
+# Separate from the Android workflow on purpose. The Android build is the one
+# people actually wait on - 4 minutes, several times a day - and bolting a
+# macOS job onto it would make every Android build wait for a runner that is
+# scarcer and slower to start. Nothing here is shared with it except the
+# precompiled-import directories, which are just files in the repo.
+# Dispatch only. It briefly also carried a push trigger, because GitHub
+# registers dispatchable workflows from the DEFAULT branch and answered 404
+# for one it had only ever seen on a feature branch. A copy of this file now
+# sits on main purely to register it, so the trigger is unnecessary and a
+# macOS runner no longer queues behind ordinary pushes.
+#
+# Dispatch it against the branch that carries the mod, not against main:
+# main has export_presets.cfg but none of precompiled_astc_imports/,
+# tools/astc_compress/ or tools/verify_log_format.py, so the run would fail
+# at the first restore step. That resolves itself when the branch merges.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: none
+  security-events: none
+  attestations: none
+  statuses: none
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: '4.7.1-stable'
+  GODOT_VERSION_FOLDER: '4.7.1.stable'
+  # Godot's export_path basename, which is also the Xcode scheme, the target
+  # and PRODUCT_NAME. Verified against a project generated from this preset
+  # rather than assumed - change export_presets.cfg and this together.
+  XCODE_SCHEME: 'lullaby'
+
+jobs:
+  build:
+    name: Build unsigned iOS IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          sparse-checkout: |
+            /*
+            !/lullaby_mod/original_pck/
+          sparse-checkout-cone-mode: false
+
+      # macOS puts these under ~/Library/Application Support/Godot, not the
+      # ~/.local/share/godot the Android workflow uses. Same tpz, different
+      # home - Godot will not find them anywhere else, and the failure is a
+      # "No export template found" that names the path it wanted.
+      - name: Cache export templates
+        id: cache-templates
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Application Support/Godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
+          key: godot-templates-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download export templates
+        if: steps.cache-templates.outputs.cache-hit != 'true'
+        run: |
+          DEST="$HOME/Library/Application Support/Godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}"
+          mkdir -p "$DEST"
+          curl -sSL -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz"
+          # Only ios.zip is ever read by this workflow, and the full archive
+          # is 1.2GB against its 200MB - worth unpacking selectively on a
+          # runner whose disk is the tightest resource here.
+          unzip -qo /tmp/templates.tpz 'templates/ios.zip' -d /tmp/tpz
+          mv /tmp/tpz/templates/ios.zip "$DEST/ios.zip"
+          rm -rf /tmp/templates.tpz /tmp/tpz
+          ls -la "$DEST"
+
+      - name: Cache Godot binary
+        id: cache-godot-bin
+        uses: actions/cache@v4
+        with:
+          path: /tmp/godot
+          key: godot-bin-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot binary
+        if: steps.cache-godot-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/godot
+          curl -sSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_macos.universal.zip"
+          unzip -qo /tmp/godot.zip -d /tmp/godot
+          rm /tmp/godot.zip
+          ls /tmp/godot
+
+      - name: Configure environment
+        run: |
+          echo "GODOT=/tmp/godot/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
+          chmod +x /tmp/godot/Godot.app/Contents/MacOS/Godot
+
+      - name: Print environment
+        run: |
+          $GODOT --version
+          xcodebuild -version
+          sw_vers
+          df -h /
+
+      # Keyed on runner.os, so this is a separate cache from the Android
+      # workflow's and starts cold. That is survivable only because the
+      # precompiled directories below carry the expensive imports: a cold
+      # Android import measured 34m33s and 100% of it was EXHAUSTIVE ASTC
+      # reimports of files that are now committed as .res.
+      - name: Cache Godot import cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .godot/imported
+            .godot/uid_cache.bin
+          key: godot-import-ios-v1-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
+          restore-keys: |
+            godot-import-ios-v1-${{ runner.os }}-${{ env.GODOT_VERSION }}-
+
+      # The three restore steps are byte-for-byte what the Android workflow
+      # does. Godot decides whether to reimport by comparing content MD5s,
+      # not timestamps and not the host OS, so the same .res/.md5 pairs skip
+      # the reimport here exactly as they do on Linux.
+      - name: Restore precompiled ASTC imports
+        run: |
+          mkdir -p .godot/imported
+          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
+          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+
+      - name: Restore precompiled lightmap imports
+        run: |
+          mkdir -p .godot/imported
+          cp precompiled_lightmap_imports/*.ctexarray precompiled_lightmap_imports/*.md5 .godot/imported/
+          echo "Restored $(ls precompiled_lightmap_imports/*.md5 | wc -l) precompiled lightmap imports"
+
+      - name: Restore precompiled texture imports
+        run: |
+          mkdir -p .godot/imported
+          shopt -s nullglob
+          files=(precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5)
+          if [ ${#files[@]} -gt 0 ]; then
+            cp "${files[@]}" .godot/imported/
+          fi
+          echo "Restored $(ls precompiled_texture_imports/*.md5 2>/dev/null | wc -l) precompiled texture imports"
+
+      - name: Build ASTC compressor
+        run: |
+          # clang++ rather than g++: on macOS g++ is a thin shim over clang
+          # anyway, and naming it directly avoids depending on which one the
+          # image has on PATH. The vendored astcenc picks its own SIMD from
+          # __aarch64__ (astcenc_mathlib.h defaults ASTCENC_NEON that way),
+          # so an Apple Silicon runner needs no ISA flags.
+          #
+          # It should never actually run: every ASTC texture in the project
+          # is covered by precompiled_astc_imports. It is built anyway
+          # because the importer errors out if the binary is missing, and a
+          # single uncovered texture would otherwise fail the import rather
+          # than be recompressed.
+          cd tools/astc_compress
+          clang++ -O2 -std=c++17 -pthread -I thirdparty/astcenc \
+            astc_compress.cpp thirdparty/astcenc/astcenc_*.cpp -o astc_compress
+          chmod +x astc_compress
+          cd ../..
+          ls -la tools/astc_compress/astc_compress
+
+      - name: Import Godot project
+        run: |
+          # Twice, for the same reason the Android workflow does it: a single
+          # pass can leave resources generated mid-scan registered on disk but
+          # not yet in the UID cache, and the export then fails to resolve
+          # them.
+          $GODOT --headless --import 2>&1
+          $GODOT --headless --import 2>&1
+
+      - name: Verify the diagnostics log's format strings
+        run: python3 tools/verify_log_format.py
+
+      - name: Verify hardcoded uid:// references resolve
+        run: $GODOT --headless --script tools/verify_hardcoded_uids.gd 2>&1
+
+      - name: Stamp the build version
+        run: |
+          # Same stamp the Android workflow writes, for the same reason: the
+          # diagnostics log reads application/config/version, and a log whose
+          # header cannot name its build has cost real time before.
+          #
+          # CFBundleVersion comes from application/version in the preset, and
+          # iOS wants it to increase between installs of the same bundle id -
+          # otherwise the installer can refuse to replace what is there.
+          NEW_CODE=$((10000 + ${{ github.run_number }}))
+          sed -i '' "s|^application/version=.*|application/version=\"1.0.${NEW_CODE}\"|" export_presets.cfg
+          python3 - "$NEW_CODE" "${{ github.sha }}" <<'PY'
+          import re, sys
+          code, sha = sys.argv[1], sys.argv[2][:8]
+          line = 'config/version="%s-%s"\n' % (code, sha)
+          text = open("project.godot", encoding="utf-8").read()
+          if re.search(r'^config/version=', text, re.M):
+              text = re.sub(r'^config/version=.*\n', line, text, count=1, flags=re.M)
+          else:
+              text = re.sub(r'^(config/name=.*\n)', r'\1' + line, text, count=1, flags=re.M)
+          open("project.godot", "w", encoding="utf-8").write(text)
+          print("stamped %s" % line.strip())
+          PY
+
+      - name: Export Xcode project
+        run: |
+          # The destination directory has to exist before Godot writes into
+          # it - the exporter reports "Target folder does not exist or is
+          # inaccessible" rather than creating it.
+          mkdir -p builds/ios
+          $GODOT --headless --export-debug "iOS" builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj 2>&1
+          ls -la builds/ios
+
+      - name: Build unsigned .app
+        run: |
+          # No signing at all. Distribution is sideloading (AltStore,
+          # SideStore, Sideloadly, TrollStore), and every one of those signs
+          # the app itself with the installing user's own Apple ID - a
+          # signature applied here would only be stripped and replaced. It
+          # also means this workflow needs no Apple account, no certificate
+          # and no secret: the DEVELOPMENT_TEAM baked into the preset is the
+          # placeholder 0000000000, and CODE_SIGNING_ALLOWED=NO makes Xcode
+          # ignore it rather than try to resolve it.
+          set -o pipefail
+          xcodebuild \
+            -project "builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj" \
+            -scheme "${{ env.XCODE_SCHEME }}" \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build 2>&1 | tail -60
+
+      - name: Package unsigned IPA
+        id: package
+        run: |
+          # An IPA is a zip with the .app inside a top-level Payload/ folder
+          # and nothing else required. Built by hand rather than with
+          # `xcodebuild -exportArchive`, which insists on an export options
+          # plist and a signing identity.
+          APP="$RUNNER_TEMP/dd/Build/Products/Debug-iphoneos/${{ env.XCODE_SCHEME }}.app"
+          if [ ! -d "$APP" ]; then
+            echo "No .app at $APP"
+            find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name '*.app' || true
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          mkdir -p builds
+          (cd "$RUNNER_TEMP" && zip -qry "$GITHUB_WORKSPACE/builds/lullaby-unsigned.ipa" Payload)
+          ls -la builds/lullaby-unsigned.ipa
+          echo "size=$(du -h builds/lullaby-unsigned.ipa | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lullaby-ios-unsigned
+          path: builds/lullaby-unsigned.ipa
+          retention-days: 14
+          # Already a zip; recompressing 400MB of pck buys nothing.
+          compression-level: 0
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## iOS build"
+            echo ""
+            echo "- IPA size: ${{ steps.package.outputs.size }}"
+            echo "- Bundle id: \`com.rubicon.fnf\`"
+            echo "- Unsigned. Install with AltStore/SideStore/Sideloadly (signs with your own Apple ID) or TrollStore."
+            echo "- Logs land in the app's Documents folder and are reachable from the Files app."
+          } >> $GITHUB_STEP_SUMMARY
