@@ -254,14 +254,8 @@ func prewarm_pool() -> void:
 		return
 
 	# How many of each type can be on screen at once is what the pool has to
-	# cover; anything beyond that is memory spent for nothing. Counting the
-	# chart's own notes per type gives an upper bound for free, capped so a
-	# pathological chart cannot allocate thousands.
-	var wanted: Dictionary = {}
-	for note in data:
-		var note_type: StringName = note.type
-		var define_key: StringName = "%s_%s" % [note_type, get_mode_id()] if not note_type.is_empty() else get_mode_id()
-		wanted[define_key] = mini(wanted.get(define_key, 0) + 1, POOL_PREWARM_MAX)
+	# cover; anything beyond that is memory spent for nothing.
+	var wanted: Dictionary = _peak_concurrent_by_key()
 
 	var database: Dictionary = get_controller().get_note_database()
 	for define_key in wanted:
@@ -279,9 +273,86 @@ func prewarm_pool() -> void:
 		while pool.size() < wanted[define_key]:
 			pool.append(skin.scene.instantiate())
 
-## Cap per note type. Well above what any Lullaby chart keeps on screen at
-## once, and low enough that a broken chart cannot allocate its way out of
-## memory.
+## The most notes of each type this handler can have out of the pool at once.
+##
+## This used to count the chart's total notes per type and cap the result,
+## which is not the same question and is why the cap was the answer every
+## time: any chart with 48 notes of a type prewarmed 48 of them. Across the
+## eight handlers of a mania song that is 384 note instances, and the device
+## log measures what that costs - orphans=8065 one frame after Monochrome
+## loads, on the same frame as a +37.0MB memory jump, of which 6910 nodes are
+## never touched for the whole song. Safety Lullaby wastes 90% of its pool and
+## Chimera 76%.
+##
+## The pool only ever has to cover the peak, because despawned notes are
+## parked in the tree and spawn_note() prefers those - after the first busy
+## bar the handler recirculates and stops drawing from the pool at all, which
+## is why Monochrome only ever pulled 55 notes out of 384.
+##
+## The peak is not estimated. update_bounds() keeps a contiguous index window
+## [note_spawn_start, note_spawn_end) over the chart, so the number alive is
+## exactly that window's width - this walks the same two pointers over the
+## same data and records the widest it ever gets, per type. Sampling only at
+## entry times is enough: exits only narrow the window, so every maximum
+## happens immediately after a note enters.
+func _peak_concurrent_by_key() -> Dictionary:
+	return peak_concurrent_by_key(data, get_mode_id(),
+		spawning_bound_maximum, spawning_bound_minimum)
+
+## The sweep itself, as a static over a plain Array.
+##
+## Separated from the handler so it can be tested against a brute-force count
+## on synthetic charts. Building real RubiChartNotes needs rows, sections and
+## a chart behind them, and a sizing rule whose failure mode is a stutter in
+## the middle of a song deserves a test that can actually construct the dense
+## and the sparse case rather than whichever one a real chart happens to be.
+static func peak_concurrent_by_key(notes: Array, mode_id: StringName,
+		bound_maximum: float, bound_minimum: float) -> Dictionary:
+	var peak: Dictionary = {}
+	var live: Dictionary = {}
+	var start_index: int = 0
+	var end_index: int = 0
+
+	for i in notes.size():
+		# The moment note i enters the window, which is when the engine's own
+		# loop would first spawn it.
+		var moment: float = notes[i].get_millisecond_start_position() - bound_maximum
+
+		# Same order as update_bounds(): retire first, admit second.
+		while start_index < end_index and notes[start_index].get_millisecond_end_position() - moment < bound_minimum:
+			var leaving: StringName = pool_key_of(notes[start_index], mode_id)
+			live[leaving] = int(live.get(leaving, 0)) - 1
+			start_index += 1
+
+		while end_index < notes.size() and notes[end_index].get_millisecond_start_position() - moment <= bound_maximum:
+			var entering: StringName = pool_key_of(notes[end_index], mode_id)
+			live[entering] = int(live.get(entering, 0)) + 1
+			peak[entering] = maxi(int(peak.get(entering, 0)), int(live[entering]))
+			end_index += 1
+
+	for key in peak:
+		peak[key] = mini(int(peak[key]) + POOL_PREWARM_HEADROOM, POOL_PREWARM_MAX)
+
+	return peak
+
+## The pool key for a note, which is its type and the handler's mode.
+static func pool_key_of(note: Variant, mode_id: StringName) -> StringName:
+	var note_type: StringName = note.type
+	return "%s_%s" % [note_type, mode_id] if not note_type.is_empty() else mode_id
+
+## Spare notes prewarmed beyond the measured peak.
+##
+## The peak is exact for the chart as authored, but scroll speed is a player
+## setting and a slower one widens the window, so the count can be a little
+## higher in practice than it is on paper. Missing the pool is not a crash -
+## spawn_note() instantiates one and inst= in the diagnostics log counts it -
+## but it is a stutter mid-song, which is the whole thing the prewarm exists
+## to avoid. Four notes per type is cheap insurance next to the 329 the old
+## sizing wasted.
+const POOL_PREWARM_HEADROOM := 4
+
+## Hard cap per note type, so a pathological chart cannot allocate its way out
+## of memory however wide its window gets.
 const POOL_PREWARM_MAX := 48
 
 ## How many notes of each type a handler keeps parked in its own tree.
