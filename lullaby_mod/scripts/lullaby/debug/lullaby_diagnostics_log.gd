@@ -725,6 +725,9 @@ func census(reason: String) -> void:
 	## Visible, opaque, full-frame CanvasItems, deepest last - which is
 	## roughly draw order, so the last one named is the one on top.
 	var covers: Array[String] = []
+	## Screen-covering drawing items whose own pixel alpha the census cannot
+	## read - see UNKNOWN_COVERAGE.
+	var covers_maybe: Array[String] = []
 	var lights_visible: int = 0
 	var lights_shadow: int = 0
 	# Every prior census of Chimera happened to land during a cutscene, where
@@ -836,10 +839,17 @@ func census(reason: String) -> void:
 						overdraw_top_px = area
 						overdraw_top = _scene_relative_path(node)
 
-				if _covers_screen(node):
+				if _covers_screen(node) and _paints_anything(node):
 					var opacity: float = _opaque_coverage(node)
 					if opacity >= 0.95:
 						covers.append("%s@%.2f" % [_scene_relative_path(node), opacity])
+					elif is_equal_approx(opacity, UNKNOWN_COVERAGE):
+						# Screen-sized, drawing, and tinted to full alpha, but
+						# its own pixels are unreadable from here. Listed
+						# separately rather than folded into opaque=, because
+						# the whole value of that field is that being on it
+						# means something.
+						covers_maybe.append(_scene_relative_path(node))
 
 			var mat: Material = node.material
 			if mat is ShaderMaterial and mat.shader != null and node.is_visible_in_tree():
@@ -922,7 +932,7 @@ func census(reason: String) -> void:
 			class_delta.append(moved[i][1])
 	_last_census_counts = counts
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | %s | delta=[%s]" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d maybe=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | maybe=[%s] | %s | delta=[%s]" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
 		notes_total, notes_visible, notes_parked,
 		audio_total, audio_playing,
@@ -938,6 +948,7 @@ func census(reason: String) -> void:
 		overdraw_top_px / maxf(1.0, _screen_px()),
 		_graphics_summary(), ", ".join(top), ", ".join(shadow_names),
 		", ".join(covers.slice(0, 6)),
+		", ".join(covers_maybe.slice(0, 6)),
 		" ".join(classes), " ".join(class_delta),
 	])
 
@@ -969,6 +980,17 @@ func _covers_screen(node: CanvasItem) -> bool:
 ## 10% alpha still costs a full blend on a tile GPU and hiding it behind a
 ## weighting would under-report the exact thing being hunted.
 func _screen_area(node: CanvasItem) -> float:
+	# Only what the main frame pays for. An item inside a SubViewport is
+	# measured against that viewport's rect and then divided by the root's
+	# pixel count, which mixes two render targets into one ratio - the shop's
+	# whole opaque=[] list came back as SidemenuSubViewport and Kollectadex
+	# children, none of which touch the frame the player is looking at.
+	if node.get_viewport() != get_tree().root:
+		return 0.0
+
+	if not _paints_anything(node):
+		return 0.0
+
 	var screen: Rect2 = Rect2(Vector2.ZERO, node.get_viewport_rect().size)
 	if screen.size.x <= 0.0 or screen.size.y <= 0.0:
 		return 0.0
@@ -988,6 +1010,38 @@ func _screen_area(node: CanvasItem) -> float:
 
 	return rect.intersection(screen).get_area()
 
+## Whether this CanvasItem puts any pixels on screen itself.
+##
+## A bare Control and every layout Container draw nothing at all - they place
+## their children and that is the whole job - so counting their rect adds the
+## screen several times over for nodes that never touch a pixel. The first
+## version of over= did exactly that, and the device log shows the damage:
+## first_boot_settings, a scene with a background and a few rows, reported
+## over=7.1x with CenterContainer named as a full-screen cover, and every
+## song reported top=ResultsScreen/LullabyResultsScreen - a bare Control.
+##
+## Anything with its own _draw() counts, whatever class it is: that is how a
+## scripted Control that really does paint gets through, and it is the only
+## honest way to tell one from a layout node, since both report get_class()
+## as "Control".
+func _paints_anything(node: CanvasItem) -> bool:
+	if node.has_method("_draw"):
+		return true
+
+	var control := node as Control
+	if control == null:
+		# Node2D-side: a bare Node2D draws through its children, which are
+		# walked separately. Anything with a rect of its own paints.
+		return node.has_method("get_rect")
+
+	# SubViewportContainer paints its viewport's texture, and PanelContainer
+	# its stylebox; every other Container is pure layout.
+	if control is Container:
+		return control is SubViewportContainer or control is PanelContainer
+
+	# A Control with nothing but children is layout too.
+	return control.get_class() != "Control"
+
 ## The frame's own area, for turning a pixel sum into a multiple of it.
 func _screen_px() -> float:
 	var size: Vector2 = get_tree().root.get_visible_rect().size
@@ -1004,6 +1058,9 @@ func _screen_px() -> float:
 ## whatever it likes with the alpha it is handed, and guessing is worse than
 ## saying what the scene asked for.
 func _opaque_coverage(node: CanvasItem) -> float:
+	if not _paints_anything(node):
+		return 0.0
+
 	var alpha: float = node.modulate.a * node.self_modulate.a
 	var rect := node as ColorRect
 	if rect != null:
@@ -1014,7 +1071,33 @@ func _opaque_coverage(node: CanvasItem) -> float:
 		alpha *= (parent as CanvasItem).modulate.a
 		parent = parent.get_parent()
 
+	# Modulate is only half of an image's alpha and this used to report the
+	# half it could see as the whole answer. The results screen's Vingette is
+	# a full-rect TextureRect at modulate 1.0, so it was listed as a total
+	# cover over the song - and its texture is a radial gradient running from
+	# alpha 0.0 at the centre to 0.588 at the edge, which covers nothing and
+	# never reaches opaque anywhere. Reading the texture per frame is far too
+	# expensive for a census, so the honest answer is that this is unknown
+	# rather than a number that looked like proof.
+	if alpha >= 0.95 and not _alpha_is_knowable(node):
+		return UNKNOWN_COVERAGE
+
 	return alpha
+
+## Reported instead of 1.0 for an item whose own pixels the census cannot see.
+## Deliberately just under the threshold that counts as a cover, so an unknown
+## never gets named as one - it shows up in covers_maybe= instead.
+const UNKNOWN_COVERAGE := 0.94
+
+## Whether this item's alpha is fully described by its modulate chain.
+##
+## A ColorRect carries its colour and a Panel its stylebox, so those are
+## answerable. Anything drawing a texture, a font or a shader is not: the
+## pixels decide, and the census only sees the tint applied over them.
+func _alpha_is_knowable(node: CanvasItem) -> bool:
+	if node is ColorRect:
+		return node.material == null
+	return false
 
 ## Reports how far a threaded load has got, at a few fixed fractions. Cheap
 ## enough to poll every frame: load_threaded_get_status() on a path that is
