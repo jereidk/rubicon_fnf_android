@@ -62,6 +62,24 @@ static var current_area: FocusArea3D:
 
 @export var voiceline_groups: Array[VoicelineGroup] = []
 
+## How far through voiceline_groups the background warm-up has got.
+##
+## Voicelines are no longer loaded with the room - see VoicelineEntry - which
+## takes 109 files off a cold load that is bound by per-file cost. The tradeoff
+## is that the first play of a line would otherwise pay for its own load, so
+## one line is pulled in per frame from here until they are all resident. At
+## 60fps the shop's 109 lines are in memory inside two seconds, long before
+## the Collector has anything to say.
+var _warm_group: int = 0
+
+## Loads at most one voiceline per frame, in order, and stops once done.
+func _warm_one_voiceline() -> void:
+	while _warm_group < voiceline_groups.size():
+		var group: VoicelineGroup = voiceline_groups[_warm_group]
+		if group != null and group.warm_next():
+			return
+		_warm_group += 1
+
 @export_group("Idle Voicelines")
 
 @export var idle_voiceline_group: String = "idletoolong"
@@ -181,6 +199,11 @@ func _ready() -> void :
 	previous_state = ""
 
 func _process(delta: float) -> void :
+	# Before the state gates on purpose: the whole point is to get the audio
+	# in memory while the player is doing anything at all, including standing
+	# in a menu, so that no line is ever the one that has to wait.
+	_warm_one_voiceline()
+
 	if state != ShopStates.FREE_LOOK:
 		return
 
@@ -364,9 +387,12 @@ func play_voiceline_entry(entry: VoicelineEntry, skippable: bool = false) -> voi
 		return
 
 	voiceline.stop()
-	voiceline.stream = entry.stream
+	# get_stream() rather than .stream: entries hold a path now and resolve on
+	# first use, so reading the field directly gets null on every migrated one.
+	var stream: AudioStream = entry.get_stream()
+	voiceline.stream = stream
 
-	if entry.stream != null:
+	if stream != null:
 		voiceline.play()
 	else:
 		_on_voiceline_finished()

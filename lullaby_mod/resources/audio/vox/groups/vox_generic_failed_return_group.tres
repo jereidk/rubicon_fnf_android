@@ -2,15 +2,10 @@
 
 [ext_resource type="Script" uid="uid://3dcidf4ke34" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1"]
 [ext_resource type="Script" uid="uid://db05q0i1q5mr7" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2"]
-[ext_resource type="AudioStream" uid="uid://36bml0ik8q4y" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_1.ogg" id="3"]
-[ext_resource type="AudioStream" uid="uid://b20faiw2nrpg1" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_2.ogg" id="4"]
-[ext_resource type="AudioStream" uid="uid://bnv1mocm8ild" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_3.ogg" id="5"]
-[ext_resource type="AudioStream" uid="uid://dhpiktiqp3ui1" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_4.ogg" id="6"]
-[ext_resource type="AudioStream" uid="uid://cqhjvgrj7ua86" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_5.ogg" id="7"]
 
 [sub_resource type="Resource" id="Resource_e180g"]
 script = ExtResource("2")
-stream = ExtResource("3")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_1.ogg"
 dialogue_text = "TOUGH SONG, EH? OR DID IT JUST GET TOO BORING FOR YOU? GOD. YOU CAN'T PLEASE ANYONE NOWADAYS."
 state = 0
 ending_state = 1
@@ -18,7 +13,7 @@ metadata/_custom_type_script = "uid://db05q0i1q5mr7"
 
 [sub_resource type="Resource" id="Resource_xo0qw"]
 script = ExtResource("2")
-stream = ExtResource("4")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_2.ogg"
 dialogue_text = "TOO DIFFICULT FOR YA? IT'S OKAY... MOMMY'S HERE FOR YA, MWEHMWEHMWAH! HEHAHEHEHEH!"
 state = 0
 ending_state = 1
@@ -26,7 +21,7 @@ metadata/_custom_type_script = "uid://db05q0i1q5mr7"
 
 [sub_resource type="Resource" id="Resource_buy68"]
 script = ExtResource("2")
-stream = ExtResource("5")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_3.ogg"
 dialogue_text = "YOU ALREADY GAVE UP? THAT QUICK? BUT YOU HAD IT THAT TIME!"
 state = 0
 ending_state = 1
@@ -34,7 +29,7 @@ metadata/_custom_type_script = "uid://db05q0i1q5mr7"
 
 [sub_resource type="Resource" id="Resource_mcrtc"]
 script = ExtResource("2")
-stream = ExtResource("6")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_4.ogg"
 dialogue_text = "WHAT? DON'T LIKE MY CARTRIDGES?? NO REFUNDS!"
 state = 0
 ending_state = 1
@@ -42,7 +37,7 @@ metadata/_custom_type_script = "uid://db05q0i1q5mr7"
 
 [sub_resource type="Resource" id="Resource_xgk0b"]
 script = ExtResource("2")
-stream = ExtResource("7")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_incomp/vox_collector_incomp_5.ogg"
 dialogue_text = "ALREADY?? HAH! YOUR GRANDMA COULD'VE BEATEN THAT. "
 state = 0
 ending_state = 1

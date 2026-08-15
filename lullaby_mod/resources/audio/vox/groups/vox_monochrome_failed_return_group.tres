@@ -2,12 +2,10 @@
 
 [ext_resource type="Script" uid="uid://3dcidf4ke34" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineGroup.gd" id="1"]
 [ext_resource type="Script" uid="uid://db05q0i1q5mr7" path="res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/VoicelineEntry.gd" id="2"]
-[ext_resource type="AudioStream" uid="uid://dw3uoid42ejim" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_monochrome/vox_collector_monoincomp_1.ogg" id="3"]
-[ext_resource type="AudioStream" uid="uid://beeou3ppyy7a4" path="res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_monochrome/vox_collector_monoincomp_2.ogg" id="4"]
 
 [sub_resource type="Resource" id="Resource_63mpd"]
 script = ExtResource("2")
-stream = ExtResource("3")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_monochrome/vox_collector_monoincomp_1.ogg"
 dialogue_text = "I KNOW, I KNOW. TYPING GAMES AREN'T MY FAVORITE EITHER, BUT THAT ONE WAS THE EASIEST THING YOU COULD'VE TYPED!"
 state = 0
 ending_state = 1
@@ -15,7 +13,7 @@ metadata/_custom_type_script = "uid://db05q0i1q5mr7"
 
 [sub_resource type="Resource" id="Resource_mia77"]
 script = ExtResource("2")
-stream = ExtResource("4")
+stream_path = "res://lullaby_mod/resources/audio/vox/reactives/re_completion/comp_monochrome/vox_collector_monoincomp_2.ogg"
 dialogue_text = "FREAKY LITTLE INFESTED THING, I WOULDN'T WANNA BE NEAR HIM EITHER. YOU GOTTA DO IT THOUGH, I'M NOT GONNA HOLD YOUR HAND."
 state = 0
 ending_state = 1
