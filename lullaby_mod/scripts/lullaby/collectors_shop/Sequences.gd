@@ -3,6 +3,19 @@ class_name ShopSequences
 extends Node
 
 @export_group("Voiceline Sync")
+
+## Sequence voicelines, keyed by animation name and held as paths.
+##
+## These used to be `Dictionary[String, AudioStream]`, which puts an
+## ExtResource in the scene and loads the audio when the room does.
+## sequence_intro alone is a megabyte and plays once in a save's lifetime;
+## sequence_outro is another half. The shop's cold load is bound by per-file
+## cost, so anything that can arrive later should.
+@export var voiceline_paths: Dictionary[String, String] = {}
+
+## Still honoured for any scene holding direct references, same reasoning as
+## VoicelineEntry: a format that ignores a field somebody filled in is worse
+## than one that accepts both.
 @export var voicelines: Dictionary[String, AudioStream] = {}
 @export var voiceline_offset: float = 0.0
 @export var voiceline_desync_threshold: float = 0.045
@@ -22,8 +35,39 @@ func _ready() -> void :
 	update_configuration_warnings()
 
 func _process(_delta: float) -> void :
+	if not Engine.is_editor_hint():
+		_warm_one()
+
 	sync_players()
 	sync_voiceline()
+
+## Resolved audio, once something has asked for it.
+var _resolved: Dictionary[String, AudioStream] = {}
+
+## The voiceline for an animation, loading it if this is the first time it is
+## needed. Null when the animation has none, which is most of them.
+func get_voiceline(anim: String) -> AudioStream:
+	if voicelines.has(anim):
+		return voicelines[anim]
+	if _resolved.has(anim):
+		return _resolved[anim]
+	if not voiceline_paths.has(anim):
+		return null
+
+	var stream: AudioStream = load(voiceline_paths[anim]) as AudioStream
+	_resolved[anim] = stream
+	return stream
+
+## Pulls in one unresolved voiceline per frame once the room is running.
+##
+## Without this the first frame of a sequence would pay for its own load, and
+## a sequence is exactly where a hitch is most visible. There are only three,
+## so they are all resident within three frames of the room appearing.
+func _warm_one() -> void:
+	for anim in voiceline_paths:
+		if not _resolved.has(anim):
+			get_voiceline(anim)
+			return
 
 func _notification(what: int) -> void :
 	if what == NOTIFICATION_CHILD_ORDER_CHANGED:
@@ -56,10 +100,9 @@ func sync_voiceline() -> void :
 		voiceline.stop()
 		return
 
-	if not voicelines.has(anim):
+	var stream: AudioStream = get_voiceline(anim)
+	if stream == null:
 		return
-
-	var stream: = voicelines[anim]
 
 	if voiceline.stream != stream:
 		voiceline.stop()

@@ -38,9 +38,6 @@
 [ext_resource type="Resource" uid="uid://bkm8dutnh3po" path="res://lullaby_mod/resources/audio/vox/groups/vox_babyon_group.tres" id="33"]
 [ext_resource type="Script" uid="uid://f854gqdvv8p6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/mouse_controller.gd" id="34"]
 [ext_resource type="Script" uid="uid://dr43kfmejrh85" path="res://lullaby_mod/scripts/lullaby/collectors_shop/Sequences.gd" id="35"]
-[ext_resource type="AudioStream" uid="uid://lxy7mxd1nnq6" path="res://lullaby_mod/resources/audio/vox/vox_collector_firstjoin.ogg" id="36"]
-[ext_resource type="AudioStream" uid="uid://tbn0q6wu68bw" path="res://lullaby_mod/resources/audio/vox/vox_collector_outro.ogg" id="37"]
-[ext_resource type="AudioStream" uid="uid://y6hby1asr3ju" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_collector_board.ogg" id="38"]
 [ext_resource type="AudioStream" uid="uid://bf53t4q5ir6th" path="res://lullaby_mod/resources/audio/mus/mus_intro_shop.ogg" id="39"]
 [ext_resource type="AudioStream" uid="uid://c8itadmxg4ox0" path="res://lullaby_mod/resources/audio/sfx/shop/console/sfx_console_startup.ogg" id="40"]
 [ext_resource type="AudioStream" uid="uid://bl0spytcujvfo" path="res://lullaby_mod/resources/audio/sfx/shop/sfx_orchhit_high.ogg" id="41"]
@@ -9735,10 +9732,10 @@ metadata/_custom_type_script = "uid://f854gqdvv8p6"
 
 [node name="Sequences" type="Node" parent="." unique_id=1101023731]
 script = ExtResource("35")
-voicelines = {
-"sequence_intro": ExtResource("36"),
-"sequence_outro": ExtResource("37"),
-"sequence_sign_intro": ExtResource("38")
+voiceline_paths = {
+"sequence_intro": "res://lullaby_mod/resources/audio/vox/vox_collector_firstjoin.ogg",
+"sequence_outro": "res://lullaby_mod/resources/audio/vox/vox_collector_outro.ogg",
+"sequence_sign_intro": "res://lullaby_mod/resources/audio/sfx/shop/sfx_collector_board.ogg"
 }
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sequences" unique_id=787453118]
