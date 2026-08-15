@@ -10,12 +10,19 @@ budget is exhausted, so those objects can no longer be fetched at all:
 
 They are out of LFS now and stored as plain git objects, but the conversion
 could only carry the files whose real content happened to be present in the
-working tree. 64 of them were pointers at that moment, and a pointer is 132
+working tree. 66 of them were pointers at that moment, and a pointer is 132
 bytes of text - the content is on a server we cannot reach.
+
+Those 66 have since been recovered: another container's clone predated the
+budget running out and still held the smudged bytes, so they came straight
+off its disk (0cb3d9e), byte-identical to the sha256 each pointer declared.
+This script is therefore a documented fallback rather than a pending task -
+worth keeping, because the same outage recurs the moment a texture changes
+and its .res needs regenerating.
 
 The Android export mode this project uses stores imported resources as loose
 files under assets/.godot/imported/ inside the APK rather than packing them
-into a .pck, so every one of those 64 objects is sitting inside the artifact
+into a .pck, so every one of those objects is sitting inside the artifact
 of any build that succeeded while they were still fetchable. That is the
 recovery path README.md in that directory already describes; this is it,
 automated and checked.
@@ -41,7 +48,6 @@ Accepts either the artifact zip straight from the Actions API (which
 contains the APK) or an already-unwrapped .apk. Run from the repo root.
 """
 
-import glob
 import hashlib
 import io
 import os
@@ -77,11 +83,27 @@ def open_apk(path):
     return zipfile.ZipFile(inner), "APK extraido del artifact: %s" % apks[0]
 
 
+def all_imports():
+    """Every .import in the tree, minus the ones nothing should walk into.
+
+    Written as two hand-picked directories first - lullaby_mod/ and addons/ -
+    which quietly missed the nine ASTC imports under assets/. That is not a
+    cosmetic undercount: those nine would be read as names this directory
+    never carried and skipped, and the same wrong scan reported seven live
+    .res files as orphans. Scan the tree.
+    """
+    skip = {".git", ".godot", "precompiled_astc_imports"}
+    for base, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if d not in skip]
+        for name in files:
+            if name.endswith(".import"):
+                yield os.path.relpath(os.path.join(base, name), ".")
+
+
 def wanted_imports():
     """{res filename: (source png path, .import path)} for the ASTC importers."""
     out = {}
-    for imp in glob.glob("lullaby_mod/**/*.import", recursive=True) + \
-               glob.glob("addons/**/*.import", recursive=True):
+    for imp in all_imports():
         try:
             content = open(imp, encoding="utf-8", errors="replace").read()
         except OSError:
@@ -113,9 +135,9 @@ def main():
     # meaning - and so is a name this directory never carried.
     #
     # That second exclusion is the one that matters. This directory covers 145
-    # of the 495 declared imports on purpose: it insures the most expensive
+    # of the 504 declared imports on purpose: it insures the most expensive
     # textures against the Actions cache being evicted, and the rest are cheap
-    # enough to reimport. A real APK contains all 495, so hoovering up
+    # enough to reimport. A real APK contains all 504, so hoovering up
     # everything it offers would add some 500MB of git objects to buy back a
     # few seconds. --all is there for whoever decides that trade is worth it,
     # and it is not the default.
