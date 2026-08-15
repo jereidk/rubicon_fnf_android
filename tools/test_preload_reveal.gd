@@ -30,11 +30,12 @@ func _run() -> void:
 
 	await _hide_case()
 	await _stagger_case()
+	await _first_frame_case()
 	await _deadline_case()
 
 	print("")
-	if _checks < 9:
-		print("FALLO: solo %d de 9 comprobaciones corrieron" % _checks)
+	if _checks < 13:
+		print("FALLO: solo %d de 13 comprobaciones corrieron" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -107,6 +108,57 @@ func _stagger_case() -> void:
 		"%d" % cam._revealed)
 
 	cam.free()
+	scene.queue_free()
+	await process_frame
+
+## The first _process must reveal nothing.
+##
+## The pacing decides each batch from how the previous frame went, and on the
+## first frame there is no previous frame - it read a TIME_PROCESS from before
+## the scene existed, took that for a cheap frame, and revealed FIRST_BATCH
+## nodes on top of a baseline draw cost nobody had measured. The device log put
+## 11.28 seconds in that one frame.
+##
+## Driven through _process() rather than by calling _reveal() directly, because
+## the whole claim is about what _process does on its first call - a test that
+## reaches past it would pass with the guard deleted.
+func _first_frame_case() -> void:
+	var scene := Node3D.new()
+	for i in 40:
+		scene.add_child(MeshInstance3D.new())
+
+	root.add_child(scene)
+	await process_frame
+
+	# Never added to the tree, for the reason _camera() documents: add_child
+	# runs _ready(), which outside a real scene change calls finish_preload()
+	# and frees the camera. The first version of this case did add it, so
+	# _finished was already true, every _process returned on its first line,
+	# and both checks passed against a camera that was doing nothing at all.
+	var cam := _camera()
+	cam._hide_everything(scene)
+	# What _ready() sets on the real path, and the guard _process checks first.
+	cam._started_msec = Time.get_ticks_msec()
+	var total: int = cam._hidden.size()
+	_check("el doble tiene algo que revelar", total == 40, "%d ocultos" % total)
+
+	cam._process(0.016)
+	_check("el primer _process no revela nada", cam._revealed == 0,
+		"%d de %d" % [cam._revealed, total])
+
+	cam._process(0.016)
+	_check("el segundo si revela", cam._revealed > 0, "%d" % cam._revealed)
+
+	# The guard must not strand a scene that had nothing to hide.
+	var cam2 := _camera()
+	cam2._started_msec = Time.get_ticks_msec()
+	cam2._anim_done = true
+	cam2._process(0.016)
+	cam2._process(0.016)
+	_check("sin nada que ocultar aun asi termina", cam2._finished)
+
+	cam.free()
+	cam2.free()
 	scene.queue_free()
 	await process_frame
 

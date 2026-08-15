@@ -66,6 +66,9 @@ var _batch: int = FIRST_BATCH
 var _anim_done: bool = false
 var _finished: bool = false
 
+## Whether the baseline frame has been spent. See _process().
+var _measured_first_frame: bool = false
+
 func _ready() -> void :
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -118,6 +121,30 @@ func _hide_everything(from: Node = null) -> void:
 
 func _process(_delta: float) -> void:
 	if _finished or _started_msec == 0:
+		return
+
+	# The first _process is a measurement, not a reveal.
+	#
+	# Two reasons, one diagnostic and one real. The diagnostic: the device log
+	# shows 11.28 seconds between this node's _ready() finishing and the first
+	# process_frame, and it cannot say where they went - Performance.TIME_PROCESS
+	# is a per-second maximum, so across a frame that long every timing monitor
+	# in the log still reports the previous second's numbers. This mark sits
+	# before that frame's draw, so its timestamp splits the window: near the
+	# hide means the cost is in the draw, near the handover means it is the rest
+	# of the _ready() cascade.
+	#
+	# The real one: the loop below backs off when the last frame was expensive,
+	# and on the first frame there is no last frame. It read TIME_PROCESS from
+	# before the scene existed, concluded the frame was cheap, and revealed
+	# FIRST_BATCH nodes on top of whatever the scene costs to draw at all -
+	# which is the one frame whose cost nobody has measured yet. Paying that
+	# baseline alone, once, is worth a frame.
+	if not _measured_first_frame:
+		_measured_first_frame = true
+		_mark("preload camera primer _process a los %dms del escondite (%d ocultos, revelados=%d)" % [
+			Time.get_ticks_msec() - _started_msec, _hidden.size(), _revealed,
+		])
 		return
 
 	if _revealed >= _hidden.size():
