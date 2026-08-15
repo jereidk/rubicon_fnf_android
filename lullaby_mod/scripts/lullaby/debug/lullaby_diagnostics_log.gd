@@ -416,22 +416,53 @@ func _collect_incoming_deps(path: String) -> void:
 	if path.is_empty():
 		return
 
+	_walk_seen = {path: true}
+	_walk_queue = [path]
+	_continue_incoming_walk()
+
+## Resumable state for the walk above.
+##
+## The walk used to stop dead at PROBE_BUDGET_USEC, and on the Collector's
+## Shop it did: walk=120.1ms (capped) with 112 paths found, out of a graph
+## that is really 512 files. Those 112 are the shallowest, so the log could
+## report "111 of 112 cached" while the load still had sixteen seconds and
+## three hundred resources left to go - all of them below the cut, none of
+## them nameable. Reading that as one slow dependency was wrong, and there
+## was no way to tell from the log.
+##
+## Same budget per frame, but the queue survives to the next one, so the walk
+## finishes over a few frames of a load that lasts tens of seconds and the
+## denominator becomes the real graph.
+var _walk_seen: Dictionary = {}
+var _walk_queue: Array[String] = []
+
+## How long one pass of the walk may take. A variable rather than the constant
+## so a test can shrink it and prove the walk really does resume - with a full
+## budget and warm dependency headers the whole graph fits in a single pass,
+## so the resumable path would otherwise never be exercised.
+var probe_budget_usec: int = PROBE_BUDGET_USEC
+
+func _continue_incoming_walk() -> void:
+	if _walk_queue.is_empty():
+		return
+
 	var started: int = Time.get_ticks_usec()
-	var seen: Dictionary = {path: true}
-	var queue: Array[String] = [path]
-	while not queue.is_empty() and _incoming_deps.size() < INCOMING_MAX_PATHS:
-		if Time.get_ticks_usec() - started > PROBE_BUDGET_USEC:
+	while not _walk_queue.is_empty() and _incoming_deps.size() < INCOMING_MAX_PATHS:
+		if Time.get_ticks_usec() - started > probe_budget_usec:
 			break
-		var current: String = queue.pop_front()
+		var current: String = _walk_queue.pop_front()
 		_incoming_deps.append(current)
+		_incoming_pending.append(current)
 		for dep in ResourceLoader.get_dependencies(current):
 			var dep_path: String = dep.get_slice("::", dep.count("::"))
-			if dep_path.is_empty() or seen.has(dep_path):
+			if dep_path.is_empty() or _walk_seen.has(dep_path):
 				continue
-			seen[dep_path] = true
-			queue.append(dep_path)
+			_walk_seen[dep_path] = true
+			_walk_queue.append(dep_path)
 
-	_incoming_pending = _incoming_deps.duplicate()
+	if _walk_queue.is_empty():
+		_walk_seen.clear()
+
 	_incoming_walk_usec = Time.get_ticks_usec() - started
 	_probe_usec += _incoming_walk_usec
 
@@ -1116,6 +1147,10 @@ func _poll_load_progress() -> void:
 	# the loader reports any progress at all its tree is gone and anything
 	# still cached is being held by something else.
 	_report_cache_residue()
+
+	# One budget's worth per frame until the graph is exhausted, so deps=N/M
+	# counts the whole scene rather than whatever fitted in the first 120ms.
+	_continue_incoming_walk()
 
 	var fraction: float = progress[0]
 
