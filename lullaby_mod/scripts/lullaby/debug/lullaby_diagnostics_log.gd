@@ -222,6 +222,10 @@ var _peak_memory: int = 0
 var _lowest_fps: int = -1
 var _session_start_ms: int = 0
 
+## Wall clock of the previous _process, which is what frame_ms is measured
+## from. Zero until the first frame, where delta is the only thing available.
+var _last_frame_usec: int = 0
+
 var _scene_change_started_ms: int = 0
 
 ## The scene handed to change_scene_to_packed(), and when. Both only live for
@@ -662,14 +666,32 @@ func _process(delta: float) -> void:
 	# that runs this frame runs after this line.
 	_script_begin_usec = Time.get_ticks_usec()
 
-	var frame_ms: float = delta * 1000.0
+	# Wall clock, not delta.
+	#
+	# Godot's process delta is smoothed and clamped, and above roughly 50ms it
+	# stops describing the frame at all. Measured against this exact build with
+	# OS.delay_msec(): a 300ms frame arrives as 53.1ms, a 1200ms frame as
+	# 80.9ms, and a 5000ms frame as 66.7ms - not a ceiling, just unrelated to
+	# the truth.
+	#
+	# Everything shaped from it was therefore fiction wherever it mattered
+	# most. The device log's SUMMARY reported worst=166.7ms for a session that
+	# contained a measured 11,489ms frame; hist= sorted stalls into buckets
+	# that could not hold them, and SPIKE understated every one of the 99 it
+	# found. The structural numbers in that log are sound because they come
+	# from Time.get_ticks_msec() deltas - took=, the swap marks, the reveal -
+	# but every frame-shape statistic was reading a number Godot never
+	# promised.
+	var now_usec: int = Time.get_ticks_usec()
+	var frame_ms: float = float(now_usec - _last_frame_usec) / 1000.0 if _last_frame_usec > 0 else delta * 1000.0
+	_last_frame_usec = now_usec
 
 	var median: float = _median_frame_ms()
 	_frame_times[_frame_index] = frame_ms
 	_frame_index = (_frame_index + 1) % WINDOW_SIZE
 	_frames_seen += 1
 
-	var fps: int = int(round(1.0 / maxf(delta, 0.0001)))
+	var fps: int = int(round(1000.0 / maxf(frame_ms, 0.1)))
 	if _lowest_fps < 0 or fps < _lowest_fps:
 		_lowest_fps = fps
 

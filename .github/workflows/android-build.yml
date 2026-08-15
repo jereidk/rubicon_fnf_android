@@ -443,6 +443,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the frame timer measures the frame
+        run: |
+          # Godot's process delta is smoothed and clamped: measured against
+          # this build, a 5000ms frame arrives as 66.7ms. Every frame-shape
+          # number the log produces was shaped from it, which is how a device
+          # log came back reporting worst=166.7ms for a session containing a
+          # measured 11,489ms frame. The test blocks the thread, because delta
+          # is accurate at 60fps - exactly when nobody needs it to be.
+          $GODOT --headless --path . --script tools/test_frame_clock.gd 2>&1 | tee /tmp/clock.txt
+          grep -q "todo OK" /tmp/clock.txt
+
       - name: Verify the retained-resource sweep stays cheap
         run: |
           # The sweep runs on the main thread during a load, next to a loading
