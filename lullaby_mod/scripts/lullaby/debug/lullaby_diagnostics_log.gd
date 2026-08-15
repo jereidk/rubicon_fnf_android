@@ -1169,6 +1169,9 @@ func _poll_load_progress() -> void:
 	# One budget's worth per frame until the graph is exhausted, so deps=N/M
 	# counts the whole scene rather than whatever fitted in the first 120ms.
 	_continue_incoming_walk()
+	# Shares the same window on purpose: both only run while a load is in
+	# flight, which is when the loading screen is up and the frame has room.
+	_continue_retained_sweep()
 
 	var fraction: float = progress[0]
 
@@ -1298,6 +1301,129 @@ func _report_cache_residue() -> void:
 		" ".join(kind_parts),
 		", ".join(examples),
 	])
+	_start_retained_sweep()
+
+## Asks the engine which resources in the whole project are still cached once a
+## scene is gone, and reports them grouped.
+##
+## RESIDUE answers a narrower question and cannot be widened to this one: it
+## walks the outgoing scene's declared dependencies, of which Monochrome has
+## 64, and the device log shows 21,279 resources surviving that unload. The
+## overwhelming majority of what stays is therefore not a declared dependency
+## of the scene that brought it in, and no walk starting from the scene will
+## ever find it.
+##
+## Nor can it be found off-device. Run against this checkout the standing tool
+## reports Monochrome mounting 4,914 resources and retaining 62 - against
+## 23,589 and 21,279 on the phone. The gap is the imported textures, which a
+## developer checkout does not have, so the objects that leak there are never
+## created here. The measurement has to happen on the device.
+##
+## Godot exposes no enumeration of the resource cache to GDScript - there is no
+## get_cached_resources() - but has_cached() answers per path and
+## list_directory() walks res://. Asking every file in the project is therefore
+## possible, just not free: it is thousands of hash lookups, so it is budgeted
+## per frame and resumable, exactly like the incoming-dependency probe.
+##
+## It runs immediately after an unload, which is when the loading screen is up
+## and the main thread has 18 to 28 seconds of nothing to do. Once per unload,
+## and it stops itself the moment the next scene arrives.
+const SWEEP_BUDGET_USEC := 2_000
+const SWEEP_SKIP_DIRS := [".godot", "reference", "precompiled_astc_imports",
+	"precompiled_texture_imports", "precompiled_lightmap_imports"]
+
+var _sweep_dirs: Array[String] = []
+var _sweep_files: Array[String] = []
+var _sweep_cached: Dictionary = {}
+var _sweep_seen: int = 0
+var _sweep_active: bool = false
+var _sweep_usec: int = 0
+
+func _start_retained_sweep() -> void:
+	_sweep_dirs = ["res://"]
+	_sweep_files = []
+	_sweep_cached = {}
+	_sweep_seen = 0
+	_sweep_usec = 0
+	_sweep_active = true
+
+func _continue_retained_sweep() -> void:
+	if not _sweep_active:
+		return
+
+	var started: int = Time.get_ticks_usec()
+
+	# Files first, and only until the budget is out. has_cached() is 0.6
+	# microseconds measured, so this is thousands of paths per call.
+	while not _sweep_files.is_empty():
+		if Time.get_ticks_usec() - started >= SWEEP_BUDGET_USEC:
+			_sweep_usec += Time.get_ticks_usec() - started
+			return
+		var path: String = _sweep_files.pop_back()
+		_sweep_seen += 1
+		if ResourceLoader.has_cached(path):
+			# Grouped as it goes. Keeping 21,000 paths to group at the end
+			# would cost more memory than the thing being measured.
+			var key: String = _sweep_key(path)
+			_sweep_cached[key] = int(_sweep_cached.get(key, 0)) + 1
+
+	if _sweep_dirs.is_empty():
+		_sweep_usec += Time.get_ticks_usec() - started
+		_finish_retained_sweep()
+		return
+
+	# Exactly one directory per call, whatever the budget says.
+	#
+	# A listing cannot be split part way, and the first version treated one as
+	# a free action inside the budgeted loop - it checked the clock before
+	# taking a directory and then ran the whole listing regardless of how long
+	# that took. A directory of a few thousand entries then blew a 2ms budget
+	# to 358ms in one frame, which is precisely the stall this sweep is
+	# supposed to be quiet enough to measure. One listing is bounded by the
+	# largest directory in the project, measured at 9.6ms.
+	var dir: String = _sweep_dirs.pop_back()
+	for entry in ResourceLoader.list_directory(dir):
+		if entry.ends_with("/"):
+			var name: String = entry.trim_suffix("/")
+			if not SWEEP_SKIP_DIRS.has(name):
+				_sweep_dirs.append(dir.path_join(name))
+		else:
+			_sweep_files.append(dir.path_join(entry))
+
+	_sweep_usec += Time.get_ticks_usec() - started
+
+func _finish_retained_sweep() -> void:
+	_sweep_active = false
+
+	var total: int = 0
+	var rows: Array = []
+	for key in _sweep_cached:
+		total += int(_sweep_cached[key])
+		rows.append([int(_sweep_cached[key]), key])
+	rows.sort_custom(func(a, b): return a[0] > b[0])
+
+	var parts: PackedStringArray = PackedStringArray()
+	for i in mini(10, rows.size()):
+		parts.append("%s=%d" % [rows[i][1], rows[i][0]])
+
+	# Says so when the next scene arrived first. A partial sweep is still worth
+	# reading - the grouping is the finding, not the total - but a partial
+	# total read as a whole one would understate the retention.
+	var incomplete: bool = not _sweep_files.is_empty() or not _sweep_dirs.is_empty()
+	_entry("RETAINED", "%d/%d examinados siguen cacheados tras soltar %s%s sweep=%.0fms [%s]" % [
+		total, _sweep_seen, _outgoing_scene_path.get_file(),
+		" (incompleto)" if incomplete else "",
+		_sweep_usec / 1000.0, " ".join(parts),
+	])
+
+## Folder plus extension, which is the grouping that names a subsystem rather
+## than a file. "songs/monochrome:png" says where to look; a list of 3,000
+## filenames does not.
+func _sweep_key(path: String) -> String:
+	var rel: String = path.trim_prefix("res://")
+	var parts: PackedStringArray = rel.split("/")
+	var folder: String = "/".join(parts.slice(0, mini(2, parts.size() - 1)))
+	return "%s:%s" % [folder if not folder.is_empty() else ".", path.get_extension()]
 
 ## Files one frame into the histogram and checks it against the refresh clock.
 ##
@@ -1522,6 +1648,11 @@ func _on_scene_change_finished(path: String) -> void:
 	# probe= is every microsecond this file spent measuring the load, against
 	# took= for the load itself. The one number that says whether the
 	# diagnostics are part of what they are reporting.
+	# Reported before the new scene starts allocating, or its resources would
+	# be counted as the old one's residue.
+	if _sweep_active:
+		_finish_retained_sweep()
+
 	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB sys=%s" % [
 		path, took, _probe_usec / 1000.0, delta_mb, _sys_mem(),
 	])

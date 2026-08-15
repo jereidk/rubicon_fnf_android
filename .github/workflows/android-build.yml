@@ -443,6 +443,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the retained-resource sweep stays cheap
+        run: |
+          # The sweep runs on the main thread during a load, next to a loading
+          # screen this project spent real effort keeping animated. Its first
+          # version treated a directory listing as free inside a budgeted loop
+          # and blew 2ms to 358ms in one frame - destroying the thing it was
+          # added to explain. The bound is checked against the real project,
+          # not a fixture.
+          $GODOT --headless --path . --script tools/test_retained_sweep.gd 2>&1 | tee /tmp/sweep.txt
+          grep -q "todo OK" /tmp/sweep.txt
+
       - name: Verify hardcoded uid:// references resolve
         run: |
           # Catches the collector-shop crash class before it ships: a bare
