@@ -55,14 +55,66 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # Pointers only, deliberately. Every LFS object inside the sparse
+      # checkout is a precompiled import - about 398MB of them - and smudging
+      # on checkout spends that much LFS bandwidth on every single run. Three
+      # runs is past the 1GB a month the free allowance gives, which is
+      # exactly what took build #109 down before it reached step 3:
+      #
+      #   batch response: This repository exceeded its LFS budget.
+      #
+      # The objects are fetched below instead, from a cache when there is one.
       - name: Checkout repository
         uses: actions/checkout@v4
+        env:
+          GIT_LFS_SKIP_SMUDGE: 1
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/
           sparse-checkout-cone-mode: false
+
+      - name: Cache Git LFS objects
+        id: cache-lfs
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          # A skipped smudge leaves each file as its pointer, and a pointer is
+          # literally the object's oid, so hashing them keys the cache on the
+          # LFS content itself and on nothing else. Editing a .gd or a .tscn
+          # does not move this key; adding a precompiled import does.
+          key: lfs-${{ runner.os }}-${{ hashFiles('precompiled_astc_imports/*.res', '**/*.lmbake', '**/*.ctex') }}
+
+      - name: Materialise Git LFS files
+        run: |
+          # checkout, not pull, when the objects are already local: it smudges
+          # out of .git/lfs/objects and never contacts the server, so a warm
+          # cache costs zero LFS bandwidth. Only a miss pays for the fetch, and
+          # then the cache carries it for every later run.
+          if [ "${{ steps.cache-lfs.outputs.cache-hit }}" = "true" ]; then
+            echo "LFS cache hit - materialising from local objects"
+            git lfs checkout
+          else
+            echo "LFS cache miss - fetching from the server"
+            git lfs pull
+          fi
+
+          # A pointer that survives here is the dangerous outcome: the restore
+          # steps below would copy 130 bytes of text into .godot/imported/ as
+          # if it were a compressed texture, and Godot would either import
+          # garbage or silently reimport all 494 textures - the 38-minute
+          # build this precompiled directory exists to prevent. Cheap to check,
+          # so check.
+          for probe in "$(ls precompiled_astc_imports/*.res 2>/dev/null | head -1)" \
+                       "$(git lfs ls-files -n | grep '\.lmbake$' | head -1)"; do
+            [ -n "$probe" ] && [ -f "$probe" ] || continue
+            if head -c 64 "$probe" | grep -q "git-lfs.github.com/spec"; then
+              echo "::error::$probe sigue siendo un puntero LFS tras el checkout"
+              exit 1
+            fi
+          done
+          echo "LFS materialised: $(git lfs ls-files | wc -l) archivos"
 
       # macOS puts these under ~/Library/Application Support/Godot, not the
       # ~/.local/share/godot the Android workflow uses. Same tpz, different
