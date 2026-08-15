@@ -87,33 +87,43 @@ jobs:
 
       - name: Materialise Git LFS files
         run: |
+          # Nothing in LFS is required any more. The only game assets that were
+          # behind it - two lightmap bakes, 510KB together - are plain git
+          # objects now; everything left is precompiled import output, which is
+          # a build accelerator. So an LFS outage has to degrade this job, not
+          # end it, and `git lfs pull` failing is not fatal.
+          #
           # checkout, not pull, when the objects are already local: it smudges
           # out of .git/lfs/objects and never contacts the server, so a warm
-          # cache costs zero LFS bandwidth. Only a miss pays for the fetch, and
-          # then the cache carries it for every later run.
+          # cache costs zero bandwidth. Only a miss pays for a fetch.
           if [ "${{ steps.cache-lfs.outputs.cache-hit }}" = "true" ]; then
             echo "LFS cache hit - materialising from local objects"
-            git lfs checkout
+            git lfs checkout || echo "::warning::git lfs checkout fallo"
           else
             echo "LFS cache miss - fetching from the server"
-            git lfs pull
+            git lfs pull || echo "::warning::git lfs pull fallo (presupuesto agotado?)"
           fi
 
-          # A pointer that survives here is the dangerous outcome: the restore
-          # steps below would copy 130 bytes of text into .godot/imported/ as
-          # if it were a compressed texture, and Godot would either import
-          # garbage or silently reimport all 494 textures - the 38-minute
-          # build this precompiled directory exists to prevent. Cheap to check,
-          # so check.
-          for probe in "$(ls precompiled_astc_imports/*.res 2>/dev/null | head -1)" \
-                       "$(git lfs ls-files -n | grep '\.lmbake$' | head -1)"; do
-            [ -n "$probe" ] && [ -f "$probe" ] || continue
-            if head -c 64 "$probe" | grep -q "git-lfs.github.com/spec"; then
-              echo "::error::$probe sigue siendo un puntero LFS tras el checkout"
-              exit 1
+          # Whatever is still a pointer is unusable, and has to be named rather
+          # than fed to Godot: the restore step below would otherwise copy 130
+          # bytes of text into .godot/imported/ as though it were a compressed
+          # texture. Counted here, skipped there.
+          pointers=0
+          for f in $(git lfs ls-files -n); do
+            [ -f "$f" ] || continue
+            if head -c 64 "$f" | grep -q "git-lfs.github.com/spec"; then
+              pointers=$((pointers + 1))
             fi
           done
-          echo "LFS materialised: $(git lfs ls-files | wc -l) archivos"
+
+          total=$(git lfs ls-files -n | wc -l)
+          echo "LFS: $((total - pointers))/$total materializados, $pointers sin resolver"
+          if [ "$pointers" -gt 0 ]; then
+            echo "::warning::$pointers objetos LFS sin resolver - se importara desde las fuentes"
+            echo "### LFS degradado" >> "$GITHUB_STEP_SUMMARY"
+            echo "$pointers de $total objetos no se pudieron descargar." >> "$GITHUB_STEP_SUMMARY"
+            echo "El build continua reimportando desde las fuentes: mas lento, mismo resultado." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Cache Godot
         id: cache-godot
@@ -286,9 +296,32 @@ jobs:
           # file timestamps, so this works correctly even on a fresh
           # checkout where every file's mtime is "now". See
           # precompiled_astc_imports/README.md for how to regenerate these.
+          #
+          # Each .res is only copied when it is real content. An unresolved LFS
+          # pointer here is 130 bytes of text, and handing that to Godot as a
+          # compressed texture is worse than not having it: skipping lets the
+          # importer notice the output is missing and rebuild it from the PNG,
+          # which is slow but correct. The .md5 sidecar only travels with a
+          # .res that was actually copied - on its own it would tell Godot the
+          # import is already done and there is nothing to rebuild.
           mkdir -p .godot/imported
-          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+          copied=0
+          skipped=0
+          for res in precompiled_astc_imports/*.res; do
+            [ -f "$res" ] || continue
+            if head -c 64 "$res" | grep -q "git-lfs.github.com/spec"; then
+              skipped=$((skipped + 1))
+              continue
+            fi
+            cp "$res" .godot/imported/
+            md5="${res%.res}.md5"
+            [ -f "$md5" ] && cp "$md5" .godot/imported/
+            copied=$((copied + 1))
+          done
+          echo "Restored $copied precompiled ASTC imports ($skipped sin resolver)"
+          if [ "$skipped" -gt 0 ]; then
+            echo "::warning::$skipped imports precompilados no disponibles - Godot los rehara"
+          fi
 
       - name: Restore precompiled lightmap imports
         run: |
