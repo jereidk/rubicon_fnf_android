@@ -153,6 +153,8 @@ func _ready() -> void :
 		)
 
 	if not SaveData.get_flag("intro_seen"):
+		_add_intro_animation()
+
 		if sequence_controller != null and sequence_controller._animation_player != null:
 			sequence_controller._animation_player.play("sequence_intro")
 
@@ -480,3 +482,56 @@ func skip_voiceline() -> void :
 func _exit_tree() -> void :
 	last_trigger = null
 	current_area = null
+
+
+## Where the Collector's intro animation lives, and which library it belongs to
+## once it is loaded.
+##
+## sequence_intro.tres is 4.17MB - a 152-second baked animation, and thirteen
+## times the size of the next biggest in the same library, whose others are all
+## under 0.31MB. It used to be an ExtResource in the Collector's
+## AnimationLibrary, so it loaded on every visit to the shop.
+##
+## It plays once in a save's lifetime. The branch above is the only caller and
+## it sets intro_seen immediately afterwards, so on every visit after the first
+## the file was loaded, parsed and held for an animation that could not run.
+const INTRO_ANIMATION_PATH := "res://lullaby_mod/resources/animations/collector/sequence_intro.tres"
+const INTRO_ANIMATION_NAME := &"sequence_intro"
+
+## Puts the intro animation into the Collector's library, for the one run that
+## needs it.
+##
+## Called from _ready() rather than at the moment the animation starts, so the
+## cost lands inside the load the player is already waiting through instead of
+## as a hitch on the first frame of the cutscene. The Sequences animation drives
+## the Collector's own player by name, so it has to be in the library before
+## anything plays.
+## Takes the player rather than only reading it off the Collector, so this can
+## be exercised without one. `collector` is typed as Collector, and assigning
+## anything else to it is rejected silently - which is what made the first
+## version of the test look like a code failure when it was a stand-in that
+## never landed.
+func _add_intro_animation(player: AnimationPlayer = null) -> void:
+	if player == null:
+		if collector == null:
+			return
+		player = collector.animation_player
+	if player == null:
+		return
+
+	if player.has_animation(INTRO_ANIMATION_NAME):
+		return
+
+	var anim: Animation = load(INTRO_ANIMATION_PATH) as Animation
+	if anim == null:
+		push_warning("shop: no pude cargar la animacion de intro %s" % INTRO_ANIMATION_PATH)
+		return
+
+	# The Collector's animations sit in the default (unnamed) library, which is
+	# what has_animation() above searches and what play("sequence_intro") will.
+	var library: AnimationLibrary = player.get_animation_library(&"")
+	if library == null:
+		library = AnimationLibrary.new()
+		player.add_animation_library(&"", library)
+
+	library.add_animation(INTRO_ANIMATION_NAME, anim)

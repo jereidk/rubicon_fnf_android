@@ -119,7 +119,6 @@
 [ext_resource type="Animation" uid="uid://dbkqivb4meyb7" path="res://lullaby_mod/resources/animations/collector/pose_idle_3.tres" id="117"]
 [ext_resource type="Animation" uid="uid://br0bso8i1w8sj" path="res://lullaby_mod/resources/animations/collector/pose_idle_4.tres" id="118"]
 [ext_resource type="Animation" uid="uid://dva76kdurtqfw" path="res://lullaby_mod/resources/animations/collector/pose_rest.tres" id="119"]
-[ext_resource type="Animation" uid="uid://drrw6oi2503rd" path="res://lullaby_mod/resources/animations/collector/sequence_intro.tres" id="120"]
 [ext_resource type="Animation" uid="uid://dg2rsluu3x1sq" path="res://lullaby_mod/resources/animations/collector/talk_idle.tres" id="121"]
 [ext_resource type="Animation" uid="uid://dtdafifsugtpo" path="res://lullaby_mod/resources/animations/collector/talk_intro.tres" id="122"]
 [ext_resource type="Animation" uid="uid://duoocqx0tlgts" path="res://lullaby_mod/resources/animations/collector/talk_outro.tres" id="123"]
@@ -8579,7 +8578,6 @@ _data = {
 &"pose_idle_3": ExtResource("117"),
 &"pose_idle_4": ExtResource("118"),
 &"pose_rest": ExtResource("119"),
-&"sequence_intro": ExtResource("120"),
 &"talk_idle": ExtResource("121"),
 &"talk_intro": ExtResource("122"),
 &"talk_outro": ExtResource("123")
