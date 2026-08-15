@@ -9,4 +9,13 @@
 # optimisation. Keeping half a megabyte of real assets behind an LFS budget is
 # what stopped build #109 at step 2 with nothing else wrong.
 *.lmbake binary
-precompiled_astc_imports/*.res filter=lfs diff=lfs merge=lfs -text
+# The precompiled ASTC imports leave LFS for the same reason. They are the
+# only LFS objects the build's sparse checkout still touches - the .pck and
+# the .ctex tarball below live in lullaby_mod/original_pck/, which CI excludes
+# - so as long as they are behind the filter, an exhausted LFS budget is a
+# build outage. As plain git objects they cost repository size, which has no
+# quota, instead of LFS bandwidth, which does.
+#
+# `binary` matters: the `* text=auto eol=lf` rule at the top of this file
+# would otherwise try EOL normalisation on compressed texture data.
+precompiled_astc_imports/*.res binary
