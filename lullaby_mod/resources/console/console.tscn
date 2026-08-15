@@ -41,7 +41,6 @@
 [ext_resource type="FontFile" uid="uid://ilqa3kmi8s03" path="res://lullaby_mod/resources/fonts/fnt_funkin2.ttf" id="39"]
 [ext_resource type="Script" uid="uid://bt1rv1ok0bduo" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd" id="40"]
 [ext_resource type="Script" uid="uid://c3kvjgv8wyyjg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gd" id="41"]
-[ext_resource type="SpriteFrames" uid="uid://g1laam845ewt" path="res://lullaby_mod/assets/menus/console/credits/devest_portraits.tres" id="42"]
 [ext_resource type="FontFile" uid="uid://ccukgoph618vn" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="43"]
 [ext_resource type="Texture2D" uid="uid://cjsypkv02kfvp" path="res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg" id="44"]
 [ext_resource type="Script" uid="uid://dha6qny43jfir" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd" id="45"]
@@ -4980,7 +4979,6 @@ credits_entries = [SubResource("Resource_3wbki"), SubResource("Resource_1pg6q"),
 modulate = Color(0.1, 0.1, 0.1, 1)
 position = Vector2(103.99998, 803.00006)
 scale = Vector2(0.9031746, 0.9031745)
-sprite_frames = ExtResource("42")
 animation = &"Jack-O"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitSecondary" unique_id=1239002531]
@@ -4989,7 +4987,6 @@ libraries/ = SubResource("AnimationLibrary_26fpe")
 [node name="CreditsPortraitPrimary" type="AnimatedSprite2D" parent="TabContainer/Credits/CreditsContainer" unique_id=837053894]
 modulate = Color(0.5, 0.5, 0.5, 1)
 position = Vector2(472, 731)
-sprite_frames = ExtResource("42")
 animation = &"Bakyura"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitPrimary" unique_id=1474806969]

@@ -19,6 +19,23 @@ extends HBoxContainer
 @export var material_select: StandardMaterial3D
 
 @export var credits_entries: Array[LullabyCreditsEntry]
+
+## The portrait sheet, as a path, loaded the first time the credits are looked
+## at.
+##
+## dev_portraits.png is 4096x4096 - 16.8 megapixels, 14% of every pixel the
+## Collector's Shop pulls in, and about 4MB of VRAM once it is ASTC. The two
+## AnimatedSprite2Ds below used to carry it as an ExtResource, so walking into
+## the room loaded the whole sheet for a screen that is two menus deep and
+## that most visits never open.
+##
+## Unlike the voicelines, this is one file out of four hundred, so it is not
+## expected to move the load time much - the shop's load is bound by per-file
+## cost. It is here for the memory.
+@export_file("*.tres") var portrait_frames_path: String = "res://lullaby_mod/assets/menus/console/credits/devest_portraits.tres"
+
+var _portraits_loaded: bool = false
+
 var current_portrait_index: int = 0
 
 var enter_cooldown: float = 0.0
@@ -31,8 +48,16 @@ func _ready() -> void :
 	# click handling swallowing them.
 	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	# Both AnimationPlayers drive the `animation` property of a sprite that has
+	# no frames yet. That is harmless - the name is stored and applies as soon
+	# as the sheet arrives, and _ensure_portraits() replays them anyway - and
+	# it keeps this order identical to what it was before the sheet went lazy.
 	primary_portrait_animation.play(credits_entries[0].name)
 	secondary_portrait_animation.play(credits_entries[1].name)
+
+	# Covers the case where the credits are the tab already on screen.
+	visibility_changed.connect(_ensure_portraits)
+	_ensure_portraits()
 	var list_end: LullabyCreditsEntry = LullabyCreditsEntry.new()
 	list_end.empty()
 	credits_entries.append(list_end)
@@ -72,6 +97,10 @@ func _open_current_socials_link() -> void :
 	enter_cooldown = 1.0
 
 func _go_next() -> void :
+	# Belt and braces: any navigation forces the sheet in, even if the
+	# visibility signal never fired for it.
+	_ensure_portraits()
+
 	current_portrait_index = wrap(current_portrait_index + 1, 0, credits_entries.size() - 1)
 	update_labels()
 
@@ -89,6 +118,10 @@ func _go_next() -> void :
 	console.play_sound.emit("sfx_soulroom_click")
 
 func _go_previous() -> void :
+	# Belt and braces: any navigation forces the sheet in, even if the
+	# visibility signal never fired for it.
+	_ensure_portraits()
+
 	current_portrait_index = wrap(current_portrait_index - 1, 0, credits_entries.size() - 1)
 	update_labels()
 
@@ -159,3 +192,37 @@ func update_labels() -> void :
 	description_label.text = credits_entries[current_portrait_index].description
 	description_label.get_v_scroll_bar().value = 0
 	role_label.text = credits_entries[current_portrait_index].role
+
+## Loads the portrait sheet, once, the first time the credits are on screen.
+##
+## Driven from visibility_changed and from every navigation entry point rather
+## than from visibility alone. The console renders through nested SubViewports
+## and a tab container, and a portrait sheet that never arrived would show as
+## two blank silhouettes with the names and roles still working - quiet enough
+## to ship. Any interaction with the credits forces it.
+func _ensure_portraits() -> void:
+	if _portraits_loaded:
+		return
+	if not is_visible_in_tree():
+		return
+	if portrait_frames_path.is_empty():
+		return
+
+	var frames: SpriteFrames = load(portrait_frames_path) as SpriteFrames
+	if frames == null:
+		push_warning("credits: no pude cargar %s" % portrait_frames_path)
+		return
+
+	_portraits_loaded = true
+	for player: AnimationPlayer in [primary_portrait_animation, secondary_portrait_animation]:
+		if player == null:
+			continue
+		var sprite := player.get_parent() as AnimatedSprite2D
+		if sprite == null:
+			continue
+		sprite.sprite_frames = frames
+		# Assigning frames resets which animation is selected, so put the
+		# player's own choice back rather than leaving the sheet's first one.
+		var playing: StringName = player.current_animation
+		if not playing.is_empty():
+			player.play(playing)
