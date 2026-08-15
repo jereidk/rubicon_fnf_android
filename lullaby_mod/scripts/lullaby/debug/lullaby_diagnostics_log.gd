@@ -223,6 +223,23 @@ var _lowest_fps: int = -1
 var _session_start_ms: int = 0
 
 var _scene_change_started_ms: int = 0
+
+## The scene handed to change_scene_to_packed(), and when. Both only live for
+## the handful of frames the swap takes; see _watch_swap().
+var _swap_path: String = ""
+var _swap_requested_ms: int = 0
+
+## Writes the memory trace from its own thread. Null where /proc is not
+## readable, which is everywhere that is not Linux or Android.
+##
+## preload rather than the class_name, and typed as RefCounted rather than as
+## LullabyMemorySampler: a class_name only resolves once the global class cache
+## has been rebuilt by an import, so annotating it here makes this file - the
+## diagnostics log, the thing that is supposed to still work when nothing else
+## does - fail to parse on a checkout that has not been imported yet.
+const MemorySampler := preload("res://lullaby_mod/scripts/lullaby/debug/lullaby_memory_sampler.gd")
+
+var _sampler: RefCounted = null
 var _scene_change_memory: int = 0
 
 ## Brackets the frame's processing pass. This node runs first (see
@@ -1505,9 +1522,10 @@ func _on_scene_change_finished(path: String) -> void:
 	# probe= is every microsecond this file spent measuring the load, against
 	# took= for the load itself. The one number that says whether the
 	# diagnostics are part of what they are reporting.
-	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB" % [
-		path, took, _probe_usec / 1000.0, delta_mb,
+	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB sys=%s" % [
+		path, took, _probe_usec / 1000.0, delta_mb, _sys_mem(),
 	])
+	_watch_swap(path)
 	# The frame window is meaningless across a load, and every frame after one
 	# would otherwise read as a spike against the pre-load median.
 	_frames_seen = 0
@@ -1520,6 +1538,58 @@ func _on_scene_change_finished(path: String) -> void:
 	# the last device log carried an "after ..." attribution.
 	get_tree().create_timer(1.0).timeout.connect(census.bind("after load"), CONNECT_ONE_SHOT)
 	get_tree().create_timer(1.0).timeout.connect(_watch_animations, CONNECT_ONE_SHOT)
+
+## Splits the one window this log cannot currently see into three.
+##
+## SCENE_IN is emitted from LullabySceneChanger._complete(), two lines before
+## it calls change_scene_to_packed(). On the Collector's Shop in a release
+## build that is the last line the log ever writes: the process is gone
+## before the CENSUS a second later, and since every entry is flushed as it
+## is written, that is where it died and not merely where the buffer ended.
+##
+## change_scene_to_packed() is atomic from the outside and does three things
+## that fail in completely different ways - it instantiates the PackedScene
+## (CPU and RAM: 1698 resources at once), it puts that tree in the scene tree
+## (every _ready() in the scene runs), and then the first frame draws it (the
+## GPU cost this project already measured at 35.6 seconds and 154 pipelines).
+## An out-of-memory kill, a script fault and a driver fault are all consistent
+## with the log as it stands, and they need three different fixes.
+##
+## So: node_added fires as the new tree is installed, which cannot happen
+## until instantiate() has returned, and process_frame fires once the whole
+## tree's _ready() has run. Which of the three marks is missing names the
+## phase.
+##
+##     SCENE_IN, then nothing            -> died inside instantiate()
+##     SCENE_IN INSTANCED, then nothing  -> died in some node's _ready()
+##     SCENE_IN INSTANCED SCENE_UP, then nothing -> died on the first draw
+##
+## Both connections are one-shot. node_added fires for every node in the
+## scene - thousands of them here - and a listener left attached would cost
+## more than what it is measuring.
+func _watch_swap(path: String) -> void:
+	_swap_path = path
+	_swap_requested_ms = Time.get_ticks_msec()
+	get_tree().node_added.connect(_on_swap_node_added, CONNECT_ONE_SHOT)
+
+func _on_swap_node_added(node: Node) -> void:
+	# Named rather than assumed. The first node added after the request should
+	# be the new scene's root, but if some other node happens to arrive first
+	# the entry says so instead of quietly mislabelling the phase.
+	_entry("INSTANCED", "%s first=%s (%s) after=%dms sys=%s" % [
+		_swap_path.get_file(), node.name, node.get_class(),
+		Time.get_ticks_msec() - _swap_requested_ms, _sys_mem(),
+	])
+	get_tree().process_frame.connect(_on_swap_frame, CONNECT_ONE_SHOT)
+
+func _on_swap_frame() -> void:
+	_entry("SCENE_UP", "%s ready+drawn after=%dms nodes=%d res=%d sys=%s" % [
+		_swap_path.get_file(), Time.get_ticks_msec() - _swap_requested_ms,
+		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
+		int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)),
+		_sys_mem(),
+	])
+	_swap_path = ""
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:
@@ -1901,6 +1971,65 @@ func _mb(bytes: int) -> String:
 		return "n/a"
 	return "%.0fMB" % (bytes / 1048576.0)
 
+## One value out of /proc, in kB, or -1.
+##
+## FileAccess.get_as_text() cannot read /proc: those files report a length of
+## zero and get_as_text() trusts it, so it hands back an empty string from a
+## file that has plenty to say. get_line() reads until it actually runs out,
+## which works - measured here against /proc/self/status before being relied
+## on, not assumed from the docs.
+func _proc_kb(path: String, key: String) -> int:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1
+	var found: int = -1
+	while true:
+		var line: String = file.get_line()
+		if line.is_empty():
+			break
+		if not line.begins_with(key):
+			continue
+		for token in line.split(" ", false):
+			if token.is_valid_int():
+				found = int(token)
+				break
+		break
+	file.close()
+	return found
+
+## Process and system memory, which - unlike everything _mb() reports -
+## survives a release template.
+##
+## Godot's own accounting is compiled out of release, so every device log so
+## far reads ram=n/a peak=n/a, and that is the blind spot that matters right
+## now: the shop dies on release only, and "the kernel killed us for memory"
+## cannot be told apart from "we faulted" without a number.
+##
+## Not OS.get_memory_info(). That is the obvious answer and it does not work
+## here - this file already carries a note that its "physical" field reports
+## zero on Android, and the device log proves it, printing "(not reported by
+## OS)" in its own header. Guessing that "available" survives where
+## "physical" does not would have shipped another n/a.
+##
+## /proc does work, and says more. VmRSS is what this process is actually
+## holding, VmHWM is the highest it ever held - which outlives the moment, so
+## a log line written after a spike still reports the spike - and MemAvailable
+## is what the kernel still has to give before it starts killing things to get
+## it. An out-of-memory kill has a signature in those three that nothing else
+## has.
+##
+## Returns "-" off Linux, rather than inventing a zero.
+func _sys_mem() -> String:
+	var rss: int = _proc_kb("/proc/self/status", "VmRSS:")
+	if rss < 0:
+		return "-"
+	var peak: int = _proc_kb("/proc/self/status", "VmHWM:")
+	var avail: int = _proc_kb("/proc/meminfo", "MemAvailable:")
+	return "rss=%dMB peak=%dMB avail=%s" % [
+		rss / 1024, peak / 1024,
+		"%dMB" % (avail / 1024) if avail >= 0 else "?",
+	]
+
 ## The package this build actually runs under.
 ##
 ## Godot exposes no API for it, but user:// resolves to
@@ -1956,6 +2085,12 @@ func _open_log() -> bool:
 	if _file == null:
 		push_warning("diagnostics: cannot open %s" % log_path)
 		return false
+
+	# Started here rather than in _ready() so it is already sampling during
+	# boot, which is the only way its trace and this log share a baseline.
+	_sampler = MemorySampler.new()
+	if not _sampler.start("%s/lullaby_%s.mem" % [_log_dir, stamp]):
+		_sampler = null
 	return true
 
 ## Keeps the newest MAX_LOG_FILES. Without this a phone accumulates one file
@@ -2009,10 +2144,15 @@ func _write_header() -> void:
 	# against it - and if this is already in the thousands, the cutscene
 	# stalls are a small tail of a much larger compile budget.
 	_file.store_line("pipelines : %d compiled at boot" % _pipeline_compilations())
-	# get_memory_info()["physical"] reports 0 on Android, so report what the
-	# engine can actually see instead of a misleading zero.
-	var physical: int = OS.get_memory_info().get("physical", 0)
-	_file.store_line("memory    : %s" % ("%d MB" % (physical / 1048576) if physical > 0 else "(not reported by OS)"))
+	# get_memory_info()["physical"] reports 0 on Android, which is why this line
+	# read "(not reported by OS)" in every device log so far. /proc answers
+	# where the engine does not - see _sys_mem(). The raw dictionary goes out
+	# alongside it so the next log settles whether any of its fields are usable
+	# on this device rather than leaving that a guess.
+	var total_kb: int = _proc_kb("/proc/meminfo", "MemTotal:")
+	_file.store_line("memory    : %s" % ("%d MB total, %s" % [total_kb / 1024, _sys_mem()]
+		if total_kb > 0 else "(not reported by OS)"))
+	_file.store_line("os_memory : %s" % OS.get_memory_info())
 	_file.store_line("max_fps   : %d  vsync=%d" % [Engine.max_fps, DisplayServer.window_get_vsync_mode()])
 	# Boot-time snapshot only - first_boot_settings and the player can both
 	# change these afterwards, which is why _on_settings_applied() logs a
@@ -2021,11 +2161,22 @@ func _write_header() -> void:
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
 	_file.store_line("dir_used  : %s" % _log_dir)
+	# Named here so the trace is not a file nobody knows to collect. It is the
+	# half of a crash report this log cannot write, because it is still being
+	# written while this thread is blocked.
+	_file.store_line("mem_trace : %s" % (_sampler.get_path() if _sampler != null
+		else "(no disponible: /proc no legible)"))
 	_file.store_line("")
 	_file.flush()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+		# Stopped before the log closes, not after: stop() joins the sampler
+		# thread, and a thread still writing while the engine tears down its
+		# FileAccess subsystem is a crash in the crash reporter.
+		if _sampler != null:
+			_sampler.stop()
+			_sampler = null
 		if _file != null:
 			_entry("SHUTDOWN", "session ended")
 			_file.close()

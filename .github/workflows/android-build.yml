@@ -431,6 +431,18 @@ jobs:
           # play session were lost to exactly that.
           python3 tools/verify_log_format.py
 
+      - name: Verify the memory trace survives a blocked main thread
+        run: |
+          # The trace exists to record what happens inside
+          # change_scene_to_packed(), which blocks the main thread for the
+          # whole of its work - so "does it write a file" is not the property
+          # worth checking. The test blocks its own thread with
+          # OS.delay_msec() and counts the samples that land during the
+          # freeze. If that ever stops holding, the next device log comes back
+          # empty at exactly the moment it was collected for.
+          $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
+          grep -q "todo OK" /tmp/mem.txt
+
       - name: Verify hardcoded uid:// references resolve
         run: |
           # Catches the collector-shop crash class before it ships: a bare
