@@ -87,6 +87,23 @@ var adobe_additive_material: ShaderMaterial = null
 var last_screen_transform: Transform2D = Transform2D()
 var internal_setting_frame: bool = false
 var frame_dirty: bool = false
+
+## This symbol's backbuffer cache, and whether the next draw may take the
+## cheap path instead of rebuilding.
+##
+## Both used to be fields on the AnimateAtlas, which is one shared resource
+## per atlas folder - Monochrome's device log measured 480 rebuilds in a
+## second against 1665 cached draws, with anim2d reaching 371ms/s and rebuild
+## 95-100% of it. That is what a shared flag does: any one symbol advancing a
+## frame set it false, and every other symbol on the same atlas then took the
+## full rebuild path that frame with nothing of its own having changed.
+##
+## The cache being shared was the worse half. It holds the canvas item RIDs of
+## whichever symbol rebuilt last, so a symbol on the cheap path was reaching
+## into another symbol's RIDs and moving their backbuffer copy rects to its
+## own transform.
+var _backbuffer_cache: Array[Dictionary] = []
+var _use_backbuffer_cache: bool = false
 var last_light_mask: int = 0
 var last_visibilty_layer: int = 0
 
@@ -110,7 +127,7 @@ func _notification(what: int) -> void:
 		last_screen_transform = get_backbuffer_transform()
 
 		if atlas is AdobeAtlas:
-			atlas.use_backbuffer_cache = true
+			_use_backbuffer_cache = true
 
 		queue_redraw()
 
@@ -176,7 +193,7 @@ func _process(delta: float) -> void:
 		last_screen_transform = get_backbuffer_transform()
 
 		if atlas is AdobeAtlas:
-			atlas.use_backbuffer_cache = true
+			_use_backbuffer_cache = true
 
 		queue_redraw()
 
@@ -245,23 +262,28 @@ static var _drawn_ids: Dictionary = {}
 
 ## Distinct symbols that drew through each atlas, in the interval.
 ##
-## use_backbuffer_cache and backbuffer_cache both live on the AnimateAtlas
-## resource, and every symbol using it writes them: a symbol whose frame
-## advanced sets the flag false in _draw_impl, and any symbol whose transform
-## changed sets it true. With one symbol per atlas that is a private cache.
+## This is how big the fix above is. use_backbuffer_cache and backbuffer_cache
+## used to live on the AnimateAtlas resource, which every symbol naming that
+## atlas folder shares, and every one of them wrote both: a symbol whose frame
+## advanced set the flag false in _draw_impl, and any symbol whose transform
+## changed set it true. With one symbol per atlas that is a private cache.
 ## With several it is shared mutable state, and one symbol advancing a frame
-## sends every other symbol on that atlas down the full rebuild path - which
+## sent every other symbol on that atlas down the full rebuild path - which
 ## frees and recreates every canvas item RID it owns.
 ##
-## The device log is consistent with that and does not establish it: Monochrome
-## reaches 371ms/s in this system with rebuild at 95-100% of it, 480 rebuilds
-## in a second against 1665 cached draws, and single rebuilds costing 14 and
-## 37ms. Whether atlases are actually shared cannot be read off the scenes -
-## these nodes are built at runtime - so it is counted here instead.
+## The device log named the cost: Monochrome reaches 371ms/s in this system
+## with rebuild at 95-100% of it, 480 rebuilds in a second against 1665 cached
+## draws, and single rebuilds costing 14 and 37ms. What it could not say is
+## how many symbols share an atlas, because these nodes are built at runtime
+## and it cannot be read off the scenes - so it is counted here, and shared_max
+## is now the multiplier the fix removes. One symbol per atlas everywhere and
+## it changed nothing; anything above one and that is how many rebuilds a
+## single frame advance used to force.
 ##
-## One dictionary write per draw. The answer decides whether the sharing is
-## worth changing, and this addon is vendored upstream code that the reference
-## PC build has byte for byte, so that is not a change to make on a theory.
+## One dictionary write per draw. Kept after the fix because it is the only
+## measurement that says whether the fix mattered, and because this addon is
+## vendored upstream code the PC build has byte for byte - a divergence has to
+## keep justifying itself.
 static var _atlas_users: Dictionary = {}
 
 ## The most symbols seen sharing one atlas since the last read.
@@ -341,9 +363,13 @@ func _draw_impl() -> bool:
 	draw_info.visibility_layer = visibility_layer
 
 	if atlas is AdobeAtlas and frame_dirty:
-		atlas.use_backbuffer_cache = false
+		_use_backbuffer_cache = false
 
-	if atlas is AdobeAtlas and atlas.use_backbuffer_cache:
+	# By reference, so a rebuild below fills this symbol's own cache.
+	draw_info.backbuffer_cache = _backbuffer_cache
+	draw_info.use_backbuffer_cache = _use_backbuffer_cache
+
+	if atlas is AdobeAtlas and _use_backbuffer_cache:
 		_draw_adobe(atlas as AdobeAtlas, draw_info)
 		return false
 

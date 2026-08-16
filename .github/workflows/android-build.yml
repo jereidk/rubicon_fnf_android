@@ -487,6 +487,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
           grep -q "todo OK" /tmp/vonly.txt
 
+      - name: Verify one symbol's frame does not rebuild the whole atlas
+        run: |
+          # use_backbuffer_cache and backbuffer_cache used to live on the
+          # AnimateAtlas, which every symbol naming that folder shares. One
+          # symbol advancing a frame cleared the flag for all of them and sent
+          # the lot down the full rebuild path - Monochrome measured 480
+          # rebuilds in a second against 1665 cached draws, anim2d 371ms/s.
+          $GODOT --headless --path . --script tools/test_atlas_cache_per_symbol.gd 2>&1 | tee /tmp/atlas.txt
+          grep -q "todo OK" /tmp/atlas.txt
+
       - name: Verify Chimera's clock stops holding opaque black
         run: |
           # A value track paints its first key over everything before it. The

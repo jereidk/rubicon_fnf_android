@@ -32,8 +32,15 @@ var symbols: Dictionary[StringName, AdobeSymbol] = {}
 var framerate: float = 24.0
 var stage_symbol: StringName = &""
 var stage_transform: Transform2D = Transform2D.IDENTITY
-var backbuffer_cache: Array[Dictionary] = []
-var use_backbuffer_cache: bool = false
+## Scratch for one draw_on() call, handed to the drawing symbol at the end of
+## it. draw_symbol() is a thirteen-parameter recursive function called
+## positionally from four places, so the cache is collected here and moved
+## rather than threaded through as a fourteenth.
+##
+## It used to be the cache itself, and use_backbuffer_cache used to sit beside
+## it. Both are per-symbol state and this resource is shared by every symbol
+## that names it, so they now live on AnimateDrawInfo - see the note there.
+var _backbuffer_scratch: Array[Dictionary] = []
 
 
 func parse() -> void :
@@ -97,21 +104,21 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	if use_stage and stage_transform != Transform2D.IDENTITY:
 		transform *= stage_transform
 
-	if use_backbuffer_cache:
+	if draw_info.use_backbuffer_cache:
 		if Engine.is_editor_hint():
-			backbuffer_cache.clear()
+			draw_info.backbuffer_cache.clear()
 			return
 
-		for cached: Dictionary in backbuffer_cache:
+		for cached: Dictionary in draw_info.backbuffer_cache:
 			RenderingServer.canvas_item_set_copy_to_backbuffer(
-				cached.get(&"rid"), 
-				true, 
-				draw_info.screen_transform * transform * cached.get(&"rect"), 
+				cached.get(&"rid"),
+				true,
+				draw_info.screen_transform * transform * cached.get(&"rect"),
 			)
 
 		return
 
-	backbuffer_cache.clear()
+	_backbuffer_scratch.clear()
 
 	var stage_item: RID = RenderingServer.canvas_item_create()
 	RenderingServer.canvas_item_set_transform(stage_item, transform)
@@ -133,10 +140,15 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 		null, 
 		Rect2(), 
 		draw_info.screen_transform * transform, 
-		draw_info.additive_material, 
-		draw_info.light_mask, 
-		draw_info.visibility_layer, 
+		draw_info.additive_material,
+		draw_info.light_mask,
+		draw_info.visibility_layer,
 	)
+
+	# Hand the rebuild's cache to the symbol that asked for it. assign() fills
+	# the array the symbol passed in rather than replacing the reference, so
+	# the symbol keeps hold of its own cache across draws.
+	draw_info.backbuffer_cache.assign(_backbuffer_scratch)
 
 
 func get_framerate() -> float:
@@ -306,7 +318,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 								RenderingServer.canvas_item_set_copy_to_backbuffer(layer_rid, true, Rect2())
 							else:
 								RenderingServer.canvas_item_set_copy_to_backbuffer(layer_rid, true, screen_transform * screen_rect)
-								backbuffer_cache.push_back({
+								_backbuffer_scratch.push_back({
 									&"rid": layer_rid, 
 									&"rect": screen_rect, 
 								})
