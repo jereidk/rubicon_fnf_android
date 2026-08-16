@@ -8587,8 +8587,8 @@ _data = {
 [sub_resource type="Environment" id="Environment_w8hxk"]
 background_mode = 1
 tonemap_exposure = 1.15
-ssao_enabled = true
-ssil_enabled = true
+ssao_enabled = false
+ssil_enabled = false
 sdfgi_y_scale = 0
 glow_enabled = true
 fog_enabled = true
