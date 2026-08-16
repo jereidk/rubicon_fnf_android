@@ -35,6 +35,9 @@ enum ShopStates{
 ## Resolved audio, once something has asked for it.
 var _loaded: AudioStream
 
+## Whether a threaded warm has been asked for. See warm().
+var _requested: bool = false
+
 ## The line's audio, loading it if this is the first time it is needed.
 ##
 ## Read this rather than `stream`: that field is only the direct-reference
@@ -47,7 +50,15 @@ func get_stream() -> AudioStream:
 	if stream_path.is_empty():
 		return null
 
-	_loaded = load(stream_path) as AudioStream
+	# Blocking on purpose. This is the path taken when the line is about to
+	# play, and silence would be worse than a stall - warm() exists so this
+	# is rarely reached with nothing ready. If a threaded warm is already in
+	# flight, collect that rather than starting a second load of the same
+	# file.
+	if _requested and ResourceLoader.load_threaded_get_status(stream_path) != ResourceLoader.THREAD_LOAD_FAILED:
+		_loaded = ResourceLoader.load_threaded_get(stream_path) as AudioStream
+	else:
+		_loaded = load(stream_path) as AudioStream
 	return _loaded
 
 ## Loads the audio without needing it yet.
@@ -55,7 +66,26 @@ func get_stream() -> AudioStream:
 ## Called off the critical path once the room is up, so a line is in memory
 ## before anything plays it and the lazy path never costs a hitch mid-dialogue.
 func warm() -> void:
-	get_stream()
+	if stream != null or _loaded != null or stream_path.is_empty():
+		return
+
+	# Threaded, because this runs from the shop's _process, one line per
+	# frame, and a blocking load() of an .ogg on this device is not a frame.
+	# The device log measured the damage: the shop's two worst script frames
+	# are 111.47ms and 71.90ms, both with every note-system field at zero and
+	# anim2d at zero, both in the only scene that warms voicelines. Warming
+	# was added to take 109 .ogg files off the shop's cold load and it moved
+	# their cost into gameplay instead, one stall at a time.
+	if not _requested:
+		_requested = true
+		ResourceLoader.load_threaded_request(stream_path)
+		return
+
+	# Only collected once the thread says it is done. load_threaded_get()
+	# blocks until the load finishes, so asking early would reintroduce
+	# exactly the stall this avoids.
+	if ResourceLoader.load_threaded_get_status(stream_path) == ResourceLoader.THREAD_LOAD_LOADED:
+		_loaded = ResourceLoader.load_threaded_get(stream_path) as AudioStream
 
 ## Whether the audio is in memory already.
 func is_warm() -> bool:

@@ -443,6 +443,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify warming a voiceline does not cost a frame
+        run: |
+          # The shop warms one voiceline per frame from _process. It used to
+          # do that with a blocking load(), which moved 109 .ogg files off the
+          # cold load and into gameplay one stall at a time - the device log's
+          # two worst script frames in the shop are 111.47ms and 71.90ms, both
+          # with every note field and anim2d at zero.
+          $GODOT --headless --path . --script tools/test_voiceline_warm_async.gd 2>&1 | tee /tmp/vox.txt
+          grep -q "todo OK" /tmp/vox.txt
+
       - name: Verify the dependency cost breakdown groups and ranks
         run: |
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
