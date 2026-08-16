@@ -69,6 +69,27 @@ func _run() -> void:
 	bar.size = Vector2(screen.x * 0.12, screen.y)
 	scene.add_child(bar)
 
+	# Chimera's actual black graphic: 960x720 inside a 1280x720 viewport, so
+	# 75% - which the threshold used to let through at 0.8, and the log stayed
+	# silent through every second of it while the player was looking at it.
+	# Three quarters of the screen is a blackout.
+	var partial := ColorRect.new()
+	partial.color = Color(0, 0, 0, 1)
+	partial.size = Vector2(screen.x * 0.75, screen.y)
+	partial.visible = false
+	scene.add_child(partial)
+
+	# The other half of why it went unreported: the watch took ColorRect and
+	# nothing else, so a TextureRect, a Panel or a SubViewportContainer showing
+	# a viewport that never rendered could cover everything unwatched. Its
+	# alpha is not knowable from a modulate chain, which is exactly why it has
+	# to be watched rather than dismissed.
+	var textured := TextureRect.new()
+	textured.texture = PlaceholderTexture2D.new()
+	textured.size = screen
+	textured.visible = false
+	scene.add_child(textured)
+
 	await process_frame
 
 	# The real autoload, not a fresh instance. _screen_area() and
@@ -87,19 +108,16 @@ func _run() -> void:
 	# by hand. The rules being tested are the filter and the edges.
 	log_node._blackout_watch.clear()
 	for child in scene.get_children():
-		var rect := child as ColorRect
-		if rect == null:
-			continue
-		if maxf(rect.color.r, maxf(rect.color.g, rect.color.b)) > log_node.BLACKOUT_MAX_LUMA:
-			continue
-		if rect.size.x * rect.size.y <= 0.0:
-			continue
-		log_node._blackout_watch.append(rect)
+		var item := child as CanvasItem
+		if item != null and log_node._can_cover_the_screen(item):
+			log_node._blackout_watch.append(item)
 
 	_check("vigila el rect negro grande", log_node._blackout_watch.has(black))
 	_check("ignora el blanco", not log_node._blackout_watch.has(white))
 	_check("ignora el de area cero", not log_node._blackout_watch.has(tiny))
 	_check("si vigila la barra estrecha", log_node._blackout_watch.has(bar))
+	_check("y vigila cosas que no son ColorRect", log_node._blackout_watch.has(textured),
+		"un TextureRect entra en la lista")
 
 	# Hidden: nothing to report.
 	log_node._poll_blackouts()
@@ -111,6 +129,24 @@ func _run() -> void:
 	log_node._poll_blackouts()
 	_check("una barra del 12% no cuenta como apagon",
 		not log_node._blackout_on.has(bar))
+
+	# The case the 0.8 threshold hid for two rounds.
+	partial.visible = true
+	await process_frame
+	log_node._poll_blackouts()
+	_check("un rect que tapa el 75% si cuenta", log_node._blackout_on.has(partial),
+		"era lo que el umbral de 0.8 dejaba pasar")
+
+	# And one whose pixels the census cannot read is reported rather than
+	# silently dropped, because "cannot judge" is not "not covering".
+	textured.visible = true
+	await process_frame
+	log_node._poll_blackouts()
+	_check("y uno con alpha no medible tambien", log_node._blackout_on.has(textured))
+	partial.visible = false
+	textured.visible = false
+	await process_frame
+	log_node._poll_blackouts()
 
 	# Switched on the way an animation track switches it on.
 	black.visible = true
@@ -143,8 +179,8 @@ func _run() -> void:
 	await process_frame
 
 	print("")
-	if _checks < 10:
-		print("FALLO: solo %d de 10 comprobaciones" % _checks)
+	if _checks < 13:
+		print("FALLO: solo %d de 13 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:

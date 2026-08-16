@@ -1104,7 +1104,14 @@ func _covers_screen(node: CanvasItem) -> bool:
 ## Reports edges, not states: one line when a watched node starts covering the
 ## screen and one when it stops, with how long it lasted. A log that said
 ## "still black" sixty times a second would bury what it is reporting.
-const BLACKOUT_MIN_COVERAGE := 0.8
+## Half the screen, not four fifths.
+##
+## 0.8 was a guess and it cost this bug two rounds. Chimera's black graphic
+## measures 960x720 in a 1280x720 viewport - 75% - so it sat under the gate,
+## the log stayed quiet through every second of it, and that silence got read
+## as the bug being fixed. A partial cover is still a cover; the line prints
+## the fraction, so judging it is the reader's job and not the threshold's.
+const BLACKOUT_MIN_COVERAGE := 0.5
 const BLACKOUT_MAX_LUMA := 0.15
 
 var _blackout_watch: Array[CanvasItem] = []
@@ -1125,21 +1132,43 @@ func _collect_blackout_watch() -> void:
 		var node: Node = stack.pop_back()
 		for child in node.get_children():
 			stack.append(child)
-		var rect := node as ColorRect
-		if rect == null or not _alpha_is_knowable(rect):
+		var item := node as CanvasItem
+		if item == null or not _can_cover_the_screen(item):
 			continue
-		# Dark enough to read as a blackout, judged on the authored colour
-		# because that is what it paints when something switches it on.
-		if maxf(rect.color.r, maxf(rect.color.g, rect.color.b)) > BLACKOUT_MAX_LUMA:
-			continue
-		if rect.size.x * rect.size.y <= 0.0:
-			continue
-		_blackout_watch.append(rect)
+		_blackout_watch.append(item)
 
 	if not _blackout_watch.is_empty():
 		_entry("BLACKWATCH", "vigilando %d rects oscuros en %s" % [
 			_blackout_watch.size(), _current_scene_name(),
 		])
+
+## Whether this item is the kind of thing that could paint a large solid area.
+##
+## The watch used to accept ColorRect and nothing else, which is the second
+## reason Chimera's black graphic went unreported for two rounds: if the thing
+## covering the screen is a TextureRect, a Panel, a Sprite2D or a
+## SubViewportContainer showing a viewport that never rendered, it was never
+## even on the list. The census already saw further than this - its covers_maybe
+## named the results screen's Vingette, a TextureRect - so the watch was the
+## narrower of the two instruments while being the one reporting edges.
+##
+## A ColorRect still has to be dark, because its colour is authored and
+## readable and a bright one is not a blackout. Everything else is watched
+## whatever it looks like: its pixels come from a texture or a shader, the
+## census cannot read them (see _alpha_is_knowable), and refusing to watch what
+## cannot be judged is how this was missed. _poll_blackouts prints the coverage
+## and the alpha it measured, so a false positive costs one line to dismiss.
+func _can_cover_the_screen(item: CanvasItem) -> bool:
+	var rect := item as ColorRect
+	if rect != null:
+		if maxf(rect.color.r, maxf(rect.color.g, rect.color.b)) > BLACKOUT_MAX_LUMA:
+			return false
+		return rect.size.x * rect.size.y > 0.0
+
+	if item is TextureRect or item is Panel or item is SubViewportContainer:
+		return (item as Control).size.x * (item as Control).size.y > 0.0
+
+	return item is Sprite2D and (item as Sprite2D).texture != null
 
 func _poll_blackouts() -> void:
 	if _blackout_watch.is_empty():
@@ -1156,14 +1185,24 @@ func _poll_blackouts() -> void:
 		# screen-covering blackouts. Divided by the screen now, which is what
 		# the census does with the same helper.
 		var covered: float = _screen_area(item) / maxf(1.0, _screen_px())
+		var opacity: float = _opaque_coverage(item)
 		var covering: bool = item.is_visible_in_tree() \
 			and covered >= BLACKOUT_MIN_COVERAGE \
-			and _opaque_coverage(item) >= BLACKOUT_MIN_COVERAGE
+			and opacity >= BLACKOUT_MIN_COVERAGE
 		var was: bool = _blackout_on.has(item)
 		if covering and not was:
 			_blackout_on[item] = now
-			_entry("BLACKOUT", "%s tapa la pantalla (cubre=%.2f alpha=%.2f)" % [
-				_scene_relative_path(item), covered, item.modulate.a,
+			# The rect, because that is what named this bug in the end: a
+			# screenshot showed 960x720 inside a 1280x720 viewport, and a 4:3
+			# hole in a 16:9 screen says more about which node it is than any
+			# coverage fraction does. "?" on the alpha where the pixels come
+			# from a texture or a shader and the census cannot read them.
+			var alpha_text: String = "?" if is_equal_approx(opacity, UNKNOWN_COVERAGE) \
+				and not _alpha_is_knowable(item) else "%.2f" % opacity
+			var box: Rect2 = _screen_rect_of(item)
+			_entry("BLACKOUT", "%s tapa la pantalla (cubre=%.2f alpha=%s %dx%d en %d,%d)" % [
+				_scene_relative_path(item), covered, alpha_text,
+				int(box.size.x), int(box.size.y), int(box.position.x), int(box.position.y),
 			])
 		elif was and not covering:
 			_entry("BLACKOUT", "%s deja de taparla tras %.1fs" % [
@@ -1204,6 +1243,17 @@ func _screen_area(node: CanvasItem) -> float:
 		return 0.0
 
 	return rect.intersection(screen).get_area()
+
+## The on-screen box _screen_area() measures the area of, for the one caller
+## that needs the shape rather than the size. Split out rather than returning
+## both, because every other caller wants a single number to compare.
+func _screen_rect_of(node: CanvasItem) -> Rect2:
+	var control := node as Control
+	if control != null:
+		return control.get_global_rect()
+	if node.has_method("get_rect"):
+		return node.get_global_transform() * (node.call("get_rect") as Rect2)
+	return Rect2()
 
 ## Whether this CanvasItem puts any pixels on screen itself.
 ##
