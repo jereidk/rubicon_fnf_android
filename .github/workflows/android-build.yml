@@ -541,6 +541,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_black_box_hold.gd 2>&1 | tee /tmp/hold.txt
           grep -q "todo OK" /tmp/hold.txt
 
+      - name: Verify the Kollectadex only renders while it is open
+        run: |
+          # Its SubViewport is 620x464 - the same pixel count as the whole
+          # game at scale 0.50 - and the device log has it rendering in 62 of
+          # 78 shop samples for a book that is open almost none of that time.
+          # It has to survive the closing animation, and it has to paint one
+          # frame at startup or the prop's screen in the room is blank.
+          $GODOT --headless --path . --script tools/test_kollectadex_render_gate.gd 2>&1 | tee /tmp/kdx.txt
+          grep -q "todo OK" /tmp/kdx.txt
+
       - name: Verify the results screen idles transparent
         run: |
           # It sits on a CanvasLayer at 65 for the whole song, and its `show`

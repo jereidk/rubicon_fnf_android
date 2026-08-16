@@ -67,9 +67,61 @@ func _ready() -> void :
 			child.change_focus.connect(change_dex)
 
 	setup_from_save()
+	# UPDATE_ONCE, not DISABLED. A viewport that has never rendered has no
+	# texture to show, and this one's is on a prop standing in the room - so
+	# switching it straight off would leave the Kollectadex's screen blank
+	# until the first time the player opened it. One frame gives the prop the
+	# still image it shows for the rest of the visit, and the mode disables
+	# itself afterwards.
+	var viewport: Viewport = get_viewport()
+	if viewport is SubViewport:
+		(viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ONCE
+	if kollectadex_anims != null \
+			and not kollectadex_anims.animation_finished.is_connected(_on_close_animation_finished):
+		kollectadex_anims.animation_finished.connect(_on_close_animation_finished)
+
+## Whether the book's SubViewport is allowed to render.
+##
+## KollectadexSubViewport is 620x464 - 0.288 megapixels, the same count as the
+## whole game at its 800x360 render scale - and the device log has it rendering
+## in 62 of 78 shop samples, 79% of the visit, for a book that is open almost
+## none of that time. The shop's six live SubViewports come to 1.38 megapixels
+## against the main viewport's 0.288, and its GPU totals 16.24ms at the median
+## against a 16.7ms budget, so this is not a rounding error.
+##
+## It cannot be gated on anything's visibility: the texture is shown by
+## Environment/shop_base/KollectadexOffset/prp_kollectadex/Screen, a mesh that
+## is part of the room and always on camera. And it cannot be refreshed only
+## when its contents change, which was the first plan, because the background
+## is a Parallax2D with autoscroll = (16, 16) - it moves on its own for as long
+## as it renders, so an on-demand refresh would freeze it.
+##
+## So it renders while the book is open and not otherwise. Walking around the
+## room leaves a still image on a screen across the room, and what stops moving
+## in it is a grid at 29% alpha drifting sixteen pixels a second.
+##
+## Set from _ready() as well as the two transitions, because the scene authors
+## the viewport at UPDATE_ALWAYS and the book starts closed.
+func _set_render_live(live: bool) -> void:
+	var viewport: Viewport = get_viewport()
+	if viewport is SubViewport:
+		(viewport as SubViewport).render_target_update_mode = (
+			SubViewport.UPDATE_ALWAYS if live else SubViewport.UPDATE_DISABLED
+		)
+
+## close() drops focused immediately and then plays `return`, so switching the
+## render off on the flag alone would freeze the book mid-close - the one
+## moment the player is looking straight at it. It waits for the animation.
+##
+## Guarded on focused because the same player also drives the opening
+## animation, and that one finishing must not switch anything off.
+func _on_close_animation_finished(_anim_name: StringName) -> void:
+	if not focused:
+		_set_render_live(false)
 
 func open():
 	focused = true
+	_set_render_live(true)
 
 	can_move = true
 	setup_from_save()
@@ -96,6 +148,11 @@ func close():
 		close_sound.play()
 
 	focused = false
+
+	# Belt and braces: without an animation player there is no
+	# animation_finished to wait for, and the render would stay on for good.
+	if kollectadex_anims == null:
+		_set_render_live(false)
 
 func _input(event: InputEvent) -> void :
 	if Engine.is_editor_hint():
