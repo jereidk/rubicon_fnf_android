@@ -1741,9 +1741,9 @@ func _graphics_summary() -> String:
 	# aniso/lod/light_fade are logged because they are only ever set by a
 	# preset - on Custom they sit at their defaults and do nothing, which is
 	# invisible otherwise and made a whole run unattributable once.
-	return "preset=%s scale=%.2f aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d" % [
+	return "preset=%s scale=%s aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d" % [
 		preset.name if preset != null else "Custom",
-		Settings.graphics_render_scale,
+		_render_scale(),
 		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
 		msaa_names[msaa],
 		"on" if Settings.graphics_shadows_enabled else "off",
@@ -1917,6 +1917,32 @@ func _dep_breakdown() -> String:
 	for i in mini(6, rows.size()):
 		parts.append("%s=%.1fs/%d" % [rows[i][1], rows[i][0] / 1000.0, rows[i][2]])
 	return " ".join(parts)
+
+## The render scale the viewport is actually using, and the setting beside it
+## when they disagree.
+##
+## Both places that printed a scale read Settings.graphics_render_scale, which
+## is what the setting asks for and not what the window does. settings.gd
+## applies it with window.scaling_3d_scale, so anything that recreates or
+## resets that state leaves the log confidently printing 0.50 over a viewport
+## rendering at full size - and the difference between 800x360 and 1600x720 is
+## four times the pixels, which is the order of the gap this is being used to
+## explain.
+##
+## Chimera holds gpu= at 34ms where the shop sits at 14 with more meshes, more
+## lights and ASTC on all 553 MPx of its textures, and 288k pixels at 7x
+## overdraw is not 34ms of an Adreno 619. Whether it is really rendering at
+## the scale it claims is the cheapest remaining thing to rule out, and it
+## cannot be ruled out by reading a setting.
+func _render_scale() -> String:
+	var actual: float = 1.0
+	var root_window: Window = get_tree().root if get_tree() else null
+	if root_window != null:
+		actual = root_window.scaling_3d_scale
+	var asked: float = Settings.graphics_render_scale
+	if is_equal_approx(actual, asked):
+		return "%.2f" % actual
+	return "%.2f(pedido %.2f)" % [actual, asked]
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:
@@ -2168,7 +2194,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%.2f draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2177,7 +2203,7 @@ func _entry(kind: String, detail: String) -> void:
 		_mb(int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))),
 		_mb(int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED))),
 		_mb(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED))),
-		Settings.graphics_render_scale,
+		_render_scale(),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)),

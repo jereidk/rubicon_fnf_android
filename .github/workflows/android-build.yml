@@ -443,6 +443,15 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the log reports the real render scale
+        run: |
+          # Both places printing it read the setting, not the viewport.
+          # settings.gd applies it as window.scaling_3d_scale, so anything that
+          # resets that leaves the log printing 0.50 over a full-size render -
+          # and 1600x720 against 800x360 is four times the pixels.
+          $GODOT --headless --path . --script tools/test_render_scale_report.gd 2>&1 | tee /tmp/scale.txt
+          grep -q "todo OK" /tmp/scale.txt
+
       - name: Verify warming a voiceline does not cost a frame
         run: |
           # The shop warms one voiceline per frame from _process. It used to
