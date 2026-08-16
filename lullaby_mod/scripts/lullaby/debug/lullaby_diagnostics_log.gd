@@ -919,7 +919,8 @@ func census(reason: String) -> void:
 		# looking like one of the song's three shadow casters when the real
 		# count is two. tools/audit_gpu_cost.py already had to learn this;
 		# the census had not.
-		if node is Light3D and node.is_visible_in_tree() and not node.editor_only:
+		if node is Light3D and node.is_visible_in_tree() and not node.editor_only \
+				and _lights_the_main_frame(node):
 			lights_visible += 1
 			if node.shadow_enabled:
 				lights_shadow += 1
@@ -1209,6 +1210,35 @@ func _poll_blackouts() -> void:
 				_scene_relative_path(item), (now - int(_blackout_on[item])) / 1000.0,
 			])
 			_blackout_on.erase(item)
+
+## Whether this light contributes anything to the frame the player is looking
+## at, rather than just existing somewhere in the tree.
+##
+## The census counted every Light3D anywhere, and the results screen's
+## DirectionalLight3D - shadow_enabled, inside a SubViewport - therefore
+## appeared in shadows=[] on every single census of every song. Chimera looked
+## like it had three shadow casters where it has one, and a whole afternoon
+## went into the wrong lead on the strength of it.
+##
+## Two things disqualify a light. Its viewport is not the root, which is the
+## same filter _screen_area() already applies for the same reason; and that
+## viewport has its own World3D, so its lights are in a scene the main camera
+## cannot see at all. The results screen is both: own_world_3d = true and
+## render_target_update_mode = DISABLED, so it renders nothing, lights nothing,
+## and costs nothing.
+func _lights_the_main_frame(light: Light3D) -> bool:
+	var viewport: Viewport = light.get_viewport()
+	if viewport == null or not is_inside_tree():
+		return false
+	if viewport == get_tree().root:
+		return true
+	# A SubViewport that shares the main world still lights it, so long as it
+	# is actually rendering.
+	var sub := viewport as SubViewport
+	if sub == null:
+		return false
+	return not sub.own_world_3d \
+		and sub.render_target_update_mode != SubViewport.UPDATE_DISABLED
 
 ## Geometry only, deliberately: alpha is not folded in, because a sprite at
 ## 10% alpha still costs a full blend on a tile GPU and hiding it behind a

@@ -541,6 +541,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_black_box_hold.gd 2>&1 | tee /tmp/hold.txt
           grep -q "todo OK" /tmp/hold.txt
 
+      - name: Verify no material pays the depth pre-pass for nothing
+        run: |
+          # transparency = 4 draws the object twice - an opaque depth pass and
+          # then the transparent one - which is worst on a tile GPU. It earns
+          # that for genuinely soft alpha and nothing for a cutout mask, where
+          # ALPHA_SCISSOR is one pass, writes depth and lets early-z reject
+          # what is behind it. Chimera's house had five on mode 4 whose masks
+          # are 0.26-3.96% partial.
+          python3 tools/audit_material_transparency.py 2>&1 | tee /tmp/mats.txt
+          grep -q "todo OK" /tmp/mats.txt
+
       - name: Verify no scene describes a node twice
         run: |
           # An override block for an instanced scene's child is added by name
