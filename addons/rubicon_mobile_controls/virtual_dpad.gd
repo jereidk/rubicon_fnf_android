@@ -38,15 +38,36 @@ const ACTIONS := {
 const ALL_ZONES: Array[int] = [0, 1, 2, 3]
 const VERTICAL_ZONES: Array[int] = [0, 2]
 
+## The hub edge each arm grows out of, in units of the hub's half-width, in
+## the same zone order as ACTIONS. See the divider lines at the end of
+## _draw_arrows().
+const HUB_EDGES := [
+	[Vector2(-1, -1), Vector2(1, -1)],
+	[Vector2(1, -1), Vector2(1, 1)],
+	[Vector2(1, 1), Vector2(-1, 1)],
+	[Vector2(-1, 1), Vector2(-1, -1)],
+]
+
 ## Zones the pad actually accepts input for - a finger moving into a
 ## zone not in this list is treated as if it were still in the dead
 ## zone (see _update_zone). Also determines which arms _draw_arrows
-## renders at full opacity vs dimmed. Set by RubiconMenuTouchControls'
+## renders at all. Set by RubiconMenuTouchControls'
 ## vertical_only_source/property for menus with nothing to navigate on
 ## one axis, so the player isn't shown arrows that do nothing.
+##
+## Empty means the pad does nothing at all, and then it draws nothing and
+## takes no touches - see _draw() and _input().
 @export var enabled_zones: Array[int] = ALL_ZONES:
 	set(value):
 		enabled_zones = value
+		# A held zone that stops being enabled would otherwise leave its
+		# action pressed with no touch event left to ever clear it - the
+		# same stuck-action failure _release() exists for, reached by the
+		# pad changing under the finger rather than the finger leaving.
+		# is_node_ready() keeps this out of the initial property write,
+		# where there is no touch and the state it reads is not set up yet.
+		if is_node_ready() and _active_zone != -1 and not enabled_zones.has(_active_zone):
+			_release()
 		queue_redraw()
 
 const ZONE_HYSTERESIS_DEG: float = 10.0
@@ -113,7 +134,13 @@ func _get_origin() -> Vector2:
 		p.y += size.y
 	return p
 
+## A pad with no enabled zone is a control that cannot be operated, so it
+## is not drawn - in either style. _input() refuses touches on the same
+## condition, so there is nothing invisible left to press.
 func _draw() -> void:
+	if enabled_zones.is_empty():
+		return
+
 	match visual_style:
 		VisualStyle.ARROWS:
 			_draw_arrows()
@@ -153,24 +180,21 @@ func _draw_arrows() -> void:
 	draw_colored_polygon(hub, base_color)
 
 	for zone in range(4):
+		if not enabled_zones.has(zone):
+			continue
+
 		var dir: Vector2 = dirs[zone]
 		var perp: Vector2 = dir.rotated(PI / 2.0) * w
 		var inner: Vector2 = dir * w
 		var outer: Vector2 = dir * l
-		var zone_disabled: bool = not enabled_zones.has(zone)
 		var color: Color = base_color
 		if zone == _active_zone:
 			color = pressed_color.lerp(Color(1.0, 1.0, 1.0, pressed_color.a), _flash_amount * 0.7)
-		if zone_disabled:
-			color.a *= 0.25
 		var world_arm := PackedVector2Array([
 			origin + inner + perp, origin + outer + perp,
 			origin + outer - perp, origin + inner - perp,
 		])
 		draw_colored_polygon(world_arm, color)
-
-		if zone_disabled:
-			continue
 
 		var mid: Vector2 = origin + dir * ((w + l) * 0.5)
 		var chevron_s: float = w * 1.1
@@ -180,19 +204,50 @@ func _draw_arrows() -> void:
 		var base2: Vector2 = mid - dir * chevron_s * 0.4 - chev_perp * chevron_s * 0.55
 		draw_colored_polygon(PackedVector2Array([apex, base1, base2]), divider_color)
 
-	var outline := PackedVector2Array([
-		origin + Vector2(-w, -l), origin + Vector2(w, -l), origin + Vector2(w, -w),
-		origin + Vector2(l, -w), origin + Vector2(l, w), origin + Vector2(w, w),
-		origin + Vector2(w, l), origin + Vector2(-w, l), origin + Vector2(-w, w),
-		origin + Vector2(-l, w), origin + Vector2(-l, -w), origin + Vector2(-w, -w),
-	])
+	var outline := outline_points(origin, w, l)
 	outline.append(outline[0])
 	draw_polyline(outline, divider_color, 2.5, true)
 
-	draw_line(origin + Vector2(-w, -w), origin + Vector2(w, -w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(w, -w), origin + Vector2(w, w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(w, w), origin + Vector2(-w, w), divider_color, 1.5, true)
-	draw_line(origin + Vector2(-w, w), origin + Vector2(-w, -w), divider_color, 1.5, true)
+	# One per arm, along the hub edge that arm grows out of. A hub edge with
+	# no arm on it is already part of the outline above, and drawing a 1.5px
+	# line down the middle of a 2.5px one only makes it look smudged.
+	for zone in range(4):
+		if not enabled_zones.has(zone):
+			continue
+		var edge: Array = HUB_EDGES[zone]
+		draw_line(origin + edge[0] * w, origin + edge[1] * w, divider_color, 1.5, true)
+
+## The silhouette, following only the arms that are there.
+##
+## Each zone contributes the two far corners of its arm and then the hub
+## corner that ends it, walking clockwise from the hub's top-left. A zone with
+## no arm contributes only that hub corner, which closes the shape flush
+## across the hub's edge instead of leaving a notch where the arm used to be.
+##
+## All four present this is the same twelve-point plus the pad has always
+## drawn; up and down alone it is a vertical bar; none at all it is the bare
+## hub square, which _draw() never gets far enough to ask for.
+##
+## Public and pure so the shape can be checked without a viewport - the arms
+## themselves are a colour change away from invisible, but an outline that
+## still traces four arms around two is the thing that would actually look
+## broken, and it is the part no screenshot-free test could otherwise see.
+func outline_points(origin: Vector2, w: float, l: float) -> PackedVector2Array:
+	var arms := [
+		[Vector2(-w, -l), Vector2(w, -l), Vector2(w, -w)],
+		[Vector2(l, -w), Vector2(l, w), Vector2(w, w)],
+		[Vector2(w, l), Vector2(-w, l), Vector2(-w, w)],
+		[Vector2(-l, w), Vector2(-l, -w), Vector2(-w, -w)],
+	]
+
+	var points := PackedVector2Array()
+	for zone in range(4):
+		var arm: Array = arms[zone]
+		if enabled_zones.has(zone):
+			points.append(origin + arm[0])
+			points.append(origin + arm[1])
+		points.append(origin + arm[2])
+	return points
 
 func _notification(what: int) -> void:
 	match what:
@@ -203,6 +258,12 @@ func _notification(what: int) -> void:
 
 func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
+		return
+
+	# Nothing is drawn in this case (see _draw), and a control the player
+	# cannot see must not be one they can still land a finger on - the knob
+	# would track a finger over an empty patch of screen.
+	if enabled_zones.is_empty():
 		return
 
 	# Node._input() delivers touch events in the viewport's global coordinate

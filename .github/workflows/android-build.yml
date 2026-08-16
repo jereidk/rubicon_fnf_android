@@ -460,6 +460,44 @@ jobs:
           $GODOT --headless --path . --script tools/test_action_column.gd 2>&1 | tee /tmp/col.txt
           grep -q "todo OK" /tmp/col.txt
 
+      - name: Verify Enter only shows while it confirms something
+        run: |
+          # One button, two jobs: a menu ui_accept, or an aim-and-click at the
+          # 3D world through MouseController's raycast. Only the second one can
+          # be pointed at nothing. Hiding it inside a menu would strand the
+          # player there, so "not casting means always available" is the line.
+          $GODOT --headless --path . --script tools/test_confirm_available.gd 2>&1 | tee /tmp/ok.txt
+          grep -q "todo OK" /tmp/ok.txt
+
+      - name: Verify the D-pad hides the directions that do nothing
+        run: |
+          # Disabled arms used to be drawn at a quarter alpha, which reads as
+          # temporarily unavailable - they are not. The outline was a hardcoded
+          # twelve-point plus, so it would have gone on tracing four arms
+          # around two, which is worse than the dim arrow was.
+          $GODOT --headless --path . --script tools/test_dpad_zone_shape.gd 2>&1 | tee /tmp/dpad.txt
+          grep -q "todo OK" /tmp/dpad.txt
+
+      - name: Verify both vertical-only slots
+        run: |
+          # The notepad reads ui_up/ui_down/ui_accept and nothing else, so its
+          # two horizontal arrows have never done anything. An empty slot has
+          # to mean "no opinion" rather than false, or the second one pins the
+          # pad open and the SHOP/TALK sign loses its own restriction.
+          $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
+          grep -q "todo OK" /tmp/vonly.txt
+
+      - name: Verify no scene describes a node twice
+        run: |
+          # An override block for an instanced scene's child is added by name
+          # and parent, and adding a second instead of editing the first still
+          # loads: Godot applies both in order and the result is whichever
+          # properties the later one sets over what the earlier one left. This
+          # shipped once, and the diff for it reads as an ordinary addition
+          # thousands of lines from the block it duplicates.
+          python3 tools/audit_duplicate_scene_nodes.py 2>&1 | tee /tmp/dupes.txt
+          grep -q "todo OK" /tmp/dupes.txt
+
       - name: Verify the log reports the real render scale
         run: |
           # Both places printing it read the setting, not the viewport.

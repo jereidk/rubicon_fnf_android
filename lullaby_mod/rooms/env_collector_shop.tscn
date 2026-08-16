@@ -11796,7 +11796,7 @@ camera_to_focus = NodePath("../InterpolatedCamera")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera3D" unique_id=678603634]
 libraries/ = SubResource("AnimationLibrary_6duev")
 
-[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "force_active_source2", "force_active_source3", "force_active_source4", "style_source", "vertical_only_source")]
+[node name="TouchControls" parent="UI/Control" instance=ExtResource("202") node_paths=PackedStringArray("active_source", "force_active_source", "force_active_source2", "force_active_source3", "force_active_source4", "style_source", "vertical_only_source", "vertical_only_source2")]
 active_source = NodePath("../../..")
 active_property = &"state"
 inactive_states = Array[int]([0])
@@ -11813,16 +11813,16 @@ style_property = &"state"
 style_joystick_states = Array[int]([1])
 vertical_only_source = NodePath("../../../CardboardSign")
 vertical_only_property = &"is_choosing_option"
-
-[node name="SwitchCartridgeButton" parent="UI/Control/TouchControls" index="1" node_paths=PackedStringArray("visible_source", "visible_source2")]
-visible_source = NodePath("../../../../Viewports/ConsoleSubViewport/Console/TabContainer/Home/FakeButtons/Cartridges")
-visible_property = &"focused"
-visible_source2 = NodePath("../../../../Viewports/ConsoleSubViewport/Console")
-visible_property2 = &"focused"
+vertical_only_source2 = NodePath("../../../Notepad")
+vertical_only_property2 = &"visible"
 
 [node name="SwitchCartridgeButton" parent="UI/Control/TouchControls" index="1" node_paths=PackedStringArray("visible_source")]
 visible_source = NodePath("../../../../Viewports/ConsoleSubViewport/Console")
 visible_property = &"in_section_nav"
+
+[node name="AcceptButton" parent="UI/Control/TouchControls" index="2" node_paths=PackedStringArray("visible_source")]
+visible_source = NodePath("../../../../MouseController")
+visible_property = &"confirm_is_available"
 
 [node name="ActionColumn" type="Node" parent="UI/Control/TouchControls"]
 script = ExtResource("1_actcol")

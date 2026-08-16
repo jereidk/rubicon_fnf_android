@@ -50,12 +50,21 @@ class_name RubiconMenuTouchControls
 @export var force_active_property4: StringName = &""
 
 ## Optional: whenever this bool property is true, the D-pad is restricted
-## to its up/down zones only (left/right treated as dead zone, arms
-## visually dimmed) - for a menu that's a straight vertical list with
-## nothing to navigate sideways, so the player isn't shown two arrows
+## to its up/down zones only (left/right treated as dead zone, and their
+## arms not drawn at all) - for a menu that's a straight vertical list
+## with nothing to navigate sideways, so the player isn't shown two arrows
 ## that do nothing (e.g. the SHOP/TALK sign's two-option chooser).
+##
+## OR'd with the second slot, same as force_active_source is with its own,
+## and for the same reason: this is a property of whichever sub-menu
+## happens to be open, and several of them are open independently of any
+## one shared state value. The notepad is the other one - it reads
+## ui_up/ui_down and ui_accept and nothing else (prp_notepad.gd), so its
+## two horizontal arrows have never done anything.
 @export var vertical_only_source: Node
 @export var vertical_only_property: StringName = &""
+@export var vertical_only_source2: Node
+@export var vertical_only_property2: StringName = &""
 
 ## Node+property polled every frame to pick the D-pad's visual style:
 ## continuous joystick drag for free-look camera panning, or a discrete
@@ -70,6 +79,16 @@ class_name RubiconMenuTouchControls
 @export var style_joystick_states: Array[int] = []
 
 var _enabled: bool = true
+
+## A slot is configured when it names both a node and a property. An
+## unconfigured slot must not be read as false: leaving every vertical-only
+## slot empty has to keep the D-pad at ALL_ZONES rather than pin it there,
+## which is what tells _process it has nothing to say at all.
+static func _has_slot(source: Node, property: StringName) -> bool:
+	return source != null and not property.is_empty()
+
+static func _is_true(source: Node, property: StringName) -> bool:
+	return _has_slot(source, property) and bool(source.get(property))
 
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
@@ -104,8 +123,10 @@ func _process(_delta: float) -> void:
 		var wants_joystick: bool = style_joystick_states.has(state_value)
 		dpad.visual_style = RubiconVirtualDPad.VisualStyle.JOYSTICK if wants_joystick else RubiconVirtualDPad.VisualStyle.ARROWS
 
-	if dpad and vertical_only_source != null and not vertical_only_property.is_empty():
-		var wants_vertical_only: bool = bool(vertical_only_source.get(vertical_only_property))
+	if dpad and (_has_slot(vertical_only_source, vertical_only_property) \
+			or _has_slot(vertical_only_source2, vertical_only_property2)):
+		var wants_vertical_only: bool = _is_true(vertical_only_source, vertical_only_property) \
+			or _is_true(vertical_only_source2, vertical_only_property2)
 		dpad.enabled_zones = RubiconVirtualDPad.VERTICAL_ZONES if wants_vertical_only else RubiconVirtualDPad.ALL_ZONES
 
 	if active == visible:

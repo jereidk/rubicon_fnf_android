@@ -33,6 +33,35 @@ const EDGE_PERCENT: = 0.4
 
 var colliding: = false
 
+## Whether pressing the overlay's confirm button right now would do anything.
+##
+## The button is one control across every state, but not one job: the shop
+## swaps its action between "RightClick" and "ui_accept" as the state changes
+## (env_collector_shop.gd), and only the first of those goes through this
+## raycast. So there are two answers and the raycast decides only one of them.
+##
+## Not casting means the confirm is a plain menu ui_accept - the console, the
+## briefcase, the notepad, the Kollectadex - and every one of those owns its
+## own confirm and always has something to do with it. Always available, and
+## that is also the right answer if camera or ray_cast is somehow unset, which
+## is a wiring mistake and not a reason to take the button away.
+##
+## Casting means the confirm is an aim-and-click at the 3D world, so it does
+## something exactly when there is something under the aim. That is already on
+## screen twice - the cursor turns into a pointing hand and the Collector's
+## hand points - and the touch reticle draws off the same two fields; this
+## just says it a third time, with the one control the player actually presses.
+##
+## Deliberately the same test _input() applies before triggering, down to not
+## consulting can_interact: _input() does not either, so an area with it false
+## still fires today. Saying "unavailable" about something that would in fact
+## fire would be the button lying about the game rather than describing it.
+var confirm_is_available: bool:
+	get:
+		if not _can_ray_cast():
+			return true
+		return colliding and can_click
+
 ## Where a touch confirm aims once the camera is locked (FOCUSED).
 ##
 ## The aim and the confirm are two separate taps on touch: the aim used to
