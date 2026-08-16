@@ -281,6 +281,53 @@ var _process_nodes: int = 0
 var _peak_seq: String = "-"
 var _peak_players: int = 0
 var _peak_trees: int = 0
+
+## Every VisualInstance3D in the running scene, collected in the same walk as
+## the mixers.
+##
+## Chimera costs 36.4ms of GPU against the shop's 14.7ms with fewer draw
+## calls and the same primitive count, and every count-based explanation has
+## died: not geometry, not lights, not shadows, not render scale. What has
+## never been counted is how much of the 3D is actually on screen frame by
+## frame - objs= is the engine's total for the whole frame including the
+## SubViewports, not this scene's visible meshes.
+var _visual3d_watch: Array[VisualInstance3D] = []
+
+## Physics ticks executed inside the last frame.
+##
+## A late frame asks for catch-up ticks and pays for all of them before it
+## can present, so a 150ms frame at 30Hz can carry four physics steps that a
+## 16ms frame does not. phys= reports the time but not the count, and the two
+## answer different questions: 6ms across one tick is a heavy world, 6ms
+## across four is a frame that was already late. max_physics_steps_per_frame
+## was dropped 8 to 4 on exactly this reasoning and it was never measured.
+var _last_physics_frames: int = 0
+var _physics_steps: int = 0
+
+## Microseconds a fixed amount of arithmetic took, sampled once per heartbeat.
+##
+## This is the counter every measurement in this project has needed and none
+## has had. Two separate effects make wall-clock milliseconds lie in the same
+## direction - Android's touch-boost governor drops the clocks when nobody is
+## touching the screen, and thermal throttling drops them over a session - and
+## SUMMARY vs_first cannot tell those apart from a scene that got heavier.
+## This log's Chimera run reads vs_first=+44%: real, and unattributable.
+##
+## Fixed work, timed. If bench= rises by the same factor as script=, the scene
+## did not change and the device did. Comparable only within one template -
+## GDScript in a debug build runs arithmetic about 1.24x slower - so the
+## header's `template :` line is what makes two logs comparable.
+##
+## 2000 iterations, not the 20000 this started at. Measured here: 20000 costs
+## 1.08ms a run, which on a phone several times slower would put a spike on
+## one frame every second - the exact instrument-perturbs-the-measurement
+## mistake this counter exists to expose. 2000 measures 104us with p90/p50 at
+## 1.19x and 104 counts of 1us resolution, which is enough to see a 1.5x clock
+## change. It runs inside self=, so it is subtracted from rest= rather than
+## silently inflating it.
+const BENCH_ITERATIONS := 2000
+var _bench_usec: int = 0
+var _bench_sink: int = 0
 ## What the worst frame since the last read was made of. Captured at the
 ## moment the record is beaten, so these describe one single frame rather
 ## than four independent maxima that may have happened on four different
@@ -750,6 +797,10 @@ func _process(delta: float) -> void:
 	# from Time.get_ticks_msec() deltas - took=, the swap marks, the reveal -
 	# but every frame-shape statistic was reading a number Godot never
 	# promised.
+	var physics_now: int = Engine.get_physics_frames()
+	_physics_steps = physics_now - _last_physics_frames
+	_last_physics_frames = physics_now
+
 	var now_usec: int = Time.get_ticks_usec()
 	var frame_ms: float = float(now_usec - _last_frame_usec) / 1000.0 if _last_frame_usec > 0 else delta * 1000.0
 	_last_frame_usec = now_usec
@@ -823,6 +874,9 @@ func _process(delta: float) -> void:
 
 	if _time_since_heartbeat >= HEARTBEAT_SECONDS:
 		_time_since_heartbeat = 0.0
+		# Before the entry is written, so bench= describes the same moment the
+		# rest of the line does. Counted in self=, like everything else here.
+		_run_bench()
 		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms %s" % [
 			fps, _lowest_fps, median, _take_frame_shape(),
 		])
@@ -1203,6 +1257,7 @@ func _collect_blackout_watch() -> void:
 	_blackout_watch.clear()
 	_blackout_on.clear()
 	_mixer_watch.clear()
+	_visual3d_watch.clear()
 	_sequence_player = null
 	_process_nodes = 0
 	var scene: Node = get_tree().current_scene if is_inside_tree() else null
@@ -1219,6 +1274,9 @@ func _collect_blackout_watch() -> void:
 		# tree that runs to nine hundred nodes in a song.
 		if node.is_processing():
 			_process_nodes += 1
+		var visual := node as VisualInstance3D
+		if visual != null:
+			_visual3d_watch.append(visual)
 		var mixer := node as AnimationMixer
 		if mixer != null:
 			_mixer_watch.append(mixer)
@@ -1231,8 +1289,8 @@ func _collect_blackout_watch() -> void:
 			continue
 		_blackout_watch.append(item)
 
-	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d nodos con _process en %s (seq=%s)" % [
-		_blackout_watch.size(), _mixer_watch.size(), _process_nodes,
+	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d visuales 3D, %d nodos con _process en %s (seq=%s)" % [
+		_blackout_watch.size(), _mixer_watch.size(), _visual3d_watch.size(), _process_nodes,
 		_current_scene_name(),
 		_sequence_player.name if _sequence_player != null else "-",
 	])
@@ -1268,6 +1326,45 @@ func _sequence_state() -> String:
 ## which is exactly the trap the note scene set for the old census, where 40
 ## notes x 6 AnimationPlayers read as zero. Counting trees separately is what
 ## keeps that visible.
+## Times a fixed amount of arithmetic, so wall-clock costs elsewhere can be
+## read against the speed the CPU was actually running at.
+##
+## Integer work on locals on purpose: no allocation, no property lookups, no
+## engine calls, nothing whose cost depends on the scene. The sink is kept in
+## a member so the optimiser cannot decide the loop is dead.
+func _run_bench() -> void:
+	var started: int = Time.get_ticks_usec()
+	var acc: int = 0
+	for i in BENCH_ITERATIONS:
+		acc = (acc + i * 3) % 65521
+	_bench_sink = acc
+	_bench_usec = Time.get_ticks_usec() - started
+
+## How many of the scene's 3D visuals are on screen right now.
+##
+## is_visible_in_tree() rather than visible, because a cutscene group hidden
+## at the top switches off everything under it and counting those as visible
+## is what made PhoneGlow look like an always-on shadow caster.
+func _visual3d_load() -> int:
+	var shown: int = 0
+	for item in _visual3d_watch:
+		if item != null and is_instance_valid(item) and item.is_visible_in_tree():
+			shown += 1
+	return shown
+
+## The active 3D camera's field of view and where it is looking from.
+##
+## The sharpest unexplained thing in this project is that Chimera's GPU cost
+## tracks which shot is on screen at a constant light and shadow count - 19.5ms
+## on one sequence and 46.5ms on another. That is a statement about what fills
+## the frame, and nothing in the log has ever recorded where the camera was.
+func _camera_state() -> String:
+	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if camera == null:
+		return "-"
+	var pos: Vector3 = camera.global_position
+	return "fov%.0f@%.1f,%.1f,%.1f" % [camera.fov, pos.x, pos.y, pos.z]
+
 func _anim_load() -> Array:
 	var players_playing: int = 0
 	var trees_active: int = 0
@@ -2454,7 +2551,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d cam=%s psteps=%d bench=%dus script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2508,6 +2605,7 @@ func _entry(kind: String, detail: String) -> void:
 		float(sub_pixels) / 1048576.0,
 		biggest_name,
 		seq_now, anim_now[0], anim_now[1], _process_nodes,
+		_visual3d_load(), _visual3d_watch.size(), _camera_state(), _physics_steps, _bench_usec,
 		script_ms,
 		script_peak_ms,
 		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms,
