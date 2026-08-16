@@ -69,6 +69,10 @@ var _finished: bool = false
 ## Whether the baseline frame has been spent. See _process().
 var _measured_first_frame: bool = false
 
+## When the last _process ran, so the next one can measure how long the frame
+## between them really took. Set on the baseline frame, never read before it.
+var _last_frame_usec: int = 0
+
 func _ready() -> void :
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -142,6 +146,7 @@ func _process(_delta: float) -> void:
 	# baseline alone, once, is worth a frame.
 	if not _measured_first_frame:
 		_measured_first_frame = true
+		_last_frame_usec = Time.get_ticks_usec()
 		_mark("preload camera primer _process a los %dms del escondite (%d ocultos, revelados=%d)" % [
 			Time.get_ticks_msec() - _started_msec, _hidden.size(), _revealed,
 		])
@@ -163,7 +168,27 @@ func _process(_delta: float) -> void:
 	# reveal itself, so the only honest reading is how the last frame went.
 	# Additive increase, multiplicative decrease: climb slowly while frames are
 	# cheap, back off hard the moment one is not.
-	var last_ms: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	#
+	# Off a wall clock, because Performance.TIME_PROCESS cannot answer this -
+	# as the comment fifteen lines above already says, it is a maximum over the
+	# last second refreshed once a second. It does not report the previous
+	# frame, and across a frame lasting seconds it reports whatever it held
+	# before that frame began. So the controller never saw a spike, never
+	# backed off, climbed to MAX_BATCH and revealed 64 nodes at once.
+	#
+	# The device log has the consequence. Entering the shop compiles 212 render
+	# pipelines, and the batch that landed 47 of them took 6981ms in one frame:
+	#
+	#   [25.67s] precache started (132 nodos por revelar)
+	#   [25.97s] pipe=149 (+92)
+	#   [34.26s] precache finished (8587ms)  pipe=241 (+47)  proc=6981ms
+	#
+	# Android calls an app that stops answering input for five seconds
+	# unresponsive, and a crash on entering the shop is already on the record
+	# for this scene.
+	var now_usec: int = Time.get_ticks_usec()
+	var last_ms: float = float(now_usec - _last_frame_usec) / 1000.0
+	_last_frame_usec = now_usec
 	if last_ms > FRAME_BUDGET_MS:
 		_batch = maxi(1, _batch / 2)
 	else:

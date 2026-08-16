@@ -487,6 +487,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
           grep -q "todo OK" /tmp/vonly.txt
 
+      - name: Verify the reveal pacer backs off on an expensive frame
+        run: |
+          # It steered on Performance.TIME_PROCESS, a maximum over the last
+          # second refreshed once a second - so it never saw a spike, never
+          # halved, climbed to MAX_BATCH and put 64 nodes on one frame.
+          # Entering the shop compiles 212 pipelines and the batch landing 47
+          # of them took 6981ms, past the five seconds Android calls
+          # unresponsive. The test blocks the main thread for real.
+          $GODOT --headless --path . --script tools/test_preload_batch_backoff.gd 2>&1 | tee /tmp/pace.txt
+          grep -q "todo OK" /tmp/pace.txt
+
       - name: Verify the cached hit order matches the sorted one
         run: |
           # update_performance() rebuilt and re-sorted every result hit so far
