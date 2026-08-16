@@ -263,6 +263,24 @@ var _script_peak_usec: int = 0
 ## share of rest= is a number rather than an argument.
 var _self_usec: int = 0
 var _peak_self_usec: int = 0
+
+## Nodes in the running scene with _process enabled, counted in the same walk
+## as the mixer list.
+##
+## rest= is the whole idle step minus the parts that are named, so the number
+## of nodes that can contribute to it is a bound on the problem. Peepers was
+## 256 _process callbacks firing while hidden and it took a shader counter to
+## notice; a plain count would have said it outright.
+var _process_nodes: int = 0
+
+## What the scene was doing on the frame that set the script_max record: the
+## sequence and its position, and how many mixers were running.
+##
+## Snapshotted at the same instant as the rest of the peak breakdown, because
+## a spike attributed to "the census thirty seconds ago" is not attributed.
+var _peak_seq: String = "-"
+var _peak_players: int = 0
+var _peak_trees: int = 0
 ## What the worst frame since the last read was made of. Captured at the
 ## moment the record is beaten, so these describe one single frame rather
 ## than four independent maxima that may have happened on four different
@@ -319,6 +337,10 @@ func _close_script_bracket(now_usec: int) -> void:
 	# which is before the tail closes the bracket. One frame behind is the
 	# same convention gpu= already uses.
 	_peak_self_usec = _self_usec
+	_peak_seq = _sequence_state()
+	var load_now: Array = _anim_load()
+	_peak_players = load_now[0]
+	_peak_trees = load_now[1]
 	_peak_note_usec = RubiconLevelNoteHandler.frame_note_usec
 	_peak_lane_usec = RubiconLevelNoteHandler.frame_lane_usec
 	_peak_bounds_usec = RubiconLevelNoteHandler.frame_bounds_usec
@@ -1142,12 +1164,47 @@ const BLACKOUT_MAX_LUMA := 0.15
 var _blackout_watch: Array[CanvasItem] = []
 var _blackout_on: Dictionary = {}
 
+## Every AnimationMixer in the running scene, and the one that drives the
+## song's sequences.
+##
+## Collected in the same walk as the blackout watch, on the same one-second
+## delay, for the same reason: taken during load it misses whatever _ready()
+## builds.
+##
+## This is the counter rest= needs. AnimationMixer processing happens in the
+## idle step, inside the bracket script= measures, and Chimera carries 69-104
+## players with 14 active trees - but the census only samples that every
+## thirty seconds, so no spike has ever had a mixer count attached to it. A
+## cached list turns "how much animation was running on the frame that cost
+## 79.81ms" into a per-frame read of about a hundred is_playing() calls.
+var _mixer_watch: Array[AnimationMixer] = []
+
+## The AnimationPlayer that drives the song's sequences, if the running scene
+## has one, so seq= can name the moment every line was written at.
+##
+## top_anims= already carries this and it is on the CENSUS line, which lands
+## every thirty seconds. Every SPIKE in the last device log therefore had to
+## be placed in the song by arithmetic across neighbouring lines. Naming the
+## sequence and its position on every entry is what turns "a 1829ms frame at
+## log second 291" into "1829ms at 122_fall@7.5s" without the reconstruction.
+var _sequence_player: AnimationPlayer = null
+
+## Node names that identify the sequence driver, in preference order. Checked
+## by name rather than by type because every song scene has dozens of
+## AnimationPlayers and only one of them is the timeline.
+const SEQUENCE_PLAYER_NAMES: Array[StringName] = [
+	&"SequencePlayer", &"AnimationPlayer",
+]
+
 ## Collected after the scene has settled rather than during load: _ready() and
 ## the opening animations both move things, and a list taken too early misses
 ## whatever they build.
 func _collect_blackout_watch() -> void:
 	_blackout_watch.clear()
 	_blackout_on.clear()
+	_mixer_watch.clear()
+	_sequence_player = null
+	_process_nodes = 0
 	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
 		return
@@ -1157,15 +1214,75 @@ func _collect_blackout_watch() -> void:
 		var node: Node = stack.pop_back()
 		for child in node.get_children():
 			stack.append(child)
+
+		# One walk, three lists. Splitting them would mean three walks of a
+		# tree that runs to nine hundred nodes in a song.
+		if node.is_processing():
+			_process_nodes += 1
+		var mixer := node as AnimationMixer
+		if mixer != null:
+			_mixer_watch.append(mixer)
+			var player := mixer as AnimationPlayer
+			if player != null and _sequence_rank(player) < _sequence_rank(_sequence_player):
+				_sequence_player = player
+
 		var item := node as CanvasItem
 		if item == null or not _can_cover_the_screen(item):
 			continue
 		_blackout_watch.append(item)
 
-	if not _blackout_watch.is_empty():
-		_entry("BLACKWATCH", "vigilando %d rects oscuros en %s" % [
-			_blackout_watch.size(), _current_scene_name(),
-		])
+	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d nodos con _process en %s (seq=%s)" % [
+		_blackout_watch.size(), _mixer_watch.size(), _process_nodes,
+		_current_scene_name(),
+		_sequence_player.name if _sequence_player != null else "-",
+	])
+
+## How good a candidate this player is for being the sequence driver: lower
+## wins, and anything not on the list loses to everything on it.
+func _sequence_rank(player: AnimationPlayer) -> int:
+	if player == null:
+		return SEQUENCE_PLAYER_NAMES.size() + 1
+	var index: int = SEQUENCE_PLAYER_NAMES.find(player.name)
+	return index if index >= 0 else SEQUENCE_PLAYER_NAMES.size()
+
+## What the sequence driver is playing and how far into it, or "-".
+##
+## Position within the animation rather than a wall clock: "122_fall@7.5s"
+## locates a stall against one of that sequence's 31 tracks, which is the
+## thing a timestamp cannot do.
+func _sequence_state() -> String:
+	if _sequence_player == null or not is_instance_valid(_sequence_player):
+		return "-"
+	if not _sequence_player.is_playing():
+		return "(parado)"
+	return "%s@%.1fs" % [
+		_sequence_player.current_animation,
+		_sequence_player.current_animation_position,
+	]
+
+## How many of the scene's AnimationMixers are actually running, split into
+## players and trees.
+##
+## AnimationTree never calls play() on the players underneath it, so a tree
+## driving four sub-players reads as one active mixer and four idle ones -
+## which is exactly the trap the note scene set for the old census, where 40
+## notes x 6 AnimationPlayers read as zero. Counting trees separately is what
+## keeps that visible.
+func _anim_load() -> Array:
+	var players_playing: int = 0
+	var trees_active: int = 0
+	for mixer in _mixer_watch:
+		if mixer == null or not is_instance_valid(mixer):
+			continue
+		var tree := mixer as AnimationTree
+		if tree != null:
+			if tree.active:
+				trees_active += 1
+			continue
+		var player := mixer as AnimationPlayer
+		if player != null and player.is_playing():
+			players_playing += 1
+	return [players_playing, trees_active]
 
 ## Whether this item is the kind of thing that could paint a large solid area.
 ##
@@ -2271,10 +2388,18 @@ func _entry(kind: String, detail: String) -> void:
 	# them and not a breakdown of anything: it is this node's own _process,
 	# measured end to end, and it sits inside the same bracket.
 	var peak_self_ms: float = float(_peak_self_usec) / 1000.0
+	var peak_seq: String = _peak_seq
+	var peak_players: int = _peak_players
+	var peak_trees: int = _peak_trees
+	var anim_now: Array = _anim_load()
+	var seq_now: String = _sequence_state()
 	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms - peak_self_ms)
 	var peak_chars: int = _peak_chars
 	_script_peak_usec = 0
 	_peak_self_usec = 0
+	_peak_seq = "-"
+	_peak_players = 0
+	_peak_trees = 0
 	_peak_note_usec = 0
 	_peak_lane_usec = 0
 	_peak_bounds_usec = 0
@@ -2329,7 +2454,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2382,10 +2507,11 @@ func _entry(kind: String, detail: String) -> void:
 		sub_gpu_ms,
 		float(sub_pixels) / 1048576.0,
 		biggest_name,
+		seq_now, anim_now[0], anim_now[1], _process_nodes,
 		script_ms,
 		script_peak_ms,
 		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms,
-		peak_char_ms, peak_chars, peak_self_ms, peak_rest_ms,
+		peak_char_ms, peak_chars, peak_self_ms, peak_rest_ms, peak_seq, peak_players, peak_trees,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
