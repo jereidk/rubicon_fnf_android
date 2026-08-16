@@ -75,6 +75,20 @@ func _ready() -> void :
 	# shadows=[...] finally named.
 	_set_viewport_live(false)
 
+	# And the 2D half of the same problem, which the viewport gate did not
+	# cover. over= names ResultsScreen/LullabyResultsScreen/FadingColor as the
+	# largest full-screen painter in Chimera in all eight censuses of the last
+	# device log, for the whole song. It is a 2880x1620 ColorRect that the
+	# player cannot see, because `show` brings it up from zero - but modulate
+	# does not stop a CanvasItem from being drawn. Only `visible` does, and
+	# Chimera and Safety Lullaby never author it on this instance, so it has
+	# been true from the downbeat.
+	#
+	# Monochrome is the exception and it is safe: it authors visible = false
+	# and its song animation drives this node's `visible` as a track, so the
+	# authored sequence still owns it there.
+	hide()
+
 	if target_timeline:
 		target_timeline.animation_finished.connect(_on_song_finished)
 
@@ -165,6 +179,10 @@ func _on_song_finished(_anim_name: StringName) -> void :
 		# seconds before `show_tokens` reveals SoultokenSprite, so the token
 		# has the whole opening to render at least once and the texture is
 		# never blank on the frame it appears.
+		# Both halves come back together, and before `show` rather than with
+		# it: the animation raises modulate from zero, so the node has to be
+		# visible for that to present anything.
+		show()
 		_set_viewport_live(true)
 		animation_player.play(&"show")
 
