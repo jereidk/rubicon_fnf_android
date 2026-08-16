@@ -739,6 +739,7 @@ volume_db = -5.0
 bus = &"SoundEffects"
 
 [node name="Vingette" type="TextureRect" parent="." unique_id=48689867]
+modulate = Color(1, 1, 1, 0)
 z_index = 14
 layout_mode = 1
 anchors_preset = 15
