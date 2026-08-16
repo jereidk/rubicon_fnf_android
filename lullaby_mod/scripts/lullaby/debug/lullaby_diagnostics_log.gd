@@ -508,14 +508,33 @@ var _probe_usec: int = 0
 var _incoming_walk_usec: int = 0
 var _residue_walk_usec: int = 0
 
-## Wall-clock ceiling on either graph walk, in microseconds.
+## Wall-clock ceiling on either graph walk, per frame, in microseconds.
 ##
-## Both run on the main thread, on the frame a load starts, and both read a
-## file header per path - which for an imported resource means parsing its
-## .import as well. A cap on the number of paths does not bound that, because
-## the per-path cost is a device-side unknown; a cap on time does. Truncation
-## is reported, so a short answer never reads as a complete one.
-const PROBE_BUDGET_USEC := 120_000
+## Both run on the main thread and read a file header per path - which for an
+## imported resource means parsing its .import too. A cap on the number of
+## paths does not bound that, because the per-path cost is a device-side
+## unknown; a cap on time does. Truncation is reported, so a short answer
+## never reads as a complete one.
+##
+## 8ms, down from 120ms. The device log made that number indefensible. probe=
+## exists to say what the diagnostics cost the load they measure, and on its
+## first run it said:
+##
+##     warning    took= 1236ms   probe=  31.8ms    2.6%
+##     intro      took= 1500ms   probe=  94.4ms    6.3%
+##     shop       took= 5225ms   probe= 706.3ms   13.5%
+##     Chimera    took=17342ms   probe=1670.1ms    9.6%
+##
+## 1.67 seconds of a Chimera load spent measuring it. The budget was a
+## per-frame ceiling and the walk resumes across frames, so a load lasting
+## tens of seconds could spend 120ms on every one of them - four frames' worth
+## of time per frame, on the frames a loading screen is trying to animate.
+##
+## At 8ms the walk takes more frames and finishes later, or reports (capped)
+## on a short load. That is the right trade: deps= is a diagnostic, and a
+## diagnostic that costs a tenth of the thing it diagnoses is not measuring
+## it, it is changing it.
+const PROBE_BUDGET_USEC := 8_000
 
 ## Consecutive LOADING samples that reported the same progress fraction, and
 ## when the run of them started.
