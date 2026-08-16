@@ -1133,14 +1133,22 @@ func _poll_blackouts() -> void:
 	for item in _blackout_watch:
 		if not is_instance_valid(item):
 			continue
+		# _screen_area() answers in pixels, not as a fraction. The first
+		# version compared it straight against BLACKOUT_MIN_COVERAGE, so any
+		# rect larger than 0.8 square pixels passed and the area test filtered
+		# nothing at all - the device log came back naming Chimera's 242px
+		# letterbox bars, its pause-menu bars and the cinematic bars as
+		# screen-covering blackouts. Divided by the screen now, which is what
+		# the census does with the same helper.
+		var covered: float = _screen_area(item) / maxf(1.0, _screen_px())
 		var covering: bool = item.is_visible_in_tree() \
-			and _screen_area(item) >= BLACKOUT_MIN_COVERAGE \
+			and covered >= BLACKOUT_MIN_COVERAGE \
 			and _opaque_coverage(item) >= BLACKOUT_MIN_COVERAGE
 		var was: bool = _blackout_on.has(item)
 		if covering and not was:
 			_blackout_on[item] = now
-			_entry("BLACKOUT", "%s tapa la pantalla (alpha=%.2f)" % [
-				_scene_relative_path(item), item.modulate.a,
+			_entry("BLACKOUT", "%s tapa la pantalla (cubre=%.2f alpha=%.2f)" % [
+				_scene_relative_path(item), covered, item.modulate.a,
 			])
 		elif was and not covering:
 			_entry("BLACKOUT", "%s deja de taparla tras %.1fs" % [
