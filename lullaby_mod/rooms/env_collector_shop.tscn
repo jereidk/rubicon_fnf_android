@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bqkjiwokrcvo"]
 
 [ext_resource type="Script" uid="uid://b3p4arwnoxr8e" path="res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_shop.gd" id="1"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/action_column.gd" id="1_actcol"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/quality_gated_scene_loader.gd" id="303"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console_viewport_gate.gd" id="304"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/menu_touch_controls.tscn" id="202"]
@@ -11818,6 +11819,9 @@ visible_source = NodePath("../../../../Viewports/ConsoleSubViewport/Console/TabC
 visible_property = &"focused"
 visible_source2 = NodePath("../../../../Viewports/ConsoleSubViewport/Console")
 visible_property2 = &"focused"
+
+[node name="ActionColumn" type="Node" parent="UI/Control/TouchControls"]
+script = ExtResource("1_actcol")
 
 [node name="PowerButton" type="Button" parent="UI/Control/TouchControls" node_paths=PackedStringArray("direct_target", "visible_source")]
 layout_mode = 1

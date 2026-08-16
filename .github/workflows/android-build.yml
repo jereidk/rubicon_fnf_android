@@ -443,6 +443,15 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the action column closes its gaps
+        run: |
+          # The four contextual buttons are pinned to absolute slots, so
+          # hiding one leaves a 190px hole and moves nothing. PowerButton
+          # already hides itself correctly through visible_source; the hole is
+          # what the player sees. Nothing may move while all four are shown.
+          $GODOT --headless --path . --script tools/test_action_column.gd 2>&1 | tee /tmp/col.txt
+          grep -q "todo OK" /tmp/col.txt
+
       - name: Verify the log reports the real render scale
         run: |
           # Both places printing it read the setting, not the viewport.
