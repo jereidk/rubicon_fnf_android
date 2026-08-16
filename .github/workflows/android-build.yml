@@ -443,6 +443,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the console's boot flag always clears
+        run: |
+          # booting gates back_out, home_button, gallery_button and
+          # cartridges_enter_label, and its only clear used to require a frame
+          # landing between 13.34s and the end of the boot animation. A frame
+          # that steps over that window strands it true for the life of the
+          # scene and the whole console stops responding. This project has
+          # frames seconds long.
+          $GODOT --headless --path . --script tools/test_console_boot_flag.gd 2>&1 | tee /tmp/boot.txt
+          grep -q "todo OK" /tmp/boot.txt
+
       - name: Verify a blackout shorter than the census is still logged
         run: |
           # The census names a full-screen black rect when it sees one, but it

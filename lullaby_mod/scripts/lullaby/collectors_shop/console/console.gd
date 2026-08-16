@@ -51,12 +51,31 @@ func _ready() -> void :
 	music.volume_linear = 0.0
 
 
+## Boot ends when the animation has passed 13.34s OR has stopped.
+##
+## It used to require both booting and is_playing() and the position being
+## past 13.34, which means the flag can only clear on a frame that lands
+## inside that window. Any frame that steps over the end of the animation
+## skips it, and this project has frames that are seconds long - the device
+## log measured 11,489ms on one - so the window is genuinely missable.
+##
+## Nothing clears it afterwards. booting has one writer outside this file,
+## power_console.gd setting it true, so once the window is missed it stays
+## true for the life of the scene, and it is checked by back_out(),
+## home_button, gallery_button and cartridges_enter_label - the whole console
+## stops responding, not just Back. The last device log has 22 consecutive
+## ui_cancel presses with the console focused and nothing happening, which is
+## what that looks like from the player's side.
+##
+## Adding "or it stopped playing" makes the exit unmissable: an animation that
+## reaches its end is finished by definition, and one that is interrupted has
+## no other chance to say so.
 func _process(_delta: float) -> void :
-	if (
-		booting and 
-		main_animation_player.is_playing() and 
-		main_animation_player.current_animation_position >= 13.34
-	):
+	if not booting:
+		return
+	var past_boot: bool = (main_animation_player.is_playing()
+			and main_animation_player.current_animation_position >= 13.34)
+	if past_boot or not main_animation_player.is_playing():
 		booting = false
 		boot_finished.emit()
 
