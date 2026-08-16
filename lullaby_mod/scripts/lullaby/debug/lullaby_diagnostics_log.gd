@@ -808,7 +808,7 @@ func _process(delta: float) -> void:
 ## measures it instead of guessing. anim_tracks is the total across every
 ## playing AnimationPlayer; the heaviest few are named individually.
 func census(reason: String) -> void:
-	var scene: Node = get_tree().current_scene if get_tree() else null
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null or _file == null:
 		return
 
@@ -1116,7 +1116,7 @@ var _blackout_on: Dictionary = {}
 func _collect_blackout_watch() -> void:
 	_blackout_watch.clear()
 	_blackout_on.clear()
-	var scene: Node = get_tree().current_scene if get_tree() else null
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
 		return
 
@@ -1667,7 +1667,7 @@ func _watch_animations() -> void:
 	_watched_players.clear()
 	_last_anim = ""
 
-	var scene: Node = get_tree().current_scene if get_tree() else null
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
 		return
 
@@ -1692,7 +1692,7 @@ func _watch_animations() -> void:
 func _refresh_sub_viewports() -> void:
 	_sub_viewports.clear()
 
-	var scene: Node = get_tree().current_scene if get_tree() else null
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
 		return
 
@@ -1715,7 +1715,7 @@ func _refresh_sub_viewports() -> void:
 ## 512x512 (checked against the 4.7.1 binary, not from memory) and ships
 ## UPDATE_DISABLED. A name cannot be looked up; a path can.
 func _scene_relative_path(node: Node) -> String:
-	var scene: Node = get_tree().current_scene if get_tree() else null
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null or not scene.is_ancestor_of(node):
 		return str(node.get_path())
 	return str(scene.get_path_to(node))
@@ -1801,7 +1801,7 @@ func _on_scene_change_started(path: String) -> void:
 	_scene_change_memory = OS.get_static_memory_usage()
 	_loading_path = path
 	_load_checkpoints_done = 0
-	var outgoing: Node = get_tree().current_scene if get_tree() else null
+	var outgoing: Node = get_tree().current_scene if is_inside_tree() else null
 	_outgoing_scene_path = outgoing.scene_file_path if outgoing != null else ""
 	_residue_reported = _outgoing_scene_path.is_empty()
 	_last_loading_entry_ms = Time.get_ticks_msec()
@@ -1949,9 +1949,20 @@ func _dep_breakdown() -> String:
 ## overdraw is not 34ms of an Adreno 619. Whether it is really rendering at
 ## the scale it claims is the cheapest remaining thing to rule out, and it
 ## cannot be ruled out by reading a setting.
+## is_inside_tree() rather than get_tree() as the guard, here and at the six
+## other places this file asks for the current scene.
+##
+## get_tree() does not return null quietly - Node::get_tree() is an
+## ERR_FAIL_NULL_V, so it prints "Parameter data.tree is null" and then returns
+## null. Guarding a get_tree() call with another get_tree() call therefore
+## prevents the crash and causes the error message twice over. Build #115's log
+## carried seventeen of them, one per headless run, all from this file, and
+## none of them in #114 - which is what a new one-line mistake looks like from
+## the outside. On device it is one more error line in the log this whole
+## system exists to make readable.
 func _render_scale() -> String:
 	var actual: float = 1.0
-	var root_window: Window = get_tree().root if get_tree() else null
+	var root_window: Window = get_tree().root if is_inside_tree() else null
 	if root_window != null:
 		actual = root_window.scaling_3d_scale
 	var asked: float = Settings.graphics_render_scale
