@@ -34,6 +34,25 @@ static var current_area: FocusArea3D:
 		if value != ShopStates.FREE_LOOK:
 			_idle_timer = 0.0
 
+		# Zooming back out means the camera is no longer in any area, and
+		# nothing else says so. current_area only ever changed when some other
+		# area took focus, so the last one the player entered kept is_focused
+		# true for the rest of the visit - "the area the camera is in" quietly
+		# meant "the last area the camera was in".
+		#
+		# Two contextual buttons read that and both were wrong in free look.
+		# Power is gated on FocusAreaRight.is_focused, so it hung around while
+		# the player walked the room; and clearing this fires
+		# FocusArea3D.is_focused's setter, whose _focus_changed(false) is the
+		# one thing that drops Console.focused - see focus_console.gd, which
+		# already exists for exactly this failure reached from a different
+		# direction - so F stayed offering a cartridge switch out in the room.
+		#
+		# Only FREE_LOOK. BUSY is a menu open inside an area, and the console
+		# being open is not the camera having left it.
+		if value == ShopStates.FREE_LOOK:
+			CollectorShop.current_area = null
+
 		# The touch overlay's OK button is shared across every active
 		# state (see RubiconMenuTouchControls' own doc comment - one
 		# persistent instance, not swapped per sub-state). MouseController's

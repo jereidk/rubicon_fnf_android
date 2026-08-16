@@ -487,6 +487,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
           grep -q "todo OK" /tmp/vonly.txt
 
+      - name: Verify leaving an area drops its focus
+        run: |
+          # CollectorShop.current_area only changed when another area took
+          # focus, so the last one entered kept is_focused true for the rest
+          # of the visit. Power is gated on FocusAreaRight.is_focused and F on
+          # Console.focused, which FocusArea3D's setter is what drops - a
+          # device screenshot has both showing while the player walks the room.
+          $GODOT --headless --path . --script tools/test_focus_clears_on_free_look.gd 2>&1 | tee /tmp/focus.txt
+          grep -q "todo OK" /tmp/focus.txt
+
       - name: Verify the reveal pacer backs off on an expensive frame
         run: |
           # It steered on Performance.TIME_PROCESS, a maximum over the last
