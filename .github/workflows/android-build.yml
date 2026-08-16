@@ -443,6 +443,17 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the loading bar advances when the engine's figure does not
+        run: |
+          # load_threaded_get_status' fraction sits between 48.6% and 50.0%
+          # for every one of the eight stalls in the last device log; Chimera
+          # reads 48.6% at three seconds and 49.9% at twenty-six. The bar is
+          # blended with a count of cached dependencies so it moves. The test
+          # holds the loaded references, because a discarded load leaves the
+          # cache immediately and would measure nothing.
+          $GODOT --headless --path . --script tools/test_load_progress.gd 2>&1 | tee /tmp/prog.txt
+          grep -q "todo OK" /tmp/prog.txt
+
       - name: Verify the console's boot flag always clears
         run: |
           # booting gates back_out, home_button, gallery_button and

@@ -29,7 +29,7 @@ func _process(_delta: float) -> void :
 	var status: int = ResourceLoader.load_threaded_get_status(_watching_path, progress)
 	match status:
 		ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			_current_loader.update_progress(progress[0])
+			_current_loader.update_progress(_blended_progress(progress[0]))
 		ResourceLoader.THREAD_LOAD_LOADED:
 			_current_loader.update_progress(1.0)
 			_complete()
@@ -43,6 +43,51 @@ func _process(_delta: float) -> void :
 			_is_loading = false
 
 			ErrorHandler.show_error("Failed to load resource.\n%s" % _watching_path, ERR_CANT_ACQUIRE_RESOURCE)
+
+## The scene's direct dependencies, and the highest fraction reported so far.
+var _direct_deps: PackedStringArray = PackedStringArray()
+var _reported_progress: float = 0.0
+
+## A progress figure that moves, from two measurements that are both true.
+##
+## load_threaded_get_status' fraction is nearly useless on the scenes that
+## need a loading screen at all. Every one of the eight stalls in the last
+## device log sits between 48.6% and 50.0%, and Chimera's load reads 48.6% at
+## 3 seconds and 49.9% at 26 - the bar jumps to half in the first second and
+## then holds still for forty. The game is working the whole time; the number
+## is not.
+##
+## So it is combined with a second one that does move: how many of the
+## scene's direct dependencies are in the resource cache. Neither is the
+## truth on its own - the engine's fraction is coarse, and direct
+## dependencies are only the first level of a graph hundreds deep - but both
+## are honest lower bounds on how far the load has got, so the larger of the
+## two is a better lower bound than either.
+##
+## Monotonic, because the alternative is a bar that goes backwards: the
+## dependency count is a ratio of a denominator taken once, and the engine's
+## fraction is free to drop.
+func _blended_progress(engine_fraction: float) -> float:
+	var best: float = engine_fraction
+	if not _direct_deps.is_empty():
+		var cached: int = 0
+		for dep in _direct_deps:
+			if ResourceLoader.has_cached(dep):
+				cached += 1
+		best = maxf(best, float(cached) / float(_direct_deps.size()))
+	_reported_progress = maxf(_reported_progress, clampf(best, 0.0, 1.0))
+	return _reported_progress
+
+## get_dependencies() returns "uid::type::path" for some entries and a bare
+## path for others; has_cached() wants the path.
+func _collect_direct_deps(path: String) -> void:
+	_direct_deps = PackedStringArray()
+	_reported_progress = 0.0
+	for entry in ResourceLoader.get_dependencies(path):
+		var parts: PackedStringArray = entry.split("::")
+		var dep: String = parts[parts.size() - 1]
+		if dep.begins_with("res://"):
+			_direct_deps.append(dep)
 
 func change_to(path: String, loading_screen: StringName, end_manually: bool = false) -> void :
 	if not loading_screens.has(loading_screen):
@@ -59,6 +104,9 @@ func change_to(path: String, loading_screen: StringName, end_manually: bool = fa
 	await _current_loader.start()
 
 	get_tree().unload_current_scene()
+	# Before the request, so the count is of what is cached from here on and
+	# not of whatever the outgoing scene happened to leave behind.
+	_collect_direct_deps(_watching_path)
 	ResourceLoader.load_threaded_request(_watching_path)
 	_is_loading = true
 	awaiting_manual_end = end_manually
