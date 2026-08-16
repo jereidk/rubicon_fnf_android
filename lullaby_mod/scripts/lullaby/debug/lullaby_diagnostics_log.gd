@@ -257,6 +257,12 @@ var _scene_change_memory: int = 0
 var _script_begin_usec: int = 0
 var _script_usec: int = 0
 var _script_peak_usec: int = 0
+
+## What this node's own _process cost on the last frame, and on the frame
+## that set the script_max record. Reported as self= so the diagnostics'
+## share of rest= is a number rather than an argument.
+var _self_usec: int = 0
+var _peak_self_usec: int = 0
 ## What the worst frame since the last read was made of. Captured at the
 ## moment the record is beaten, so these describe one single frame rather
 ## than four independent maxima that may have happened on four different
@@ -308,6 +314,11 @@ func _close_script_bracket(now_usec: int) -> void:
 	# frame in sixty costs everything. Snapshotting here turns that one
 	# number into a list of names plus a remainder.
 	_script_peak_usec = _script_usec
+	# Last frame's, not this one's: this node runs first in the frame, so its
+	# own cost for the current frame is not known until its _process ends,
+	# which is before the tail closes the bracket. One frame behind is the
+	# same convention gpu= already uses.
+	_peak_self_usec = _self_usec
 	_peak_note_usec = RubiconLevelNoteHandler.frame_note_usec
 	_peak_lane_usec = RubiconLevelNoteHandler.frame_lane_usec
 	_peak_bounds_usec = RubiconLevelNoteHandler.frame_bounds_usec
@@ -794,6 +805,19 @@ func _process(delta: float) -> void:
 			fps, _lowest_fps, median, _take_frame_shape(),
 		])
 		_lowest_fps = -1
+
+	# Last statement, so this covers everything above it - including
+	# _poll_blackouts(), which walks the watch list every frame, and the
+	# census and heartbeat writes when they land on this one.
+	#
+	# script= brackets the whole idle-process step, so this node's own work
+	# is inside the number it reports and has been landing in rest= unnamed.
+	# rest= is Chimera's entire CPU cost - 14.64ms median and 45.20ms at p90
+	# against notes at 1.27 and chars at 0.08 - so an unmeasured term inside
+	# it is exactly the thing that cannot be left as an assumption. Same
+	# mistake shape as the load probe: measure the instrument before reading
+	# what the instrument says.
+	_self_usec = Time.get_ticks_usec() - _script_begin_usec
 
 ## A one-off inventory of what the running scene actually contains. This is
 ## the entry that answers "why is proc 50ms when draw calls are 120" - the
@@ -2243,9 +2267,14 @@ func _entry(kind: String, detail: String) -> void:
 	# total, so subtracting them as well would remove the same microseconds two
 	# and three times over and report a remainder smaller than the truth. They
 	# are printed as a breakdown of notes=, not as siblings of it.
-	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms)
+	# self= is subtracted like notes= and chars=, because it is a sibling of
+	# them and not a breakdown of anything: it is this node's own _process,
+	# measured end to end, and it sits inside the same bracket.
+	var peak_self_ms: float = float(_peak_self_usec) / 1000.0
+	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms - peak_self_ms)
 	var peak_chars: int = _peak_chars
 	_script_peak_usec = 0
+	_peak_self_usec = 0
 	_peak_note_usec = 0
 	_peak_lane_usec = 0
 	_peak_bounds_usec = 0
@@ -2300,7 +2329,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2356,7 +2385,7 @@ func _entry(kind: String, detail: String) -> void:
 		script_ms,
 		script_peak_ms,
 		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms,
-		peak_char_ms, peak_chars, peak_rest_ms,
+		peak_char_ms, peak_chars, peak_self_ms, peak_rest_ms,
 		int(churn[&"spawned"]),
 		int(churn[&"despawned"]),
 		int(churn[&"unparked"]),
