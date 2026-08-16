@@ -487,6 +487,18 @@ jobs:
           $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
           grep -q "todo OK" /tmp/vonly.txt
 
+      - name: Verify the cached hit order matches the sorted one
+        run: |
+          # update_performance() rebuilt and re-sorted every result hit so far
+          # once per note that lands - O(n log n) per note. Monochrome's log
+          # measured the lanes' _process growing 1.0ms -> 19.9ms across one
+          # run. The array is kept now, which is only safe because it holds
+          # order and never values, so this compares it against the old
+          # build-and-sort at every step of a run with misses, holds and a
+          # rewind in it.
+          $GODOT --headless --path . --script tools/test_perf_order_cache.gd 2>&1 | tee /tmp/perf.txt
+          grep -q "todo OK" /tmp/perf.txt
+
       - name: Verify one symbol's frame does not rebuild the whole atlas
         run: |
           # use_backbuffer_cache and backbuffer_cache used to live on the

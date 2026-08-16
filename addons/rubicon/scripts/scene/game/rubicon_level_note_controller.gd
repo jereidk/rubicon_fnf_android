@@ -103,11 +103,130 @@ func get_level_metadata() -> RubiconLevelMetadata:
 
 func get_hit_count() -> int:
 	var count : int = 0
-	for key in note_handlers:
+	for key: String in note_handlers:
 		var handler : RubiconLevelNoteHandler = note_handlers[key]
 		count += handler.note_hit_index
 
 	return count
+
+## Every hit result so far, in the order they were hit.
+##
+## Kept across calls. update_performance() runs once per note that lands, and
+## it used to rebuild this array and re-sort it from scratch every time, which
+## is O(n log n) per note and therefore O(n squared log n) per song. Benched
+## against real result objects on a desktop runner, the sort alone is 60-63%
+## of the whole function at every size and it is the superlinear term:
+##
+##     notes     build      sort     combo     tally     TOTAL
+##       200    0.05ms    0.40ms    0.09ms    0.06ms    0.59ms
+##      1200    1.19ms    3.26ms    0.58ms    0.36ms    5.39ms
+##      2400    2.63ms    8.05ms    1.27ms    0.91ms   12.85ms
+##
+## A phone is several times slower again, which is how Monochrome's device log
+## measured the lanes' own _process growing from 1.0ms early in the song to
+## 19.9ms by the end - a 20x degradation with nothing but progress.
+##
+## Caching it is safe because this array carries order and nothing else. The
+## order depends only on time_when_hit, which hit_note() writes once; reset()
+## rewrites flags, scoring_value, scoring_rating and scoring_hit but never the
+## time, and break_combo_indexes changes which notes break the run without
+## moving anything. Both callers below still walk these objects live on every
+## call, so every one of those mutations is still picked up - what is cached
+## is where each result sits, never what it is worth.
+##
+## Ties in time_when_hit resolve differently than sort_custom happened to
+## resolve them. sort_custom is not stable, so that order was already
+## arbitrary between two notes hit on the same millisecond.
+var _perf_order : Array[RubiconLevelNoteHitResult] = []
+
+## How much of each handler's results array is already in _perf_order, so a
+## call only has to look at what arrived since the last one.
+var _perf_folded : Dictionary[String, int] = {}
+
+## The set in time order, maintained rather than rebuilt.
+##
+## Rebuilds outright when a handler goes backwards - a rewind, a reset that
+## takes a note out of HIT_INCOMPLETE, or a different set of handlers
+## entirely. That fallback is the original function verbatim, so the worst
+## case is what this used to cost every time.
+func _time_ordered_results() -> Array[RubiconLevelNoteHitResult]:
+	var rebuild : bool = _perf_folded.size() != note_handlers.size()
+	var targets : Dictionary[String, int] = {}
+
+	for key: String in note_handlers:
+		var handler : RubiconLevelNoteHandler = note_handlers[key]
+		targets[key] = _folded_target_of(handler)
+		if not rebuild and (not _perf_folded.has(key) or targets[key] < _perf_folded[key]):
+			rebuild = true
+
+	if rebuild:
+		_perf_order.clear()
+		_perf_folded.clear()
+		for key: String in note_handlers:
+			var handler : RubiconLevelNoteHandler = note_handlers[key]
+			for i in targets[key]:
+				_perf_order.append(handler.results[i])
+			_perf_folded[key] = targets[key]
+
+		_perf_order.sort_custom(RubiconLevelNoteHitResult.compare_results_by_time_hit)
+		return _perf_order
+
+	var arrived : Array[RubiconLevelNoteHitResult] = []
+	for key: String in note_handlers:
+		var handler : RubiconLevelNoteHandler = note_handlers[key]
+		for i in range(_perf_folded[key], targets[key]):
+			arrived.append(handler.results[i])
+		_perf_folded[key] = targets[key]
+
+	if arrived.is_empty():
+		return _perf_order
+
+	# Almost always a straight append: a note hit now is later than every note
+	# hit before it. The exception is a miss, whose time_when_hit is pushed a
+	# second into the future by hit_note(), so it can land behind a real hit
+	# that follows it.
+	arrived.sort_custom(RubiconLevelNoteHitResult.compare_results_by_time_hit)
+	if _perf_order.is_empty() or not RubiconLevelNoteHitResult.compare_results_by_time_hit(
+			arrived[0], _perf_order[_perf_order.size() - 1]):
+		_perf_order.append_array(arrived)
+		return _perf_order
+
+	_merge_into_order(arrived)
+	return _perf_order
+
+## The end of the range of a handler's results that counts as hit.
+##
+## note_hit_index, plus the note being held right now - a hold in progress has
+## already scored its head and the original counted it, so it stays counted.
+func _folded_target_of(handler : RubiconLevelNoteHandler) -> int:
+	if handler.note_hit_index >= handler.results.size():
+		return handler.results.size()
+
+	var current_result : RubiconLevelNoteHitResult = handler.results[handler.note_hit_index]
+	if current_result != null and current_result.scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE:
+		return handler.note_hit_index + 1
+
+	return handler.note_hit_index
+
+## Merges an already-sorted run into the already-sorted cache, backwards from
+## the end so each insertion point is found in one pass. Only reached when a
+## late-timed miss has to slot in behind notes hit after it.
+func _merge_into_order(arrived : Array[RubiconLevelNoteHitResult]) -> void:
+	var merged : Array[RubiconLevelNoteHitResult] = []
+	merged.resize(_perf_order.size() + arrived.size())
+
+	var a : int = _perf_order.size() - 1
+	var b : int = arrived.size() - 1
+	for out in range(merged.size() - 1, -1, -1):
+		if b < 0 or (a >= 0 and RubiconLevelNoteHitResult.compare_results_by_time_hit(
+				arrived[b], _perf_order[a])):
+			merged[out] = _perf_order[a]
+			a -= 1
+		else:
+			merged[out] = arrived[b]
+			b -= 1
+
+	_perf_order = merged
 
 func update_performance() -> void:
 	var total_value: float = 0.0
@@ -115,24 +234,10 @@ func update_performance() -> void:
 	var current_combo: int = 0
 	var highest_combo: int = 0
 
-	var results: Array[RubiconLevelNoteHitResult]
-	for key in note_handlers:
-		var handler : RubiconLevelNoteHandler = note_handlers[key]
-		note_count += handler.data.size()
+	for key: String in note_handlers:
+		note_count += note_handlers[key].data.size()
 
-		if handler.note_hit_index >= handler.results.size():
-			results.append_array(handler.results)
-			continue
-
-		var current_result: RubiconLevelNoteHitResult = handler.results[handler.note_hit_index]
-		var target_index: int = handler.note_hit_index
-		if current_result != null and current_result.scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE:
-			target_index += 1
-
-		for i in target_index:
-			results.append(handler.results[i])
-
-	results.sort_custom(RubiconLevelNoteHitResult.compare_results_by_time_hit)
+	var results: Array[RubiconLevelNoteHitResult] = _time_ordered_results()
 	for result in results:
 		total_value += result.scoring_value
 
