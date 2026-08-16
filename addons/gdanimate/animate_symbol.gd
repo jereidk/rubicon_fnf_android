@@ -243,6 +243,34 @@ static var worst_usec: int = 0
 ## "25 symbols at their 24fps" or "6 symbols rebuilding far too often".
 static var _drawn_ids: Dictionary = {}
 
+## Distinct symbols that drew through each atlas, in the interval.
+##
+## use_backbuffer_cache and backbuffer_cache both live on the AnimateAtlas
+## resource, and every symbol using it writes them: a symbol whose frame
+## advanced sets the flag false in _draw_impl, and any symbol whose transform
+## changed sets it true. With one symbol per atlas that is a private cache.
+## With several it is shared mutable state, and one symbol advancing a frame
+## sends every other symbol on that atlas down the full rebuild path - which
+## frees and recreates every canvas item RID it owns.
+##
+## The device log is consistent with that and does not establish it: Monochrome
+## reaches 371ms/s in this system with rebuild at 95-100% of it, 480 rebuilds
+## in a second against 1665 cached draws, and single rebuilds costing 14 and
+## 37ms. Whether atlases are actually shared cannot be read off the scenes -
+## these nodes are built at runtime - so it is counted here instead.
+##
+## One dictionary write per draw. The answer decides whether the sharing is
+## worth changing, and this addon is vendored upstream code that the reference
+## PC build has byte for byte, so that is not a change to make on a theory.
+static var _atlas_users: Dictionary = {}
+
+## The most symbols seen sharing one atlas since the last read.
+static func atlas_sharing_peak() -> int:
+	var peak: int = 0
+	for users in _atlas_users.values():
+		peak = maxi(peak, (users as Dictionary).size())
+	return peak
+
 ## Reads the counters and clears them, so each caller sees the interval since
 ## its own previous call rather than a total since boot.
 static func take_draw_stats() -> Dictionary:
@@ -255,6 +283,8 @@ static func take_draw_stats() -> Dictionary:
 		&"worst": worst_name,
 		&"worst_usec": worst_usec,
 		&"symbols": _drawn_ids.size(),
+		&"atlases": _atlas_users.size(),
+		&"shared_max": atlas_sharing_peak(),
 	}
 	draw_usec = 0
 	draw_peak_usec = 0
@@ -264,6 +294,7 @@ static func take_draw_stats() -> Dictionary:
 	worst_name = ""
 	worst_usec = 0
 	_drawn_ids.clear()
+	_atlas_users.clear()
 	return stats
 
 func _draw() -> void:
@@ -274,6 +305,12 @@ func _draw() -> void:
 	draw_usec += spent
 	draw_peak_usec = maxi(draw_peak_usec, spent)
 	_drawn_ids[get_instance_id()] = true
+	var drew_with: AnimateAtlas = get_atlas()
+	if drew_with != null:
+		var key: int = drew_with.get_instance_id()
+		if not _atlas_users.has(key):
+			_atlas_users[key] = {}
+		(_atlas_users[key] as Dictionary)[get_instance_id()] = true
 	if spent > worst_usec:
 		worst_usec = spent
 		# Built only when the record is actually beaten, so the common case
