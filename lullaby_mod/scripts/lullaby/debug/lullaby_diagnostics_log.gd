@@ -1741,7 +1741,7 @@ func _graphics_summary() -> String:
 	# aniso/lod/light_fade are logged because they are only ever set by a
 	# preset - on Custom they sit at their defaults and do nothing, which is
 	# invisible otherwise and made a whole run unattributable once.
-	return "preset=%s scale=%s aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d" % [
+	return "preset=%s scale=%s aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d flashing=%s" % [
 		preset.name if preset != null else "Custom",
 		_render_scale(),
 		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
@@ -1758,6 +1758,21 @@ func _graphics_summary() -> String:
 		Settings.graphics_light_distance_fade,
 		Engine.physics_ticks_per_second,
 		Settings.display_target_fps,
+		# The one setting that decides whether four full-screen black
+		# ColorRects are suppressed, and it has never appeared in a log.
+		#
+		# flashing_check.gd hides its node only when this is off. Chimera
+		# carries it on CameraFlash, BlackBoxofAwesomeness, UIBlack and Black2 -
+		# three of them 1920x1080 rects whose animations key visible=true with a
+		# single key at t=0, and whose colour track reads opaque black for the
+		# first three minutes of the song because Godot holds a track's first
+		# value for everything before it.
+		#
+		# So with this on, the reported black graphic is the data behaving as
+		# authored and the suppressor is doing nothing; with it off, the
+		# suppressor should make it impossible. Two opposite diagnoses from one
+		# symptom, and no log so far could tell them apart.
+		"on" if Settings.get(&"game_flashing_lights") else "off",
 	]
 
 ## Settings.applied fires on every option row the player touches, so this
