@@ -37,6 +37,23 @@ var backout_focus: Button
 var in_home: bool
 var time: float = 0.0
 var booting: bool = false
+
+## True exactly while the player is moving between the console's sections -
+## TV, Settings, Training and the rest - which is the only place the F prompt
+## is drawn and the only place switching a cartridge means anything.
+##
+## Exists because the button's two visibility conditions are AND'd and neither
+## can be inverted, and this state is "focused AND NOT in a submenu AND NOT
+## still booting". Naming it here says what the designer means once, instead
+## of encoding it as a pair of flags in a scene file where the next reader has
+## to reconstruct the intent.
+##
+## booting is in it for the reason back_out() has to be: the flag gates the
+## whole console, and offering a shortcut during a boot that has not finished
+## would be offering an action that silently does nothing.
+var in_section_nav: bool:
+	get:
+		return focused and not booting and not in_submenu
 var focused: bool = false
 
 

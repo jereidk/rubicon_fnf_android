@@ -443,6 +443,14 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify F only appears while navigating console sections
+        run: |
+          # F switches the cartridge, which means something only while moving
+          # between the console's sections - and that is the only place the F
+          # prompt is drawn. It was wired to nothing and showed always.
+          $GODOT --headless --path . --script tools/test_console_section_nav.gd 2>&1 | tee /tmp/nav.txt
+          grep -q "todo OK" /tmp/nav.txt
+
       - name: Verify the action column closes its gaps
         run: |
           # The four contextual buttons are pinned to absolute slots, so
