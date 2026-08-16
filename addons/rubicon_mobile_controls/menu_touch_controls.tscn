@@ -58,19 +58,7 @@ script = ExtResource("2")
 radius = 195.0
 anchor_position = Vector2(195, 195)
 
-; The three action buttons used to sit at hardcoded offsets anchored to the
-; right edge: F at -410..-220, Enter at -200..-10, Back at 10..200. Hiding one
-; left a 190 pixel hole where it had been and moved nothing, so a screen where
-; the cartridge bag is unavailable showed Enter and Back sitting low and
-; off-centre against an empty space.
-;
-; A VBoxContainer with centred alignment is Godot's own answer to that: a
-; hidden child takes no space and the rest re-centre on their own, with no
-; code to keep in step with whatever decides the visibility.
-;
-; 20px separation and a 190x190 minimum keep the buttons exactly the size and
-; spacing they were authored at, so nothing moves while all three are shown.
-[node name="ActionColumn" type="VBoxContainer" parent="."]
+[node name="SwitchCartridgeButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -78,17 +66,11 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -230.0
-offset_top = -300.0
+offset_top = -410
 offset_right = -40.0
-offset_bottom = 300.0
+offset_bottom = -220
 grow_horizontal = 0
 grow_vertical = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="SwitchCartridgeButton" type="Button" parent="ActionColumn"]
-custom_minimum_size = Vector2(190, 190)
-layout_mode = 2
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_accept")
 theme_override_styles/hover = SubResource("StyleBoxFlat_accept")
@@ -99,9 +81,19 @@ action = &"open_cartridge_bag"
 show_binding = true
 binding_font_size = 30
 
-[node name="AcceptButton" type="Button" parent="ActionColumn"]
-custom_minimum_size = Vector2(190, 190)
-layout_mode = 2
+[node name="AcceptButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -200
+offset_right = -40.0
+offset_bottom = -10
+grow_horizontal = 0
+grow_vertical = 2
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_accept")
 theme_override_styles/hover = SubResource("StyleBoxFlat_accept")
@@ -112,9 +104,19 @@ action = &"ui_accept"
 show_binding = true
 binding_font_size = 30
 
-[node name="CancelButton" type="Button" parent="ActionColumn"]
-custom_minimum_size = Vector2(190, 190)
-layout_mode = 2
+[node name="CancelButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = 10
+offset_right = -40.0
+offset_bottom = 200
+grow_horizontal = 0
+grow_vertical = 2
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_accept")
 theme_override_styles/hover = SubResource("StyleBoxFlat_accept")
