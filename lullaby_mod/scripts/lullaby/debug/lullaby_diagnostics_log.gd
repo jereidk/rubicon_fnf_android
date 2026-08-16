@@ -328,6 +328,42 @@ var _physics_steps: int = 0
 const BENCH_ITERATIONS := 2000
 var _bench_usec: int = 0
 var _bench_sink: int = 0
+
+## Nodes running _physics_process, counted alongside _process.
+##
+## A sweep of the repo found three users and none timing-critical, which is
+## what justified halving the physics rate on the low presets - but that was a
+## text search, not a measurement, and it cannot see a node the engine drives
+## itself. procn= and physn= are the two halves of "how much can the main loop
+## possibly be doing".
+var _physics_nodes: int = 0
+
+## Particle systems in the scene, 2D and 3D together.
+##
+## Never counted anywhere in this project, and one of the few things that can
+## cost a whole frame on its own on a tile GPU. A hidden emitter still
+## simulates unless one_shot or emitting is off, so live= counts what is
+## visible and total= what exists.
+var _particles_watch: Array[Node] = []
+
+## Skeletons in the scene and the bones they carry.
+##
+## Hex alone is 113 bones with 2122 tracks across 18 animations. Skinning is
+## paid per visible frame on both sides of the bus, and no counter in this log
+## has ever mentioned it.
+var _skeleton_bones: int = 0
+var _skeleton_count: int = 0
+
+## Distinct 3D materials across the scene's surfaces, against the surface
+## count.
+##
+## This is the Peepers bug class asked about 3D. 128 eyes carried 128 unique
+## ShaderMaterials that differed only in a value the shader used as a no-op,
+## so nothing batched and the wall of eyes cost half of Monochrome's frame.
+## Nothing would have found that faster than surfaces-versus-unique-materials
+## in one line, and nothing in this log answers it for 3D.
+var _surface_count: int = 0
+var _material_count: int = 0
 ## What the worst frame since the last read was made of. Captured at the
 ## moment the record is beaten, so these describe one single frame rather
 ## than four independent maxima that may have happened on four different
@@ -1258,12 +1294,19 @@ func _collect_blackout_watch() -> void:
 	_blackout_on.clear()
 	_mixer_watch.clear()
 	_visual3d_watch.clear()
+	_particles_watch.clear()
 	_sequence_player = null
+	_physics_nodes = 0
+	_skeleton_bones = 0
+	_skeleton_count = 0
+	_surface_count = 0
+	_material_count = 0
 	_process_nodes = 0
 	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
 		return
 
+	var materials_seen: Dictionary = {}
 	var stack: Array[Node] = [scene]
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
@@ -1274,9 +1317,32 @@ func _collect_blackout_watch() -> void:
 		# tree that runs to nine hundred nodes in a song.
 		if node.is_processing():
 			_process_nodes += 1
+		if node.is_physics_processing():
+			_physics_nodes += 1
+		if node is GPUParticles2D or node is GPUParticles3D \
+				or node is CPUParticles2D or node is CPUParticles3D:
+			_particles_watch.append(node)
+		var skeleton := node as Skeleton3D
+		if skeleton != null:
+			_skeleton_count += 1
+			_skeleton_bones += skeleton.get_bone_count()
 		var visual := node as VisualInstance3D
 		if visual != null:
 			_visual3d_watch.append(visual)
+			var mesh_node := node as MeshInstance3D
+			if mesh_node != null:
+				for surface in mesh_node.get_surface_override_material_count():
+					_surface_count += 1
+					# The override wins when it is set, and the mesh's own
+					# material is what is bound otherwise - so ask in that
+					# order or a scene that overrides everything reports the
+					# meshes' shared materials and looks perfectly batched.
+					var mat: Material = mesh_node.get_surface_override_material(surface)
+					if mat == null and mesh_node.mesh != null:
+						mat = mesh_node.mesh.surface_get_material(surface)
+					if mat != null and not materials_seen.has(mat.get_instance_id()):
+						materials_seen[mat.get_instance_id()] = true
+						_material_count += 1
 		var mixer := node as AnimationMixer
 		if mixer != null:
 			_mixer_watch.append(mixer)
@@ -1289,10 +1355,12 @@ func _collect_blackout_watch() -> void:
 			continue
 		_blackout_watch.append(item)
 
-	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d visuales 3D, %d nodos con _process en %s (seq=%s)" % [
-		_blackout_watch.size(), _mixer_watch.size(), _visual3d_watch.size(), _process_nodes,
+	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d visuales 3D, %d particulas, %d nodos con _process, %d con _physics_process en %s (seq=%s) | superficies=%d materiales_unicos=%d esqueletos=%d(huesos=%d)" % [
+		_blackout_watch.size(), _mixer_watch.size(), _visual3d_watch.size(),
+		_particles_watch.size(), _process_nodes, _physics_nodes,
 		_current_scene_name(),
 		_sequence_player.name if _sequence_player != null else "-",
+		_surface_count, _material_count, _skeleton_count, _skeleton_bones,
 	])
 
 ## How good a candidate this player is for being the sequence driver: lower
@@ -1326,6 +1394,55 @@ func _sequence_state() -> String:
 ## which is exactly the trap the note scene set for the old census, where 40
 ## notes x 6 AnimationPlayers read as zero. Counting trees separately is what
 ## keeps that visible.
+## Which per-pixel features the active 3D environment actually has on.
+##
+## Every one of these is paid for every pixel of every frame, and not one has
+## ever appeared in this log. The quality presets set some of them and the
+## scenes author others, so "Very Low" is not evidence that glow is off - the
+## WorldEnvironment inside the console's SubViewport ships fog and a
+## DirectionalLight3D regardless of preset. Reported as the letters that are
+## on, so an empty string means the environment costs nothing extra.
+func _environment_state() -> String:
+	if not is_inside_tree():
+		return "-"
+	var world: World3D = get_viewport().find_world_3d()
+	var env: Environment = world.environment if world != null else null
+	if env == null:
+		return "none"
+	var on: PackedStringArray = []
+	if env.glow_enabled:
+		on.append("glow")
+	if env.ssao_enabled:
+		on.append("ssao")
+	if env.ssil_enabled:
+		on.append("ssil")
+	if env.ssr_enabled:
+		on.append("ssr")
+	if env.sdfgi_enabled:
+		on.append("sdfgi")
+	if env.fog_enabled:
+		on.append("fog")
+	if env.volumetric_fog_enabled:
+		on.append("volfog")
+	return "+".join(on) if not on.is_empty() else "limpio"
+
+## How many particle systems are on screen, of those the scene has.
+func _particles_live() -> int:
+	var live: int = 0
+	for node in _particles_watch:
+		if node == null or not is_instance_valid(node):
+			continue
+		var visible_now: bool = false
+		var item := node as CanvasItem
+		if item != null:
+			visible_now = item.is_visible_in_tree()
+		else:
+			var spatial := node as Node3D
+			visible_now = spatial != null and spatial.is_visible_in_tree()
+		if visible_now and node.get("emitting"):
+			live += 1
+	return live
+
 ## Times a fixed amount of arithmetic, so wall-clock costs elsewhere can be
 ## read against the speed the CPU was actually running at.
 ##
@@ -2551,7 +2668,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d cam=%s psteps=%d bench=%dus script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d env=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2605,7 +2722,10 @@ func _entry(kind: String, detail: String) -> void:
 		float(sub_pixels) / 1048576.0,
 		biggest_name,
 		seq_now, anim_now[0], anim_now[1], _process_nodes,
-		_visual3d_load(), _visual3d_watch.size(), _camera_state(), _physics_steps, _bench_usec,
+		_visual3d_load(), _visual3d_watch.size(),
+		_particles_live(), _particles_watch.size(), _environment_state(),
+		_camera_state(), _physics_steps, _bench_usec,
+		_physics_nodes, _skeleton_bones, _material_count, _surface_count,
 		script_ms,
 		script_peak_ms,
 		peak_note_ms, peak_lane_ms, peak_bounds_ms, peak_pump_ms,
