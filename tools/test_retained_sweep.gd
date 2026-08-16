@@ -27,11 +27,21 @@ extends SceneTree
 
 const LOG := "res://lullaby_mod/scripts/lullaby/debug/lullaby_diagnostics_log.gd"
 
-## The worst single call allowed, in milliseconds. Above the 2ms budget on
-## purpose: one directory listing cannot be split, and the largest in this
-## project measures 9.6ms. This bounds it to that plus a budget's work rather
-## than pretending the budget alone is achievable.
-const WORST_CALL_MS := 20.0
+## The worst single call allowed, in milliseconds.
+##
+## Far above the 2ms budget and deliberately loose. One directory listing
+## cannot be split, the largest in this project measures 9.6ms, and this runs
+## on a shared CI machine where a cold page cache can multiply that without
+## anything being wrong. At 20ms it failed roughly one run in three locally -
+## and an intermittently red test is worse than no test, as this project
+## already learned from a bool-track guard that sat red for weeks and taught
+## everyone to stop reading the suite.
+##
+## What it has to catch is the regression that prompted it: treating a
+## directory listing as free inside the budgeted loop, which produced a single
+## 358ms call. 100ms catches that with a wide margin and does not flake on a
+## typical 6ms.
+const WORST_CALL_MS := 100.0
 
 var _failures: int = 0
 var _checks: int = 0
