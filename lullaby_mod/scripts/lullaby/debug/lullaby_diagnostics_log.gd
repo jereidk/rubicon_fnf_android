@@ -404,7 +404,27 @@ class _ScriptTail extends Node:
 
 func _close_script_bracket(now_usec: int) -> void:
 	_script_usec = now_usec - _script_begin_usec
-	if _script_usec <= _script_peak_usec:
+
+	# The record is kept on the frame minus this node's own share, not on the
+	# frame. self= exists because rest= was the largest number in this log and
+	# nobody had measured the instrument inside it; the first device log with
+	# self= in it answered that, and the answer was that the instrument is
+	# most of it - 8.47ms of a 10.67ms peak in Chimera, 10.44 of the shop's,
+	# 16.82 during a load.
+	#
+	# That is not the log being slow on an ordinary frame. It is that the peak
+	# resets at every heartbeat and the frame that writes the heartbeat is
+	# inside the window it resets, builds a 1500-character line out of ninety
+	# arguments, and wins the record by construction. So script_max= has been
+	# describing the logging frame rather than the worst gameplay frame, every
+	# time, and its breakdown named rest= for a cost that was self= all along.
+	#
+	# Ranking on the remainder fixes it without hiding anything: self= is
+	# still reported, and the frame that now wins is the worst one the game
+	# actually had. The 4% of SPIKEs that land within 120ms of a heartbeat
+	# says the spike list was never affected by this - only script_max was.
+	var game_usec: int = maxi(0, _script_usec - _self_usec)
+	if game_usec <= _script_peak_usec:
 		return
 
 	# The frame that beats the record is the only one whose breakdown is
@@ -414,11 +434,10 @@ func _close_script_bracket(now_usec: int) -> void:
 	# of 1.86ms/frame looks the same whether the cost is flat or whether one
 	# frame in sixty costs everything. Snapshotting here turns that one
 	# number into a list of names plus a remainder.
-	_script_peak_usec = _script_usec
-	# Last frame's, not this one's: this node runs first in the frame, so its
-	# own cost for the current frame is not known until its _process ends,
-	# which is before the tail closes the bracket. One frame behind is the
-	# same convention gpu= already uses.
+	_script_peak_usec = game_usec
+	# This frame's, not the previous one's: this node runs first, so its own
+	# _process has already finished and written _self_usec by the time the
+	# tail node closes the bracket.
 	_peak_self_usec = _self_usec
 	_peak_seq = _sequence_state()
 	var load_now: Array = _anim_load()
@@ -2664,7 +2683,10 @@ func _entry(kind: String, detail: String) -> void:
 	var peak_trees: int = _peak_trees
 	var anim_now: Array = _anim_load()
 	var seq_now: String = _sequence_state()
-	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms - peak_self_ms)
+	# self= is already out of script_peak_ms - the record is ranked on the
+	# remainder - so subtracting it here as well would remove the same
+	# microseconds twice and report a rest= smaller than the truth.
+	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms)
 	var peak_chars: int = _peak_chars
 	_script_peak_usec = 0
 	_peak_self_usec = 0
