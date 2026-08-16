@@ -1481,6 +1481,10 @@ const SWEEP_SKIP_DIRS := [".godot", "reference", "precompiled_astc_imports",
 var _sweep_dirs: Array[String] = []
 var _sweep_files: Array[String] = []
 var _sweep_cached: Dictionary = {}
+
+## A sample of the retained paths themselves, capped. See the sweep loop.
+const SWEEP_MAX_NAMES := 24
+var _sweep_names: PackedStringArray = PackedStringArray()
 var _sweep_seen: int = 0
 var _sweep_active: bool = false
 var _sweep_usec: int = 0
@@ -1489,6 +1493,7 @@ func _start_retained_sweep() -> void:
 	_sweep_dirs = ["res://"]
 	_sweep_files = []
 	_sweep_cached = {}
+	_sweep_names = PackedStringArray()
 	_sweep_seen = 0
 	_sweep_usec = 0
 	_sweep_active = true
@@ -1512,6 +1517,18 @@ func _continue_retained_sweep() -> void:
 			# would cost more memory than the thing being measured.
 			var key: String = _sweep_key(path)
 			_sweep_cached[key] = int(_sweep_cached.get(key, 0)) + 1
+			# Names too, up to a cap, because the counts have run out of what
+			# they can say. Four rounds of static reasoning failed to find what
+			# holds these - preloads are 22 files and 1.1MB, the gdanimate
+			# statics are counters cleared on every read, the debug autoload is
+			# 19 files, the gameover module keeps metadata - so the question is
+			# no longer how many but which.
+			#
+			# Scripts excluded: GDScript keeps every script it ever loaded, 136
+			# of them are expected, and listing those would spend the cap on the
+			# one group already understood.
+			if _sweep_names.size() < SWEEP_MAX_NAMES and not path.ends_with(".gd"):
+				_sweep_names.append(path.trim_prefix("res://"))
 
 	if _sweep_dirs.is_empty():
 		_sweep_usec += Time.get_ticks_usec() - started
@@ -1561,6 +1578,8 @@ func _finish_retained_sweep() -> void:
 		" (incompleto)" if incomplete else "",
 		_sweep_usec / 1000.0, " ".join(parts),
 	])
+	if not _sweep_names.is_empty():
+		_entry("RETAINEDBY", "%s" % " ".join(_sweep_names))
 
 ## Folder plus extension, which is the grouping that names a subsystem rather
 ## than a file. "songs/monochrome:png" says where to look; a list of 3,000

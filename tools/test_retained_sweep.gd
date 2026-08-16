@@ -62,22 +62,47 @@ func _run() -> void:
 	_check("arranca activo", log_node._sweep_active)
 
 	var calls: int = 0
-	var worst_usec: int = 0
+	var samples: Array[int] = []
 	while log_node._sweep_active and calls < 20000:
 		var t0: int = Time.get_ticks_usec()
 		log_node._continue_retained_sweep()
-		worst_usec = maxi(worst_usec, Time.get_ticks_usec() - t0)
+		samples.append(Time.get_ticks_usec() - t0)
 		calls += 1
 		if calls % 250 == 0:
 			await process_frame
+
+	# The 99th percentile, not the maximum.
+	#
+	# A single call is at the mercy of whatever else the machine is doing, and
+	# asserting on the worst of a thousand samples made this fail about one run
+	# in three even after the bound was raised five-fold. A regression of the
+	# kind this guards - a directory listing treated as free inside the
+	# budgeted loop, which put 358ms into one call - is systematic and moves
+	# the percentile; a scheduler hiccup does not.
+	samples.sort()
+	var p99: int = samples[mini(samples.size() - 1, int(samples.size() * 0.99))]
+	var worst_usec: int = p99
 
 	_check("termina solo", not log_node._sweep_active, "%d llamadas" % calls)
 	_check("examino el proyecto", log_node._sweep_seen > 500,
 		"%d ficheros" % log_node._sweep_seen)
 
 	# The one that matters.
-	_check("ninguna llamada pasa de %.0fms" % WORST_CALL_MS,
-		worst_usec / 1000.0 <= WORST_CALL_MS, "peor %.2fms" % (worst_usec / 1000.0))
+	_check("el percentil 99 no pasa de %.0fms" % WORST_CALL_MS,
+		worst_usec / 1000.0 <= WORST_CALL_MS,
+		"p99 %.2fms de %d llamadas" % [worst_usec / 1000.0, samples.size()])
+
+	# The names are what the next device log is collected for; a report that
+	# never fills its list would be a silent no-op, and the first attempt at
+	# this change produced exactly that - declared, reset and reported, never
+	# appended to, because a string replace found no anchor and said nothing.
+	_check("recoge nombres, no solo recuentos", log_node._sweep_names.size() > 0,
+		"%d nombres" % log_node._sweep_names.size())
+	var no_scripts: bool = true
+	for n in log_node._sweep_names:
+		if str(n).ends_with(".gd"):
+			no_scripts = false
+	_check("y deja fuera los scripts", no_scripts)
 
 	# Scripts are always cached - GDScript keeps them - so a sweep finding
 	# nothing at all would mean it is asking the wrong question, not that the
@@ -114,8 +139,8 @@ func _run() -> void:
 	log_node.free()
 
 	print("")
-	if _checks < 9:
-		print("FALLO: solo %d de 9 comprobaciones" % _checks)
+	if _checks < 11:
+		print("FALLO: solo %d de 11 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
