@@ -505,9 +505,18 @@ func _incoming_progress() -> String:
 			still_pending.append(path)
 			continue
 		_incoming_cached[path] = true
+		# Charged to the folder two levels down, which is what names a
+		# subsystem: "console" and "collector_shop" rather than 397 filenames.
+		# The shop opens 397 files in 17.9s where Monochrome opens 197 in 4.2s
+		# with more megabytes, so the cost is per file and the useful question
+		# is which part of the scene owns the files.
+		var owner: String = _dep_owner(path)
+		_dep_ms[owner] = float(_dep_ms.get(owner, 0.0)) + float(Time.get_ticks_msec() - _dep_clock)
+		_dep_count[owner] = int(_dep_count.get(owner, 0)) + 1
 		if arrived.size() < 4:
 			arrived.append(path.get_file())
 	_incoming_pending = still_pending
+	_dep_clock = Time.get_ticks_msec()
 	_probe_usec += Time.get_ticks_usec() - started
 
 	return "deps=%d/%d%s" % [
@@ -533,6 +542,17 @@ func _incoming_progress() -> String:
 ## cheapest read on it is whether the outgoing scene's own PackedScene, and
 ## the resources it depends on, are still in the loader cache one second
 ## after the tree that used them was unloaded.
+## Wall time charged to each subsystem while its dependencies arrived, and how
+## many arrived. Reset per load; reported on SCENE_IN.
+##
+## The interval between two polls is charged to whatever arrived in it, which
+## over-charges when several land together and under-charges nothing. It is a
+## ranking, not a stopwatch - enough to say whether the console's 97 files are
+## really a quarter of the shop's 17.9 seconds before anyone refactors it out.
+var _dep_ms: Dictionary = {}
+var _dep_count: Dictionary = {}
+var _dep_clock: int = 0
+
 var _outgoing_scene_path: String = ""
 var _residue_reported: bool = true
 
@@ -1718,6 +1738,9 @@ func _on_error_logged(kind: String, message: String, err: int) -> void:
 
 func _on_scene_change_started(path: String) -> void:
 	_scene_change_started_ms = Time.get_ticks_msec()
+	_dep_ms = {}
+	_dep_count = {}
+	_dep_clock = _scene_change_started_ms
 	_scene_change_memory = OS.get_static_memory_usage()
 	_loading_path = path
 	_load_checkpoints_done = 0
@@ -1759,6 +1782,11 @@ func _on_scene_change_finished(path: String) -> void:
 	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB sys=%s" % [
 		path, took, _probe_usec / 1000.0, delta_mb, _sys_mem(),
 	])
+	# Which part of the scene the wall time went to. The shop opens 397 files
+	# in 17.9s and Monochrome 197 in 4.2s with more megabytes, so the cost is
+	# per file - and console.tscn is 97 of the shop's 397 while the log shows
+	# the console not switching on until 3.5s after the scene is up.
+	_entry("DEPCOST", "%s %s" % [path.get_file(), _dep_breakdown()])
 	_watch_swap(path)
 	# The frame window is meaningless across a load, and every frame after one
 	# would otherwise read as a spike against the pre-load median.
@@ -1826,6 +1854,27 @@ func _on_swap_frame() -> void:
 		_sys_mem(),
 	])
 	_swap_path = ""
+
+## Two levels below res://, which is the grain that names a subsystem.
+func _dep_owner(path: String) -> String:
+	var rel: String = path.trim_prefix("res://")
+	var parts: PackedStringArray = rel.split("/")
+	if parts.size() <= 1:
+		return "."
+	return "/".join(parts.slice(0, mini(3, parts.size() - 1)))
+
+## Where a load's wall time went, by subsystem, worst first.
+func _dep_breakdown() -> String:
+	if _dep_ms.is_empty():
+		return "-"
+	var rows: Array = []
+	for owner in _dep_ms:
+		rows.append([float(_dep_ms[owner]), owner, int(_dep_count.get(owner, 0))])
+	rows.sort_custom(func(a, b): return a[0] > b[0])
+	var parts: PackedStringArray = PackedStringArray()
+	for i in mini(6, rows.size()):
+		parts.append("%s=%.1fs/%d" % [rows[i][1], rows[i][0] / 1000.0, rows[i][2]])
+	return " ".join(parts)
 
 func _median_frame_ms() -> float:
 	if _frames_seen < WINDOW_SIZE:

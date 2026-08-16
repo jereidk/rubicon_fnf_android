@@ -443,6 +443,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify the dependency cost breakdown groups and ranks
+        run: |
+          # The shop opens 397 files in 17.9s where Monochrome opens 197 in
+          # 4.2s with more megabytes, so the load cost is per file. console.tscn
+          # is 97 of the shop's 397 and the log shows the console not switching
+          # on until 3.5s after the scene is up - this is what would confirm
+          # that on the device before anyone refactors it out.
+          $GODOT --headless --path . --script tools/test_dep_breakdown.gd 2>&1 | tee /tmp/dep.txt
+          grep -q "todo OK" /tmp/dep.txt
+
       - name: Verify the loading bar advances when the engine's figure does not
         run: |
           # load_threaded_get_status' fraction sits between 48.6% and 50.0%
