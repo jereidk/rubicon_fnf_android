@@ -495,6 +495,7 @@ func _incoming_progress() -> String:
 
 	var started: int = Time.get_ticks_usec()
 	var arrived: Array[String] = []
+	var owners_this_tick: Array[String] = []
 	# Only the paths that were still uncached last time. A cached resource
 	# cannot go back to uncached while the load that wants it is in flight,
 	# so re-asking is work whose answer is already known - and the list this
@@ -510,12 +511,26 @@ func _incoming_progress() -> String:
 		# The shop opens 397 files in 17.9s where Monochrome opens 197 in 4.2s
 		# with more megabytes, so the cost is per file and the useful question
 		# is which part of the scene owns the files.
-		var owner: String = _dep_owner(path)
-		_dep_ms[owner] = float(_dep_ms.get(owner, 0.0)) + float(Time.get_ticks_msec() - _dep_clock)
-		_dep_count[owner] = int(_dep_count.get(owner, 0)) + 1
+		owners_this_tick.append(_dep_owner(path))
 		if arrived.size() < 4:
 			arrived.append(path.get_file())
 	_incoming_pending = still_pending
+
+	# The interval is split between everything that arrived in it, not given
+	# to each of them.
+	#
+	# Charging the full interval per dependency was the first attempt and the
+	# device log made the error obvious: a 4.8 second load reported
+	# assets/collector=188.5s across 186 dependencies. Every subsystem's total
+	# then scales with its dependency count, which is a number already
+	# available statically - so it measured the one thing it was built to look
+	# past. Split, the totals add up to the load.
+	var interval: float = float(Time.get_ticks_msec() - _dep_clock)
+	if not owners_this_tick.is_empty():
+		var share: float = interval / float(owners_this_tick.size())
+		for owner in owners_this_tick:
+			_dep_ms[owner] = float(_dep_ms.get(owner, 0.0)) + share
+			_dep_count[owner] = int(_dep_count.get(owner, 0)) + 1
 	_dep_clock = Time.get_ticks_msec()
 	_probe_usec += Time.get_ticks_usec() - started
 
