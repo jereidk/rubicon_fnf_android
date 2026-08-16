@@ -443,6 +443,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
           grep -q "todo OK" /tmp/mem.txt
 
+      - name: Verify a blackout shorter than the census is still logged
+        run: |
+          # The census names a full-screen black rect when it sees one, but it
+          # samples every 30 seconds - and the reported Chimera bug is a black
+          # graphic that comes and goes during a song. A 40 second visit
+          # produced two censuses, both reading opaque=[], while the player
+          # was watching it happen. The instrument was asleep, not wrong.
+          $GODOT --headless --path . --script tools/test_blackout_watch.gd 2>&1 | tee /tmp/black.txt
+          grep -q "todo OK" /tmp/black.txt
+
       - name: Verify the frame timer measures the frame
         run: |
           # Godot's process delta is smoothed and clamped: measured against

@@ -744,6 +744,10 @@ func _process(delta: float) -> void:
 		_time_since_summary = 0.0
 		_write_summary()
 
+	# Every frame on purpose: a 30 second census cannot see a blackout that
+	# lasts ten. The list is short, so this is a handful of reads.
+	_poll_blackouts()
+
 	_time_since_census += delta
 	if _time_since_census >= CENSUS_SECONDS:
 		_time_since_census = 0.0
@@ -1047,6 +1051,83 @@ func _covers_screen(node: CanvasItem) -> bool:
 ## thermal throttling were each ruled out with numbers - Monochrome carries
 ## three times the texture weight of Chimera and holds 60.
 ##
+## Watches the handful of nodes that could black out the screen, every frame.
+##
+## The census already names a full-screen opaque node when it sees one - it
+## caught Chimera's Prelude/Black at coverage 1.00 - but it samples every 30
+## seconds, so a rect that blacks the screen for ten seconds between two
+## samples leaves no trace. The reported bug is exactly that shape: a black
+## graphic that comes and goes during a song, invisible in a log whose only
+## two censuses of a 40 second Chimera visit both read opaque=[].
+##
+## Watching every CanvasItem every frame is not affordable. Watching the ones
+## that could possibly do it is. They are collected once, and hidden ones are
+## collected too - a node authored hidden and switched on by an animation
+## track is the whole failure mode, and Chimera has two animations that set
+## Prelude/Black visible with no key anywhere that sets it back.
+##
+## Reports edges, not states: one line when a watched node starts covering the
+## screen and one when it stops, with how long it lasted. A log that said
+## "still black" sixty times a second would bury what it is reporting.
+const BLACKOUT_MIN_COVERAGE := 0.8
+const BLACKOUT_MAX_LUMA := 0.15
+
+var _blackout_watch: Array[CanvasItem] = []
+var _blackout_on: Dictionary = {}
+
+## Collected after the scene has settled rather than during load: _ready() and
+## the opening animations both move things, and a list taken too early misses
+## whatever they build.
+func _collect_blackout_watch() -> void:
+	_blackout_watch.clear()
+	_blackout_on.clear()
+	var scene: Node = get_tree().current_scene if get_tree() else null
+	if scene == null:
+		return
+
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var rect := node as ColorRect
+		if rect == null or not _alpha_is_knowable(rect):
+			continue
+		# Dark enough to read as a blackout, judged on the authored colour
+		# because that is what it paints when something switches it on.
+		if maxf(rect.color.r, maxf(rect.color.g, rect.color.b)) > BLACKOUT_MAX_LUMA:
+			continue
+		if rect.size.x * rect.size.y <= 0.0:
+			continue
+		_blackout_watch.append(rect)
+
+	if not _blackout_watch.is_empty():
+		_entry("BLACKWATCH", "vigilando %d rects oscuros en %s" % [
+			_blackout_watch.size(), _current_scene_name(),
+		])
+
+func _poll_blackouts() -> void:
+	if _blackout_watch.is_empty():
+		return
+	var now: int = Time.get_ticks_msec()
+	for item in _blackout_watch:
+		if not is_instance_valid(item):
+			continue
+		var covering: bool = item.is_visible_in_tree() \
+			and _screen_area(item) >= BLACKOUT_MIN_COVERAGE \
+			and _opaque_coverage(item) >= BLACKOUT_MIN_COVERAGE
+		var was: bool = _blackout_on.has(item)
+		if covering and not was:
+			_blackout_on[item] = now
+			_entry("BLACKOUT", "%s tapa la pantalla (alpha=%.2f)" % [
+				_scene_relative_path(item), item.modulate.a,
+			])
+		elif was and not covering:
+			_entry("BLACKOUT", "%s deja de taparla tras %.1fs" % [
+				_scene_relative_path(item), (now - int(_blackout_on[item])) / 1000.0,
+			])
+			_blackout_on.erase(item)
+
 ## Geometry only, deliberately: alpha is not folded in, because a sprite at
 ## 10% alpha still costs a full blend on a tile GPU and hiding it behind a
 ## weighting would under-report the exact thing being hunted.
@@ -1690,6 +1771,8 @@ func _on_scene_change_finished(path: String) -> void:
 	# watcher silently subscribed to nothing - which is why not one SPIKE in
 	# the last device log carried an "after ..." attribution.
 	get_tree().create_timer(1.0).timeout.connect(census.bind("after load"), CONNECT_ONE_SHOT)
+	# Same delay and the same reason: the tree has to have settled.
+	get_tree().create_timer(1.0).timeout.connect(_collect_blackout_watch, CONNECT_ONE_SHOT)
 	get_tree().create_timer(1.0).timeout.connect(_watch_animations, CONNECT_ONE_SHOT)
 
 ## Splits the one window this log cannot currently see into three.
