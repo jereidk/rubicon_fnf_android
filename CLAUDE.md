@@ -758,6 +758,71 @@ much worse than the log can show.
 
 `DiagnosticsLog.mark("text")` drops a labelled line from anywhere.
 
+### The fields added so this stops needing a build per question
+
+Every one of these is on every entry, and each exists because something
+specific was once impossible to answer without another device session. Read
+this table before adding a counter - the odds are it is already there.
+
+| field | answers |
+|---|---|
+| `seq=122_fall@7.5s` | where in the song this line was written. Position *within* the sequence, so a stall lands against one of its tracks |
+| `anim=N/M` | AnimationPlayers running / AnimationTrees active. Counted separately: a tree never calls `play()` on the players under it |
+| `procn=` / `physn=` | nodes running `_process` / `_physics_process`. Bounds on what the main loop can possibly be doing |
+| `self=` | this log's own `_process`, **subtracted from `rest=`** so the instrument is not inside its own number |
+| `bench=Nus` | fixed arithmetic, timed. **The one that makes every other number trustworthy** - see below |
+| `vis3d=N/M` | how much of the scene's 3D is on screen, against its total. `objs=` is the whole frame including SubViewports and cannot answer this |
+| `cam=fov75@x,y,z` | where the active Camera3D is. Chimera's cost tracks the shot and no log ever recorded the shot |
+| `env=glow+fog` | which per-pixel environment features are actually on. `preset=Very Low` is not evidence any of them is off |
+| `mat3d=N/M` | unique 3D materials against surface count - the Peepers bug asked about 3D |
+| `bones=` / `parts=N/M` | skinning load; particle systems visible and emitting |
+| `psteps=N` | physics ticks *inside* this frame. 6ms across one tick is a heavy world, 6ms across four is a frame already late |
+| `vp=[...]` | scaling mode/scale, msaa, aniso, mesh LOD, shadow atlas, **read back off the viewport** |
+| `eng=[ts fps hz steps]` | `time_scale`, `max_fps`, physics rate, max steps |
+| `focus=LineEdit:X` | the focused Control |
+| `tweens=` / `msgq=` | active tweens; message-queue high-water (a `call_deferred` flood) |
+| `alat=X/Yms` | audio output latency and time to next mix |
+
+Three of them are worth knowing *why*:
+
+**`bench=` kills the confound that poisons every other measurement here.**
+Two effects drop the clocks in the same direction - the touch-boost governor
+when nobody is touching the screen, and thermal throttling across a session -
+and `SUMMARY vs_first` cannot tell either from a scene that got heavier. If
+`bench=` rises by the same factor as `script=`, the device changed and the
+scene did not. It compares only within one template (debug runs GDScript
+arithmetic ~1.24x slower), which is what the header's `template :` is for. It
+is 2000 iterations because 20000 measured 1.08ms a run and would have put a
+spike on one frame per second - the instrument perturbing the measurement,
+which is the thing it exists to expose.
+
+**`vp=` is the preset-ladder bug class made visible.** Four separate times a
+preset did not lower what it claimed to, each found by reading code months
+late. Reading the viewport back turns that into one line.
+
+**`focus=` is the shop keyboard bug.** The reverted prewarm revealed hidden
+nodes, gave focus to the Codes tab's `LineEdit` and opened the Android
+keyboard on a screen the player never chose. That cost a device session; this
+field would have said it immediately.
+
+All of it comes out of the walk `_collect_blackout_watch` already ran one
+second after the scene settles, so **no new tree walk was added**. The
+per-frame cost is a visibility check per particle system and about a hundred
+`is_playing()` calls off a cached list. `BLACKWATCH` prints the static
+inventory once per scene - rects, mixers, visuals, particles, process nodes,
+surfaces, unique materials, skeletons, bones - and names which player it
+picked as the sequence driver, so a wrong pick is visible rather than
+silently producing `seq=-`.
+
+Two habits when adding to this file. Check property names against the running
+binary (`ClassDB.class_get_property_list`) rather than writing them from
+memory - the iOS preset work found half a dozen plausible names that do not
+exist. And check the format string's arity against `HEAD` rather than by eye:
+the parser in `git log` for these commits undercounts specifiers by a
+constant 7, so what matters is that the delta is unchanged, not that the two
+numbers match. The stub project cannot run this file - its `class_name`
+dependencies hang a fresh project - so that check is structural.
+
 ---
 
 ## Measured facts about performance (moto g53)

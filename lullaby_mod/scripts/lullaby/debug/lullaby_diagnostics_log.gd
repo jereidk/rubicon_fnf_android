@@ -1394,6 +1394,63 @@ func _sequence_state() -> String:
 ## which is exactly the trap the note scene set for the old census, where 40
 ## notes x 6 AnimationPlayers read as zero. Counting trees separately is what
 ## keeps that visible.
+## What the viewport is really configured with, read off the viewport rather
+## than off Settings.
+##
+## This is the bug class that has bitten this project more times than any
+## other. Four separate times a quality preset turned out not to lower the
+## thing it claimed to: render scale existed only on Very Low, Medium's shadow
+## cost was identical to High's, anisotropic filtering and mesh LOD were never
+## wired up at all, and positional_shadow_atlas_size does not cover
+## DirectionalLight3D, which renders into a completely separate atlas. Every
+## one of those was found by reading code, months late. Reading the viewport
+## back is how a preset that does not apply becomes one line in the log.
+##
+## All property names were checked against the 4.7.1 binary with
+## ClassDB.class_get_property_list rather than written from memory - the iOS
+## preset work is a standing reminder that half a dozen plausible option names
+## do not exist.
+func _viewport_config() -> String:
+	if not is_inside_tree():
+		return "-"
+	var vp: Viewport = get_viewport()
+	return "mode%d@%.2f msaa%d ssaa%d aniso%d lod%.1f atlas%d%s%s%s" % [
+		vp.scaling_3d_mode, vp.scaling_3d_scale, vp.msaa_3d, vp.screen_space_aa,
+		vp.anisotropic_filtering_level, vp.mesh_lod_threshold,
+		vp.positional_shadow_atlas_size,
+		" 16bit" if vp.positional_shadow_atlas_16_bits else "",
+		" occl" if vp.use_occlusion_culling else "",
+		" taa" if vp.use_taa else "",
+	]
+
+## Engine-wide knobs that are supposed to be constant, printed so drift is
+## visible.
+##
+## The 60-to-40 frame rate flip cost this project a long investigation before
+## the tester found it only happens when not screen recording, i.e. it is the
+## CPU governor. The first thing checked was whether anything in the game was
+## touching max_fps - nothing was, but proving that took a repo-wide sweep
+## that a single field would have answered. time_scale is here for the same
+## reason: it silently rescales every delta in the game and nothing reports it.
+func _engine_config() -> String:
+	return "ts%.2f fps%d hz%d steps%d" % [
+		Engine.time_scale, Engine.max_fps,
+		Engine.physics_ticks_per_second, Engine.max_physics_steps_per_frame,
+	]
+
+## The Control that currently has keyboard focus, if any.
+##
+## The reverted shader prewarm revealed hidden nodes, which gave focus to the
+## Codes tab's LineEdit and opened the Android keyboard twice on a screen the
+## player never chose. It took a device session to work that out. A focused
+## LineEdit named in every line would have said it immediately, and it is the
+## kind of thing only a device can show.
+func _focus_state() -> String:
+	if not is_inside_tree():
+		return "-"
+	var focused: Control = get_viewport().gui_get_focus_owner()
+	return "-" if focused == null else "%s:%s" % [focused.get_class(), focused.name]
+
 ## Which per-pixel features the active 3D environment actually has on.
 ##
 ## Every one of these is paid for every pixel of every frame, and not one has
@@ -2668,7 +2725,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d env=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2723,7 +2780,13 @@ func _entry(kind: String, detail: String) -> void:
 		biggest_name,
 		seq_now, anim_now[0], anim_now[1], _process_nodes,
 		_visual3d_load(), _visual3d_watch.size(),
-		_particles_live(), _particles_watch.size(), _environment_state(),
+		_particles_live(), _particles_watch.size(),
+		get_tree().get_processed_tweens().size() if is_inside_tree() else 0,
+		_mb(int(Performance.get_monitor(Performance.MEMORY_MESSAGE_BUFFER_MAX))),
+		_focus_state(), _viewport_config(), _engine_config(),
+		AudioServer.get_output_latency() * 1000.0,
+		AudioServer.get_time_to_next_mix() * 1000.0,
+		_environment_state(),
 		_camera_state(), _physics_steps, _bench_usec,
 		_physics_nodes, _skeleton_bones, _material_count, _surface_count,
 		script_ms,
