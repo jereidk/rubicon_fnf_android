@@ -1061,6 +1061,56 @@ replays `SequencePlayer`'s `RESET` five times, and `RESET` already carries all
 leave Hex on screen, and why anything else added there is safe the same way -
 **check the path is in RESET before adding it.**
 
+### Nobody checked, and that is Chimera's black graphic
+
+The paragraph above states the rule and the precache breaks it. Three of its
+paths are not in any `RESET`, and one of them is a full-screen shader:
+
+| path | consequence |
+|---|---|
+| `UILayer/NTSC:visible` | **the bug** - stays on for the whole song |
+| `Sequences/.../SerenaCinematics/flash:visible` | harmless, the ancestor is restored hidden |
+| `Environment/Lights/TvLight:visible` | harmless, it ships visible and `light_energy` is restored to 0 |
+
+`UILayer/NTSC` is a full-rect `ColorRect` on `shd_ntsc_shader`, which samples
+`hint_screen_texture` **65 times per fragment** and takes its own alpha from
+that sample. It is authored `visible = false` and the song only ever turns it
+on through the `high` clip. The precache turns it on to warm the pipeline and
+nothing turns it back off, so from the loading screen onwards it paints the
+whole frame every frame.
+
+What it paints is the other half. A `hint_screen_texture` sample is only
+refreshed by a `BackBufferCopy`, and Chimera's only one is
+`UILayer/RainParent/Rain/BackBufferCopy` - inside `Rain`, which the precache
+also reveals and `RESET` **does** put back to hidden. So the copy runs during
+the loading screen and never again: NTSC spends the song re-drawing one frozen
+frame of the precache sweep over the stage.
+
+That fits every constraint the black graphic had and nothing else did - it is
+present from the very first frame of the song, it is under nothing (it is a
+`ColorRect` in `UILayer`, so notes authored later in the tree stay on top of
+it), it is Chimera-only (the sweep over all three songs finds this leak in
+Chimera alone), and it did not exist before `PreloadCamera` did. It is also the
+best candidate on record for the 30fps ceiling: a 65-tap full-screen filter is
+per-pixel cost that no draw-call or primitive counter can see, which is exactly
+the shape of `gpu=38.8ms` at 39 draw calls.
+
+Fixed by giving the precache's NTSC track a second key at `t = 0.5` that turns
+it back off - inside the animation, so the warm-up still happens.
+
+The sweep is worth re-running after any precache edit. It has to normalise
+paths before comparing or it is useless: `precache` lives on
+`PreloadCamera/AnimationPlayer` and `RESET` on `Sequences/SequencePlayer`, so
+the same node is `../Sequences/X` in one and `X` in the other.
+
+**And that is how five tracks were dead on arrival.** The five `:visible`
+tracks added to cover `122_fall` were written as `SerenaTakingPictures:visible`
+and friends - relative to `PreloadCamera`, whose only child is an
+`AnimationPlayer`. All five resolved to nothing and were silently dropped, so
+that commit warmed exactly nothing. Corrected to `../Sequences/...` here. Four
+of the five now duplicate tracks that were already correct; the duplication is
+harmless and the diff is smaller than renumbering the track array.
+
 ## The quality preset ladder, and the gaps that kept being in it
 
 Three separate times now the presets turned out not to lower the thing they
