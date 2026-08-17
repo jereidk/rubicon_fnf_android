@@ -21,6 +21,11 @@ extends Node
 ##              camera. The 2D list cannot see a mesh in front of the camera,
 ##              and a mesh covers the stage and draws under every CanvasLayer
 ##              by construction.
+##   todo3d     every mesh in the tree, visible or not, largest AABB first,
+##              with its material. Answers "what is actually in this stage",
+##              which no reading of the scene text can - a node created at
+##              runtime is in neither the .tscn nor an instanced subscene, and
+##              anything inside a .gltf is unreadable from text either way.
 ##   t=<secs>   advance the song's own timeline to that position and dump
 ##              again. Repeatable.
 ##   <path>     report this node's visibility by name.
@@ -42,6 +47,7 @@ var _scene_path: String = "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
 var _precache: bool = false
 var _all: bool = false
 var _3d: bool = false
+var _todo3d: bool = false
 var _at: Array[float] = []
 var _watch: PackedStringArray = PackedStringArray()
 
@@ -54,6 +60,7 @@ func _ready() -> void:
 		if a == "precache": _precache = true
 		elif a == "all": _all = true
 		elif a == "3d": _3d = true
+		elif a == "todo3d": _todo3d = true
 		elif a.begins_with("t="): _at.append(float(a.substr(2)))
 		else: _watch.append(a)
 
@@ -161,6 +168,8 @@ func _dump(scene: Node, when: String) -> void:
 			path, n.get("visible"), n.is_visible_in_tree()])
 	if _3d:
 		_dump_3d(scene)
+	if _todo3d:
+		_dump_todo3d(scene)
 	if not _all:
 		return
 
@@ -295,6 +304,36 @@ func _describe(mat: Material) -> String:
 		c.r, c.g, c.b, c.a,
 		" UNSHADED" if std.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED else "",
 		"" if std.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED else " transp%d" % std.transparency]
+
+
+## Every mesh in the tree, whatever its size, wherever it came from, visible or
+## not.
+##
+## Sorted by AABB volume because that is what made the one worth looking at
+## obvious: Chimera's `green` is 134 x 72 x 135 units in a house about ten
+## across, a volume of 1.3 million against 8072 for the next largest. Nothing
+## in the scene text says that; the number only exists once the glTF is
+## instanced.
+func _dump_todo3d(scene: Node) -> void:
+	var rows: Array = []
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var geo := node as GeometryInstance3D
+		if geo == null:
+			continue
+		rows.append([geo.get_aabb().get_volume(), geo])
+	rows.sort_custom(func(a, b): return a[0] > b[0])
+	print("OUT     %d GeometryInstance3D en el arbol vivo" % rows.size())
+	for row in rows:
+		var geo: GeometryInstance3D = row[1]
+		var aabb: AABB = geo.get_aabb()
+		print("OUT     vis=%-5s vol=%11.2f tam=%5.1fx%-5.1fx%-5.1f %-56s %s" % [
+			geo.is_visible_in_tree(), row[0],
+			aabb.size.x, aabb.size.y, aabb.size.z,
+			scene.get_path_to(geo), _materials_of(geo)])
 
 
 func _rect_of(item: CanvasItem) -> Rect2:
