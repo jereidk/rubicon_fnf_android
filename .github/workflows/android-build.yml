@@ -530,17 +530,6 @@ jobs:
           $GODOT --headless --path . --script tools/test_atlas_cache_per_symbol.gd 2>&1 | tee /tmp/atlas.txt
           grep -q "todo OK" /tmp/atlas.txt
 
-      - name: Verify Chimera's clock stops holding opaque black
-        run: |
-          # A value track paints its first key over everything before it. The
-          # "scene" animation's earliest key on BlackBoxofAwesomeness:color is
-          # at 181.83s and opaque, so the level clock painted a full-screen
-          # rect black every frame for the three minutes before it - held off
-          # only by visible=false, which two Hex sequences set true and never
-          # set back.
-          $GODOT --headless --path . --script tools/test_black_box_hold.gd 2>&1 | tee /tmp/hold.txt
-          grep -q "todo OK" /tmp/hold.txt
-
       - name: Verify the Kollectadex only renders while it is open
         run: |
           # Its SubViewport is 620x464 - the same pixel count as the whole

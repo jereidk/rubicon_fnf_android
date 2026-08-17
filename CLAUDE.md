@@ -128,6 +128,29 @@ often the answer you need.
 
 ## Landmines in this repo
 
+**A value track painting its first key backwards can be load-bearing.** The
+rule itself is real - a value track applies its first key over all time before
+that key - but "the earliest key is opaque black, therefore this rect is
+accidentally black for three minutes" does not follow, and `bc32b05` shipped a
+guard key and a CI gate on exactly that reasoning.
+
+Chimera's `BlackBoxofAwesomeness` is a full-rect `ColorRect` authored
+`color = Color(0, 0, 0, 0)`. The clock's `scene` track has its first `:color`
+key at 181.83s and opaque, so the colour reads opaque black from the downbeat.
+That is not an accident: the SequencePlayer's own `RESET` **also** sets
+`color = Color(0, 0, 0, 1)`, and `113_reaching` then flickers `:modulate`
+between opaque and transparent black to black the screen out while Serena
+reaches. A ColorRect multiplies `modulate` by `color`, so that flicker only
+shows anything *because* the colour underneath is opaque. A transparent guard
+key at t=0 fights the RESET and can silently delete an authored blackout - the
+exact "black graphics that used to appear correctly and now do not" the user
+reported after that build.
+
+Every one of those tracks is byte-identical to the pck's. The check that
+settles this class of question is that diff, not the arithmetic: **before
+"fixing" a value track, confirm the mod does not depend on the value it is
+painting.** The gate is gone and so is `tools/test_black_box_hold.gd`.
+
 **Never delete an asset because it looks orphaned.** This repo has been
 broken by that at least three times (`8878770`, `5ee950a`, and a lightmap
 `.exr`). Two known blind spots where nothing textually references a file that
