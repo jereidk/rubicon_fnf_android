@@ -142,7 +142,6 @@
 [ext_resource type="Texture2D" uid="uid://dhf1qoiosh3st" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/cut_serena_cinematics_1.png" id="301"]
 [ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="302"]
 [ext_resource type="Script" uid="uid://m6u9t592h4f4" path="res://lullaby_mod/scripts/lullaby/lullaby_force_screen_aspect.gd" id="303"]
-[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_intro_group_gate.gd" id="304"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action"]
 bg_color = Color(0.09, 0.09, 0.12, 0.55)
@@ -612,10 +611,10 @@ tracks/11/path = NodePath("../BlackBoxofAwesomeness:color")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
-"times": PackedFloat32Array(181.79167, 181.83333, 181.875, 182.20833, 182.33333, 182.41667, 182.625, 197.50377),
-"transitions": PackedFloat32Array(1, 0, 2.1435468, 1, 1, -2, 0, 1),
+"times": PackedFloat32Array(181.83333, 181.875, 182.20833, 182.33333, 182.41667, 182.625, 197.50377),
+"transitions": PackedFloat32Array(0, 2.1435468, 1, 1, -2, 0, 1),
 "update": 0,
-"values": [Color(0, 0, 0, 0), Color(0, 0, 0, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.7058824), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(0, 0, 0, 1)]
+"values": [Color(0, 0, 0, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.7058824), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(0, 0, 0, 1)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -3969,7 +3968,7 @@ tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "clips": PackedStringArray("intro", "intro-end"),
-"times": PackedFloat32Array(0, 14.416667)
+"times": PackedFloat32Array(0, 14.791667)
 }
 tracks/1/type = "method"
 tracks/1/imported = false
@@ -4201,18 +4200,6 @@ tracks/12/keys = {
 "transitions": PackedFloat32Array(-2.5491211, 1),
 "update": 0,
 "values": [93.9, 79.7]
-}
-tracks/13/type = "value"
-tracks/13/imported = false
-tracks/13/enabled = true
-tracks/13/path = NodePath("../Intro/OutsideDoor:visible")
-tracks/13/interp = 0
-tracks/13/loop_wrap = true
-tracks/13/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [false]
 }
 
 [sub_resource type="AudioStreamSynchronized" id="AudioStreamSynchronized_3sdqc"]
@@ -15546,8 +15533,3 @@ volume_db = -2.4474702
 [editable path="KalosPause/PauseMenu/MenuAspectRatio/Menu/Main/Credits"]
 [editable path="KalosPause/PauseMenu/MenuAspectRatio/Menu/Main/Exit"]
 [editable path="ChimeraPause"]
-
-[node name="IntroGroupGate" type="Node" parent="." node_paths=PackedStringArray("intro_group", "sequence_player")]
-script = ExtResource("304")
-intro_group = NodePath("../Intro")
-sequence_player = NodePath("../Sequences/SequencePlayer")

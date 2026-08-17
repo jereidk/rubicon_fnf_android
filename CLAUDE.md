@@ -132,53 +132,6 @@ bone names with dots, the `.gltf` importer writes underscores; 86% of the
 Collector's and Hex's tracks were being discarded without a warning. Fixed
 across ~3305 tracks in `15fa53c`.
 
-**An `animation`-track clip key at the very end of its animation is assigned
-and never applied.** The parent dispatches the clip and then keeps *seeking*
-the sub-player frame by frame; a key sitting exactly at the parent's `length`
-gets assigned on the frame the parent stops, so nothing ever seeks the
-sub-player again and none of the clip's own keys land. `assigned_animation`
-reads correctly the whole time, which is what makes this so hard to see.
-
-This is what Chimera's black graphic was, through three failed attempts at it.
-`102_intro` (length 14.791667) dispatches `intro-end` at **exactly**
-14.791667. `intro-end`'s only job is `visible = false` on four intro nodes,
-and of those four the running `intro` clip already switches three off by
-itself - `OutsideDoor` was the one it did not. So a full-screen sprite stayed
-visible for the remaining ~135 seconds of the song. It sits under `UILayer`,
-which is why it covered the stage and left the notes and HUD alone, and why
-every "is a black rect covering the screen" instrument that only watched
-`ColorRect`s missed it. The device log named it in the end:
-`BLACKOUT Intro/OutsideDoor cubre=1.00 2025x1139` and, alone among 35
-blackout entries, no matching "deja de taparla".
-
-Reproduced against the real 4.7.1 binary with the real numbers, tree-driven at
-`speed_scale = 1.0`: door stuck without the fix, clean with it. Two harness
-mistakes on the way there, both of which produced a false "no bug":
-driving the parent with `advance()` past its own end (which does let the key
-apply), and setting `callback_mode_process = MANUAL` on the *sub*-player, so
-nothing advanced it at all. Let the scene tree drive both players and only
-vary what you mean to vary. Speed matters too - x4 and above pass, x1 fails.
-
-The fix is not to move the clip key. One 24fps frame of margin is not enough
-(measured: fails at a 150ms frame), and 0.208s only survives the frame times
-tested. Put the value inside the clip that is actually running instead - a
-value track is evaluated by position, so any stall that lands anywhere past
-the key still applies it. Here that is one key, `false` at 14.75, on `intro`'s
-own `OutsideDoor:visible`. Godot's `INTERPOLATION_NEAREST` on a bool behaves
-as a step, not as nearest-neighbour - verified, it holds `true` through 14.74
-and flips at 14.76 - so an added key does not drag the transition to the
-midpoint.
-
-```bash
-python3 tools/audit_clip_key_at_end.py
-```
-
-Ignore a key at `t = 0` in a `length = 0.001` animation - that is the "fire
-this clip now" idiom and it works. What is left after that filter is four,
-and **two of them are `precache`'s last two `RESET` replays**, at 0.80 and
-0.40 frames of margin. That RESET is the thing that restores everything the
-precache camera reveals. Not investigated yet; do not fix it blind.
-
 **Our Rubicon fork is not the mod's Rubicon, and the scenes were authored
 against theirs.** The extracted scenes set properties and animate tracks
 that only exist on the original engine; where our fork renamed or dropped
