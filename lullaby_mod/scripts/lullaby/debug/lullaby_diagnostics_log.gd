@@ -1292,6 +1292,11 @@ const BLACKOUT_MAX_LUMA := 0.15
 var _blackout_watch: Array[CanvasItem] = []
 var _blackout_on: Dictionary = {}
 
+## When each watched item last became visible, for the raw VIS transitions.
+## Separate from _blackout_on, which only tracks the ones that pass the
+## coverage gate - the whole point of VIS is to not be filtered by it.
+var _visible_since: Dictionary = {}
+
 ## Every AnimationMixer in the running scene, and the one that drives the
 ## song's sequences.
 ##
@@ -1330,6 +1335,7 @@ const SEQUENCE_PLAYER_NAMES: Array[StringName] = [
 func _collect_blackout_watch() -> void:
 	_blackout_watch.clear()
 	_blackout_on.clear()
+	_visible_since.clear()
 	_mixer_watch.clear()
 	_visual3d_watch.clear()
 	_particles_watch.clear()
@@ -1628,6 +1634,36 @@ func _poll_blackouts() -> void:
 	for item in _blackout_watch:
 		if not is_instance_valid(item):
 			continue
+
+		# Raw visibility, before any judgement about coverage or opacity.
+		#
+		# BLACKOUT only fires when a node passes BLACKOUT_MIN_COVERAGE on both
+		# area and alpha, and that gate has already been wrong once - it sat
+		# at 0.8 while the reported graphic measured 0.75, so the log stayed
+		# silent through every second of it and the silence was read as the
+		# bug being fixed. Seven rounds of this bug have been spent deducing
+		# which node it is from geometry and from the scene text; none of them
+		# landed. A threshold cannot mislead what it is not applied to, so
+		# this reports the transition itself and leaves the judging to
+		# whoever reads it.
+		var shown: bool = item.is_visible_in_tree()
+		var was_shown: bool = _visible_since.has(item)
+		if shown != was_shown:
+			var held: String = ""
+			if shown:
+				_visible_since[item] = now
+			else:
+				held = " tras %.1fs" % (float(now - int(_visible_since[item])) / 1000.0)
+				_visible_since.erase(item)
+			var vis_box: Rect2 = _screen_rect_of(item)
+			_entry("VIS", "%s %s (%dx%d en %d,%d cubre=%.2f alpha=%.2f)%s" % [
+				_scene_relative_path(item),
+				"visible" if shown else "oculto",
+				vis_box.size.x, vis_box.size.y, vis_box.position.x, vis_box.position.y,
+				_screen_area(item) / maxf(1.0, _screen_px()),
+				_opaque_coverage(item),
+				held,
+			])
 		# _screen_area() answers in pixels, not as a fraction. The first
 		# version compared it straight against BLACKOUT_MIN_COVERAGE, so any
 		# rect larger than 0.8 square pixels passed and the area test filtered
