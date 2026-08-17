@@ -1061,55 +1061,78 @@ replays `SequencePlayer`'s `RESET` five times, and `RESET` already carries all
 leave Hex on screen, and why anything else added there is safe the same way -
 **check the path is in RESET before adding it.**
 
-### Nobody checked, and that is Chimera's black graphic
+Sweeping precache's paths against every `RESET` in the scene leaves three
+uncovered, and all three are fine:
 
-The paragraph above states the rule and the precache breaks it. Three of its
-paths are not in any `RESET`, and one of them is a full-screen shader:
-
-| path | consequence |
+| path | why it does not matter |
 |---|---|
-| `UILayer/NTSC:visible` | **the bug** - stays on for the whole song |
-| `Sequences/.../SerenaCinematics/flash:visible` | harmless, the ancestor is restored hidden |
-| `Environment/Lights/TvLight:visible` | harmless, it ships visible and `light_energy` is restored to 0 |
+| `UILayer/NTSC:visible` | the `PostProcessingTree` owns it, not `RESET` - see below |
+| `Sequences/.../SerenaCinematics/flash:visible` | the ancestor is restored hidden |
+| `Environment/Lights/TvLight:visible` | it ships visible and `light_energy` is restored to 0 |
 
-`UILayer/NTSC` is a full-rect `ColorRect` on `shd_ntsc_shader`, which samples
-`hint_screen_texture` **65 times per fragment** and takes its own alpha from
-that sample. It is authored `visible = false` and the song only ever turns it
-on through the `high` clip. The precache turns it on to warm the pipeline and
-nothing turns it back off, so from the loading screen onwards it paints the
-whole frame every frame.
-
-What it paints is the other half. A `hint_screen_texture` sample is only
-refreshed by a `BackBufferCopy`, and Chimera's only one is
-`UILayer/RainParent/Rain/BackBufferCopy` - inside `Rain`, which the precache
-also reveals and `RESET` **does** put back to hidden. So the copy runs during
-the loading screen and never again: NTSC spends the song re-drawing one frozen
-frame of the precache sweep over the stage.
-
-That fits every constraint the black graphic had and nothing else did - it is
-present from the very first frame of the song, it is under nothing (it is a
-`ColorRect` in `UILayer`, so notes authored later in the tree stay on top of
-it), it is Chimera-only (the sweep over all three songs finds this leak in
-Chimera alone), and it did not exist before `PreloadCamera` did. It is also the
-best candidate on record for the 30fps ceiling: a 65-tap full-screen filter is
-per-pixel cost that no draw-call or primitive counter can see, which is exactly
-the shape of `gpu=38.8ms` at 39 draw calls.
-
-Fixed by giving the precache's NTSC track a second key at `t = 0.5` that turns
-it back off - inside the animation, so the warm-up still happens.
-
-The sweep is worth re-running after any precache edit. It has to normalise
-paths before comparing or it is useless: `precache` lives on
-`PreloadCamera/AnimationPlayer` and `RESET` on `Sequences/SequencePlayer`, so
-the same node is `../Sequences/X` in one and `X` in the other.
+The sweep has to normalise paths before comparing or it is useless: `precache`
+lives on `PreloadCamera/AnimationPlayer` and `RESET` on
+`Sequences/SequencePlayer`, so the same node is `../Sequences/X` in one and `X`
+in the other.
 
 **And that is how five tracks were dead on arrival.** The five `:visible`
 tracks added to cover `122_fall` were written as `SerenaTakingPictures:visible`
 and friends - relative to `PreloadCamera`, whose only child is an
 `AnimationPlayer`. All five resolved to nothing and were silently dropped, so
-that commit warmed exactly nothing. Corrected to `../Sequences/...` here. Four
-of the five now duplicate tracks that were already correct; the duplication is
-harmless and the diff is smaller than renumbering the track array.
+that commit warmed exactly nothing. Corrected to `../Sequences/...`. Four of the
+five now duplicate tracks that were already correct; the duplication is harmless
+and the diff is smaller than renumbering the track array.
+
+### `UILayer/NTSC` is on all song by design, and it is not a leak
+
+Worth writing down because it looks exactly like one, and a whole commit was
+spent on it before it was measured. `UILayer/NTSC` is a full-rect `ColorRect`
+on `shd_ntsc_shader` - 65 `hint_screen_texture` taps per fragment, alpha taken
+from the same sample - authored `visible = false`, and `precache` turns it on.
+No `RESET` in the scene carries it back. Every static reading of that says
+"stuck on for the whole song, painting over the stage".
+
+It is not. `Settings/PostProcessingTree` is an `AnimationTree` whose state
+machine runs `Start -> off -> high` when `settings_post_processing == 2`, and
+`high` holds `NTSC:visible = true` for as long as the state is active. So NTSC
+is on from `_ready`, before precache touches anything, on the mod's own design
+and identically in the pck. Measured:
+
+```
+OUT Settings=true post_processing=2 disable_shader_effects=false
+OUT === tras _ready ===
+OUT UILayer/NTSC        visible=true  en_arbol=true
+```
+
+The other half of the theory was wrong too: **Godot 4 inserts the back-buffer
+copy itself** when a CanvasItem's material samples `hint_screen_texture`. The
+explicit `BackBufferCopy` under `Rain` is not what feeds it, so "NTSC repaints
+one frozen frame forever" has no mechanism.
+
+`graphics_post_processing` is what actually governs this - `NONE`/`LOW` play
+`off`/`low`, which `queue_free()` the node outright. So NTSC exists or does not
+depending on a quality row, and any future reading of it has to say which.
+
+Two ways the test that should have caught this got it wrong first, both worth
+avoiding:
+
+- **Take the baseline off a fresh instance that was never added to the tree.**
+  `PreloadCamera` plays `precache` from its own `_ready()`, so by the first
+  `process_frame` every key at `t = 0` has already applied. A baseline read
+  there records NTSC as already visible and the leak compares equal to itself -
+  11 false positives, and the one node being investigated invisible.
+- **Drive the animation with `advance()`, never `seek()`.** Track 0 of
+  `precache` is an `animation` track dispatching the SequencePlayer's `RESET`
+  five times, and a dispatch is assigned when its key is crossed and then
+  seeked forward by the parent every frame after. Stepping with `seek()`
+  assigns the clip without ever advancing it, so none of the restores apply and
+  every revealed node reads as a leak.
+
+And the tooling lesson under both: **`--script` does not give you the
+autoloads.** The probe read `Settings` as null, the scene fell into its
+gameover path, and the state machine never advanced past `off` - which made
+NTSC look freed. Run a scene (`--headless --path . res://tools/harness/...`),
+not a `SceneTree` script, for anything that touches `Settings`.
 
 ## The quality preset ladder, and the gaps that kept being in it
 
