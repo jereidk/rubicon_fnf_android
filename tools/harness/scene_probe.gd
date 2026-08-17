@@ -69,6 +69,23 @@ func _ready() -> void:
 
 	var scene: Node = (load(_scene_path) as PackedScene).instantiate()
 	add_child(scene)
+
+	# Announced as the current scene, not just parented.
+	#
+	# DiagnosticsLog builds every watch list off get_tree().current_scene, so
+	# without this the autoload profiles the harness - a Node with no meshes
+	# and no rects - and the log comes back with no BLACKWATCH and no
+	# BLACKOUT at all, which reads exactly like "nothing is covering the
+	# screen" instead of "nothing was looked at".
+	get_tree().current_scene = scene
+
+	# And rebuilt, because announcing it is not enough either: the collector
+	# runs a second after SceneChanger reports a change finished, and nothing
+	# here goes through SceneChanger.
+	var diag: Node = get_node_or_null(^"/root/DiagnosticsLog")
+	if diag != null and diag.has_method("rescan_scene"):
+		diag.call("rescan_scene")
+
 	_silence_gameover(scene)
 	for _i in 5: await get_tree().process_frame
 	_dump(scene, "tras _ready")
@@ -229,10 +246,55 @@ func _dump_3d(scene: Node) -> void:
 	for row in rows.slice(0, 14):
 		var geo: GeometryInstance3D = row[2]
 		var r: Rect2 = row[1]
-		print("OUT     %4dx%-4d en %5d,%-5d %s %-18s %s" % [
+		print("OUT     %4dx%-4d en %5d,%-5d %s %-42s %s" % [
 			roundi(r.size.x), roundi(r.size.y), roundi(r.position.x), roundi(r.position.y),
 			"(recortada)" if row[3] else "           ",
-			geo.get_class(), scene.get_path_to(geo)])
+			scene.get_path_to(geo), _materials_of(geo)])
+
+
+## What is actually bound on each of a mesh's surfaces.
+##
+## Asked override-first and mesh-second, which is the order the renderer uses -
+## the same order _collect_blackout_watch already applies. It matters twice
+## over here: a material that lives on the mesh RESOURCE rather than on an
+## override is one `Settings.graphics_disable_shader_effects` cannot strip, so
+## it survives every quality preset, and it is invisible to any sweep that only
+## reads the node.
+##
+## Prints albedo and shading mode because that is the question being asked -
+## "flat opaque black" is then something this output states rather than
+## something to read off a screenshot.
+func _materials_of(geo: GeometryInstance3D) -> String:
+	if geo.material_override != null:
+		return "override:" + _describe(geo.material_override)
+	var mesh_node := geo as MeshInstance3D
+	if mesh_node == null or mesh_node.mesh == null:
+		return "-"
+	var out: PackedStringArray = PackedStringArray()
+	for surface in mesh_node.mesh.get_surface_count():
+		var mat: Material = mesh_node.get_surface_override_material(surface)
+		var where: String = "surf%d" % surface
+		if mat == null:
+			mat = mesh_node.mesh.surface_get_material(surface)
+			where = "malla%d" % surface
+		out.append(where + ":" + _describe(mat))
+	return " ".join(out)
+
+
+func _describe(mat: Material) -> String:
+	if mat == null:
+		return "SIN MATERIAL"
+	var shader_mat := mat as ShaderMaterial
+	if shader_mat != null:
+		return "shader(%s)" % (shader_mat.shader.resource_path.get_file() if shader_mat.shader else "?")
+	var std := mat as BaseMaterial3D
+	if std == null:
+		return mat.get_class()
+	var c: Color = std.albedo_color
+	return "albedo(%.2f,%.2f,%.2f,%.2f)%s%s" % [
+		c.r, c.g, c.b, c.a,
+		" UNSHADED" if std.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED else "",
+		"" if std.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED else " transp%d" % std.transparency]
 
 
 func _rect_of(item: CanvasItem) -> Rect2:

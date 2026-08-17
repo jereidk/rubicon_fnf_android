@@ -1340,6 +1340,74 @@ The remaining place to look is 3D: `scene_probe`'s `3d` mode projects every
 visible mesh through the live camera, and a mesh in front of it covers the
 stage, draws under every CanvasLayer, and is invisible to any CanvasItem walk.
 
+### And the watcher could not see 3D at all
+
+Two facts from the player close the search space: the black is **flat opaque
+black with alpha 1**, nothing visible underneath, and it is **there during the
+intro but the intro camera does not frame it** - it appears when the gameplay
+camera comes in. A 2D overlay does not care where the camera points. A blend
+cannot be opaque. So it is geometry.
+
+Which the instrument built to name it could not report. `_blackout_watch` is
+typed `Array[CanvasItem]` and `_can_cover_the_screen()` only admits
+`ColorRect`, `TextureRect`, `Panel`, `SubViewportContainer` and `Sprite2D`.
+`_visual3d_watch` held all 96 of Chimera's meshes, collected in the same walk,
+and only ever fed the `vis3d=N/M` counter. `_poll_blackouts_3d()` now projects
+them and reports coverage, the rect, and **the material each surface binds**.
+
+Three things it has to get right, all of which it got wrong first:
+
+- **Skip `Light3D`.** They are `VisualInstance3D` too and their AABB is their
+  *range*: `AmbLight`, `MoonSpotlight` and `TvLight` all reported covering the
+  whole screen. `GeometryInstance3D` is the set that puts pixels down.
+- **`negro=` is ANY surface, not every.** The windows bind white glass on
+  surface 0 and `albedo(0,0,0,1)` on surface 1; requiring all of them black
+  reported both as `negro=no`.
+- **Slice the list.** 96 meshes x 8 `unproject_position()` calls every frame is
+  ~770 projections a frame in GDScript, on the phone being measured.
+  `VISUAL3D_PER_FRAME = 16` covers the list several times a second.
+
+And unlike the 2D half, it **closes explicitly when a node is freed** rather
+than `continue`-ing past it. That guard is why a missing "deja de taparla" is
+ambiguous, and it nearly convicted `Intro/OutsideDoor` off a device log when
+the census (`delta=[… Sprite2D-4 Node2D-3]`, `opaque=[]`) showed `103_stroll`
+had freed it on schedule.
+
+### The two flat-black meshes, and why they are not a port bug
+
+The sweep with materials finds exactly two: `window_001` and `window_004`, both
+`albedo(0.00,0.00,0.00,1.00)` on surface 1, from
+`models/house/mat/window.tres` - black albedo, emission enabled,
+**`emission_energy_multiplier = 0.0`**. Next to it sits `window_glow.tres`,
+byte-identical but energy `4.5`, referenced by **nothing**. And
+`chimera_house.gd` is:
+
+```gdscript
+func glow():
+	$window_004.set_surface_override_material(1, )
+```
+
+Which looks exactly like the smoking gun and is not. That text is **GDRE's
+decompiler output committed verbatim** - it dropped the second argument, almost
+certainly the `preload()` of `window_glow.tres`. It still *parses*, because
+GDScript allows a trailing comma, so it is a one-argument call to a two-argument
+method that would fail at runtime. But `tools/read_pck_scripts.gd -- glow` over
+all 260 of the pck's scripts finds `glow` in exactly one place, `Peepers.gdc`'s
+unrelated `glow_node`. **Nothing calls `glow()` in the original either**, so the
+windows are black on PC too and the glow material is the mod's own dead code.
+Do not "restore" it.
+
+The landmine to carry forward: **never commit decompiler output without
+reading it.** GDRE silently drops arguments, not just type annotations.
+
+### The renderer cannot answer lighting questions
+
+`scene_shot` under Mesa does not apply the `LightmapGI` (`chimera_base.lmbake`),
+so all of Chimera renders at a mean luminance of 13 out of 255. Hiding both
+windows changed the frame by 0.1. It answers "what is on screen and where"; it
+cannot answer "is this lit" or "is the stage black", and a null result from it
+proves nothing about either.
+
 ## Open problems
 
 1. **Chimera's 30fps ceiling is GPU-bound** (`gpu` 38.8ms against a 38.1ms

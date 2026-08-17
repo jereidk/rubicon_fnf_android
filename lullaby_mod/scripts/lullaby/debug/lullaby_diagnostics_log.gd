@@ -1292,6 +1292,31 @@ const BLACKOUT_MAX_LUMA := 0.15
 var _blackout_watch: Array[CanvasItem] = []
 var _blackout_on: Dictionary = {}
 
+## The same gate for meshes, and deliberately looser than the 2D one.
+##
+## An AABB projected through the camera overestimates - a plane seen edge-on
+## still has a big box - so this cannot be tightened into a judgement the way
+## the 2D coverage can. It is a "look at this" threshold, not a verdict, and
+## the line carries the material so the reader can tell a wall from a black
+## quad at a glance.
+const BLACKOUT3D_MIN_COVERAGE := 0.25
+
+## Albedo at or under this on every channel, with nothing emitting, is what
+## "flat black" means for the purposes of the negro= flag.
+const BLACKOUT3D_MAX_ALBEDO := 0.06
+
+var _blackout3d_on: Dictionary = {}
+
+## Where the round-robin over _visual3d_watch is up to.
+##
+## Chimera has 96 meshes and each one costs eight unproject_position() calls,
+## so doing the whole list every frame is ~770 projections per frame in
+## GDScript on a phone that is already the thing being measured. A slice per
+## frame covers the list several times a second, which is far finer than any
+## blackout anyone has reported.
+var _visual3d_cursor: int = 0
+const VISUAL3D_PER_FRAME := 16
+
 ## When each watched item last became visible, for the raw VIS transitions.
 ## Separate from _blackout_on, which only tracks the ones that pass the
 ## coverage gate - the whole point of VIS is to not be filtered by it.
@@ -1696,6 +1721,167 @@ func _poll_blackouts() -> void:
 				_scene_relative_path(item), (now - int(_blackout_on[item])) / 1000.0,
 			])
 			_blackout_on.erase(item)
+
+	_poll_blackouts_3d(now)
+
+## The same watch, for meshes.
+##
+## Everything above only ever looks at CanvasItems - _blackout_watch is typed
+## Array[CanvasItem] and _can_cover_the_screen() only admits ColorRect,
+## TextureRect, Panel, SubViewportContainer and Sprite2D. So the instrument
+## built to name Chimera's black graphic was structurally unable to name it if
+## it was geometry, which is the one category left after the report came back
+## as "flat opaque black, and it is there during the intro but the intro
+## camera does not frame it". A 2D overlay does not care where the camera
+## points; a mesh does.
+##
+## _visual3d_watch is already filled by the same tree walk, so there is no new
+## traversal here - only the projection, which is why it is sliced.
+func _poll_blackouts_3d(now: int) -> void:
+	if _visual3d_watch.is_empty():
+		return
+	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if camera == null:
+		return
+	var screen: Vector2 = get_tree().root.get_visible_rect().size
+	var screen_px: float = maxf(1.0, screen.x * screen.y)
+
+	var count: int = mini(VISUAL3D_PER_FRAME, _visual3d_watch.size())
+	for _i in count:
+		if _visual3d_cursor >= _visual3d_watch.size():
+			_visual3d_cursor = 0
+		var geo: VisualInstance3D = _visual3d_watch[_visual3d_cursor]
+		_visual3d_cursor += 1
+
+		# Lights are VisualInstance3D too and their AABB is their RANGE, not
+		# anything they paint - AmbLight, MoonSpotlight and TvLight all read as
+		# covering the whole screen, which is true of their influence and
+		# useless here. GeometryInstance3D is meshes, particles and decals: the
+		# things that put pixels down.
+		if not (geo is GeometryInstance3D):
+			continue
+
+		# Closed explicitly rather than skipped. _poll_blackouts() above
+		# `continue`s past a freed node, which means a missing "deja de
+		# taparla" reads the same as one that is still covering - and that
+		# nearly got Intro/OutsideDoor convicted off a device log when the
+		# census showed 103_stroll had freed it on schedule.
+		if not is_instance_valid(geo):
+			if _blackout3d_on.has(geo):
+				_entry("BLACKOUT", "(malla liberada) deja de taparla tras %.1fs" % [
+					(now - int(_blackout3d_on[geo])) / 1000.0,
+				])
+				_blackout3d_on.erase(geo)
+			continue
+
+		var box: Rect2 = _mesh_screen_rect(geo, camera, screen)
+		var covered: float = (box.size.x * box.size.y) / screen_px
+		var covering: bool = geo.is_visible_in_tree() and covered >= BLACKOUT3D_MIN_COVERAGE
+		var was: bool = _blackout3d_on.has(geo)
+		if covering and not was:
+			_blackout3d_on[geo] = now
+			_entry("BLACKOUT", "%s (3D) tapa la pantalla (cubre=%.2f %dx%d en %d,%d negro=%s %s)" % [
+				_scene_relative_path(geo), covered,
+				int(box.size.x), int(box.size.y), int(box.position.x), int(box.position.y),
+				"si" if _is_flat_black(geo) else "no", _material_summary(geo),
+			])
+		elif was and not covering:
+			_entry("BLACKOUT", "%s (3D) deja de taparla tras %.1fs" % [
+				_scene_relative_path(geo), (now - int(_blackout3d_on[geo])) / 1000.0,
+			])
+			_blackout3d_on.erase(geo)
+
+## A mesh's AABB projected onto the screen, clipped to it.
+##
+## Overestimates, and has to: the eight corners of a box bound the geometry,
+## not trace it. A corner behind the camera has no projection at all -
+## unproject_position() mirrors it to the far side of the screen - so those are
+## dropped rather than fed in, which is what stops a mesh the camera is
+## standing inside from reporting an inside-out rect.
+func _mesh_screen_rect(geo: VisualInstance3D, camera: Camera3D, screen: Vector2) -> Rect2:
+	var aabb: AABB = geo.get_aabb()
+	var xform: Transform3D = geo.global_transform
+	var lo: Vector2 = Vector2.INF
+	var hi: Vector2 = -Vector2.INF
+	for i in 8:
+		var world: Vector3 = xform * aabb.get_endpoint(i)
+		if camera.is_position_behind(world):
+			continue
+		var point: Vector2 = camera.unproject_position(world)
+		lo = lo.min(point)
+		hi = hi.max(point)
+	if lo.x == INF:
+		return Rect2()
+	return Rect2(lo, hi - lo).intersection(Rect2(Vector2.ZERO, screen))
+
+## What is actually bound on each surface, override first and mesh second.
+##
+## That order is the renderer's, and it is the same one _collect_blackout_watch
+## uses when counting unique materials. It matters here because a material that
+## lives on the mesh RESOURCE rather than on an override is one
+## graphics_disable_shader_effects cannot strip, so it survives every quality
+## preset - exactly the shape of a graphic that does not go away whatever the
+## player lowers.
+func _material_summary(geo: VisualInstance3D) -> String:
+	if geo.material_override != null:
+		return "override:" + _material_name(geo.material_override)
+	var mesh_node := geo as MeshInstance3D
+	if mesh_node == null or mesh_node.mesh == null:
+		return "-"
+	var out: PackedStringArray = PackedStringArray()
+	for surface in mini(mesh_node.mesh.get_surface_count(), 4):
+		var mat: Material = mesh_node.get_surface_override_material(surface)
+		var where: String = "sup%d" % surface
+		if mat == null:
+			mat = mesh_node.mesh.surface_get_material(surface)
+			where = "malla%d" % surface
+		out.append(where + ":" + _material_name(mat))
+	return " ".join(out)
+
+func _material_name(mat: Material) -> String:
+	if mat == null:
+		return "sin-material"
+	var shader_mat := mat as ShaderMaterial
+	if shader_mat != null:
+		return "shader(%s)" % (shader_mat.shader.resource_path.get_file() if shader_mat.shader != null else "?")
+	var base := mat as BaseMaterial3D
+	if base == null:
+		return mat.get_class()
+	var albedo: Color = base.albedo_color
+	return "albedo(%.2f,%.2f,%.2f,%.2f)" % [albedo.r, albedo.g, albedo.b, albedo.a]
+
+## Whether ANY surface this mesh binds is opaque and unlit-dark.
+##
+## Any, not every, and that distinction is the whole value of the flag.
+## Chimera's window_001 and window_004 bind white glass on surface 0 and
+## albedo(0,0,0,1) on surface 1; requiring every surface to be black reported
+## both of them as negro=no, which is the answer that would have sent this
+## round the wrong way for the ninth time.
+##
+## Emission counts as not-black even at low energy: a material that emits is
+## one somebody meant to be seen. mat/window.tres is the edge case - black
+## albedo, emission enabled, energy 0.0 - and it reads as black, correctly,
+## because at energy zero it emits nothing.
+func _is_flat_black(geo: VisualInstance3D) -> bool:
+	var mesh_node := geo as MeshInstance3D
+	if mesh_node == null or mesh_node.mesh == null:
+		return false
+	for surface in mesh_node.mesh.get_surface_count():
+		var mat: Material = mesh_node.get_surface_override_material(surface)
+		if mat == null:
+			mat = mesh_node.mesh.surface_get_material(surface)
+		var base := mat as BaseMaterial3D
+		if base == null:
+			continue
+		if base.albedo_color.a < 1.0:
+			continue
+		var albedo: Color = base.albedo_color
+		if maxf(albedo.r, maxf(albedo.g, albedo.b)) > BLACKOUT3D_MAX_ALBEDO:
+			continue
+		if base.emission_enabled and base.emission_energy_multiplier > 0.0:
+			continue
+		return true
+	return false
 
 ## Whether this light contributes anything to the frame the player is looking
 ## at, rather than just existing somewhere in the tree.
@@ -2355,6 +2541,17 @@ func _on_settings_applied() -> void:
 ## starting, or a cutscene the player says "it breaks here".
 func mark(what: String) -> void:
 	_entry("MARK", what)
+
+## Rebuilds every watch list against whatever is current_scene now.
+##
+## Normally this happens a second after SceneChanger reports a scene change
+## finished, which covers the game. It does not cover a scene put into the tree
+## by hand - tools/harness/scene_probe.tscn does exactly that, and without this
+## the autoload profiles the harness instead: no BLACKWATCH, no BLACKOUT, and a
+## log that reads like "nothing covers the screen" when the truth is "nothing
+## was looked at".
+func rescan_scene() -> void:
+	_collect_blackout_watch()
 
 func _on_error_logged(kind: String, message: String, err: int) -> void:
 	_entry(kind.to_upper(), "%s (error %d)" % [message.replace("\n", " | "), err])
