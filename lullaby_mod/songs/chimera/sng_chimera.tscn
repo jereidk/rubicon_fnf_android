@@ -142,6 +142,7 @@
 [ext_resource type="Texture2D" uid="uid://dhf1qoiosh3st" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/cut_serena_cinematics_1.png" id="301"]
 [ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="302"]
 [ext_resource type="Script" uid="uid://m6u9t592h4f4" path="res://lullaby_mod/scripts/lullaby/lullaby_force_screen_aspect.gd" id="303"]
+[ext_resource type="Script" path="res://lullaby_mod/songs/chimera/scripts/chimera_intro_group_gate.gd" id="304"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chimera_action"]
 bg_color = Color(0.09, 0.09, 0.12, 0.55)
@@ -15545,3 +15546,8 @@ volume_db = -2.4474702
 [editable path="KalosPause/PauseMenu/MenuAspectRatio/Menu/Main/Credits"]
 [editable path="KalosPause/PauseMenu/MenuAspectRatio/Menu/Main/Exit"]
 [editable path="ChimeraPause"]
+
+[node name="IntroGroupGate" type="Node" parent="." node_paths=PackedStringArray("intro_group", "sequence_player")]
+script = ExtResource("304")
+intro_group = NodePath("../Intro")
+sequence_player = NodePath("../Sequences/SequencePlayer")
