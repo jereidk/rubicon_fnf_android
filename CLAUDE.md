@@ -406,9 +406,16 @@ The result explains the shop-vs-Chimera gap exactly:
   caster** - two, `MoonSpotlight` and `TvLight`. Every other scene has none,
   and the shop, with more lights and more draw calls, costs 17.3ms against
   Chimera's 38.8ms.
-- Chimera's `Rain`, `NTSC` and the `Ray` godray box all ship `visible = false`,
-  so they are **not** the steady cost. That kills the old "rain/godrays" theory
-  for the 30fps ceiling - they are cutscene-only.
+- Chimera's `Rain`, `NTSC` and the `Ray` godray box all ship `visible = false`.
+  **What they ship as is not what they run as, and this bullet used to conclude
+  the opposite.** Running the scene and reading the tree back (`scene_probe`,
+  below) says NTSC is on from `_ready` for the whole song at
+  `graphics_post_processing = HIGH`, because `Settings/PostProcessingTree`
+  holds it there - and `Environment/Lights/Ray` is on during gameplay, at
+  1738x1080 of screen at `scene@60` and 1210x1080 at `scene@100`. Only `Rain`
+  is really cutscene-only. Both survivors are full-screen per-pixel work on a
+  scene whose problem is per-pixel, and `shd_godrays` sits on the `Ray`
+  BoxMesh's own material, so "Reduce Visual Effects" never strips it.
 - **The shadow atlas does not scale with `graphics_render_scale`.** That is why
   dropping render scale to 0.50 did not help: the colour pass halved to
   800x360, the shadow maps kept rendering at the full atlas size.
@@ -1276,6 +1283,39 @@ gates `set_process` on all of them.
 `fx=N(effect=M full=K)` in the CENSUS line is what found this: it counts
 visible CanvasItems carrying a ShaderMaterial, and it tracked the song's
 `Stage/Peepers:visible` keys one for one against `draw`.
+
+## What the black graphic is not, measured rather than reasoned
+
+`tools/harness/scene_probe.tscn` lists every visible CanvasItem that actually
+paints, with its rect in base pixels, at any position of the song. Run over
+Chimera at `_ready` and at 40/60/80/100/110/120/140/160s, **the whole scene
+never has more than a handful**, and not one of them is near the 1440x1080 at
+x=240 the screenshots were measured at:
+
+| | | |
+|---|---|---|
+| `UILayer/NTSC` | 1920x1080 at 0,0 | on by design at post-processing HIGH |
+| `UILayer/LowerHealthRect` | 1920x1080 at 0,0 | alpha follows health |
+| `UILayer/HeartVignette` | 1464x1080 at 228,0 | alpha 0 except during the heartbeat |
+| `Intro/ColorRect2` | 1957x1103 at 0,0 | the intro fade, `queue_free`d at 34.6s |
+
+So it is not an authored 2D overlay. Every candidate that was argued about from
+the scene text - the pause `AspectRatioContainer`, `CalmThineself`, `Borders`,
+`HeartVignette` - is either never visible or the wrong size, and this settles
+all of them at once.
+
+`LowerHealthRect` is the only thing in the scene shaped like the report: a
+full-screen opaque black `ColorRect` that sits **before** `GameUI` in
+`UILayer`, so it covers the stage and not the notes, and whose alpha is
+`remap(health, 0, max/2, 1, 0)` - it appears the moment health drops under half
+and deepens as the player loses. Chimera starts at exactly `max/2`. It is
+**byte-identical to the pck's**, so it is not a port bug, but nothing else
+matches "over the stage, not the notes, worse when Hex arrives, clears again".
+Worth asking whether the black tracks the health bar before looking further.
+
+The remaining place to look is 3D: `scene_probe`'s `3d` mode projects every
+visible mesh through the live camera, and a mesh in front of it covers the
+stage, draws under every CanvasLayer, and is invisible to any CanvasItem walk.
 
 ## Open problems
 
