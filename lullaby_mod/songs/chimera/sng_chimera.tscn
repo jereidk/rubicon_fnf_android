@@ -3968,7 +3968,7 @@ tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "clips": PackedStringArray("intro", "intro-end"),
-"times": PackedFloat32Array(0, 14.791667)
+"times": PackedFloat32Array(0, 14.416667)
 }
 tracks/1/type = "method"
 tracks/1/imported = false
