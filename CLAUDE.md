@@ -1400,6 +1400,48 @@ Do not "restore" it.
 The landmine to carry forward: **never commit decompiler output without
 reading it.** GDRE silently drops arguments, not just type annotations.
 
+### FRAME: the log measures the picture, not the scene
+
+Every other instrument in `lullaby_diagnostics_log.gd` describes the scene and
+hopes the frame follows. Nine rounds of the black graphic have shown that hoping
+is not enough - the tree has been swept, projected, diffed against the pck and
+cleared on every axis, and the player still sees a black rectangle. `FRAME`
+reads the rendered frame back and measures it:
+
+```
+FRAME negro 960x720 en 160,0 (cubre=0.75) borde=0px luma_media=0.088
+      leido=1280x720 en 6.9ms perfil=[----                        ----]
+      sin_luz=sigue(antes 960x720 ahora 960x720)
+```
+
+That line is from a validation run with a synthetic 1440x1080 rect authored at
+x=240 in base coordinates - and it reports 960x720 at x=160 in the 1280x720
+frame, which is the number the screenshots were measured at, to the pixel. The
+instrument reproduces the report before being pointed at the bug.
+
+Four things it has to get right, and three of them were wrong first:
+
+- **Rows must be counted inside the column band, not across the width.** The
+  first version crossed an independent x-run with an independent y-run and
+  reported `negro 142x0` - height zero - for exactly the shape being hunted: a
+  centred rectangle leaves every row only 75% dark, under any threshold worth
+  having.
+- **The letterbox is reported separately** (`borde=`). The widest run that
+  touches an edge is the pillarbox and is not the bug; the widest run that
+  touches neither is. That split is the player's own instruction.
+- **`sin_luz=` is what decides where to look next.** On the first big dark
+  region the next frame is drawn once with `DEBUG_DRAW_UNSHADED`, which throws
+  away every light and lightmap and paints raw albedo. Survives it → geometry
+  or a material, and the 3D blackout list names it. Vanishes → nothing is
+  covering anything, the scene is simply not lit there, and no amount of
+  node-hunting would ever have found that.
+- It costs a GPU-to-CPU readback, 6.5-8.8ms measured, so it runs every 8s, is
+  scaled to 96 columns before any arithmetic, and prints its own cost.
+
+The `perfil=` ramp is 32 buckets of mean column luminance. Read it when the
+rect looks wrong: it shows the shape of the frame directly, and a black band
+that the run detector misses is still visible in it.
+
 ### The renderer cannot answer lighting questions
 
 `scene_shot` under Mesa does not apply the `LightmapGI` (`chimera_base.lmbake`),

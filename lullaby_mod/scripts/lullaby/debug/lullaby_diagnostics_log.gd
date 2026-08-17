@@ -536,6 +536,32 @@ var _residue_walk_usec: int = 0
 ## it, it is changing it.
 const PROBE_BUDGET_USEC := 8_000
 
+## How often the frame itself is read back and measured.
+##
+## Every other instrument in this file describes the scene and hopes the frame
+## follows. Nine rounds of the black graphic have shown that hoping is not
+## enough: the scene tree has been swept, projected, diffed against the pck and
+## cleared on every axis, and the player still sees a black rectangle. So this
+## one measures the picture - the only witness nobody has questioned.
+##
+## It is a GPU-to-CPU readback and it stalls, which is why it is rare, scaled
+## down before anything is computed, and reports its own cost like probe= does.
+const FRAME_SAMPLE_SECONDS := 8.0
+
+## Width the frame is scaled to before being measured. 96 columns resolves a
+## rectangle to about 1% of the screen, which is far finer than any report.
+const FRAME_SAMPLE_W := 96
+
+## Luma at or under this counts as black. Deliberately strict: the report is
+## "flat black with alpha 1, nothing visible underneath", not "dark".
+const FRAME_DARK_LUMA := 0.06
+
+## How much of a column has to be black for the column to count as black.
+const FRAME_DARK_RUN := 0.85
+
+## Coverage at which the unshaded probe is worth one frame of flicker.
+const FRAME_PROBE_MIN := 0.15
+
 ## Consecutive LOADING samples that reported the same progress fraction, and
 ## when the run of them started.
 ##
@@ -941,6 +967,11 @@ func _process(delta: float) -> void:
 	# lasts ten. The list is short, so this is a handful of reads.
 	_poll_blackouts()
 
+	_time_since_frame += delta
+	if _frame_probe_state == 1 or _time_since_frame >= FRAME_SAMPLE_SECONDS:
+		_time_since_frame = 0.0
+		_measure_frame()
+
 	_time_since_census += delta
 	if _time_since_census >= CENSUS_SECONDS:
 		_time_since_census = 0.0
@@ -1317,6 +1348,14 @@ var _blackout3d_on: Dictionary = {}
 var _visual3d_cursor: int = 0
 const VISUAL3D_PER_FRAME := 16
 
+var _time_since_frame: float = 0.0
+
+## 0 idle, 1 unshaded set and waiting for it to be drawn.
+var _frame_probe_state: int = 0
+var _frame_probe_done: bool = false
+var _frame_probe_rect: Rect2i = Rect2i()
+var _frame_usec: int = 0
+
 ## When each watched item last became visible, for the raw VIS transitions.
 ## Separate from _blackout_on, which only tracks the ones that pass the
 ## coverage gate - the whole point of VIS is to not be filtered by it.
@@ -1364,6 +1403,13 @@ func _collect_blackout_watch() -> void:
 	_mixer_watch.clear()
 	_visual3d_watch.clear()
 	_particles_watch.clear()
+
+	# Per scene, so every song gets its own unshaded probe - and so a scene
+	# change during one cannot leave the viewport stuck in a debug draw mode.
+	_frame_probe_done = false
+	if _frame_probe_state == 1 and is_inside_tree():
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
+	_frame_probe_state = 0
 	_sequence_player = null
 	_physics_nodes = 0
 	_skeleton_bones = 0
@@ -1882,6 +1928,151 @@ func _is_flat_black(geo: VisualInstance3D) -> bool:
 			continue
 		return true
 	return false
+
+## Reads the rendered frame back and measures the black region in it.
+##
+## The one instrument here that does not trust the scene tree. Everything else
+## in this file answers "what is in the scene and where should it be"; this
+## answers "what is on the screen", which after nine rounds of the black
+## graphic is the question that has never actually been asked of the device.
+##
+## Scaled to FRAME_SAMPLE_W before anything is computed, because the readback
+## is the cost and the arithmetic is not. The rect is reported in the frame's
+## own pixels - the picture the player photographed - so it can be compared
+## against a screenshot without converting anything.
+##
+## `sin_luz=` is the part that decides where to look next. When a big enough
+## dark region shows up, the next frame is drawn once with
+## DEBUG_DRAW_UNSHADED, which throws away every light and lightmap and paints
+## raw albedo. If the region survives that, it is geometry or a material and
+## the 3D blackout list names it. If it vanishes, nothing is covering anything
+## and the scene is simply not lit there - a completely different bug, and one
+## no amount of node-hunting would ever have found.
+func _measure_frame() -> void:
+	if not is_inside_tree():
+		return
+	var texture: ViewportTexture = get_viewport().get_texture()
+	if texture == null:
+		return
+	var started: int = Time.get_ticks_usec()
+	var img: Image = texture.get_image()
+	if img == null or img.get_width() <= 0:
+		return
+
+	var w: int = FRAME_SAMPLE_W
+	var h: int = maxi(1, int(round(float(FRAME_SAMPLE_W) * float(img.get_height()) / float(img.get_width()))))
+	var full: Vector2i = Vector2i(img.get_width(), img.get_height())
+	img.resize(w, h, Image.INTERPOLATE_BILINEAR)
+
+	var dark_cols: PackedInt32Array = PackedInt32Array()
+	dark_cols.resize(w)
+	var luma_sum: float = 0.0
+	var ramp: String = " .:-=+*#%@"
+	var col_luma: PackedFloat32Array = PackedFloat32Array()
+	col_luma.resize(w)
+	for x in w:
+		var dark: int = 0
+		var col: float = 0.0
+		for y in h:
+			var c: Color = img.get_pixel(x, y)
+			var luma: float = c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722
+			col += luma
+			luma_sum += luma
+			if luma <= FRAME_DARK_LUMA:
+				dark += 1
+		dark_cols[x] = dark
+		col_luma[x] = col / float(h)
+
+	# The widest black band that does not touch an edge, which is the player's
+	# "ignore the bars at the sides, measure what is inside them".
+	var band: Vector2i = _widest_run(dark_cols, h, true)
+	var edges: Vector2i = _widest_run(dark_cols, h, false)
+
+	# Rows counted only inside that band. Measuring them across the whole
+	# width is what the first version did and it reported height 0 for exactly
+	# the shape being hunted: a centred rectangle leaves every row only 75%
+	# dark, under any threshold worth having.
+	var top: int = 0
+	var bottom: int = -1
+	if band.y > 0:
+		for y in h:
+			var dark_in_band: int = 0
+			for x in range(band.x, band.x + band.y):
+				var c2: Color = img.get_pixel(x, y)
+				if c2.r * 0.2126 + c2.g * 0.7152 + c2.b * 0.0722 <= FRAME_DARK_LUMA:
+					dark_in_band += 1
+			if float(dark_in_band) / float(maxi(1, band.y)) >= FRAME_DARK_RUN:
+				if bottom < 0:
+					top = y
+				bottom = y
+	var box: Rect2i = Rect2i(band.x, top, band.y, maxi(0, bottom - top + 1) if bottom >= 0 else 0)
+	var covered: float = float(box.size.x * box.size.y) / float(maxi(1, w * h))
+
+	# Back to the frame's own pixels, which is what a screenshot is measured in.
+	var sx: float = float(full.x) / float(w)
+	var sy: float = float(full.y) / float(h)
+	var shown: Rect2i = Rect2i(
+		int(box.position.x * sx), int(box.position.y * sy),
+		int(box.size.x * sx), int(box.size.y * sy))
+
+	var profile: String = ""
+	var buckets: int = 32
+	for b in buckets:
+		var lo: int = int(float(b) * float(w) / float(buckets))
+		var hi: int = maxi(lo + 1, int(float(b + 1) * float(w) / float(buckets)))
+		var acc: float = 0.0
+		for x in range(lo, mini(hi, w)):
+			acc += col_luma[x]
+		var mean: float = acc / float(maxi(1, mini(hi, w) - lo))
+		profile += ramp[clampi(int(mean * float(ramp.length())), 0, ramp.length() - 1)]
+
+	# The unshaded pass, resolved across two calls: set it, let the frame draw,
+	# measure again on the next one, put it back.
+	var unshaded: String = ""
+	if _frame_probe_state == 1:
+		_frame_probe_state = 0
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
+		var still: bool = covered >= FRAME_PROBE_MIN * 0.5
+		unshaded = " sin_luz=%s(antes %dx%d ahora %dx%d)" % [
+			"sigue" if still else "desaparece",
+			_frame_probe_rect.size.x, _frame_probe_rect.size.y,
+			shown.size.x, shown.size.y,
+		]
+	elif not _frame_probe_done and covered >= FRAME_PROBE_MIN:
+		_frame_probe_done = true
+		_frame_probe_state = 1
+		_frame_probe_rect = shown
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
+
+	_frame_usec = Time.get_ticks_usec() - started
+	_entry("FRAME", "negro %dx%d en %d,%d (cubre=%.2f) borde=%dpx luma_media=%.3f leido=%dx%d en %.1fms perfil=[%s]%s" % [
+		shown.size.x, shown.size.y, shown.position.x, shown.position.y, covered,
+		int(float(edges.y) * sx),
+		luma_sum / float(maxi(1, w * h)), full.x, full.y,
+		float(_frame_usec) / 1000.0, profile, unshaded,
+	])
+
+## The widest contiguous run of black columns, as (start, width).
+##
+## `interior` picks the widest run that touches neither edge; false picks the
+## widest that does. The split is the player's own instruction - the pillarbox
+## bars at the sides are not the bug and were explicitly excluded from every
+## measurement they gave - and reporting the edge width separately is what
+## makes the two distinguishable in the log instead of merged into one number.
+func _widest_run(cols: PackedInt32Array, h: int, interior: bool) -> Vector2i:
+	var best: Vector2i = Vector2i.ZERO
+	var run: int = -1
+	var n: int = cols.size()
+	for x in n + 1:
+		var is_dark: bool = x < n and float(cols[x]) / float(maxi(1, h)) >= FRAME_DARK_RUN
+		if is_dark and run < 0:
+			run = x
+		elif not is_dark and run >= 0:
+			var touches_edge: bool = run == 0 or x == n
+			if touches_edge != interior and x - run > best.y:
+				best = Vector2i(run, x - run)
+			run = -1
+	return best
 
 ## Whether this light contributes anything to the frame the player is looking
 ## at, rather than just existing somewhere in the tree.
