@@ -1408,6 +1408,23 @@ windows changed the frame by 0.1. It answers "what is on screen and where"; it
 cannot answer "is this lit" or "is the stage black", and a null result from it
 proves nothing about either.
 
+That is the **GL Compatibility** renderer, which is what `--rendering-driver
+opengl3` selects and which has no lightmap support. The device runs Forward
+Mobile on Vulkan, so any conclusion drawn from a `scene_shot` frame about
+darkness is about the harness, not the game. An A/B of the two black windows
+was reported as a clean null on exactly this mistake.
+
+**Matching the device's renderer here does not work, and the attempt is not
+worth repeating.** `mesa-vulkan-drivers` gives lavapipe, and
+`--rendering-method mobile --rendering-driver vulkan` really does bring up
+"Vulkan 1.4.318 - Forward Mobile", lightmap and all. What it cannot do is load
+the song: lavapipe has no ASTC, so every one of the ~500 textures is
+decompressed to RGBA8 on the CPU, and the process sits inside `load()` at 5%
+CPU indefinitely - 20 minutes in, still no first frame, on 16GB of RAM.
+Stripping the scene after `instantiate()` does not help either, because the
+PackedScene has already pulled every ext_resource by then. Reconstructing a
+cut-down stage by hand would work but stops being the scene under test.
+
 ## Open problems
 
 1. **Chimera's 30fps ceiling is GPU-bound** (`gpu` 38.8ms against a 38.1ms
