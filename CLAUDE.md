@@ -22,9 +22,27 @@ Target device for every measurement here: **moto g53 5G, Adreno 619,
 `/home/user/rubicon_fnf_android` is a *different* checkout on another branch
 and does not have the mod. Do not confuse them.
 
-**Godot cannot open a window here** (no GPU - it hangs, Xvfb included). Only
-`--headless` works. Anything visual has to be verified another way; see
-"Rendering a preview" below.
+**Godot renders here now, under Xvfb.** This note used to say it could not -
+"no GPU, it hangs, Xvfb included" - and that was true for months and shaped
+everything below it. It is no longer true: Xvfb and xvfb-run are installed,
+Mesa gives a software GL, and the engine exits cleanly.
+
+```bash
+timeout 90 xvfb-run -a --server-args="-screen 0 800x600x24" \
+  godot --rendering-driver opengl3 --path $D m.tscn
+```
+
+Inside the scene, wait two `RenderingServer.frame_post_draw` and then
+`get_viewport().get_texture().get_image().save_png(...)`. Verified: a
+300x200 ColorRect at (50,50) comes out at exactly that size and position.
+`--headless` still has no framebuffer, so the driver flag is what matters,
+not the display alone.
+
+What this does NOT unlock is loading the real project - its resources are
+still unimported here and the autoloads still do not exist under `--script`,
+so `sng_chimera.tscn` will not open any more than it did before. What it
+unlocks is rendering *isolated* scenes for real instead of reproducing their
+maths in PIL, which is what the section below had to settle for.
 
 ---
 
