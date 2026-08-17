@@ -76,7 +76,22 @@ enum TouchLookScheme { DRAG_ZONES = 0, JOYSTICK = 1 }
 var display_window_mode: Window.Mode = Window.Mode.MODE_FULLSCREEN
 var display_resolution: Vector2i = Vector2i(1366, 768)
 var display_vsync: DisplayServer.VSyncMode = DisplayServer.VSyncMode.VSYNC_DISABLED
+## Frame rate cap. A real number is used as-is, 0 is unlimited, and
+## TARGET_FPS_NATIVE follows whatever the display is actually running at.
 var display_target_fps: int = 60
+
+## display_target_fps value meaning "match the screen".
+##
+## -1 rather than a plausible rate, so it can never collide with a real one:
+## the row already offers 30 through 240 and 0 for unlimited, and a phone set
+## to 90Hz or 120Hz should follow the panel rather than have the player guess
+## which of those numbers their own device is on.
+##
+## Resolved at apply time, not stored resolved, because the refresh rate can
+## change while the game is running - Android switches panels between 60 and
+## 120 on its own, and the player can change it in system settings without
+## restarting the game. Settings.applied re-runs this.
+const TARGET_FPS_NATIVE := -1
 
 ## Matches project.godot's window/stretch/aspect. KEEP ("Normal") locks the
 ## aspect ratio to the design resolution's 16:9 and pillarboxes the rest;
@@ -392,7 +407,7 @@ func apply_settings() -> void:
 	window.content_scale_aspect = display_screen_aspect
 
 	DisplayServer.window_set_vsync_mode(display_vsync, window.get_window_id())
-	Engine.max_fps = display_target_fps
+	Engine.max_fps = _resolved_target_fps()
 
 	window.scaling_3d_mode = graphics_scaling_mode
 	window.scaling_3d_scale = graphics_render_scale
@@ -477,6 +492,26 @@ const SUBVIEWPORT_NATIVE_GROUP := &"native_resolution_viewport"
 ##
 ## Re-entrant: the override, not the current size, is the authored size once
 ## this has run, or repeated applies would scale an already-scaled viewport.
+
+## The cap to hand Engine.max_fps, with TARGET_FPS_NATIVE resolved.
+##
+## screen_get_refresh_rate() returns -1 when the platform cannot answer -
+## headless does, and so does any driver that does not expose it - so the
+## fallback is the 60 the game shipped with rather than an unlimited cap that
+## would quietly cook the battery on a device that simply would not say.
+##
+## Rounded, not truncated: panels report 59.94 and 119.88 as often as 60 and
+## 120, and int() on those gives 59 and 119, a cap fractionally under the
+## refresh rate which is the one value guaranteed to miss every frame.
+func _resolved_target_fps() -> int:
+	if display_target_fps != TARGET_FPS_NATIVE:
+		return display_target_fps
+
+	var hz: float = DisplayServer.screen_get_refresh_rate()
+	if hz <= 0.0:
+		return 60
+	return int(roundf(hz))
+
 func _apply_subviewport_render_scale() -> void:
 	# A scene loaded later brings its own SubViewports, and they would render
 	# at full size until the next time the settings happened to be applied -

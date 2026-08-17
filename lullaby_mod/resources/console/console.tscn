@@ -5319,8 +5319,8 @@ text = "Max FPS: "
 alignment = 0
 script = ExtResource("54")
 property = &"display_target_fps"
-display_list = ["30", "60", "90", "120", "144", "180", "240", "Unlimited"]
-values_list = [30, 60, 90, 120, 144, 180, 240, 0]
+display_list = ["Match Screen", "30", "60", "90", "120", "144", "180", "240", "Unlimited"]
+values_list = [-1, 30, 60, 90, 120, 144, 180, 240, 0]
 console = NodePath("../../../../../..")
 tooltip = "Change game's maximum frames per second limit. "
 
