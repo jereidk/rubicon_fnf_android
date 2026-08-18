@@ -1491,6 +1491,36 @@ it spent that shot at `103_stroll` on a 413px region eighty seconds before the
 real blackout. It re-arms on growth now, so it follows the worst frame instead
 of the first.
 
+### The fields added to answer "why is it black"
+
+`FRAME` said the whole frame was black; it could not say why. Four fields do:
+
+| field | answers |
+|---|---|
+| `sonda=[normal=L/C albedo=L/C luz=L/C]` | the same instant drawn three ways - as shipped, with `DEBUG_DRAW_UNSHADED` (every light and lightmap discarded, raw albedo), and with `DEBUG_DRAW_LIGHTING` (albedo discarded). L is mean luma, **C is the dark region's coverage**, and C is the one that decides: a region that survives raw albedo is something black being drawn, one that vanishes was never covering anything |
+| `luz=NalcanzanM dir=D cerca=X@d` | how many visible lights actually **reach the camera**, not how many exist. `lights=10(shadow=1)` was true for all ninety black seconds and every one of them was back in the house |
+| `lm=on tex=WxHxL users=N vis=n/m sh=b` | the LightmapGI's bake: visible, texture dimensions, total users, and **how many of the meshes on screen right now are registered users**. A healthy bake that does not cover what the camera is looking at is indistinguishable from a broken one if only the total is counted |
+| `env=... ambS@E bgM@E` | ambient source and energy, background mode. `limpio` only ever meant "no glow, no fog", which is the less interesting half in a scene that goes dark |
+
+`FRAME` also carries `min/p50/p95/max` and a 3x3 `rejilla=` of block luminance,
+because a mean of 0.015 cannot distinguish "uniformly black" from "black with
+the notes still drawn on top".
+
+Three things this cost, all found by running it rather than by reading it:
+
+- **`light.get("spot_range")` on an AreaLight3D returns null**, and assigning
+  null to a typed float aborts the function *with no error printed*. That call
+  ran while building every log line, so one null silently took `HEARTBEAT`,
+  `CENSUS` and `FRAME` out of the log entirely - the log looked healthy because
+  `VIS` and `BLACKOUT` are emitted earlier. Chimera has exactly one AreaLight3D
+  (`CrawlSpaceLight`). Cast, never `get()`.
+- **The probe's three passes must land on consecutive frames.** Gating the
+  re-entry on `state == 1` instead of `state != 0` left eight seconds between
+  them, comparing a frame against a scene that had moved on.
+- **`|` cannot be used inside a field.** The grid used it as a row separator and
+  it is the log's own message/counter separator, which breaks every reader of
+  the file starting with the ones in `tools/`.
+
 ### The renderer cannot answer lighting questions
 
 `scene_shot` under Mesa does not apply the `LightmapGI` (`chimera_base.lmbake`),

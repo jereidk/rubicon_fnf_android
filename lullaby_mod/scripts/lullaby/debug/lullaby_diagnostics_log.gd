@@ -968,7 +968,10 @@ func _process(delta: float) -> void:
 	_poll_blackouts()
 
 	_time_since_frame += delta
-	if _frame_probe_state == 1 or _time_since_frame >= FRAME_SAMPLE_SECONDS:
+	# `!= 0`, so the three readings of the probe land on consecutive frames.
+	# Waiting the full interval between them compares a frame against a scene
+	# that has moved on, which is exactly what the comparison must not do.
+	if _frame_probe_state != 0 or _time_since_frame >= FRAME_SAMPLE_SECONDS:
 		_time_since_frame = 0.0
 		_measure_frame()
 
@@ -1355,6 +1358,10 @@ var _frame_probe_state: int = 0
 ## Largest coverage already probed, so the probe follows the worst frame
 ## instead of the first one.
 var _frame_probe_best: float = 0.0
+var _frame_probe_normal: float = 0.0
+var _frame_probe_unshaded: float = 0.0
+var _frame_probe_cov_normal: float = 0.0
+var _frame_probe_cov_unshaded: float = 0.0
 const FRAME_PROBE_GROWTH := 0.15
 var _frame_probe_rect: Rect2i = Rect2i()
 var _frame_usec: int = 0
@@ -1528,6 +1535,60 @@ func _sequence_state() -> String:
 ## ClassDB.class_get_property_list rather than written from memory - the iOS
 ## preset work is a standing reminder that half a dozen plausible option names
 ## do not exist.
+## How many visible lights actually reach the camera, and the nearest one.
+##
+## `lights=10(shadow=1)` counts lights that exist and are visible, which is a
+## different question from whether any of them lights where the camera is
+## standing. Chimera spends ninety seconds at x=-15 in a closet whose only
+## light is authored `visible = false`; the census reported ten lights the
+## whole time and every one of them was back in the house.
+##
+## Directional lights reach everywhere by construction and are counted apart.
+func _light_reach() -> String:
+	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if camera == null:
+		return "-"
+	var eye: Vector3 = camera.global_position
+	var reaching: int = 0
+	var directional: int = 0
+	var nearest: float = INF
+	var nearest_name: String = "-"
+	for node in _visual3d_watch:
+		if not is_instance_valid(node):
+			continue
+		var light := node as Light3D
+		if light == null or not light.is_visible_in_tree():
+			continue
+		if light.light_energy <= 0.0:
+			continue
+		if light is DirectionalLight3D:
+			directional += 1
+			continue
+
+		# Cast, never get(). Chimera's CrawlSpaceLight is an AreaLight3D -
+		# neither omni nor spot - so `light.get("spot_range")` returns null,
+		# and assigning null to a typed float aborts the function. This runs
+		# while building every log line, so that one null took HEARTBEAT,
+		# CENSUS and FRAME out of the log with it and left no error behind.
+		var range_units: float = 0.0
+		var omni := light as OmniLight3D
+		var spot := light as SpotLight3D
+		if omni != null:
+			range_units = omni.omni_range
+		elif spot != null:
+			range_units = spot.spot_range
+		else:
+			continue
+		var distance: float = eye.distance_to(light.global_position)
+		if distance < nearest:
+			nearest = distance
+			nearest_name = light.name
+		if distance <= range_units:
+			reaching += 1
+	if nearest == INF:
+		return "0alcanzan dir=%d" % directional
+	return "%dalcanzan dir=%d cerca=%s@%.1f" % [reaching, directional, nearest_name, nearest]
+
 ## Whether the LightmapGI in this scene actually has a bake to apply.
 ##
 ## The prime suspect once the frame was measured black with 78 of 96 meshes
@@ -1549,10 +1610,29 @@ func _lightmap_state() -> String:
 			if data == null:
 				return "sin_datos"
 			var tex: TextureLayered = data.light_texture
-			return "%s tex=%s users=%d" % [
+			# Cuantas de las mallas visibles ahora mismo estan realmente
+			# registradas en el bake. Un bake sano que no cubre lo que la
+			# camara mira es indistinguible de un bake roto si solo se cuenta
+			# el total.
+			var users: Dictionary = {}
+			for i in data.get_user_count():
+				users[String(data.get_user_path(i))] = true
+			var visible_users: int = 0
+			var visible_meshes: int = 0
+			for node2 in _visual3d_watch:
+				if not is_instance_valid(node2):
+					continue
+				var geo := node2 as GeometryInstance3D
+				if geo == null or not geo.is_visible_in_tree():
+					continue
+				visible_meshes += 1
+				if users.has(String(lm.get_path_to(geo))):
+					visible_users += 1
+			return "%s tex=%s users=%d vis=%d/%d sh=%s" % [
 				"on" if lm.is_visible_in_tree() else "OCULTO",
 				"%dx%dx%d" % [tex.get_width(), tex.get_height(), tex.get_layers()] if tex != null else "NULA",
-				data.get_user_count(),
+				data.get_user_count(), visible_users, visible_meshes,
+				data.is_using_spherical_harmonics(),
 			]
 		for child in node.get_children():
 			stack.append(child)
@@ -1629,7 +1709,13 @@ func _environment_state() -> String:
 		on.append("fog")
 	if env.volumetric_fog_enabled:
 		on.append("volfog")
-	return "+".join(on) if not on.is_empty() else "limpio"
+	# El ambiente, que es lo que decide si una superficie sin luz sale negra o
+	# solo oscura. `limpio` solo decia que no hay glow ni niebla, y en una
+	# escena que se apaga entera esa es la mitad menos interesante.
+	var ambient: String = "amb%d@%.2f" % [env.ambient_light_source, env.ambient_light_energy]
+	var background: String = "bg%d@%.2f" % [env.background_mode, env.background_energy_multiplier]
+	var effects: String = "+".join(on) if not on.is_empty() else "limpio"
+	return "%s %s %s" % [effects, ambient, background]
 
 ## How many particle systems are on screen, of those the scene has.
 func _particles_live() -> int:
@@ -2016,6 +2102,34 @@ func _measure_frame() -> void:
 		dark_cols[x] = dark
 		col_luma[x] = col / float(h)
 
+	# Percentiles y rejilla. luma_media sola no distingue "todo a 0.015" de
+	# "casi todo negro con las notas encima": el maximo y el p95 si, y la
+	# rejilla dice en que tercio esta lo que quede iluminado.
+	var all_luma: PackedFloat32Array = PackedFloat32Array()
+	var grid: PackedFloat32Array = PackedFloat32Array()
+	grid.resize(9)
+	var grid_n: PackedInt32Array = PackedInt32Array()
+	grid_n.resize(9)
+	for x in w:
+		for y in h:
+			var c3: Color = img.get_pixel(x, y)
+			var l3: float = c3.r * 0.2126 + c3.g * 0.7152 + c3.b * 0.0722
+			all_luma.append(l3)
+			var cell: int = mini(2, y * 3 / maxi(1, h)) * 3 + mini(2, x * 3 / maxi(1, w))
+			grid[cell] += l3
+			grid_n[cell] += 1
+	all_luma.sort()
+	var n_all: int = all_luma.size()
+	var stats: String = "min=%.3f p50=%.3f p95=%.3f max=%.3f" % [
+		all_luma[0], all_luma[n_all / 2], all_luma[mini(n_all - 1, n_all * 95 / 100)], all_luma[n_all - 1]]
+	var grid_text: String = ""
+	for i in 9:
+		grid_text += "%.2f" % (grid[i] / float(maxi(1, grid_n[i])))
+		# ";" and not "|": the log uses "|" to separate the message from the
+		# counters, and a grid row separator that collides with it breaks every
+		# reader of this file, starting with the ones in tools/.
+		grid_text += "/" if i % 3 < 2 else (";" if i < 6 else "")
+
 	# The widest black band that does not touch an edge, which is the player's
 	# "ignore the bars at the sides, measure what is inside them".
 	var band: Vector2i = _widest_run(dark_cols, h, true)
@@ -2062,14 +2176,25 @@ func _measure_frame() -> void:
 	# The unshaded pass, resolved across two calls: set it, let the frame draw,
 	# measure again on the next one, put it back.
 	var unshaded: String = ""
+	var mean_luma: float = luma_sum / float(maxi(1, w * h))
 	if _frame_probe_state == 1:
+		# Albedo puro medido; ahora la iluminacion sola.
+		_frame_probe_unshaded = mean_luma
+		_frame_probe_cov_unshaded = covered
+		_frame_probe_state = 2
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_LIGHTING
+	elif _frame_probe_state == 2:
 		_frame_probe_state = 0
 		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
-		var still: bool = covered >= FRAME_PROBE_MIN * 0.5
-		unshaded = " sin_luz=%s(antes %dx%d ahora %dx%d)" % [
-			"sigue" if still else "desaparece",
-			_frame_probe_rect.size.x, _frame_probe_rect.size.y,
-			shown.size.x, shown.size.y,
+		# Tres lecturas del mismo instante, con la luma media y la cobertura
+		# de la mancha en cada una. La cobertura es la que contesta de verdad:
+		# si la mancha sigue estando con el albedo desnudo, hay algo negro
+		# dibujado; si se va, lo unico que pasaba es que nada la iluminaba.
+		unshaded = " sonda=[normal=%.3f/%.2f albedo=%.3f/%.2f luz=%.3f/%.2f] veredicto=%s" % [
+			_frame_probe_normal, _frame_probe_cov_normal,
+			_frame_probe_unshaded, _frame_probe_cov_unshaded,
+			mean_luma, covered,
+			_verdict(_frame_probe_cov_normal, _frame_probe_cov_unshaded, _frame_probe_unshaded),
 		]
 	elif covered >= FRAME_PROBE_MIN and covered >= _frame_probe_best + FRAME_PROBE_GROWTH:
 		# Re-armed when the dark region grows, not once per scene. The
@@ -2080,15 +2205,35 @@ func _measure_frame() -> void:
 		_frame_probe_best = covered
 		_frame_probe_state = 1
 		_frame_probe_rect = shown
+		_frame_probe_normal = mean_luma
+		_frame_probe_cov_normal = covered
 		get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
 
 	_frame_usec = Time.get_ticks_usec() - started
-	_entry("FRAME", "negro %dx%d en %d,%d (cubre=%.2f) borde=%dpx luma_media=%.3f leido=%dx%d en %.1fms perfil=[%s]%s" % [
+	_entry("FRAME", "negro %dx%d en %d,%d (cubre=%.2f) borde=%dpx luma_media=%.3f %s rejilla=[%s] leido=%dx%d en %.1fms perfil=[%s]%s" % [
 		shown.size.x, shown.size.y, shown.position.x, shown.position.y, covered,
 		int(float(edges.y) * sx),
-		luma_sum / float(maxi(1, w * h)), full.x, full.y,
+		mean_luma, stats, grid_text, full.x, full.y,
 		float(_frame_usec) / 1000.0, profile, unshaded,
 	])
+
+## What the three passes of the probe mean together.
+##
+## Keyed on the dark region's COVERAGE, not on mean luminance. The mean says
+## how dark the picture is; the coverage says whether the dark thing is still
+## there. Under DEBUG_DRAW_UNSHADED every light and lightmap is discarded and
+## raw albedo is painted, so a region that survives that is something black
+## being drawn, and a region that vanishes was never covering anything - the
+## surfaces were just unlit. That distinction is the whole reason the probe
+## exists, and mean luminance alone could not make it.
+func _verdict(cov_normal: float, cov_albedo: float, luma_albedo: float) -> String:
+	if cov_normal < FRAME_PROBE_MIN:
+		return "sin_mancha"
+	if cov_albedo <= cov_normal * 0.5:
+		return "SIN_LUZ(la mancha se va con el albedo desnudo: nada la ilumina)"
+	if luma_albedo <= 0.03:
+		return "NEGRO_REAL(el albedo de lo que hay delante ya es negro)"
+	return "MATERIAL(la mancha sigue, pero su albedo no es negro)"
 
 ## The widest contiguous run of black columns, as (start, width).
 ##
@@ -3228,7 +3373,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -3291,6 +3436,7 @@ func _entry(kind: String, detail: String) -> void:
 		AudioServer.get_time_to_next_mix() * 1000.0,
 		_environment_state(),
 		_lightmap_state(),
+		_light_reach(),
 		_camera_state(), _physics_steps, _bench_usec,
 		_physics_nodes, _skeleton_bones, _material_count, _surface_count,
 		script_ms,
