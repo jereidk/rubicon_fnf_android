@@ -1442,6 +1442,55 @@ The `perfil=` ramp is 32 buckets of mean column luminance. Read it when the
 rect looks wrong: it shows the shape of the frame directly, and a black band
 that the run detector misses is still visible in it.
 
+### What the first FRAME log actually said
+
+`aef733a5`, moto g53, Very Low, aspect Normal. The measurement nine rounds were
+missing, and it is not a rectangle:
+
+```
+[163-251s] negro 0x0 borde=1280px luma_media=0.014-0.027 perfil=[                                ]
+```
+
+**The whole frame is black**, edge to edge, for ninety seconds - from
+`109_backingupback` through `121_closetrunout` - and comes back at
+`123_crawling` at `luma_media=0.163`, ten times brighter, same scene. That is
+the player's "todo se pone completamente negro hasta lo del botón flash",
+measured instead of described.
+
+And nothing is covering it. Across that window the census reads
+`vis3d=75-78/96`, `lights=10(shadow=1)`, `fx=0`, `env=limpio`, and the 2D
+blackout list is empty except for two authored flickers. Geometry is visible,
+lights exist, no overlay and no shader. **The surfaces are simply not lit.**
+
+Where the camera is during it settles which surfaces: `cam=fov80@-15.7,1.8,-1.6`
+and `cam=fov90@-14.1,1.8,-0.3` - the closet, fifteen units out from a house
+about ten across. `Environment/Lights/ClosetLight` sits at `-15.98,2.27,-0.90`,
+is authored `visible = false`, and **nothing anywhere turns it on** - checked in
+the port and in the pck, identical. So that corner has only ever been lit by
+the bake, which makes `chimera_base.lmbake` the only remaining candidate and is
+why every heartbeat now carries `lm=`.
+
+The bake is intact on this side: it resolves by UID
+(`uid://bha4lelasbqse::::res://songs/chimera/chimera_base.exr` - note the PC
+path root, which resolves anyway because the local `.import` declares that UID),
+loads as 512x512x8, and registers 58 users.
+
+Two other things the log named, both worth knowing:
+
+- `UILayer/HeartVignette` is `1464x1080 at 228,0`, `cubre=0.76`, pulsing every
+  ~0.45s through the heartbeat at `alpha=0.52`. In the 1280 frame that is
+  976x720 at x=152 - the closest thing in the whole session to the "75-80% of
+  the width" the screenshots were measured at, and it is the mechanic working
+  as authored.
+- `UILayer/LowerHealthRect` covered the screen at `alpha=0.64` for **38
+  seconds** (120.95-158.97). Health-driven and identical to the pck, but that
+  is most of `103_stroll` through `107_turnaround` spent under a dark veil.
+
+The one field that did not answer was `sin_luz=`. It fired once per scene, and
+it spent that shot at `103_stroll` on a 413px region eighty seconds before the
+real blackout. It re-arms on growth now, so it follows the worst frame instead
+of the first.
+
 ### The renderer cannot answer lighting questions
 
 `scene_shot` under Mesa does not apply the `LightmapGI` (`chimera_base.lmbake`),

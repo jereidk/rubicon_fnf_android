@@ -1352,7 +1352,10 @@ var _time_since_frame: float = 0.0
 
 ## 0 idle, 1 unshaded set and waiting for it to be drawn.
 var _frame_probe_state: int = 0
-var _frame_probe_done: bool = false
+## Largest coverage already probed, so the probe follows the worst frame
+## instead of the first one.
+var _frame_probe_best: float = 0.0
+const FRAME_PROBE_GROWTH := 0.15
 var _frame_probe_rect: Rect2i = Rect2i()
 var _frame_usec: int = 0
 
@@ -1406,7 +1409,7 @@ func _collect_blackout_watch() -> void:
 
 	# Per scene, so every song gets its own unshaded probe - and so a scene
 	# change during one cannot leave the viewport stuck in a debug draw mode.
-	_frame_probe_done = false
+	_frame_probe_best = 0.0
 	if _frame_probe_state == 1 and is_inside_tree():
 		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
 	_frame_probe_state = 0
@@ -1525,6 +1528,36 @@ func _sequence_state() -> String:
 ## ClassDB.class_get_property_list rather than written from memory - the iOS
 ## preset work is a standing reminder that half a dozen plausible option names
 ## do not exist.
+## Whether the LightmapGI in this scene actually has a bake to apply.
+##
+## The prime suspect once the frame was measured black with 78 of 96 meshes
+## visible, ten lights, no overlay and no shader: nothing is covering the
+## screen, so the surfaces are simply not lit - and in Chimera the closet the
+## camera sits in for that whole stretch has ClosetLight authored
+## `visible = false` and nothing turning it on, in the port and in the pck
+## alike. Which leaves the bake as the only thing that was ever lighting it.
+func _lightmap_state() -> String:
+	var scene: Node = get_tree().current_scene if is_inside_tree() else null
+	if scene == null:
+		return "-"
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		var lm := node as LightmapGI
+		if lm != null:
+			var data: LightmapGIData = lm.light_data
+			if data == null:
+				return "sin_datos"
+			var tex: TextureLayered = data.light_texture
+			return "%s tex=%s users=%d" % [
+				"on" if lm.is_visible_in_tree() else "OCULTO",
+				"%dx%dx%d" % [tex.get_width(), tex.get_height(), tex.get_layers()] if tex != null else "NULA",
+				data.get_user_count(),
+			]
+		for child in node.get_children():
+			stack.append(child)
+	return "ninguno"
+
 func _viewport_config() -> String:
 	if not is_inside_tree():
 		return "-"
@@ -2038,8 +2071,13 @@ func _measure_frame() -> void:
 			_frame_probe_rect.size.x, _frame_probe_rect.size.y,
 			shown.size.x, shown.size.y,
 		]
-	elif not _frame_probe_done and covered >= FRAME_PROBE_MIN:
-		_frame_probe_done = true
+	elif covered >= FRAME_PROBE_MIN and covered >= _frame_probe_best + FRAME_PROBE_GROWTH:
+		# Re-armed when the dark region grows, not once per scene. The
+		# one-shot version spent its probe on the first 15% region it saw -
+		# 413x720 during 103_stroll - and was already used up when the whole
+		# frame went black eighty seconds later, which is the moment the
+		# answer was needed.
+		_frame_probe_best = covered
 		_frame_probe_state = 1
 		_frame_probe_rect = shown
 		get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
@@ -3190,7 +3228,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -3252,6 +3290,7 @@ func _entry(kind: String, detail: String) -> void:
 		AudioServer.get_output_latency() * 1000.0,
 		AudioServer.get_time_to_next_mix() * 1000.0,
 		_environment_state(),
+		_lightmap_state(),
 		_camera_state(), _physics_steps, _bench_usec,
 		_physics_nodes, _skeleton_bones, _material_count, _surface_count,
 		script_ms,
