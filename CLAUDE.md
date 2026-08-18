@@ -1521,6 +1521,32 @@ Three things this cost, all found by running it rather than by reading it:
   it is the log's own message/counter separator, which breaks every reader of
   the file starting with the ones in `tools/`.
 
+### Rendering Chimera on the device's own renderer
+
+`tools/harness/setup_render_sandbox.sh <dir>` builds a throwaway copy that can,
+and the trick is that the blocker was never the scene:
+
+- `--rendering-driver opengl3` loads the song but GL Compatibility has no
+  `LightmapGI`, so all of Chimera renders at a mean luma of 13/255 - always
+  black, whatever the bug is.
+- `--rendering-method mobile --rendering-driver vulkan` is the device's exact
+  path, lightmap included, but lavapipe has no ASTC: it decompresses ~500
+  textures to RGBA8 on the CPU and sits inside `load()` at 5% CPU indefinitely.
+
+So the sandbox rewrites its 503 texture imports to **uncompressed, 128px**,
+which lavapipe takes natively and which does not change lighting at all. The
+song then loads on the real path. Captures look like mush; they measure light,
+not art.
+
+Needs `apt-get install -y mesa-vulkan-drivers` for lavapipe, and about ten
+minutes to import. **It refuses to run in place**, because it rewrites 503
+`.import` files and `--import` rewrites their `uid=` lines on top of that.
+
+Not cacheable between sessions - the container is ephemeral and the only
+durable store is the git remote, where degraded 128px imports have no business
+being. The script is the durable part: one command instead of a day of
+rediscovering why neither renderer works.
+
 ### The renderer cannot answer lighting questions
 
 `scene_shot` under Mesa does not apply the `LightmapGI` (`chimera_base.lmbake`),
