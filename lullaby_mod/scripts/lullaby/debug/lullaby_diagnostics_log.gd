@@ -1366,6 +1366,10 @@ const FRAME_PROBE_GROWTH := 0.15
 var _frame_probe_rect: Rect2i = Rect2i()
 var _frame_usec: int = 0
 
+## El ultimo fotograma leido, ya reducido. Lo comparte el barrido 3D para
+## medir de que color pinta cada malla sin pagar otra lectura de GPU.
+var _frame_img: Image = null
+
 ## When each watched item last became visible, for the raw VIS transitions.
 ## Separate from _blackout_on, which only tracks the ones that pass the
 ## coverage gate - the whole point of VIS is to not be filtered by it.
@@ -1535,6 +1539,45 @@ func _sequence_state() -> String:
 ## ClassDB.class_get_property_list rather than written from memory - the iOS
 ## preset work is a standing reminder that half a dozen plausible option names
 ## do not exist.
+## How the scene expects to be lit: bake modes of its lights and its meshes.
+##
+## The field this whole hunt needed and did not have. Six of Chimera's seven
+## lights are authored `light_bake_mode = 1` (BAKE_STATIC), which means their
+## contribution to static geometry lives **only in the lightmap** - at runtime
+## they light nothing by themselves. So if the bake fails to apply on a device,
+## six of seven lights go with it and the house is black, while `lights=10` and
+## `vis3d=78/96` both keep reporting a perfectly healthy scene. That is exactly
+## the shape of the ninety black seconds.
+##
+## Meshes are counted the same way: GI_MODE_STATIC is a mesh that expects the
+## bake, GI_MODE_DISABLED one that cannot receive it at all.
+func _bake_modes() -> String:
+	var light_static: int = 0
+	var light_dynamic: int = 0
+	var light_off: int = 0
+	var mesh_static: int = 0
+	var mesh_dynamic: int = 0
+	var mesh_off: int = 0
+	for node in _visual3d_watch:
+		if not is_instance_valid(node) or not node.is_visible_in_tree():
+			continue
+		var light := node as Light3D
+		if light != null:
+			match light.light_bake_mode:
+				Light3D.BAKE_STATIC: light_static += 1
+				Light3D.BAKE_DYNAMIC: light_dynamic += 1
+				_: light_off += 1
+			continue
+		var geo := node as GeometryInstance3D
+		if geo == null:
+			continue
+		match geo.gi_mode:
+			GeometryInstance3D.GI_MODE_STATIC: mesh_static += 1
+			GeometryInstance3D.GI_MODE_DYNAMIC: mesh_dynamic += 1
+			_: mesh_off += 1
+	return "luces=est%d/din%d/off%d mallas=est%d/din%d/off%d" % [
+		light_static, light_dynamic, light_off, mesh_static, mesh_dynamic, mesh_off]
+
 ## How many visible lights actually reach the camera, and the nearest one.
 ##
 ## `lights=10(shadow=1)` counts lights that exist and are visible, which is a
@@ -1945,16 +1988,38 @@ func _poll_blackouts_3d(now: int) -> void:
 		var was: bool = _blackout3d_on.has(geo)
 		if covering and not was:
 			_blackout3d_on[geo] = now
-			_entry("BLACKOUT", "%s (3D) tapa la pantalla (cubre=%.2f %dx%d en %d,%d negro=%s %s)" % [
+			_entry("BLACKOUT", "%s (3D) tapa la pantalla (cubre=%.2f %dx%d en %d,%d negro=%s pinta=%s %s)" % [
 				_scene_relative_path(geo), covered,
 				int(box.size.x), int(box.size.y), int(box.position.x), int(box.position.y),
-				"si" if _is_flat_black(geo) else "no", _material_summary(geo),
+				"si" if _is_flat_black(geo) else "no",
+				_painted_luma(box, screen), _material_summary(geo),
 			])
 		elif was and not covering:
 			_entry("BLACKOUT", "%s (3D) deja de taparla tras %.1fs" % [
 				_scene_relative_path(geo), (now - int(_blackout3d_on[geo])) / 1000.0,
 			])
 			_blackout3d_on.erase(geo)
+
+## What the frame actually shows where this mesh is, sampled from the last
+## FRAME readback.
+##
+## negro= is a claim about the material; this is a measurement of the pixels.
+## They disagree in both directions and the disagreement is the interesting
+## part: a mesh whose albedo is white and whose pixels read 0.01 is unlit, and
+## a mesh whose albedo is black but whose pixels read 0.3 is behind something.
+##
+## Free, because it reuses the image FRAME already scaled down - no second
+## GPU-to-CPU readback, and nothing at all when FRAME has not run yet.
+func _painted_luma(box: Rect2i, screen: Vector2) -> String:
+	if _frame_img == null or box.size.x <= 0 or box.size.y <= 0:
+		return "-"
+	var centre: Vector2 = Vector2(box.position) + Vector2(box.size) * 0.5
+	var x: int = clampi(int(centre.x / maxf(1.0, screen.x) * float(_frame_img.get_width())),
+		0, _frame_img.get_width() - 1)
+	var y: int = clampi(int(centre.y / maxf(1.0, screen.y) * float(_frame_img.get_height())),
+		0, _frame_img.get_height() - 1)
+	var c: Color = _frame_img.get_pixel(x, y)
+	return "%.3f" % (c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722)
 
 ## A mesh's AABB projected onto the screen, clipped to it.
 ##
@@ -2152,6 +2217,7 @@ func _measure_frame() -> void:
 				if bottom < 0:
 					top = y
 				bottom = y
+	_frame_img = img
 	var box: Rect2i = Rect2i(band.x, top, band.y, maxi(0, bottom - top + 1) if bottom >= 0 else 0)
 	var covered: float = float(box.size.x * box.size.y) / float(maxi(1, w * h))
 
@@ -3373,7 +3439,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -3437,6 +3503,7 @@ func _entry(kind: String, detail: String) -> void:
 		_environment_state(),
 		_lightmap_state(),
 		_light_reach(),
+		_bake_modes(),
 		_camera_state(), _physics_steps, _bench_usec,
 		_physics_nodes, _skeleton_bones, _material_count, _surface_count,
 		script_ms,
