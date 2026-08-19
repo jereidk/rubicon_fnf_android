@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/GirlfriendName.png-c158f0380f02484156967687b4
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

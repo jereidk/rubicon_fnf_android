@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/darkness_gradient.png-6371ec4d3f456bec18ade07
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

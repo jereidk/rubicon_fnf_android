@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/dirt.png-ab16ea475f38915cf87f0e2315344652.cte
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

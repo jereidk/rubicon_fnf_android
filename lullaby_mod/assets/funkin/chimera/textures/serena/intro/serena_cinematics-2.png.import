@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/serena_cinematics-2.png-27087b6e32a370095ad52
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

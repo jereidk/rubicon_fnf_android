@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/gf_focus_face.png-9675c9734672ea12d01b8ef00ed
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

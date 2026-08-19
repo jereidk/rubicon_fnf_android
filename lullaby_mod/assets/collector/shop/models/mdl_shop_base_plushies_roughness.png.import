@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/mdl_shop_base_plushies_roughness.png-a238622c
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

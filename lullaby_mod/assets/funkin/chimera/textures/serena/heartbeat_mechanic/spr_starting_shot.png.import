@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/spr_starting_shot.png-2a52a141102f64f2985433e
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/cut_mono_approaching_0.png-19ccd4720ac53229dc
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

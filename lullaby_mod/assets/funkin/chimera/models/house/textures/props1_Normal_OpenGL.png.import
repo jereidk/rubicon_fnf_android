@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/props1_Normal_OpenGL.png-fed0937fa9e2a9b086f0
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

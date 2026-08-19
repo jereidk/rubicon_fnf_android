@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/pendulum.png-4bc3c35f82d0712c0c2bcf3c2f8f5eb4
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

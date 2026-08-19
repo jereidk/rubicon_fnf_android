@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/running_bg.png-6f3cd1dd0a30c868fe4e3f69459e49
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

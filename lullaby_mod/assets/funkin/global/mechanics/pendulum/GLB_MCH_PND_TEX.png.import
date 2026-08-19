@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/GLB_MCH_PND_TEX.png-9f52c9c67b094f62a00689aac
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

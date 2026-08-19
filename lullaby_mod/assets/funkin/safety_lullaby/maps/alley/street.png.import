@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/street.png-2d681a0f083739520f690e3da668aed0.c
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

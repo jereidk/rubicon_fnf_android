@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/mdl_shop_base_bowls.png-8dd6fcd0920b47dc968bd
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

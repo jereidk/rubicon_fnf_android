@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/gf_far.png-82df46c850c3b4700345ea4e0c636229.c
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

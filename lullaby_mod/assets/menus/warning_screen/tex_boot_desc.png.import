@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tex_boot_desc.png-725c7aba06dd8990a46a7298afc
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

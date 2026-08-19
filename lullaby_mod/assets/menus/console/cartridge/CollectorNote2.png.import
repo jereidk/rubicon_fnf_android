@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/CollectorNote2.png-18cfb65a10f10cf5da971da6da
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

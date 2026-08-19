@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/fucknojump.png-391f3411df506cfb5254db868d2026
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

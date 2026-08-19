@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/backing_trees.png-c36e730d83d4177bb075aa77402
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

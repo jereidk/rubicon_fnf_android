@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/ratings_and_combo.png-1a29dfc9bc00243dc24280a
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

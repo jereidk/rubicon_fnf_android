@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/prp_candles_misc_textures.png-87fbf7cbad6245b
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

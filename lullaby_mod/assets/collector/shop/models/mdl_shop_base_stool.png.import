@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/mdl_shop_base_stool.png-87da7287a3c5c3d9ec7de
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

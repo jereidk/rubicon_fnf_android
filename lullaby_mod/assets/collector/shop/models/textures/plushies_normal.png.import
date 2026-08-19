@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/plushies_normal.png-4a1b982979439b35d02f93947
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

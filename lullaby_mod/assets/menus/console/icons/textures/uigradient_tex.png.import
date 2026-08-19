@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/uigradient_tex.png-14f381830fdbf842287da53710
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

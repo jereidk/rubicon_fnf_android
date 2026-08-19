@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/props2_Base_Color.png-6f03a1f8ef9bca3f0d903a8
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

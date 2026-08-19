@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/notepad_metallic.png-53632409f6fb8527c27385b5
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

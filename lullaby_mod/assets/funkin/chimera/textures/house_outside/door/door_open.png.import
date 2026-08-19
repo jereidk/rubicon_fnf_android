@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/door_open.png-1cb53d1a26b2725591b134292c5a3e1
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

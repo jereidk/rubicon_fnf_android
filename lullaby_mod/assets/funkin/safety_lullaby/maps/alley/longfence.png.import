@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/longfence.png-c27c20355246517a3b2f2b5e1751be8
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

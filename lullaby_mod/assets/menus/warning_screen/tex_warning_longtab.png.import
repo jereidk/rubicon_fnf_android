@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tex_warning_longtab.png-aa8d4ac18a1d00a2df5b3
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

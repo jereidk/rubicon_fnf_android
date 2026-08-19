@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/hypno_pendulum.png-4c76a54920a1b48a54b0de834c
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

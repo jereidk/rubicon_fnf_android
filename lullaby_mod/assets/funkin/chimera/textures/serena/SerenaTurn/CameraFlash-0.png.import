@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/CameraFlash-0.png-9e72503183ff79e04a73c6d17d1
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

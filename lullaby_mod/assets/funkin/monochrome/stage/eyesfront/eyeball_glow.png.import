@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/eyeball_glow.png-c6224ee69087dff5d20d23c92ed8
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

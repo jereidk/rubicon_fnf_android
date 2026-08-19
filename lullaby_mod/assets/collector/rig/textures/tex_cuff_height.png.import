@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tex_cuff_height.png-7df0f90aea122f1425d78c4a7
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

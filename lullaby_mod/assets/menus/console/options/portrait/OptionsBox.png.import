@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/OptionsBox.png-64f479c6395d8de04e38a8684fbf50
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

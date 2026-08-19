@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/soul_token.png-04e48f661cb7a2b29919c345f99e51
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

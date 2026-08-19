@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/HexBody_BaseColor.png-77476845c6da73ea8f20bd9
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

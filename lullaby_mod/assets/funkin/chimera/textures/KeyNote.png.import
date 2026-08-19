@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/KeyNote.png-ec143ce1565a7cf58ae79e29ed20f8be.
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

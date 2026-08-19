@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/spr_serena_scared.png-a629dab3e5450cb2111e535
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

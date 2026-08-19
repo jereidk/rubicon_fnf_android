@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/chimera_cartridge.png-9e91e66f855b42a22e2b1d8
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

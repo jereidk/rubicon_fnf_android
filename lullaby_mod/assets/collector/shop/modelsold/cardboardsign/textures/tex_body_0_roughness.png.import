@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/tex_body_0_roughness.png-26e19e1d92cdcda41e75
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

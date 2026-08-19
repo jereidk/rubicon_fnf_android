@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/hypnotbald.png-6ef8be2a62a39bd37923b9b1fcb7e5
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

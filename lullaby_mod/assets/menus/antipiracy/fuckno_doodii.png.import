@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/fuckno_doodii.png-c3c2f2c9f2f599f6ef90787192a
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

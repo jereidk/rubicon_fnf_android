@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/thm_kalos_bg.png-2ad253735d5e42ec6de6b55b5fcd
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

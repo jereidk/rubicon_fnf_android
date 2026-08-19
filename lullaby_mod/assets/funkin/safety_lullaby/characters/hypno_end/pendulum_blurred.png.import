@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/pendulum_blurred.png-1af0a651f232558b776608c0
 
 [params]
 
-compress/mode=2
+compress/mode=4
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
