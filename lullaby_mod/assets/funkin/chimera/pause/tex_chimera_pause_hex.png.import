@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_chimera_pause_hex.png-47afc51f01449c92ed6
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/collectorhand.png-33c49a246aac51f762b92f55967
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_girlfriend_pause.png-42eb47cac6be0593fd37
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

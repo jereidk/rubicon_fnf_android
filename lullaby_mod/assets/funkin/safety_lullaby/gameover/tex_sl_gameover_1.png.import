@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_sl_gameover_1.png-b95c7c46f9b8c58fba5c72d
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_fg_unowns.png-498eff524b3addd21e34581fcc3
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

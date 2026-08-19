@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/spr_serena_scared.png-a629dab3e5450cb2111e535
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

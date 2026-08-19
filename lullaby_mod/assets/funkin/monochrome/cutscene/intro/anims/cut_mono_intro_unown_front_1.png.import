@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/cut_mono_intro_unown_front_1.png-eeab4a7f7ee8
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

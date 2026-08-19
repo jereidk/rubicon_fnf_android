@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/serena_freakingout-1.png-4ffd1795632da7495318
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

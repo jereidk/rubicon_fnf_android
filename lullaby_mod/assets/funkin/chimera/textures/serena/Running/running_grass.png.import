@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/running_grass.png-d5e10fbb79a63a224b091451724
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

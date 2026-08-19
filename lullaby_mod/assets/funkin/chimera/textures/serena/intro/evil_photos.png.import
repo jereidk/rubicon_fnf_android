@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/evil_photos.png-a9994e3c3d3c9d77885c5542f8df8
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

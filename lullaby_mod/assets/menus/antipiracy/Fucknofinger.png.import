@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/Fucknofinger.png-47b5ddca82f3da173f6fdb593450
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false

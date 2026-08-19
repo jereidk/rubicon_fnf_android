@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_hypno_pause.png-cda6e0f1b7bbf4549faf14315
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=10.0
 mipmaps/generate=false
