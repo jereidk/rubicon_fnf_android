@@ -1475,6 +1475,20 @@ The bake is intact on this side: it resolves by UID
 path root, which resolves anyway because the local `.import` declares that UID),
 loads as 512x512x8, and registers 58 users.
 
+**"On this side" was the whole bug.** That sentence is true and it is also the
+reason this took eleven days: the UID resolves at import, and 84d99d5 measured
+that at EXPORT it does not - ~1300 invalid-UID warnings across ~227 files in a
+single export step. On the APK, `res://songs/chimera/chimera_base.exr` is not a
+fallback, it is the path that loads, and `e191f1e` had deleted it as an orphan.
+Its twin, `res://resources/collector_shop/env_collector_shop.exr`, was deleted
+by the same commit, threw `Failed loading resource` on the next build, and was
+restored that night. Chimera's did not throw - a `LightmapGI` with no texture is
+a legal `LightmapGI` - so the only symptom was an unlit house, which reads
+exactly like the lighting question everyone was already chasing. Both files are
+back and `tools/audit_lightmap_fallback_paths.py` now fails CI on the next one:
+it reads the paths out of the `.lmbake` binary, which is the one place a text
+grep and `ResourceLoader.get_dependencies()` both cannot see.
+
 Two other things the log named, both worth knowing:
 
 - `UILayer/HeartVignette` is `1464x1080 at 228,0`, `cubre=0.76`, pulsing every

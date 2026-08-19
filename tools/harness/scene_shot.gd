@@ -39,6 +39,29 @@ var _w: int = 1600
 var _h: int = 720
 var _at: Array[float] = []
 
+## `flat`: light the stage so GL Compatibility can show it.
+##
+## Chimera captures out of the GL path come back solid black, and the reason
+## is in setup_render_sandbox.sh: GL Compatibility has no LightmapGI, so a
+## stage lit by a bake has nothing lighting it. Switching the LightmapGI off
+## does not help by itself - it is already doing nothing here - so this
+## replaces the missing bake with flat ambient light instead.
+##
+## It makes the picture wrong on purpose. Nothing about the result is a claim
+## about how the game looks; what it buys is that geometry stops being black,
+## which turns "the frame is dark" into a question with an answer. A 2D
+## overlay is unaffected by any of it, so a rect that is still black over a
+## lit stage is an overlay and not the lighting - which is the one thing the
+## black-graphic hunt has never been able to separate.
+##
+## One reading it cannot give you, and the one it gave first: an INCOMPLETE
+## import looks identical to a fully lit stage that is black. Chimera under a
+## checkout missing `hex.gltf` and the house materials came back at mean luma
+## 0.23/255 with the flat light on, which says nothing about lighting at all -
+## the house was never in the frame. Read the load errors before the pixels,
+## and if anything failed to load, the capture is not evidence.
+var _flat_light: bool = false
+
 func _ready() -> void:
 	var argv: PackedStringArray = OS.get_cmdline_user_args()
 	if argv.size() > 0: _scene_path = argv[0]
@@ -48,6 +71,7 @@ func _ready() -> void:
 		if a.begins_with("w="): _w = int(a.substr(2))
 		elif a.begins_with("h="): _h = int(a.substr(2))
 		elif a.begins_with("t="): _at.append(float(a.substr(2)))
+		elif a == "flat": _flat_light = true
 
 	var win: Window = get_window()
 	win.size = Vector2i(_w, _h)
@@ -59,6 +83,8 @@ func _ready() -> void:
 	var scene: Node = (load(_scene_path) as PackedScene).instantiate()
 	add_child(scene)
 	_silence_gameover(scene)
+	if _flat_light:
+		_light_it_flat(scene)
 	for _i in 3: await get_tree().process_frame
 	print("OUT instanciada, nodos ok")
 
@@ -85,6 +111,41 @@ func _ready() -> void:
 			clock.current_animation_position, path, img.get_width(), img.get_height()])
 	print("OUT listo")
 	get_tree().quit()
+
+## Replaces the bake GL cannot read with flat ambient light. See _flat_light.
+##
+## The LightmapGI goes off first. It contributes nothing on this path either
+## way, but leaving a baked-light node in the tree while claiming the stage is
+## lit by ambient is the sort of ambiguity that costs a round later.
+func _light_it_flat(scene: Node) -> void:
+	var lightmaps: int = 0
+	var environments: int = 0
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+
+		if node is LightmapGI:
+			(node as LightmapGI).visible = false
+			lightmaps += 1
+			continue
+
+		var world := node as WorldEnvironment
+		if world == null or world.environment == null:
+			continue
+		var env: Environment = world.environment.duplicate()
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		env.ambient_light_color = Color(1, 1, 1)
+		env.ambient_light_energy = 1.6
+		# Fog over a stage lit this way just puts the black back.
+		env.fog_enabled = false
+		env.volumetric_fog_enabled = false
+		world.environment = env
+		environments += 1
+
+	print("OUT luz plana: %d LightmapGI apagados, %d entornos sobrescritos" % [
+		lightmaps, environments])
 
 func _find_timeline(scene: Node) -> AnimationPlayer:
 	var stack: Array[Node] = [scene]

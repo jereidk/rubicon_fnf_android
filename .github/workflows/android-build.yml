@@ -570,6 +570,19 @@ jobs:
           python3 tools/audit_material_transparency.py 2>&1 | tee /tmp/mats.txt
           grep -q "todo OK" /tmp/mats.txt
 
+      - name: Verify every lightmap bake finds its texture by path
+        run: |
+          # A .lmbake stores its texture as a UID plus a plain res:// path.
+          # Export-time UID resolution in this project fails broadly - 84d99d5
+          # counted ~1300 invalid-UID warnings across ~227 files in one export
+          # step - so on the APK that "fallback" path is the path that loads.
+          # e191f1e deleted both bakes' texture files as orphans; the shop's
+          # threw and was restored the same night, Chimera's did not throw
+          # (a LightmapGI with no texture is a legal LightmapGI) and the house
+          # rendered with no baked light for eleven days.
+          python3 tools/audit_lightmap_fallback_paths.py 2>&1 | tee /tmp/lmbake.txt
+          grep -q "todo OK" /tmp/lmbake.txt
+
       - name: Verify no scene describes a node twice
         run: |
           # An override block for an instanced scene's child is added by name
