@@ -530,6 +530,16 @@ jobs:
           $GODOT --headless --path . --script tools/test_atlas_cache_per_symbol.gd 2>&1 | tee /tmp/atlas.txt
           grep -q "todo OK" /tmp/atlas.txt
 
+      - name: Verify settings do not re-send unchanged shadow state
+        run: |
+          # Every settings row calls apply_settings() on every change, and the
+          # device log has each one compiling 35 pipelines with an identical
+          # breakdown - surf+6 draw+13 spec+16 - so the same shaders are being
+          # rebuilt. The shadow writes are the only ones in that function
+          # Godot does not filter for you.
+          $GODOT --headless --path . --script tools/test_settings_shadow_reapply.gd 2>&1 | tee /tmp/shadow.txt
+          grep -q "todo OK" /tmp/shadow.txt
+
       - name: Verify the Kollectadex only renders while it is open
         run: |
           # Its SubViewport is 620x464 - the same pixel count as the whole

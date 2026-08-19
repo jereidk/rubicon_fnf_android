@@ -191,6 +191,13 @@ var _stashed_copy_modes: Dictionary = {}
 ## reason _stashed_copy_modes is: its restore loop assigns Materials back.
 var _stashed_visibility: Dictionary = {}
 var _watching_new_nodes: bool = false
+
+## The shadow state apply_settings() last actually sent to the engine.
+##
+## Deliberately impossible starting values, so the first apply always writes:
+## an atlas size is never negative and neither is a filter quality.
+var _applied_shadow_atlas_size: int = -1
+var _applied_shadow_filter_quality: int = -1
 ## Same, for the SubViewport render scale.
 var _watching_new_viewports: bool = false
 
@@ -413,20 +420,50 @@ func apply_settings() -> void:
 	window.scaling_3d_scale = graphics_render_scale
 	_apply_subviewport_render_scale()
 	window.fsr_sharpness = graphics_fsr_sharpness
-	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
-	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
+	# Only when they actually moved, and this is the one block in here that
+	# needs saying so.
+	#
+	# Every settings row calls apply_settings() the moment it is touched -
+	# list_button, toggle_button, incremental_button, input_button and
+	# quality_preset_button all do - and the reported symptom is that changing
+	# anything hitches, "sin importar magnitud". That is the shape of a cost
+	# belonging to the re-apply rather than to the setting.
+	#
+	# The device log names it: a settings change compiles 35 render pipelines,
+	# and the breakdown is identical every time - surf+6 draw+13 spec+16 - so
+	# these are not new shaders, they are the same ones thrown away and rebuilt.
+	# That session compiled 790 pipelines in total.
+	#
+	# Every other assignment in this function goes through a Godot setter that
+	# returns early when the value has not moved. These four do not: a bare
+	# RenderingServer call has no such check, and shadow filter quality is a
+	# shader define, so writing it at all invalidates the scene shaders that
+	# read it. They are the only writes here that can cost anything when
+	# nothing changed, which is exactly the case the symptom describes.
+	#
+	# Not measured on this machine, and worth being straight about:
+	# RENDERING_INFO_PIPELINE_COMPILATIONS_* is Vulkan-only and reads zero
+	# under the OpenGL3 renderer a headless runner gets, so the counter that
+	# would prove it cannot be read here. The change is safe either way - the
+	# same values still reach the engine, they just stop being re-sent.
+	var shadow_size: int = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
+	if shadow_size != _applied_shadow_atlas_size \
+			or graphics_positional_shadow_filter_quality != _applied_shadow_filter_quality:
+		_applied_shadow_atlas_size = shadow_size
+		_applied_shadow_filter_quality = graphics_positional_shadow_filter_quality
 
-	# positional_shadow_atlas_size covers omni and spot lights only - a
-	# DirectionalLight3D renders into a separate atlas that the "Shadows"
-	# row was leaving at the engine default, so "off" was never fully off
-	# and the ladder's atlas sizes never applied to it. Same numbers as the
-	# positional atlas so one row means one thing.
-	RenderingServer.directional_shadow_atlas_set_size(
-		graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0, true
-	)
-	RenderingServer.directional_soft_shadow_filter_set_quality(
-		graphics_positional_shadow_filter_quality as RenderingServer.ShadowQuality
-	)
+		window.positional_shadow_atlas_size = shadow_size
+		ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
+
+		# positional_shadow_atlas_size covers omni and spot lights only - a
+		# DirectionalLight3D renders into a separate atlas that the "Shadows"
+		# row was leaving at the engine default, so "off" was never fully off
+		# and the ladder's atlas sizes never applied to it. Same numbers as the
+		# positional atlas so one row means one thing.
+		RenderingServer.directional_shadow_atlas_set_size(shadow_size, true)
+		RenderingServer.directional_soft_shadow_filter_set_quality(
+			graphics_positional_shadow_filter_quality as RenderingServer.ShadowQuality
+		)
 
 	window.anisotropic_filtering_level = clampi(graphics_anisotropic_filtering, 0, 4) as Viewport.AnisotropicFiltering
 	window.mesh_lod_threshold = maxf(0.0, graphics_mesh_lod_threshold)
