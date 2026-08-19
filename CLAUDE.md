@@ -1489,6 +1489,73 @@ back and `tools/audit_lightmap_fallback_paths.py` now fails CI on the next one:
 it reads the paths out of the `.lmbake` binary, which is the one place a text
 grep and `ResourceLoader.get_dependencies()` both cannot see.
 
+### Why only Chimera, and why the shape of the black changed shot by shot
+
+The player's framing was the sharpest evidence in the whole investigation -
+"solo ocurre en chimera nada mas" - and it has an exact structural answer:
+
+- **Exactly two scenes in the project have a `LightmapGI`**: Chimera and the
+  collector's shop. `grep -rl 'type="LightmapGI"' --include=*.tscn` returns
+  those two and nothing else. They are precisely the two `.exr` files `e191f1e`
+  deleted.
+- **Chimera is the only song with baked lights at all.** `light_bake_mode = 1`
+  (`BAKE_STATIC`) appears 6 times in `sng_chimera.tscn` and **0 times** in
+  `sng_monochrome.tscn` and `sng_safety_lullaby.tscn`. A `BAKE_STATIC` light
+  contributes to static geometry *only* through the bake, so with the bake gone
+  `MoonSpotlight`, `AmbLight`, `ClosetLight`, `CrawlSpaceLight`,
+  `OutsideGrassLight` and `CrawlDoorLight` all stop lighting the house. The two
+  that light the *whole* house - `AmbLight` (range 18.1, energy 2.87) and
+  `MoonSpotlight` (21.5) - are both in that list.
+- What survives is ambient plus the **dynamic** lights, and the ones that
+  matter ride the camera (`Camera3D/OmniLight3D`, the sequence spots): no
+  `light_bake_mode` line, so the Godot 4 default `BAKE_DYNAMIC`.
+
+That last point is what makes the log's shot-by-shot pattern fall out, and it
+is why the black looked like a rectangle that moved rather than a stuck
+overlay. From `4a6869d7`, mapping each `FRAME` through the clock's dispatch
+times (`101_prelude` at 3s, `107_turnaround` at 72.5s, `122_fall` at 149.04s):
+
+| song t | sequence | camera | frame |
+|---|---|---|---|
+| ~9 | `101_prelude` | `fov75@0,3.0,3.7` | luma 0.111, `borde=320px` |
+| ~41 | `103_stroll` | `fov80@0,3.0,3.2` | `negro 320x720 en 160,0` |
+| ~73 | `107_turnaround` | `fov75@0,2.6,6.6` | **`negro 960x720 en 160,0 cubre=0.75`** |
+| 81-141 | `110` … `119` | inside the house / closet | `borde=1280px`, luma **0.015**, ninety seconds |
+| ~153 | `122_fall` | `fov64@0.5,2.8,-0.6` | luma 0.118, back |
+| ~168 | `123_crawling` | `fov66@8.2,-1.9,-0.5` | luma 0.156 |
+
+Wide shots of the house are black because the house was lit by the bake. Close
+shots come back because the camera's own dynamic light reaches what it is
+pointed at - which is also why `122_fall` and the crawlspace, the two places
+the camera is right up against the geometry, were always the moment the player
+said it cleared.
+
+**And it disposes of the "75% wide rectangle" reading for good.** At song t=73
+the HUD is not even on screen: the clock fades `UILayer/GameUI:modulate` to
+alpha 0 between 70.41s and 71.67s and sets `UILayer/GameUI/Player:visible =
+false` at 73.17s. Nothing was bounding that run but the geometry itself - the
+lit outdoors at the frame edges against an unlit interior in the middle.
+
+### Two sweeps that say there is no second one of these
+
+The whole class is "a resource points at a file by plain `res://` text and the
+file is gone". Both halves came back clean, which is worth recording so the
+next session does not re-run them on a hunch:
+
+```bash
+# every binary resource (.res .scn .lmbake .mesh .material .occ): 198 files
+# every text resource's ext_resource path= (.tscn .tres): 467 files
+```
+
+The binary sweep's only hits are 7 audio `.res` naming the `.ogg`/`.wav` they
+were imported from - bookkeeping, the packets are embedded, nothing loads
+through it. The text sweep's only hit is
+`lullaby_mod/assets/collector/hand/shop_talk_pick_hands.tscn`, whose
+`pick_hands.gltf` does not exist. **Nothing references that scene**, so it
+cannot break a build - but it also cannot load, so do not wire it up without
+recovering the glTF first. Per the standing rule it was left in place rather
+than deleted.
+
 Two other things the log named, both worth knowing:
 
 - `UILayer/HeartVignette` is `1464x1080 at 228,0`, `cubre=0.76`, pulsing every
