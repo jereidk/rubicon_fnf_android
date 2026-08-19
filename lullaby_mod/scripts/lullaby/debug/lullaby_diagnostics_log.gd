@@ -1755,7 +1755,32 @@ func _environment_state() -> String:
 	# El ambiente, que es lo que decide si una superficie sin luz sale negra o
 	# solo oscura. `limpio` solo decia que no hay glow ni niebla, y en una
 	# escena que se apaga entera esa es la mitad menos interesante.
-	var ambient: String = "amb%d@%.2f" % [env.ambient_light_source, env.ambient_light_energy]
+	# Los ajustes de imagen, que es lo unico en todo el proyecto capaz de
+	# aplastar el fotograma entero sin que ningun nodo lo delate.
+	#
+	# environment_start.tres es el UNICO recurso del proyecto con
+	# adjustment_enabled, Chimera es la unica cancion con WorldEnvironment, y
+	# 107_turnaround anima la rampa de correccion de color por dos pistas
+	# separadas. Ademas GL Compatibility no implementa nada de esto, asi que un
+	# render de escritorio no puede reproducirlo: solo el dispositivo lo dice.
+	var adjust: String = "aj=off"
+	if env.adjustment_enabled:
+		var lut: Texture = env.adjustment_color_correction
+		var ramp: String = "-"
+		var gradient_texture := lut as GradientTexture1D
+		if gradient_texture != null and gradient_texture.gradient != null:
+			var g: Gradient = gradient_texture.gradient
+			var parts: PackedStringArray = PackedStringArray()
+			for i in mini(g.get_point_count(), 4):
+				var c: Color = g.get_color(i)
+				parts.append("%.2f:%.2f,%.2f,%.2f" % [g.get_offset(i), c.r, c.g, c.b])
+			ramp = "/".join(parts)
+		elif lut != null:
+			ramp = lut.get_class()
+		adjust = "aj=b%.2f,c%.2f,s%.2f lut=%s" % [
+			env.adjustment_brightness, env.adjustment_contrast,
+			env.adjustment_saturation, ramp]
+	var ambient: String = "amb%d@%.2f %s" % [env.ambient_light_source, env.ambient_light_energy, adjust]
 	var background: String = "bg%d@%.2f" % [env.background_mode, env.background_energy_multiplier]
 	var effects: String = "+".join(on) if not on.is_empty() else "limpio"
 	return "%s %s %s" % [effects, ambient, background]
