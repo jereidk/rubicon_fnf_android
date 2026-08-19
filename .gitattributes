@@ -1,7 +1,12 @@
 # Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
-*.pck filter=lfs diff=lfs merge=lfs -text
-*.ctex filter=lfs diff=lfs merge=lfs -text
-*.tar.gz filter=lfs diff=lfs merge=lfs -text
-*.lmbake filter=lfs diff=lfs merge=lfs -text
-precompiled_astc_imports/*.res filter=lfs diff=lfs merge=lfs -text
+# Rama de biseccion: NADA va por LFS. El presupuesto de LFS del repo esta
+# agotado, y `lfs: true` sin guarda tira el checkout en el paso 2 - que es
+# exactamente lo que paro el build #109. Los .lmbake se injertan aqui como
+# blobs normales (sha256 identico al que LFS servia el 6-ago) y los
+# precompilados se borran para que CI reimporte en frio.
+*.pck binary
+*.ctex binary
+*.tar.gz binary
+*.lmbake binary
+precompiled_astc_imports/*.res binary

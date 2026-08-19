@@ -33,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/
@@ -210,9 +210,18 @@ jobs:
           # file timestamps, so this works correctly even on a fresh
           # checkout where every file's mtime is "now". See
           # precompiled_astc_imports/README.md for how to regenerate these.
+          # Rama de biseccion: los precompilados ASTC iban por LFS y se han
+          # borrado, asi que el glob puede quedar vacio. Sin nullglob, `cp`
+          # falla y se lleva el build por delante.
+          shopt -s nullglob
           mkdir -p .godot/imported
-          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+          pre=(precompiled_astc_imports/*.res precompiled_astc_imports/*.md5)
+          if [ ${#pre[@]} -gt 0 ]; then
+            cp "${pre[@]}" .godot/imported/
+            echo "Restored ${#pre[@]} precompiled ASTC files"
+          else
+            echo "Sin precompilados ASTC - import en frio"
+          fi
 
       - name: Restore precompiled lightmap imports
         run: |
@@ -235,9 +244,17 @@ jobs:
           # Import step. See precompiled_texture_imports/README.md for why
           # this only covers these 4 and not the ~600 other PNGs/OGGs that
           # also fall outside precompiled_astc_imports' scope.
+          # Mismo motivo que el paso ASTC: los .ctex iban por LFS y se han
+          # borrado en esta rama.
+          shopt -s nullglob
           mkdir -p .godot/imported
-          cp precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_texture_imports/*.md5 | wc -l) precompiled texture imports"
+          pre=(precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5)
+          if [ ${#pre[@]} -gt 0 ]; then
+            cp "${pre[@]}" .godot/imported/
+            echo "Restored ${#pre[@]} precompiled texture files"
+          else
+            echo "Sin precompilados de textura - import en frio"
+          fi
 
       - name: Build ASTC normal map compressor
         run: |
@@ -372,7 +389,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/
