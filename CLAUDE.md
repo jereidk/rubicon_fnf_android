@@ -767,8 +767,14 @@ How to read it:
   main-thread waits (it sits at 95-322ms during threaded scene loads, when
   almost no script is running). So "proc high" does not mean "your script is
   slow"; it means the frame's process step blocked, whatever on.
-- `frame` is clamped at 150ms, so `proc` is the only field that shows a real
-  freeze's true size - `122_fall` reads `frame=150ms` but `proc=1878ms`.
+- **`frame` is the wall clock and `proc` is the stale one - this used to say
+  the opposite.** `473788e` stopped deriving `frame` from `delta`, which Godot
+  clamps, and timed it with `Time` instead, so `frame` now reports the true
+  size of a freeze. `proc` is `TIME_PROCESS`, a **per-second maximum**, so on a
+  frame longer than a second it reports the previous second's number and reads
+  low. In `10152-665dedd4`, `122_fall@6.8s` logs `frame=1911.7ms` with
+  `proc=34.7ms` - read `frame`, and treat a low `proc` on a long frame as an
+  artefact of the monitor rather than evidence the CPU was idle.
 - `orphans` climbing then **flat** -> a pool filling, not a leak
 - `SUMMARY vs_first` climbing with nothing else changing -> thermal throttling
 - `LOAD` checkpoints spread out -> resource loading; bunched at the end ->
@@ -804,9 +810,6 @@ How to read it:
   "122_fall was playing" into "7.5s into 122_fall", which is what actually
   locates a stall against one of its 31 tracks' keyframes instead of
   reconstructing it from wall-clock arithmetic across log lines.
-
-`frame=150.0ms` recurs because Godot **clamps delta** - real stalls can be
-much worse than the log can show.
 
 `DiagnosticsLog.mark("text")` drops a labelled line from anywhere.
 
@@ -965,9 +968,14 @@ dependencies hang a fresh project - so that check is structural.
   (`graphics_disable_shader_effects`) - and reading `gpu=` for each. Do not
   change the preset, which moves several options at once and is what made the
   earlier "Very Low changed nothing" conclusion uninterpretable.
-- VRAM: 625MB in the Collector's Shop, ~410MB in Chimera. Very high for this
-  device and the likely reason loads get *slower* over a session (the same
-  scene went 11.9s -> 26.6s).
+- **VRAM: 165MB in the Collector's Shop and 224MB in Chimera** - measured on
+  `10152-665dedd4`, the first log taken after the ASTC conversion and after the
+  lightmap was restored. The old numbers here were 625MB and ~410MB, and they
+  are what the "VRAM is the one fix that pays four times" argument was built
+  on. It paid: this is a **3.8x** cut in the shop and **1.8x** in Chimera, and
+  it is the ASTC 8x8 move doing exactly what its own arithmetic predicted
+  (510MB -> 128MB of texture VRAM). Loads-getting-slower has not been re-tested
+  under the new figure.
 - Loads: 50%->75% is where almost all the time goes, and VRAM climbs from
   ~100MB to ~540MB across it. It is texture loading.
 - Thermal: `vs_first` reached +23%.
@@ -1805,20 +1813,30 @@ cut-down stage by hand would work but stops being the scene under test.
 
 ## Open problems
 
-1. **Chimera's 30fps ceiling is GPU-bound** (`gpu` 38.8ms against a 38.1ms
-   frame). Measured, see the performance section. The note scenes' 6
-   AnimationPlayers each are a CPU cost and were the old suspect here; with
-   `cpu_render` at 2.1ms and `proc` no longer the limiting number, they are not
-   what holds the frame. Next step is the two-run shadows / visual-effects A/B
-   described in that section - not a code change.
-2. **VRAM.** Only lowering texture *resolution* helps (target 1024-2048).
-   This one fix would address VRAM, slow loads, loads-getting-slower, and
-   throttling together.
-3. **Multi-second `proc` stalls at cutscene starts** (`104_photographysesh`,
-   `114_hexapproach`, `122_fall`). Narrowed to first-draw pipeline compilation
-   - texture upload, resource loading and the AnimationMixer track cache are
-   all ruled out, see the `122_fall` section. The untried fix is a prewarm
-   that puts just that cutscene's cast in front of an off-screen camera.
+1. **Chimera's 30fps ceiling is GPU-bound**, and it moved: `gpu` p50 is now
+   **31.4ms** (p90 36.6) against the 38.8ms this file recorded before, for a
+   median of 30fps over 42 heartbeats on `10152-665dedd4`. The spread by
+   sequence is the useful part and it is wide - `113_reaching` 14.8ms and
+   `116_hexstare` 15.1ms both run at 60fps, while `104_photographysesh` costs
+   44.2ms and `112_disorientidle` 39.6ms. **Chimera is not uniformly slow; four
+   or five shots are.** Next step is still the shadows / visual-effects A/B,
+   but aimed at those shots rather than at the song average.
+2. **VRAM is no longer the top problem.** 224MB in Chimera and 165MB in the
+   shop, down from ~410 and 625. Lowering texture *resolution* is still the
+   only further lever and still pays twice (VRAM and APK), but the urgency is
+   gone. Thermal is down with it: `vs_first` reached **+15%** here against the
+   +23% recorded before.
+3. **The multi-second stall at cutscene starts is still there and is still
+   the worst thing in the song.** `122_fall@6.8s` logs **`frame=1911.7ms`**
+   with `pipe+8` - unchanged from the 1878ms recorded months ago, and now with
+   the pipeline counter naming the cause on the same line. Three more of the
+   same shape: `121_closetrunout@0.7s` 489ms `pipe+5`,
+   `104_photographysesh@6.6s` 481ms `pipe+5`, `107_turnaround@0.1s` 350ms.
+   Texture upload, resource loading and the AnimationMixer track cache are all
+   ruled out (see the `122_fall` section). The untried fix is a prewarm that
+   puts just that cutscene's cast in front of an off-screen camera - and note
+   that the `precache` is now **forbidden from touching any mesh registered in
+   the `.lmbake`**, which is what made the last attempt black the house out.
 4. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.
