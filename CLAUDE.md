@@ -1001,6 +1001,46 @@ Y `tex_static_noise.png` se queda en Lossless a propósito -
 `shd_shop_static_spatial` la muestrea como datos y un ruido con pérdida son
 artefactos.
 
+**`loading.png` ya está movida, y a 4x4, no a 8x8 ni a Basis.** Es el único
+sitio de este fichero donde se deja de seguir la convención de las cinco hojas
+de consola (`mode=4`), y el motivo está medido:
+
+| | VRAM | disco | PSNR | peor alfa |
+|---|---|---|---|---|
+| Lossless (antes) | 16.00 MB | 0.41 MB | - | 0 |
+| ASTC 8x8 | 1.00 MB | 1.00 MB | 43.2 dB | **121/255** |
+| Basis -> ETC2 en device | 4.00 MB | ~0.3 MB | 44.1 dB | 27/255 |
+| **ASTC 4x4** | **4.00 MB** | 4.00 MB | **68.3 dB** | **5/255** |
+
+La imagen es una **silueta blanca plana sobre transparencia** - Hypno y los
+niños recortados, sin un solo detalle de color. El borde es lo único que hay,
+así que un error de alfa es el error. `tools/render_astc_ab.gd` lo enseña sin
+discusión a 8x8: el diagonal limpio del original sale escalonado y la
+diferencia roja traza el contorno entero. Basis va por ETC1S, que guarda el
+alfa en un plano aparte y es justo lo arriesgado en un recorte binario; los
+27/255 de la tabla son además un *proxy* del destino de transcodificación, no
+la pérdida real de ETC1S, así que el número verdadero puede ser peor.
+
+4x4 cuesta 3.6 MB más de APK que Basis y ahorra los mismos 12 MB de VRAM, con
+la calidad **medida** en vez de supuesta. Si algún día el APK aprieta, cambiar
+a `mode=4` es una línea.
+
+Dos cosas que hubo que comprobar antes, y que son la checklist de este cambio:
+
+- **Ningún `load_path` apunta al `.ctex`.** El importador saca `.res`, y una
+  escena con la ruta del `.ctex` escrita a mano deja de cargar - es lo que
+  tumbó Chimera entera una vez. En todo el proyecto no hay ninguno.
+- **Las regiones siguen cabiendo.** 8 regiones de 891x444, `max(x+w)=1792` y
+  `max(y+h)=1806` contra una textura de 2048x2048. Cambiar el modo no toca las
+  dimensiones, así que esto siempre se cumple, pero se comprueba igual.
+
+Y de paso salió que `loading.tres` pide `uid://bidtt2jjjlbva` mientras el
+`.import` declara `uid://bok2mx0i4qbh1`. Resuelve por ruta de texto y funciona,
+pero **son 11 avisos así en todo el proyecto** (`verify_hardcoded_uids.gd` los
+lista) y es exactamente la clase de desajuste que al exportar dejó a Chimera sin
+lightmap. No se tocó aquí: es un arreglo sistémico con su propio riesgo, no algo
+que mezclar con un cambio de compresión.
+
 ### La tienda gasta un cuarto de su GPU en SubViewports
 
 ```
