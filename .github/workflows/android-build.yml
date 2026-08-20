@@ -508,6 +508,19 @@ jobs:
           $GODOT --headless --path . --script tools/test_preload_batch_backoff.gd 2>&1 | tee /tmp/pace.txt
           grep -q "todo OK" /tmp/pace.txt
 
+      - name: Verify the precache sweep is driven by the reveal, not the clock
+        run: |
+          # An AnimationPlayer advances by delta, so the 0.8s sweep ends in four
+          # or five frames while the reveal it is meant to accompany takes 6737ms
+          # on Chimera. Everything revealed after that was drawn from one fixed
+          # pose - the file's own diagnosis, left half-fixed by 67c9fad. The
+          # poses are re-served per revealing frame now; this pins that they are
+          # collected, that they cycle, that a scene without a sweep still loads,
+          # and that nothing is served while the animation still owns the
+          # transform.
+          $GODOT --headless --path . --script tools/test_preload_sweep.gd 2>&1 | tee /tmp/sweep.txt
+          grep -q "todo OK" /tmp/sweep.txt
+
       - name: Verify the cached hit order matches the sorted one
         run: |
           # update_performance() rebuilt and re-sorted every result hit so far

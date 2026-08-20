@@ -66,6 +66,39 @@ var _batch: int = FIRST_BATCH
 var _anim_done: bool = false
 var _finished: bool = false
 
+## The sweep's own keyframes, lifted out of the animation at _ready.
+##
+## The animation cannot drive the sweep on its own and the header above says
+## why: an AnimationPlayer advances by delta, so on a scene whose frames cost
+## hundreds of milliseconds an 0.8 second animation is over in four or five of
+## them. 67c9fad fixed the *reveal* to run off frames instead of wall time and
+## stretched it to 6737ms on Chimera; the sweep was left on animation time, so
+## it now finishes in the first second and the remaining ~80 nodes are revealed
+## with the camera parked wherever the last key left it.
+##
+## That is the half of the original diagnosis nobody closed: "only what the
+## camera saw from its starting pose was ever warmed, which is why pipelines
+## keep compiling later, during play." The device log still shows it - Chimera
+## compiles ~95 pipelines under the precache and another 73 during the song,
+## and the four sequences that stall are the four whose camera goes somewhere
+## the sweep never reached: 104_photographysesh (21 pipelines over three
+## frames), 121_closetrunout (5), 114_hexapproach (4) and 122_fall, whose worst
+## frame is 1911.7ms for `spec+8`.
+##
+## So the poses are read once and re-served from _process, one per revealing
+## frame, cycling. Every batch of newly revealed nodes is then drawn from a
+## different viewpoint instead of all of them from the last one.
+var _sweep_poses: Array[Transform3D] = []
+var _sweep_cursor: int = 0
+
+## How many extra sweep frames this served after the animation ran out, and
+## what the reveal had managed by then. Reported at handover, because the
+## second number is the one that says whether any of this was needed: if the
+## animation finishes with the reveal already done, the sweep was never the
+## problem and this whole mechanism is dead weight.
+var _sweep_extra_frames: int = 0
+var _revealed_at_anim_end: int = -1
+
 ## Whether the baseline frame has been spent. See _process().
 var _measured_first_frame: bool = false
 
@@ -90,6 +123,8 @@ func _ready() -> void :
 		animation_name, get_parent().scene_file_path.get_file(), _hidden.size(),
 	])
 
+	_collect_sweep_poses()
+
 	animation_player.play(animation_name)
 	animation_player.animation_finished.connect(_on_animation_finished)
 
@@ -97,6 +132,54 @@ func _ready() -> void :
 	# loop with no work in it.
 	if _hidden.is_empty():
 		_anim_done = true
+
+## Reads the sweep's poses out of the animation, so they can be re-served after
+## the animation itself has run out.
+##
+## Paired by index rather than by time: the two tracks in every scene here are
+## authored with identical key times (fifteen at 0.05s apart on Chimera), and
+## pairing on the shorter of the two counts is both simpler and safe against a
+## scene that authors only one of them. A rotation with no matching position
+## contributes nothing a sweep can use.
+##
+## Tolerant of finding nothing. A scene whose precache does not move the camera
+## - or one whose tracks are named differently - just keeps the old behaviour,
+## because _serve_sweep_pose() does nothing with an empty array.
+func _collect_sweep_poses() -> void:
+	if animation_player == null or not animation_player.has_animation(animation_name):
+		return
+	var anim: Animation = animation_player.get_animation(animation_name)
+	if anim == null:
+		return
+
+	var pos_track: int = anim.find_track(^".:position", Animation.TYPE_VALUE)
+	var rot_track: int = anim.find_track(^".:rotation", Animation.TYPE_VALUE)
+	if pos_track < 0:
+		return
+
+	var count: int = anim.track_get_key_count(pos_track)
+	if rot_track >= 0:
+		count = mini(count, anim.track_get_key_count(rot_track))
+
+	for i in count:
+		var origin: Vector3 = anim.track_get_key_value(pos_track, i)
+		var basis := Basis.IDENTITY
+		if rot_track >= 0:
+			basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
+		_sweep_poses.append(Transform3D(basis, origin))
+
+## Puts the camera at the next sweep pose, for the frame that is about to draw
+## whatever the reveal just switched on.
+##
+## Only ever called once the animation is done, so the two never fight over the
+## transform - while the animation is playing it owns this node's position and
+## rotation, and it is authored to.
+func _serve_sweep_pose() -> void:
+	if _sweep_poses.is_empty():
+		return
+	transform = _sweep_poses[_sweep_cursor % _sweep_poses.size()]
+	_sweep_cursor += 1
+	_sweep_extra_frames += 1
 
 ## Collects everything in the scene that draws, and hides it.
 ##
@@ -196,6 +279,13 @@ func _process(_delta: float) -> void:
 
 	_reveal(_batch)
 
+	# After the reveal, so this frame draws the nodes it just switched on from
+	# the pose it is about to move to rather than from the previous one. Only
+	# once the animation has run out; before that the animation owns the
+	# transform.
+	if _anim_done:
+		_serve_sweep_pose()
+
 func _reveal(count: int) -> void:
 	var target: int = mini(_revealed + count, _hidden.size())
 	while _revealed < target:
@@ -208,6 +298,11 @@ func _reveal(count: int) -> void:
 
 func _on_animation_finished(_anim: StringName = &"") -> void:
 	_anim_done = true
+	# The number that says whether the sweep was ever the problem. If the
+	# animation ends with the reveal already complete, it kept up and serving
+	# extra poses changes nothing; if it ends at 5/88, the other 83 nodes were
+	# about to be drawn from one fixed viewpoint.
+	_revealed_at_anim_end = _revealed
 	_try_finish()
 
 ## Hands over only once the sweep has finished AND everything has been shown,
@@ -230,8 +325,10 @@ func finish_preload(_anim: StringName = &"") -> void :
 	# starting an animation - worth distinguishing from an animation that
 	# genuinely finished in under a millisecond.
 	if _started_msec > 0:
-		_mark("preload camera '%s' finished (%dms, %d nodos)" % [
+		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses revelado_al_fin_anim=%d/%d extra=%d frames" % [
 			animation_name, Time.get_ticks_msec() - _started_msec, _hidden.size(),
+			_sweep_poses.size(), _revealed_at_anim_end, _hidden.size(),
+			_sweep_extra_frames,
 		])
 
 	if camera_to_focus != null and !camera_to_focus.current:

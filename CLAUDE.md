@@ -1205,6 +1205,49 @@ a `Camera3D` that makes itself current during the loading screen and plays a
 `fov = 120` before handing over to the real camera. It costs ~2.2s and
 compiles ~90 pipelines on Chimera.
 
+### El barrido corría en tiempo de animación y el revelado en frames
+
+Dos relojes distintos para un solo trabajo, y por eso el prewarm calienta menos
+de lo que parece. La cabecera del propio fichero lo diagnosticó desde el primer
+día -*"only what the camera saw from its starting pose was ever warmed, which
+is why pipelines keep compiling later, during play"*- pero `67c9fad` arregló
+solo una de las dos mitades: pasó el **revelado** a ir por frames, con
+retroceso multiplicativo, y dejó el **barrido** en la animación.
+
+Un `AnimationPlayer` avanza por delta. Con frames de cientos de milisegundos
+-que es exactamente lo que hay mientras se compilan pipelines- una animación de
+0.8s se acaba en cuatro o cinco frames, mientras que el revelado que debía
+acompañar dura 6737ms en Chimera. Todo lo revelado a partir del quinto frame se
+dibujó desde donde la última clave dejó la cámara.
+
+El log de `10152-665dedd4` lo mide sin ambigüedad:
+
+    precache de Chimera   87.9s -> 95.7s   pipe 431 -> 526   (~95, 6737ms)
+    toda la canción                        pipe 527 -> 600   (73 más)
+
+y los 73 que se escapan caen justo en las cuatro secuencias cuya cámara va
+donde el barrido no llega: `104_photographysesh` (21 pipelines en tres frames),
+`121_closetrunout` (5), `114_hexapproach` (4) y `122_fall`, cuyo peor frame es
+**1911.7ms para `spec+8`** con RAM y VRAM planas.
+
+Arreglado sacando las poses de la propia animación (`find_track(^".:position")`)
+y volviéndolas a servir desde `_process`, una por frame de revelado, ciclando.
+No toca la visibilidad de ningún nodo, así que **no puede chocar con el
+`LightmapGI`** - que es lo que hundió el intento anterior.
+
+Dos cosas que hay que respetar si alguien lo vuelve a tocar:
+
+- **Servir poses solo con la animación terminada.** Mientras suena, la
+  animación es dueña de `position` y `rotation` y está autorada para serlo; dos
+  escritores en un `transform` es un temblor, no un barrido.
+- **Ciclar, no agotarse.** Siempre hay más frames de revelado que poses -
+  Chimera autora 15 y gasta 30-40 frames en 88 nodos-, así que quedarse en la
+  última al terminar el array reintroduce el bug por la puerta de atrás.
+
+`_mark` al ceder el testigo trae ahora `revelado_al_fin_anim=N/M`, que es **el
+número que dice si esto hacía falta**: si la animación termina con el revelado
+ya hecho, el barrido nunca fue el problema y todo este mecanismo sobra.
+
 **But it did not cover `122_fall`, which is the stall that is still there.**
 Diff the sequence's `:visible` tracks against the precache's and five were
 missing: `SerenaFalling`, `floorfucked`, `window_001`, `window_004`,
