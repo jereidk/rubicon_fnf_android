@@ -508,6 +508,30 @@ var _probe_usec: int = 0
 var _incoming_walk_usec: int = 0
 var _residue_walk_usec: int = 0
 
+## The same total, split by which walk spent it - because `probe=` alone
+## cannot answer the only question anyone asks of it.
+##
+## 10152-665dedd4 reports probe=1507.3ms on a 17588ms Chimera load, and the
+## obvious reading ("8.6% of the load is the diagnostics") is not supported by
+## anything: three different walks feed that number and the RETAINED sweep,
+## another 597ms on the same load, is not even in it. Capping the total on
+## that reading would have been an optimisation aimed at a number nobody had
+## broken down - and the note above PROBE_BUDGET_USEC already records what
+## happens when this walk is capped without care (deps=111/112 on a graph of
+## 512, every uncounted path below the cut).
+##
+## There is also a reason to expect the whole reading is wrong: all of this
+## runs in _process, on the main thread, while load_threaded_request works on
+## a WorkerThreadPool thread, on a phone with 8 cores. It spends the loading
+## screen's frame budget, which is a real cost and a *different* one from
+## making the load take longer. The next log settles it: if `graph=` is most
+## of it, the BFS over get_dependencies() is the thing to bound; if `prog=`
+## is, the per-sample has_cached() pass is; and either way `sweep=` is now
+## alongside instead of hidden.
+var _probe_walk_usec: int = 0
+var _probe_progress_usec: int = 0
+var _probe_residue_usec: int = 0
+
 ## Wall-clock ceiling on either graph walk, per frame, in microseconds.
 ##
 ## Both run on the main thread and read a file header per path - which for an
@@ -640,6 +664,7 @@ func _continue_incoming_walk() -> void:
 
 	_incoming_walk_usec = Time.get_ticks_usec() - started
 	_probe_usec += _incoming_walk_usec
+	_probe_walk_usec += _incoming_walk_usec
 
 ## How many of the incoming scene's dependencies are cached now, and which
 ## ones arrived since the last sample.
@@ -686,7 +711,9 @@ func _incoming_progress() -> String:
 			_dep_ms[owner] = float(_dep_ms.get(owner, 0.0)) + share
 			_dep_count[owner] = int(_dep_count.get(owner, 0)) + 1
 	_dep_clock = Time.get_ticks_msec()
-	_probe_usec += Time.get_ticks_usec() - started
+	var progress_usec: int = Time.get_ticks_usec() - started
+	_probe_usec += progress_usec
+	_probe_progress_usec += progress_usec
 
 	return "deps=%d/%d%s" % [
 		_incoming_cached.size(), _incoming_deps.size(),
@@ -2141,6 +2168,7 @@ func _report_cache_residue() -> void:
 
 	_residue_walk_usec = Time.get_ticks_usec() - started
 	_probe_usec += _residue_walk_usec
+	_probe_residue_usec += _residue_walk_usec
 
 	_entry("RESIDUE", "%s packed=%s cached=%d/%d%s walk=%.1fms [%s] %s" % [
 		_outgoing_scene_path.get_file(),
@@ -2527,6 +2555,9 @@ func _on_scene_change_started(path: String) -> void:
 	_stall_cached_at_start = 0
 	_probe_usec = 0
 	_residue_walk_usec = 0
+	_probe_walk_usec = 0
+	_probe_progress_usec = 0
+	_probe_residue_usec = 0
 	_collect_incoming_deps(path)
 	# deps=/walk= are what this file costs the load it is measuring. Named on
 	# the way out as well as the way in, because the walk happens here and a
@@ -2552,8 +2583,19 @@ func _on_scene_change_finished(path: String) -> void:
 	if _sweep_active:
 		_finish_retained_sweep()
 
-	_entry("SCENE_IN", "%s took=%dms probe=%.1fms memory_delta=%+.1fMB sys=%s" % [
-		path, took, _probe_usec / 1000.0, delta_mb, _sys_mem(),
+	# Split three ways, plus the sweep, which was never in probe= at all.
+	#
+	# graph= is the breadth-first walk over get_dependencies() that builds the
+	# deps=N/M denominator; prog= is the once-a-second has_cached() pass over
+	# what is still missing; res= is the outgoing scene's residue walk; and
+	# sweep= is _continue_retained_sweep, which reports separately on RETAINED
+	# and so read as free on this line. On Chimera that hidden one is another
+	# 597ms next to probe=1507ms, so the honest total was never printed.
+	_entry("SCENE_IN", "%s took=%dms probe=%.1fms(graph=%.0f prog=%.0f res=%.0f) sweep=%.0fms memory_delta=%+.1fMB sys=%s" % [
+		path, took, _probe_usec / 1000.0,
+		_probe_walk_usec / 1000.0, _probe_progress_usec / 1000.0,
+		_probe_residue_usec / 1000.0, _sweep_usec / 1000.0,
+		delta_mb, _sys_mem(),
 	])
 	# Which part of the scene the wall time went to. The shop opens 397 files
 	# in 17.9s and Monochrome 197 in 4.2s with more megabytes, so the cost is

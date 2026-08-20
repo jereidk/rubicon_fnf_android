@@ -869,6 +869,42 @@ this table before adding a counter - the odds are it is already there.
 | `focus=LineEdit:X` | the focused Control |
 | `tweens=` / `msgq=` | active tweens; message-queue high-water (a `call_deferred` flood) |
 | `alat=X/Yms` | audio output latency and time to next mix |
+| `probe=Nms(graph= prog= res=) sweep=Nms` | on `SCENE_IN`, what the log itself spent measuring that load, **split by which walk** - plus the RETAINED sweep, which was never inside `probe=` at all. See below |
+
+### `probe=` no dice lo que parece, y por eso ahora va partido
+
+`SCENE_IN` de Chimera trae `took=17588ms probe=1507.3ms`, y la lectura obvia
+-"el 8.6% de la carga son los diagnósticos"- **no está apoyada en nada**. Tres
+recorridos distintos alimentan ese número y el barrido de `RETAINED`, otros
+597ms en la misma carga, ni siquiera estaba dentro. El total honesto nunca se
+había impreso: 2104ms, no 1507.
+
+Y hay un motivo para dudar de la lectura entera: los cuatro recorridos van en
+`_process`, o sea **en el hilo principal**, mientras `load_threaded_request`
+trabaja en un hilo del `WorkerThreadPool`, en un teléfono de 8 núcleos. Lo que
+gastan es el presupuesto de frame de la pantalla de carga, que es un coste
+real y **distinto** de alargar la carga. Los números del propio log apuntan a
+que no la alargan: la tienda carga dos veces en la misma sesión, `took` va de
+4763ms a 17420ms (3.7x) y `probe` solo de 623ms a 1145ms (1.8x). Si `probe`
+fuera el que manda, crecerían juntos.
+
+Capar el total sobre esa lectura habría sido optimizar contra un número que
+nadie había desglosado - y la nota sobre `PROBE_BUDGET_USEC` ya registra qué
+pasa cuando este recorrido se capa sin cuidado: `deps=111/112` sobre un grafo
+de 512, con todo lo que quedaba por debajo del corte sin contar ni nombrar.
+
+Así que en vez de capar, se partió:
+
+| | qué es |
+|---|---|
+| `graph=` | el recorrido en anchura sobre `get_dependencies()` que construye el denominador de `deps=N/M` |
+| `prog=` | la pasada de `has_cached()` una vez por segundo sobre lo que falta |
+| `res=` | el recorrido de residuo de la escena que sale |
+| `sweep=` | `_continue_retained_sweep`, que informaba aparte en `RETAINED` y por eso se leía como gratis |
+
+El siguiente log lo decide: si `graph=` es la mayor parte, lo que hay que
+acotar es el BFS; si es `prog=`, la pasada por muestra. **No tocar ninguno de
+los dos hasta leer esa línea.**
 
 ### El instrumento se callaba justo en los frames que existe para medir
 
