@@ -911,6 +911,78 @@ dependencies hang a fresh project - so that check is structural.
 
 ---
 
+## Lo que NO hay que optimizar en Chimera, medido
+
+Escrito para que nadie vuelva a gastar una sesión donde ya está contestado. Todo
+de `10152-665dedd4`, 42 latidos:
+
+| candidato | por qué no |
+|---|---|
+| **La CPU en general** | `script` p50 = **8.06ms** contra `gpu` p50 = **31.43ms**. El frame lo tiene la GPU con casi 4x de margen |
+| **El sistema de notas** | `notes=36 ms/s` (≈1ms/frame) y **sin correlación con gpu**: hay `notes=84 ms/s` con `gpu=14.8ms` y `notes=57` con `gpu=48.7ms` |
+| **Instanciar notas en canción** | `inst=0` en los 42 latidos. El prewarm del pool funciona y no vuelve a tocarse |
+| **gdanimate** | `anim2d=0.00 ms/s` en toda la canción |
+| **Post-proceso, NTSC y godrays** | `post=0` a Very Low, y el estado `off` del `PostProcessingTree` pone `Ray:visible = false`. `env=limpio` en los 42 |
+| **Sombras** | `shadows=off` ya viene en Very Low |
+| **Overdraw 2D** | `over=3.0x` con `gpu=33.4ms` **y** `over=3.1x` con `gpu=18.2ms`. No correlaciona |
+
+Y el dato que lo resume: el frame **más caro** de la canción (60.2ms) dibuja
+**menos** que el más barato (11.8ms) - 20 objetos y 19657 primitivas contra 41
+y 23046. El coste sigue al plano de cámara y a nada más.
+
+**Chimera no es lenta de forma uniforme; lo son cuatro o cinco planos.**
+`113_reaching` va a 14.8ms y `116_hexstare` a 15.1ms - los dos a 60fps - contra
+`104_photographysesh` a 44.2ms y `112_disorientidle` a 39.6ms. Cualquier
+optimización que suba la media sin tocar esos planos no se nota.
+
+### Dos leads que se caen al mirarlos, y por qué
+
+Los dos parecen hallazgos en una lectura rápida del log. No lo son, y quedan
+escritos para que la próxima lectura rápida no los redescubra:
+
+- **`self=5.34ms` no es coste por frame.** Sale dentro del grupo de
+  `script_max`, que es el peor frame de *cada segundo* - y ese es justo el
+  frame en que el log escribe su línea. Es ~5ms una vez por segundo, no 5ms
+  cada frame. `settings.gd:277` dice que el log "is quiet", y con esa lectura
+  lo es.
+- **La barra de carga no marca 50% clavado.** Eso es el log, que informa de
+  `progress[0]` crudo de `load_threaded_get_status`. El jugador ve
+  `_blended_progress()` (`68e33a6`), que toma el máximo con la ratio de
+  dependencias en caché. Lo que sí es cierto es que **la barra se congela unos
+  diez segundos igual**, porque en ese tramo no se completa ninguna
+  dependencia de primer nivel - ver abajo.
+
+### Los diez segundos ciegos de cada carga
+
+El tramo más largo sin información de todo el log, y está en las dos escenas
+grandes:
+
+| | congelado | qué llega al salir |
+|---|---|---|
+| Chimera | `deps=188/351` durante **11s** | `chimera_house.tscn`, `mdl_chimera_camera.gltf` |
+| Tienda (2ª visita) | `deps=329/522` durante **9s** | `mdl_shop_base.gltf`, `prp_tv.gltf`, `prp_sign.gltf` |
+
+Un glTF grande bloquea el hilo de carga y **ni la fracción del motor ni el
+recuento de dependencias se mueven** mientras dura, así que ninguna de las dos
+mitades de `_blended_progress()` puede informar. De los ~13s de carga de
+Chimera, once son ese bloque.
+
+`DEPCOST` no lo ve: solo cobra cuando algo llega, así que carga los once
+segundos a lo siguiente que aparece. Para atacarlo haría falta o partir esas
+escenas glTF, o un temporizador por dependencia dentro del bloque - y ninguna
+de las dos se ha intentado.
+
+### La tienda gasta un cuarto de su GPU en SubViewports
+
+```
+sub=5/7  sub_px=1.11M  sub_gpu=3.50ms   de un gpu=13.83ms
+sub_top= IconSubViewport(720x540), console_bg/SubViewport(720x540), Notepad/Page
+```
+
+1.11 megapíxeles contra los 0.29 Mpx que dibuja el juego a `scale=0.50`. Los
+dos de la consola ya bajaron de 1440x1080 a 720x540 y siguen siendo el 25% del
+frame. La puerta de `console_bg` existe y estaba abierta en 4 de 8 muestras.
+
 ## Measured facts about performance (moto g53)
 
 - **Chimera's 30fps ceiling is the GPU, and the old note here saying "the GPU
