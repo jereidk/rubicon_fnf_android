@@ -531,6 +531,37 @@ Los histogramas se dejan escritos aquí para que rehacerlo sea barato; lo que
 falta es la medida, no el análisis. `tools/audit_material_transparency.py` y
 su puerta de CI se fueron con el revert.
 
+### Cómo se lee un A/B de gráficos, y por qué los anteriores no valieron
+
+```bash
+python3 tools/compare_gpu_by_sequence.py A.log B.log
+```
+
+Empareja los latidos de las dos pasadas **por nombre de secuencia** y saca
+`gpu` de cada una con su razón. Dos motivos, y los dos han invalidado antes
+algún intento:
+
+- **Chimera no es lenta de forma uniforme.** En `10152-665dedd4` la misma
+  canción va a 14.8ms en `113_reaching` y a 48.7ms en `104_photographysesh` -
+  3.3x de diferencia dentro de una partida. Una media sobre eso la domina
+  cuánto se entretuvo el jugador en cada tramo, así que dos pasadas de la
+  **misma** build ya difieren más que la mayoría de los ajustes.
+- **El teléfono cambia por debajo.** La herramienta imprime `bench=` **antes**
+  que cualquier `gpu`, y avisa si se movió más de un 25%. No es un reparo
+  teórico: en ese log `bench` va de 187us a 960us *dentro de una sola sesión*.
+
+El veredicto se calcula contra la razón de píxeles que la escala implica, leída
+de `vp=` y no de `scale=` -que es lo pedido, no lo aplicado, y `186e17f` existe
+porque discreparon-. Si el coste por píxel explica ≥60% es fill-rate; si ≤25%,
+el techo es geometría o estado y hay que tachar lo escrito sobre fill-rate.
+
+**El experimento que falta, y que esta herramienta existe para leer:** Chimera
+solo se ha registrado **jamás** a `scale=0.50`. Dos pasadas seguidas a 0.35 y a
+0.75 -moviendo esa fila sola, sin tocar el preset- dicen de una vez si el techo
+es por píxel. Es más barato y más informativo que el A/B de sombras, que además
+ya no procede: a Very Low las sombras salen apagadas, `post=0` deja el NTSC y
+los godrays de `Ray` fuera, y `env=limpio` en los 42 latidos.
+
 ### Tools for this: diff the port against the pck directly
 
 Three scripts, all mounting the pck read-only:
