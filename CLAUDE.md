@@ -1679,16 +1679,19 @@ of the first.
 
 ### The fields added to answer "why is it black"
 
-`FRAME` said the whole frame was black; it could not say why. Four fields do:
+`FRAME` said the whole frame was black; it could not say why. Four fields did.
+**Two de ellos ya no existen** - ver "Lo que se quitó del log al cerrar el bug"
+más abajo - pero los cuatro se describen aquí porque el próximo que necesite
+medir una pantalla negra querrá saber qué se construyó y por qué:
 
-| field | answers |
-|---|---|
-| `sonda=[normal=L/C albedo=L/C luz=L/C]` | the same instant drawn three ways - as shipped, with `DEBUG_DRAW_UNSHADED` (every light and lightmap discarded, raw albedo), and with `DEBUG_DRAW_LIGHTING` (albedo discarded). L is mean luma, **C is the dark region's coverage**, and C is the one that decides: a region that survives raw albedo is something black being drawn, one that vanishes was never covering anything |
-| `luz=NalcanzanM dir=D cerca=X@d` | how many visible lights actually **reach the camera**, not how many exist. `lights=10(shadow=1)` was true for all ninety black seconds and every one of them was back in the house |
-| `lm=on tex=WxHxL users=N vis=n/m sh=b` | the LightmapGI's bake: visible, texture dimensions, total users, and **how many of the meshes on screen right now are registered users**. A healthy bake that does not cover what the camera is looking at is indistinguishable from a broken one if only the total is counted |
-| `env=... ambS@E bgM@E` | ambient source and energy, background mode. `limpio` only ever meant "no glow, no fog", which is the less interesting half in a scene that goes dark |
+| field | answers | ¿sigue? |
+|---|---|---|
+| `sonda=[normal=L/C albedo=L/C luz=L/C]` | the same instant drawn three ways - as shipped, with `DEBUG_DRAW_UNSHADED` (every light and lightmap discarded, raw albedo), and with `DEBUG_DRAW_LIGHTING` (albedo discarded). L is mean luma, **C is the dark region's coverage**, and C is the one that decides: a region that survives raw albedo is something black being drawn, one that vanishes was never covering anything | **no** |
+| `luz=NalcanzanM dir=D cerca=X@d` | how many visible lights actually **reach the camera**, not how many exist. `lights=10(shadow=1)` was true for all ninety black seconds and every one of them was back in the house | sí |
+| `lm=on tex=WxHxL users=N vis=n/m sh=b` | the LightmapGI's bake: visible, texture dimensions, total users, and **how many of the meshes on screen right now are registered users**. A healthy bake that does not cover what the camera is looking at is indistinguishable from a broken one if only the total is counted | sí |
+| `env=... ambS@E bgM@E` | ambient source and energy, background mode. `limpio` only ever meant "no glow, no fog", which is the less interesting half in a scene that goes dark | sí |
 
-`FRAME` also carries `min/p50/p95/max` and a 3x3 `rejilla=` of block luminance,
+`FRAME` also carried `min/p50/p95/max` and a 3x3 `rejilla=` of block luminance,
 because a mean of 0.015 cannot distinguish "uniformly black" from "black with
 the notes still drawn on top".
 
@@ -1699,13 +1702,35 @@ Three things this cost, all found by running it rather than by reading it:
   ran while building every log line, so one null silently took `HEARTBEAT`,
   `CENSUS` and `FRAME` out of the log entirely - the log looked healthy because
   `VIS` and `BLACKOUT` are emitted earlier. Chimera has exactly one AreaLight3D
-  (`CrawlSpaceLight`). Cast, never `get()`.
+  (`CrawlSpaceLight`). Cast, never `get()`. **Esta sigue viva**: el patrón es
+  general, no del `FRAME`.
 - **The probe's three passes must land on consecutive frames.** Gating the
   re-entry on `state == 1` instead of `state != 0` left eight seconds between
   them, comparing a frame against a scene that had moved on.
 - **`|` cannot be used inside a field.** The grid used it as a row separator and
   it is the log's own message/counter separator, which breaks every reader of
   the file starting with the ones in `tools/`.
+
+### Lo que se quitó del log al cerrar el bug
+
+El fichero pasó de 2031 líneas el 15-ago a 3826 el 19: **+88% en cuatro días**,
+casi todo para esta caza. Cerrado el bug, lo caro y de un solo uso se fue - 535
+líneas, el 14% del fichero:
+
+| se fue | por qué |
+|---|---|
+| `FRAME` y todo `_measure_frame()` | un readback GPU→CPU de **6.5-8.8ms cada 8s**, más dos frames enteros redibujados con `DEBUG_DRAW_UNSHADED`/`_LIGHTING` para la `sonda=`. El instrumento más caro que ha tenido este fichero |
+| `BLACKOUT` en 3D (`_poll_blackouts_3d` y sus cuatro ayudantes) | 16 mallas x 8 `unproject_position()` **por frame**, en GDScript, en el teléfono que se estaba midiendo |
+| `VIS` | una línea por cada transición de visibilidad de la lista vigilada. Existía porque la puerta de cobertura de `BLACKOUT` había mentido una vez; como diagnóstico permanente es ruido |
+| `aj=` | los ajustes de imagen del `Environment`, construyendo la rampa del LUT en cada entrada |
+
+**Se queda** `BLACKOUT` en 2D: es barato (una lista corta, lecturas) y es la
+red de seguridad de esta clase exacta de bug. Y se quedan `lm=`, `luz=`,
+`vis3d=` y todos los contadores generales de la tabla de campos.
+
+Si hace falta volver a medir la imagen en vez de la escena, está en el
+historial: `git show 1d19b3c` lo introduce, `375886c` le añade la `sonda=`.
+No hay que reinventarlo, pero tampoco dejarlo puesto entre bugs.
 
 ### Rendering Chimera on the device's own renderer
 
