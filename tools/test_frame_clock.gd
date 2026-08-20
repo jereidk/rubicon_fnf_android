@@ -79,9 +79,28 @@ func _run() -> void:
 	_check("y no reintroduce delta * 1000 para el frame",
 		not text.contains("var frame_ms: float = delta * 1000.0"))
 
+	# The half 473788e missed, and it cost the worst frame in the project.
+	#
+	# frame_ms was moved to the clock; the four timers that decide *whether an
+	# entry is written at all* were left on delta. So on a stalled frame they
+	# barely advance and every gate they feed stays shut. In 10152-665dedd4
+	# the shop's first precache contains a single frame of 7787.6ms - SUMMARY
+	# recorded it, SPIKE never printed a line for it, and the heartbeat went
+	# 13.5s without one at HEARTBEAT_SECONDS = 5. The log went silent across
+	# the longest stall it has ever been aimed at.
+	#
+	# Textual because the alternative is instantiating the autoload, which
+	# this project cannot do headlessly - and the property is textual anyway:
+	# these four must not read delta.
+	for timer in ["_time_since_heartbeat", "_time_since_spike",
+			"_time_since_census", "_time_since_summary"]:
+		_check("%s va por reloj, no por delta" % timer,
+			text.contains("%s += frame_s" % timer)
+				and not text.contains("%s += delta" % timer))
+
 	print("")
-	if _checks < 5:
-		print("FALLO: solo %d de 5 comprobaciones" % _checks)
+	if _checks < 9:
+		print("FALLO: solo %d de 9 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:

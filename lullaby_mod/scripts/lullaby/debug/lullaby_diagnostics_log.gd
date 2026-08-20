@@ -894,8 +894,30 @@ func _process(delta: float) -> void:
 
 	_record_frame_shape(frame_ms)
 
-	_time_since_heartbeat += delta
-	_time_since_spike += delta
+	# Wall clock, for the same reason frame_ms is - and this half was missed
+	# when 473788e fixed the other one.
+	#
+	# Every timer below gates something the log emits, and delta stops
+	# describing the frame above ~50ms (see the note at the top of this
+	# function: a 5000ms frame arrives as 66.7ms). So on exactly the frames
+	# worth reporting, these clocks barely advance, and the gates they feed
+	# stay shut.
+	#
+	# It cost the worst frame in the project. In 10152-665dedd4 the shop's
+	# first precache contains a single frame of 7787.6ms - SUMMARY caught it,
+	# because _bucket_worst_ms is fed from frame_ms - and there is **no SPIKE
+	# line for it**: _time_since_spike had gained about 66ms of credit for
+	# 7.8 seconds of wall clock and was still inside SPIKE_COOLDOWN_SECONDS.
+	# The heartbeat missed it the same way, 30.57s to 44.09s with
+	# HEARTBEAT_SECONDS at 5, and again 84.19s to 95.68s across Chimera's.
+	#
+	# So the log went quiet across both of the longest stalls it has ever
+	# been pointed at. Feeding these from the clock costs nothing - frame_ms
+	# is already computed - and makes a stall report itself.
+	var frame_s: float = frame_ms / 1000.0
+
+	_time_since_heartbeat += frame_s
+	_time_since_spike += frame_s
 
 	# Needs a full window before the median means anything, otherwise the
 	# first frames after a load all read as spikes against a near-empty
@@ -932,7 +954,7 @@ func _process(delta: float) -> void:
 	if frame_ms > _bucket_worst_ms:
 		_bucket_worst_ms = frame_ms
 
-	_time_since_summary += delta
+	_time_since_summary += frame_s
 	if _time_since_summary >= SUMMARY_MINUTES * 60.0:
 		_time_since_summary = 0.0
 		_write_summary()
@@ -941,7 +963,7 @@ func _process(delta: float) -> void:
 	# lasts ten. The list is short, so this is a handful of reads.
 	_poll_blackouts()
 
-	_time_since_census += delta
+	_time_since_census += frame_s
 	if _time_since_census >= CENSUS_SECONDS:
 		_time_since_census = 0.0
 		census("periodic")
