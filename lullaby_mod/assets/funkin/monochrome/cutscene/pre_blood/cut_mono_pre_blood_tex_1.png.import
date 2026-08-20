@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/cut_mono_pre_blood_tex_1.png-bcf270d63dc504df
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false
