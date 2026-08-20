@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/nte_default_hypno.png-1a0637900a94c47bf220ef6
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

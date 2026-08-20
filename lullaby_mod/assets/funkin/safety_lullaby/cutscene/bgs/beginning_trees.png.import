@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/beginning_trees.png-0cf257324ffe43d84965a7ce8
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

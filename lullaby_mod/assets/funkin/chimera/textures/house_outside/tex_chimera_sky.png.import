@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_chimera_sky.png-c4887c939b85a252516f8f285
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false
