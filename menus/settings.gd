@@ -110,12 +110,6 @@ var graphics_mesh_lod_threshold: float = 1.0
 ## Multiplier on a light's own range past which it stops being rendered, applied
 ## by MobileLightBudget. 0 = off, which is what High and Medium ship.
 var graphics_light_distance_fade: float = 0.0
-
-## Engine.physics_ticks_per_second. Nothing here is timing-critical on the
-## physics tick (see lullaby_quality_preset.gd), and the Collector's Shop
-## spends 3-6ms of a 24ms frame on Area3D overlaps with zero active bodies,
-## so the low presets halve it.
-var graphics_physics_ticks_per_second: int = 60
 var graphics_disable_shader_effects: bool = false
 
 ## Decorative/post-processing shaders only - screen distortions, blur, CRT/
@@ -359,28 +353,8 @@ func apply_settings() -> void:
 	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
 	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
 
-	# positional_shadow_atlas_size covers omni and spot lights only - a
-	# DirectionalLight3D renders into a separate atlas that the "Shadows"
-	# row was leaving at the engine default, so "off" was never fully off
-	# and the ladder's atlas sizes never applied to it. Same numbers as the
-	# positional atlas so one row means one thing.
-	RenderingServer.directional_shadow_atlas_set_size(
-		graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0, true
-	)
-	RenderingServer.directional_soft_shadow_filter_set_quality(
-		graphics_positional_shadow_filter_quality as RenderingServer.ShadowQuality
-	)
-
 	window.anisotropic_filtering_level = clampi(graphics_anisotropic_filtering, 0, 4) as Viewport.AnisotropicFiltering
 	window.mesh_lod_threshold = maxf(0.0, graphics_mesh_lod_threshold)
-
-	Engine.physics_ticks_per_second = clampi(graphics_physics_ticks_per_second, 15, 120)
-	# Godot's default is 8, i.e. after a 141ms frame it runs eight catch-up
-	# physics steps inside the next one - piling work onto a frame that is
-	# already late. Capped rather than made a preset field because it costs
-	# nothing when frames are fast: below two ticks of frame time it never
-	# engages at all.
-	Engine.max_physics_steps_per_frame = 4
 
 	window.msaa_3d = graphics_msaa_3d_quality
 	window.screen_space_aa = graphics_screen_space_aa_quality

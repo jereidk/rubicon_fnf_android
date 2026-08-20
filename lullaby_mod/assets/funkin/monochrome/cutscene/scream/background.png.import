@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/background.png-111e6a6f73f3650affc5b7622b3a3e
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

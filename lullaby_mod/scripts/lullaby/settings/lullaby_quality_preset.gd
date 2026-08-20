@@ -45,23 +45,6 @@ var anisotropic_filtering: int = 2
 ## never do, without tuning a number per scene.
 @export_range(0.0, 12.0, 0.5) var light_distance_fade: float = 0.0
 
-## Engine.physics_ticks_per_second.
-##
-## Nothing in this project's gameplay runs on the physics tick: a sweep for
-## _physics_process/_integrate_forces across the whole repo finds exactly
-## three users, and none of them is timing-critical - Safety Lullaby's
-## lamp_flicker.gd accumulates delta (so it is tick-rate independent), and
-## the shop's mouse_controller.gd only re-aims the hover raycast. Rubicon
-## drives notes off the audio clock in _process. So halving the rate halves
-## a cost that buys nothing here: the Collector's Shop logs phys=3-6ms of a
-## 24ms frame on 19 Area3Ds and 31 collision pairs, with p3d_objs=0 - there
-## is not a single active rigid body in it.
-##
-## It also breaks a feedback loop. Godot runs up to max_physics_steps_per_frame
-## catch-up ticks after a slow frame, so a 141ms shop spike was asking for
-## eight physics steps inside the frame that was already late.
-@export var physics_ticks_per_second: int = 60
-
 ## Frame rate cap. Not a graphics setting in the usual sense - it does
 ## nothing for image quality - but on a device that cannot hold 60 it is
 ## worth more than any of the above. Chimera on a moto g53 oscillates
@@ -90,7 +73,6 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_anisotropic_filtering == anisotropic_filtering and
 		settings.graphics_mesh_lod_threshold == mesh_lod_threshold and
 		settings.graphics_light_distance_fade == light_distance_fade and
-		settings.graphics_physics_ticks_per_second == physics_ticks_per_second and
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects
 	)
@@ -109,6 +91,5 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_anisotropic_filtering = anisotropic_filtering
 	settings.graphics_mesh_lod_threshold = mesh_lod_threshold
 	settings.graphics_light_distance_fade = light_distance_fade
-	settings.graphics_physics_ticks_per_second = physics_ticks_per_second
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects

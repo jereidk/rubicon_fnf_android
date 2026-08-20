@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/funkin_lanes.png-710d34a8e20a7ea0f50f1b4fb61a
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

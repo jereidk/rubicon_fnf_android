@@ -18,7 +18,6 @@ ssil = false
 anisotropic_filtering = 0
 mesh_lod_threshold = 8.0
 light_distance_fade = 2.0
-physics_ticks_per_second = 30
 target_fps = 60
 disable_shader_effects = true
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
