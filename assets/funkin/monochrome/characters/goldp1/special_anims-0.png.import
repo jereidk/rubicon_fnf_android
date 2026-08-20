@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/special_anims-0.png-3ea49bc3b50f94c3651e11e02
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false
