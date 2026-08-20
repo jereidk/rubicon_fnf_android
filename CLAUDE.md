@@ -1083,23 +1083,45 @@ visibles**, o sea exactamente lo que `_hide_everything()` esconde y
 `_reveal()` enseña delante de la cámara. Ya estaban calentándose. Solo
 `floorfucked` (shipea oculto) y `SerenaFalling` (Node2D) quedaban fuera.
 
-**Y por eso rompen.** Las 18 pistas que ya había apuntan a `ColorRect`,
-`Node3D`, `SpotLight3D`, `OmniLight3D` y una instancia: **ni un solo
-`VisualInstance3D`**. Hasta `95b9656`, el precache y el sistema de
-ocultar/revelar del `PreloadCamera` operaban sobre conjuntos disjuntos. Esas
-cinco son las primeras que escriben `visible` sobre nodos que el
-`PreloadCamera` ya posee, y las dos cosas se pisan: el precache los enciende
-en t=0 mientras la pasada de revelado va por su lista, y `finish_preload()`
-llama a `_reveal()` **después** de que el RESET haya corrido en t=0.717.
+**Y por eso rompen: las cinco tocan la casa, y la casa es lo único del
+proyecto con un `LightmapGI`.** Cruzar los objetivos de cada pista contra los
+nombres que registra `chimera_base.lmbake` -que es binario, así que hay que
+leerlo con `re.findall(rb'[ -~]{3,}', ...)`, no con grep sobre texto- separa
+los dos grupos sin una sola excepción:
 
-**La regla de seguridad que se siguió no protege de esto.** Este fichero
-decía "check the path is in RESET before adding it", y las cinco están. Pero
-el RESET no apaga: *restaura*. Para `window_001`, `window_004` y
-`floorfucked` el valor que restaura es `true`, así que comprobar la lista
-confirmaba el nodo encendido en vez de descartarlo. Regla nueva: **antes de
-añadir una pista al precache, comprueba que el nodo NO es un
-`VisualInstance3D` visible - si lo es, el PreloadCamera ya lo calienta y la
-pista solo introduce una carrera.**
+| pista | nodo | ¿registrado en el bake? |
+|---|---|---|
+| las 18 originales | `hex`, `NTSC`, `Rain`, `flash`, las 8 Serena, `OmniLight3D`, `TvLight` | **ninguno** |
+| las 5 de `95b9656` | `window_001`, `window_004`, `floorfucked` | **sí** |
+| | `mdl_chimera_camera`, `SerenaFalling` | no |
+
+Escribir `visible` desde el `precache` sobre una malla que el `LightmapGI`
+tiene registrada la desengancha del bake, y como Chimera es la única canción
+con luces en `light_bake_mode = 1` (`BAKE_STATIC`), lo que queda es ambiente
+más las dinámicas: la casa sin luz. Por eso el síntoma era **falta de luz** y
+no un rectángulo encima, por eso `sonda=` mostraba la geometría presente pero
+negra, y por eso solo pasaba en Chimera.
+
+La bisección lo confirma con la granularidad justa: el grupo "ventanas" tiene
+dos usuarios del bake y el grupo "resto" tiene uno solo (`floorfucked`), **y
+los dos salieron negros**. Un solo usuario basta.
+
+**Regla nueva: antes de añadir una pista `:visible` al `precache`, cruza el
+nodo contra los nombres del `.lmbake`. Si está registrado, no la añadas.**
+El `PreloadCamera` ya calienta esa malla por su cuenta -`_hide_everything()`
+la esconde y `_reveal()` la enseña delante de la cámara- así que la pista no
+aporta nada y sí introduce la carrera.
+
+**La regla vieja no protegía de esto, y la que se escribió al cerrar el bug
+tampoco.** Este fichero decía "check the path is in RESET before adding it",
+y las cinco están - pero el RESET no apaga: *restaura*, y para `window_001`,
+`window_004` y `floorfucked` restaura `true`, así que comprobar la lista
+confirmaba el nodo encendido en vez de descartarlo. El primer intento de
+regla nueva fue "el nodo no puede ser un `VisualInstance3D` visible", y es
+**falsa**: las pistas 12 y 15 de las 18 originales apuntan a
+`SerenaWalkingOut` y `SerenaBrokenArm`, que son `AnimatedSprite3D` -o sea
+`SpriteBase3D` -> `GeometryInstance3D` -> `VisualInstance3D`- y llevan ahí
+desde siempre sin romper nada. El tipo de nodo no es el criterio; el bake sí.
 
 Dos trampas que costaron builds en el camino:
 
