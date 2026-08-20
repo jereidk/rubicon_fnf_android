@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/gf_focus_bg.png-0ceaeafac1d9dc1e0740f2f35226f
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

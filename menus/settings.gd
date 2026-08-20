@@ -359,18 +359,6 @@ func apply_settings() -> void:
 	window.positional_shadow_atlas_size = graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0
 	ProjectSettings.set("rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality", graphics_positional_shadow_filter_quality)
 
-	# positional_shadow_atlas_size covers omni and spot lights only - a
-	# DirectionalLight3D renders into a separate atlas that the "Shadows"
-	# row was leaving at the engine default, so "off" was never fully off
-	# and the ladder's atlas sizes never applied to it. Same numbers as the
-	# positional atlas so one row means one thing.
-	RenderingServer.directional_shadow_atlas_set_size(
-		graphics_positional_shadow_atlas_size if graphics_shadows_enabled else 0, true
-	)
-	RenderingServer.directional_soft_shadow_filter_set_quality(
-		graphics_positional_shadow_filter_quality as RenderingServer.ShadowQuality
-	)
-
 	window.anisotropic_filtering_level = clampi(graphics_anisotropic_filtering, 0, 4) as Viewport.AnisotropicFiltering
 	window.mesh_lod_threshold = maxf(0.0, graphics_mesh_lod_threshold)
 
