@@ -1365,11 +1365,20 @@ Dos trampas que costaron builds en el camino:
   28x4.4x13.4 en el mundo: con la cámara dentro cubre siempre la pantalla.
   `walls` sale igual. Es la misma trampa ya documentada para las luces.
 
-Y un hallazgo colateral que sigue abierto: **ninguno de los 145 pares de
-`precompiled_astc_imports` tiene un `dest_md5` que case con su propio
-`.res`** -comprobado también contra los 97 no-packed del grupo de control-,
-así que Godot los rechaza y reimporta. Ese directorio son 380MB que no
-aceleran nada, y la única build rápida es la que pilla la caché de Actions.
+Aquí había escrito un "hallazgo colateral" que decía que **ninguno** de los 145
+pares de `precompiled_astc_imports` tenía un `dest_md5` que casara con su
+`.res`, y que por tanto ese directorio no aceleraba nada. **Es falso, y se
+comprobó contando:**
+
+    dest_md5 del sidecar vs md5 real del .res     145 coinciden, 0 no
+    source_md5 del sidecar vs md5 real del PNG    143 coinciden, 0 no
+                                                    2 huerfanos (.res que
+                                                    ningun .import pide)
+
+El mecanismo funciona. Borrar ese directorio por creerse esa nota costaría una
+hora de EXHAUSTIVE en cada build. La comprobación es de cuatro líneas de
+Python -`hashlib.md5(open(res,'rb').read())` contra el `dest_md5` del sidecar-
+y hay que hacerla antes de repetir la afirmación.
 
 **That prewarm exists now** - `PreloadCamera` (`lullaby_preload_camera.gd`),
 a `Camera3D` that makes itself current during the loading screen and plays a
