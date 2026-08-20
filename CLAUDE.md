@@ -870,6 +870,38 @@ this table before adding a counter - the odds are it is already there.
 | `tweens=` / `msgq=` | active tweens; message-queue high-water (a `call_deferred` flood) |
 | `alat=X/Yms` | audio output latency and time to next mix |
 
+### El instrumento se callaba justo en los frames que existe para medir
+
+Escrito aparte porque es la clase de fallo que invalida conclusiones sin dejar
+rastro: **no produce una línea equivocada, produce ninguna línea.**
+
+`473788e` movió `frame_ms` al reloj de pared porque el `delta` de Godot deja
+de describir el frame por encima de ~50ms - 300ms llegan como 53.1ms, 1200ms
+como 80.9ms y 5000ms como 66.7ms, o sea que ni siquiera es un techo. Lo que
+ese commit no tocó son los cuatro temporizadores que deciden **si se escribe
+una entrada**: `_time_since_spike`, `_time_since_heartbeat`,
+`_time_since_census` y `_time_since_summary`. Los cuatro seguían sumando
+`delta`, así que en un frame atascado apenas avanzan y sus puertas se quedan
+cerradas.
+
+Lo que costó, en `10152-665dedd4`:
+
+- el frame de **7787.6ms** del precache de la tienda **no tiene línea
+  `SPIKE`**. `_time_since_spike` había ganado unos 66ms de crédito por 7.8
+  segundos de reloj y seguía dentro de `SPIKE_COOLDOWN_SECONDS`. Solo lo
+  recogió `SUMMARY worst=`, que se alimenta de `frame_ms`.
+- el latido se saltó **13.5s** (30.57 -> 44.09) y **11.5s** (84.19 -> 95.68),
+  con `HEARTBEAT_SECONDS` en 5. Los dos huecos son precisamente los dos
+  precache.
+
+O sea que los dos tramos más largos que este log ha mirado nunca salieron en
+él, y por eso ninguno de los dos estaba en este fichero. Arreglado: los cuatro
+van por `frame_ms`, y `tools/test_frame_clock.gd` lo fija (9 comprobaciones).
+
+**La regla general:** si añades un contador de tiempo a este fichero, aliméntalo
+de `frame_ms`, nunca de `delta`. `delta` solo es correcto en el primer frame,
+donde todavía no hay `_last_frame_usec`.
+
 Three of them are worth knowing *why*:
 
 **`bench=` kills the confound that poisons every other measurement here.**
@@ -935,6 +967,26 @@ y 23046. El coste sigue al plano de cámara y a nada más.
 `113_reaching` va a 14.8ms y `116_hexstare` a 15.1ms - los dos a 60fps - contra
 `104_photographysesh` a 44.2ms y `112_disorientidle` a 39.6ms. Cualquier
 optimización que suba la media sin tocar esos planos no se nota.
+
+**Pero *cuáles* son esos planos no sale de este log, y esta tabla lleva meses
+usándose como si sí.** Cada secuencia aparece 1-3 veces en los 42 latidos, así
+que cada una se midió al reloj que hubiera en ese instante - y el reloj se
+mueve 12x dentro de la sesión (ver la sección del gobernador). Sacando `bench`
+al lado, los cuatro "planos caros" son exactamente los cuatro medidos más
+despacio:
+
+    104_photographysesh  44.2ms  bench=1094us
+    112_disorientidle    39.6ms  bench=1214us
+    114_hexapproach      35.3ms  bench=1434us
+    115_runningaway      30.4ms  bench=1883us
+    103_stroll           31.5ms  bench= 240us   <- reloj alto, y aun asi 31.5ms
+
+Ordenar secuencias por `gpu` crudo es ordenarlas por cuánto estaba acelerado
+el teléfono. Lo que **sí** sobrevive es `103_stroll`: 31.5ms a `bench=240us`,
+o sea con el reloj arriba, cuatro latidos y 162 toques. Ese plano es caro de
+verdad. El resto del ranking hay que rehacerlo con `bench` al lado, o con dos
+pasadas seguidas, que es para lo que existe `compare_gpu_by_sequence.py` -
+protege **entre** pasadas y nada protegía **dentro** de una.
 
 ### Dos leads que se caen al mirarlos, y por qué
 
@@ -1218,8 +1270,20 @@ frame. La puerta de `console_bg` existe y estaba abierta en 4 de 8 muestras.
   it is the ASTC 8x8 move doing exactly what its own arithmetic predicted
   (510MB -> 128MB of texture VRAM). Loads-getting-slower has not been re-tested
   under the new figure.
-- Loads: 50%->75% is where almost all the time goes, and VRAM climbs from
-  ~100MB to ~540MB across it. It is texture loading.
+- **Loads are not slow because of VRAM, and this bullet used to say they
+  were.** The old text - "50%->75% is where almost all the time goes, and VRAM
+  climbs from ~100MB to ~540MB across it, it is texture loading" - was written
+  before the ASTC conversion and is now false twice over. In
+  `10152-665dedd4` the same shop scene loads twice in one session:
+
+  | | `took` | `bench` | ram | vram |
+  |---|---|---|---|---|
+  | tienda 1a visita | **4763ms** | 235us | 115MB | 96MB |
+  | tienda 2a visita | **17420ms** | 184->**960us** | 142MB | **91MB** |
+
+  **VRAM is *lower* on the slow load.** What moved is `bench=`, the log's
+  fixed-arithmetic control: the same arithmetic takes 4x longer. The load did
+  not get heavier, the phone got slower - see the governor section below.
 - Thermal: `vs_first` reached +23%.
 - **Each note is a 20-node scene with 6 AnimationPlayers and a state machine
   of 24 transitions** (`addons/rubicon_mania/resources/skins/default/Note.tscn`).
@@ -1283,9 +1347,13 @@ several spikes follow **note-hit and character sing animations**
 AnimationPlayers per note that points back at the note scene's weight.
 
 Still unfixed after this: the multi-second stalls at cutscene starts
-(`proc=1882ms` and `373ms`, both on `122_fall`), the ~30fps ceiling from
-`proc` sitting near 50ms, and loads that keep growing within a session
-(shop: 13.6s first, 25.6s second) under VRAM pressure.
+(`proc=1882ms` and `373ms`, both on `122_fall`) and the ~30fps ceiling.
+
+The third item that used to be on this list - "loads that keep growing within
+a session (shop: 13.6s first, 25.6s second) **under VRAM pressure**" - was
+half right. The growth is real and reproducible (4763ms then 17420ms for the
+identical shop scene). The attribution was not: VRAM is *lower* on the slow
+load, and `bench=` is 4x worse. It is the governor, not memory.
 
 ## The cutscene stalls (`122_fall`, `proc` 373-1882ms) - what is known
 
@@ -1499,6 +1567,47 @@ Dos cosas que hay que respetar si alguien lo vuelve a tocar:
 número que dice si esto hacía falta**: si la animación termina con el revelado
 ya hecho, el barrido nunca fue el problema y todo este mecanismo sobra.
 
+### El precache más caro no es el de Chimera, es el de la tienda
+
+Todo el trabajo de precache de este fichero ha ido a Chimera. Los `MARK` del
+mismo log dicen que la tienda cuesta más y que nadie lo había contado:
+
+| | precache | pipelines de ese tramo |
+|---|---|---|
+| tienda 1a visita | **8954ms** | 120 surf + 96 spec |
+| chimera | 6737ms | 90 spec |
+| tienda 2a visita | **1280ms** | 93 spec |
+
+Dentro de esos 8954ms hay **un solo frame de 7787.6ms** - el peor del
+proyecto, cuatro veces el `122_fall` de 1911ms que sí lleva meses escrito
+aquí. No aparecía en ningún log porque el propio log se callaba; ver la nota
+de las cuatro puertas más abajo.
+
+Y el dato que orienta el arreglo: la segunda visita compila **casi los mismos
+pipelines de especialización** (96 -> 93) y tarda **7x menos**. O sea que el
+coste no es el recuento, es que el driver ya tiene los binarios compilados.
+Dentro de una sesión la caché funciona. Si sobrevive a cerrar la app es lo
+que contesta la línea `pipe_cache:` de la cabecera, comparando el UUID entre
+dos arranques.
+
+El reparto completo de los 864 pipelines de la sesión, que dice dónde se paga:
+
+    menus (boot->intro)         4
+    carga tienda #1            53      <- durante la pantalla de carga
+    PRECACHE tienda #1        218
+    tienda jugando #1          20
+    carga chimera             136      <- durante la pantalla de carga
+    PRECACHE chimera           90
+    chimera cantando           79      <- los que se escapan, en canción
+    carga tienda #2           168
+    PRECACHE tienda #2         93
+    tienda jugando #2           3
+
+Los 291 `mesh` que compilan **durante las pantallas de carga** son el motor
+haciéndolo por su cuenta al crear cada malla, y son también los spikes de
+43-112ms que se ven entre 70s y 86s. Están en el sitio menos malo posible,
+pero la pantalla de carga tartamudea por eso.
+
 **But it did not cover `122_fall`, which is the stall that is still there.**
 Diff the sequence's `:visible` tracks against the precache's and five were
 missing: `SerenaFalling`, `floorfucked`, `window_001`, `window_004`,
@@ -1694,6 +1803,39 @@ together when the governor steps down, and `SUMMARY vs_first` cannot tell
 that apart from thermal throttling. Compare like with like - a quiet stretch
 against a quiet stretch - and treat a spread between two runs of the same
 section as suspect unless both were equally busy.
+
+### And the size of it, measured: 12x, with a control that cannot be confounded
+
+That caveat sat here for months as a caveat. `bench=` turns it into a number,
+and the number is far bigger than "1.50x". Over the 63 heartbeats of
+`10152-665dedd4`:
+
+| | n | `bench` mediana |
+|---|---|---|
+| latidos con toques (`in=` > 0) | 27 | **236us** |
+| latidos sin tocar (`in=0`) | 36 | **813us** |
+
+Full range across the session: **184us to 2210us**. And the split is not
+statistical - `bench=235us` appears **only** on heartbeats with input, every
+single time, in five different scenes. That is Android's touch-boost DVFS
+read directly, with fixed arithmetic that no scene can make heavier.
+
+Three consequences, all of which have already misled this file:
+
+- **The load-time growth is this, not VRAM** - the shop's two loads in that
+  session are 4763ms at `bench=235us` and 17420ms at `bench` up to 960us, with
+  *less* VRAM resident on the slow one.
+- **A per-sequence ranking of `gpu` is a ranking of how boosted the phone
+  was**, unless `bench` is printed next to it. Chimera's "four expensive
+  shots" are the four slowest-clocked samples.
+- **`in=0` and "cutscene" are the same stretch of song**, so the untouched
+  heartbeats are also the ones with the heaviest geometry (`prims` 24107 vs
+  14378, `script` 10.15ms vs 3.64ms). Splitting on `in=` alone therefore
+  cannot separate governor from content, and this log cannot settle it. Two
+  passes of the same section, one played and one idled, can.
+
+The habit to build: **read `bench` before any other number on the line.** It
+is already on every entry.
 
 ## Peepers is half of Monochrome's frame
 
@@ -2113,8 +2255,17 @@ cut-down stage by hand would work but stops being the scene under test.
    sequence is the useful part and it is wide - `113_reaching` 14.8ms and
    `116_hexstare` 15.1ms both run at 60fps, while `104_photographysesh` costs
    44.2ms and `112_disorientidle` 39.6ms. **Chimera is not uniformly slow; four
-   or five shots are.** Next step is still the shadows / visual-effects A/B,
-   but aimed at those shots rather than at the song average.
+   or five shots are.**
+
+   **Which shots is not established, and this item used to assume it was.**
+   Each sequence appears 1-3 times across those 42 heartbeats, each measured
+   at whatever clock the governor happened to be at - and that spans 12x
+   inside this one session. The four "expensive" shots above are exactly the
+   four measured at the lowest clocks (`bench=` 1094-1883us), while
+   `103_stroll` costs 31.5ms at `bench=240us`, fully boosted, over four
+   heartbeats and 162 touches. `103_stroll` is the only shot in the song
+   currently known to be expensive on its own merits. Redo the ranking with
+   `bench` alongside before aiming anything at it - see the governor section.
 2. **VRAM is no longer the top problem.** 224MB in Chimera and 165MB in the
    shop, down from ~410 and 625. Lowering texture *resolution* is still the
    only further lever and still pays twice (VRAM and APK), but the urgency is
