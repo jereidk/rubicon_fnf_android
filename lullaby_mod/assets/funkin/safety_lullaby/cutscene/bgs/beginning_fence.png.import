@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/beginning_fence.png-09083e1d31e7afbb1fa83af5e
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false
