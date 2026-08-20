@@ -1025,6 +1025,29 @@ la pérdida real de ETC1S, así que el número verdadero puede ser peor.
 la calidad **medida** en vez de supuesta. Si algún día el APK aprieta, cambiar
 a `mode=4` es una línea.
 
+**`nte_default.png` fue detrás, también a 4x4, y con más margen de duda.** Es
+el sprite más dibujado del proyecto -lo usan once ficheros, entre ellos
+`Note.tscn` y `Lane.tscn`- y mide peor que `loading.png`:
+
+    ASTC 8x8   34.3 dB   peor 255/255   alfa 223/255   <- descartado
+    ASTC 4x4   50.4 dB   peor  73/255   alfa  71/255   <- puesto
+
+El motivo de que mida peor está en el atlas: las 32 regiones de
+`nte_default.tres` -y las 52 de `nte_default_hypno.tres`, que es la piel que
+suena de verdad- **no están alineadas a bloque** (x=669, 573, 585, 1...
+ninguna múltiplo de 4 ni de 8), así que cada flecha monta a caballo entre
+bloques. El `73/255` cae en el borde entre rojo y verde saturados de las
+flechas de placeholder, que es el peor caso posible para cualquier compresor.
+
+Lo que lo decide no es el número absoluto sino **contra qué se compara**: este
+proyecto ya envía 337 texturas a 8x8 con PSNR de 18.9 a 45.9 dB - `grass.png`
+18.9, `rock.png` 26.9, `spritemap1.png` 36.0. 50.4 dB a 4x4 está por encima de
+todo lo que ya lleva puesto. Y mirándola con `render_astc_ab.gd`, a tamaño de
+hoja son indistinguibles y la diferencia a x4 es negra con motas sueltas.
+
+**Ahorro conjunto de las dos: 20 MB -> 5 MB de VRAM.** Y las dos necesitan
+precompilado o CI paga EXHAUSTIVE en cada build - ver abajo.
+
 Dos cosas que hubo que comprobar antes, y que son la checklist de este cambio:
 
 - **Ningún `load_path` apunta al `.ctex`.** El importador saca `.res`, y una
