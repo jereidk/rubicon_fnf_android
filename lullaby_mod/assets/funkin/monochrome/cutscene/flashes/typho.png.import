@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/typho.png-f48cde6160e84570c03822a4713ff16d.re
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false

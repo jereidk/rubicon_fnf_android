@@ -33,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/
@@ -211,8 +211,10 @@ jobs:
           # checkout where every file's mtime is "now". See
           # precompiled_astc_imports/README.md for how to regenerate these.
           mkdir -p .godot/imported
-          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+          shopt -s nullglob
+          pre=(precompiled_astc_imports/*.res precompiled_astc_imports/*.md5)
+          if [ ${#pre[@]} -gt 0 ]; then cp "${pre[@]}" .godot/imported/; fi
+          echo "Restored ${#pre[@]} precompiled ASTC files"
 
       - name: Restore precompiled lightmap imports
         run: |
@@ -378,7 +380,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/

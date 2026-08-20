@@ -13,5 +13,5 @@ dest_files=["res://.godot/imported/tex_mono_gold_pause_0.png-3930fe7c4b12140c67f
 [params]
 
 compress/block_size=8
-compress/quality=100.0
+compress/quality=0.0
 mipmaps/generate=false
