@@ -1048,6 +1048,52 @@ hoja son indistinguibles y la diferencia a x4 es negra con motas sueltas.
 **Ahorro conjunto de las dos: 20 MB -> 5 MB de VRAM.** Y las dos necesitan
 precompilado o CI paga EXHAUSTIVE en cada build - ver abajo.
 
+### Y con esas dos, la palanca de compresión está agotada
+
+El mapa completo, contando solo lo que algo referencia:
+
+| importador | texturas | VRAM |
+|---|---|---|
+| **ASTC 8x8** | **340** | **420.7 MB** |
+| Basis | 6 | 16.5 MB |
+| Lossless | 49 | 6.1 MB |
+| ASTC 4x4 | 2 | 5.0 MB |
+| | **397** | **448.3 MB** |
+
+(Eso es el proyecto entero. Chimera carga 224 MB de ahí y la tienda 165 MB.)
+
+**No queda nada que convertir**, y las tres razones están medidas:
+
+- El 94% ya está en ASTC 8x8, que es 0.25 bytes/píxel - el formato más barato
+  que existe en esta GPU. No hay a dónde bajar.
+- Las 49 Lossless que quedan suman **6.1 MB entre todas**; las dos que valían
+  la pena eran el 77% de los 26.1 MB originales y ya están hechas.
+- Las 6 en Basis (16.5 MB) son contenido de demostración de Rubicon -
+  Boyfriend, `fnf_stage`, el skin de notas de Funkin - y lo único que las carga
+  es `songs/test/test.tscn`, que Lullaby no abre nunca. Convertirlas ahorra
+  **0 MB de VRAM en juego** y *aumenta* el APK, porque son 2.6 MB de PNG contra
+  4.1 MB de ASTC.
+
+Lo único que queda es **resolución**, y es grande pero es la clase peligrosa:
+
+    lado >= 4096     60 texturas   193.1 MB   -> 48.3 MB si se halvan
+    2048-4095       110 texturas   199.9 MB   -> 50.0 MB
+    1024-2047        95 texturas    28.3 MB
+    < 1024           77 texturas     4.3 MB
+
+170 texturas de 2048 para arriba tienen 393 de los 425 MB. Halvarlas dejaría
+el conjunto en 106 MB. Pero **129 de ellas están troceadas en regiones**, y
+bajar la resolución obliga a reescribir cada región de cada `.tres` en
+lockstep - que es exactamente la clase de cambio que ha roto este repo antes.
+Cambiar el *modo* de compresión es seguro porque no toca las dimensiones;
+cambiar las dimensiones no lo es.
+
+**Trampa al hacer este recuento:** no metas los `.import` en el texto donde
+buscas referencias. Cada uno declara su propio `uid=`, así que toda textura se
+referencia a sí misma y el barrido da 693 MB en vez de 448 - con las copias de
+raíz de PC coladas en el top. Las referencias se buscan en `.tscn`, `.tres`,
+`.gd` y `project.godot`, y en nada más.
+
 Dos cosas que hubo que comprobar antes, y que son la checklist de este cambio:
 
 - **Ningún `load_path` apunta al `.ctex`.** El importador saca `.res`, y una
