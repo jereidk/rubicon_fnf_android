@@ -1066,6 +1066,58 @@ put only this cast in front of a small off-screen SubViewport camera for a
 frame during the loading screen. It touches no song-scene visibility state,
 which is what made the previous attempt reveal the console's Codes tab.
 
+### El gráfico negro de Chimera: cinco pistas del precache
+
+Cerrado por bisección en el dispositivo, tras once días y diez builds. La
+causa son las cinco pistas `:visible` que `95b9656` añadió a `precache` para
+cubrir el stall de `122_fall`. Quitarlas devuelve la casa.
+
+    1bfa45f  (18 pistas)   BUENO      f3922ec  6-ago   BUENO
+    ee9f3fc  (23 pistas)   NEGRO      e304353  8-ago   BUENO
+    ee9f3fc sin las 5      BUENO      76e2c5c  9-ago   NEGRO
+
+**La premisa del commit era falsa.** Decía que `122_fall` revela seis cosas
+"the precache camera never framed". Tres de las cinco -`window_001`,
+`window_004` y `mdl_chimera_camera`- son `MeshInstance3D` que **shipean
+visibles**, o sea exactamente lo que `_hide_everything()` esconde y
+`_reveal()` enseña delante de la cámara. Ya estaban calentándose. Solo
+`floorfucked` (shipea oculto) y `SerenaFalling` (Node2D) quedaban fuera.
+
+**Y por eso rompen.** Las 18 pistas que ya había apuntan a `ColorRect`,
+`Node3D`, `SpotLight3D`, `OmniLight3D` y una instancia: **ni un solo
+`VisualInstance3D`**. Hasta `95b9656`, el precache y el sistema de
+ocultar/revelar del `PreloadCamera` operaban sobre conjuntos disjuntos. Esas
+cinco son las primeras que escriben `visible` sobre nodos que el
+`PreloadCamera` ya posee, y las dos cosas se pisan: el precache los enciende
+en t=0 mientras la pasada de revelado va por su lista, y `finish_preload()`
+llama a `_reveal()` **después** de que el RESET haya corrido en t=0.717.
+
+**La regla de seguridad que se siguió no protege de esto.** Este fichero
+decía "check the path is in RESET before adding it", y las cinco están. Pero
+el RESET no apaga: *restaura*. Para `window_001`, `window_004` y
+`floorfucked` el valor que restaura es `true`, así que comprobar la lista
+confirmaba el nodo encendido en vez de descartarlo. Regla nueva: **antes de
+añadir una pista al precache, comprueba que el nodo NO es un
+`VisualInstance3D` visible - si lo es, el PreloadCamera ya lo calienta y la
+pista solo introduce una carrera.**
+
+Dos trampas que costaron builds en el camino:
+
+- **`tracks/N/enabled = false` no equivale a quitar la pista.** Dos cortes
+  hechos así salieron negros los dos, contradiciendo al que revertía el
+  fichero entero. Para bisecar dentro de una animación, quita bloques y
+  renumera, o parte del fichero bueno y añade.
+- **`BLACKOUT ... (3D) cubre=1.00 negro=si` señaló a `window_004` y era
+  falso.** El vigilante proyecta el AABB, no los píxeles, y esa malla mide
+  28x4.4x13.4 en el mundo: con la cámara dentro cubre siempre la pantalla.
+  `walls` sale igual. Es la misma trampa ya documentada para las luces.
+
+Y un hallazgo colateral que sigue abierto: **ninguno de los 145 pares de
+`precompiled_astc_imports` tiene un `dest_md5` que case con su propio
+`.res`** -comprobado también contra los 97 no-packed del grupo de control-,
+así que Godot los rechaza y reimporta. Ese directorio son 380MB que no
+aceleran nada, y la única build rápida es la que pilla la caché de Actions.
+
 **That prewarm exists now** - `PreloadCamera` (`lullaby_preload_camera.gd`),
 a `Camera3D` that makes itself current during the loading screen and plays a
 `precache` animation which reveals things and sweeps 15 positions at
