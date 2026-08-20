@@ -860,6 +860,7 @@ this table before adding a counter - the odds are it is already there.
 | `vis3d=N/M` | how many of the scene's `VisualInstance3D` are **switched on**, against its total. This row used to say "on screen" and that is **wrong**: `_visual3d_load()` is `is_visible_in_tree()`, which knows nothing about the frustum. Two shots costing 32.0ms and 14.8ms both read `vis3d=74/96`, so this cannot tell them apart and nothing in the log can |
 | `cam=fov75@x,y,z` | where the active Camera3D is. Chimera's cost tracks the shot and no log ever recorded the shot |
 | `env=glow+fog` | which per-pixel environment features are actually on. `preset=Very Low` is not evidence any of them is off |
+| `rend=[3d=d/p/o sha=... 2d=...]` | the frame's draw calls, primitives and objects **split between the 3D pass, shadow rendering and the 2D canvas** (`viewport_get_render_info`, free). The one field that answers "is it the 2D or the 3D": the 3D runs at `scaling_3d_scale` and the canvas does **not**, so at 0.50 one full-screen 2D layer covers 4x the pixels of the entire 3D pass. `draw`/`prims`/`objs` are totals and correlate with `gpu` at +0.24/+0.26/+0.16 - a 3D pass shrinking while a 2D overlay grows reads as "no change" in all three |
 | `mat3d=N/M` | unique 3D materials against surface count - the Peepers bug asked about 3D |
 | `bones=` / `parts=N/M` | skinning load; particle systems visible and emitting |
 | `psteps=N` | physics ticks *inside* this frame. 6ms across one tick is a heavy world, 6ms across four is a frame already late |

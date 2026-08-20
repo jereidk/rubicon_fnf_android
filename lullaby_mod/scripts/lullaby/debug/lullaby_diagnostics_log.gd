@@ -2654,6 +2654,54 @@ func _dep_breakdown() -> String:
 ## none of them in #114 - which is what a new one-line mistake looks like from
 ## the outside. On device it is one more error line in the log this whole
 ## system exists to make readable.
+## Splits the frame's draw work between the 3D pass, shadow rendering and the
+## 2D canvas.
+##
+## `draw=`/`prims=`/`objs=` are `Performance.RENDER_TOTAL_*` - one number for
+## everything the frame drew - and "everything" spans two renderers with
+## completely different cost models. **The 3D runs at `scaling_3d_scale` and
+## the canvas does not.** On this device at 0.50 that is 800x360 against
+## 1600x720, so one full-screen 2D layer covers 4x the pixels of the entire 3D
+## pass. A frame of 39 3D calls and 16 canvas calls is a different problem from
+## the reverse, and until this there was nothing in the log that could tell
+## those two apart - every question about "is it the 2D or the 3D" came back
+## unanswerable.
+##
+## It is also the field the counter-based dead ends were missing. `objs`,
+## `draw` and `prims` correlate with `gpu` at +0.16, +0.24 and +0.26, and the
+## most expensive frame of Chimera draws *fewer* objects than the cheapest -
+## but those are totals, so a 3D pass shrinking while a 2D overlay grows reads
+## as "no change" in all three.
+##
+## Free. These are counters the renderer already keeps per viewport - not a
+## readback, not a second pass, no debug draw mode. Verified against the real
+## renderer under Xvfb: a scene with one cube and one ColorRect reports
+## 3d=1 draw / 2d=1 draw and `RENDER_TOTAL_DRAW_CALLS_IN_FRAME` = 2.
+##
+## Order in each group is draw/prims/objs, matching the order the standalone
+## `draw=`, `prims=` and `objs=` fields appear in the line.
+func _render_split() -> String:
+	if not is_inside_tree():
+		return "-"
+	var rid: RID = get_viewport().get_viewport_rid()
+	var parts: PackedStringArray = PackedStringArray()
+	for pair in [
+		[RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, "3d"],
+		[RenderingServer.VIEWPORT_RENDER_INFO_TYPE_SHADOW, "sha"],
+		[RenderingServer.VIEWPORT_RENDER_INFO_TYPE_CANVAS, "2d"],
+	]:
+		var kind: int = pair[0]
+		parts.append("%s=%d/%d/%d" % [
+			pair[1],
+			RenderingServer.viewport_get_render_info(rid, kind,
+				RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME),
+			RenderingServer.viewport_get_render_info(rid, kind,
+				RenderingServer.VIEWPORT_RENDER_INFO_PRIMITIVES_IN_FRAME),
+			RenderingServer.viewport_get_render_info(rid, kind,
+				RenderingServer.VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME),
+		])
+	return " ".join(parts)
+
 func _render_scale() -> String:
 	var actual: float = 1.0
 	var root_window: Window = get_tree().root if is_inside_tree() else null
@@ -2930,7 +2978,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d rend=[%s] nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -2943,6 +2991,7 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
 		int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)),
+		_render_split(),
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
 		# Node::orphan_node_count is DEBUG_ENABLED-only, so this is a flat 0 in
 		# a release build - and 0 orphans is exactly what a healthy note pool
