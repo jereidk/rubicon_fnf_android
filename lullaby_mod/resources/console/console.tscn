@@ -4810,6 +4810,8 @@ z_index = 3
 [node name="SubViewportContainer" type="SubViewportContainer" parent="TabContainer/Credits/CurrentlySelected" unique_id=555230036]
 offset_right = 1440.0
 offset_bottom = 1080.0
+stretch = true
+stretch_shrink = 2
 
 [node name="SubViewport" type="SubViewport" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer" unique_id=2068493415]
 own_world_3d = true
@@ -4823,7 +4825,7 @@ positional_shadow_atlas_quad_1 = 0
 positional_shadow_atlas_quad_2 = 0
 positional_shadow_atlas_quad_3 = 0
 oversampling = false
-size = Vector2i(1440, 1080)
+size = Vector2i(720, 540)
 render_target_update_mode = 0
 
 [node name="Camera3D" type="Camera3D" parent="TabContainer/Credits/CurrentlySelected/SubViewportContainer/SubViewport" unique_id=327689928]
