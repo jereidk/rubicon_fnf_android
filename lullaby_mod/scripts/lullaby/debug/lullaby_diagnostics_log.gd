@@ -3301,6 +3301,19 @@ func _write_header() -> void:
 	# against it - and if this is already in the thousands, the cutscene
 	# stalls are a small tail of a much larger compile budget.
 	_file.store_line("pipelines : %d compiled at boot" % _pipeline_compilations())
+	# The driver's pipeline cache identity, which decides whether the worst
+	# stall in the project is paid once per install or once per launch.
+	# 122_fall@6.8s costs frame=1911.7ms for `spec+8` with RAM and VRAM flat,
+	# and Godot's pipeline cache (on by default, not overridden here) is meant
+	# to write those to disk so the next launch reuses them. The UUID is the
+	# *driver's*: it changes on a driver update and invalidates the cache. So
+	# two logs with different UUIDs explain a stall that came back on its own,
+	# and two with the same UUID mean the cache should have held - if the stall
+	# is still there, it is not being written or not being read.
+	# Null under GL Compatibility, which has no RenderingDevice.
+	var device: RenderingDevice = RenderingServer.get_rendering_device()
+	_file.store_line("pipe_cache: %s" % (
+		device.get_device_pipeline_cache_uuid() if device != null else "(sin RenderingDevice)"))
 	# get_memory_info()["physical"] reports 0 on Android, which is why this line
 	# read "(not reported by OS)" in every device log so far. /proc answers
 	# where the engine does not - see _sys_mem(). The raw dictionary goes out
