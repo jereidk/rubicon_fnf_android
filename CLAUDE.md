@@ -857,7 +857,7 @@ this table before adding a counter - the odds are it is already there.
 | `procn=` / `physn=` | nodes running `_process` / `_physics_process`. Bounds on what the main loop can possibly be doing |
 | `self=` | this log's own `_process`, **subtracted from `rest=`** so the instrument is not inside its own number |
 | `bench=Nus` | fixed arithmetic, timed. **The one that makes every other number trustworthy** - see below |
-| `vis3d=N/M` | how much of the scene's 3D is on screen, against its total. `objs=` is the whole frame including SubViewports and cannot answer this |
+| `vis3d=N/M` | how many of the scene's `VisualInstance3D` are **switched on**, against its total. This row used to say "on screen" and that is **wrong**: `_visual3d_load()` is `is_visible_in_tree()`, which knows nothing about the frustum. Two shots costing 32.0ms and 14.8ms both read `vis3d=74/96`, so this cannot tell them apart and nothing in the log can |
 | `cam=fov75@x,y,z` | where the active Camera3D is. Chimera's cost tracks the shot and no log ever recorded the shot |
 | `env=glow+fog` | which per-pixel environment features are actually on. `preset=Very Low` is not evidence any of them is off |
 | `mat3d=N/M` | unique 3D materials against surface count - the Peepers bug asked about 3D |
@@ -971,6 +971,35 @@ Chimera, once son ese bloque.
 segundos a lo siguiente que aparece. Para atacarlo haría falta o partir esas
 escenas glTF, o un temporizador por dependencia dentro del bloque - y ninguna
 de las dos se ha intentado.
+
+### Las texturas Lossless que quedan, contadas bien
+
+`compress/mode=0` no se comprime en la GPU - es RGBA8, cuatro bytes por píxel -
+y esta sección del fichero ya movió cinco hojas de la consola por eso. Quedan
+más, pero **la cifra hay que sacarla contando solo lo referenciado**, o sale
+mal por un factor de cuatro:
+
+| | texturas | VRAM | PNG en disco |
+|---|---|---|---|
+| referenciadas | 51 | **26.1 MB** | 1.38 MB |
+| sin referencia | 14 | 68.2 MB | 2.12 MB |
+
+Casi todo el segundo grupo es **un solo fichero**:
+`assets/funkin/chimera/textures/serena/intro/serena_cinematics-2.png`, 4096x4096
+en `mode=0`, 64 MB. Parece la peor textura del proyecto y **no la carga nadie**:
+es la copia con raíz de ruta de PC, y el `.tres` del sprite usa la de
+`lullaby_mod/`, que mide 3352x4005 -recortada por `8b0e901`- y ya va por
+`lullaby.astc_sprite`. Dos ficheros con el mismo nombre y distinto importador.
+Por la regla de este fichero no se borra; solo hay que no contarla.
+
+De las 51 reales, dos son el 77%:
+
+    loading.png        2048x2048   16.0 MB   (0.41 MB de PNG)
+    nte_default.png    1024x1024    4.0 MB   (0.40 MB de PNG)
+
+Y `tex_static_noise.png` se queda en Lossless a propósito -
+`shd_shop_static_spatial` la muestrea como datos y un ruido con pérdida son
+artefactos.
 
 ### La tienda gasta un cuarto de su GPU en SubViewports
 
