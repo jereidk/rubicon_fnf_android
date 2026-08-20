@@ -4,5 +4,5 @@
 
 [resource]
 resource_name = "propruhhhhhoneofthem"
-transparency = 2
+transparency = 4
 albedo_texture = ExtResource("1")

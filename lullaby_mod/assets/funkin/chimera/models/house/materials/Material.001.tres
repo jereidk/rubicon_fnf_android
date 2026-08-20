@@ -5,5 +5,5 @@
 [resource]
 resource_name = "Material.001"
 render_priority = -1
-transparency = 2
+transparency = 4
 albedo_texture = ExtResource("1")

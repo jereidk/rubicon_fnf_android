@@ -480,6 +480,37 @@ emits nothing while still rendering a shadow cubemap over the whole scene.
 `122_fall` animates its energy, so switching its shadow off is a look decision,
 not a free win - measure it before touching it.
 
+### El depth pre-pass de la casa: medido, cambiado, y devuelto
+
+Cinco materiales de la casa de Chimera (`Material.001`, `foliage`, `props1`,
+`props2`, `propruhhhhhoneofthem`) están en `transparency = 4`,
+`ALPHA_DEPTH_PRE_PASS`, que dibuja el objeto dos veces - una pasada opaca de
+profundidad y luego la transparente. Godot lo documenta como caro y es peor en
+una GPU de tiles, que es todo lo de aquí. Además mantiene la superficie en la
+cola transparente, donde nada detrás se puede rechazar por profundidad.
+
+`869b1af` los pasó a `ALPHA_SCISSOR` (2) con este dato detrás - el porcentaje
+de téxeles con alfa entre 8 y 247, o sea los bordes suavizados, que son los
+únicos píxeles que scissor dibuja distinto:
+
+    props1     38.4% opaco   0.29% parcial
+    props2     36.9% opaco   0.26% parcial
+    plantt     21.2% opaco   0.64% parcial
+    FUKC       37.2% opaco   1.23% parcial
+    foliage     8.0% opaco   3.96% parcial
+
+Son máscaras binarias, y `grars` y `trash` en esa misma carpeta ya estaban en
+scissor, así que era la convención de la propia carpeta.
+
+**Revertido de todas formas.** El número es real pero la ganancia nunca se
+midió en el dispositivo, y el cambio diverge del pck en cómo se dibujan cinco
+materiales de la única escena que el usuario estaba reportando como rota. Se
+hizo en medio de la caza del gráfico negro, sobre la teoría de que Chimera es
+per-píxel - que es verdad - pero sin un antes/después que dijera cuánto vale.
+Los histogramas se dejan escritos aquí para que rehacerlo sea barato; lo que
+falta es la medida, no el análisis. `tools/audit_material_transparency.py` y
+su puerta de CI se fueron con el revert.
+
 ### Tools for this: diff the port against the pck directly
 
 Three scripts, all mounting the pck read-only:

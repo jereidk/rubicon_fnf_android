@@ -559,17 +559,6 @@ jobs:
           python3 tools/audit_results_screen_idle.py 2>&1 | tee /tmp/idle.txt
           grep -q "todo OK" /tmp/idle.txt
 
-      - name: Verify no material pays the depth pre-pass for nothing
-        run: |
-          # transparency = 4 draws the object twice - an opaque depth pass and
-          # then the transparent one - which is worst on a tile GPU. It earns
-          # that for genuinely soft alpha and nothing for a cutout mask, where
-          # ALPHA_SCISSOR is one pass, writes depth and lets early-z reject
-          # what is behind it. Chimera's house had five on mode 4 whose masks
-          # are 0.26-3.96% partial.
-          python3 tools/audit_material_transparency.py 2>&1 | tee /tmp/mats.txt
-          grep -q "todo OK" /tmp/mats.txt
-
       - name: Verify every lightmap bake finds its texture by path
         run: |
           # A .lmbake stores its texture as a UID plus a plain res:// path.
