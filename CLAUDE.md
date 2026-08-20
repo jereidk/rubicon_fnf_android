@@ -151,6 +151,26 @@ settles this class of question is that diff, not the arithmetic: **before
 "fixing" a value track, confirm the mod does not depend on the value it is
 painting.** The gate is gone and so is `tools/test_black_box_hold.gd`.
 
+`e77bed1` attacked the same rect from the other side and was also wrong.
+`flashing_check.gd` reads `visible = Settings.get(&"game_flashing_lights")`,
+which reveals as readily as it hides; that commit made it a suppressor only,
+on the premise that switching those rects on at `_ready` "is the black
+graphic covering Chimera". The premise is false - the cause was five precache
+tracks - and the change was also **inert**, which is the part worth keeping:
+
+| nodo | por qué no cambiaba nada |
+|---|---|
+| `BlackBoxofAwesomeness` | el reloj `scene` **y** el RESET escriben `visible = false` en t=0, así que la asignación del `_ready` dura como mucho un frame |
+| `UIBlack` | el RESET escribe `false` en t=0, y además es `modulate = (1,1,1,0)` **y** `color = (0,0,0,0)` |
+| `Black2` | transparente en los dos niveles y **ninguna** animación lo toca - no pinta nunca, con `visible` o sin él |
+| `UIBlackFG`, `Pulse`, `Cover` | shipean visibles, así que original y suppressor dan lo mismo |
+
+Revertido para volver al pck, que es literalmente esas cuatro líneas.
+`flashing_check_3d.gd` nunca se tocó. La lección es la de siempre en este
+fichero: **un nodo cuyo `visible` lo escribe una animación en t=0 no puede
+ser explicado por lo que haga un `_ready`** - mirar las pistas antes que el
+script.
+
 **Never delete an asset because it looks orphaned.** This repo has been
 broken by that at least three times (`8878770`, `5ee950a`, and a lightmap
 `.exr`). Two known blind spots where nothing textually references a file that
