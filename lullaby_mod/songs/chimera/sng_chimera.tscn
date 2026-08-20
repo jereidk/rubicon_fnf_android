@@ -13823,7 +13823,7 @@ tracks/19/keys = {
 }
 tracks/20/type = "value"
 tracks/20/imported = false
-tracks/20/enabled = true
+tracks/20/enabled = false
 tracks/20/path = NodePath("../Environment/chimera_house/window_001:visible")
 tracks/20/interp = 1
 tracks/20/loop_wrap = true
@@ -13835,7 +13835,7 @@ tracks/20/keys = {
 }
 tracks/21/type = "value"
 tracks/21/imported = false
-tracks/21/enabled = true
+tracks/21/enabled = false
 tracks/21/path = NodePath("../Environment/chimera_house/window_004:visible")
 tracks/21/interp = 1
 tracks/21/loop_wrap = true
