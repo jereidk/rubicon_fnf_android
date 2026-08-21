@@ -751,6 +751,20 @@ jobs:
           $GODOT --headless --path . --script tools/test_trance_gate.gd 2>&1 | tee /tmp/trance.txt
           grep -q "todo OK" /tmp/trance.txt
 
+      - name: Verify Reduce Visual Effects reaches a mesh-resource material
+        run: |
+          # The stripper read material_override and the surface overrides -
+          # both node-owned - and never the material set on the mesh resource.
+          # Chimera's Ray box is exactly that, carrying shd_godrays: unshaded,
+          # blend_add, cull_disabled, depth_test_disabled, so both faces are
+          # rasterised with no depth rejection and a depth-texture sample per
+          # fragment. Measured at 800x360 (the g53's 3D pass at scale=0.50):
+          # one extra draw call and twelve primitives take 3.88ms to 8.05ms.
+          # Inert on all four presets - only Custom with post=High reaches it -
+          # so this is a correctness gate, not a win.
+          $GODOT --headless --path . --script tools/test_effect_mesh_hide.gd 2>&1 | tee /tmp/effmesh.txt
+          grep -q "todo OK" /tmp/effmesh.txt
+
       - name: Verify the retained-resource sweep stays cheap
         run: |
           # The sweep runs on the main thread during a load, next to a loading

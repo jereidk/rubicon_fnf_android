@@ -446,7 +446,13 @@ a few seconds and is **not** part of the steady-state frame cost.
 The result explains the shop-vs-Chimera gap exactly:
 
 - **Chimera is the only gameplay scene in the project with an always-on shadow
-  caster** - two, `MoonSpotlight` and `TvLight`. Every other scene has none,
+  caster** - **one**, `MoonSpotlight`. This used to say two and name `TvLight`
+  as the second; `TvLight` is authored `shadow_enabled = false` and that note
+  was stale. Sweeping all 26 scenes in Chimera's dependency tree finds exactly
+  three `shadow_enabled = true`, and the other two are `EditorMoonDoNotDelete`
+  (`editor_only = true`, so it never renders) and `PhoneGlow`, whose ancestor
+  `Sequences/SerenaTakingPictures/SerenaCinematics` ships hidden. Every other
+  scene has none,
   and the shop, with more lights and more draw calls, costs 17.3ms against
   Chimera's 38.8ms.
 - Chimera's `Rain`, `NTSC` and the `Ray` godray box all ship `visible = false`.
@@ -499,6 +505,88 @@ Worth knowing and deliberately not changed here: `TvLight` has
 emits nothing while still rendering a shadow cubemap over the whole scene.
 `122_fall` animates its energy, so switching its shadow off is a look decision,
 not a free win - measure it before touching it.
+
+### El mundo 3D de Chimera: lo que hay, y por qué no es ahí
+
+Auditado entero, porque la pregunta se hace sola cada vez que se mira el frame
+de Chimera. El resultado corrige dos cosas escritas aquí y no aporta una
+optimización para el preset que la gente usa.
+
+**Proyectores de sombra: uno, no dos.** Barriendo las 26 escenas del árbol de
+dependencias de Chimera hay exactamente tres `shadow_enabled = true`, y sólo
+`MoonSpotlight` está vivo en régimen (`EditorMoonDoNotDelete` es
+`editor_only`, `PhoneGlow` cuelga de un padre que shipea oculto). Y a Very Low
+las sombras salen apagadas de todas formas, así que en el teléfono del usuario
+son **cero**.
+
+**El pase 3D es el 8% de los píxeles.** A `scale=0.50` sobre 1600x720 el 3D
+dibuja 800x360 = 0.29 Mpx; el canvas 2D no escala y el censo da `over=3.0x`
+sobre 1.15 Mpx por capa, o sea 3.46 Mpx. El dato independiente que lo enmarca
+está en `228f4636`, un A17 a 2340x1080, con `rend=` partido:
+
+| canción | 3D (draws/prims) | 2D (draws/prims) | `gpu` p50 |
+|---|---|---|---|
+| **safety_lullaby** | **0 / 0** | 8 / 92 | **25.93ms** |
+| monochrome | 0 / 0 | 42 / 334 | 13.23ms |
+| chimera (g53, 1600x720) | 21 / 16106 | 10 / 306 | 31.85ms |
+
+**Safety Lullaby no dibuja un solo triángulo de 3D y cuesta 25.93ms.** Y
+cuesta el doble que Monochrome dibujando cinco veces menos. Quitar el mundo 3D
+entero de Chimera no la llevaría por debajo de ese suelo.
+
+**El experimento que lo cierra sigue sin hacerse, y ahora se sabe leer.**
+`graphics_render_scale` sólo toca el pase 3D, así que dos pasadas de Chimera a
+0.35 y a 0.75 -moviendo esa fila sola- dicen qué fracción del frame es el 3D.
+El barrido de la tienda (arriba) demuestra que el método funciona y que en un
+frame limitado por GPU `bench` no confunde nada.
+
+#### El nodo `Ray`, medido - y por qué el arreglo es inerte
+
+`Environment/Lights/Ray` es un BoxMesh de 4.97x13.57x6.6 cuyo material vive en
+el **recurso de malla**, no en el nodo. Su shader es
+
+    render_mode unshaded, blend_add, cull_disabled, depth_test_disabled
+
+o sea las dos caras rasterizadas sin rechazo por profundidad, con una lectura
+de `hint_depth_texture` por fragmento, sobre 1738x1080 de pantalla a
+`scene@60`. Medido en aislado a 800x360 -que es lo que mide el pase 3D del g53
+a `scale=0.50`- con la caja real sobre 49 mallas:
+
+    sin Ray   3.88ms / 4.13ms   draws=49  prims=588
+    con Ray   8.05ms / 8.64ms   draws=50  prims=600
+
+**Un draw call y doce primitivas duplican el frame.** Es el ejemplo más limpio
+que tiene el proyecto de por qué `draw=`/`prims=`/`objs=` no pueden ver un
+coste por píxel.
+
+Y `shd_godrays` lleva en `EFFECT_SHADER_PATHS` desde siempre sin que "Reduce
+Visual Effects" lo tocara una sola vez, porque el stripper leía
+`material_override` y `get_surface_override_material()` - los dos materiales
+del *nodo*- y nunca el del recurso de malla.
+`_hide_mesh_that_only_draws_an_effect()` cierra ese hueco escondiendo el nodo
+(anular no vale: el material es de un recurso compartido y la caja saldría
+blanca, que es el fallo que puso blancos los cubos de la tienda).
+
+**Pero es inerte en los cuatro presets, y hay que decirlo cada vez que se
+cite.** `Ray:visible = true` sale sólo del estado `high` del
+`PostProcessingTree`, o sea `graphics_post_processing == 2`, y
+`disable_shader_effects` lo pone sólo Very Low, que va a `post=0`:
+
+| preset | post | Ray | stripper |
+|---|---|---|---|
+| High | 2 | **encendido** | no |
+| Medium | 1 | apagado | no |
+| Low | 0 | apagado | no |
+| Very Low | 0 | apagado | sí (nada que esconder) |
+
+La única combinación que lo alcanza es **Custom con post en High y "Reduce
+Visual Effects" marcado** - dos filas independientes de la consola. Es un
+arreglo de corrección, no una ganancia: el ajuste que se llama "reducir
+efectos visuales" dejaba corriendo el objeto por píxel más caro de la escena.
+
+Lo que sí queda apuntado como decisión de aspecto, no como bug: **a High,
+`Ray` va en el mismo paquete que NTSC y la lluvia.** Un jugador que quiera
+quitar los godrays tiene que bajar el post-proceso entero.
 
 ### El depth pre-pass de la casa: medido de verdad, y vuelto a poner
 
@@ -2468,7 +2556,8 @@ Three things it has to get right, all of which it got wrong first:
 
 - **Skip `Light3D`.** They are `VisualInstance3D` too and their AABB is their
   *range*: `AmbLight`, `MoonSpotlight` and `TvLight` all reported covering the
-  whole screen. `GeometryInstance3D` is the set that puts pixels down.
+  whole screen. (`TvLight` is in that list for its 43.9-unit range, not for
+  casting - it does not cast.) `GeometryInstance3D` is the set that puts pixels down.
 - **`negro=` is ANY surface, not every.** The windows bind white glass on
   surface 0 and `albedo(0,0,0,1)` on surface 1; requiring all of them black
   reported both as `negro=no`.

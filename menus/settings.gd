@@ -679,6 +679,7 @@ func _strip_effect_shaders_from_node(node: Node) -> void:
 	if node is MeshInstance3D and node.mesh:
 		for surface in node.mesh.get_surface_count():
 			_strip_surface_shader_material(node, surface)
+		_hide_mesh_that_only_draws_an_effect(node)
 	_strip_backbuffer_copy(node)
 
 ## The screen copies the stripped shaders were reading.
@@ -768,6 +769,63 @@ func _hide_if_it_draws_nothing(node: Node, property: StringName) -> void:
 	_stashed_visibility[node.get_instance_id()] = true
 	node.visible = false
 
+## Hides a mesh whose every surface is an effect shader living on the *mesh
+## resource* rather than on the node.
+##
+## _strip_surface_shader_material() above reads get_surface_override_material()
+## and _strip_shader_material_property() reads material_override, so between
+## them they cover every material the node owns. A material set on the
+## PrimitiveMesh/ArrayMesh itself is owned by neither, and neither sees it.
+##
+## Chimera's Environment/Lights/Ray is exactly that: a BoxMesh whose own
+## `material` is shd_godrays, which is in EFFECT_SHADER_PATHS and has never
+## once been stripped by the setting named after removing it. And it is not a
+## small thing to miss - the shader is
+##
+##     render_mode unshaded, blend_add, cull_disabled, depth_test_disabled
+##
+## so the box is rasterised on **both** faces with no depth rejection, taking a
+## hint_depth_texture sample per fragment, over 1738x1080 of screen at
+## `scene@60` and 1210x1080 at `scene@100` (measured by scene_probe against the
+## running scene). At scale=0.50 the entire 3D pass is 800x360 = 0.29 Mpx and
+## this one box covers roughly three times that, because it is drawn twice.
+##
+## Nulling is not the fix here and that is the whole reason this is separate:
+## the material belongs to a shared mesh resource, and clearing it would leave
+## the box drawing as Godot's plain white default - the same failure that once
+## turned the shop's cubes and the notepad page white. A node whose only
+## reason to be on screen is the effect just removed should not be on screen.
+##
+## Deliberately narrow, in the same spirit as _hide_if_it_draws_nothing():
+##
+## - every surface must resolve to an effect shader. One real material and the
+##   mesh is art, not an effect.
+## - a node already hidden is left alone, so the restore can never reveal
+##   something another system hid. That is the bug the reverted shader prewarm
+##   shipped - it revealed hidden nodes, gave focus to the console's Codes tab
+##   and opened the Android keyboard on a screen the player never chose.
+func _hide_mesh_that_only_draws_an_effect(node: MeshInstance3D) -> void:
+	if not node.visible:
+		return
+	var surfaces: int = node.mesh.get_surface_count()
+	if surfaces == 0:
+		return
+	# material_override replaces every surface, so if one is set this node is
+	# not describable surface by surface and the override path already owns it.
+	if node.material_override != null:
+		return
+
+	for surface in surfaces:
+		var mat: Material = node.get_surface_override_material(surface)
+		if mat == null:
+			mat = node.mesh.surface_get_material(surface)
+		if not (mat is ShaderMaterial and mat.shader
+				and EFFECT_SHADER_PATHS.has(mat.shader.resource_path)):
+			return
+
+	_stashed_visibility[node.get_instance_id()] = true
+	node.visible = false
+
 func _strip_surface_shader_material(node: MeshInstance3D, surface: int) -> void:
 	var mat: Material = node.get_surface_override_material(surface)
 	if not (mat is ShaderMaterial and mat.shader and EFFECT_SHADER_PATHS.has(mat.shader.resource_path)):
@@ -814,7 +872,9 @@ func _restore_effect_shaders() -> void:
 	# effects back on.
 	for id: int in _stashed_visibility:
 		var node: Object = instance_from_id(id)
-		if is_instance_valid(node) and node is CanvasItem:
+		# CanvasItem for the transparent effect rects, MeshInstance3D for a
+		# mesh whose only material was an effect shader on its own resource.
+		if is_instance_valid(node) and (node is CanvasItem or node is MeshInstance3D):
 			node.visible = true
 	_stashed_visibility.clear()
 
