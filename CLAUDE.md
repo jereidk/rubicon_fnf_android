@@ -1052,7 +1052,7 @@ de `10152-665dedd4`, 42 latidos:
 | **La CPU en general** | `script` p50 = **8.06ms** contra `gpu` p50 = **31.43ms**. El frame lo tiene la GPU con casi 4x de margen |
 | **El sistema de notas** | `notes=36 ms/s` (≈1ms/frame) y **sin correlación con gpu**: hay `notes=84 ms/s` con `gpu=14.8ms` y `notes=57` con `gpu=48.7ms` |
 | **Instanciar notas en canción** | `inst=0` en los 42 latidos. El prewarm del pool funciona y no vuelve a tocarse |
-| **gdanimate** | `anim2d=0.00 ms/s` en toda la canción |
+| **gdanimate** | `anim2d=0.00 ms/s` en toda la canción - **pero solo en Chimera, ver abajo** |
 | **Post-proceso, NTSC y godrays** | `post=0` a Very Low, y el estado `off` del `PostProcessingTree` pone `Ray:visible = false`. `env=limpio` en los 42 |
 | **Sombras** | `shadows=off` ya viene en Very Low |
 | **Overdraw 2D** | `over=3.0x` con `gpu=33.4ms` **y** `over=3.1x` con `gpu=18.2ms`. No correlaciona |
@@ -1085,6 +1085,34 @@ o sea con el reloj arriba, cuatro latidos y 162 toques. Ese plano es caro de
 verdad. El resto del ranking hay que rehacerlo con `bench` al lado, o con dos
 pasadas seguidas, que es para lo que existe `compare_gpu_by_sequence.py` -
 protege **entre** pasadas y nada protegía **dentro** de una.
+
+### Dos subsistemas dados por gratis midiendo la canción equivocada
+
+`notes=` y `anim2d=` se descartaron arriba, y las dos medidas son de Chimera.
+El log del A17 (`10154-8d1ee1ac`, Mali-G57) trae por primera vez Monochrome y
+Safety Lullaby, que son canciones **2D puras** - `rend=[3d=0/0/0 ...]`, 334 y 92
+primitivas - y ahí los números son otros:
+
+| | Chimera | **Monochrome** | **Safety Lullaby** |
+|---|---|---|---|
+| `gpu` p50 | 31.85ms | 13.23ms | 25.93ms |
+| `draw` | 21 (3D) + 10 (2D) | 41.5, todo 2D | **8.5**, todo 2D |
+| `prims` | 16106 | 334 | **92** |
+| **`notes`** | 14.85 ms/s | **69.12** (max 118.6) | 34.23 |
+| **`anim2d`** | **0.00** | **56.80** (max 153.4) | 38.17 (max 52.1) |
+
+**gdanimate no es gratis, es gratis en Chimera** - que es la única canción que
+no usa atlas de Adobe en escena. En Monochrome cuesta 56.8 ms/s de mediana y
+pica a 153.4. Y el sistema de notas cuesta ahí 4.7x lo que cuesta en Chimera.
+
+Entre los dos son ~126 ms/s en Monochrome, o sea ~2.5ms por frame a 50fps, más
+`script` 6.18ms. Monochrome es una canción **de CPU**; Chimera es de GPU. La
+tabla de arriba solo vale para Chimera y hay que decirlo cada vez que se cite.
+
+Y el otro dato de esa tanda: **Safety Lullaby cuesta 25.93ms de GPU con 8.5
+draw calls y 92 primitivas**, en una pantalla de 2340x1080. Eso es relleno puro
+y nada más - el canvas 2D no baja con `graphics_render_scale`, así que en un
+teléfono 1080p una canción que no dibuja nada cuesta 26ms.
 
 ### Dos leads que se caen al mirarlos, y por qué
 
