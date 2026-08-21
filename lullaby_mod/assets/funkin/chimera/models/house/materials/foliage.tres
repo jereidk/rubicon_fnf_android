@@ -4,5 +4,6 @@
 
 [resource]
 resource_name = "foliage"
-transparency = 4
+transparency = 2
+alpha_scissor_threshold = 0.214
 albedo_texture = ExtResource("1")

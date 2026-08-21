@@ -437,6 +437,15 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
+      - name: Verify Chimera's house is off the depth pre-pass
+        run: |
+          # transparency = 4 draws the surface twice and leaves it in the
+          # transparent queue, where nothing behind it can be depth-rejected.
+          # Measured on the device's renderer path at 3.86x ALPHA_SCISSOR with
+          # byte-identical draw/primitive/object counts - which is why no
+          # count-based reading of a device log could ever find it.
+          python3 tools/audit_house_transparency.py
+
       - name: Verify every precompiled sidecar describes its own source
         run: |
           # Godot reads a sidecar's source_md5 back to decide whether to
