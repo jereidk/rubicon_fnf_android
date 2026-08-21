@@ -500,7 +500,46 @@ emits nothing while still rendering a shadow cubemap over the whole scene.
 `122_fall` animates its energy, so switching its shadow off is a look decision,
 not a free win - measure it before touching it.
 
-### El depth pre-pass de la casa: medido, cambiado, y devuelto
+### El depth pre-pass de la casa: medido de verdad, y vuelto a poner
+
+**La medida que faltaba, en la ruta del teléfono** (Vulkan, Forward Mobile), 24
+quads con máscara solapados, geometría idéntica en los cuatro casos:
+
+| modo | gpu | draws | prims | objs |
+|---|---|---|---|---|
+| OPAQUE | 35.6ms | 24 | 48 | 24 |
+| **ALPHA_SCISSOR (2)** | **103.5ms** | 24 | 48 | 24 |
+| **DEPTH_PRE_PASS (4)** | **399.0ms** | 24 | 48 | 24 |
+| ALPHA (1) | 404.1ms | 24 | 48 | 24 |
+
+**3.86x contra scissor - y los tres contadores son idénticos en los cuatro
+modos.** Esa segunda mitad es la importante: `draw=`, `prims=` y `objs=` **no
+pueden ver** que una superficie se dibuja dos veces. Por eso todas las lecturas
+por recuento del log acababan en "no es geometría" -correcto- y ahí se
+quedaban sin salida.
+
+**Lo que lo señaló fueron dos logs de otros dos teléfonos**, misma build.
+Chimera cuesta el doble que la tienda en las **dos** GPUs:
+
+| | Adreno 619 | Mali-G52 |
+|---|---|---|
+| Chimera | 31.85ms | 24.22ms |
+| tienda | 15.49ms | 14.68ms |
+
+…teniendo Chimera menos luces alcanzando la cámara (4 contra 6), menos mallas
+horneadas (62 contra 102), sin niebla (`env=limpio` contra `fog`) y menos draw
+calls (21 contra 39). La única diferencia estructural: la casa tenía cinco
+materiales en modo 4 y **la tienda no tiene ninguno** - sus trece son opacos.
+
+Puesto otra vez, con `alpha_scissor_threshold = 0.214` explícito -el mismo que
+`grars`, que conserva más borde que el 0.5 por defecto- y con
+`tools/audit_house_transparency.py` como puerta de CI, que lleva la medida
+dentro para que no haya que repetirla.
+
+Fuera de alcance a propósito: `models/hex/materials/HexBroeknArms.tres`, un
+gradiente de verdad, en otra carpeta, donde la regla no lo alcanza por error.
+
+#### Por qué se revirtió la primera vez, y por qué ya no aplica
 
 Cinco materiales de la casa de Chimera (`Material.001`, `foliage`, `props1`,
 `props2`, `propruhhhhhoneofthem`) están en `transparency = 4`,
@@ -522,14 +561,10 @@ de téxeles con alfa entre 8 y 247, o sea los bordes suavizados, que son los
 Son máscaras binarias, y `grars` y `trash` en esa misma carpeta ya estaban en
 scissor, así que era la convención de la propia carpeta.
 
-**Revertido de todas formas.** El número es real pero la ganancia nunca se
-midió en el dispositivo, y el cambio diverge del pck en cómo se dibujan cinco
-materiales de la única escena que el usuario estaba reportando como rota. Se
-hizo en medio de la caza del gráfico negro, sobre la teoría de que Chimera es
-per-píxel - que es verdad - pero sin un antes/después que dijera cuánto vale.
-Los histogramas se dejan escritos aquí para que rehacerlo sea barato; lo que
-falta es la medida, no el análisis. `tools/audit_material_transparency.py` y
-su puerta de CI se fueron con el revert.
+`0eb5c69` lo revirtió y tenía razón entonces: la ganancia nunca se había
+medido, y el cambio se hizo **en medio de la caza del gráfico negro**, sobre la
+única escena que el usuario reportaba como rota. Ese bug se cerró en la build
+152, y la medida ya está arriba. Los dos reparos han caducado.
 
 ### Cómo se lee un A/B de gráficos, y por qué los anteriores no valieron
 
