@@ -1114,6 +1114,49 @@ draw calls y 92 primitivas**, en una pantalla de 2340x1080. Eso es relleno puro
 y nada más - el canvas 2D no baja con `graphics_render_scale`, así que en un
 teléfono 1080p una canción que no dibuja nada cuesta 26ms.
 
+### Tres intentos de optimizar gdanimate y las notas, y por qué fallaron
+
+Escritos para que la próxima sesión no los repita. Los tres parecían buenos
+leyendo el código y los tres se cayeron al medirlos, **antes** de enviarlos.
+
+**1. "La caché de gdanimate no se rehabilita tras reconstruir."** Es verdad:
+`_use_backbuffer_cache` se pone a `false` en cada avance de frame y sólo vuelve
+a `true` desde `_notification(TRANSFORM_CHANGED)`, nunca al final de un
+rebuild. Parece que el rebuild rellena la caché y el siguiente dibujo la tira.
+
+Medido con el atlas real de Gold, cuatro símbolos, en un proyecto aislado:
+
+| | avances | rebuilds | con caché | rebuild ms/s |
+|---|---|---|---|---|
+| quietos, código actual | 416 | 412 | 4 | 71.0 |
+| moviéndose, código actual | 428 | 424 | 428 | 77.5 |
+| moviéndose, **con el arreglo** | 416 | **412** | 424 | **70.7** |
+
+**Inerte.** El ratio rebuild/avance es 0.99 en los tres: ya hay exactamente una
+reconstrucción por avance de frame, que es lo correcto. Lo único que encola un
+redibujado sin avance es un cambio de transform, y ése ya rehabilita la caché.
+
+Lo que sí queda establecido: los ~57 ms/s de `anim2d` en Monochrome son **el
+addon funcionando como está diseñado**, no un fallo. Bajarlos exige menos
+símbolos, menos framerate de atlas, o reescribir el rebuild para reusar los RID
+en vez de liberarlos y recrearlos - y eso es código vendorizado que la build de
+PC tiene byte a byte.
+
+**2. "Los tres bucles de churn recorren el chart entero cada frame."** También
+es verdad - `range(0, note_spawn_start)` y `range(note_spawn_end, data.size())`
+caminan todo lo que hay a los dos lados de la ventana, por carril y por frame.
+Pero están dentro del cronómetro `churn=`, y en Monochrome **`churn` son 9
+ms/s**. Son comprobaciones de null y salen baratas. No es ahí.
+
+**3. `get_controller()` llamado cuatro veces por `_process`.** Devuelve un
+campo. No es nada.
+
+Con lo cual el reparto de `lanes=52 ms/s` queda: `bounds` 8.6 + `pump` 8.5 +
+`churn` 9.0 = 26, y los otros ~26 repartidos por un `_process` que es
+aritmética barata. **0.13 ms por carril y frame**, ocho carriles, sesenta veces
+por segundo. No hay un dueño; es coste de GDScript esparcido. Atacarlo sería
+reescribir el bucle de carril, no cambiar una línea.
+
 ### Dos leads que se caen al mirarlos, y por qué
 
 Los dos parecen hallazgos en una lectura rápida del log. No lo son, y quedan
