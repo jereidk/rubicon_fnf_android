@@ -1217,11 +1217,29 @@ Y se paga otra vez en cada visita: la tienda compila ~53 `mesh` en su primera
 carga y ~130 en la segunda, con la escena idéntica. Los 291 `mesh` de la
 sesión entera son todos de pantallas de carga.
 
-Lo que **no** se ha comprobado, y es lo que decidiría si hay palanca: si la
-caché de pipelines del driver sobrevive a cerrar la app. `project.godot` no
-declara `rendering/rendering_device/pipeline_cache/enable` (por defecto
-activo) ni `save_chunk_size_mb`, y son los dos únicos ajustes que existen. La
-cabecera `pipe_cache:` está para eso - hacen falta dos logs de dos arranques.
+**Y sí sobrevive a cerrar la app.** Dos logs del mismo Redmi (Mali-G52), misma
+build, dos arranques distintos, misma escena:
+
+| | arranque 1 | arranque 2 |
+|---|---|---|
+| carga de la tienda | **52014ms** | **5998ms** |
+| precache de la tienda | **30089ms** | **1270ms** |
+| **total antes de jugar** | **82 segundos** | **7 segundos** |
+
+`bench` durante los dos tramos es comparable (mediana ~640us contra ~605us), o
+sea que no es el gobernador. **12x, y es la caché de pipelines del driver.**
+
+**Lo que corrige, y es importante:** los pipelines compilados son **los mismos**
+en los dos arranques - 2 can, 53 mesh, 120 surf, y 58 contra 68 spec, 233
+contra 243 en total. O sea que `RENDERING_INFO_PIPELINE_COMPILATIONS_*` cuenta
+**creaciones, no fallos de caché**. El recuento no es un proxy del coste, y
+toda lectura que lo use como tal -incluidas varias de este fichero- hay que
+leerla con eso delante. Lo que reducir variantes distintas sí ahorra es el
+**primer** arranque, donde cada una se compila de verdad.
+
+Así que todo el dolor de carga y precache de este proyecto es **coste de
+primera ejecución**. Un jugador nuevo espera 82 segundos antes de entrar a la
+tienda; el mismo jugador, la segunda vez que abre el juego, espera 7.
 
 ### Las texturas Lossless que quedan, contadas bien
 
