@@ -2387,6 +2387,116 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
+## Las cuatro reglas del relleno 2D, medidas
+
+El canvas 2D es la mitad del frame que `graphics_render_scale` **no** toca. A
+`scale=0.50` sobre 1600x720 el pase 3D entero son 0.29 Mpx; una sola capa 2D a
+pantalla completa son 1.15 Mpx y el censo de Chimera llega a `over=8.4x`. Y
+Safety Lullaby dibuja `3d=0/0` y cuesta 25.93ms. O sea que aquí está el techo
+de las tres canciones, y hasta esta sesión no había una sola medida de él.
+
+Todo lo de abajo sale de la ruta del teléfono (Vulkan, Forward Mobile,
+1600x720), con ocho ColorRect a pantalla completa apilados salvo donde se diga.
+
+```bash
+python3 tools/audit_canvas_fill.py          # barre lullaby_mod/ y addons/
+```
+
+### 1. `modulate` descarta, `self_modulate` y `color` no
+
+| caso | gpu | draws | prims |
+|---|---|---|---|
+| opaco | 28.98ms | 1 | 16 |
+| **`modulate.a = 0`** | **0.93ms** | **0** | **0** |
+| `self_modulate.a = 0` | 30.87ms | 1 | 16 |
+| `color.a = 0` | 31.09ms | 1 | 16 |
+| `visible = false` | 0.90ms | 0 | 0 |
+
+`modulate` propaga a los hijos, así que Godot puede saltarse el subárbol
+entero; los otros dos afectan sólo a ese item y se dibuja igual. Y fíjate en el
+orden: **una mezcla a pantalla completa de nada cuesta un pelo MÁS que una
+opaca.** `color = Color(0,0,0,0)` no es "inerte", es el caso más caro de los
+cuatro.
+
+Antes de dar por gratis un rect transparente, mirar **cuál de los tres niveles**
+está a cero.
+
+### 2. Un pase identidad cuesta casi lo que uno que hace algo
+
+Con el shader real de Safety Lullaby (`shd_radial_blur`) sobre 40 rects:
+
+| caso | gpu | draws |
+|---|---|---|
+| activo (`BLUR_STRENGTH=0.135`, 15 muestras/píxel) | 49.7ms | 2 |
+| identidad (`BLUR_STRENGTH=0`) | 20.0ms | 2 |
+| oculto | 6.7ms | 1 |
+
+El `draws=2 -> 1` es la parte que no se sabía: **esconder el rect se lleva la
+copia de backbuffer que el motor inserta por `hint_screen_texture`.** Es lo
+contrario del `BackBufferCopy` explícito de `intro.tscn`, que copia lo lea
+alguien o no. Detalle completo en la sección de Safety Lullaby.
+
+### 3. `render_mode blend_disabled` existe en `canvas_item`
+
+Y para una capa opaca es **idéntico píxel a píxel**:
+
+    blend_mix           10.53ms      <- lo que hace todo CanvasItem por defecto
+    blend_premul_alpha  10.15ms
+    blend_disabled       2.78ms
+
+Mismo fragment, mismo trabajo, sólo cambia el estado de mezcla.
+
+**No aplicado a nada todavía, a propósito.** Ese 3.8x es de un rasterizador
+software, donde mezclar es leer memoria; en un tiler la mezcla lee memoria de
+tile, que es mucho más barata, así que la ganancia real en un Adreno está sin
+medir. Y ponerlo cuesta un `ShaderMaterial` único por nodo, que es un bind
+único que no batchea. Es una fila de A/B en el teléfono, no un cambio que se
+manda a ciegas.
+
+Sólo vale para **`ColorRect`**. Un `TextureRect` o un `NinePatchRect` con una
+textura recortada lee como opaco en `color`/`modulate` y está lleno de agujeros
+en pantalla; el `StyleBox` de un `Panel` puede ser redondeado o translúcido.
+
+### 4. Una capa opaca NO tapa lo de abajo por sí sola
+
+Siete capas con un fragment caro y una octava opaca encima:
+
+| | gpu |
+|---|---|
+| sin tapa | 89.8ms |
+| tapa opaca con `blend_mix` | **91.0ms** |
+| tapa opaca con `blend_disabled` | 18.4ms |
+
+La fila del medio es la importante: **poner una capa opaca encima no ahorra
+nada.** El 2D de Godot no tiene búfer de profundidad, así que se dibuja en
+orden de pintor y un draw posterior no puede cancelar el trabajo de uno
+anterior.
+
+Los 18.4ms de la tercera fila son el rasterizador software difiriendo el
+sombreado por tiles y descartando lo tapado. **Un Adreno o un Mali no pueden
+hacer eso sin profundidad, así que no cuentes con ello.** La versión portable
+del truco es esconder tú las capas tapadas, y esos 18.4ms son la cota superior
+de lo que eso daría.
+
+### Lo que el barrido encuentra hoy
+
+**Cero hallazgos de coste muerto en los 104 ficheros.** Los dos que había
+-`%WaterEffect` y `%RadialEffect` de Safety Lullaby- están cerrados por la
+regla 2. Quedan 28 candidatos a la regla 3, casi todos fondos de menús y de
+arranque, más `Stage`, `BlackBG` y `Black` de Monochrome, que es la única
+canción donde el frame es canvas puro.
+
+**Dos falsos positivos que la herramienta tuvo que aprender a no dar**, y los
+dos son de la clase que ha roto este repo antes:
+
+- **Un `visible` escrito desde GDScript es invisible a un barrido de texto.**
+  `LowerHealthRect` de Chimera está autorado `self_modulate.a = 0` con `color`
+  opaco, o sea exactamente el patrón de la regla 1 - y no es un fallo:
+  `lower_health_overlay.gd` lo tiene por un NodePath exportado y hace
+  `visible = health < max_health / 2`. La herramienta sigue ahora los NodePath
+  sin sufijo `:propiedad` hasta el script del nodo que los exporta.
+- **`TextureRect` fuera de la regla 3**, por lo dicho arriba.
+
 ## Un pase de pantalla completa que produce la identidad cuesta lo mismo que uno que hace algo
 
 Y este proyecto tenía dos siempre encendidos, en Safety Lullaby.
