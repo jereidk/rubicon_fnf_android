@@ -102,14 +102,27 @@ var _revealed_at_anim_end: int = -1
 ## The lights and lightmaps left switched on, so the log can say whether the
 ## exemption actually took effect.
 ##
-## Two numbers, because `visible` is local and rendering is not. A Light3D
-## parented under a mesh that this walk does hide stops rendering anyway, and
-## nothing readable from a .tscn can rule that out for the subtrees that come
-## out of a .gltf. So the handover reports how many were exempted and how many
-## of those are still visible *in the tree* once the hiding is done - if those
-## two disagree, some of the scene's lighting is hidden by ancestry and the
-## precache is still walking through lighting states.
+## `visible` is local and rendering is not: a Light3D parented under a mesh
+## this walk hides stops rendering anyway, and nothing readable from a .tscn
+## can rule that out for the subtrees that come out of a .gltf. So the count
+## that matters is how many are visible **in the tree**.
+##
+## Reported as a before/after pair, and the first version of this shipped
+## without the "before" - which made it unreadable. Chimera logged
+## `11 luces/bakes intactos de 16` and that looked like five lights lost to
+## the hiding. Four of them are `flash` and `PhoneGlow` under
+## `Sequences/SerenaTakingPictures`, and `Cameralight` and an `OmniLight3D`
+## under `Environment/chimera_house/mdl_chimera_camera` - and **both of those
+## parents ship `visible = false` in the scene**. Those lights were already
+## dark before this node ran. A post-hide count alone cannot tell "hidden by
+## my hiding" from "hidden by the scene", so it reported the second as the
+## first.
+##
+## Taking the baseline before anything is hidden makes the drop attributable:
+## equal means the exemption held, and any gap is lighting this walk really
+## did take away.
 var _kept_lit: Array[Node] = []
+var _kept_lit_before: int = 0
 
 func _kept_lit_effective() -> int:
 	var n: int = 0
@@ -138,9 +151,9 @@ func _ready() -> void :
 
 	_hide_everything()
 
-	_mark("preload camera '%s' started on %s (%d nodos por revelar, %d luces/bakes intactos de %d)" % [
+	_mark("preload camera '%s' started on %s (%d nodos por revelar, %d luces/bakes exentos, encendidos %d -> %d)" % [
 		animation_name, get_parent().scene_file_path.get_file(), _hidden.size(),
-		_kept_lit_effective(), _kept_lit.size(),
+		_kept_lit.size(), _kept_lit_before, _kept_lit_effective(),
 	])
 
 	_collect_sweep_poses()
@@ -256,6 +269,11 @@ func _hide_everything(from: Node = null) -> void:
 	if scene == null:
 		return
 
+	# Collected first and hidden second, so the baseline below is read while
+	# the scene is still as it shipped. The order of _hidden is unchanged -
+	# it is the same walk, just drained afterwards - and the reveal depends on
+	# that order.
+	var to_hide: Array[Node] = []
 	var stack: Array[Node] = [scene]
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
@@ -263,10 +281,15 @@ func _hide_everything(from: Node = null) -> void:
 			if _keeps_lighting(node):
 				_kept_lit.append(node)
 			else:
-				node.visible = false
-				_hidden.append(node)
+				to_hide.append(node)
 		for child in node.get_children():
 			stack.append(child)
+
+	_kept_lit_before = _kept_lit_effective()
+
+	for node in to_hide:
+		node.visible = false
+		_hidden.append(node)
 
 ## Whether this node defines the scene's lighting rather than drawing into it.
 ##

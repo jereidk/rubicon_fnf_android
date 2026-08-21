@@ -42,11 +42,12 @@ func _run() -> void:
 	_cycle_case()
 	_no_sweep_case()
 	_lighting_stays_on_case()
+	_lighting_baseline_case()
 	await _serves_only_after_animation_case()
 
 	print("")
-	if _checks < 18:
-		print("FALLO: solo %d de 18 comprobaciones corrieron" % _checks)
+	if _checks < 24:
+		print("FALLO: solo %d de 24 comprobaciones corrieron" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -257,6 +258,65 @@ func _lighting_stays_on_case() -> void:
 	_check("cuenta lo que dejo encendido", cam._kept_lit.size() == 3,
 		"%d" % cam._kept_lit.size())
 
+	root.free()
+	cam.free()
+
+
+## Una luz bajo un padre que la ESCENA ya trae oculto no es una perdida, y la
+## primera version de este contador dijo que si.
+##
+## Chimera registro `11 luces/bakes intactos de 16` y se leyo como cinco luces
+## perdidas por el escondite. Cuatro son `flash` y `PhoneGlow` bajo
+## `Sequences/SerenaTakingPictures`, y `Cameralight` y un `OmniLight3D` bajo
+## `Environment/chimera_house/mdl_chimera_camera` - y los dos padres shipean
+## `visible = false`. Esas luces ya estaban apagadas. Un recuento tomado solo
+## despues de esconder no distingue "lo apago mi escondite" de "venia
+## apagado", asi que informo de lo segundo como si fuera lo primero.
+##
+## Con la base tomada antes, el caso queda separado: aqui la luz bajo el padre
+## oculto NO cuenta ni antes ni despues, y la que cuelga de una malla que si
+## se esconde cuenta antes y no despues. Esa segunda es la perdida real.
+func _lighting_baseline_case() -> void:
+	var cam := _camera()
+	var root := Node3D.new()
+
+	# Caso A: la escena ya lo trae oculto. No debe leerse como perdida.
+	var apagado := Node3D.new()
+	apagado.visible = false
+	root.add_child(apagado)
+	var luz_en_apagado := OmniLight3D.new()
+	apagado.add_child(luz_en_apagado)
+
+	# Caso B: cuelga de una malla que este walk SI esconde. Perdida real.
+	var malla := MeshInstance3D.new()
+	malla.mesh = BoxMesh.new()
+	root.add_child(malla)
+	var luz_en_malla := OmniLight3D.new()
+	malla.add_child(luz_en_malla)
+
+	# Control: una luz suelta, que no debe moverse.
+	var suelta := OmniLight3D.new()
+	root.add_child(suelta)
+
+	# Dentro del arbol de verdad, y esto no es un detalle: is_visible_in_tree()
+	# se resuelve al entrar en el arbol, asi que sobre un subarbol suelto
+	# devuelve true para todo y las tres comprobaciones de abajo pasan sin
+	# medir nada. La primera version de este caso fallaba por eso.
+	root.set_script(null)
+	get_root().add_child(root)
+
+	cam._hide_everything(root)
+
+	_check("exime las tres luces", cam._kept_lit.size() == 3,
+		"%d" % cam._kept_lit.size())
+	_check("la base ignora la que ya venia apagada", cam._kept_lit_before == 2,
+		"%d" % cam._kept_lit_before)
+	_check("y despues solo queda la suelta", cam._kept_lit_effective() == 1,
+		"%d" % cam._kept_lit_effective())
+	_check("o sea que la perdida real es 1",
+		cam._kept_lit_before - cam._kept_lit_effective() == 1)
+
+	get_root().remove_child(root)
 	root.free()
 	cam.free()
 
