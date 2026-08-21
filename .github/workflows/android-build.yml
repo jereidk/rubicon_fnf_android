@@ -735,6 +735,22 @@ jobs:
           $GODOT --headless --path . --script tools/test_gpu_timing_latch.gd 2>&1 | tee /tmp/gputiming.txt
           grep -q "todo OK" /tmp/gputiming.txt
 
+      - name: Verify the trance-shader gate cannot hide anything visible
+        run: |
+          # Safety Lullaby's WaterEffect and RadialEffect are full-screen
+          # ColorRects on hint_screen_texture, and both shaders have an
+          # identity branch that is their default state - the parameters all
+          # come from (100 - retention)/100, which is 0 while the player holds
+          # the pendulum. Measured on the phone's path (Vulkan, Forward
+          # Mobile): the identity pass costs 13.3ms of a 20ms frame, three
+          # times everything under it, and hiding the rect takes the engine's
+          # backbuffer copy with it (draws 2 -> 1). The gate cuts at
+          # NEUTRAL_EPSILON; this pins that constant under the half-a-step
+          # bound its own derivation gives (0.0071), which is the part that
+          # can drift in silence.
+          $GODOT --headless --path . --script tools/test_trance_gate.gd 2>&1 | tee /tmp/trance.txt
+          grep -q "todo OK" /tmp/trance.txt
+
       - name: Verify the retained-resource sweep stays cheap
         run: |
           # The sweep runs on the main thread during a load, next to a loading

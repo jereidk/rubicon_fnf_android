@@ -2299,6 +2299,84 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
+## Un pase de pantalla completa que produce la identidad cuesta lo mismo que uno que hace algo
+
+Y este proyecto tenía dos siempre encendidos, en Safety Lullaby.
+
+Lo primero, la regla del motor, medida - **Godot descarta un CanvasItem por su
+`modulate.a`, no por el `color.a` del ColorRect.** Ocho rects a pantalla
+completa apilados, 1600x720, Forward Mobile:
+
+| caso | gpu | draws | prims |
+|---|---|---|---|
+| opaco | 28.8ms | 1 | 16 |
+| `modulate.a = 0` | **0.79ms** | 0 | 0 |
+| `color.a = 0` | **30.5ms** | 1 | 16 |
+| `visible = false` | 0.90ms | 0 | 0 |
+
+O sea que `color = Color(0,0,0,0)` con el `modulate` intacto no es que no sea
+gratis: es **el caso más caro de los tres**, una mezcla a pantalla completa que
+no pone nada. Antes de dar por inerte un rect transparente, mirar cuál de los
+dos niveles es el que está a cero.
+
+Y hay una segunda mitad, que es la que decide cuánto vale el arreglo: **la copia
+de backbuffer que el motor inserta por `hint_screen_texture` sigue la
+visibilidad del CanvasItem que la pide.** Con el shader real de Safety Lullaby
+(`shd_radial_blur`) sobre 40 rects de fondo:
+
+| caso | gpu | draws |
+|---|---|---|
+| activo (`BLUR_STRENGTH=0.135`, 15 muestras/píxel) | 49.7ms | 2 |
+| **identidad** (`BLUR_STRENGTH=0`, copia la pantalla y la reescribe igual) | **20.0ms** | 2 |
+| oculto | **6.7ms** | 1 |
+
+El pase identidad cuesta 13.3ms de un frame de 20 - **tres veces todo lo que
+hay debajo** - y el `draws=2 -> 1` dice que esconderlo se lleva la copia. Esto
+es lo contrario del caso de `intro.tscn` que ya está escrito arriba, y la
+diferencia importa: allí la copia es un **nodo `BackBufferCopy` explícito**, que
+copia lo lea alguien o no; aquí la inserta el motor por el material.
+
+Los dos rects de Safety Lullaby estaban exactamente ahí. `%WaterEffect`
+(`shd_trance_water_hsv_contrast`) y `%RadialEffect` (`shd_radial_blur`) shipean
+visibles, sin pista de animación que los toque, y sus cuatro parámetros salen
+todos de `_effects_strength` en `trance_shaders.gd`, que es
+`(100 - retention) / 100` - o sea **0 mientras el jugador lleve bien el
+péndulo**, que es la mayor parte de una partida buena. A 0, `WAVE_STRENGTH <= 0`
+y `BLUR_STRENGTH <= 0` toman las dos ramas de identidad y HSV/contraste están en
+sus valores neutros.
+
+`trance_shaders.gd` los esconde ahora por debajo de `NEUTRAL_EPSILON = 0.002`.
+La cota sale de que el término que más pesa es la saturación, `1 - 0.275·e`, y
+medio paso de 8 bits pide `0.275·e < 0.5/255`, o sea `e < 0.0071`. Comprobado
+además renderizando una rampa de matiz/saturación/valor por los **dos** shaders
+reales y diffeando contra la misma rampa sin pasar por nada:
+
+    e = 0.0020   peor error 0/255   0 canales de 691200
+    e = 0.0071   peor error 0/255   0
+    e = 0.0200   peor error 0/255   0
+    e = 0.1000   peor error 1/255   1658  (0.24%)
+
+10x de margen real hasta la primera diferencia medible, y la última fila es la
+que prueba que el método detecta un efecto de verdad en vez de pasar en vacío.
+`tools/test_trance_gate.gd` (12 comprobaciones, en CI) fija la constante contra
+su propia cota, porque el barrido de arriba necesita un framebuffer y CI no
+tiene display.
+
+Dos cosas de alcance, para no vender esto de más:
+
+- **Monochrome ya lo tenía.** `lullaby_effect_rect_gate.gd` hace lo mismo por
+  sondeo sobre `Front/RadialBlur`, cuyo `intensity` lo conduce una pista de
+  animación y por tanto no hay script al que engancharse. Dos herramientas para
+  dos situaciones; en Safety Lullaby el script ya tiene el número en la mano y
+  sondear sería peor.
+- **Los dos shaders están en `EFFECT_SHADER_PATHS`**, así que a Very Low se
+  quitan enteros y ahí esto no cambia nada. Cae en Low, Medium y High - que es
+  justo donde el jugador **no** pidió degradar nada.
+
+El tercer rect a pantalla completa de esa canción, `ScuiguileLayer/SquiggleLayer`,
+lleva `WAVE_STRENGTH = 2.0` autorado y nadie lo mueve: está haciendo su trabajo
+todo el rato y no se toca.
+
 ## Peepers is half of Monochrome's frame
 
 `Peepers.tscn` - the wall of eyes - is 132 nodes carrying 128 ColorRects, and
