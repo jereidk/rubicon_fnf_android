@@ -2548,14 +2548,25 @@ func _graphics_summary() -> String:
 	var preset = Settings.get_quality_preset()
 	var aniso_names := ["off", "2x", "4x", "8x", "16x"]
 	var aniso: int = clampi(int(Settings.graphics_anisotropic_filtering), 0, 4)
+	# screen_space_aa es un pase de pantalla completa y es campo del preset
+	# (SMAA en High, FXAA en Medium, apagado en Low y Very Low) - y no estaba
+	# en esta linea. En `dcb37c09` un jugador barrio la pestaña de Graficos
+	# fila a fila en la tienda y a los 171.72s el `vp=` del log paso de
+	# `ssaa2 aniso2` a `ssaa1 aniso1` de golpe, mientras esta linea solo podia
+	# informar de la mitad: `aniso=4x -> 2x`. El frame bajo 3.4ms en ese paso
+	# y no hay forma de saber cual de las dos filas lo hizo. En una pantalla
+	# de 2.66 Mpx el pase de SMAA no es lo pequeño de los dos.
+	var ssaa_names := ["off", "fxaa", "smaa"]
+	var ssaa: int = clampi(int(Settings.graphics_screen_space_aa_quality), 0, 2)
 	# aniso/lod/light_fade are logged because they are only ever set by a
 	# preset - on Custom they sit at their defaults and do nothing, which is
 	# invisible otherwise and made a whole run unattributable once.
-	return "preset=%s scale=%s aspect=%s msaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d flashing=%s" % [
+	return "preset=%s scale=%s aspect=%s msaa=%s ssaa=%s shadows=%s atlas=%d filter=%d ssao=%s ssil=%s post=%d sha_fx=%s aniso=%s lod=%.1f light_fade=%.1f phys_hz=%d target_fps=%d flashing=%s" % [
 		preset.name if preset != null else "Custom",
 		_render_scale(),
 		"Wide" if Settings.display_screen_aspect == Window.ContentScaleAspect.CONTENT_SCALE_ASPECT_EXPAND else "Normal",
 		msaa_names[msaa],
+		ssaa_names[ssaa],
 		"on" if Settings.graphics_shadows_enabled else "off",
 		Settings.graphics_positional_shadow_atlas_size,
 		Settings.graphics_positional_shadow_filter_quality,

@@ -566,6 +566,118 @@ medido, y el cambio se hizo **en medio de la caza del gráfico negro**, sobre la
 única escena que el usuario reportaba como rota. Ese bug se cerró en la build
 152, y la medida ya está arriba. Los dos reparos han caducado.
 
+### El barrido de escala de render, por fin medido - y sale lineal
+
+Este fichero lleva toda la sesión pidiendo el experimento: *"Chimera solo se ha
+registrado **jamás** a `scale=0.50`. Dos pasadas seguidas a 0.35 y a 0.75 dicen
+de una vez si el techo es por píxel."* Nunca se hizo. Y resulta que **ya estaba
+hecho**, en un log que nadie había abierto: `dcb37c09`, un **sexto dispositivo**
+- moto g(60)s, **Mali-G76 MC4, 2460x1080**, driver 1.1.131, build `10123`.
+
+Un jugador se metió en la pestaña de Gráficos de la consola, dentro de la
+tienda, y barrió las filas **de una en una** durante ochenta segundos. Es
+exactamente el protocolo que este fichero pide ("two runs toggling one row at a
+time... do not change the preset") y lo hizo un amigo sin saberlo.
+
+Escena congelada durante todo el tramo - `draw=92`, `prims≈16100`,
+`vis3d=120/140`, `mat3d=83/135`, `sub=4/7`, los mismos en las diez muestras -
+así que todo lo que se mueve es por píxel o por estado. Sólo las muestras
+asentadas (≥4s tras el cambio; `median=` es una ventana móvil y una lectura a
+2.4s todavía promedia el ajuste anterior):
+
+| escala | msaa | ssaa | vram | `median` | `bench` |
+|---|---|---|---|---|---|
+| 1.10 | 4x | SMAA | 418MB | 92.9 / 92.7 | 1316 / 199 |
+| 1.00 | 4x | SMAA | 346MB | 78.4 / 77.5 | 484 / 1045 |
+| 1.00 | 2x | SMAA | 288MB | 76.1 | 443 |
+| 1.00 | 2x | FXAA | 249MB | 72.7 / 71.7 / 71.5 / 71.2 | 1094 / 1138 / 1092 / 1316 |
+
+**El modelo de relleno, ajustado con las dos primeras filas:** la pantalla son
+2.657 Mpx, el pase 3D es `2.657·s²`.
+
+    pendiente = (92.8 - 77.95) / (3.215 - 2.657) = 26.6 ms por Mpx de 3D
+    suelo     = 77.95 - 26.6 x 2.657            =  7.3 ms
+
+Y el tercer punto, que no entró en el ajuste: a `scale=0.50` el modelo predice
+`7.3 + 26.6 x 0.664 = 25.0ms`. El mismo teléfono, veinte segundos antes, en
+Very Low: **`median=25.2ms`**. Un 1% de error a lo largo de un rango de 4.8x de
+píxeles de 3D.
+
+**La tienda es fill-rate puro y lineal en píxeles de 3D, con 7.3ms de suelo.**
+Bajar la escala de render paga exactamente lo que dice la aritmética, sin
+rodillas ni saturación. (Very Low además apaga sombras y post, así que ese 25.2
+debería quedar algo *por debajo* de 25.0 - el clavo es un poco de suerte. La
+pendiente sí se apoya en cuatro muestras asentadas.)
+
+### Y el gobernador **no** toca este frame
+
+`bench` va de 199us a 1316us dentro de esta misma tabla - **6.6x de reloj de
+CPU** - y el frame no se entera:
+
+    scale=1.10   92.9ms @ bench=1316      92.7ms @ bench= 199     0.2% de diferencia
+    scale=1.00   78.4ms @ bench= 484      77.5ms @ bench=1045     1.2%
+    2x + FXAA    72.7 / 71.7 / 71.5 / 71.2  con bench 1092..1316  2.1%
+
+O sea que el aviso de este fichero -"lee `bench` antes que cualquier otro
+número"- hay que leerlo con su alcance: vale para los **tiempos de carga** (la
+tienda 4763ms vs 17420ms es el gobernador) y para **ordenar secuencias por
+`gpu`**, donde el frame tiene holgura. En un frame profundamente limitado por
+la GPU, `bench` no explica nada y no hay que descontarlo. Los dos regímenes
+existen en este proyecto y son distinguibles justo así: mueve el reloj 6x y mira
+si el frame se mueve.
+
+### El atlas de sombras es gratis cuando nada proyecta - medido dos veces
+
+Lectura tentadora y **falsa**, que casi se convierte en una optimización: entre
+150.86s y 157.27s el frame cae de 91.8 a 78.4 y lo único que dice la línea
+`SETTINGS` es que el atlas pasó de 4096 a 1024. Catorce milisegundos por una fila
+sola, en una escena que el censo registra como `lights=18(shadow=0)` con
+`shadows=[]` en las cinco muestras del tramo.
+
+No es eso. Dos comprobaciones independientes:
+
+- **`vram` no se mueve** en ese paso: 346MB antes y 346MB después. Un atlas de
+  4096 a 16 bits son 32MB; si estuviera reservado, liberarlo se vería. Godot no
+  lo reserva porque ninguna luz pide hueco. Las otras dos filas del barrido sí
+  mueven VRAM (msaa 4x->2x, −58MB; SMAA->FXAA, −39MB), así que el contador
+  funciona.
+- **En aislado, en la ruta del teléfono** (Vulkan, Forward Mobile), 81 mallas y
+  18 omnis, barriendo sólo `positional_shadow_atlas_size`:
+
+  | atlas | sin proyectores | con 4 proyectores |
+  |---|---|---|
+  | 0 | 14.91ms | 15.32ms |
+  | 512 | 14.09 | 16.65 |
+  | 1024 | 14.32 | 16.65 |
+  | 2048 | 14.44 | 16.98 |
+  | 4096 | **13.45** | **17.12** |
+
+  Sin proyectores es ruido plano y el 4096 sale el más rápido; con cuatro es
+  monótono y creciente. El control funciona y el caso de cero es plano.
+
+Lo que de verdad pasó es la ventana: el 91.8 de 150.86s se tomó **2.4s** después
+de bajar la escala de 1.10 a 1.00, y `median=` todavía promediaba frames de
+1.10. El valor asentado de `scale=1.00` es el 78.4 de 157.27s. O sea que esos
+catorce milisegundos son **el cambio de escala**, no el atlas, y encajan con la
+pendiente de arriba.
+
+**Regla:** bajar `positional_shadow_atlas_size` en una escena sin proyectores no
+compra nada. La tienda es exactamente ese caso. Chimera no - tiene tres
+`shadow_enabled = true`.
+
+### `screen_space_aa` no estaba en la línea `SETTINGS`, y valía 4ms
+
+La quinta vez que una fila del preset no se puede atribuir porque el log no la
+imprime. A los 171.72s el `vp=` pasa de `ssaa2 aniso2` a `ssaa1 aniso1` de
+golpe, mientras `SETTINGS` sólo puede informar de `aniso=4x -> 2x`. El frame
+baja 3.4ms y la VRAM 39MB.
+
+**Los 39MB delatan cuál de las dos fue.** El filtrado anisotrópico es estado de
+muestreador: no reserva nada. SMAA reserva búferes a pantalla completa. Así que
+el paso es SMAA->FXAA y atribuirlo al anisotrópico habría sido exactamente el
+error que este fichero documenta cuatro veces. `ssaa=off/fxaa/smaa` está ahora
+en `_graphics_summary()`.
+
 ### Cómo se lee un A/B de gráficos, y por qué los anteriores no valieron
 
 ```bash
@@ -845,6 +957,15 @@ How to read it:
 - `SUMMARY vs_first` climbing with nothing else changing -> thermal throttling
 - `LOAD` checkpoints spread out -> resource loading; bunched at the end ->
   instantiation
+- **`gpu=n/d` significa que el driver no contesta, no que la GPU estuviera
+  ociosa.** El moto g(60)s (Mali-G76 MC4, driver 1.1.131) devuelve 0.00 en las
+  492 entradas de `dcb37c09`, con `cpu_render` variando normalmente al lado.
+  Contada sobre los 33 logs del proyecto, la racha máxima de entradas seguidas
+  con `gpu == 0` y `cpu_render > 0` es **492 en ese modelo y 0 en los otros
+  cinco**, así que la pareja separa los dos casos sin margen de duda. El log
+  echa el pestillo a las 12 entradas, lo dice con una línea `GPUTIMING`, y a
+  partir de ahí `gpu=` y `sub_gpu=` salen `n/d` en vez de `0.00`. En ese
+  dispositivo **el frame hay que leerlo de `median=`**, no de `gpu=`.
 - **`gpu=`/`cpu_render=`** are Godot's own GPU timestamp queries
   (`RenderingServer.viewport_get_measured_render_time_gpu/cpu`, one frame
   behind - not a `Viewport` instance method, confirmed the hard way against
