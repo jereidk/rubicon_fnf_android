@@ -114,9 +114,33 @@ func _run() -> void:
 	_check("y dice que la mediana es de reserva",
 		text.contains("(sin ventana)"))
 
+	# Una suspension de Android no es un frame, y desde que frame_ms va por el
+	# reloj de pared se le parece exactamente.
+	#
+	# Tres logs de tres dispositivos sobre 10154-8d1ee1ac traen "frames" de
+	# 71738.6ms, 17070.0ms, 16905.2ms, 14082.6ms y 4405.6ms - todos en la
+	# tienda, en reposo, con pipe+0, vram_delta=+0.0MB, RAM plana y NINGUNA
+	# linea de log en toda la ventana. Un proceso vivo escribe un latido cada
+	# cinco segundos; uno que no escribe nada en 74 no esta vivo.
+	#
+	# Se comprueba de forma textual porque el autoload no se puede instanciar
+	# aqui, y la propiedad es textual igualmente: la guarda tiene que estar
+	# ANTES de que nada consuma frame_ms, o la mediana, fps_low, el test del
+	# pico y SUMMARY ya lo han visto.
+	var proc_body: String = text.split("func _process(delta: float) -> void:")[-1]
+	var guard_at: int = proc_body.find("if _suspended_ms > 0:")
+	var shape_at: int = proc_body.find("_record_frame_shape(frame_ms)")
+	_check("hay guarda de suspension", guard_at >= 0)
+	_check("y va antes de la forma del frame",
+		guard_at >= 0 and shape_at >= 0 and guard_at < shape_at)
+	_check("alimentada por PAUSED/RESUMED, no por el foco",
+		text.contains("NOTIFICATION_APPLICATION_PAUSED")
+			and text.contains("NOTIFICATION_APPLICATION_RESUMED")
+			and not text.contains("NOTIFICATION_APPLICATION_FOCUS_OUT"))
+
 	print("")
-	if _checks < 11:
-		print("FALLO: solo %d de 11 comprobaciones" % _checks)
+	if _checks < 14:
+		print("FALLO: solo %d de 14 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:

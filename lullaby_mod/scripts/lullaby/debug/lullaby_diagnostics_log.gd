@@ -187,6 +187,11 @@ var _frame_times: PackedFloat32Array
 var _frame_index: int = 0
 var _frames_seen: int = 0
 
+## When the app was suspended, and for how long, so the frame that spans the
+## resume can be told apart from a stall. See _notification().
+var _paused_at_msec: int = 0
+var _suspended_ms: int = 0
+
 var _time_since_heartbeat: float = 0.0
 var _time_since_spike: float = 999.0
 var _time_since_census: float = 0.0
@@ -929,6 +934,23 @@ func _process(delta: float) -> void:
 	var now_usec: int = Time.get_ticks_usec()
 	var frame_ms: float = float(now_usec - _last_frame_usec) / 1000.0 if _last_frame_usec > 0 else delta * 1000.0
 	_last_frame_usec = now_usec
+
+	# The frame that spans a resume is the suspension, not a stall, and it has
+	# to be caught here - before the median buffer, fps_low, the spike test or
+	# SUMMARY's worst= have seen it. See _notification() for why: five of these
+	# across three devices, up to 71.7 seconds, every one of them the OS and
+	# not the game.
+	#
+	# The clock is re-armed on the way out so the FOLLOWING frame is not
+	# measured from before the suspension either.
+	if _suspended_ms > 0:
+		_entry("SUSPEND", "la app estuvo suspendida %.1fs (el frame que la cruza mide %.1fms y no es un stall)" % [
+			_suspended_ms / 1000.0, frame_ms,
+		])
+		_suspended_ms = 0
+		_last_memory = OS.get_static_memory_usage()
+		_last_frame_usec = Time.get_ticks_usec()
+		return
 
 	var median: float = _median_frame_ms()
 	_frame_times[_frame_index] = frame_ms
@@ -3438,6 +3460,25 @@ func _write_header() -> void:
 	_file.flush()
 
 func _notification(what: int) -> void:
+	# Android suspending the app is not a frame, and since frame_ms went to the
+	# wall clock it looks exactly like one.
+	#
+	# Three logs from three devices on 10154-8d1ee1ac carry "frames" of
+	# 71738.6ms, 17070.0ms, 16905.2ms, 14082.6ms and 4405.6ms - every one of
+	# them in the shop, at rest, with pipe+0, vram_delta=+0.0MB, RAM flat and
+	# **no log line at all** for the whole window. A process that is running
+	# writes a heartbeat every five seconds; one that writes nothing for 74
+	# seconds is not running. That is the OS, not the game, and reporting it as
+	# the worst frame in the session buries whatever the real worst frame was.
+	#
+	# PAUSED/RESUMED rather than focus: focus also fires for a notification
+	# shade pull, where the app keeps rendering, and that frame IS real.
+	if what == NOTIFICATION_APPLICATION_PAUSED:
+		_paused_at_msec = Time.get_ticks_msec()
+	elif what == NOTIFICATION_APPLICATION_RESUMED and _paused_at_msec > 0:
+		_suspended_ms = Time.get_ticks_msec() - _paused_at_msec
+		_paused_at_msec = 0
+
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
 		# Stopped before the log closes, not after: stop() joins the sampler
 		# thread, and a thread still writing while the engine tears down its
