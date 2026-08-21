@@ -145,13 +145,30 @@ def main(argv):
             continue
 
         # An already-imported .import names its own output; a fresh one does
-        # not, so fall back to matching the APK on the source's basename.
+        # not, so the fallback derives the name instead of guessing at it.
+        #
+        # It used to scan for anything starting with "<basename>-", and take
+        # the first hit. That is wrong wherever two textures share a file
+        # name, which in this project is nine names over 26 files -
+        # spritemap1.png alone appears nine times, and grass.png three. A run
+        # here rewrote grass.png-86e92392...md5 - which belongs to
+        # serena/Running/grass.png - with the content hash of
+        # intro/opening_shot/grass.png. Godot reads source_md5 back to decide
+        # whether to reimport, so a sidecar carrying the wrong file's hash
+        # makes it skip a texture that really did change and ship the stale
+        # .res.
+        #
+        # The name is not a guess: Godot builds it as
+        # <basename>-<md5 of the res:// source path>.res. Checked against all
+        # 505 ASTC textures in this project, that formula reproduces the
+        # declared path 505 times out of 505.
         match = re.search(r'path="res://\.godot/imported/([^"]+\.res)"', text)
         candidates = []
         if match:
             candidates.append(match.group(1))
-        prefix = os.path.basename(source) + "-"
-        candidates += [n for n in in_apk if n.startswith(prefix)]
+        candidates.append("%s-%s.res" % (
+            os.path.basename(source),
+            hashlib.md5(("res://" + source).encode()).hexdigest()))
 
         res_name = next((c for c in candidates if c in in_apk), None)
         if res_name is None:

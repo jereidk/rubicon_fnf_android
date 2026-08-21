@@ -16,9 +16,10 @@ on:
           - debug
       precompile_match:
         description: >-
-          Leave empty for a normal build. Set to a glob to also harvest the
-          imports it matches into precompiled_astc_imports/ and commit them
-          to this branch, e.g. *_packed_*.png
+          Leave empty for a normal build. Set to one or more space-separated
+          globs to also harvest the imports they match into
+          precompiled_astc_imports/ and commit them to this branch, e.g.
+          *_packed_*.png  or  loading.png nte_default.png
         required: false
         default: ''
 
@@ -398,8 +399,23 @@ jobs:
           # exported APK, so it does not depend on the export succeeding and
           # cannot pick up a stale artifact - the import that produced these
           # files ran seconds ago, in this job, from this commit.
-          python3 tools/harvest_precompiled_imports.py .godot/imported \
-            --match "${{ inputs.precompile_match }}"
+          # Space-separated, so one build can harvest textures that share no
+          # glob. loading.png and nte_default.png are the case that forced
+          # this: they live in different trees and the only fnmatch pattern
+          # covering both also covers half the project, so a single --match
+          # meant two full builds to collect two files. The script already
+          # accepts --match more than once; only this line did not.
+          #
+          # Unquoted on purpose - word splitting is the feature here. The
+          # values are globs the operator typed into workflow_dispatch, and
+          # the loop passes each as one argument, so a pattern still cannot
+          # turn into anything but a --match value.
+          MATCH_ARGS=""
+          for pat in ${{ inputs.precompile_match }}; do
+            MATCH_ARGS="$MATCH_ARGS --match $pat"
+          done
+          # shellcheck disable=SC2086
+          python3 tools/harvest_precompiled_imports.py .godot/imported $MATCH_ARGS
 
           if [ -z "$(git status --porcelain -- precompiled_astc_imports)" ]; then
             echo "Nothing new to commit - everything matching is already up to date."
@@ -420,6 +436,25 @@ jobs:
 
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
+
+      - name: Verify every precompiled sidecar describes its own source
+        run: |
+          # Godot reads a sidecar's source_md5 back to decide whether to
+          # reimport, so one that carries a different file's hash makes it
+          # skip a texture that really did change and ship the stale .res.
+          # Nothing fails; the symptom is a wrong texture on a phone.
+          #
+          # The harvester used to find its output by scanning for anything
+          # starting with "<basename>-" and taking the first hit, and nine
+          # file names in this project appear more than once across 26 files
+          # (spritemap1.png nine times, grass.png three). A run rewrote
+          # serena/Running/grass.png's sidecar with the hash of
+          # intro/opening_shot/grass.png.
+          #
+          # This runs after the harvest step on purpose: a harvest build is
+          # exactly when a sidecar can be written wrong, and this is the pass
+          # that would have caught it.
+          python3 tools/audit_precompiled_sidecars.py
 
       - name: Verify the diagnostics log's format strings
         run: |
