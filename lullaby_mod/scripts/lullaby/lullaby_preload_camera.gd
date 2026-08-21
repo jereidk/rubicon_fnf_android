@@ -43,12 +43,36 @@ extends Camera3D
 ## that holds 60fps. A 100ms frame still animates; a 35-second frame is the bug.
 const FRAME_BUDGET_MS := 100.0
 
-## Revealed on the first frame, before there is any measurement to go on.
-const FIRST_BATCH := 4
+## Revealed on the first revealing frame, before there is any measurement to
+## go on.
+##
+## **One, and it used to be four.** The controller below is reactive: it can
+## only shrink the batch *after* a frame has cost too much, so whatever the
+## first batch reveals is drawn together with nothing protecting it. At four
+## the batch grows to five on that frame (the additive increase runs before
+## the reveal), so five never-drawn nodes land on one frame and every pipeline
+## any of them needs compiles at once.
+##
+## That frame is the worst in the project, twice over. `10152-665dedd4` logs
+## 7787.6ms inside the shop's first precache and `10154-8d1ee1ac` logs
+## 7391.8ms in the same place - in a window where RAM and VRAM are flat and
+## the only counter moving is `pipe`. The shop reveals its 117 nodes in about
+## eleven frames, so the pacer gets ten chances to be right and one chance to
+## be blind, and the blind one is where the seven seconds are.
+##
+## At one, the worst a blind frame can cost is one node. Everything after it
+## is paced against a real measurement, and the additive increase gets back to
+## a useful batch within a few frames. What it costs is those few frames of
+## loading screen, on a precache that already spends eight seconds.
+const FIRST_BATCH := 1
 
 ## Ceiling, so a scene full of cheap nodes still cannot put every remaining
 ## pipeline on one frame.
 const MAX_BATCH := 64
+
+## Past this multiple of the budget, the batch drops straight to one instead of
+## halving. See the branch that uses it.
+const PANIC_FACTOR := 10.0
 
 ## Hard stop. If the pacing never converges - a scene over budget no matter how
 ## small the batch - the rest is revealed at once and the screen hands over. A
@@ -370,9 +394,22 @@ func _process(_delta: float) -> void:
 	var now_usec: int = Time.get_ticks_usec()
 	var last_ms: float = float(now_usec - _last_frame_usec) / 1000.0
 	_last_frame_usec = now_usec
-	if last_ms > FRAME_BUDGET_MS:
+	if last_ms > FRAME_BUDGET_MS * PANIC_FACTOR:
+		# Halving is the right response to 150ms. It is not the right response
+		# to seven seconds: from a batch of five it lands on two, which is
+		# still several never-drawn nodes on the next frame, and the device
+		# logs show the frames right after the monster are themselves 40-70ms.
+		# Past PANIC_FACTOR the frame is not "over budget", it is a different
+		# kind of event, and the only safe next batch is one.
+		_batch = 1
+	elif last_ms > FRAME_BUDGET_MS:
 		_batch = maxi(1, _batch / 2)
-	else:
+	elif _revealed > 0:
+		# No increase on the blind frame. The baseline measured a scene with
+		# nothing revealed, so "that frame was cheap" says nothing about what
+		# revealing costs - and without this guard the increase runs first and
+		# the first reveal is FIRST_BATCH + 1, which is how a constant set to
+		# four put five never-drawn nodes on one frame.
 		_batch = mini(_batch + 1, MAX_BATCH)
 
 	_reveal(_batch)

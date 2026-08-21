@@ -63,6 +63,17 @@ func _run() -> void:
 	_check("el primer frame no revela nada", camera._revealed == 0)
 	_check("y arma el reloj", camera._last_frame_usec > 0)
 
+	# The blind frame: whatever this reveals is drawn with no measurement
+	# behind it, so it is the one the pacer cannot protect. It used to be
+	# FIRST_BATCH + 1 = 5, because the additive increase ran before the reveal
+	# and the baseline frame - which reveals nothing - counted as "cheap".
+	# 10152-665dedd4 and 10154-8d1ee1ac both log a frame of over seven seconds
+	# inside the shop's precache, in a window where RAM and VRAM are flat.
+	camera._process(0.016)
+	_check("la primera tanda es exactamente FIRST_BATCH",
+		camera._revealed == script.FIRST_BATCH,
+		"revelo %d, FIRST_BATCH=%d" % [camera._revealed, script.FIRST_BATCH])
+
 	# Cheap frames: the batch climbs.
 	for i in 12:
 		camera._process(0.016)
@@ -84,6 +95,19 @@ func _run() -> void:
 	_check("y vuelve a subir cuando se abarata", camera._batch > after_slow,
 		"%d -> %d" % [after_slow, camera._batch])
 
+	# Catastrophe is not "over budget", it is a different kind of event.
+	# Halving from five lands on two, which is still several never-drawn nodes
+	# on the next frame - and the device logs show the frames right after the
+	# monster are themselves 40-70ms. Past PANIC_FACTOR the only safe next
+	# batch is one.
+	for i in 8:
+		camera._process(0.016)
+	var before_panic: int = camera._batch
+	OS.delay_msec(int(script.FRAME_BUDGET_MS * script.PANIC_FACTOR) + 120)
+	camera._process(0.016)
+	_check("un frame catastrofico deja el lote en 1", camera._batch == 1,
+		"%d -> %d" % [before_panic, camera._batch])
+
 	# The reading it used to steer on cannot do any of this: it is a per-second
 	# maximum, so it does not change across the frames above at all.
 	var monitor_a: float = Performance.get_monitor(Performance.TIME_PROCESS)
@@ -100,7 +124,7 @@ func _run() -> void:
 	await process_frame
 
 	print("")
-	if _checks < 7:
+	if _checks < 9:
 		print("FALLO: solo %d de 7 comprobaciones" % _checks)
 		quit(1)
 		return
