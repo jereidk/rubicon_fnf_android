@@ -722,6 +722,19 @@ jobs:
           $GODOT --headless --path . --script tools/test_frame_clock.gd 2>&1 | tee /tmp/clock.txt
           grep -q "todo OK" /tmp/clock.txt
 
+      - name: Verify gpu= admits when the driver does not answer
+        run: |
+          # viewport_get_measured_render_time_gpu returns 0.00 forever on some
+          # drivers - the moto g(60)s (Mali-G76, driver 1.1.131) does it for
+          # all 492 entries of one log, with cpu_render varying normally next
+          # to it. A zero reads as a free frame, which is the opposite of the
+          # truth, and every cross-device comparison in this project leans on
+          # gpu=. The discriminator is the pair, not the lone zero: across the
+          # project's 33 logs the longest run of (gpu == 0 and cpu_render > 0)
+          # is 492 on that device and 0 on the other five models.
+          $GODOT --headless --path . --script tools/test_gpu_timing_latch.gd 2>&1 | tee /tmp/gputiming.txt
+          grep -q "todo OK" /tmp/gputiming.txt
+
       - name: Verify the retained-resource sweep stays cheap
         run: |
           # The sweep runs on the main thread during a load, next to a loading

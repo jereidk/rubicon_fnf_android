@@ -121,6 +121,17 @@ const SPIKE_COOLDOWN_SECONDS := 0.5
 ## "against what this scene normally costs".
 const SPIKE_ALWAYS_MS := 250.0
 
+## Cuantas entradas seguidas con `gpu` a cero y `cpu_render` por encima de
+## cero hacen falta para dar el reloj de GPU por no soportado.
+##
+## No todos los drivers contestan a `viewport_get_measured_render_time_gpu`.
+## El moto g(60)s (Mali-G76 MC4, driver 1.1.131) devuelve 0.00 en los 984
+## latidos de `dcb37c09`, con `cpu_render` variando normalmente al lado - y
+## `gpu=0.00ms` se lee como un frame gratis, que es justo lo contrario de lo
+## que pasa. El discriminador es esa pareja: si de verdad no se dibujara
+## nada, `cpu_render` tambien estaria a cero.
+const GPU_TIMING_UNSUPPORTED_ENTRIES := 12
+
 ## A census walks the whole scene tree, so it is far too expensive to do per
 ## frame - every 30s is enough to see a trend without becoming part of the
 ## problem it measures.
@@ -203,6 +214,11 @@ var _time_since_census: float = 0.0
 var _last_vram: int = 0
 ## Previous entry's pipeline total, so each line can report its own delta.
 var _last_pipelines: int = 0
+## Entradas seguidas con `gpu` a cero mientras `cpu_render` no lo estaba, y
+## el pestillo que se echa al pasar de GPU_TIMING_UNSUPPORTED_ENTRIES. Una vez
+## echado no se vuelve a soltar: el driver no cambia dentro de una sesion.
+var _gpu_zero_entries: int = 0
+var _gpu_timing_unsupported: bool = false
 var _last_frames_drawn: int = 0
 var _last_frames_processed: int = 0
 
@@ -859,6 +875,11 @@ func _ready() -> void:
 	# idle" and would have been a lie. Only exposed on RenderingServer by
 	# viewport RID, not as a Viewport instance method - confirmed in an
 	# isolated project after the instance-method call errored on Window.
+	#
+	# Y encenderlo no garantiza que el driver conteste: hay teléfonos donde la
+	# consulta de GPU devuelve 0.00 para siempre con `cpu_render` funcionando
+	# al lado. Eso lo detecta `_gpu_timing_unsupported` unas entradas despues
+	# y a partir de ahi el campo sale como `n/d` en vez de como un cero.
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 
 	var tail := _ScriptTail.new()
@@ -2899,6 +2920,14 @@ func _pipeline_breakdown() -> String:
 ## Every entry carries the whole counter set. It makes lines long, but it
 ## means a single line answers "what was happening", instead of having to
 ## correlate it against the nearest heartbeat.
+## `gpu` y `sub_gpu` con el pestillo puesto. Un cero de un driver que no
+## contesta y un cero de un frame que no dibuja son el mismo texto, y el
+## primero ha pasado por medida en todos los analisis cruzados de este
+## proyecto. `n/d` no lo puede leer nadie como una medida.
+func _gpu_field(value: float) -> String:
+	return "n/d" if _gpu_timing_unsupported else "%.2f" % value
+
+
 func _entry(kind: String, detail: String) -> void:
 	if _file == null:
 		return
@@ -2939,6 +2968,22 @@ func _entry(kind: String, detail: String) -> void:
 		var vp_rid: RID = get_viewport().get_viewport_rid()
 		gpu_ms = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
 		cpu_render_ms = RenderingServer.viewport_get_measured_render_time_cpu(vp_rid)
+	# Y hay teléfonos donde esa consulta no contesta. Cuando eso pasa el campo
+	# sale a 0.00 y se lee como "la GPU no hizo nada", que es exactamente al
+	# reves de lo que hay que concluir: en `dcb37c09` (Mali-G76, driver
+	# 1.1.131) son 984 latidos a `gpu=0.00ms` con `cpu_render` normal, y toda
+	# lectura cruzada entre dispositivos que se apoye en `gpu` se lleva ese
+	# cero como si fuera una medida. A partir del pestillo se escribe `n/d`.
+	if not _gpu_timing_unsupported:
+		if gpu_ms <= 0.0 and cpu_render_ms > 0.0:
+			_gpu_zero_entries += 1
+			if _gpu_zero_entries >= GPU_TIMING_UNSUPPORTED_ENTRIES:
+				_gpu_timing_unsupported = true
+				_file.store_line(
+					"[%9.2fs] %-10s este dispositivo no contesta a viewport_get_measured_render_time_gpu (%d entradas seguidas a 0.00 con cpu_render por encima de 0) - a partir de aqui gpu= y sub_gpu= salen como n/d"
+					% [seconds, "GPUTIMING", GPU_TIMING_UNSUPPORTED_ENTRIES])
+		else:
+			_gpu_zero_entries = 0
 
 	# What note churn cost since the previous entry. nodes= and orphans=
 	# swinging against each other already showed that notes were streaming in
@@ -3098,7 +3143,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d rend=[%s] nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%.2fms cpu_render=%.2fms sub=%d/%d sub_gpu=%.2fms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d rend=[%s] nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%sms cpu_render=%.2fms sub=%d/%d sub_gpu=%sms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -3145,11 +3190,11 @@ func _entry(kind: String, detail: String) -> void:
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0,
 		Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0,
-		gpu_ms,
+		_gpu_field(gpu_ms),
 		cpu_render_ms,
 		sub_live,
 		_sub_viewports.size(),
-		sub_gpu_ms,
+		_gpu_field(sub_gpu_ms),
 		float(sub_pixels) / 1048576.0,
 		biggest_name,
 		seq_now, anim_now[0], anim_now[1], _process_nodes,
