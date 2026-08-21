@@ -1241,6 +1241,41 @@ Así que todo el dolor de carga y precache de este proyecto es **coste de
 primera ejecución**. Un jugador nuevo espera 82 segundos antes de entrar a la
 tienda; el mismo jugador, la segunda vez que abre el juego, espera 7.
 
+#### El desglose completo de un arranque en frío
+
+De `b53011f7`, un ZTE 8550 (Mali-G57) con **la misma ventana que el moto g53**,
+1600x720, en su primerísima ejecución. Es la medida de arranque en frío más
+limpia que tiene el proyecto:
+
+| | |
+|---|---|
+| carga de la tienda | **41 639ms** (`STALL 50.0% for 39.2s`) |
+| instanciar | 1 395ms |
+| `SCENE_UP ready+drawn` | **8 670ms**, y **90 pipelines `surf`** en ese paso |
+| precache | **23 867ms** |
+| **total hasta poder jugar** | **~66 segundos** |
+
+Dos cosas que ese desglose nombra y que no se veían antes:
+
+- **`ready+drawn after=8670ms`** es *antes* de que el revelado empiece. Es el
+  motor creando las mallas de la escena, y compila 90 `surf` de una. En el
+  moto ese mismo paso son 927ms. No lo toca ningún código de este repo.
+- **La primera tanda ciega del revelado cuesta ~10.7 segundos.** `SUMMARY`
+  registra `worst=10686.2ms`, y el hueco entre `primer _process` (168.90s) y
+  el censo siguiente (181.45s) son 12.5 segundos en los que compilan 53
+  pipelines - 30 `surf` y 23 `spec`. Eso es exactamente un frame de revelado,
+  y con el código de entonces revelaba **cinco** nodos nunca dibujados a la
+  vez. Es el frame que `FIRST_BATCH = 1` acota, y este log es la evidencia más
+  fuerte que hay de que hacía falta.
+
+Y durante los 39 segundos de `STALL`: quince picos de 428-828ms, `deps`
+congelado en 101/522 durante ocho segundos y luego en 283/522 durante diez,
+compilando entre 0 y 8 pipelines `mesh` cada uno. Uno de 578.0ms compila
+**cero**, con RAM, VRAM y `res` planos. Los pipelines explican parte del tramo,
+no todo.
+
+Térmico en cuatro minutos: `vs_first=+74%`.
+
 ### Las texturas Lossless que quedan, contadas bien
 
 `compress/mode=0` no se comprime en la GPU - es RGBA8, cuatro bytes por píxel -
