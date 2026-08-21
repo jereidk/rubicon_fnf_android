@@ -902,9 +902,18 @@ Así que en vez de capar, se partió:
 | `res=` | el recorrido de residuo de la escena que sale |
 | `sweep=` | `_continue_retained_sweep`, que informaba aparte en `RETAINED` y por eso se leía como gratis |
 
-El siguiente log lo decide: si `graph=` es la mayor parte, lo que hay que
-acotar es el BFS; si es `prog=`, la pasada por muestra. **No tocar ninguno de
-los dos hasta leer esa línea.**
+El siguiente log lo decidió, a la primera:
+
+| escena | `took` | `probe` | **`graph`** | `prog` | `res` | `sweep` |
+|---|---|---|---|---|---|---|
+| chimera | 18883ms | 1758 | **1692** | 56 | 10 | 579 |
+| tienda #2 | 18055ms | 1070 | **980** | 79 | 11 | 629 |
+| tienda #1 | 4746ms | 789 | **765** | 16 | 8 | 107 |
+
+**El BFS sobre `get_dependencies()` es el 92-96% del `probe`.** La pasada de
+`has_cached()` por muestra no cuesta nada y no hay que tocarla. Si algún día
+hay que acotar esto, es el BFS y solo el BFS - y la nota sobre
+`PROBE_BUDGET_USEC` dice cómo se hace mal.
 
 ### El instrumento se callaba justo en los frames que existe para medir
 
@@ -937,6 +946,24 @@ van por `frame_ms`, y `tools/test_frame_clock.gd` lo fija (9 comprobaciones).
 **La regla general:** si añades un contador de tiempo a este fichero, aliméntalo
 de `frame_ms`, nunca de `delta`. `delta` solo es correcto en el primer frame,
 donde todavía no hay `_last_frame_usec`.
+
+**Y había una segunda puerta, que sobrevivió a ese arreglo.** El log siguiente,
+`10154-8d1ee1ac`, ya con los cuatro temporizadores al reloj, trae un frame de
+**7391.8ms** dentro del primer precache de la tienda y **sigue sin línea
+`SPIKE`**. Solo lo recoge `SUMMARY`.
+
+La causa es `_frames_seen`, que se pone a 0 en cada `SCENE_IN` -a propósito, el
+buffer de frames no significa nada al cruzar una carga- alimentando una
+condición `_frames_seen > WINDOW_SIZE` con `WINDOW_SIZE = 120`. El precache
+corre justo después de la carga y a pocos frames por segundo: el de la tienda
+gasta 8.6 segundos y nunca se acerca a 120 frames. **El detector duerme
+exactamente el tramo que existe para medir**, y lo hizo en dos builds seguidas.
+
+Ahora hay dos formas de entrar. La prueba de razón sigue necesitando la ventana
+llena, que es lo correcto para un pico moderado; un frame por encima de
+`SPIKE_ALWAYS_MS` (250ms) se reporta pase lo que pase, marcado `(sin ventana)`
+porque en ese caso la `median=` de al lado es el 16.6 de reserva y no una
+medida.
 
 Three of them are worth knowing *why*:
 
@@ -1638,8 +1665,41 @@ Los dos que **no** se eximieron, y por qué - esto es la parte reutilizable:
 **La trampa que queda:** `visible` es local y renderizar no lo es. Una luz que
 cuelgue de una malla que sí se esconde deja de iluminar por herencia, y eso no
 se puede descartar leyendo un `.tscn` para los subárboles que salen de un
-`.gltf`. Por eso el `MARK` de arranque trae **dos** números,
-`N luces/bakes intactos de M`: si no coinciden, queda iluminación escondida.
+`.gltf`. Por eso el `MARK` de arranque trae la pareja
+`N luces/bakes exentos, encendidos A -> B`.
+
+**Y ese contador tuvo que aprender a leerse.** La primera versión solo daba el
+número de *después*, y Chimera registró `11 intactos de 16`, que se leyó como
+cinco luces perdidas por el escondite. Es falso: cuatro son `flash` y
+`PhoneGlow` bajo `Sequences/SerenaTakingPictures`, y `Cameralight` y un
+`OmniLight3D` bajo `Environment/chimera_house/mdl_chimera_camera` - y **los dos
+padres shipean `visible = false`**. Ya estaban apagadas. Un recuento tomado solo
+después de esconder no separa "lo apagó mi escondite" de "venía apagado", así
+que la línea que existía para delatar un problema se inventó uno. La base se
+toma ahora **antes** de esconder nada, y el hueco entre los dos números sí es
+atribuible.
+
+### Lo que el arreglo dio, medido en 10154-8d1ee1ac
+
+Los recuentos de pipelines son contabilidad del propio Godot, así que no
+dependen del driver y trasladan al teléfono:
+
+| | 152 | 154 | |
+|---|---|---|---|
+| PRECACHE tienda #1 | 96 spec | **68** | −29% |
+| PRECACHE chimera | 90 spec | **55** | −39% |
+| PRECACHE tienda #2 | 93 spec | **66** | −29% |
+| total de la sesión | 375 spec | **290** | −23% |
+
+**El tiempo de pared no se puede atribuir**, y es importante no venderlo. La
+tienda va de 8954ms a 8608ms (−4%) y Chimera de 6737 a 5092 (−24%), pero esta
+sesión corrió a reloj más alto: el precache de la tienda se midió a
+`bench=151us`, el más rápido de toda la sesión, contra ~332us la vez anterior.
+A igualdad de reloj la tienda probablemente no mejoró.
+
+Y los `spec` **durante la canción** de Chimera no bajaron (74 -> 79). O sea que
+el arreglo quitó trabajo tirado del precache pero no consiguió calentar más de
+lo que la canción usa. Eso sigue abierto.
 
 ### El precache más caro no es el de Chimera, es el de la tienda
 
@@ -2345,7 +2405,19 @@ cut-down stage by hand would work but stops being the scene under test.
    only further lever and still pays twice (VRAM and APK), but the urgency is
    gone. Thermal is down with it: `vs_first` reached **+15%** here against the
    +23% recorded before.
-3. **The multi-second stall at cutscene starts is still there and is still
+3. **El peor frame del proyecto está en el precache de la tienda, no en la
+   canción, y todavía no tiene nombre.** `SUMMARY worst=7787.6ms` en
+   `10152-665dedd4` y `7391.8ms` en `10154-8d1ee1ac`, los dos dentro del primer
+   precache de la tienda, los dos sin línea `SPIKE` porque el detector dormía
+   (arreglado; ver la sección de las dos puertas). El siguiente log ya debería
+   traerlo con `pipe=`, `vram_delta=` y la secuencia al lado. Hasta entonces no
+   se sabe de qué está hecho.
+
+   Y hay un segundo sin explicar: **un frame de 4405.6ms jugando en la tienda**
+   (58.95s de ese log) con `pipe+0`, `vram_delta=+0.0MB`, RAM plana, `in=0` y
+   nada en el censo. No compila ni reserva nada. Sin teoría.
+
+4. **The multi-second stall at cutscene starts is still there and is still
    the worst thing in the song.** `122_fall@6.8s` logs **`frame=1911.7ms`**
    with `pipe+8` - unchanged from the 1878ms recorded months ago, and now with
    the pipeline counter naming the cause on the same line. Three more of the
@@ -2356,14 +2428,14 @@ cut-down stage by hand would work but stops being the scene under test.
    puts just that cutscene's cast in front of an off-screen camera - and note
    that the `precache` is now **forbidden from touching any mesh registered in
    the `.lmbake`**, which is what made the last attempt black the house out.
-4. A **CI gate** running the `get_dependencies` sweep and failing when a
+5. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.
-5. The **Mobile settings section** (Gameplay Control Hitbox/Touch, hitbox
+6. The **Mobile settings section** (Gameplay Control Hitbox/Touch, hitbox
    hint/gradient/opacity, mechanic hitbox direction, note layout, show pause
    button) - specified but not built. "Touch" is a whole new input mode, not
    a setting; scope it separately.
-6. VSlice **y-nudge per scroll direction** - the reference distinguishes
+7. VSlice **y-nudge per scroll direction** - the reference distinguishes
    upscroll from downscroll; ours has a single value.
 
 ---
