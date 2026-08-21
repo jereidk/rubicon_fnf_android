@@ -2387,6 +2387,70 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
+## Lo que hace caro un píxel de 3D son las luces, no la resolución
+
+Y esto reencuadra todo lo demás de este fichero, así que va antes.
+
+**`graphics_render_scale` es la palanca de emergencia, no la línea base.** Lo
+normal es 1.0 y que el juego vaya bien ahí; 0.50 es el juego renderizando a un
+cuarto de resolución. Chimera se ha registrado **siempre** a 0.50, o sea que
+los 31.85ms de `gpu` p50 son el número *con la muleta puesta*. A 1.0 el pase 3D
+pasa de 0.29 a 1.15 Mpx sobre 1600x720.
+
+Medido en la ruta del teléfono (Vulkan, Forward Mobile, 1600x720), una sola
+superficie cubriendo la pantalla entera y N omnis cuyo radio la alcanzan toda:
+
+| luces | 0 | 1 | 2 | 4 | 6 | **8** | 10 | 12 |
+|---|---|---|---|---|---|---|---|---|
+| gpu | 14.6 | 32.7 | 54.6 | 80.5 | 108.6 | **134.8** | 134.0 | 134.3 |
+
+**Cero luces son 14.6ms y ocho son 134.8 - 9x**, unos 15ms por luz y pantalla
+completa. Forward Mobile no tiene pase diferido: cada luz que alcanza un
+fragmento se evalúa en el shader de ese fragmento. O sea que la palanca que
+conserva la estética y hace alcanzable el 1.0 es **cuántas luces llegan a cada
+píxel**, no a cuántos píxeles se renderiza.
+
+Tres cosas que esa curva dice y que no estaban escritas:
+
+- **Satura en 8.** Forward Mobile aplica como mucho ocho luces por objeto, así
+  que la novena no cuesta nada - y tampoco ilumina. Una escena cuyo censo dé
+  más de 8 luces visibles está pagando el máximo **y** perdiendo algunas en
+  silencio. Chimera registra `lights=10..13`.
+- **`light_energy = 0` cuesta el precio completo.** Ocho luces a 0.35 y ocho a
+  0.0 midieron 135.8ms y 135.1ms - idénticas. Las mismas ocho **escondidas**,
+  16.3ms. Una luz que no emite nada sigue ocupando su hueco; sólo
+  `visible = false` la saca.
+- **`light_bake_mode = BAKE_STATIC` no la saca tampoco**, al menos sobre
+  geometría sin lightmap: 33.8ms contra 32.7 a una luz, 136.7 contra 134.8 a
+  ocho. Sobre geometría con bake Godot debería excluirla y eso **no está
+  medido aquí** - hacerlo pide hornear un lightmap, que no se puede en este
+  entorno.
+
+```bash
+python3 tools/audit_light_cost.py          # barre lullaby_mod/
+```
+
+Cuenta, por escena, las luces a energía cero que nadie sube, y muestrea una
+rejilla sobre el volumen que abarcan para decir **cuántas alcanzan el mismo
+punto** - que es el número que se paga. Hoy deja **un solo hallazgo real** en
+todo el proyecto: `LightbulbLight` de la tienda, energía 0, radio 2.8, sin
+animación ni script que la suba. Es pequeña y no se ha tocado la escena por
+ella; la herramienta está para cazar la siguiente antes de que se envíe.
+
+**Dos de los tres primeros hallazgos eran falsos positivos, de la misma clase
+que ya mordió en el barrido 2D:** una `light_energy` escrita desde GDScript es
+invisible a un barrido de texto. `power_console.gd` conduce la `TVLight` de la
+tienda entre 0 y 0.241 y `mch_picturetaking.gd` conduce el foco del flash. La
+herramienta sigue ahora los NodePath hasta el script del nodo que los exporta,
+igual que `audit_canvas_fill.py`.
+
+Y el caso de Chimera queda anotado y **no** arreglado, con su motivo: `TvLight`
+tiene energía 0 y `omni_range = 43.927` sobre una casa de unas 10 unidades,
+pero su energía la suben nueve secuencias distintas y sólo está a cero durante
+`prelude`, 16.5s de una canción de tres minutos. La única pista que escribe
+`TvLight:visible` es la del `precache`, en t=0. Gating de un nodo de gameplay
+por 16 segundos no compensa el riesgo.
+
 ## Las cuatro reglas del relleno 2D, medidas
 
 El canvas 2D es la mitad del frame que `graphics_render_scale` **no** toca. A
