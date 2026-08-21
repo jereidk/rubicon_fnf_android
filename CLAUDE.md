@@ -1603,6 +1603,44 @@ Dos cosas que hay que respetar si alguien lo vuelve a tocar:
 número que dice si esto hacía falta**: si la animación termina con el revelado
 ya hecho, el barrido nunca fue el problema y todo este mecanismo sobra.
 
+### El precache escondía las luces, y compilaba el doble de pipelines
+
+Medido, no razonado, y en la ruta exacta del teléfono (Vulkan, Forward Mobile)
+con tres mallas de tres shaders distintos:
+
+| estado | `spec` |
+|---|---|
+| geometría, cero luces | 3 |
+| + una omni | 6 (+3, las mismas otra vez) |
+| + una spot | 9 (+3) |
+| quitando la omni | 12 (+3) |
+
+**Cada configuración de luces por la que pasa la escena cuesta un juego entero
+de pipelines de especialización.** Satura por número - una tercera y una cuarta
+omni no añaden nada - pero no por *estado*. Y el control dice que el arreglo es
+gratis: encender las luces sin nada visible compila **0**, y revelar los mismos
+seis shaders sobre una escena ya iluminada compila **6 en vez de 12**.
+
+La causa era que `_hide_everything()` escondía todo `VisualInstance3D`, y contra
+`ClassDB` eso incluye `Light3D` y **`LightmapGI`** - ninguno lleva material ni
+compila pipeline propio. El comentario del propio script decía que cubría "the
+things that carry a material and therefore need a pipeline"; no era lo que
+hacía. Como el revelado recorre luces y geometría juntas en orden de DFS, la
+escena iba de cero luces, a algunas, a todas, pagando cada tramo.
+
+Los dos que **no** se eximieron, y por qué - esto es la parte reutilizable:
+
+| | por qué se sigue escondiendo |
+|---|---|
+| `VisibleOnScreenNotifier3D` (6, la tienda) | esconderlo es lo que evita que dispare `screen_entered` mientras una cámara de 109° barre la sala. Es un efecto sobre la lógica del juego, no una cuestión de pipelines |
+| `ReflectionProbe` (1, la tienda) | hace captura real cuando está visible, y nada ha medido cuál de los dos costes gana |
+
+**La trampa que queda:** `visible` es local y renderizar no lo es. Una luz que
+cuelgue de una malla que sí se esconde deja de iluminar por herencia, y eso no
+se puede descartar leyendo un `.tscn` para los subárboles que salen de un
+`.gltf`. Por eso el `MARK` de arranque trae **dos** números,
+`N luces/bakes intactos de M`: si no coinciden, queda iluminación escondida.
+
 ### El precache más caro no es el de Chimera, es el de la tienda
 
 Todo el trabajo de precache de este fichero ha ido a Chimera. Los `MARK` del
