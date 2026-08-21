@@ -260,6 +260,27 @@ func _input(event: InputEvent) -> void :
 				"none" if current_area == null else current_area.name,
 				str(get_viewport().is_input_handled()),
 			])
+			# And again once every other handler has had the press.
+			#
+			# The line above reads is_input_handled() from inside _input(),
+			# which is *before* the console's own handler runs - so it says
+			# "handled=false" whether or not anything downstream took it, and
+			# the twelve device samples collected so far therefore cannot
+			# answer the question this mark exists for.
+			#
+			# Nine of those twelve are state=BUSY console_focused=true
+			# area=FocusConsole - the player at the console, in a menu - and
+			# three of them arrive in pairs less than 1.2s apart, which is
+			# what "it did not respond" looks like. But the shop's own branch
+			# below only fires on FOCUSED, so in BUSY this handler is inert by
+			# construction and whether the CONSOLE took the press is exactly
+			# what is unknown.
+			#
+			# Deferred rather than awaited: this runs at the end of the same
+			# frame's idle step, after _input propagation is complete. (The
+			# call_deferred-after-a-scene-change trap in CLAUDE.md is a
+			# different case - nothing here changes scene.)
+			_mark_cancel_outcome.call_deferred()
 
 		# While the console is actively grabbing GUI focus for Home-tab/
 		# submenu navigation (Console.focused, set by focus_console.gd's
@@ -283,6 +304,18 @@ func _input(event: InputEvent) -> void :
 
 		if state == ShopStates.FOCUSED and not at_console:
 			sequence_controller.animation_player.play(&"focus_center")
+
+## Whether anything at all consumed the Back press, read once the frame's
+## input propagation is over. See the mark in _input().
+func _mark_cancel_outcome() -> void :
+	if DiagnosticsLog == null or not is_inside_tree():
+		return
+	DiagnosticsLog.mark("ui_cancel despues state=%s console_focused=%s area=%s handled=%s" % [
+		ShopStates.keys()[state] if state < ShopStates.size() else state,
+		"?" if console == null else str(console.focused),
+		"none" if current_area == null else current_area.name,
+		str(get_viewport().is_input_handled()),
+	])
 
 ## Path is fixed rather than exported because this is only ever the one
 ## area, and an export would be a fifth thing to keep wired for a case that
