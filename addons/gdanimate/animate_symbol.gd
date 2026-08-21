@@ -79,6 +79,39 @@ class_name AnimateSymbol
 @export_tool_button("Reparse Current", "Reload") var atlas_reload: Callable = reparse_current
 @export_tool_button("Make AnimationLibrary", "AnimationLibrary") var atlas_make_player: Callable = make_player_from_current
 
+## How many atlas frames pass between updates. 1 is the stock behaviour.
+##
+## The one lever on this addon's cost that does not require rewriting it.
+## Measured with Gold's real atlas, four symbols, in an isolated project: the
+## rebuild-per-frame-advance ratio is **0.99**. One full rebuild per advance,
+## always - which frees every canvas item RID the symbol owns and recreates
+## the whole symbol tree from the parsed JSON. So halving the advances halves
+## the rebuilds, exactly.
+##
+## And rebuilding is what this addon costs. Two device logs of Monochrome, two
+## different Mali GPUs on 10154-8d1ee1ac:
+##
+##     A17   / Mali-G57   anim2d p50  56.80 ms/s   max 153.40
+##     Redmi / Mali-G52   anim2d p50 112.80 ms/s   max 241.95
+##
+## with `rebuild` at 87% of it, and both devices sitting at 42-49fps with the
+## GPU at 13-15ms. Monochrome is CPU-bound and this is its biggest single item.
+## (Chimera reads anim2d=0.00, which is why this went unnoticed: every earlier
+## measurement in CLAUDE.md was taken on the one song that uses no Adobe atlas
+## on stage.)
+##
+## What it costs is how the animation reads: at 2 the atlas plays at 12fps
+## instead of 24, same duration, half the distinct frames. That is a look
+## change, so it is driven off the quality preset rather than applied
+## everywhere - High and Medium keep 1.
+##
+## Static rather than an @export because these nodes are built at runtime by
+## the mod and there is nothing to wire per-node; and the addon stays free of
+## the mod's singletons, so Settings writes it rather than this reading it.
+static var frame_step: int = 1:
+	set(value):
+		frame_step = maxi(1, value)
+
 var frame_timer: float = 0.0
 var internal_canvas_items: Array[RID] = []
 var last_atlases_size: int = 0
@@ -207,7 +240,12 @@ func _process(delta: float) -> void:
 
 	var fps: float = atlas.get_framerate()
 	frame_timer += delta* speed_scale
-	if frame_timer >= 1.0/ fps:
+	# Gated on frame_step atlas-frames' worth of time rather than one, so a
+	# step of 2 updates half as often and advances two frames when it does.
+	# The remainder still wraps on 1/fps because `amount` is in atlas frames,
+	# so playback speed is identical at any step - only how often the symbol
+	# is rebuilt changes. See frame_step.
+	if frame_timer >= float(frame_step)/ fps:
 		var amount: int = floori(frame_timer* fps)
 		if frame == get_animation_length()- 1 and (not loop)and amount> 0:
 			internal_setting_frame = false

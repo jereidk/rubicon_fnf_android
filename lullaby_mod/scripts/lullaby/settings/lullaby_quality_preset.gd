@@ -76,6 +76,28 @@ var anisotropic_filtering: int = 2
 ## the shop console's toon shading, the cartridge dissolve-in animation).
 @export var disable_shader_effects: bool = false
 
+## How many atlas frames pass between gdanimate symbol updates. 1 is stock.
+##
+## The only lever on gdanimate's cost that does not require rewriting the
+## addon, and it is measured rather than reasoned: with Gold's real atlas in an
+## isolated project the rebuild-per-frame-advance ratio is 0.99, so halving the
+## advances halves the rebuilds. Playback speed is untouched - after six
+## seconds the symbols sit on frame 140 / 139 / 143 at step 1 / 2 / 3, all
+## against an expected ~144 - because the advance is still `floori(t * fps)`
+## atlas frames, only the gate that lets it run is coarser.
+##
+## Why it is worth a preset row: Monochrome is CPU-bound on both devices
+## measured (13-15ms of GPU at 42-49fps) and gdanimate is its biggest single
+## item - anim2d p50 56.80 ms/s on a Mali-G57, 112.80 ms/s on a Mali-G52, with
+## rebuild at 87% of it. Chimera reads anim2d=0.00, which is why every earlier
+## measurement in this project missed it: they were all taken on the one song
+## with no Adobe atlas on stage.
+##
+## What it costs is how the animation reads - at 2 the atlas plays at 12fps
+## instead of 24, same duration, half the distinct frames - so High and Medium
+## keep 1 and only the two presets that already trade looks for frames use it.
+@export_range(1, 4, 1) var atlas_frame_step: int = 1
+
 func is_matching(settings: LullabySettings) -> bool:
 	return (settings.graphics_scaling_mode == scaling_3d_mode and
 		settings.graphics_render_scale == render_scale and
@@ -92,7 +114,8 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_light_distance_fade == light_distance_fade and
 		settings.graphics_physics_ticks_per_second == physics_ticks_per_second and
 		settings.display_target_fps == target_fps and
-		settings.graphics_disable_shader_effects == disable_shader_effects
+		settings.graphics_disable_shader_effects == disable_shader_effects and
+		settings.graphics_atlas_frame_step == atlas_frame_step
 	)
 
 func apply(settings: LullabySettings) -> void :
@@ -112,3 +135,4 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_physics_ticks_per_second = physics_ticks_per_second
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects
+	settings.graphics_atlas_frame_step = atlas_frame_step

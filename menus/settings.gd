@@ -133,6 +133,10 @@ var graphics_light_distance_fade: float = 0.0
 var graphics_physics_ticks_per_second: int = 60
 var graphics_disable_shader_effects: bool = false
 
+## Written straight through to AnimateSymbol.frame_step. See that property and
+## LullabyQualityPreset.atlas_frame_step for the measurement behind it.
+var graphics_atlas_frame_step: int = 1
+
 ## Decorative/post-processing shaders only - screen distortions, blur, CRT/
 ## NTSC noise, glow, color grading, weather. Deliberately excludes shaders
 ## that ARE a node's base appearance rather than an effect layered on top of
@@ -419,6 +423,12 @@ func apply_settings() -> void:
 	window.scaling_3d_mode = graphics_scaling_mode
 	window.scaling_3d_scale = graphics_render_scale
 	_apply_subviewport_render_scale()
+
+	# A static on the addon, so this reaches every AnimateSymbol including the
+	# ones built at runtime, with nothing to wire per node and no walk of the
+	# tree. The addon never reads Settings back - it stays free of the mod's
+	# singletons - so this is the only writer.
+	AnimateSymbol.frame_step = graphics_atlas_frame_step
 	window.fsr_sharpness = graphics_fsr_sharpness
 	# Only when they actually moved, and this is the one block in here that
 	# needs saying so.

@@ -82,9 +82,11 @@ func _run() -> void:
 	a.queue_free()
 	b.queue_free()
 
+	_frame_step_case()
+
 	print("")
-	if _checks < 8:
-		print("FALLO: solo %d de 8 comprobaciones" % _checks)
+	if _checks < 14:
+		print("FALLO: solo %d de 14 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -92,6 +94,49 @@ func _run() -> void:
 	else:
 		print("%d fallo(s)" % _failures)
 	quit(0 if _failures == 0 else 1)
+
+## frame_step tiene que espaciar las actualizaciones SIN cambiar la velocidad.
+##
+## Es la unica palanca sobre el coste de gdanimate que no exige reescribirlo, y
+## la razon de que valga la pena esta medida: con el atlas real de Gold el
+## ratio reconstruccion/avance es 0.99, asi que la mitad de avances es la mitad
+## de reconstrucciones. Medido en proyecto aislado, cuatro simbolos, seis
+## segundos:
+##
+##     paso 1   304 reconstrucciones   48.0 ms/s   frame final 140
+##     paso 2   228                    44.7 ms/s   frame final 139
+##     paso 3   172                    31.8 ms/s   frame final 143
+##
+## El frame final es lo que hay que proteger: si el paso cambiara la velocidad
+## de reproduccion, a paso 2 la animacion iria por la mitad. Va por 139 contra
+## 140, o sea la misma posicion.
+##
+## Aqui se comprueba la propiedad estructural, sin atlas: el temporizador se
+## abre cada frame_step frames del atlas, y el avance sigue siendo
+## floori(t * fps) frames - que es lo que conserva la velocidad.
+func _frame_step_case() -> void:
+	var src := FileAccess.open("res://addons/gdanimate/animate_symbol.gd", FileAccess.READ)
+	var text: String = src.get_as_text() if src != null else ""
+	if src != null:
+		src.close()
+
+	_check("la puerta usa frame_step", text.contains("if frame_timer >= float(frame_step)/ fps:"))
+	_check("y el avance sigue en frames de atlas", text.contains("var amount: int = floori(frame_timer* fps)"))
+	_check("el resto envuelve sobre 1/fps, no sobre el paso",
+		text.contains("frame_timer = wrapf(frame_timer, 0.0, 1.0/ fps)"))
+	_check("frame_step existe y no baja de 1",
+		text.contains("static var frame_step: int = 1")
+			and text.contains("frame_step = maxi(1, value)"))
+
+	var previo: int = AnimateSymbol.frame_step
+	AnimateSymbol.frame_step = 0
+	_check("un paso de 0 se sujeta a 1", AnimateSymbol.frame_step == 1,
+		"%d" % AnimateSymbol.frame_step)
+	AnimateSymbol.frame_step = 3
+	_check("y uno valido se guarda", AnimateSymbol.frame_step == 3,
+		"%d" % AnimateSymbol.frame_step)
+	AnimateSymbol.frame_step = previo
+
 
 func _atlases(atlas: AnimateAtlas) -> Array[AnimateAtlas]:
 	var typed: Array[AnimateAtlas] = []

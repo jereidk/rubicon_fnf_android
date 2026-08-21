@@ -18,4 +18,5 @@ mesh_lod_threshold = 2.0
 light_distance_fade = 0.0
 physics_ticks_per_second = 60
 target_fps = 60
+atlas_frame_step = 1
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
