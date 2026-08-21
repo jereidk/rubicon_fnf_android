@@ -1084,9 +1084,38 @@ mitades de `_blended_progress()` puede informar. De los ~13s de carga de
 Chimera, once son ese bloque.
 
 `DEPCOST` no lo ve: solo cobra cuando algo llega, así que carga los once
-segundos a lo siguiente que aparece. Para atacarlo haría falta o partir esas
-escenas glTF, o un temporizador por dependencia dentro del bloque - y ninguna
-de las dos se ha intentado.
+segundos a lo siguiente que aparece.
+
+**Y en `10154-8d1ee1ac` ese bloque por fin tiene firma.** Durante los once
+segundos de Chimera (97.86s -> 108.82s):
+
+| | |
+|---|---|
+| `ram` | **plana**, 129-131 MB |
+| `vram` | **plana**, 138 MB |
+| `deps` | **plana**, 188/351 |
+| `pipe` | **293 -> 367**, o sea **74 pipelines `mesh`**, a 4-6 por segundo |
+| `SPIKE` | uno cada ~0.8s, de 40 a 70ms |
+
+La tienda hace lo mismo: `ram` plana en 137MB, `vram` plana en 85MB, y `pipe`
+de 590 a 634 en ocho segundos.
+
+RAM y VRAM planas durante once segundos **descartan a la vez cargar y subir**.
+El único contador que se mueve es el de pipelines de malla, que el motor
+compila al crear cada superficie. Eso no dice que sea *toda* la causa - lo que
+llega al final del bloque es `chimera_house.tscn` y su `.gltf`, y deserializar
+eso también cuesta - pero sí que las dos explicaciones que este fichero tenía
+escritas (I/O y subida de texturas) están medidas y son falsas.
+
+Y se paga otra vez en cada visita: la tienda compila ~53 `mesh` en su primera
+carga y ~130 en la segunda, con la escena idéntica. Los 291 `mesh` de la
+sesión entera son todos de pantallas de carga.
+
+Lo que **no** se ha comprobado, y es lo que decidiría si hay palanca: si la
+caché de pipelines del driver sobrevive a cerrar la app. `project.godot` no
+declara `rendering/rendering_device/pipeline_cache/enable` (por defecto
+activo) ni `save_chunk_size_mb`, y son los dos únicos ajustes que existen. La
+cabecera `pipe_cache:` está para eso - hacen falta dos logs de dos arranques.
 
 ### Las texturas Lossless que quedan, contadas bien
 
@@ -1255,6 +1284,25 @@ frame. La puerta de `console_bg` existe y estaba abierta en 4 de 8 muestras.
   `gpu` and `frame` are the same number in Chimera. The CPU spends 2ms
   building the frame and then waits. Whatever the fix is, it is on the GPU
   side.
+
+- **El 2D cubre 12x los píxeles del 3D, y `rend=` por sí solo no lo dice.**
+  A `scale=0.50` sobre 1600x720 el pase 3D dibuja 800x360 = **0.29 Mpx**. El
+  canvas 2D **no** escala: 1600x720 = 1.15 Mpx por capa a pantalla completa, y
+  el censo de Chimera da `over=3.0x` en régimen (`top=UILayer/Black2@1.0x`), o
+  sea **3.46 Mpx**.
+
+  `rend=` lo hace parecer lo contrario y hay que leerlo con cuidado: el canvas
+  son **10 draw calls y 306 primitivas** contra 21 y 16106 del 3D, y
+  correlaciona con `gpu` a +0.12 frente a +0.44. Pero eso mide *cuenta*, no
+  *relleno* - diez draw calls de rectángulos a pantalla completa siguen siendo
+  diez mezclas de pantalla completa. Las dos mitades no se pueden separar
+  contando.
+
+  El dato que enmarca las dos: `gpu` p50 = 31.85ms para 0.29 Mpx de 3D son
+  **9.0 Mpíxeles/s**, un número imposible para un Adreno 619 si el techo fuera
+  el relleno del 3D. Sumando el 2D son 3.75 Mpx y 118 Mpíxeles/s, que ya es
+  plausible. **Mover la escala de render y ver si `gpu` la sigue es lo único
+  que separa las dos**, y sigue sin hacerse.
 
 - **It is not draw calls and not geometry.** In the same session at the same
   render scale, the shop draws *more* (72 calls vs 39) with comparable
