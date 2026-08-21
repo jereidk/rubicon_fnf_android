@@ -248,6 +248,31 @@ var game_ghost_tapping: bool = true
 var game_centered: bool = false
 var game_touch_look_scheme: TouchLookScheme = TouchLookScheme.JOYSTICK
 
+## The driver's pipeline cache UUID as of the last session that finished a
+## load, so a cold cache can be told from a warm one.
+##
+## Not a "have they played before" flag, because that is not the question. Two
+## logs from the same Redmi on 10154-8d1ee1ac, same build, two launches:
+##
+##     arranque 1   tienda: 52014ms de carga + 30089ms de precache = 82s
+##     arranque 2   tienda:  5998ms de carga +  1270ms de precache =  7s
+##
+## with `bench` comparable in both windows, so it is not the governor - it is
+## the driver's shader cache, which survives the app closing. The pipeline
+## COUNT is the same in both (233 against 243), which is the other half of the
+## lesson: Godot counts pipeline creations, not cache misses.
+##
+## So the first launch after installing costs a minute and a half of loading
+## screen and every launch after that costs seven seconds. Keying on the
+## driver UUID rather than a boolean also covers the case a boolean would miss:
+## a driver update invalidates the cache, and the next launch is slow again.
+##
+## Written at boot rather than after the first heavy load. If the player kills
+## the app mid-load the notice will not show again, but by then the driver has
+## already cached most of what it compiled, so that launch really is faster -
+## the inaccuracy is in the message, not in what it describes.
+var lullaby_shader_cache_uuid: String = ""
+
 var lullaby_baby_mode: bool = false
 var lullaby_showcase_mode: bool = false
 
@@ -366,12 +391,38 @@ var input_map: Dictionary = {}
 
 var _level_note_inputs: RubiconLevelNoteInputMap = RubiconLevelNoteInputMap.new()
 
+## Latched once at boot: whether the driver's shader cache is cold for this
+## build+driver, and so whether this session pays the first-run compile.
+##
+## Read by the loading screen. See lullaby_shader_cache_uuid for the numbers.
+var shader_cache_cold: bool = false
+
 func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
 		save(SAVE_PATH)
 
+	_check_shader_cache()
 	apply_settings()
+
+## Compares the driver's pipeline cache UUID against the one stored, latches
+## the answer, and stores the new one.
+##
+## Guarded for a null RenderingDevice - GL Compatibility has none - in which
+## case nothing is claimed and the notice never shows.
+func _check_shader_cache() -> void:
+	var device: RenderingDevice = RenderingServer.get_rendering_device()
+	if device == null:
+		return
+
+	var uuid: String = device.get_device_pipeline_cache_uuid()
+	if uuid.is_empty():
+		return
+
+	shader_cache_cold = uuid != lullaby_shader_cache_uuid
+	if shader_cache_cold:
+		lullaby_shader_cache_uuid = uuid
+		save(SAVE_PATH)
 
 func _input(event: InputEvent) -> void:
 	if event.is_pressed() and event.is_action(&"fullscreen_toggle"):

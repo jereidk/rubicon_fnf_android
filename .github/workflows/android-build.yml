@@ -437,6 +437,16 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
+      - name: Verify the first-run notice only shows on a cold shader cache
+        run: |
+          # The first launch after installing is a different experience, not a
+          # slightly slower one: 52014ms of load plus 30089ms of precache on
+          # the same phone that does 5998 + 1270 on its second launch, with
+          # bench comparable and the SAME pipeline count. A minute and a half
+          # of loading screen with no explanation reads as a hang.
+          $GODOT --headless --path . --script tools/test_first_run_notice.gd 2>&1 | tee /tmp/firstrun.txt
+          grep -q "todo OK" /tmp/firstrun.txt
+
       - name: Verify Chimera's house is off the depth pre-pass
         run: |
           # transparency = 4 draws the surface twice and leaves it in the
