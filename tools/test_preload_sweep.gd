@@ -41,11 +41,12 @@ func _run() -> void:
 	_collect_case()
 	_cycle_case()
 	_no_sweep_case()
+	_lighting_stays_on_case()
 	await _serves_only_after_animation_case()
 
 	print("")
-	if _checks < 11:
-		print("FALLO: solo %d de 11 comprobaciones corrieron" % _checks)
+	if _checks < 18:
+		print("FALLO: solo %d de 18 comprobaciones corrieron" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -193,6 +194,71 @@ func _sweep_animation(origins: Array) -> Animation:
 		anim.track_insert_key(pos, float(i) * 0.05, origins[i])
 		anim.track_insert_key(rot, float(i) * 0.05, Vector3(0.0, float(i) * 0.4, 0.0))
 	return anim
+
+
+## What defines the scene's lighting must not be hidden by the reveal.
+##
+## _hide_everything() used to take every VisualInstance3D, and against the
+## 4.7.1 binary that includes Light3D and LightmapGI - neither of which carries
+## a material or compiles a pipeline of its own. What they do carry is the
+## lighting state, which IS part of the pipeline key. Measured on Vulkan /
+## Forward Mobile with three meshes and three distinct shaders:
+##
+##     geometria, cero luces          spec=3
+##     + una omni                     spec=6    (+3, las mismas otra vez)
+##     + una spot                     spec=9    (+3)
+##     quitando la omni               spec=12   (+3)
+##
+## versus the control, where the lights are never hidden: turning them on with
+## no geometry visible compiles 0, and revealing the same six shaders into an
+## already-lit scene compiles 6 instead of 12. So hiding the lights makes the
+## precache warm variants the game never draws, and then compile the real ones
+## anyway when the reveal reaches the lights.
+##
+## The other half is safety: taking the bake out from under a mesh is the exact
+## failure that blacked Chimera's house out, and both scenes with a LightmapGI
+## also carry BAKE_STATIC lights.
+##
+## The two exclusions this must NOT grow into are checked here too.
+## VisibleOnScreenNotifier3D has to keep being hidden or it fires
+## screen_entered while a 109-degree camera sweeps the room, and ReflectionProbe
+## does real capture work that nothing here has measured against the variant
+## cost.
+func _lighting_stays_on_case() -> void:
+	var cam := _camera()
+	var root := Node3D.new()
+
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	root.add_child(mesh)
+	var omni := OmniLight3D.new()
+	root.add_child(omni)
+	var spot := SpotLight3D.new()
+	root.add_child(spot)
+	var lm := LightmapGI.new()
+	root.add_child(lm)
+	var notifier := VisibleOnScreenNotifier3D.new()
+	root.add_child(notifier)
+	var probe := ReflectionProbe.new()
+	root.add_child(probe)
+
+	cam._hide_everything(root)
+
+	_check("la geometria sigue escondiendose", not mesh.visible)
+	_check("la omni se queda encendida", omni.visible)
+	_check("y la spot tambien", spot.visible)
+	_check("el LightmapGI no se toca", lm.visible)
+	_check("el notifier SI se esconde", not notifier.visible)
+	_check("y la sonda de reflejos tambien", not probe.visible)
+	# El numero que el log usa para decir si el arreglo llego al dispositivo.
+	# Aqui nada cuelga de una malla escondida, asi que los dos coinciden; en el
+	# telefono una luz dentro de un .gltf podria no hacerlo, y eso es
+	# exactamente lo que la linea de MARK esta ahi para delatar.
+	_check("cuenta lo que dejo encendido", cam._kept_lit.size() == 3,
+		"%d" % cam._kept_lit.size())
+
+	root.free()
+	cam.free()
 
 
 func _camera() -> Camera3D:

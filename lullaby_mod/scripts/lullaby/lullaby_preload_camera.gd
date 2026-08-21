@@ -99,6 +99,25 @@ var _sweep_cursor: int = 0
 var _sweep_extra_frames: int = 0
 var _revealed_at_anim_end: int = -1
 
+## The lights and lightmaps left switched on, so the log can say whether the
+## exemption actually took effect.
+##
+## Two numbers, because `visible` is local and rendering is not. A Light3D
+## parented under a mesh that this walk does hide stops rendering anyway, and
+## nothing readable from a .tscn can rule that out for the subtrees that come
+## out of a .gltf. So the handover reports how many were exempted and how many
+## of those are still visible *in the tree* once the hiding is done - if those
+## two disagree, some of the scene's lighting is hidden by ancestry and the
+## precache is still walking through lighting states.
+var _kept_lit: Array[Node] = []
+
+func _kept_lit_effective() -> int:
+	var n: int = 0
+	for node in _kept_lit:
+		if is_instance_valid(node) and (node as Node3D).is_visible_in_tree():
+			n += 1
+	return n
+
 ## Whether the baseline frame has been spent. See _process().
 var _measured_first_frame: bool = false
 
@@ -119,8 +138,9 @@ func _ready() -> void :
 
 	_hide_everything()
 
-	_mark("preload camera '%s' started on %s (%d nodos por revelar)" % [
+	_mark("preload camera '%s' started on %s (%d nodos por revelar, %d luces/bakes intactos de %d)" % [
 		animation_name, get_parent().scene_file_path.get_file(), _hidden.size(),
+		_kept_lit_effective(), _kept_lit.size(),
 	])
 
 	_collect_sweep_poses()
@@ -181,13 +201,52 @@ func _serve_sweep_pose() -> void:
 	_sweep_cursor += 1
 	_sweep_extra_frames += 1
 
+## Classes that are VisualInstance3D but must stay on through the reveal.
+##
+## This used to hide every VisualInstance3D, and the comment above the walk
+## claimed that was "meshes, particles and decals - the things that carry a
+## material and therefore need a pipeline". Checked against the 4.7.1 binary,
+## VisualInstance3D also covers Light3D and LightmapGI, which carry no material
+## and compile no pipeline of their own - and hiding them is actively harmful,
+## because the lighting state of the scene is part of the pipeline key.
+##
+## Measured on the device's own path (Vulkan, Forward Mobile), three meshes
+## with three distinct shaders:
+##
+##     geometria, cero luces          spec=3
+##     + una omni                     spec=6   (+3, recompila las mismas)
+##     + una spot                     spec=9   (+3)
+##     quitando la omni               spec=12  (+3)
+##
+## Every distinct lighting configuration the scene passes through costs a full
+## set. It saturates on count - a third and a fourth omni add nothing - but the
+## reveal walks lights and geometry together in DFS order, so the scene goes
+## from no lights, through some, to all, and pays for each state. The control
+## says the fix is free: turning lights on with nothing visible compiles **0**,
+## and revealing the same geometry into an already-lit scene compiles the six
+## the game actually uses instead of twelve.
+##
+## LightmapGI is in here for the same reason plus one more: taking the bake out
+## from under a mesh is exactly the failure that blacked Chimera's house out for
+## eleven days, and both scenes with a LightmapGI also carry BAKE_STATIC lights
+## (the shop has nine). Leaving it on for the whole precache is strictly closer
+## to the state the scene ships in.
+##
+## Deliberately NOT in here:
+##
+## - `VisibleOnScreenNotifier3D` (6, all in the shop) - hiding it is what stops
+##   it firing screen_entered while a 109-degree camera sweeps the whole room.
+##   That is a side effect on game logic, not a pipeline question.
+## - `ReflectionProbe` (1, the shop) - it does real capture work when visible,
+##   so hiding it saves something measurable, and nothing here has measured
+##   which of the two costs more.
+const KEEP_VISIBLE: Array[StringName] = [&"Light3D", &"LightmapGI"]
+
 ## Collects everything in the scene that draws, and hides it.
 ##
-## VisualInstance3D covers meshes, particles and decals - the things that carry
-## a material and therefore need a pipeline. CanvasItems are deliberately left
-## alone: the loading screen is one, and hiding 2D would either blank the very
-## screen this exists to keep alive or require telling the scene's 2D apart
-## from the loader's.
+## CanvasItems are deliberately left alone: the loading screen is one, and
+## hiding 2D would either blank the very screen this exists to keep alive or
+## require telling the scene's 2D apart from the loader's.
 ##
 ## Takes the root rather than reading get_parent(), so it can be exercised
 ## without this node being in a tree - putting it in one runs _ready(), which
@@ -201,10 +260,26 @@ func _hide_everything(from: Node = null) -> void:
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
 		if node is VisualInstance3D and node.visible:
-			node.visible = false
-			_hidden.append(node)
+			if _keeps_lighting(node):
+				_kept_lit.append(node)
+			else:
+				node.visible = false
+				_hidden.append(node)
 		for child in node.get_children():
 			stack.append(child)
+
+## Whether this node defines the scene's lighting rather than drawing into it.
+##
+## By class name against the running ClassDB rather than by `is`, so one entry
+## covers a whole branch: Light3D catches Omni, Spot, Directional and Area
+## without naming four types, and a class this fork does not have simply never
+## matches instead of failing to parse.
+func _keeps_lighting(node: Node) -> bool:
+	var cls: StringName = node.get_class()
+	for keep in KEEP_VISIBLE:
+		if cls == keep or ClassDB.is_parent_class(cls, keep):
+			return true
+	return false
 
 func _process(_delta: float) -> void:
 	if _finished or _started_msec == 0:
