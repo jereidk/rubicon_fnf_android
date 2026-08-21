@@ -93,9 +93,21 @@ var anisotropic_filtering: int = 2
 ## measurement in this project missed it: they were all taken on the one song
 ## with no Adobe atlas on stage.
 ##
-## What it costs is how the animation reads - at 2 the atlas plays at 12fps
-## instead of 24, same duration, half the distinct frames - so High and Medium
-## keep 1 and only the two presets that already trade looks for frames use it.
+## What it costs is how the animation reads: at 2 the atlas plays at 12fps
+## instead of 24 - same duration, half the distinct drawings.
+##
+## **Very Low only.** How much that is noticed depends on whether the source
+## was animated on twos, and counting the layer-frame durations in Monochrome's
+## atlases says it mostly was - Gold, the character on screen all song, is
+## 83.8% of layer frames at DU >= 2, and his turnaround 85.2%. But DU is per
+## layer and Gold's busiest symbol has 47 of them, so a composite can still
+## change every frame even when each layer holds two; the honest claim is that
+## the source is far friendlier to this than something drawn on ones, not that
+## it is invisible.
+##
+## So it goes only on the preset that already exists to make the game run at
+## all - no shadows, no post-processing, render at 50%, LOD at 8. Low still
+## means to look right and keeps 1.
 @export_range(1, 4, 1) var atlas_frame_step: int = 1
 
 func is_matching(settings: LullabySettings) -> bool:

@@ -101,9 +101,10 @@ class_name AnimateSymbol
 ## on stage.)
 ##
 ## What it costs is how the animation reads: at 2 the atlas plays at 12fps
-## instead of 24, same duration, half the distinct frames. That is a look
+## instead of 24, same duration, half the distinct drawings. That is a look
 ## change, so it is driven off the quality preset rather than applied
-## everywhere - High and Medium keep 1.
+## everywhere, and only Very Low sets it - the preset that already drops
+## shadows, post-processing, LOD and render scale to make the game run at all.
 ##
 ## Static rather than an @export because these nodes are built at runtime by
 ## the mod and there is nothing to wire per-node; and the addon stays free of
