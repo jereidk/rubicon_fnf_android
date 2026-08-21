@@ -130,12 +130,18 @@ def collect(path):
         rng = prop(body, "omni_range") or prop(body, "spot_range") \
             or prop(body, "area_range")
         energy = prop(body, "light_energy")
+        # Godot's own default for light_energy is 1.0, not 0.0 - checked
+        # against the running binary (`OmniLight3D.new().light_energy`), not
+        # assumed. A missing property line means "unauthored", not "off": the
+        # first version of this tool read a missing line as 0.0 and flagged
+        # LightbulbLight in the shop as dead cost when it is a normal light
+        # nobody ever bothered to hand-author an explicit value for.
         lights.append({
             "name": name.group(1),
             "kind": kind.group(1),
             "key": key.lstrip("./"),
             "range": float(rng) if rng else 5.0,
-            "energy": 0.0 if energy is None else float(energy),
+            "energy": 1.0 if energy is None else float(energy),
             "drives": animated.get(name.group(1), set()),
             "scripted": name.group(1) in scripted,
         })

@@ -2283,7 +2283,7 @@ frame time the cap never engages at all.
 | High | 1.00 | 4096 | 2 | 4x | 1.0 | off |
 | Medium | 0.85 | 2048 | 1 | 2x | 2.0 | off |
 | Low | 0.65 | 1024 | 0 | off | 4.0 | x3 |
-| Very Low | 0.50 | shadows off | 0 | off | 8.0 | x2 |
+| Very Low | 0.70 | shadows off | 0 | off | 8.0 | x2 |
 
 **Chimera's real-time lights**, which is what "light fade" acts on. They split
 cleanly into local and scene-wide, and the house is about 10 units across:
@@ -2387,6 +2387,31 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
+## Very Low pasó a `render_scale = 0.70`, y hay que decir qué compra y qué no
+
+Decisión del usuario, correcta: **0.50 no es "el juego yendo bien", es el
+juego a un cuarto de resolución escondiendo que hay lag de verdad.** Bajar la
+escala tiene que ser el recurso de emergencia, no la base, y Very Low
+enseñaba pixelado severo para tapar un problema que había que medir, no
+esconder.
+
+El coste, con el modelo lineal ya validado en el barrido de la tienda
+(`frame = 7.3ms + 26.6ms por Mpx de pase 3D`, sobre 1600x720):
+
+| scale | 3D | modelo |
+|---|---|---|
+| 0.50 | 0.288 Mpx | 15.0ms |
+| **0.70** | **0.564 Mpx** | **22.3ms** |
+| 1.00 | 1.152 Mpx | 37.9ms |
+
+`(0.70/0.50)² = 1.96x` de píxeles de 3D. Es una subida real de coste, no un
+cambio gratis, y no hay ningún ajuste de este fichero que la compense del
+todo - el `light_distance_fade` de Very Low ya era el más agresivo de los
+cuatro presets y sólo cubre las cuatro luces locales pequeñas (radio < 6),
+nunca las cuatro que iluminan la casa entera. Subir la escala y dejar el
+resto de la escalera igual es aceptar ese coste a cambio de que Very Low dé
+una imagen reconocible en vez de un cuarto de resolución.
+
 ## Lo que hace caro un píxel de 3D son las luces, no la resolución
 
 Y esto reencuadra todo lo demás de este fichero, así que va antes.
@@ -2432,24 +2457,56 @@ python3 tools/audit_light_cost.py          # barre lullaby_mod/
 
 Cuenta, por escena, las luces a energía cero que nadie sube, y muestrea una
 rejilla sobre el volumen que abarcan para decir **cuántas alcanzan el mismo
-punto** - que es el número que se paga. Hoy deja **un solo hallazgo real** en
-todo el proyecto: `LightbulbLight` de la tienda, energía 0, radio 2.8, sin
-animación ni script que la suba. Es pequeña y no se ha tocado la escena por
-ella; la herramienta está para cazar la siguiente antes de que se envíe.
+punto** - que es el número que se paga.
 
-**Dos de los tres primeros hallazgos eran falsos positivos, de la misma clase
-que ya mordió en el barrido 2D:** una `light_energy` escrita desde GDScript es
-invisible a un barrido de texto. `power_console.gd` conduce la `TVLight` de la
-tienda entre 0 y 0.241 y `mch_picturetaking.gd` conduce el foco del flash. La
-herramienta sigue ahora los NodePath hasta el script del nodo que los exporta,
-igual que `audit_canvas_fill.py`.
+**El primer hallazgo era un bug de la propia herramienta, no del port, y se
+cogió antes de tocar una sola escena.** Leía una línea `light_energy` ausente
+como 0.0; el default real del motor, comprobado contra el binario en marcha
+(`OmniLight3D.new().light_energy`), es **1.0**. `LightbulbLight` de la tienda
+no tiene línea `light_energy` porque nadie se molestó en autorar un valor
+explícito - es una luz normal, no coste muerto. Corregido, y con
+`tools/test_light_energy_gate.gd` fijando el default para que no vuelva a
+pasar en silencio.
 
-Y el caso de Chimera queda anotado y **no** arreglado, con su motivo: `TvLight`
-tiene energía 0 y `omni_range = 43.927` sobre una casa de unas 10 unidades,
-pero su energía la suben nueve secuencias distintas y sólo está a cero durante
-`prelude`, 16.5s de una canción de tres minutos. La única pista que escribe
-`TvLight:visible` es la del `precache`, en t=0. Gating de un nodo de gameplay
+**Con el default correcto, cero hallazgos `[COSTE]` en las 88 escenas.** No
+hay ninguna luz encendida a energía cero sin que algo la suba. Los tres
+hallazgos que quedan son `[aviso]`: luces que legítimamente pasan por energía
+cero, conducidas por animación o por script.
+
+Dos de esos tres eran falsos positivos de otra clase, la misma que ya mordió en
+el barrido 2D: una `light_energy` escrita desde GDScript es invisible a un
+barrido de texto. `power_console.gd` conduce la `TVLight` de la tienda entre 0
+y 0.241 y `mch_picturetaking.gd` conduce el foco del flash. La herramienta
+sigue ahora los NodePath hasta el script del nodo que los exporta, igual que
+`audit_canvas_fill.py`.
+
+Y el tercero, Chimera's `TvLight`, queda anotado y sin gatear, con su motivo:
+energía 0 y `omni_range = 43.927` sobre una casa de unas 10 unidades, pero su
+energía la suben nueve secuencias distintas y sólo está a cero durante
+`prelude`, 16.5s de una canción de tres minutos. Gating de un nodo de gameplay
 por 16 segundos no compensa el riesgo.
+
+**El arreglo, listo y probado, para la próxima luz que sí aparezca:**
+`lullaby_mod/scripts/lullaby/lullaby_light_energy_gate.gd`, `@tool extends
+Light3D`, esconde el nodo mientras `light_energy` está a cero. Deliberadamente
+opt-in por nodo, siguiendo la misma forma que `lullaby_effect_rect_gate.gd` -
+resolver si una pista de animación escribe el `:visible` de esa luz exige
+recorrer cada `AnimationPlayer` y resolver NodePaths en tiempo de ejecución,
+que es justo la clase de cosa que ya ha mordido en este proyecto (`%Name`,
+`.` contra nombre, subárboles de `.gltf` opacos). Un humano revisa la salida
+del audit y adjunta el script sólo donde dice que es seguro.
+
+**Y `light_indirect_energy`/`light_volumetric_fog_energy` no complican el
+arreglo, comprobado en vez de supuesto.** `TvLight` de Chimera tiene
+`light_energy = 0.0` **y** `light_indirect_energy = 6.026` durante `prelude`,
+que a primera vista parece un rebote de luz indirecta que el gate se comería.
+No lo hace: este proyecto usa `rendering_method.mobile="mobile"` (Forward
+Mobile), que no tiene SDFGI ni VoxelGI, y ninguna escena declara un `VoxelGI`
+ni fog volumétrico - así que no hay ningún sistema de GI en vivo que consuma
+esos multiplicadores en una luz dinámica. Confirmado renderizando una luz con
+exactamente esa combinación (`energy=0`, `indirect_energy=6.026`) contra la
+misma luz completamente ausente de la escena: **0/255 de peor error de
+píxel.**
 
 ## Las cuatro reglas del relleno 2D, medidas
 

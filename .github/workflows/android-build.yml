@@ -765,6 +765,19 @@ jobs:
           $GODOT --headless --path . --script tools/test_effect_mesh_hide.gd 2>&1 | tee /tmp/effmesh.txt
           grep -q "todo OK" /tmp/effmesh.txt
 
+      - name: Verify the light-energy gate and its audit tool's default
+        run: |
+          # Forward Mobile evaluates every light that reaches a fragment, so a
+          # light at energy=0 still costs full price and only visible=false
+          # removes it. This gate is opt-in per node (attaching it needs a
+          # human to check tools/audit_light_cost.py first, not an automatic
+          # scene-wide pass) - what this pins is the gate's own behaviour and
+          # a real bug the audit tool had: it read a missing light_energy
+          # property line as 0.0, when Godot's own default is 1.0, and flagged
+          # an ordinary light (the shop's LightbulbLight) as dead cost.
+          $GODOT --headless --path . --script tools/test_light_energy_gate.gd 2>&1 | tee /tmp/lightgate.txt
+          grep -q "todo OK" /tmp/lightgate.txt
+
       - name: Verify the retained-resource sweep stays cheap
         run: |
           # The sweep runs on the main thread during a load, next to a loading
