@@ -97,6 +97,30 @@ const WINDOW_SIZE := 120
 ## bad moment costs a few lines rather than a few hundred.
 const SPIKE_COOLDOWN_SECONDS := 0.5
 
+## A frame this long is reported whatever the window thinks, and this exists
+## because the window was wrong twice about the same stretch of the session.
+##
+## _frames_seen is reset to 0 on every SCENE_IN, deliberately - the frame
+## buffer is meaningless across a load and moderate frames after one would
+## otherwise read as spikes against a stale pre-load median. But the gate that
+## reset feeds is `_frames_seen > WINDOW_SIZE`, and WINDOW_SIZE is 120, so the
+## detector is disarmed for 120 frames after every load. The precache runs
+## immediately after one, at a handful of frames per second: the shop's spends
+## 8.6 seconds and never gets near 120 frames. So the detector is asleep across
+## exactly the stretch it exists to measure.
+##
+## Measured twice, on two builds. 10152-665dedd4 has a 7787.6ms frame inside
+## the shop's first precache and no SPIKE line for it. 10154-8d1ee1ac, after
+## the four gate timers were moved to the wall clock, still has a 7391.8ms one
+## and still no SPIKE. Both times only SUMMARY caught it, because
+## _bucket_worst_ms never consults the window.
+##
+## 250ms cannot be a false positive. It is fifteen frames at 60fps, the player
+## sees it on any device, and it is worth a line at any point in a load. The
+## ratio test stays for everything below it, where "spike" really does mean
+## "against what this scene normally costs".
+const SPIKE_ALWAYS_MS := 250.0
+
 ## A census walks the whole scene tree, so it is far too expensive to do per
 ## frame - every 30s is enough to see a trend without becoming part of the
 ## problem it measures.
@@ -946,11 +970,16 @@ func _process(delta: float) -> void:
 	_time_since_heartbeat += frame_s
 	_time_since_spike += frame_s
 
-	# Needs a full window before the median means anything, otherwise the
-	# first frames after a load all read as spikes against a near-empty
-	# buffer.
-	if _frames_seen > WINDOW_SIZE and _time_since_spike >= SPIKE_COOLDOWN_SECONDS:
-		if frame_ms >= SPIKE_MIN_MS and frame_ms >= median * SPIKE_FACTOR:
+	# Two ways in. The ratio test needs a full window before the median means
+	# anything - otherwise the first frames after a load all read as spikes
+	# against a near-empty buffer - but a frame past SPIKE_ALWAYS_MS is
+	# reported whatever the window thinks. See that constant for what the
+	# window-only gate cost: two device logs, two multi-second frames, no
+	# SPIKE line for either.
+	var warmed: bool = _frames_seen > WINDOW_SIZE
+	var huge: bool = frame_ms >= SPIKE_ALWAYS_MS
+	if (warmed or huge) and _time_since_spike >= SPIKE_COOLDOWN_SECONDS:
+		if huge or (frame_ms >= SPIKE_MIN_MS and frame_ms >= median * SPIKE_FACTOR):
 			_time_since_spike = 0.0
 			var vram_now: int = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED))
 			var vram_delta: float = float(vram_now - _last_vram) / 1048576.0
@@ -960,8 +989,13 @@ func _process(delta: float) -> void:
 			# anything older is coincidence, not cause.
 			if not _last_anim.is_empty() and since_anim <= 250:
 				blame = "  after %s (%dms ago)" % [_last_anim, since_anim]
-			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx) vram_delta=%+.1fMB%s" % [
-				frame_ms, median, frame_ms / maxf(median, 0.001), vram_delta, blame,
+			# "(sin ventana)" because during the warmup `median` is the 16.6
+			# fallback from _median_frame_ms(), not a measurement - so the
+			# multiplier next to it is against an assumption, and a reader
+			# comparing two SPIKE lines needs to know which is which.
+			_entry("SPIKE", "frame=%.1fms median=%.1fms (%.1fx)%s vram_delta=%+.1fMB%s" % [
+				frame_ms, median, frame_ms / maxf(median, 0.001),
+				"" if warmed else " (sin ventana)", vram_delta, blame,
 			])
 			# A stall this long is not jitter, it is work. Worth paying for a
 			# census on the spot to see what was in the scene when it happened.

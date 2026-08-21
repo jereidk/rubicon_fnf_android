@@ -98,9 +98,25 @@ func _run() -> void:
 			text.contains("%s += frame_s" % timer)
 				and not text.contains("%s += delta" % timer))
 
+	# The other half of the same failure, and it survived the first fix.
+	#
+	# _frames_seen is reset to 0 on every SCENE_IN and the spike gate reads
+	# `_frames_seen > WINDOW_SIZE` with WINDOW_SIZE = 120. The precache runs
+	# right after a load at a handful of frames per second - the shop's spends
+	# 8.6 seconds and never reaches 120 frames - so the detector stays asleep
+	# across it. 10152-665dedd4 has a 7787.6ms frame there with no SPIKE line;
+	# 10154-8d1ee1ac, built after the timers were fixed, still has a 7391.8ms
+	# one with no SPIKE. Only SUMMARY caught either.
+	_check("un frame absurdo se reporta sin ventana",
+		text.contains("SPIKE_ALWAYS_MS")
+			and text.contains("var huge: bool = frame_ms >= SPIKE_ALWAYS_MS")
+			and text.contains("if (warmed or huge) and _time_since_spike"))
+	_check("y dice que la mediana es de reserva",
+		text.contains("(sin ventana)"))
+
 	print("")
-	if _checks < 9:
-		print("FALLO: solo %d de 9 comprobaciones" % _checks)
+	if _checks < 11:
+		print("FALLO: solo %d de 11 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
