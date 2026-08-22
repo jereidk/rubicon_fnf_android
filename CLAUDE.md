@@ -3876,6 +3876,39 @@ justo lo que ese `_process` congelado no podía hacer. Es el mismo patrón que
 `RubiconMobileControls` y `ChimeraHeartbeatTouchZone` ya usaban; esto también
 arregla Monochrome, no sólo Training.
 
+### Y dónde caen las tres en pantalla, medido
+
+La pregunta obvia después de arreglarlas -"¿están centradas en el escenario
+para que se vean bien?"- se contesta con el sondeo, no de memoria. En píxeles
+del lienzo base (1920x1080, centro 960,540):
+
+| prueba | dónde | |
+|---|---|---|
+| **Typing** | `UnownLetters` en **(960, 540)** clavado, Celebi a la izquierda en (344, 498) | idéntico a Monochrome: su `Stage` es un ColorRect a rect completo en (0,0), así que la mecánica a (0,0) reproduce la composición original exacta |
+| **Pendulum** | `Anchor` en **(960.7, 1.8)**, el péndulo colgando desde (962, 62) | el `Control` shipea `anchors_preset = 5` (CENTER_TOP) y Safety Lullaby lo cuelga del mismo sitio: centrado en horizontal, anclado arriba **por diseño**. No se toca |
+| **Pulse** | corazón en **(1235, 540)**, la línea ECG barre x=522..1385 | la única que había que mover |
+
+**El corazón es el extremo derecho del widget, no su centro**, y eso es lo que
+hace que copiar la cifra de Chimera no valga: `_update_points()` fija el punto
+0 en `line_start`, desplaza los cuatro `line_points` por un offset que recorre
+de `line_start` a `line_end` a lo largo del latido, y clava el punto 5 en
+`line_end` - o sea que el barrido real va de −720 a +170 alrededor del sprite.
+Chimera puede poner el corazón en 1185 porque la cinemática de Serena ocupa la
+mitad izquierda de ese plano; una prueba de entrenamiento no tiene nada ahí, y
+la misma cifra deja el conjunto descentrado con una cola vacía.
+
+Así que la posición se **deriva** (`_pulse_position()`) del viewport y de los
+propios `line_start`/`line_end`/`line_points` del controlador en vez de
+copiarse - Chimera sobreescribe los dos primeros en su instancia (−835.5 y
+154.3 contra −700 y 150 de la escena base), así que cualquier número fijo
+estaría centrado para exactamente una configuración. Y en vertical al centro y
+no al 786 de Chimera: los carriles están en y=920 también en este nivel, y sin
+cinemática encima no hay motivo para que la mecánica se les eche encima.
+
+El botón redondo cae en `(1672, 440)` 200x200, o sea a 287px del extremo
+derecho de la línea ECG y fuera del arco del péndulo. El sondeo lo imprime al
+lado de las posiciones para que ese hueco se vea en vez de suponerse.
+
 ```bash
 godot --headless --path . --script tools/test_training_setup.gd   # en CI
 godot --headless --path . res://tools/harness/training_probe.tscn  # en vivo

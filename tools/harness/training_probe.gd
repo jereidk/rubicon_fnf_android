@@ -96,12 +96,53 @@ func _report(mech: int, lvl: Node) -> void:
 			mechnode.active, mechnode.prompt_user, mechnode.show_celebi,
 			mechnode.time_end, mechnode.current_word, mechnode.unowns.size()])
 
+	_where(mechname, mechnode)
+	if special:
+		print("OUT           boton redondo=%s" % [(special as Control).get_global_rect()])
+
 	if overlay:
 		var drill: Label = overlay.get_node_or_null(^"Root/Drill")
 		var stats: Label = overlay.get_node_or_null(^"Root/Stats")
 		print("OUT           overlay drill=\"%s\" fuente_stats=%d" % [
 			drill.text if drill else "?",
 			stats.get_theme_font_size(&"font_size") if stats else -1])
+
+## Donde cae de verdad cada mecanica, en pixeles del lienzo base (1920x1080,
+## centro 960,540). Se leen posiciones de nodo y puntos de Line2D en vez de
+## medir sprites, porque en este workspace las texturas no importan y una caja
+## de sprite saldria vacia - una posicion de nodo no depende de eso.
+func _where(mechname: String, mechnode: Node) -> void:
+	var vp: Vector2 = Vector2(1920, 1080)
+	match mechname:
+		"LullabyPendulumServer":
+			var vis: Node = _find_class(mechnode.get_parent(), "LullabyPendulum")
+			if vis == null:
+				return
+			var anchor: Node2D = vis.get_node_or_null(^"Anchor")
+			var bob: Node2D = vis.get_node_or_null(^"Anchor/Pendulum")
+			var ctrl := vis as Control
+			print("OUT           rect del Control=%s  Anchor=%s  Pendulo=%s   centro=%s" % [
+				ctrl.get_global_rect(),
+				anchor.get_global_transform_with_canvas().origin if anchor else Vector2.ZERO,
+				bob.get_global_transform_with_canvas().origin if bob else Vector2.ZERO,
+				vp * 0.5])
+		"HeartbeatController":
+			var heart: Node2D = mechnode.get_parent()
+			var line: Line2D = mechnode.line_reference
+			var o: Vector2 = heart.get_global_transform_with_canvas().origin
+			var lo: Vector2 = line.get_global_transform_with_canvas().origin
+			var xs: Array[float] = []
+			for i in line.get_point_count():
+				xs.append(lo.x + line.get_point_position(i).x)
+			xs.sort()
+			print("OUT           corazon=%s  linea x=%.0f..%.0f (centro %.0f)   centro pantalla=%s" % [
+				o, xs[0], xs[-1], (xs[0] + xs[-1]) * 0.5, vp * 0.5])
+		"TypingChallenge":
+			for n: String in ["Celebi", "Unowns", "UnownLetters"]:
+				var node: Node2D = mechnode.get_node_or_null(NodePath(n))
+				if node:
+					print("OUT           %-13s %s" % [n, node.get_global_transform_with_canvas().origin])
+			print("OUT           centro pantalla=%s" % [vp * 0.5])
 
 func _find_class(root: Node, cls: String) -> Node:
 	var stack: Array[Node] = [root]

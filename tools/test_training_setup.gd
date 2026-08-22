@@ -88,8 +88,19 @@ func _check_pendulum(host: String) -> void:
 
 func _check_pulse(host: String) -> void:
 	var body: String = _func_body(host, "_build_pulse")
-	_check(_has_statement(body, "position\\s*=\\s*PULSE_POSITION"),
+	_check(_has_statement(body, "position\\s*=\\s*_pulse_position\\("),
 		"_build_pulse places the heart instead of leaving it at (0, 0)")
+
+	# The heart is the right-hand end of the ECG widget, not its middle, so
+	# centring the sprite is not centring what the player looks at. Derived
+	# from the viewport and from the controller's own line fields rather than
+	# copied from Chimera - which authors its own line_start/line_end, so a
+	# hardcoded figure would be centred for exactly one tuning.
+	var placer: String = _func_body(host, "_pulse_position")
+	_check(placer.contains("get_visible_rect()"),
+		"_pulse_position centres against the viewport rather than a magic number")
+	_check(placer.contains("&\"line_start\"") and placer.contains("&\"line_end\""),
+		"_pulse_position reads the line span off the controller it is placing")
 
 	# A position authored in the mechanic scene itself would make the host's
 	# one redundant, and would mean two places decide where the heart goes.

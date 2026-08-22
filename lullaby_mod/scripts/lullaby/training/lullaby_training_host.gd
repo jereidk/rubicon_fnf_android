@@ -80,12 +80,24 @@ const TYPING_TOUCH_SCRIPT := "res://lullaby_mod/songs/monochrome/scripts/monochr
 const SPECIAL_BUTTON_SIZE := 200.0
 const SPECIAL_BUTTON_GAP := 48.0
 
-## Where the heart goes. mch_heartbeat.tscn authors no position of its own -
-## Chimera places the instance at (1185, 786) - so parenting it to the HUD
-## put it at (0, 0), with an ECG line authored from x=-700 to x=+150 drawn
-## almost entirely off the left edge of the screen. Same figure as Chimera's,
-## lifted a little because there is no Serena underneath it here.
-const PULSE_POSITION := Vector2(1185.0, 700.0)
+## mch_heartbeat.tscn authors no position of its own - Chimera places the
+## instance at (1185, 786) - so parenting it to the HUD put it at (0, 0),
+## with an ECG line authored from x=-700 drawn almost entirely off the left
+## edge of the screen.
+##
+## Chimera's own figure is not the answer either, and the reason is that the
+## heart is the RIGHT-hand end of the widget rather than its middle: the ECG
+## line sweeps out to line_start behind it and only to line_end in front, so
+## measuring the live Line2D over a full cycle gives -720..+170 around the
+## sprite. Chimera can hang the heart at 1185 because Serena's cutscene owns
+## the left half of that frame; a drill has nothing there, so the same number
+## leaves the widget off-centre with an empty tail.
+##
+## So it is derived from the viewport and from the controller's own line
+## fields instead of copied - see _pulse_position(). Vertically the middle of
+## the screen rather than Chimera's 786: the lanes sit at y = 920 in this
+## level too, and with no cutscene above it there is no reason for the
+## mechanic to crowd them.
 
 ## How long each typing round gets, in song seconds.
 ##
@@ -199,15 +211,16 @@ func _build_pulse(packed: PackedScene) -> void:
 		# Chimera ships this instance hidden and reveals it from a sequence;
 		# there is no sequence here to do it.
 		heart_item.visible = true
-	var heart_node := heart as Node2D
-	if heart_node != null:
-		heart_node.position = PULSE_POSITION
 	host.add_child(heart)
 
 	var controller: Node = _first_with_method(heart, &"initialize")
 	if controller == null:
 		push_error("Training: mch_heartbeat has no node with initialize()")
 		return
+	var heart_node := heart as Node2D
+	if heart_node != null:
+		heart_node.position = _pulse_position(controller)
+
 	controller.call(&"initialize")
 	_count(controller, [&"beat_hit"], [&"beat_missed"], [&"mechanic_failed"])
 
@@ -322,6 +335,33 @@ func _clock_position() -> float:
 	if player == null:
 		return 0.0
 	return player.current_animation_position
+
+## Puts the heart where the whole ECG widget lands in the middle of the
+## screen, rather than where the sprite alone would.
+##
+## _update_points() lays the line out as: point 0 pinned at line_start, the
+## four line_points shifted by an offset that runs from line_start up to
+## line_end across a beat, and point 5 pinned at line_end. So the extreme
+## reach either way is line_start + the leftmost line_point and line_end +
+## the rightmost - which is the span to centre, and its midpoint is the
+## amount the sprite has to sit to the right of screen centre.
+##
+## Read off the controller rather than hardcoded because Chimera overrides
+## line_start and line_end on its own instance; if this drill is ever pointed
+## at a differently-tuned one, the centring follows instead of silently going
+## stale.
+func _pulse_position(controller: Node) -> Vector2:
+	var screen: Vector2 = get_viewport().get_visible_rect().size
+	var left: float = controller.get(&"line_start")
+	var right: float = controller.get(&"line_end")
+
+	var points: Array = controller.get(&"line_points")
+	if points != null:
+		for point: Vector2 in points:
+			left = minf(left, controller.get(&"line_start") + point.x)
+			right = maxf(right, controller.get(&"line_end") + point.x)
+
+	return Vector2(screen.x * 0.5 - (left + right) * 0.5, screen.y * 0.5)
 
 ## The tap target for `lullaby_special`, for the two drills that read it.
 ##
