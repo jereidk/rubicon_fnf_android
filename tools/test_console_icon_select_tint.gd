@@ -1,7 +1,11 @@
 extends SceneTree
 
-## The Codes (Hacks) home icon has to visibly change colour when it is the
-## focused tab, like every other icon on that screen does.
+## The console's home icons have to visibly react to being the focused tab.
+## Two of them did not, for two different reasons, and both were invisible
+## to every other check in this repo because nothing was actually *wired*
+## wrong - see _check_no_dimmed_home_icon() for the Training half.
+##
+## The Codes (Hacks) half:
 ##
 ## It did not, and the reason is the kind a screenshot catches and a test
 ## normally does not: the button was wired correctly - same script, same
@@ -60,6 +64,8 @@ func _initialize() -> void:
 	_check(text.contains("mat_console_idle.tres") and text.contains("mat_console_select.tres"),
 		"the other icons still reference both gradient materials")
 
+	_check_no_dimmed_home_icon()
+
 	print("console icon select tint: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:
 		print("todo OK")
@@ -88,6 +94,52 @@ func _albedo_of(text: String, id: String) -> Color:
 
 func _is_neutral(c: Color) -> bool:
 	return absf(c.r - c.g) < 0.05 and absf(c.g - c.b) < 0.05
+
+## The second half of the same bug class, found the same day: Training's
+## home icon looked permanently locked.
+##
+## Nothing was wrong with that button either - disabled = false, the same
+## script, the same two gradient materials as Settings and Credits. The
+## shop scene was overriding its mesh:
+##
+##     [node name="TRAINING" parent=".../ui_training/UI_Icons/Skeleton3D"]
+##     material_override = ExtResource("189")   # mat_console_inactive.tres
+##
+## material_override beats surface_set_material(), which is what
+## ConsoleHomeButton uses on focus - so that icon could never respond to
+## anything. It was a leftover: lullaby_training.gd's own header records
+## that the tab shipped "behind a Home icon shipping disabled = true", and
+## when the feature was implemented the flag was flipped but the grey
+## override was not removed. Functionally unlocked, visually still locked.
+##
+## Pinned as a shape rather than as one node name: no icon inside the
+## console's IconSubViewport may carry a material_override at all. Every
+## one of them is driven by the focus swap, and an override silently wins
+## over it.
+func _check_no_dimmed_home_icon() -> void:
+	const SHOP_PATH := "res://lullaby_mod/rooms/env_collector_shop.tscn"
+	var shop: String = FileAccess.get_file_as_string(SHOP_PATH)
+	if shop.is_empty():
+		_check(false, "env_collector_shop.tscn is readable")
+		return
+
+	var offenders: PackedStringArray = []
+	var node_name: String = ""
+	var inside_icons: bool = false
+	for line: String in shop.split("\n"):
+		if line.begins_with("[node "):
+			inside_icons = line.contains("IconSubViewport")
+			node_name = ""
+			var at: int = line.find("name=\"")
+			if at >= 0:
+				at += 6
+				node_name = line.substr(at, line.find("\"", at) - at)
+		elif inside_icons and line.begins_with("material_override = "):
+			offenders.append(node_name)
+
+	_check(offenders.is_empty(),
+		"no console home icon is pinned to a fixed material (offenders: %s)"
+			% ("none" if offenders.is_empty() else ", ".join(offenders)))
 
 func _check(condition: bool, label: String) -> void:
 	_checks += 1

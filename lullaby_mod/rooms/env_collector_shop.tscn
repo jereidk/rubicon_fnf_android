@@ -189,7 +189,6 @@
 [ext_resource type="PackedScene" uid="uid://b8cux1jom7v3x" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186"]
 [ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187"]
 [ext_resource type="PackedScene" uid="uid://dpnrx427b1ijy" path="res://lullaby_mod/resources/console/console.tscn" id="188"]
-[ext_resource type="Material" uid="uid://b6684n8fqkln6" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_inactive.tres" id="189"]
 [ext_resource type="PackedScene" uid="uid://bxk04pmofwax3" path="res://lullaby_mod/resources/kollectadex/kollectadex.tscn" id="190"]
 [ext_resource type="Texture2D" uid="uid://dqytnrnleytio" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191"]
 [ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
@@ -11679,9 +11678,6 @@ bones/14/position = Vector3(-5.661335e-24, -5.9604645e-08, -4.2886764e-23)
 bones/14/rotation = Quaternion(4.7773003e-08, 0.70710677, -0.70710677, -3.0908623e-08)
 bones/15/rotation = Quaternion(0.70710665, -8.4321945e-09, 8.432193e-09, 0.7071069)
 bones/15/scale = Vector3(1, 0.99999994, 0.99999994)
-
-[node name="TRAINING" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_training/UI_Icons/Skeleton3D" index="0" unique_id=2136675027]
-material_override = ExtResource("189")
 
 [node name="Skeleton3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons" parent_id_path=PackedInt32Array(523863700, 420123907, 2020827812) index="0" unique_id=1373844525]
 bones/0/position = Vector3(0, 0, 0)

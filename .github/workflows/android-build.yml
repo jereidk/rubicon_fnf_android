@@ -437,37 +437,92 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
-      - name: Verify the first-run notice only shows on a cold shader cache
+      - name: Run the guard suite
         run: |
+          # Every guard in this repo runs here, in one step.
+          #
+          # They were 37 separate steps, which made the workflow tedious to
+          # read and added a step's worth of runner overhead 37 times over.
+          # Consolidating them buys two things beyond the shorter list:
+          #
+          #   * ALL guards run even after one fails, so a red build names
+          #     every problem at once instead of one per push-and-wait cycle.
+          #   * Each guard's output is wrapped in a ::group::, so the log is
+          #     collapsed by default and still one click from the detail.
+          #
+          # Two shapes of guard, both handled below: a Godot script that
+          # prints "todo OK" on success, and a Python audit that just exits
+          # non-zero. The reason each one exists stays in the comment above
+          # its own line here, which is where it has always lived.
+          #
+          # Log files are named after the script rather than by hand - the
+          # old steps had test_preload_sweep and test_retained_sweep both
+          # writing /tmp/sweep.txt, which only worked because they were
+          # separate steps.
+          set +e
+          set -o pipefail
+
+          failed=()
+          ran=0
+
+          guard_godot() {   # <script> [--no-path]
+            local script="$1"; shift
+            local log="/tmp/guard_$(basename "$script" .gd).txt"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            if [ "${1:-}" = "--no-path" ]; then
+              $GODOT --headless --script "$script" 2>&1 | tee "$log"
+            else
+              $GODOT --headless --path . --script "$script" 2>&1 | tee "$log"
+            fi
+            if grep -q "todo OK" "$log"; then
+              echo "PASS  $script"
+            else
+              echo "FAIL  $script"
+              failed+=("$script")
+            fi
+            echo "::endgroup::"
+          }
+
+          guard_python() {  # <script>
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            if python3 "$script" 2>&1; then
+              echo "PASS  $script"
+            else
+              echo "FAIL  $script"
+              failed+=("$script")
+            fi
+            echo "::endgroup::"
+          }
+
+          # === Verify the first-run notice only shows on a cold shader cache
           # The first launch after installing is a different experience, not a
           # slightly slower one: 52014ms of load plus 30089ms of precache on
           # the same phone that does 5998 + 1270 on its second launch, with
           # bench comparable and the SAME pipeline count. A minute and a half
           # of loading screen with no explanation reads as a hang.
-          $GODOT --headless --path . --script tools/test_first_run_notice.gd 2>&1 | tee /tmp/firstrun.txt
-          grep -q "todo OK" /tmp/firstrun.txt
+          guard_godot tools/test_first_run_notice.gd
 
-      - name: Verify Chimera's house is off the depth pre-pass
-        run: |
+          # === Verify Chimera's house is off the depth pre-pass
           # transparency = 4 draws the surface twice and leaves it in the
           # transparent queue, where nothing behind it can be depth-rejected.
           # Measured on the device's renderer path at 3.86x ALPHA_SCISSOR with
           # byte-identical draw/primitive/object counts - which is why no
           # count-based reading of a device log could ever find it.
-          python3 tools/audit_house_transparency.py
+          guard_python tools/audit_house_transparency.py
 
-      - name: Verify the console's icon materials are off any alpha mode
-        run: |
+          # === Verify the console's icon materials are off any alpha mode
           # mat_console_inactive/select/idle drive the shop's Home tab icon
           # models, inside the SubViewport already measured as the single
           # most expensive one in the shop. All three shipped
           # ALPHA_DEPTH_PRE_PASS over textures with no real transparency to
           # draw (worst texel is compression noise at 254/255) - free money,
           # no threshold to tune, unlike a scissor conversion.
-          python3 tools/audit_console_icon_materials.py
+          guard_python tools/audit_console_icon_materials.py
 
-      - name: Verify every precompiled sidecar describes its own source
-        run: |
+          # === Verify every precompiled sidecar describes its own source
           # Godot reads a sidecar's source_md5 back to decide whether to
           # reimport, so one that carries a different file's hash makes it
           # skip a texture that really did change and ship the stale .res.
@@ -483,20 +538,18 @@ jobs:
           # This runs after the harvest step on purpose: a harvest build is
           # exactly when a sidecar can be written wrong, and this is the pass
           # that would have caught it.
-          python3 tools/audit_precompiled_sidecars.py
+          guard_python tools/audit_precompiled_sidecars.py
 
-      - name: Verify the diagnostics log's format strings
-        run: |
+          # === Verify the diagnostics log's format strings
           # A GDScript format string with more placeholders than arguments
           # does not raise and does not stop the game: `String % Array`
           # returns the string unformatted. The log then writes
           # "ram=%s gpu=%.2fms ..." for every line of the session and looks
           # like a working file until someone parses it. One build and one
           # play session were lost to exactly that.
-          python3 tools/verify_log_format.py
+          guard_python tools/verify_log_format.py
 
-      - name: Verify the memory trace survives a blocked main thread
-        run: |
+          # === Verify the memory trace survives a blocked main thread
           # The trace exists to record what happens inside
           # change_scene_to_packed(), which blocks the main thread for the
           # whole of its work - so "does it write a file" is not the property
@@ -504,76 +557,60 @@ jobs:
           # OS.delay_msec() and counts the samples that land during the
           # freeze. If that ever stops holding, the next device log comes back
           # empty at exactly the moment it was collected for.
-          $GODOT --headless --path . --script tools/test_memory_sampler.gd 2>&1 | tee /tmp/mem.txt
-          grep -q "todo OK" /tmp/mem.txt
+          guard_godot tools/test_memory_sampler.gd
 
-      - name: Verify F only appears while navigating console sections
-        run: |
+          # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F
           # prompt is drawn. It was wired to nothing and showed always.
-          $GODOT --headless --path . --script tools/test_console_section_nav.gd 2>&1 | tee /tmp/nav.txt
-          grep -q "todo OK" /tmp/nav.txt
+          guard_godot tools/test_console_section_nav.gd
 
-      - name: Verify the action column closes its gaps
-        run: |
+          # === Verify the action column closes its gaps
           # The four contextual buttons are pinned to absolute slots, so
           # hiding one leaves a 190px hole and moves nothing. PowerButton
           # already hides itself correctly through visible_source; the hole is
           # what the player sees. Nothing may move while all four are shown.
-          $GODOT --headless --path . --script tools/test_action_column.gd 2>&1 | tee /tmp/col.txt
-          grep -q "todo OK" /tmp/col.txt
+          guard_godot tools/test_action_column.gd
 
-      - name: Verify Enter only shows while it confirms something
-        run: |
+          # === Verify Enter only shows while it confirms something
           # One button, two jobs: a menu ui_accept, or an aim-and-click at the
           # 3D world through MouseController's raycast. Only the second one can
           # be pointed at nothing. Hiding it inside a menu would strand the
           # player there, so "not casting means always available" is the line.
-          $GODOT --headless --path . --script tools/test_confirm_available.gd 2>&1 | tee /tmp/ok.txt
-          grep -q "todo OK" /tmp/ok.txt
+          guard_godot tools/test_confirm_available.gd
 
-      - name: Verify the D-pad hides the directions that do nothing
-        run: |
+          # === Verify the D-pad hides the directions that do nothing
           # Disabled arms used to be drawn at a quarter alpha, which reads as
           # temporarily unavailable - they are not. The outline was a hardcoded
           # twelve-point plus, so it would have gone on tracing four arms
           # around two, which is worse than the dim arrow was.
-          $GODOT --headless --path . --script tools/test_dpad_zone_shape.gd 2>&1 | tee /tmp/dpad.txt
-          grep -q "todo OK" /tmp/dpad.txt
+          guard_godot tools/test_dpad_zone_shape.gd
 
-      - name: Verify both vertical-only slots
-        run: |
+          # === Verify both vertical-only slots
           # The notepad reads ui_up/ui_down/ui_accept and nothing else, so its
           # two horizontal arrows have never done anything. An empty slot has
           # to mean "no opinion" rather than false, or the second one pins the
           # pad open and the SHOP/TALK sign loses its own restriction.
-          $GODOT --headless --path . --script tools/test_vertical_only_slots.gd 2>&1 | tee /tmp/vonly.txt
-          grep -q "todo OK" /tmp/vonly.txt
+          guard_godot tools/test_vertical_only_slots.gd
 
-      - name: Verify leaving an area drops its focus
-        run: |
+          # === Verify leaving an area drops its focus
           # CollectorShop.current_area only changed when another area took
           # focus, so the last one entered kept is_focused true for the rest
           # of the visit. Power is gated on FocusAreaRight.is_focused and F on
           # Console.focused, which FocusArea3D's setter is what drops - a
           # device screenshot has both showing while the player walks the room.
-          $GODOT --headless --path . --script tools/test_focus_clears_on_free_look.gd 2>&1 | tee /tmp/focus.txt
-          grep -q "todo OK" /tmp/focus.txt
+          guard_godot tools/test_focus_clears_on_free_look.gd
 
-      - name: Verify the reveal pacer backs off on an expensive frame
-        run: |
+          # === Verify the reveal pacer backs off on an expensive frame
           # It steered on Performance.TIME_PROCESS, a maximum over the last
           # second refreshed once a second - so it never saw a spike, never
           # halved, climbed to MAX_BATCH and put 64 nodes on one frame.
           # Entering the shop compiles 212 pipelines and the batch landing 47
           # of them took 6981ms, past the five seconds Android calls
           # unresponsive. The test blocks the main thread for real.
-          $GODOT --headless --path . --script tools/test_preload_batch_backoff.gd 2>&1 | tee /tmp/pace.txt
-          grep -q "todo OK" /tmp/pace.txt
+          guard_godot tools/test_preload_batch_backoff.gd
 
-      - name: Verify the precache sweep is driven by the reveal, not the clock
-        run: |
+          # === Verify the precache sweep is driven by the reveal, not the clock
           # An AnimationPlayer advances by delta, so the 0.8s sweep ends in four
           # or five frames while the reveal it is meant to accompany takes 6737ms
           # on Chimera. Everything revealed after that was drawn from one fixed
@@ -582,11 +619,9 @@ jobs:
           # collected, that they cycle, that a scene without a sweep still loads,
           # and that nothing is served while the animation still owns the
           # transform.
-          $GODOT --headless --path . --script tools/test_preload_sweep.gd 2>&1 | tee /tmp/sweep.txt
-          grep -q "todo OK" /tmp/sweep.txt
+          guard_godot tools/test_preload_sweep.gd
 
-      - name: Verify the precache sweep also visits the stalling cutscenes
-        run: |
+          # === Verify the precache sweep also visits the stalling cutscenes
           # 122_fall@6.8s still costs frame=1911.7ms for spec+8 with RAM/VRAM
           # flat - a pipeline-compile stall, not loading. Three more sequences
           # show the same shape. All four are shots the precache's own sweep
@@ -598,11 +633,9 @@ jobs:
           # track into the cycling sweep. Unverified on device - it changes
           # which frame a pipeline first compiles on, not whether it does; a
           # fresh log's pipe= on these four sequences is what confirms it.
-          $GODOT --headless --path . --script tools/test_preload_extra_sweep.gd 2>&1 | tee /tmp/extrasweep.txt
-          grep -q "todo OK" /tmp/extrasweep.txt
+          guard_godot tools/test_preload_extra_sweep.gd
 
-      - name: Verify the cached hit order matches the sorted one
-        run: |
+          # === Verify the cached hit order matches the sorted one
           # update_performance() rebuilt and re-sorted every result hit so far
           # once per note that lands - O(n log n) per note. Monochrome's log
           # measured the lanes' _process growing 1.0ms -> 19.9ms across one
@@ -610,50 +643,40 @@ jobs:
           # order and never values, so this compares it against the old
           # build-and-sort at every step of a run with misses, holds and a
           # rewind in it.
-          $GODOT --headless --path . --script tools/test_perf_order_cache.gd 2>&1 | tee /tmp/perf.txt
-          grep -q "todo OK" /tmp/perf.txt
+          guard_godot tools/test_perf_order_cache.gd
 
-      - name: Verify one symbol's frame does not rebuild the whole atlas
-        run: |
+          # === Verify one symbol's frame does not rebuild the whole atlas
           # use_backbuffer_cache and backbuffer_cache used to live on the
           # AnimateAtlas, which every symbol naming that folder shares. One
           # symbol advancing a frame cleared the flag for all of them and sent
           # the lot down the full rebuild path - Monochrome measured 480
           # rebuilds in a second against 1665 cached draws, anim2d 371ms/s.
-          $GODOT --headless --path . --script tools/test_atlas_cache_per_symbol.gd 2>&1 | tee /tmp/atlas.txt
-          grep -q "todo OK" /tmp/atlas.txt
+          guard_godot tools/test_atlas_cache_per_symbol.gd
 
-      - name: Verify settings do not re-send unchanged shadow state
-        run: |
+          # === Verify settings do not re-send unchanged shadow state
           # Every settings row calls apply_settings() on every change, and the
           # device log has each one compiling 35 pipelines with an identical
           # breakdown - surf+6 draw+13 spec+16 - so the same shaders are being
           # rebuilt. The shadow writes are the only ones in that function
           # Godot does not filter for you.
-          $GODOT --headless --path . --script tools/test_settings_shadow_reapply.gd 2>&1 | tee /tmp/shadow.txt
-          grep -q "todo OK" /tmp/shadow.txt
+          guard_godot tools/test_settings_shadow_reapply.gd
 
-      - name: Verify the Kollectadex only renders while it is open
-        run: |
+          # === Verify the Kollectadex only renders while it is open
           # Its SubViewport is 620x464 - the same pixel count as the whole
           # game at scale 0.50 - and the device log has it rendering in 62 of
           # 78 shop samples for a book that is open almost none of that time.
           # It has to survive the closing animation, and it has to paint one
           # frame at startup or the prop's screen in the room is blank.
-          $GODOT --headless --path . --script tools/test_kollectadex_render_gate.gd 2>&1 | tee /tmp/kdx.txt
-          grep -q "todo OK" /tmp/kdx.txt
+          guard_godot tools/test_kollectadex_render_gate.gd
 
-      - name: Verify the results screen idles transparent
-        run: |
+          # === Verify the results screen idles transparent
           # It sits on a CanvasLayer at 65 for the whole song, and its `show`
           # animation starts both full-screen layers at alpha 0. Vingette had
           # no modulate at all - so white, full alpha - and every song was
           # played under a vignette darkening the edges by up to 58.8%.
-          python3 tools/audit_results_screen_idle.py 2>&1 | tee /tmp/idle.txt
-          grep -q "todo OK" /tmp/idle.txt
+          guard_python tools/audit_results_screen_idle.py
 
-      - name: Verify every lightmap bake finds its texture by path
-        run: |
+          # === Verify every lightmap bake finds its texture by path
           # A .lmbake stores its texture as a UID plus a plain res:// path.
           # Export-time UID resolution in this project fails broadly - 84d99d5
           # counted ~1300 invalid-UID warnings across ~227 files in one export
@@ -662,94 +685,76 @@ jobs:
           # threw and was restored the same night, Chimera's did not throw
           # (a LightmapGI with no texture is a legal LightmapGI) and the house
           # rendered with no baked light for eleven days.
-          python3 tools/audit_lightmap_fallback_paths.py 2>&1 | tee /tmp/lmbake.txt
-          grep -q "todo OK" /tmp/lmbake.txt
+          guard_python tools/audit_lightmap_fallback_paths.py
 
-      - name: Verify no scene describes a node twice
-        run: |
+          # === Verify no scene describes a node twice
           # An override block for an instanced scene's child is added by name
           # and parent, and adding a second instead of editing the first still
           # loads: Godot applies both in order and the result is whichever
           # properties the later one sets over what the earlier one left. This
           # shipped once, and the diff for it reads as an ordinary addition
           # thousands of lines from the block it duplicates.
-          python3 tools/audit_duplicate_scene_nodes.py 2>&1 | tee /tmp/dupes.txt
-          grep -q "todo OK" /tmp/dupes.txt
+          guard_python tools/audit_duplicate_scene_nodes.py
 
-      - name: Verify the log reports the real render scale
-        run: |
+          # === Verify the log reports the real render scale
           # Both places printing it read the setting, not the viewport.
           # settings.gd applies it as window.scaling_3d_scale, so anything that
           # resets that leaves the log printing 0.50 over a full-size render -
           # and 1600x720 against 800x360 is four times the pixels.
-          $GODOT --headless --path . --script tools/test_render_scale_report.gd 2>&1 | tee /tmp/scale.txt
-          grep -q "todo OK" /tmp/scale.txt
+          guard_godot tools/test_render_scale_report.gd
 
-      - name: Verify warming a voiceline does not cost a frame
-        run: |
+          # === Verify warming a voiceline does not cost a frame
           # The shop warms one voiceline per frame from _process. It used to
           # do that with a blocking load(), which moved 109 .ogg files off the
           # cold load and into gameplay one stall at a time - the device log's
           # two worst script frames in the shop are 111.47ms and 71.90ms, both
           # with every note field and anim2d at zero.
-          $GODOT --headless --path . --script tools/test_voiceline_warm_async.gd 2>&1 | tee /tmp/vox.txt
-          grep -q "todo OK" /tmp/vox.txt
+          guard_godot tools/test_voiceline_warm_async.gd
 
-      - name: Verify the dependency cost breakdown groups and ranks
-        run: |
+          # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
           # is 97 of the shop's 397 and the log shows the console not switching
           # on until 3.5s after the scene is up - this is what would confirm
           # that on the device before anyone refactors it out.
-          $GODOT --headless --path . --script tools/test_dep_breakdown.gd 2>&1 | tee /tmp/dep.txt
-          grep -q "todo OK" /tmp/dep.txt
+          guard_godot tools/test_dep_breakdown.gd
 
-      - name: Verify the loading bar advances when the engine's figure does not
-        run: |
+          # === Verify the loading bar advances when the engine's figure does not
           # load_threaded_get_status' fraction sits between 48.6% and 50.0%
           # for every one of the eight stalls in the last device log; Chimera
           # reads 48.6% at three seconds and 49.9% at twenty-six. The bar is
           # blended with a count of cached dependencies so it moves. The test
           # holds the loaded references, because a discarded load leaves the
           # cache immediately and would measure nothing.
-          $GODOT --headless --path . --script tools/test_load_progress.gd 2>&1 | tee /tmp/prog.txt
-          grep -q "todo OK" /tmp/prog.txt
+          guard_godot tools/test_load_progress.gd
 
-      - name: Verify the console's boot flag always clears
-        run: |
+          # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
           # landing between 13.34s and the end of the boot animation. A frame
           # that steps over that window strands it true for the life of the
           # scene and the whole console stops responding. This project has
           # frames seconds long.
-          $GODOT --headless --path . --script tools/test_console_boot_flag.gd 2>&1 | tee /tmp/boot.txt
-          grep -q "todo OK" /tmp/boot.txt
+          guard_godot tools/test_console_boot_flag.gd
 
-      - name: Verify a blackout shorter than the census is still logged
-        run: |
+          # === Verify a blackout shorter than the census is still logged
           # The census names a full-screen black rect when it sees one, but it
           # samples every 30 seconds - and the reported Chimera bug is a black
           # graphic that comes and goes during a song. A 40 second visit
           # produced two censuses, both reading opaque=[], while the player
           # was watching it happen. The instrument was asleep, not wrong.
-          $GODOT --headless --path . --script tools/test_blackout_watch.gd 2>&1 | tee /tmp/black.txt
-          grep -q "todo OK" /tmp/black.txt
+          guard_godot tools/test_blackout_watch.gd
 
-      - name: Verify the frame timer measures the frame
-        run: |
+          # === Verify the frame timer measures the frame
           # Godot's process delta is smoothed and clamped: measured against
           # this build, a 5000ms frame arrives as 66.7ms. Every frame-shape
           # number the log produces was shaped from it, which is how a device
           # log came back reporting worst=166.7ms for a session containing a
           # measured 11,489ms frame. The test blocks the thread, because delta
           # is accurate at 60fps - exactly when nobody needs it to be.
-          $GODOT --headless --path . --script tools/test_frame_clock.gd 2>&1 | tee /tmp/clock.txt
-          grep -q "todo OK" /tmp/clock.txt
+          guard_godot tools/test_frame_clock.gd
 
-      - name: Verify gpu= admits when the driver does not answer
-        run: |
+          # === Verify gpu= admits when the driver does not answer
           # viewport_get_measured_render_time_gpu returns 0.00 forever on some
           # drivers - the moto g(60)s (Mali-G76, driver 1.1.131) does it for
           # all 492 entries of one log, with cpu_render varying normally next
@@ -758,11 +763,9 @@ jobs:
           # gpu=. The discriminator is the pair, not the lone zero: across the
           # project's 33 logs the longest run of (gpu == 0 and cpu_render > 0)
           # is 492 on that device and 0 on the other five models.
-          $GODOT --headless --path . --script tools/test_gpu_timing_latch.gd 2>&1 | tee /tmp/gputiming.txt
-          grep -q "todo OK" /tmp/gputiming.txt
+          guard_godot tools/test_gpu_timing_latch.gd
 
-      - name: Verify the trance-shader gate cannot hide anything visible
-        run: |
+          # === Verify the trance-shader gate cannot hide anything visible
           # Safety Lullaby's WaterEffect and RadialEffect are full-screen
           # ColorRects on hint_screen_texture, and both shaders have an
           # identity branch that is their default state - the parameters all
@@ -774,11 +777,9 @@ jobs:
           # NEUTRAL_EPSILON; this pins that constant under the half-a-step
           # bound its own derivation gives (0.0071), which is the part that
           # can drift in silence.
-          $GODOT --headless --path . --script tools/test_trance_gate.gd 2>&1 | tee /tmp/trance.txt
-          grep -q "todo OK" /tmp/trance.txt
+          guard_godot tools/test_trance_gate.gd
 
-      - name: Verify Reduce Visual Effects reaches a mesh-resource material
-        run: |
+          # === Verify Reduce Visual Effects reaches a mesh-resource material
           # The stripper read material_override and the surface overrides -
           # both node-owned - and never the material set on the mesh resource.
           # Chimera's Ray box is exactly that, carrying shd_godrays: unshaded,
@@ -788,11 +789,9 @@ jobs:
           # one extra draw call and twelve primitives take 3.88ms to 8.05ms.
           # Inert on all four presets - only Custom with post=High reaches it -
           # so this is a correctness gate, not a win.
-          $GODOT --headless --path . --script tools/test_effect_mesh_hide.gd 2>&1 | tee /tmp/effmesh.txt
-          grep -q "todo OK" /tmp/effmesh.txt
+          guard_godot tools/test_effect_mesh_hide.gd
 
-      - name: Verify the light-energy gate and its audit tool's default
-        run: |
+          # === Verify the light-energy gate and its audit tool's default
           # Forward Mobile evaluates every light that reaches a fragment, so a
           # light at energy=0 still costs full price and only visible=false
           # removes it. This gate is opt-in per node (attaching it needs a
@@ -801,22 +800,18 @@ jobs:
           # a real bug the audit tool had: it read a missing light_energy
           # property line as 0.0, when Godot's own default is 1.0, and flagged
           # an ordinary light (the shop's LightbulbLight) as dead cost.
-          $GODOT --headless --path . --script tools/test_light_energy_gate.gd 2>&1 | tee /tmp/lightgate.txt
-          grep -q "todo OK" /tmp/lightgate.txt
+          guard_godot tools/test_light_energy_gate.gd
 
-      - name: Verify the retained-resource sweep stays cheap
-        run: |
+          # === Verify the retained-resource sweep stays cheap
           # The sweep runs on the main thread during a load, next to a loading
           # screen this project spent real effort keeping animated. Its first
           # version treated a directory listing as free inside a budgeted loop
           # and blew 2ms to 358ms in one frame - destroying the thing it was
           # added to explain. The bound is checked against the real project,
           # not a fixture.
-          $GODOT --headless --path . --script tools/test_retained_sweep.gd 2>&1 | tee /tmp/sweep.txt
-          grep -q "todo OK" /tmp/sweep.txt
+          guard_godot tools/test_retained_sweep.gd
 
-      - name: Verify the UI localization CSV resolves and falls back correctly
-        run: |
+          # === Verify the UI localization CSV resolves and falls back correctly
           # Godot auto-translates a Control's text/tooltip against whatever
           # TranslationServer.set_locale() is set to, keyed on the literal
           # English string authored in the .tscn - so the CSV at
@@ -827,11 +822,9 @@ jobs:
           # .csv silently loads nothing), that known keys resolve under "es",
           # and that locale "en" (or any locale with no translation) falls
           # straight back to the authored English text rather than erroring.
-          $GODOT --headless --path . --script tools/test_localization.gd 2>&1 | tee /tmp/i18n.txt
-          grep -q "todo OK" /tmp/i18n.txt
+          guard_godot tools/test_localization.gd
 
-      - name: Verify the Codes home icon still changes colour when selected
-        run: |
+          # === Verify the Codes home icon still changes colour when selected
           # The kind of bug a test normally misses: the button was wired
           # correctly and did swap materials on focus - the two materials just
           # looked the same. Every other icon swaps between two different
@@ -840,11 +833,9 @@ jobs:
           # material was that same texture at albedo_color 1.3 - a brightness
           # bump with no hue shift, so the icon read as dead when focused.
           # This pins that idle and select differ by a real shift toward red.
-          $GODOT --headless --path . --script tools/test_console_icon_select_tint.gd 2>&1 | tee /tmp/icontint.txt
-          grep -q "todo OK" /tmp/icontint.txt
+          guard_godot tools/test_console_icon_select_tint.gd
 
-      - name: Verify hardcoded uid:// references resolve
-        run: |
+          # === Verify hardcoded uid:// references resolve
           # Catches the collector-shop crash class before it ships: a bare
           # "uid://..." string literal in .gd code (SceneChanger.change_to,
           # preload, change_scene_to_file - no res:// path to fall back to,
@@ -857,7 +848,15 @@ jobs:
           # (ext_resource uid mismatches - those degrade gracefully to a
           # text-path fallback instead of crashing, so they're a quality
           # issue, not a build-breaking one).
-          $GODOT --headless --script tools/verify_hardcoded_uids.gd 2>&1
+          guard_godot tools/verify_hardcoded_uids.gd --no-path
+          if [ ${#failed[@]} -ne 0 ]; then
+            echo
+            echo "::error::${#failed[@]} guard(s) failed:"
+            for f in "${failed[@]}"; do echo "::error::  $f"; done
+            exit 1
+          fi
+          echo
+          echo "all $ran guards passed"
 
       - name: Create builds directory
         run: |

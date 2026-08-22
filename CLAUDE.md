@@ -3865,6 +3865,61 @@ broken: idle and select must differ by a **hue** shift, not just
 brightness (`r / max(g, b) >= 1.25`). Mutation-tested - restoring the old
 `Color(1.3, 1.3, 1.3)` gives a ratio of exactly 1.00 and fails the check.
 
+### And Training's icon looked locked, which was the same class of bug
+
+Reported right after the Codes one, and again nothing was wired wrong:
+`disabled = false`, the same `ConsoleHomeButton` script, the same two
+gradient materials as Settings and Credits. `env_collector_shop.tscn` was
+overriding the mesh:
+
+    [node name="TRAINING" parent=".../ui_training/UI_Icons/Skeleton3D"]
+    material_override = ExtResource("189")     # mat_console_inactive.tres
+
+**`material_override` beats `surface_set_material()`**, which is what the
+focus swap uses - so that icon could never respond to anything, ever.
+`TRAINING` was the only node in the whole `IconSubViewport` carrying one,
+and nothing in the project clears it at runtime (checked).
+
+It was a half-finished unlock, and the evidence is in this repo's own
+code: `lullaby_training.gd`'s header records that the tab shipped *"behind
+a Home icon shipping `disabled = true`"*. When the feature was implemented
+the flag was flipped and the grey override was left behind - functionally
+unlocked, visually still locked.
+
+The now-unreferenced `ExtResource("189")` declaration went with it. The
+`.tres` file itself stays: per this file's standing rule an asset is not
+deleted for looking orphaned, and `audit_console_icon_materials.py` still
+pins its transparency mode.
+
+The guard covers this as a **shape**, not as one node name: no icon inside
+the console's `IconSubViewport` may carry a `material_override` at all,
+because every one of them is driven by the focus swap that an override
+silently wins over. Mutation-tested - reintroducing the line fails with
+`offenders: TRAINING`.
+
+### The 37 guard steps are one step now
+
+The workflow had grown to 71 steps, 37 of them guards, each its own
+`- name:` with a two-line body. Collapsed into a single `Run the guard
+suite` step (71 -> 35 steps), which is not just tidier:
+
+- **Every guard runs even after one fails.** The old shape stopped at the
+  first red step, so a build with three broken guards took three
+  push-and-wait cycles to discover. Now one run names all of them, as
+  `::error::` annotations.
+- **Each guard's output is wrapped in a `::group::`**, so the log is
+  collapsed by default and one click from the detail.
+- **The log filenames are derived from the script name.** The old steps had
+  `test_preload_sweep` and `test_retained_sweep` both writing
+  `/tmp/sweep.txt`, which only worked because they were separate steps.
+
+The per-guard comments moved with them, verbatim, above their own
+`guard_godot`/`guard_python` line - that "why" is the point of them. Two
+shapes are supported: a Godot script that prints `todo OK`, and a Python
+audit that exits non-zero (`--no-path` for the one guard that runs without
+`--path .`). Verified by extracting the step's own shell out of the YAML
+and running it against fake passing and failing guards, both paths.
+
 `console.play_sound` only ever reached `sfx/shop/console/*.wav` -
 `console_sfx.gd`'s handler had the folder and the extension hardcoded. Given
 a name it can't find there, it now falls back to `sfx/misc/*.mp3` before
