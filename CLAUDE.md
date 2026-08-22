@@ -3930,6 +3930,39 @@ showing players an example that does not work if typed - and `toggle_button
 .tscn`'s default `text = "Toggle"`, the same kind of inert template default
 as `kollectadex_entry.tscn`'s `"Name"`/`"001"`.
 
+**A fifth pass took on the shop's reactive voicelines** -
+`lullaby_mod/resources/audio/vox/**/*.tres`, 32 `VoicelineGroup` files, 115
+`VoicelineEntry.dialogue_text` lines of the Collector's own voice, spoken
+over real English audio the translation does not touch (subtitles
+diverging from spoken audio is completely standard - this is no different
+from a subtitled film). This is the system flagged as deliberately deferred
+in the first pass; it went ahead once asked for directly, and it is the
+single largest piece of content in the whole CSV - bigger than every other
+pass combined.
+
+Extracting it cleanly needed a real fix: the earlier passes' escape-
+handling ran every matched string through `.encode().decode('unicode_escape')`
+whenever it contained a `\"`, and that codec assumes Latin-1 byte semantics -
+it silently mangled a real em dash (`—`, UTF-8 `E2 80 94`) in one of these
+lines into `â\x80\x94` the moment that same line also had an escaped quote.
+Fixed by only ever replacing the two escapes these `.tres` files actually
+use (`\"` and `\\`) and leaving everything else untouched byte-for-byte -
+verified against the raw file bytes before trusting any of the 115.
+
+Each `dialogue_text` here is a single complete line (a few end in a bare
+`\n`/`\n\n`, kept exact in the key), unlike the Collector's intro greeting
+where one blob held ten lines - so this batch is back to one key per
+line, same shape as the Kollectadex bios. "Collectoree" - the Collector's
+own demeaning-affectionate made-up word for the player - became
+"coleccionistoide" throughout, consistently; `Soultoken`, `SOULROOM`,
+`Kollectadex` and the rest of the game's own coined terms stayed
+untranslated, same convention as every other proper noun in this file.
+Four lines translate to themselves on purpose (`"NO."`, `"MM."`, `"M."`,
+`"Virgo."` - a zodiac sign name) and are not a coverage gap; verified by
+replaying all 115 real lines through `tr()` against the actual scene data
+and confirming every non-identical line changed and every identical one
+was one of those four.
+
 **Found and deliberately left alone, so the same ground doesn't get
 re-covered by a future sweep:**
 

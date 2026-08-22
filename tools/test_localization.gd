@@ -32,6 +32,8 @@ const SAMPLE_KEYS: Dictionary[String, String] = {
 	"Score: %d %s Accuracy: %.2f%% %s Misses: %d": "Puntuación: %d %s Precisión: %.2f%% %s Fallos: %d",
 	"Hello and Welcome to the Cabinet of Novelties!": "¡Hola y bienvenido al Gabinete de las Novedades!",
 	"*COUGHS*": "*TOSE*",
+	"WELCOME BACK, COLLECTOREE!": "¡BIENVENIDO DE VUELTA, COLECCIONISTOIDE!",
+	"HELLO!": "¡HOLA!",
 }
 
 var _failures: int = 0

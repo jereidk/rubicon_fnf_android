@@ -8,6 +8,8 @@ NEW GRADE!!!","
 $BIND Switch Cartridge,$BIND Cambiar cartucho
 (Must delete shader cache after each benchmark to see differences),(Hay que borrar la caché de shaders tras cada prueba para ver diferencias)
 *COUGHS*,*TOSE*
+*Sleep Sounds*,*Sonidos de dormir*
+*singing sounds*,*sonidos de canto*
 2D Art,Arte 2D
 2D Artist,Artista 2D
 3D Artist,Artista 3D
@@ -16,7 +18,14 @@ A cheaper edge smoothing pass than MSAA. Worth trying if MSAA alone is still too
 "A rising star now rotted. He joins the residents of Mt Silver at its peak. Some say his voice still echoes in the quietest reaches of the town. Musical prowess persists despite the half digested cranium. His voice now commandeered for something new.
 ","Una estrella en ascenso, ahora podrida. Se une a los residentes del Monte Plateado, en su cima. Dicen que su voz aún resuena en los rincones más silenciosos del pueblo. Su talento musical persiste pese a su cráneo medio digerido. Su voz, ahora al servicio de algo nuevo.
 "
+"AHHHH, MY FAVORITE COLLECTOREE!","¡AHHHH, MI COLECCIONISTOIDE FAVORITO!"
+"AHH… MONOCHROME. WHAT A GOREY LITTLE FELLA- I REALLY FELT BAD FOR HIM, Y'KNOW? OH WELL... GO BEAT IT FOR ME. KEEP AN EYE OUT ON THOSE EYES...  NYEHEHAHA!","AHH… MONOCHROME. VAYA TIPEJO SANGRIENTO- ME DIO PENA DE VERDAD, ¿SABES? EN FIN... VE A GANARLO POR MÍ. TEN CUIDADO CON ESOS OJOS...  ¡NIEJEJAJA!"
+ALREADY?? HAH! YOUR GRANDMA COULD'VE BEATEN THAT. ,¿¿YA?? ¡JA! HASTA TU ABUELA HABRÍA PASADO ESO. 
+"AND YOU MAY BE ASKING, ""WELL WHY DON'T YOU DO IT YOURSELF?"" WELL I'VE TRIED! BUT THESE SOULS DON'T LIKE A TALL, CHARISMATIC, HANDSOME COLLECTOR LIKE MYSELF COMING INTO THEIR SPACES AND TAKING THEIR ARTIFACTS. SO YOU'LL DO IT!","Y PUEDE QUE PREGUNTES, ""BUENO, ¿POR QUÉ NO LO HACES TÚ MISMO?"" ¡PUES LO HE INTENTADO! PERO A ESTAS ALMAS NO LES GUSTA QUE UN COLECCIONISTA ALTO, CARISMÁTICO Y APUESTO COMO YO ENTRE EN SUS ESPACIOS Y SE LLEVE SUS ARTEFACTOS. ¡ASÍ QUE LO HARÁS TÚ!"
+"AND, IF YOU'RE WORRIED, DON'T WORRY... YOU WON'T DO IT AS YOURSELF, INSTEAD YOU'LL BE STANDING SAFELY BEHIND A SCREEN, AND POSSESSING THE CREATURE'S CLOSE FRIEND, FAMILY MEMBER, VICTIM, OR ANYTHING THAT FALLS IN BETWEEN.","Y, SI TE PREOCUPA, NO TE PREOCUPES... NO LO HARÁS COMO TÚ MISMO, EN VEZ DE ESO ESTARÁS A SALVO DETRÁS DE UNA PANTALLA, POSEYENDO AL AMIGO CERCANO, FAMILIAR, VÍCTIMA, O LO QUE SEA QUE CAIGA ENTREMEDIO, DE LA CRIATURA."
 ANGLE Video Driver Detected,Controlador de vídeo ANGLE detectado
+"AS YOU BEAT MY CARTRIDGES AND HAND THEIR RESPECTIVE ARTIFACTS TO ME, THE CONSOLE WILL REWARD YOUR HARD WORK WITH A SOULTOKEN.","A MEDIDA QUE TE PASES MIS CARTUCHOS Y ME ENTREGUES SUS RESPECTIVOS ARTEFACTOS, LA CONSOLA RECOMPENSARÁ TU ESFUERZO CON UN SOULTOKEN."
+"AWWW, DID YOU MISS ME ALREADY? WELCOME BACK COLLECTOREE!","AWWW, ¿YA ME EXTRAÑABAS? ¡BIENVENIDO DE VUELTA, COLECCIONISTOIDE!"
 "Adjust input timings, if in case of delays.","Ajusta la sincronización de la entrada, por si hay retrasos."
 Advanced Settings,Ajustes avanzados
 Affects overall volume of the game.,Afecta al volumen general del juego.
@@ -41,7 +50,13 @@ Baby Mode,Modo fácil
 Brightens the zone you are holding so a press reads clearly. Off makes the whole hitbox one flat shade.,Ilumina la zona que estás manteniendo pulsada para que se note claramente. Apagado deja toda la zona de impacto de un solo tono plano.
 Buy,Comprar
 Buzzes briefly each time you hit a note in Touch mode. Turn it off if the constant vibration bothers you or drains the battery.,Vibra brevemente cada vez que aciertas una nota en modo Toque. Apágalo si la vibración constante te molesta o gasta batería.
+"CABIN, OH CABIN-ET OF NOVELTIEESSSSSSS!","¡GABI, OH GABI-NETE DE LAS NOVEDAAAADEEEESSS!"
 CAST,REPARTO
+"CHIMERA… A GOOD PICK! HEH. THE BEST ONE! JUST... GET THAT ONE OVER WITH QUICKLY YEAH? Okay, thanks.","CHIMERA… ¡BUENA ELECCIÓN! JEH. ¡LA MEJOR! SÓLO... ACABA CON ESA RÁPIDO, ¿VALE? Vale, gracias."
+COLLECTOR HAS WARES IF YOU HAVE... COIN. MHMHMHM.,EL COLECCIONISTA TIENE MERCANCÍA SI TIENES... MONEDA. MJMJMJM.
+COME BACK AGAIN TOMORROW!,¡VUELVE MAÑANA!
+COME BACK AGAIN.,VUELVE PRONTO.
+CONGRATULATIONS ON THE SOULTOKEN! MUEAHEHAHAHAHAHA!,¡FELICIDADES POR EL SOULTOKEN! ¡MUAJAJAJAJAJAJA!
 CREDITS,CRÉDITOS
 Calls over your grandest Collector to attempt mechanics for you.,Llama a tu gran Coleccionista para que intente las mecánicas por ti.
 Cartridges,Cartuchos
@@ -63,6 +78,8 @@ Composers,Compositores
 Continue,Continuar
 Credits,Créditos
 Credits Theme,Tema de créditos
+DO YOU MIND NOT INTERRUPTING ME? THANK YOU. AH- HEM.,¿TE IMPORTARÍA NO INTERRUMPIRME? GRACIAS. AH- HEM.
+DON’T TOUCH ME THERE!,¡NO ME TOQUES AHÍ!
 "Daughter to the greatest musical trainers beyond the farthest reaches of Kanto. Mentally resilient despite first impressions. Forever searching for her loved one, the remnants of his ever distant voice echo in the dark.
 ","Hija de los mejores entrenadores musicales más allá de los confines de Kanto. Mentalmente resiliente pese a las primeras impresiones. Busca sin descanso a su ser querido; los restos de su voz, cada vez más lejana, resuenan en la oscuridad.
 "
@@ -76,9 +93,13 @@ Did you see my commercial?,¿Viste mi anuncio?
 Down,Abajo
 Downscroll,Desplazamiento hacia abajo
 Draws the outline around each lane zone so you can see where one starts and another ends.,Dibuja el contorno de cada zona de carril para que veas dónde empieza una y termina otra.
+"EUGHHH, THIS AGAIN?","UGHHH, ¿ESTO OTRA VEZ?"
 EXIT,SALIR
+"EYYY, THANKS FOR GETTING THAT PENDULUM FOR ME I- you, you only got. The string? YOU ONLY GOT THE STRING?? I NEED THE FULL PENDULUM! UEGHHH!! HUHHH… UHHHHMM. I GUESS I CAN USE THIS TO MAKE A NEW CARTRIDGE FOR YOU. YOU'RE GONNA GO BACK IN THERE, ANOTHER TIME THOUGH...","EYYY, GRACIAS POR CONSEGUIRME ESE PÉNDULO YO- tú, sólo trajiste. ¿La cuerda? ¿¿SÓLO TRAJISTE LA CUERDA?? ¡NECESITO EL PÉNDULO ENTERO! ¡¡UEGHHH!! HUHHH… UHHHHMM. SUPONGO QUE PUEDO USAR ESTO PARA HACERTE UN CARTUCHO NUEVO. ESO SÍ, VAS A TENER QUE VOLVER AHÍ DENTRO, OTRA VEZ..."
 Enter a code:,Introduce un código:
 Exit,Salir
+FINE JUST HAVE IT ALREADY. JUST STOP. EOUGH... HAPPY NOW?,"BUENO, YA, TÓMALO. YA PARA. EUGH... ¿CONTENTO AHORA?"
+"FREAKY LITTLE INFESTED THING, I WOULDN'T WANNA BE NEAR HIM EITHER. YOU GOTTA DO IT THOUGH, I'M NOT GONNA HOLD YOUR HAND.","MENUDO BICHITO INFESTADO Y RARO, YO TAMPOCO QUERRÍA ESTAR CERCA DE ÉL. AUN ASÍ TIENES QUE HACERLO, NO TE VOY A LLEVAR DE LA MANO."
 FSR Sharpness: ,Nitidez FSR: 
 Flashing Lights,Luces intermitentes
 "For the average computer [Post-processing low, basic antilaliasing]","Para el ordenador medio [Postprocesado bajo, antialiasing básico]"
@@ -104,12 +125,31 @@ de este fangame ni de su desarrollo.
 
 Todas las personas y eventos representados en este juego son ficticios.
 Cualquier parecido con personas o eventos reales es involuntario."
+"GO BACK IN AND GET RID OF HER, WHAT ARE YOU DOING??","VUELVE AHÍ Y LÍBRATE DE ELLA, ¿¿QUÉ ESTÁS HACIENDO??"
+GO POKE A DIFFERENT GUY! GO- GO POKE THE SETTINGS GUY!,¡VE A PINCHAR A OTRO TIPO! VE- ¡VE A PINCHAR AL TIPO DE LOS AJUSTES!
 "GODMODE activated. You are now invincible to embarrassment. Wait, no.","MODODIOS activado. Ahora eres invencible a la vergüenza ajena. Espera, no."
+GOING ALREADY? PSH... IT'S FINE... UEGHHUGHH,¿YA TE VAS? PSH... ESTÁ BIEN... UEGHHUGHH
+"GOOD WORK, MY FAVORITE COLLECTOREE! I KNEW I COULD BARELY TRUST YOU! NYEHAHAHAHA!","¡BUEN TRABAJO, MI COLECCIONISTOIDE FAVORITO! ¡SABÍA QUE APENAS PODÍA CONFIAR EN TI! ¡NIAJAJAJAJA!"
+GREAT CHOICE.,GRAN ELECCIÓN.
+GREAT PICK!,¡GRAN ELECCIÓN!
 Gallery,Galería
 Gameplay Control: ,Control de juego: 
 Ghost Tapping,Toque fantasma
 Graphics,Gráficos
 Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible.,Gráficos. Alto: la experiencia visual pensada por la dirección. Normal: gráficos reducidos. Bajo: lo más bajo posible.
+HAVE FUN NOW!,¡DIVIÉRTETE!
+"HEEEY, WOAHH, DON'T LOOK AT ME! I'M NOT GONNA HELP YOU ON THIS ONE.","¡EEEY, GUAU, NO ME MIRES A MÍ! EN ESTA NO TE VOY A AYUDAR."
+HEH. NOT DOING THAT ONE. THAT'S ALL YOU KID. HEH. MH-MHMM.,"JEH. ESA NO LA HAGO YO. ESA TE TOCA A TI, CHAVAL. JEH. MH-MHMM."
+HELLO!,¡HOLA!
+HELLOOOOO? CABINET OF NOVELTIES CALLING.,¿HOOOOLA? LLAMANDO DESDE EL GABINETE DE LAS NOVEDADES.
+"HEY. NO LOITERING...
+","OYE. NADA DE HOLGAZANEAR POR AQUÍ...
+"
+"HEY... ARE YOU THERE..? DON'T MAKE ME GET UP AND POKE YA, THAT'S YOUR JOB.","OYE... ¿ESTÁS AHÍ..? NO ME HAGAS LEVANTARME Y PINCHARTE, ESE ES TU TRABAJO."
+HI.,HOLA.
+HOW MUCH LONGER DO I NEED TO TAP MY FINGERS FOR? GO POKE SOMETHING!,¿CUÁNTO MÁS TENGO QUE ESTAR TAMBORILEANDO LOS DEDOS? ¡VE A PINCHAR ALGO!
+HUH? GOING ALREADY? PSH. I DIDN'T CARE. UAAHHHHHHH UAA,¿EH? ¿YA TE VAS? PSH. NO ME IMPORTABA. UAAHHHHHHH UAA
+HUH?? MY ZODIAC? PFFFFT- MUAHEHAHAHASEHAHAHAHAUHAHAH! EOUGHHCH HUOH EUGH.,¿¿EH?? ¿MI ZODIACO? PFFFFT- ¡MUAJEJAJAJASEJAJAJAJAUJAJAH! EUGHHCH HUOH EUGH.
 Hello and Welcome to the Cabinet of Novelties!,¡Hola y bienvenido al Gabinete de las Novedades!
 Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show!,¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer!
 Hitbox Gradient,Degradado de zona de impacto
@@ -126,6 +166,17 @@ How the image is stretched back up when Render Scale is below 100%. FSR2 is the 
 "How the note lanes are arranged. Classic is the layout the songs were made with. VSlice centres your strumline, makes the notes bigger and spaces the lanes further apart.","Cómo se disponen los carriles de notas. Clásico es la disposición con la que se hicieron las canciones. VSlice centra tu línea de rasgueo, agranda las notas y separa más los carriles."
 How visible the lane zones are. 100 is the original look; lower fades them out.,Cuán visibles son las zonas de carril. 100 es el aspecto original; más bajo las difumina.
 How wide the window is to hit a note. Lenient if Perfects feel impossible to land.,Cuán ancha es la ventana para acertar una nota. Indulgente si los Perfectos parecen imposibles de conseguir.
+I ALSO HATE THAT PENDULUM. HATE IT. HATE IT! HATE IT!!! GOD!! GLAD SOMEONE ELSE AGREES!,¡YO TAMBIÉN ODIO ESE PÉNDULO. LO ODIO. LO ODIO! ¡LO ODIO!!! ¡¡DIOS!! ¡ME ALEGRA QUE ALGUIEN MÁS ESTÉ DE ACUERDO!
+"I DIDN'T LEND MY HAND FOR YOU TO ONLY POKE ME.
+","NO PRESTÉ MI MANO PARA QUE SÓLO ME PINCHES A MÍ.
+"
+I DON'T BLAME YOU FOR QUITTING THAT EITHER. COULD YOU IMAGINE TRYING TO TALK TO SOMEONE THAT MANIPULATIVE? PUH! WHAT A GODDAMN CON ARTIST.,TAMPOCO TE CULPO POR DEJARLO. ¿TE IMAGINAS INTENTAR HABLAR CON ALGUIEN TAN MANIPULADOR? ¡PUH! MENUDO EMBAUCADOR DE MIERDA.
+I HOPE YOU LEARNED YOUR LESSON. THIS FINE CONNOISSEUR NEEDS HIS HAT UNCREASED.,ESPERO QUE HAYAS APRENDIDO LA LECCIÓN. ESTE FINO CONOCEDOR NECESITA SU SOMBRERO SIN ARRUGAS.
+"I KNOW, I KNOW. TYPING GAMES AREN'T MY FAVORITE EITHER, BUT THAT ONE WAS THE EASIEST THING YOU COULD'VE TYPED!","YA LO SÉ, YA LO SÉ. LOS JUEGOS DE ESCRIBIR TAMPOCO SON MIS FAVORITOS, ¡PERO ESO ERA LO MÁS FÁCIL QUE PODÍAS HABER ESCRITO!"
+I POKE YOU TOO.,YO TAMBIÉN TE PINCHO A TI.
+I SWEAR I'VE ALREADY ANSWERED THIS.,JURO QUE YA HABÍA RESPONDIDO ESTO.
+"IF I HAVEN'T MADE IT OBVIOUSLY AND PLAINLY CLEAR ENOUGH, I’M THE COLLECTOR! AND YOU'RE IN MY SHOP, THE CABINET OF NOVELTIES.","SI NO LO HE DEJADO OBVIA Y CLARAMENTE CLARO YA, ¡SOY EL COLECCIONISTA! Y ESTÁS EN MI TIENDA, EL GABINETE DE LAS NOVEDADES."
+"IF YOU'RE REFERRING TO YOUR WORK FOR MOI, YOUR JOB IS TO GO INTO SONGS AND BRING ME BACK SOME ARTIFACTS! EACH SONG HAS A DIFFERENT ARTIFACT CLOSELY RELATED TO THE BEING YOU DUKE IT OUT WITH.","SI TE REFIERES A TU TRABAJO PARA MOI, ¡TU TRABAJO ES ENTRAR EN LAS CANCIONES Y TRAERME ALGUNOS ARTEFACTOS! CADA CANCIÓN TIENE UN ARTEFACTO DISTINTO, ÍNTIMAMENTE LIGADO AL SER CON EL QUE TE ENFRENTAS."
 IN-GAME SHOP,TIENDA DEL JUEGO
 "If on, lets you press lanes freely without getting punished for not hitting a note.","Si está activo, te deja pulsar carriles libremente sin castigo por no acertar una nota."
 "If you are seeing this, your graphics card does not support
@@ -150,12 +201,18 @@ Invalid code.,Código no válido.
 "I’m The Collector, the finest connoisseur of magical items across all planes!","¡Soy el Coleccionista, el más fino conocedor de objetos mágicos de todos los planos!"
 Keyboard: ,Teclado: 
 LALALALA,LALALALA
+LET'S COLLECT ARTIFACTS TOGETHER SOME OTHER TIME.,COLECCIONEMOS ARTEFACTOS JUNTOS OTRO DÍA.
+"LISTEN, I ALSO GOT HYPNOTIZED BY THAT JAUNDICED FELLOW ONCE, UNKEMPT DIRTY ASS CAVE HE'S GOT OVER THERE. I DON'T BLAME YOU.","MIRA, A MÍ TAMBIÉN ME HIPNOTIZÓ ESE TIPO AMARILLENTO UNA VEZ, VAYA CUEVA MÁS SUCIA Y DESASTROSA QUE TIENE AHÍ. NO TE CULPO."
 Language: ,Idioma: 
 Leave,Salir
 Leave the shop?,¿Salir de la tienda?
 Left,Izquierda
 Light Culling: ,Descarte de luces: 
 Locks frame rate to monitor's refreshrate to combat screen tearing.,Limita la tasa de fotogramas a la frecuencia de refresco del monitor para evitar el tearing.
+M.,M.
+"MIND YOU NOW, THE CONSOLE ONLY GIVES A SOULTOKEN FOR BEATING EXPERIENCES FOR THE FIRST. TIME. ONLY.","ESO SÍ, LA CONSOLA SÓLO DA UN SOULTOKEN POR SUPERAR EXPERIENCIAS LA PRIMERA. VEZ. NADA MÁS."
+MM.,MM.
+"MOST OF THEM. THINK OF THEM LIKE SENTIENT FIGURINES, SOME OF WHICH WANT TO RIP YOUR GUTS OUT AND CONSUME YOUR MIND. NOM NOM NOM NOM NOM NOM NOM MUEHAHAHAHUHAHA! *COUGH* AEGH.","LA MAYORÍA. PIENSA EN ELLAS COMO FIGURITAS CONSCIENTES, ALGUNAS DE LAS CUALES QUIEREN ARRANCARTE LAS TRIPAS Y DEVORARTE LA MENTE. ÑAM ÑAM ÑAM ÑAM ÑAM ÑAM ÑAM ¡MUAJAJAJAJUJAJA! *TOSE* AEGH."
 MYAHAHAHA!,¡MUAJAJAJA!
 MYAHAHAHAHA!,¡MUAJAJAJAJA!
 MYAHAHAHAHAHAHA!,¡MUAJAJAJAJAJAJA!
@@ -169,6 +226,10 @@ Midscroll,Desplazamiento centrado
 "Multiplier for chart scroll speed, the speed at which notes come down the screen.","Multiplicador de la velocidad de desplazamiento del chart, la velocidad a la que bajan las notas por la pantalla."
 Music Volume: ,Volumen de música: 
 Mute Volume: ,Silenciar volumen: 
+NEW LIGHT ALERT!,¡ALERTA DE LUZ NUEVA!
+NO.,NO.
+NO. I TOLD YOU NOT TO ASK ME.,NO. TE DIJE QUE NO ME PREGUNTARAS.
+"NOW, LOOK WHAT THE SOULS DRAGGED IN!","¡VAYA, MIRA LO QUE ARRASTRARON LAS ALMAS!"
 Never Played,Nunca jugada
 "No, close the game.","No, cerrar el juego."
 "Normal locks a standard 16:9 frame and pillarboxes the rest, which is how the songs are authored. Wide fills a wide screen with extra game world, which can show past what a stage was built to cover.","Normal fija un cuadro 16:9 estándar y rellena el resto con barras negras, que es como se diseñaron las canciones. Panorámico llena una pantalla ancha con más mundo de juego, lo que puede mostrar más allá de lo que el escenario fue construido para cubrir."
@@ -178,10 +239,15 @@ Note Left: ,Nota Izquierda:
 Note Right: ,Nota Derecha: 
 Note Up: ,Nota Arriba: 
 "OF COURSE YOU DID, YOU’RE HERE! ","¡CLARO QUE SÍ, AQUÍ ESTÁS! "
+OH AND FEEL FREE TO COME BACK AND REEXPERIENCE THESE EVENTS AGAIN! MOST OF THOSE CREATURES WON'T EVEN REMEMBER YOU COMING IN AGAIN!,"AH, Y SIÉNTETE LIBRE DE VOLVER Y REVIVIR ESTOS SUCESOS OTRA VEZ. ¡LA MAYORÍA DE ESAS CRIATURAS NI SIQUIERA RECORDARÁN QUE HAS VUELTO!"
+"OH. YOU WANT ME TO BE MORE SPECIFIC? WELL THEN. I'M YOUR MENTOR, YOUR PAPA, YOUR GUIDE, YOUR EVERYTHING. DESTINED TO SIT IDLY BY IN MY STORE AND TO KEEP YOU SAFE WHILE YOU'RE OUT COLLECTING.","OH. ¿QUIERES QUE SEA MÁS ESPECÍFICO? PUES BIEN. SOY TU MENTOR, TU PAPÁ, TU GUÍA, TU TODO. DESTINADO A QUEDARME OCIOSO EN MI TIENDA Y A MANTENERTE A SALVO MIENTRAS ANDAS POR AHÍ COLECCIONANDO."
+"OHHHH! THAT'S WHAT YOU MEANT. SHOULD'VE SAID IT THE FIRST TIME. WE ARE SOMEWHERE, LOCALIZED IN THE MIDDLE OF SOMETIME.","¡OHHHH! ESO QUERÍAS DECIR. HABÉRLO DICHO DESDE EL PRINCIPIO. ESTAMOS EN ALGÚN LUGAR, LOCALIZADOS EN MITAD DE ALGÚN MOMENTO."
+"OKAY, AHEM. FIRST OF ALL? THEY'RE NOT RAP BATTLES.","BUENO, AHEM. ¿LO PRIMERO? NO SON BATALLAS DE RAP."
 Offset: ,Desfase: 
 "Offsets the position of all notes, in case of delays.","Desplaza la posición de todas las notas, por si hay retrasos."
 P e n d u l u m,P é n d u l o
 P u l s e,P u l s o
+"PLUS, SOMEONE'S GOTTA WATCH THE SHOP.","ADEMÁS, ALGUIEN TIENE QUE VIGILAR LA TIENDA."
 Passed,Superada
 Pause: ,Pausa: 
 Places player arrows at the bottom of the screen and makes notes scroll down.,Coloca las flechas del jugador en la parte inferior de la pantalla y hace que las notas bajen.
@@ -210,9 +276,21 @@ Resolution: ,Resolución:
 Right,Derecha
 Role,Rol
 Root access: denied. Fart access: granted.,Acceso root: denegado. Acceso a pedos: concedido.
+SEE YOU AGAIN SOME OTHER NIGHT!,¡NOS VEMOS OTRA NOCHE!
+SEE? I TOLD YOU THEY'D BE BACK!,¿VES? ¡TE DIJE QUE VOLVERÍAN!
+SEE? I TOLD YOU THEY'D BE BACK! Hello~,¿VES? ¡TE DIJE QUE VOLVERÍAN! Hola~
 SFX,SFX
 SFX Volume: ,Volumen de SFX: 
+"SINCE THE STOCK FOR ALL OF THE CONSOLES AND CONTROLLERS ARE ALL SOLD OUT, I'M LENDING YOU MINE UNDER MY COLLECTACOUNT.","COMO SE AGOTARON TODAS LAS CONSOLAS Y MANDOS, TE PRESTO LA MÍA BAJO MI COLECCIOCUENTA."
+SO DON'T DO ANYTHING STUPID WITH IT.,ASÍ QUE NO HAGAS NINGUNA TONTERÍA CON ELLA.
+SO… AHEM.. How’s the family?,Entonces… ahem.. ¿cómo está la familia?
 SPECIAL THANKS,AGRADECIMIENTOS ESPECIALES
+"STOP THAT! VINTAGE LEATHER AIN'T CHEAP!
+
+","¡PARA YA! ¡EL CUERO VINTAGE NO ES BARATO!
+
+"
+STOP THAT.,PARA YA.
 "Score:
 %d
 
@@ -286,8 +364,24 @@ Mode","Modo
 Historia"
 Strips decorative shader effects throughout the game. Optimized turns this on automatically; use it to get the same boost without dropping the rest of your preset.,Elimina los efectos de shader decorativos de todo el juego. Optimizado lo activa automáticamente; úsalo para obtener la misma mejora sin bajar el resto de tu preajuste.
 T y p i n g,E s c r i t u r a
+TAKE A LOOK!,¡ECHA UN VISTAZO!
+"THAT BUTTON DOES NOTHING, BY THE WAY. JUST TELLS ME WHEN YOU WANT IT TO BE... BABY MODE. I'LL DO THE MECHANICS FOR YOUR SORRY SOUL SINCE YOU CAN'T HANDLE ANYTHING. AS A FAIR WARNING, THERE'S A REASON I HAVE YOU PLAYING AND NOT ME. YOU WON'T GET ANY SOULTOKENS FROM THIS, THE CONSOLE REFUSES ME.","ESE BOTÓN NO HACE NADA, POR CIERTO. SÓLO ME AVISA CUANDO QUIERES QUE SEA... MODO FÁCIL. HARÉ YO LAS MECÁNICAS POR TU PATÉTICA ALMA YA QUE NO PUEDES CON NADA. AVISO JUSTO: HAY UN MOTIVO POR EL QUE JUEGAS TÚ Y NO YO. NO VAS A CONSEGUIR NINGÚN SOULTOKEN CON ESTO, LA CONSOLA ME LO NIEGA A MÍ."
+THAT'S HOW YOU GET SOME REAL RAW AND JUICY EMOTION. MUEHAHAHAHAHAA! *COUGH* AEGH.,"ASÍ ES COMO CONSIGUES UNA EMOCIÓN DE VERDAD, CRUDA Y JUGOSA. ¡MUAJAJAJAJAJAA! *TOSE* AEGH."
+THAT'S IT! COME BACK NEXT TIME I FEEL LIKE IT.,¡ESO ES TODO! VUELVE LA PRÓXIMA VEZ QUE ME APETEZCA.
+"THAT’S IT, THAT’S HOW IT WORKS, NO ASKING ME FOR MORE SOULTOKENS. OFF YOU GO NOW!
+
+","ESO ES TODO, ASÍ FUNCIONA, NO ME PIDAS MÁS SOULTOKENS. ¡AHORA VETE YA!
+
+"
+THE SOULROOM COLLECTOR'S EDITION IS A STATE OF THE ART GAMING CONSOLE THAT I VERY METHODICALLY PUT TOGETHER FOR YOU AND OTHER COLLECTOREES TO PLAY WITH!,¡LA SOULROOM EDICIÓN COLECCIONISTA ES UNA CONSOLA DE VANGUARDIA QUE ENSAMBLÉ MUY METÓDICAMENTE PARA QUE JUGARAS TÚ Y OTROS COLECCIONISTOIDES!
+THERE'S NOTHING ELSE HERE MAN.,"NO HAY NADA MÁS AQUÍ, TÍO."
+"THEY'RE MUSICAL BATTLES FOR SOULS, AND WHAT THEY HOLD DEAREST TO THEIR HEARTS! AFTER ALL, ISN'T MUSIC THE WINDOW INTO THE SOUL?","¡SON BATALLAS MUSICALES POR LAS ALMAS, Y POR LO QUE MÁS QUIEREN SUS CORAZONES! AL FIN Y AL CABO, ¿NO ES LA MÚSICA LA VENTANA AL ALMA?"
+"THINK OF IT LIKE... A TRAIN STATION, WHERE THIS IS THE HUB YOU CAN GO ANYWHERE YOU NEED, AND I'M THE DASHING CONDUCTOR! MUEHAHAHEH EOUGHCH... I'VE MADE IT A ONE OF A KIND WELCOMING HOME, WOULDN'T YOU AGREE?","PIENSA EN ELLO COMO... UNA ESTACIÓN DE TREN, DONDE ESTE ES EL NÚCLEO DESDE EL QUE PUEDES IR A DONDE NECESITES, ¡Y YO SOY EL APUESTO CONDUCTOR! MUAJAJAJEH EUGHCH... LO HE CONVERTIDO EN UN HOGAR ACOGEDOR ÚNICO EN SU CLASE, ¿NO CREES?"
 TIME: %s,TIEMPO: %s
+"TOO DIFFICULT FOR YA? IT'S OKAY... MOMMY'S HERE FOR YA, MWEHMWEHMWAH! HEHAHEHEHEH!","¿DEMASIADO DIFÍCIL PARA TI? TRANQUILO... MAMÁ ESTÁ AQUÍ PARA TI, ¡MUEMUEMUAH! ¡JEJAJEJEJEH!"
+"TOUGH SONG, EH? OR DID IT JUST GET TOO BORING FOR YOU? GOD. YOU CAN'T PLEASE ANYONE NOWADAYS.","¿CANCIÓN DIFÍCIL, EH? ¿O ES QUE TE ABURRIÓ DEMASIADO? DIOS. YA NO SE PUEDE CONTENTAR A NADIE HOY EN DÍA."
 Texture Filtering: ,Filtrado de texturas: 
+Thank you for the photos.,Gracias por las fotos.
 The Aspiring Trainer,La Entrenadora Aspirante
 The Husked One,El Vaciado
 The Hypnosis Pokemon,El Pokémon Hipnosis
@@ -322,11 +416,13 @@ Touch Note Hitbox Size: x,Tamaño de zona de impacto táctil: x
 Training,Entrenamiento
 Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging.,Desactiva las sombras dinámicas por completo. El ajuste más importante de todos si la tienda va a tirones.
 Twenty year old performer and accomplished Queen of Kalos. Had recently taken up photography in an effort to satiate her desire for new sights and challenging trainers. Broken camera and photographs featuring her were found in an abandoned farmhouse's field. Missing.,Artista de veinte años y consumada Reina de Kalos. Recientemente había empezado a hacer fotografía para saciar su deseo de nuevos paisajes y entrenadores desafiantes. Se hallaron una cámara rota y fotografías suyas en el campo de una granja abandonada. Desaparecida.
+"UAGH, CAN YOU STOP INTERRUPTING ME? AHEM. HMMHM. ANYWAYS.","UAGH, ¿PUEDES DEJAR DE INTERRUMPIRME? AHEM. HMMHM. EN FIN."
 "Ultimate power granted. It smells like ultimate power, actually.","Poder definitivo concedido. Huele a poder definitivo, la verdad."
 Up,Arriba
 Upscaling: ,Escalado: 
 VSync: ,VSync: 
 Vibration,Vibración
+Virgo.,Virgo.
 Visual Offset: ,Desfase visual: 
 Voice Volume: ,Volumen de voces: 
 Volume,Volumen
@@ -336,6 +432,27 @@ Volume Up: ,Subir volumen:
 ","Buitres disfrazados de escritura antigua. Se desconoce qué llegó primero, la escritura o estos Unown. Inofensivos si están solos, peligrosos en grupo. Las versiones no ascendidas de algo mayor. Se han hallado nidos en cualquier lugar oscuro, cálido y apto para alimentarse. Cuevas, cadáveres, sótanos. 
 "
 WARNING,ADVERTENCIA
+"WE'RE IN THE PLANE-RENOWNED CABINET OF NOVELTIES! YOUR GOTO SHOP, MUSEUM, WHATEVER I FEEL LIKE USING TO DESCRIBE IT, PRIMED WITH ALL COLLECTED ARTIFACTS YOU NAB.","¡ESTAMOS EN EL RENOMBRADO, A TRAVÉS DE TODOS LOS PLANOS, GABINETE DE LAS NOVEDADES! TU TIENDA DE CABECERA, MUSEO, O LO QUE SEA QUE ME APETEZCA LLAMARLO, LISTO CON TODOS LOS ARTEFACTOS QUE VAS ATRAPANDO."
+"WELCOME BACK! WHAT A GOOD SONG, EH? HAHAHAHA!","¡BIENVENIDO DE VUELTA! BUENA CANCIÓN, ¿EH? ¡JAJAJAJA!"
+"WELCOME BACK, COLLECTOREE!","¡BIENVENIDO DE VUELTA, COLECCIONISTOIDE!"
+"WELL IF IT ISN'T MY FAVORITE SERVANT!
+","¡VAYA, VAYA, SI ES MI SIRVIENTE FAVORITO!
+"
+"WHAT ARE YOU, TWELVE??? MUAHASHJHEEUHEHAAA SIGH...","¿QUÉ ERES, DOCE AÑOS??? MUAJASHJEUJEJAAA SUSPIRO..."
+WHAT WOULD YOU LIKE NOW?,¿QUÉ TE APETECE AHORA?
+WHAT'CHA BUYIN?,¿QUÉ VAS A COMPRAR?
+"WHAT'S WRONG WITH THESE PEOPLE? WHO CARES ABOUT GLASSES AND AND- HOW FULL THEY ARE? GO... I DON'T KNOW, DO SOMETHING ELSE- BETTER WITH YOUR LIFE, LIKE COLLECTING ARTIFACTS! FOR ME!","¿QUÉ LE PASA A ESTA GENTE? ¿A QUIÉN LE IMPORTAN LOS VASOS Y Y- LO LLENOS QUE ESTÁN? VE... NO SÉ, HAZ ALGO MÁS- MEJOR CON TU VIDA, ¡COMO COLECCIONAR ARTEFACTOS! ¡PARA MÍ!"
+WHAT? DON'T LIKE MY CARTRIDGES?? NO REFUNDS!,¿QUÉ? ¿¿NO TE GUSTAN MIS CARTUCHOS?? ¡NO HAY DEVOLUCIONES!
+"WHEN YOU HAVE ONE AND SEE THE REGISTER [u]GLOW[/u], JUST POINT TO ME FIRST, AND THEN AT THE SHOP ON THE SIGN. IT MEANS I HAVE SOMETHING READY FOR YOU.
+","CUANDO TENGAS UNO Y VEAS QUE LA CAJA [u]BRILLA[/u], SEÑÁLAME PRIMERO A MÍ, Y LUEGO AL LETRERO DE LA TIENDA. SIGNIFICA QUE TENGO ALGO PREPARADO PARA TI.
+"
+"WHEN YOU HAVE ONE AND SEE THE REGISTER [u]GLOW[/u], JUST POINT TO ME FIRST, AND THEN AT THE SHOP ON THE SIGN. IT MEANS I HAVE SOMETHING READY JUST FOR YOU.
+","CUANDO TENGAS UNO Y VEAS QUE LA CAJA [u]BRILLA[/u], SEÑÁLAME PRIMERO A MÍ, Y LUEGO AL LETRERO DE LA TIENDA. SIGNIFICA QUE TENGO ALGO PREPARADO SÓLO PARA TI.
+"
+"WHETHER IT'S MOMENTS BEFORE DEATH, A CONFESSION, OR A TRAGIC EVENT, THAT'S THE TIME WHEN THE SOUL'S MOST VULNERABLE, AND READY TO BE WRUNG DRY OF ITS JUICY JUICY ARTIFACTS.","YA SEAN LOS MOMENTOS ANTES DE LA MUERTE, UNA CONFESIÓN, O UN SUCESO TRÁGICO, ESE ES EL MOMENTO EN QUE EL ALMA ESTÁ MÁS VULNERABLE, Y LISTA PARA QUE LE EXPRIMAN HASTA LA ÚLTIMA GOTA SUS JUGOSÍSIMOS ARTEFACTOS."
+"WHETHER THEIR REPRESENTATIVE SONG IS POP-Y, MORE ROCK-Y, HEAVY METAL-Y, YADA YADA YADA-Y, EACH SONG IS AN INTIMATE WINDOW INTO WHAT MAKES THAT SOUL, A SOUL!","YA SEA QUE SU CANCIÓN REPRESENTATIVA SEA MÁS POP, MÁS ROCK, MÁS HEAVY METAL, BLA BLA BLA, ¡CADA CANCIÓN ES UNA VENTANA ÍNTIMA A LO QUE HACE QUE ESA ALMA SEA UN ALMA!"
+"WHILE YOU WERE PLAYING, SOME OF THE UNOWNS FROM THAT MEATSACK OVER THERE CAME OUT! LITTLE BUGGERS WERE FLYING AROUND THE STORE AND GOT DISTRACTED WHEN YOU WON! TOOK THAT CHANCE TO PUT 'EM IN THE JAR, SO THANK YOU!","¡MIENTRAS JUGABAS, SALIERON ALGUNOS UNOWN DE ESE SACO DE CARNE DE AHÍ! LOS BICHITOS ESTABAN VOLANDO POR LA TIENDA Y SE DISTRAJERON CUANDO GANASTE. APROVECHÉ PARA METERLOS EN EL FRASCO, ¡ASÍ QUE GRACIAS!"
+"WOW, YOU PUT UP A DAMN GOOD FIGHT OUT THERE!","¡VAYA, VAYA PELEA QUE DISTE AHÍ FUERA!"
 Warning Screen,Pantalla de advertencia
 "Watch the game play itself perfectly, hitting every note on its own.","Observa cómo el juego se juega solo a la perfección, acertando cada nota por su cuenta."
 Whatever you want.,Lo que tú quieras.
@@ -360,7 +477,21 @@ What am I doing?
 Window Mode: ,Modo de ventana: 
 Writer,Guionista
 "Writes a performance and error log to storage, which is what a bug report needs attached. Takes effect the next time the game starts. The path below is where this session's went.","Escribe un registro de rendimiento y errores en el almacenamiento, que es lo que necesita adjunto un reporte de error. Tiene efecto la próxima vez que arranque el juego. La ruta de abajo es dónde fue a parar el de esta sesión."
+"Y'NOW, IF YOU'RE GONNA ASK ME A QUESTION, LET ME AT LEAST- Y'KNOW, FINISH IT..? ANYWAYS...","OYE, SI ME VAS A HACER UNA PREGUNTA, DÉJAME AL MENOS- YA SABES, ¿TERMINARLA..? EN FIN..."
+YOU ALREADY BOUGHT EVERYTHING!,¡YA LO COMPRASTE TODO!
+YOU ALREADY GAVE UP? THAT QUICK? BUT YOU HAD IT THAT TIME!,¿YA TE RENDISTE? ¿TAN RÁPIDO? ¡PERO SI LO TENÍAS ESA VEZ!
+YOU BOUGHT IT ALL. HEH!,¡LO COMPRASTE TODO. JEH!
+YOU DIDN'T HEAR ME THE FIRST TIME?,¿NO ME OÍSTE LA PRIMERA VEZ?
+"YOU JUST, WANT TO SEE THE INSIDE OF THE CASE?","¿SÓLO, QUIERES VER EL INTERIOR DE LA VITRINA?"
+"YOU KNOW, SOME PEOPLE HAVE ASKED ME ABOUT MY ZODIAC SIGN—OR OR, ""ARE YOU A GLASS-HALF-FULL OR A GLASS-HALF-EMPTY TYPE-A GUY?""","SABES, ALGUNA GENTE ME HA PREGUNTADO POR MI SIGNO DEL ZODIACO—O, O, ""¿ERES DE LOS QUE VEN EL VASO MEDIO LLENO O MEDIO VACÍO?"""
+YOU MAY BE WONDERING WHY THE REGISTER IS GLOWING A BRIGHT PURPLE. SPEAKING OF WHICH!,PUEDE QUE TE PREGUNTES POR QUÉ LA CAJA REGISTRADORA BRILLA EN MORADO INTENSO. ¡HABLANDO DE ESO!
+YOU MAY BE WONDERING WHY THE REGISTER IS NOW GLOWING A BRIGHT PURPLE. SPEAKING OF WHICH!,PUEDE QUE TE PREGUNTES POR QUÉ LA CAJA REGISTRADORA AHORA BRILLA EN MORADO INTENSO. ¡HABLANDO DE ESO!
+YOU PLAYED IT ALL. GREAT JOB!!!!!!,¡LO JUGASTE TODO. GRAN TRABAJO!!!!!!
+"YOU'LL USE IT TO MEET WITH THE LOCALS, AND CATCH LITTLE ARTIFACTS AND COLLECTABLES FOR ME TO PUT UP AROUND THE SHOP AS DECORATIONS!
+","¡LA USARÁS PARA CONOCER A LOS LUGAREÑOS, Y ATRAPAR PEQUEÑOS ARTEFACTOS Y COLECCIONABLES PARA QUE YO LOS PONGA POR LA TIENDA COMO DECORACIÓN!
+"
 "Yes, I understand.","Sí, lo entiendo."
+"You do that one more time, I’m going to give you a timeout.",Hazlo una vez más y te voy a mandar a pensar en un rincón.
 "You now have unlimited everything, except dignity.","Ahora tienes todo ilimitado, menos dignidad."
 [CTRL+ALT+S] or [COMMAND+OPTION+S] brings up this menu.,[CTRL+ALT+S] o [COMMAND+OPTION+S] abre este menú.
 [F],[F]
