@@ -177,6 +177,11 @@ func _check_flat_stage(host: String) -> void:
 	# health module the result.
 	_check(_has_statement(body, "&\"autoplay\", true"),
 		"the lanes are still put on autoplay as well as hidden")
+	# Hidden is not stopped. The first device log measured the drill spending
+	# notes=46.19 ms/s with notes=0(visible=0) on screen, plus a SPIKE on
+	# Boyfriend's note animation behind a hidden stage.
+	_check(_has_statement(body, "process_mode = Node\\.PROCESS_MODE_DISABLED"),
+		"...and switched off, not merely hidden")
 	_check(_has_statement(body, "_build_backdrop\\(\\)"),
 		"something goes in behind the mechanic")
 

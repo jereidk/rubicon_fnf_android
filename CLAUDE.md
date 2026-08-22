@@ -1616,6 +1616,62 @@ Y un aviso de lectura: ese log trae un `SPIKE frame=585377.8ms` y un
 `console viewport on (switch #3, 631794ms since last)`, o sea que la app
 estuvo diez minutos en segundo plano. Un frame de 585 segundos es siempre eso.
 
+### Y el contador de luces mentía, que es lo que impedía optimizar
+
+`luz=Nalcanzan` es **el** número de esta escena: si el frame es 90% pase 3D y
+la pendiente la fijan las luces por fragmento, cuántas llegan es la cuenta.
+Leía **6** y la verdad son **4**. Las dos de más eran luces que la GPU nunca
+dibuja:
+
+- **`editor_only`** se cae del render en tiempo de ejecución pero el nodo se
+  queda en el árbol, así que `is_visible_in_tree()` sigue siendo cierto.
+  `EditorMoonDoNotDelete` de Chimera es una - y este mismo fichero ya avisaba
+  de que "de otro modo parecería el peor infractor del proyecto".
+- **Una luz bajo un `SubViewport` ilumina el mundo de ese viewport, no éste.**
+  Las tres canciones instancian `lullaby_results_screen.tscn`, que lleva una
+  `DirectionalLight3D` con sombras dentro de su propio SubViewport. Y el log
+  demuestra que ni siquiera renderiza durante la canción: `sub=0/1` en 41 de
+  los 43 latidos de Chimera.
+
+Con 4 luces reales la curva aislada da 69.9 ms/Mpx y la pendiente medida son
+90.8, o sea que el modelo de "una luz = 15ms de pantalla completa" explica el
+grueso pero no todo - queda margen para el solape de las 74 mallas visibles.
+Con 6 encajaba al 3.7% **por casualidad**, sumando dos luces que no existen.
+
+`luz=` ahora **nombra** las que llegan y reporta aparte las descartadas
+(`fant=N`), porque saber cuáles son es la diferencia entre cortar la correcta
+y adivinar. `tools/test_light_reach_counter.gd` fija las dos reglas **junto al
+nodo que las hace necesarias**, así que si algún día Chimera deja de tener una
+`editor_only` o la pantalla de resultados saca su direccional del SubViewport,
+el guard lo dice en vez de seguir pinchando nada.
+
+#### El candidato que sale de la tabla de luces
+
+Volcadas las 13 de `sng_chimera.tscn` con rango, energía y modo de bake, hay
+un valor atípico claro:
+
+| luz | tipo | energía | rango | bake |
+|---|---|---|---|---|
+| **TvLight** | Omni | **0.0** | **43.93** | **0 (DISABLED)** |
+| MoonSpotlight | Spot | 0.37 | 21.46 | 1 (STATIC) |
+| AmbLight | Spot | 2.87 | 18.14 | 1 (STATIC) |
+| Cameralight | Spot | 0.476 | 9.13 | 1 |
+| OmniLight3D (cámara) | Spot | 2.35 | 6.51 | 1 |
+
+La casa mide unas 10 unidades. **`TvLight` es la única luz en tiempo real
+puro de la escena -las otras doce son `BAKE_STATIC`- y tiene 4.4x el tamaño
+de la casa de radio**, así que alcanza todos los fragmentos siempre. Y este
+fichero ya midió que **una luz a energía 0 cuesta el precio completo** (ocho a
+0.35 y ocho a 0.0: 135.8 contra 135.1ms; las mismas escondidas, 16.3ms).
+
+La nota vieja descartó *gatearla* porque sólo está a cero 16.5s de tres
+minutos. Eso sigue siendo cierto y no cambia. Lo que no se había mirado es su
+**rango**: bajarlo a lo que de verdad ilumina la sacaría de los fragmentos
+lejanos sin tocar su energía ni sus nueve pistas de animación. Es la
+candidata, y es un cambio de dato de escena en la única canción que este
+proyecto ha roto tres veces - o sea que va con una pasada de dispositivo
+delante y detrás, no a ciegas.
+
 ### Training en el teléfono, primera medida
 
 `test.tscn` en el mismo log: **`gpu` p50 = 6.0ms**, `rend=[3d=0/0/0]`,
@@ -1629,7 +1685,13 @@ atribuido a `AnimationPlayer/bf_note_left`. Esconder un `Control` no lo para,
 que es justo lo que dice el comentario de `_flatten_the_stage()` - pero ahí se
 resolvió sólo poniendo los carriles en `autoplay`, que quita el juicio y no el
 `_process`. Son ~0.8ms por frame de puro desperdicio en una pantalla que no
-tiene notas. Pendiente: `process_mode = DISABLED` sobre lo que ya se esconde.
+tiene notas. Arreglado: `_flatten_the_stage()` pone
+`process_mode = PROCESS_MODE_DISABLED` sobre lo mismo que esconde. Se puede
+apagar del todo y no sólo esconder porque el módulo de vida se alimenta de
+las señales del controlador de notas y una prueba no tiene vida, así que
+silenciarlo llega al mismo sitio que el `autoplay` - sólo que además deja de
+pagarse. El reloj del nivel es un `Node` aparte y la canción sigue sonando,
+que es contra lo que se temporizan las mecánicas.
 
 ## Lo que NO hay que optimizar en Chimera, medido
 

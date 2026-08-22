@@ -537,6 +537,20 @@ func _flatten_the_stage() -> void:
 	for item: CanvasItem in hide_for_training:
 		if item != null and is_instance_valid(item):
 			item.visible = false
+			# Hidden is not stopped, and the first device log said so: the
+			# drill measured `notes=46.19 ms/s(lanes=46.19)` with
+			# `notes=0(visible=0)` on screen, and a SPIKE attributed to
+			# `AnimationPlayer/bf_note_left` - Boyfriend animating behind a
+			# hidden stage. About 0.8ms a frame spent on a chart nobody can
+			# see.
+			#
+			# Safe to switch off outright rather than merely hide: the health
+			# module drives off the note controller's signals, and a drill
+			# has no health (see _watch_session), so silencing the controller
+			# is the same end as putting it on autoplay - it just also stops
+			# paying for it. The level clock is a separate Node and keeps the
+			# song running, which is what the mechanics time against.
+			item.process_mode = Node.PROCESS_MODE_DISABLED
 
 	_build_backdrop()
 

@@ -1626,12 +1626,15 @@ func _bake_modes() -> String:
 ##
 ## Directional lights reach everywhere by construction and are counted apart.
 func _light_reach() -> String:
-	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	var main: Viewport = get_viewport() if is_inside_tree() else null
+	var camera: Camera3D = main.get_camera_3d() if main != null else null
 	if camera == null:
 		return "-"
 	var eye: Vector3 = camera.global_position
 	var reaching: int = 0
 	var directional: int = 0
+	var phantom: int = 0
+	var names: PackedStringArray = []
 	var nearest: float = INF
 	var nearest_name: String = "-"
 	for node in _visual3d_watch:
@@ -1640,6 +1643,25 @@ func _light_reach() -> String:
 		var light := node as Light3D
 		if light == null or not light.is_visible_in_tree():
 			continue
+
+		# Two kinds of light this counted and the GPU never draws. Chimera
+		# read `dir=2` for ninety heartbeats and BOTH were these, which made
+		# the per-fragment light count - the one number that sets this
+		# scene's whole frame cost - read 6 when it is 4.
+		#
+		# editor_only is removed from the render at runtime; the engine keeps
+		# the node, so is_visible_in_tree() stays true. Chimera's
+		# EditorMoonDoNotDelete is one.
+		#
+		# And a light under a SubViewport lights that viewport's world, not
+		# this one. The results screen ships a shadow-casting
+		# DirectionalLight3D inside its own SubViewport, which every song
+		# instances - and which the log itself shows is not even rendering
+		# (`sub=0/1` on 41 of 43 Chimera heartbeats).
+		if light.editor_only or light.get_viewport() != main:
+			phantom += 1
+			continue
+
 		if light.light_energy <= 0.0:
 			continue
 		if light is DirectionalLight3D:
@@ -1666,9 +1688,18 @@ func _light_reach() -> String:
 			nearest_name = light.name
 		if distance <= range_units:
 			reaching += 1
+			names.append(light.name)
+
+	# Named, not just counted. Forward Mobile evaluates every light that
+	# reaches a fragment in that fragment's shader, so this list IS the
+	# frame's cost - measured at about 15ms per light over a full 1600x720 -
+	# and knowing which ones they are is the difference between cutting the
+	# right one and guessing.
+	var who: String = ",".join(names) if not names.is_empty() else "-"
 	if nearest == INF:
-		return "0alcanzan dir=%d" % directional
-	return "%dalcanzan dir=%d cerca=%s@%.1f" % [reaching, directional, nearest_name, nearest]
+		return "0alcanzan dir=%d fant=%d [%s]" % [directional, phantom, who]
+	return "%dalcanzan dir=%d fant=%d [%s] cerca=%s@%.1f" % [
+		reaching, directional, phantom, who, nearest_name, nearest]
 
 ## Whether the LightmapGI in this scene actually has a bake to apply.
 ##

@@ -34,6 +34,18 @@ func _flat_stage() -> void:
 		if n != null and n.visible:
 			visibles.append(path)
 	var ui: Control = lvl.get_node_or_null(^"UILayer/UI")
+	var procesando: PackedStringArray = []
+	for path: String in ["Stage", "UILayer/UI/Judgment", "UILayer/UI/HealthBar",
+			"UILayer/UI/Opponent", "UILayer/UI/Player"]:
+		var n: Node = lvl.get_node_or_null(NodePath(path))
+		if n != null and n.can_process():
+			procesando.append(path)
+	print("OUT parado  lo escondido que SIGUE procesando: %s" % [
+		"nada" if procesando.is_empty() else "*** " + ", ".join(procesando) + " ***"])
+	var lane: Node = lvl.get_node_or_null(^"UILayer/UI/Player/Lane")
+	print("OUT         un carril: can_process=%s  is_processing=%s" % [
+		lane.can_process() if lane else "?", lane.is_processing() if lane else "?"])
+
 	print("OUT fondo   nada de Test visible=%s   hijo0=%s hijo1=%s  autoplay_notas=%s" % [
 		"si" if visibles.is_empty() else "*** SIGUEN: " + ", ".join(visibles) + " ***",
 		ui.get_child(0).name, ui.get_child(1).name,

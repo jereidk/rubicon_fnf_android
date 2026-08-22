@@ -886,6 +886,17 @@ jobs:
           # every one of them is a value a script has to write at runtime.
           guard_godot tools/test_training_setup.gd
 
+          # === Verify the per-fragment light counter tells the truth
+          # `luz=Nalcanzan` is what prices Chimera's frame: Forward Mobile
+          # evaluates every light reaching a fragment in that fragment's
+          # shader, measured here at ~15ms per light over a full 1600x720,
+          # and two device logs put Chimera's slope at 90.8 ms/Mpx of 3D -
+          # which is where that curve puts five or six lights. It was
+          # reading 6 against a real 4, both extras being lights the GPU
+          # never draws: an editor_only one, and one inside another
+          # viewport's world.
+          guard_godot tools/test_light_reach_counter.gd
+
           # === Verify the first-boot screen's language and intro options
           # Three rows the player meets before anything else: the UI
           # language, "skip the Collector's introduction" (shown only while
