@@ -5450,7 +5450,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ScreenShake")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../DiagnosticsLog")
+focus_neighbor_bottom = NodePath("../Language")
 theme = ExtResource("1")
 text = "Clock: "
 alignment = 0
@@ -5461,10 +5461,26 @@ values_list = [false, true]
 console = NodePath("../../../../../..")
 tooltip = "Which clock the Memory Card header up there reads in."
 
-[node name="DiagnosticsLog" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console") instance=ExtResource("52")]
+[node name="Language" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ClockFormat")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../DiagnosticsLog")
+theme = ExtResource("1")
+text = "Language: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_language"
+display_list = ["English", "Español"]
+values_list = ["en", "es"]
+console = NodePath("../../../../../..")
+tooltip = "Changes the game's UI language. A restart of any open menu may be needed for every label to catch up."
+
+[node name="DiagnosticsLog" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console") instance=ExtResource("52")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../Language")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../DeleteSaveData")
 text = "Diagnostics Log"

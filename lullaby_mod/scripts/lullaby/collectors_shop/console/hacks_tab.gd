@@ -39,13 +39,13 @@ func _on_code_submitted(text: String) -> void:
 	code_input.text = ""
 
 	if code == PRANK_CODE:
-		feedback_label.text = PRANK_LINES.pick_random()
+		feedback_label.text = tr(PRANK_LINES.pick_random())
 		if console:
 			console.play_sound.emit("sfx_wet_disguisting_fart")
 		return
 
 	if not CODES.has(code):
-		feedback_label.text = "Invalid code."
+		feedback_label.text = tr("Invalid code.")
 		if console:
 			console.play_sound.emit("sfx_soulroom_deny")
 		return
@@ -53,11 +53,11 @@ func _on_code_submitted(text: String) -> void:
 	var key: StringName = CODES[code]
 	var flag: StringName = StringName("%s_unlocked" % key)
 	if SaveData.get_flag(flag):
-		feedback_label.text = "\"%s\" is already unlocked." % key.capitalize()
+		feedback_label.text = tr("\"%s\" is already unlocked.") % key.capitalize()
 		return
 
 	SaveData.set_flag(flag, true)
 	SaveData.save()
-	feedback_label.text = "Code accepted - \"%s\" unlocked!" % key.capitalize()
+	feedback_label.text = tr("Code accepted - \"%s\" unlocked!") % key.capitalize()
 	if console:
 		console.play_sound.emit("sfx_soulroom_select_alt")

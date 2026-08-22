@@ -115,6 +115,10 @@ volume_mute={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://lullaby_mod/resources/localization/ui_strings.es.translation")
+
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true

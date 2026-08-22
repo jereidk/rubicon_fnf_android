@@ -815,6 +815,21 @@ jobs:
           $GODOT --headless --path . --script tools/test_retained_sweep.gd 2>&1 | tee /tmp/sweep.txt
           grep -q "todo OK" /tmp/sweep.txt
 
+      - name: Verify the UI localization CSV resolves and falls back correctly
+        run: |
+          # Godot auto-translates a Control's text/tooltip against whatever
+          # TranslationServer.set_locale() is set to, keyed on the literal
+          # English string authored in the .tscn - so the CSV at
+          # lullaby_mod/resources/localization/ui_strings.csv never needed a
+          # single .tscn edited, only an "es" column. This pins that the
+          # generated ui_strings.es.translation actually loads (project.godot
+          # points at the .translation, not the source .csv - pointing at the
+          # .csv silently loads nothing), that known keys resolve under "es",
+          # and that locale "en" (or any locale with no translation) falls
+          # straight back to the authored English text rather than erroring.
+          $GODOT --headless --path . --script tools/test_localization.gd 2>&1 | tee /tmp/i18n.txt
+          grep -q "todo OK" /tmp/i18n.txt
+
       - name: Verify hardcoded uid:// references resolve
         run: |
           # Catches the collector-shop crash class before it ships: a bare

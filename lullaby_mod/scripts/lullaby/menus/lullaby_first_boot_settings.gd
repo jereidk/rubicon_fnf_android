@@ -8,16 +8,16 @@ func _ready() -> void :
 	focus_first.grab_focus()
 
 func _on_preset_changed(index: int) -> void :
-	var text: String = "Whatever you want."
+	var text: String = tr("Whatever you want.")
 	match index:
 		1:
-			text = "As low as it gets [No shadows, 0.75x render scale, post-processing off, zero antialiasing]"
+			text = tr("As low as it gets [No shadows, 0.75x render scale, post-processing off, zero antialiasing]")
 		2:
-			text = "Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]"
+			text = tr("Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]")
 		3:
-			text = "For the average computer [Post-processing low, basic antilaliasing]"
+			text = tr("For the average computer [Post-processing low, basic antilaliasing]")
 		4:
-			text = "The intended experience. [Post-processing and antialiasing at its max]"
+			text = tr("The intended experience. [Post-processing and antialiasing at its max]")
 
 	preset_description.text = text
 

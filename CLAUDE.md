@@ -3833,3 +3833,86 @@ a name it can't find there, it now falls back to `sfx/misc/*.mp3` before
 giving up, which is what let the fart code reuse the existing 3D-positioned
 console speaker instead of adding a second, disconnected audio player just
 for this.
+
+---
+
+## UI localization: Spanish, and how the next language gets added
+
+Zero localization existed before this - every `tr()` call in the project was
+Rubicon addon boilerplate for editor configuration warnings, never wired to a
+`Translation` resource. `project.godot` had no `[internationalization]`
+section at all.
+
+**The mechanism needed almost no `.tscn` edits, and that is the point to
+understand before touching it again.** Godot auto-translates a Control's
+`text`/`tooltip_text` against whatever `TranslationServer` is set to,
+matched against the *literal string already authored* - so making the
+English source string double as the translation key means every static
+label in every `.tscn` keeps working unmodified. Only two things were
+needed:
+
+1. `lullaby_mod/resources/localization/ui_strings.csv` - two columns,
+   `keys,es`. No `en` column: the key **is** the English text, so locale
+   `en` (or any locale with no matching `Translation`) already falls back to
+   displaying it verbatim, no English `.translation` resource required.
+2. `project.godot`'s `[internationalization]` pointing at the **generated**
+   `ui_strings.es.translation`, not the source `.csv` - pointing it at the
+   `.csv` compiles but loads nothing (`TranslationServer.get_loaded_locales()`
+   comes back empty, and nothing errors to say why). Verified the difference
+   directly in an isolated project before trusting it here.
+
+**Where `tr()` had to be added explicitly:** anything that builds its
+displayed string with formatting *before* assigning it - `hacks_tab.gd`'s
+feedback messages, the results screen's score block, the pause menu's timer,
+`lullaby_first_boot_settings.gd`'s preset descriptions. Auto-translate can't
+match `"Code accepted - \"Chimera\" unlocked!"` against a CSV key; it has to
+see the un-substituted template, so those are `tr("Code accepted - \"%s\"
+unlocked!") % key`. One of them, `lullaby_song_grader.gd`'s
+`get_clear_as_string()`, is a `static func` - `tr()` needs an instance
+(`self`), so that one calls `TranslationServer.translate()` directly, which
+is what `tr()` wraps anyway.
+
+**Coverage: the console (all Settings tabs, Hacks, Credits chrome), the
+boot-flow screens (Warning, ShittyGPU, Main Menu, First Boot Settings), and
+the results/pause-menu strings named above.** Deliberately left in English:
+person names and usernames everywhere (credits, artist handles), song/team
+proper nouns (Chimera, Monochrome, Safety Lullaby, Cabinet of Novelties,
+Kollectadex), rank letters and FC/GFC/PFC (universal rhythm-game shorthand),
+and the sprawling multi-paragraph credits/CAST text blocks, which mix names
+and roles in one string and are lower value to dissect than to leave as-is.
+**Not touched at all:** song lyrics/subtitles during gameplay (no such
+feature exists yet - would be new UI, not a translation of existing text)
+and the shop's own dialogue system, which already carries its text
+alongside its audio in `VoicelineEntry.dialogue_text` and could become
+real subtitles with translated `.tres` variants, but that is a separate,
+unscoped piece of work. Pause-menu button labels live inside each song's own
+`.tscn` (`sng_chimera.tscn` etc.), not in the scanned menu/console files, and
+were left alone rather than opened for a first localization pass.
+
+**Switching language:** `Settings.lullaby_language` (`"en"`/`"es"`,
+persisted automatically like every other `lullaby_`-prefixed var),
+applied in `apply_settings()` via `TranslationServer.set_locale()`. A
+`ListButton` row for it lives in the console's Misc tab, right after Clock
+Format - same `list_button.gd` pattern as every other enum-style setting,
+`display_list = ["English", "Español"]` / `values_list = ["en", "es"]`.
+
+**Regenerating the `.translation` after editing the CSV:** this workspace
+cannot run `--headless --import` on the real checkout without triggering the
+project-wide EXHAUSTIVE ASTC reimport this file has warned about all
+session. Do it in an isolated copy instead - mirror just
+`lullaby_mod/resources/localization/` under a throwaway `project.godot`,
+`--headless --import` there (seconds, not hours - it is one CSV), then copy
+the two generated files (`ui_strings.csv.import`, `ui_strings.es.translation`)
+back. The `.import` file's `dest_files` path has to match the CSV's real
+location in this project, which is why the throwaway project mirrors the
+same subdirectory rather than sitting the CSV at its root.
+
+`tools/test_localization.gd` (in CI) pins that `"es"` actually loads, that a
+handful of known keys resolve under it, and that locale `en` falls back to
+the untranslated source text rather than erroring. It does **not** touch
+`Settings.lullaby_language` or `apply_settings()` - this workspace cannot
+load the project's autoloads under `--script` (the same limitation the
+`--path .` note below has always described), so a check that needed
+`Settings` would fail here for a reason unrelated to what it is testing.
+That half is two lines and was verified by reading and by `--check-only`
+instead.

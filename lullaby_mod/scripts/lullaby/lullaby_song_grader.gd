@@ -65,9 +65,11 @@ func _notification(what: int) -> void :
 static func get_clear_as_string(clear: LullabySongGrade.Clear) -> String:
 	match clear:
 		LullabySongGrade.Clear.CLEAR_NONE:
-			return "Never Played"
+			# tr() needs an instance (self); this is static, so go straight
+			# to the server it wraps.
+			return TranslationServer.translate("Never Played")
 		LullabySongGrade.Clear.CLEAR_PASSED:
-			return "Passed"
+			return TranslationServer.translate("Passed")
 		LullabySongGrade.Clear.CLEAR_FULL_COMBO:
 			return "FC"
 		LullabySongGrade.Clear.CLEAR_GREAT_FULL_COMBO:

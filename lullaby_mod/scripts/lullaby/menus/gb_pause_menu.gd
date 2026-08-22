@@ -61,7 +61,7 @@ func _input(event: InputEvent) -> void :
 
 	if level != null:
 		reference_title_text.text = level.metadata.title.to_upper()
-		reference_time_text.text = "TIME: %s" % get_time_remaining()
+		reference_time_text.text = tr("TIME: %s") % get_time_remaining()
 
 	reference_music.volume_linear = 0.0
 	reference_music.play(_music_time)

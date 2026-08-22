@@ -372,6 +372,19 @@ var lullaby_screen_shake: int = 100
 ## hardcodes am/pm (see time.gd).
 var lullaby_clock_24h: bool = false
 
+## UI language. Every static label's `text` is authored in English, and
+## Godot auto-translates a Control's text/tooltip against whatever locale
+## TranslationServer is set to - "en" (or any locale with no matching
+## Translation resource) falls straight back to that authored English, no
+## file needed. "es" resolves against
+## lullaby_mod/resources/localization/ui_strings.es.translation, a CSV-
+## sourced Translation keyed on the literal English source strings. A
+## handful of dynamically-built strings (hacks_tab.gd's messages, the
+## results screen, ...) call tr() explicitly for the same reason auto-
+## translate can't reach them: the value assigned already has the format
+## arguments substituted in, so it would never match a CSV key.
+var lullaby_language: String = "en"
+
 ## Which keyboard Monochrome's typing mechanic uses.
 ##
 ## SYSTEM focuses a hidden LineEdit, which is what makes Android raise the
@@ -539,6 +552,9 @@ func apply_settings() -> void:
 
 	window.msaa_3d = graphics_msaa_3d_quality
 	window.screen_space_aa = graphics_screen_space_aa_quality
+
+	if lullaby_language != TranslationServer.get_locale():
+		TranslationServer.set_locale(lullaby_language)
 
 	_apply_shader_effects_setting()
 

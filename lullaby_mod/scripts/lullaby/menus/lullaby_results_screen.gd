@@ -162,17 +162,17 @@ func _on_song_finished(_anim_name: StringName) -> void :
 	SaveData.save()
 
 	if results_label:
-		results_label.text = "Score: %d\nHighest Combo: %d\nMisses: %d\nAccuracy: %.2f%%\nRank: %s\nClear: %s" % [
-			grade.score, 
-			grade.highest_combo, 
-			grade.misses, 
-			grade.accuracy, 
-			LullabySongGrader.get_rank_as_string(grade.rank), 
+		results_label.text = tr("Score: %d\nHighest Combo: %d\nMisses: %d\nAccuracy: %.2f%%\nRank: %s\nClear: %s") % [
+			grade.score,
+			grade.highest_combo,
+			grade.misses,
+			grade.accuracy,
+			LullabySongGrader.get_rank_as_string(grade.rank),
 			LullabySongGrader.get_clear_as_string(grade.clear)
 		]
 
 		if new_grade:
-			results_label.text += "\n\nNEW GRADE!!!"
+			results_label.text += tr("\n\nNEW GRADE!!!")
 
 	if animation_player:
 		# On here rather than at the first frame it is needed. `show` runs for
