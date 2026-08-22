@@ -21,14 +21,14 @@ func update_song(song: StringName, display_name: String) -> void :
 	song_name.text = display_name
 
 	if song.is_empty():
-		song_stats.text = "Score:\n???\n\nAccuracy:\n???"
+		song_stats.text = tr("Score:\n???\n\nAccuracy:\n???")
 		return
 	elif not SaveData.song_grades.has(song):
-		song_stats.text = "Score:\nN/A\n\nAccuracy:\nN/A"
+		song_stats.text = tr("Score:\nN/A\n\nAccuracy:\nN/A")
 		return
 
 	var grade: = SaveData.song_grades[song]
-	song_stats.text = "Score:\n%d\n\nAccuracy:\n%.2f%%" % [
+	song_stats.text = tr("Score:\n%d\n\nAccuracy:\n%.2f%%") % [
 		grade.score, 
 		grade.accuracy, 
 	]

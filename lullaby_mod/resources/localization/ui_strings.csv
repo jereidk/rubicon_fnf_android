@@ -73,11 +73,15 @@ Diagnostics Log,Registro de diagnóstico
 Down,Abajo
 Downscroll,Desplazamiento hacia abajo
 Draws the outline around each lane zone so you can see where one starts and another ends.,Dibuja el contorno de cada zona de carril para que veas dónde empieza una y termina otra.
+EXIT,SALIR
 Enter a code:,Introduce un código:
 Exit,Salir
 FSR Sharpness: ,Nitidez FSR: 
 Flashing Lights,Luces intermitentes
 "For the average computer [Post-processing low, basic antilaliasing]","Para el ordenador medio [Postprocesado bajo, antialiasing básico]"
+"Free
+Play","Juego
+Libre"
 "Friday Night Funkin' Lullaby is not affiliated with Funkin' Crew, Inc., 
 Newgrounds, The Pokémon Company, or Nintendo of America. Friday Night Funkin' Lullaby 
 is a fangame project made out of love for the original games, and should not be 
@@ -142,6 +146,8 @@ Invalid code.,Código no válido.
 Keyboard: ,Teclado: 
 LALALALA,LALALALA
 Language: ,Idioma: 
+Leave,Salir
+Leave the shop?,¿Salir de la tienda?
 Left,Izquierda
 Light Culling: ,Descarte de luces: 
 Locks frame rate to monitor's refreshrate to combat screen tearing.,Limita la tasa de fotogramas a la frecuencia de refresco del monitor para evitar el tearing.
@@ -187,6 +193,8 @@ Programming Director,Director de programación
 Quality Preset:,Preajuste de calidad:
 Quality Preset: ,Preajuste de calidad: 
 Quick Restart: ,Reinicio rápido: 
+RESTART,REINICIAR
+RESUME,REANUDAR
 Reduce Visual Effects,Reducir efectos visuales
 Render Scale: ,Escala de renderizado: 
 Resolution: ,Resolución: 
@@ -196,6 +204,33 @@ Root access: denied. Fart access: granted.,Acceso root: denegado. Acceso a pedos
 SFX,SFX
 SFX Volume: ,Volumen de SFX: 
 SPECIAL THANKS,AGRADECIMIENTOS ESPECIALES
+"Score:
+%d
+
+Accuracy:
+%.2f%%","Puntuación:
+%d
+
+Precisión:
+%.2f%%"
+"Score:
+???
+
+Accuracy:
+???","Puntuación:
+???
+
+Precisión:
+???"
+"Score:
+N/A
+
+Accuracy:
+N/A","Puntuación:
+N/D
+
+Precisión:
+N/D"
 "Score: %d
 Highest Combo: %d
 Misses: %d
@@ -207,6 +242,7 @@ Fallos: %d
 Precisión: %.2f%%
 Rango: %s
 Estado: %s"
+Score: %d %s Accuracy: %.2f%% %s Misses: %d,Puntuación: %d %s Precisión: %.2f%% %s Fallos: %d
 Screen Mode: ,Modo de pantalla: 
 Screen Shake: ,Sacudida de pantalla: 
 Screen Space AA: ,AA en espacio de pantalla: 
@@ -234,7 +270,11 @@ Skip >>,Saltar >>
 Song Speed: ,Velocidad de la canción: 
 Special,Especial
 Special: ,Especial: 
+Stay,Quedarse
 "Stops small lights being drawn once the camera is far from them, as a multiple of each light's own reach. 0 is off; lower culls more. Every light reaching a pixel is shaded on that pixel, so this is the strongest lever in a busy scene.","Deja de dibujar las luces pequeñas cuando la cámara está lejos de ellas, como múltiplo del alcance propio de cada luz. 0 lo desactiva; más bajo descarta más. Cada luz que alcanza un píxel se sombrea en ese píxel, así que es la palanca más fuerte en una escena cargada."
+"Story
+Mode","Modo
+Historia"
 Strips decorative shader effects throughout the game. Optimized turns this on automatically; use it to get the same boost without dropping the rest of your preset.,Elimina los efectos de shader decorativos de todo el juego. Optimizado lo activa automáticamente; úsalo para obtener la misma mejora sin bajar el resto de tu preajuste.
 T y p i n g,E s c r i t u r a
 TIME: %s,TIEMPO: %s
@@ -294,6 +334,19 @@ Whatever you want.,Lo que tú quieras.
 Which clock the Memory Card header up there reads in.,Con qué reloj marca la hora la cabecera de la Tarjeta de memoria de ahí arriba.
 "Which debug overlay to show. Simple is FPS and memory, Detailed adds build info, Advanced adds rendering diagnostics. The keybind above cycles it.","Qué panel de depuración mostrar. Simple son FPS y memoria, Detallado añade info de la build, Avanzado añade diagnóstico de renderizado. El atajo de arriba lo rota."
 "Which keyboard Monochrome's typing mechanic uses. System raises your phone's own keyboard, with your layout, language and autocorrect. In-Game draws the game's keys instead, for when your keyboard covers too much of the screen. Showcase Mode always uses In-Game, because your phone's keyboard cannot be shown typing by itself.","Qué teclado usa la mecánica de escritura de Monochrome. Sistema abre el teclado propio de tu móvil, con tu disposición, idioma y autocorrección. En el juego dibuja las teclas del propio juego, para cuando tu teclado tapa demasiada pantalla. El Modo Demostración siempre usa En el juego, porque el teclado de tu móvil no puede mostrarse escribiendo solo."
+"Who are you?
+What is the console?
+Why rap battles?
+Where are we?
+What am I doing? 
+...
+","¿Quién eres?
+¿Qué es la consola?
+¿Por qué batallas de rap?
+¿Dónde estamos?
+¿Qué estoy haciendo? 
+...
+"
 Window Mode: ,Modo de ventana: 
 Writer,Guionista
 "Writes a performance and error log to storage, which is what a bug report needs attached. Takes effect the next time the game starts. The path below is where this session's went.","Escribe un registro de rendimiento y errores en el almacenamiento, que es lo que necesita adjunto un reporte de error. Tiene efecto la próxima vez que arranque el juego. La ruta de abajo es dónde fue a parar el de esta sesión."

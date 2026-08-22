@@ -30,7 +30,7 @@ func _process(_delta: float) -> void :
 	_last_accuracy = accuracy
 	_last_misses = misses
 
-	text = "Score: %d %s Accuracy: %.2f%% %s Misses: %d" % [
+	text = tr("Score: %d %s Accuracy: %.2f%% %s Misses: %d") % [
 		score,
 		divisor,
 		accuracy,

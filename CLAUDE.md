@@ -3897,7 +3897,48 @@ CSV, the way this second pass was found.** The first pass's list
 (`menus/**`, `console.tscn`, `lullaby_mod/rooms/scn_*.tscn`) felt
 exhaustive and was not; nothing about the naming convention that missed
 `env_collector_shop.tscn` and `kollectadex.tscn` is visible from the glob
-itself.
+itself. Doing exactly that across the whole tree (minus `addons/`, minus the
+three songs) found a third batch: `pause_johto.tscn` (Monochrome's real
+pause menu - RESUME/RESTART/CREDITS/EXIT), `confirm_exit_dialog.tscn`
+("Leave the shop?"/Stay/Leave), `cartridge_bag_sidepanel.tscn`'s two tab
+labels, and one authored flavour page in `notepad.tscn`. Three more dynamic
+strings went with them: `cartridge_bag_sidepanel.gd`'s three
+`song_stats.text =` assignments and `score_label.gd`'s in-song HUD line
+(`"Score: %d %s Accuracy: %.2f%% %s Misses: %d"`) - the last one is the
+persistent score/accuracy/misses readout shown during any song, not a
+lyric, so it followed the same `tr()` treatment as the results screen and
+pause timer.
+
+**Found and deliberately left alone, so the same ground doesn't get
+re-covered by a future sweep:**
+
+- `lullaby_mod/autoloads/atl_debug.tscn` - the F12/Ctrl+Alt+S developer
+  debug menu (the "Advanced Settings" button that opens it ships
+  `visible = false`). Its own FPS/memory/render-diagnostics rows are
+  developer-facing, not player-facing; only its Language/Quality Preset
+  rows (mirroring the real console) were already covered as part of that
+  work, not this one.
+- `lullaby_mod/resources/funkin/ui/pause/kalos/pause_kalos.tscn` - authored
+  `"EXTREMELY WIP,\nPROOF OF CONCEPT"`. Not finished content.
+- `lullaby_mod/resources/funkin/ui/pause/chimera/pause_chimera.tscn`'s
+  single-letter nodes (`a`, `b`, `g`, `i`, ... spelling `"the devoted"` /
+  `"can not"`) - a letter-by-letter animated word puzzle, same shape as the
+  `"P e n d u l u m"` glyph effect. Translating it means re-authoring which
+  letter node holds which glyph to spell a different word, which is a
+  design change to the puzzle, not a text swap.
+- `lullaby_mod/rooms/scn_demo_credits.tscn` - the same unused/demo scene
+  already skipped in the first pass (see `SKIP` in the CSV build script:
+  CHIMERA/MONOCHROME/CRUST/Sector and the credited usernames).
+- `lullaby_mod/resources/funkin/ui/subtitles/lyrics.tscn` - a real, already-
+  built lyrics/subtitle display exists (BBCode wave/shake/pulse effects on
+  the lines, e.g. `"Your friend is waiting,"`), which is worth knowing about
+  since this file spent a while treating "subtitles during songs" as a
+  feature that would need to be built from scratch. It was **not** touched
+  here: the user scoped this pass to UI/menus and explicitly deferred song
+  lyrics as separate, unscoped work, and translating actual lyric content
+  is an editorial call (timing, whether a translated line still scans
+  against the vocal track) that a menu-string CSV pass has no business
+  making unasked.
 
 Deliberately left in English:
 person names and usernames everywhere (credits, artist handles), song/team

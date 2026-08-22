@@ -27,6 +27,9 @@ const SAMPLE_KEYS: Dictionary[String, String] = {
 	"Buy": "Comprar",
 	"The Husked One": "El Vaciado",
 	"Seen On: %s\nCollected: %03d / %03d": "Visto en: %s\nColección: %03d / %03d",
+	"RESUME": "REANUDAR",
+	"Leave the shop?": "¿Salir de la tienda?",
+	"Score: %d %s Accuracy: %.2f%% %s Misses: %d": "Puntuación: %d %s Precisión: %.2f%% %s Fallos: %d",
 }
 
 var _failures: int = 0
