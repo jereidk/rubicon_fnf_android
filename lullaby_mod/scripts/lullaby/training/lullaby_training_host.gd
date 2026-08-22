@@ -65,14 +65,11 @@ const TRAINING_WORDS: Array[String] = [
 
 const SHOP_SCENE := "res://lullaby_mod/rooms/env_collector_shop.tscn"
 
-## The flat backdrop a drill runs on. Near-black rather than black so the
-## mechanics' own dark art (the pendulum's drop shadow, Monochrome's stage
-## black) still separates from it, and a faint radial darkening on top so the
-## centre of the screen reads as the place to look - the same shape as an
-## offset-calibration screen, which is what this was asked to feel like.
-const BACKDROP_COLOR := Color("101015")
-const BACKDROP_EDGE := Color(0, 0, 0, 0.5)
-const BACKDROP_CLEAR := 0.15
+## How far out from the centre the backdrop's own vignette stays clear, and
+## how dark it gets at the corners. Subtler than the miss vignette by a wide
+## margin - this one only has to make the centre read as the place to look.
+const BACKDROP_EDGE := Color(0, 0, 0, 0.45)
+const BACKDROP_CLEAR := 0.2
 
 ## The round red "special" button the Touch gameplay mode already uses for
 ## Safety Lullaby's pendulum. Training needs it for two of the three drills
@@ -543,25 +540,28 @@ func _flatten_the_stage() -> void:
 
 	_build_backdrop()
 
-## A flat field with a soft vignette, behind everything the drill adds.
+## The console's navy under a calibration grid, behind everything the drill
+## adds. See lullaby_training_backdrop.gd for why that combination and not
+## another - the short version is that it is the one dark, cool family that
+## lets gold, white and red all read, and it is already the backdrop of the
+## screen you launched the drill from.
 ##
-## Index 0 of the HUD rather than a CanvasLayer of its own: UILayer is layer
-## 1, so anything full-rect and opaque in it already covers the default
-## canvas the Funkin stage draws into, and one node ordering rule is easier
-## to reason about than two layers competing for the same z.
+## Indices 0 and 1 of the HUD rather than a CanvasLayer of their own:
+## UILayer is layer 1, so anything full-rect and opaque in it already covers
+## the default canvas the Funkin stage draws into, and one node ordering
+## rule is easier to reason about than two layers competing for the same z.
 func _build_backdrop() -> void:
 	var host: Control = _hud()
 	if host == null:
 		return
 
-	var flat := ColorRect.new()
-	flat.name = "TrainingBackdrop"
-	flat.color = BACKDROP_COLOR
-	flat.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	host.add_child(flat)
-	host.move_child(flat, 0)
+	var backdrop: LullabyTrainingBackdrop = LullabyTrainingBackdrop.new()
+	backdrop.setup(level)
+	host.add_child(backdrop)
+	host.move_child(backdrop, 0)
 
+	# On top of the grid rather than inside it: the vignette is about where
+	# to look, and it should darken the grid at the edges too.
 	var vignette := TextureRect.new()
 	vignette.name = "TrainingBackdropVignette"
 	vignette.texture = LullabyTrainingOverlay.radial_texture(BACKDROP_EDGE, BACKDROP_CLEAR)

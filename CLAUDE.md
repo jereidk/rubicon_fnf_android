@@ -3909,6 +3909,85 @@ El botón redondo cae en `(1672, 440)` 200x200, o sea a 287px del extremo
 derecho de la línea ECG y fuera del arco del péndulo. El sondeo lo imprime al
 lado de las posiciones para que ese hueco se vea en vez de suponerse.
 
+### El fondo global de las tres pruebas: el navy de la consola + rejilla
+
+"Un fondo negro es muy básico, debe ser un fondo que funcione como global para
+las tres mecánicas." La restricción se sacó **muestreando el arte de las tres**
+antes de dibujar nada:
+
+| mecánica | colores dominantes |
+|---|---|
+| péndulo | **oro/latón `#705010`** 31% de su atlas, negro, gris, un brillo cian |
+| pulso | negro y rojo oscuro `#301010`; la línea ECG es `#333333`, blanca al acertar, roja al fallar |
+| escritura | unowns **rojo `#f01010`** 19%, Celebi gris-violeta, letras blancas |
+
+O sea: **oscuro y frío**. Nada de rojo -mataría los unowns *y* el viñeteado de
+fallo-, nada de dorado -aplanaría el péndulo-, nada claro -las letras y la ECG
+son blancas-. El navy es la única familia que deja leer a las tres.
+
+Que es, además, lo que la consola ya es: Training se lanza desde la consola del
+Cabinet, y `menus/console/Background.png` es su propio fondo -un degradado
+azul noche en diagonal-, ya importado, **0.37 MB de VRAM**. Reusarlo hace que
+la prueba se lea como "sigues dentro de la consola desde la que entraste".
+
+Encima va una rejilla de calibración, que es la mitad que dice que esto es un
+banco de pruebas y no una canción, y **las marcas de compás de abajo son un
+metrónomo de verdad**, conducido por el reloj del nivel: las tres pruebas
+ganan un pulso visible contra el que temporizar, tengan o no el suyo propio.
+
+Cuatro decisiones que costaron una vuelta cada una:
+
+- **`console_bg.tscn` se descartó y se dibujó su forma a mano.** Es un
+  SubViewport de 720x540 con `own_world_3d`, `WorldEnvironment` con niebla y
+  un `DirectionalLight3D` -este mismo fichero mide esa familia de nodo en unos
+  1.2ms del frame de la tienda- y además lleva un `ColorRect` negro a rect
+  completo que la coreografía de arranque de `console.gd` desvanece, y un
+  `AnimationPlayer` **sin autoplay**. Reusarlo sería pagar un pase 3D y
+  reproducir la secuencia de arranque de la consola para que algo se moviera.
+  Dos quads girando cuestan una actualización de transform. (Por eso el primer
+  intento de renderizarlo salió negro: el `ColorRect`.)
+- **La guía horizontal se quitó.** Es la compañera obvia de la vertical y aquí
+  está mal: la línea ECG del pulso va justo por `y = centro`, así que la guía
+  correría por debajo de ella toda la prueba. La vertical sí es útil - es
+  donde el péndulo es golpeable, donde están las letras y donde aterriza el
+  latido.
+- **El navy va atenuado (`NAVY_DIM = 0.72`).** El degradado está iluminado
+  desde su esquina superior derecha, que es exactamente donde va el marcador
+  de aciertos/fallos.
+- **La longitud del compás se lee del `RubiconTimeChange` en vigor**, no se
+  asume 4/4. Monochrome y Safety Lullaby son **3/4**, y dar 4/4 por supuesto
+  es literalmente lo que tuvo roto `dancing_measure_step` durante meses.
+
+Y una nota de mecánica del motor: **sólo las marcas de compás se redibujan por
+frame** (ocho rects). La rejilla se dibuja una vez y las formas giran por su
+`rotation`, así que `_draw()` no vuelve a correr en ninguna de las dos - Godot
+cachea los comandos del canvas item y sólo actualiza el transform.
+
+#### Lo que se descartó, con su motivo
+
+Se renderizaron seis candidatos de verdad en Godot con los assets y shaders del
+proyecto, no en PIL. Los que no se eligieron:
+
+| | por qué no |
+|---|---|
+| la caja del tab (`Box.png`) a pantalla completa | "te metiste dentro de la cajita" es buena idea, pero el interior es negro - resuelve la continuidad y no el "es muy básico" |
+| `shd_crt` a pantalla completa | máxima identidad y **el candidato caro**: `hint_screen_texture` mete un BackBufferCopy de pantalla completa, justo el coste que este fichero lleva toda la sesión evitando. Y su `curve` deforma el HUD de las esquinas. La versión barata sería aplicarlo dentro de un SubViewport pequeño, como hace la consola |
+| `shd_shop_static` de fondo | se mueve y queda bien, pero es ruido constante detrás de algo que pide atención |
+| que cada prueba use el escenario de su canción | se pidió **uno** global, y reintroduce el "¿estoy en Safety Lullaby?" |
+
+**Y un hallazgo colateral que aplica fuera de esto: `shd_shop_static` ignora
+`modulate`.** Asigna `COLOR` entero en `fragment()`, descartando el modulate
+que la etapa de vértices había premultiplicado. Comprobado con un A/B
+controlado, mismo `base_color`:
+
+    modulate.a=1.00   color medio=(0.218, 0.251, 0.512)
+    modulate.a=0.20   color medio=(0.217, 0.251, 0.511)
+
+Idénticos. El único control de brillo es `base_color`. Lo usan la tienda y la
+bolsa de cartuchos, así que la trampa no es sólo de aquí: **cualquier shader de
+este proyecto que sobreescriba `COLOR` en vez de multiplicarlo es inmune a
+`modulate`.**
+
 ### El escenario: Test fuera, pantalla de calibración dentro, y no se muere
 
 Reportado como *"el fondo no debería ser Test, sus notas molestan y no tienen

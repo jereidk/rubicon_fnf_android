@@ -61,6 +61,7 @@ func _initialize() -> void:
 	_check_typing(host)
 	_check_touch_scripts(host)
 	_check_flat_stage(host)
+	_check_backdrop(host)
 	_check_no_dying(host, overlay)
 	_check_overlay_font_sizes(overlay)
 
@@ -177,7 +178,7 @@ func _check_flat_stage(host: String) -> void:
 	_check(_has_statement(body, "&\"autoplay\", true"),
 		"the lanes are still put on autoplay as well as hidden")
 	_check(_has_statement(body, "_build_backdrop\\(\\)"),
-		"something flat goes in behind the mechanic")
+		"something goes in behind the mechanic")
 
 	# The scene is where the list lives, so a node renamed out from under it
 	# shows up as an empty NodePath rather than as a silent miss.
@@ -189,6 +190,39 @@ func _check_flat_stage(host: String) -> void:
 	_check(not line.is_empty(), "test.tscn declares hide_for_training")
 	for path: String in ["../Stage", "UI/Judgment", "UI/HealthBar", "UI/Opponent", "UI/Player"]:
 		_check(line.contains(path), "hide_for_training covers %s" % path)
+
+## One backdrop for three mechanics, which is the constraint that decides it.
+## Their palettes were sampled before anything was drawn - the pendulum is
+## gold #705010, the pulse is a white/red ECG on dark red, the typing drill is
+## red unowns and white letters - so the backdrop has to be dark and COOL, and
+## the console's own navy is both that and the screen the drill was launched
+## from.
+func _check_backdrop(host: String) -> void:
+	const BACKDROP := "res://lullaby_mod/scripts/lullaby/training/lullaby_training_backdrop.gd"
+	_check(_has_statement(_func_body(host, "_build_backdrop"), "LullabyTrainingBackdrop\\.new\\(\\)"),
+		"the drill builds the shared backdrop")
+
+	var backdrop: String = FileAccess.get_file_as_string(BACKDROP)
+	_check(not backdrop.is_empty(), "the backdrop script is readable")
+	if backdrop.is_empty():
+		return
+
+	var texture: String = _const_string(backdrop, "BACKGROUND_TEXTURE")
+	_check(texture.contains("menus/console/"),
+		"the backdrop is the console's own, not a colour picked here (%s)" % texture)
+	_check(FileAccess.file_exists(texture),
+		"...and that file exists (%s)" % texture)
+
+	# The metronome is the half that makes this a practice rig rather than a
+	# menu, and it is the only thing on screen that all three drills share.
+	_check(_has_statement(backdrop, "&\"time_beat\""),
+		"the beat marks are driven by the level clock")
+
+	# 4/4 is not a safe assumption in this project: Monochrome and Safety
+	# Lullaby are 3/4, and taking 4/4 for granted is exactly what kept
+	# rubicon_character.gd's dancing_measure_step broken for months.
+	_check(_has_statement(backdrop, "time_signature_numerator"),
+		"the bar length is read off the time change, not assumed to be 4/4")
 
 ## "no morir": nothing may take a practice session away from you for
 ## practising badly. There is no death path at all - the lanes cannot feed
