@@ -886,6 +886,18 @@ jobs:
           # every one of them is a value a script has to write at runtime.
           guard_godot tools/test_training_setup.gd
 
+          # === Verify the first-boot screen's language and intro options
+          # Three rows the player meets before anything else: the UI
+          # language, "skip the Collector's introduction" (shown only while
+          # that welcome has never played) and "always play the Collector's
+          # introduction" (always shown). Every one of them is a runtime
+          # write to a Setting or a SaveData flag, so none of it is visible
+          # to a parse check or to either scene sweep. This also pins that
+          # forcing is a Setting rather than just clearing intro_seen -
+          # that flag doubles as EntryVoicelines' "are you a returning
+          # visitor", so clearing it would mute the entry voicelines.
+          guard_godot tools/test_first_boot_options.gd
+
           # === Verify hardcoded uid:// references resolve
           # Catches the collector-shop crash class before it ships: a bare
           # "uid://..." string literal in .gd code (SceneChanger.change_to,

@@ -43,13 +43,16 @@ gradient = SubResource("Gradient_vig")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
-[node name="FirstBoot" type="Control"]
+[node name="FirstBoot" type="Control" node_paths=PackedStringArray("language_button", "skip_intro_check", "force_intro_check")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_fbs")
+language_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow/OptionButton")
+skip_intro_check = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/SkipIntro")
+force_intro_check = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/ForceIntro")
 
 [node name="BG" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -93,6 +96,56 @@ layout_mode = 2
 size_flags_horizontal = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options"]
+layout_mode = 2
+
+[node name="Game" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game"]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "Game"
+horizontal_alignment = 1
+
+[node name="LanguageRow" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Language: "
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+mouse_default_cursor_shape = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "English"
+popup/item_0/id = 0
+popup/item_1/text = "Español"
+popup/item_1/id = 1
+
+[node name="SkipIntro" type="CheckBox" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/checkbox_checked_color = Color(1, 1, 1, 1)
+theme_override_colors/checkbox_unchecked_color = Color(1, 1, 1, 0.7)
+theme_override_constants/h_separation = 12
+text = "Skip the Collector's introduction"
+
+[node name="ForceIntro" type="CheckBox" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/checkbox_checked_color = Color(1, 1, 1, 1)
+theme_override_colors/checkbox_unchecked_color = Color(1, 1, 1, 0.7)
+theme_override_constants/h_separation = 12
+text = "Always play the Collector's introduction"
+
+[node name="GameSeparator" type="HSeparator" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
 layout_mode = 2
 
 [node name="Graphics" type="VBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
@@ -261,4 +314,7 @@ texture = SubResource("GradientTexture2D_vig")
 expand_mode = 1
 
 [connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset/OptionButton" to="." method="_on_preset_changed"]
+[connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow/OptionButton" to="." method="_on_language_changed"]
+[connection signal="toggled" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/SkipIntro" to="." method="_on_skip_intro_toggled"]
+[connection signal="toggled" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/ForceIntro" to="." method="_on_force_intro_toggled"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/Button" to="." method="apply_and_continue"]

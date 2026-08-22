@@ -385,6 +385,20 @@ var lullaby_clock_24h: bool = false
 ## arguments substituted in, so it would never match a CSV key.
 var lullaby_language: String = "en"
 
+## Play the Collector's welcome - the "HELLO AND WELCOME! TO THE CABINET OF
+## NOVELTIES!" tour he gives on your first visit - every time you enter the
+## shop, rather than only on the visit where SaveData's "intro_seen" flag is
+## still false.
+##
+## A Setting rather than just clearing that flag, because the flag means two
+## things at once: env_collector_shop.gd uses it to decide whether to play
+## sequence_intro, and EntryVoicelines.gd uses it to decide whether you are a
+## returning visitor at all (it stays silent while the intro has never been
+## seen). Clearing it to re-watch the tour would therefore also mute the
+## entry voicelines from then on, which is not what "play the intro again"
+## should mean.
+var lullaby_force_shop_intro: bool = false
+
 ## Which keyboard Monochrome's typing mechanic uses.
 ##
 ## SYSTEM focuses a hidden LineEdit, which is what makes Android raise the

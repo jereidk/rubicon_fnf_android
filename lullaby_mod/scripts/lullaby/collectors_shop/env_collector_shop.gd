@@ -171,7 +171,11 @@ func _ready() -> void :
 			voiceline_state_end.stop()
 		)
 
-	if not SaveData.get_flag("intro_seen"):
+	# The Setting is checked first so it can force the tour on a save that has
+	# already seen it. intro_seen is still set below either way - the forced
+	# path is additive, and turning the Setting back off has to leave a normal
+	# save behind rather than one that replays the intro once more.
+	if Settings.lullaby_force_shop_intro or not SaveData.get_flag("intro_seen"):
 		_add_intro_animation()
 
 		if sequence_controller != null and sequence_controller._animation_player != null:

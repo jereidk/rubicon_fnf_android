@@ -4077,6 +4077,60 @@ guard textual no puede: que resolver una palabra trae la siguiente, y que el
 botón redondo llega de verdad a la mecánica (es un `InputEventAction` sintético
 por `Input.parse_input_event`, no una llamada directa).
 
+## Idioma y la intro del Collector, desde la pantalla de first boot
+
+Tres filas nuevas en `menus/first_boot/first_boot_settings.tscn`, que es la
+pantalla de "Apply your preferences" por la que se pasa **en cada arranque**
+(el flujo vivo es `menus/boot` -> `warning` -> `first_boot` -> `intro`, y
+ninguno de los tres mira una bandera de "ya visto"; la copia del pck en
+`lullaby_mod/rooms/scn_boot.tscn` sí lo hace, pero no es la que corre):
+
+| fila | cuándo aparece | qué escribe |
+|---|---|---|
+| **Idioma** | siempre | `Settings.lullaby_language` + `apply_settings()` |
+| **Omitir la introducción del Collector** | sólo mientras no se haya visto | `SaveData` `intro_seen` |
+| **Reproducir siempre la introducción del Collector** | siempre | `Settings.lullaby_force_shop_intro` |
+
+**Forzar es un Setting y no simplemente limpiar `intro_seen`,** y ese es el
+detalle que decide el diseño: esa bandera significa dos cosas a la vez.
+`env_collector_shop.gd` la lee para decidir si reproduce `sequence_intro`, y
+`EntryVoicelines.gd` la lee para decidir si eres un visitante que vuelve (se
+calla mientras la intro no se haya visto nunca). Limpiarla para volver a ver
+la visita guiada dejaría además mudas las voces de entrada a partir de
+entonces, que no es lo que "ponme la intro otra vez" debería significar.
+Omitir sí escribe la bandera, porque ahí las dos lecturas quieren lo mismo.
+
+### Dos cosas que sólo se vieron renderizando la pantalla
+
+**Un nombre de nodo repetido entre hermanos revienta el layout entero.**
+Metí un segundo `HSeparator` bajo el mismo padre y el panel de opciones pasó
+de columna a un amasijo de secciones solapadas - `Entrada` arriba a la
+izquierda, `Juego` arriba a la derecha, `Gráficos` encima de las flechas. No
+da error, no da aviso, y el `.tscn` es legible. Se cazó renderizando la
+escena y comparándola con la de `HEAD`.
+
+Y `tools/audit_duplicate_scene_nodes.py`, que existe **exactamente** para
+esto y que sí compara por `(parent, name)`, dijo "todo OK" mientras estaba
+rota: su lista de raíces por defecto era `["lullaby_mod", "addons",
+"scenes"]` - y `scenes` ni siquiera existe, mientras que `menus/`, `songs/`
+y `resources/` no se barrían nunca. 20 escenas de 124 fuera de alcance.
+Ahora barre `["."]` y son 124.
+
+**El icono `unchecked` por defecto de Godot es invisible sobre un panel
+oscuro.** Medido contra `ThemeDB`: RGB medio **0.10** con alfa máximo
+**0.50**, contra el `checked`, que es 0.87 y opaco. O sea que una casilla
+marcada se lee como casilla y una sin marcar se lee como una etiqueta suelta
+- lo contrario de para lo que sirve una casilla. Y **tintarla no lo
+arregla**: `checkbox_unchecked_color` multiplica, así que un icono negro
+sigue negro se pinte del color que se pinte. Hay que sustituir el icono.
+`_light_unchecked_box()` lo reconstruye a partir del propio icono del motor
+-conserva su forma de alfa y por tanto su tamaño y métrica exactos- en vez
+de meter dos PNG nuevos por un cuadrado de dieciséis píxeles.
+
+`tools/test_first_boot_options.gd` (25 comprobaciones, en CI) fija las tres
+filas y, sobre todo, que la condición de la tienda siga siendo la que estas
+casillas creen que es. Mutado con cuatro cambios y los cuatro fallan.
+
 ## The Hacks tab has a joke code
 
 `hacks_tab.gd`'s `CODES` dictionary is real cheat codes (unlock a song,

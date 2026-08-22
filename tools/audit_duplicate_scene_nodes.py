@@ -79,4 +79,13 @@ def main(roots: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:] or ["lullaby_mod", "addons", "scenes"]))
+    # The whole project, not a list of roots.
+    #
+    # The old default was ["lullaby_mod", "addons", "scenes"] - and "scenes"
+    # does not exist, while menus/, songs/ and resources/ were simply never
+    # swept. That is 20 scenes out of 124, and it cost a real bug: two
+    # sibling HSeparators added to menus/first_boot/first_boot_settings.tscn
+    # collapsed the whole options panel into overlapping rows, and this
+    # audit reported "todo OK" while it was broken. Found by rendering the
+    # screen instead.
+    sys.exit(main(sys.argv[1:] or ["."]))
