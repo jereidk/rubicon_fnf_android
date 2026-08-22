@@ -1,4 +1,10 @@
 keys,es
+"
+
+NEW GRADE!!!","
+
+¡¡¡NUEVA MARCA!!!"
+"""%s"" is already unlocked.","""%s"" ya está desbloqueado."
 $BIND Switch Cartridge,$BIND Cambiar cartucho
 (Must delete shader cache after each benchmark to see differences),(Hay que borrar la caché de shaders tras cada prueba para ver diferencias)
 2D Art,Arte 2D
@@ -6,6 +12,9 @@ $BIND Switch Cartridge,$BIND Cambiar cartucho
 3D Artist,Artista 3D
 ??? TB Memory,??? TB de Memoria
 A cheaper edge smoothing pass than MSAA. Worth trying if MSAA alone is still too slow.,Un suavizado de bordes más barato que MSAA. Merece la pena probarlo si MSAA solo sigue siendo demasiado lento.
+"A rising star now rotted. He joins the residents of Mt Silver at its peak. Some say his voice still echoes in the quietest reaches of the town. Musical prowess persists despite the half digested cranium. His voice now commandeered for something new.
+","Una estrella en ascenso, ahora podrida. Se une a los residentes del Monte Plateado, en su cima. Dicen que su voz aún resuena en los rincones más silenciosos del pueblo. Su talento musical persiste pese a su cráneo medio digerido. Su voz, ahora al servicio de algo nuevo.
+"
 ANGLE Video Driver Detected,Controlador de vídeo ANGLE detectado
 "Adjust input timings, if in case of delays.","Ajusta la sincronización de la entrada, por si hay retrasos."
 Advanced Settings,Ajustes avanzados
@@ -20,12 +29,15 @@ Apply your preferences.,Ajusta tus preferencias.
 Art Director,Director de arte
 Art Lead & Supervisor,Responsable y supervisor de arte
 Art and Story Direction,Dirección de arte e historia
+"As low as it gets [No shadows, 0.75x render scale, post-processing off, zero antialiasing]","Lo más bajo posible [Sin sombras, escala de renderizado 0.75x, postprocesado apagado, sin antialiasing]"
 Assist. Writer,Guionista asistente
 Assist. Writing,Escritura asistente
 Assit. Writing,Escritura asistente
 Baby Mode,Modo fácil
+"Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]","Gráficos de andar por casa [Postprocesado apagado, sin antialiasing]"
 "Bounced light picking up the colour of nearby surfaces. The most expensive effect here and the hardest to notice, so turn it off first. Collector's Shop only.","Luz rebotada que recoge el color de las superficies cercanas. El efecto más caro de todos y el más difícil de notar, así que apágalo primero. Sólo en la Tienda del Coleccionista."
 Brightens the zone you are holding so a press reads clearly. Off makes the whole hitbox one flat shade.,Ilumina la zona que estás manteniendo pulsada para que se note claramente. Apagado deja toda la zona de impacto de un solo tono plano.
+Buy,Comprar
 Buzzes briefly each time you hit a note in Touch mode. Turn it off if the constant vibration bothers you or drains the battery.,Vibra brevemente cada vez que aciertas una nota en modo Toque. Apágalo si la vibración constante te molesta o gasta batería.
 CAST,REPARTO
 CREDITS,CRÉDITOS
@@ -35,8 +47,11 @@ Cartridges,Cartuchos
 Change Keybinds,Cambiar atajos
 Change game's maximum frames per second limit. ,Cambia el límite máximo de fotogramas por segundo del juego. 
 Changes overall game display. ,Cambia cómo se muestra el juego en pantalla. 
+Changes the game's UI language. A restart of any open menu may be needed for every label to catch up.,Cambia el idioma de la interfaz del juego. Puede que haga falta reabrir algún menú para que todas las etiquetas se actualicen.
 Charter,Charteador
 Clock: ,Reloj: 
+Close,Cerrar
+"Code accepted - ""%s"" unlocked!","Código aceptado - ¡""%s"" desbloqueado!"
 Codes,Códigos
 Collector's Note,Nota del Coleccionista
 Collector's Shop,Tienda del Coleccionista
@@ -46,6 +61,9 @@ Composers,Compositores
 Continue,Continuar
 Credits,Créditos
 Credits Theme,Tema de créditos
+"Daughter to the greatest musical trainers beyond the farthest reaches of Kanto. Mentally resilient despite first impressions. Forever searching for her loved one, the remnants of his ever distant voice echo in the dark.
+","Hija de los mejores entrenadores musicales más allá de los confines de Kanto. Mentalmente resiliente pese a las primeras impresiones. Busca sin descanso a su ser querido; los restos de su voz, cada vez más lejana, resuenan en la oscuridad.
+"
 Debug Display: ,Panel de depuración: 
 Debug Keybind: ,Atajo de depuración: 
 Decorative extras like glow and screen effects. Lower settings skip loading them entirely instead of just hiding them.,Extras decorativos como el resplandor y los efectos de pantalla. Los ajustes bajos evitan cargarlos por completo en vez de sólo ocultarlos.
@@ -59,6 +77,7 @@ Enter a code:,Introduce un código:
 Exit,Salir
 FSR Sharpness: ,Nitidez FSR: 
 Flashing Lights,Luces intermitentes
+"For the average computer [Post-processing low, basic antilaliasing]","Para el ordenador medio [Postprocesado bajo, antialiasing básico]"
 "Friday Night Funkin' Lullaby is not affiliated with Funkin' Crew, Inc., 
 Newgrounds, The Pokémon Company, or Nintendo of America. Friday Night Funkin' Lullaby 
 is a fangame project made out of love for the original games, and should not be 
@@ -78,11 +97,13 @@ de este fangame ni de su desarrollo.
 
 Todas las personas y eventos representados en este juego son ficticios.
 Cualquier parecido con personas o eventos reales es involuntario."
+"GODMODE activated. You are now invincible to embarrassment. Wait, no.","MODODIOS activado. Ahora eres invencible a la vergüenza ajena. Espera, no."
 Gallery,Galería
 Gameplay Control: ,Control de juego: 
 Ghost Tapping,Toque fantasma
 Graphics,Gráficos
 Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible.,Gráficos. Alto: la experiencia visual pensada por la dirección. Normal: gráficos reducidos. Bajo: lo más bajo posible.
+Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show!,¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer!
 Hitbox Gradient,Degradado de zona de impacto
 Hitbox Hint,Guía de zona de impacto
 Hitbox Opacity: ,Opacidad de zona de impacto: 
@@ -114,8 +135,13 @@ Al continuar, aceptas la posibilidad de inestabilidad
 al jugar a Friday Night Funkin' Lullaby."
 Indirect Lighting,Iluminación indirecta
 Input,Entrada
+Invalid code.,Código no válido.
+"It is thought that Celebi's song forever echoes within it, promising a brightly shining future to all who hear it. A beacon of light once loyal to their trainer, now faithful to another.
+","Se cree que el canto de Celebi resuena en su interior para siempre, prometiendo un futuro brillante a quien lo escuche. Un faro de luz que una vez fue leal a su entrenador, ahora fiel a otro.
+"
 Keyboard: ,Teclado: 
 LALALALA,LALALALA
+Language: ,Idioma: 
 Left,Izquierda
 Light Culling: ,Descarte de luces: 
 Locks frame rate to monitor's refreshrate to combat screen tearing.,Limita la tasa de fotogramas a la frecuencia de refresco del monitor para evitar el tearing.
@@ -129,6 +155,7 @@ Midscroll,Desplazamiento centrado
 "Multiplier for chart scroll speed, the speed at which notes come down the screen.","Multiplicador de la velocidad de desplazamiento del chart, la velocidad a la que bajan las notas por la pantalla."
 Music Volume: ,Volumen de música: 
 Mute Volume: ,Silenciar volumen: 
+Never Played,Nunca jugada
 "No, close the game.","No, cerrar el juego."
 "Normal locks a standard 16:9 frame and pillarboxes the rest, which is how the songs are authored. Wide fills a wide screen with extra game world, which can show past what a stage was built to cover.","Normal fija un cuadro 16:9 estándar y rellena el resto con barras negras, que es como se diseñaron las canciones. Panorámico llena una pantalla ancha con más mundo de juego, lo que puede mostrar más allá de lo que el escenario fue construido para cubrir."
 Note Down: ,Nota Abajo: 
@@ -140,6 +167,7 @@ Offset: ,Desfase:
 "Offsets the position of all notes, in case of delays.","Desplaza la posición de todas las notas, por si hay retrasos."
 P e n d u l u m,P é n d u l o
 P u l s e,P u l s o
+Passed,Superada
 Pause: ,Pausa: 
 Places player arrows at the bottom of the screen and makes notes scroll down.,Coloca las flechas del jugador en la parte inferior de la pantalla y hace que las notas bajen.
 Play,Jugar
@@ -147,6 +175,7 @@ Play Intro,Reproducir intro
 Player Profile,Perfil de jugador
 "Plays the whole song, music included, faster or slower. The hit windows do not move with it, so slower is easier and faster is harder. The music changes pitch.","Reproduce toda la canción, música incluida, más rápido o más lento. Las ventanas de acierto no se mueven con ella, así que más lento es más fácil y más rápido es más difícil. La música cambia de tono."
 Post Processing: ,Postprocesado: 
+Power,Encendido
 Press Enter to start,Pulsa Enter para empezar
 Press [color=red]Enter[/color] to Continue,Pulsa [color=red]Enter[/color] para continuar
 Previous Directors,Directores anteriores
@@ -163,13 +192,28 @@ Render Scale: ,Escala de renderizado:
 Resolution: ,Resolución: 
 Right,Derecha
 Role,Rol
+Root access: denied. Fart access: granted.,Acceso root: denegado. Acceso a pedos: concedido.
 SFX,SFX
 SFX Volume: ,Volumen de SFX: 
 SPECIAL THANKS,AGRADECIMIENTOS ESPECIALES
+"Score: %d
+Highest Combo: %d
+Misses: %d
+Accuracy: %.2f%%
+Rank: %s
+Clear: %s","Puntuación: %d
+Combo máximo: %d
+Fallos: %d
+Precisión: %.2f%%
+Rango: %s
+Estado: %s"
 Screen Mode: ,Modo de pantalla: 
 Screen Shake: ,Sacudida de pantalla: 
 Screen Space AA: ,AA en espacio de pantalla: 
 Scroll Speed Mult: x,Mult. velocidad de desplazamiento: x
+"Seen On: %s
+Collected: %03d / %03d","Visto en: %s
+Colección: %03d / %03d"
 "Set keybinds for notes, mechanics, and others.","Configura los atajos para notas, mecánicas y demás."
 Set the game's resolution in pixels.,Fija la resolución del juego en píxeles.
 "Set the volume of the game's music, including vocals.","Fija el volumen de la música del juego, incluidas las voces."
@@ -193,9 +237,25 @@ Special: ,Especial:
 "Stops small lights being drawn once the camera is far from them, as a multiple of each light's own reach. 0 is off; lower culls more. Every light reaching a pixel is shaded on that pixel, so this is the strongest lever in a busy scene.","Deja de dibujar las luces pequeñas cuando la cámara está lejos de ellas, como múltiplo del alcance propio de cada luz. 0 lo desactiva; más bajo descarta más. Cada luz que alcanza un píxel se sombrea en ese píxel, así que es la palanca más fuerte en una escena cargada."
 Strips decorative shader effects throughout the game. Optimized turns this on automatically; use it to get the same boost without dropping the rest of your preset.,Elimina los efectos de shader decorativos de todo el juego. Optimizado lo activa automáticamente; úsalo para obtener la misma mejora sin bajar el resto de tu preajuste.
 T y p i n g,E s c r i t u r a
+TIME: %s,TIEMPO: %s
 Texture Filtering: ,Filtrado de texturas: 
+The Aspiring Trainer,La Entrenadora Aspirante
+The Husked One,El Vaciado
+The Hypnosis Pokemon,El Pokémon Hipnosis
+The Loyal Pokemon,El Pokémon Leal
+The Resilient Trainer,La Entrenadora Resiliente
+The Singing Trainer,El Entrenador Cantante
+The Vulture Pokemon,El Pokémon Buitre
+The Yurei,La Yurei
+"The floating, desparate remainder of a once bright star. All that was once voiced is now lost elsewhere; a desperate voice now replaced with the amplified cries of the ravished.",El resto flotante y desesperado de lo que una vez fue una estrella brillante. Todo lo que alguna vez tuvo voz está ahora perdido en otro lugar; una voz desesperada reemplazada por los gritos amplificados de los devastados.
+"The forest’s incredulous myth thought impossible. Victims are lulled away by the deeply polished pendulum. When it is very hungry, it puts humans it meets to sleep, then it feasts on their dreams.
+","El mito increíble del bosque, dado por imposible. Sus víctimas son arrastradas por el péndulo pulido hasta hipnotizarlas. Cuando tiene mucha hambre, duerme a los humanos que encuentra y se alimenta de sus sueños.
+"
 The intended experience. [Post-processing and antialiasing at its max],La experiencia pretendida. [Postprocesado y antialiasing al máximo]
 The key for each special mechanic in songs.,La tecla de cada mecánica especial en las canciones.
+"The promised young challenger's devotion reverberates through his body. Mt Silver's most compelling young victim. His voice echoes pleas from within the Mount's choir of spirits, reaching out to a town long deserted. 
+","La devoción del joven aspirante prometido reverbera por todo su cuerpo. La víctima joven más cautivadora del Monte Plateado. Su voz hace eco de súplicas desde el interior del coro de espíritus de la montaña, alcanzando un pueblo abandonado hace tiempo. 
+"
 "This game contains [color=9b0000]loud noises, jumpscares, covered partial
 nudity, depictions of gore, body horror, and insects.[/color]
 
@@ -212,6 +272,8 @@ Toggle for turning flashing lights ON or OFF for light sensitive and epileptic p
 Touch Note Hitbox Size: x,Tamaño de zona de impacto táctil: x
 Training,Entrenamiento
 Turns off dynamic shadows entirely. The single biggest knob here if the shop's chugging.,Desactiva las sombras dinámicas por completo. El ajuste más importante de todos si la tienda va a tirones.
+Twenty year old performer and accomplished Queen of Kalos. Had recently taken up photography in an effort to satiate her desire for new sights and challenging trainers. Broken camera and photographs featuring her were found in an abandoned farmhouse's field. Missing.,Artista de veinte años y consumada Reina de Kalos. Recientemente había empezado a hacer fotografía para saciar su deseo de nuevos paisajes y entrenadores desafiantes. Se hallaron una cámara rota y fotografías suyas en el campo de una granja abandonada. Desaparecida.
+"Ultimate power granted. It smells like ultimate power, actually.","Poder definitivo concedido. Huele a poder definitivo, la verdad."
 Up,Arriba
 Upscaling: ,Escalado: 
 VSync: ,VSync: 
@@ -221,9 +283,13 @@ Voice Volume: ,Volumen de voces:
 Volume,Volumen
 Volume Down: ,Bajar volumen: 
 Volume Up: ,Subir volumen: 
+"Vultures disguised as ancient writing. It is unknown which came first, the writing or these Unowns. Harmless if by their lonesome, dangerous in clumps. The unascended versions of something greater. Nests have been found anywhere dark, warm, and suitable for sustenance. Caves, corpses, basements. 
+","Buitres disfrazados de escritura antigua. Se desconoce qué llegó primero, la escritura o estos Unown. Inofensivos si están solos, peligrosos en grupo. Las versiones no ascendidas de algo mayor. Se han hallado nidos en cualquier lugar oscuro, cálido y apto para alimentarse. Cuevas, cadáveres, sótanos. 
+"
 WARNING,ADVERTENCIA
 Warning Screen,Pantalla de advertencia
 "Watch the game play itself perfectly, hitting every note on its own.","Observa cómo el juego se juega solo a la perfección, acertando cada nota por su cuenta."
+Whatever you want.,Lo que tú quieras.
 "Where the pendulum mechanic's own red hitbox sits. Up is the original top strip. Bottom parks it at the bottom edge. Center puts it between the lane pairs, splitting the lanes above and below it.","Dónde se sitúa la zona de impacto roja propia de la mecánica del péndulo. Arriba es la franja superior original. Abajo la aparca en el borde inferior. Centro la coloca entre los pares de carriles, repartiéndolos por encima y por debajo."
 Which clock the Memory Card header up there reads in.,Con qué reloj marca la hora la cabecera de la Tarjeta de memoria de ahí arriba.
 "Which debug overlay to show. Simple is FPS and memory, Detailed adds build info, Advanced adds rendering diagnostics. The keybind above cycles it.","Qué panel de depuración mostrar. Simple son FPS y memoria, Detallado añade info de la build, Avanzado añade diagnóstico de renderizado. El atajo de arriba lo rota."
@@ -232,39 +298,12 @@ Window Mode: ,Modo de ventana:
 Writer,Guionista
 "Writes a performance and error log to storage, which is what a bug report needs attached. Takes effect the next time the game starts. The path below is where this session's went.","Escribe un registro de rendimiento y errores en el almacenamiento, que es lo que necesita adjunto un reporte de error. Tiene efecto la próxima vez que arranque el juego. La ruta de abajo es dónde fue a parar el de esta sesión."
 "Yes, I understand.","Sí, lo entiendo."
+"You now have unlimited everything, except dignity.","Ahora tienes todo ilimitado, menos dignidad."
 [CTRL+ALT+S] or [COMMAND+OPTION+S] brings up this menu.,[CTRL+ALT+S] o [COMMAND+OPTION+S] abre este menú.
 [F],[F]
+[The Go Back Button] Go Back,[The Go Back Button] Volver
 [color=red]Type[/color] the corresponding letters to the Unowns as they appear,[color=red]Escribe[/color] las letras correspondientes a los Unown a medida que aparecen
+"[wave amp=10.0 freq=4.0]
+CLICK TO CONTINUE  →","[wave amp=10.0 freq=4.0]
+PULSA PARA CONTINUAR  →"
 reset save data,restablecer datos guardados
-Invalid code.,Código no válido.
-"""%s"" is already unlocked.","""%s"" ya está desbloqueado."
-"Code accepted - ""%s"" unlocked!","Código aceptado - ¡""%s"" desbloqueado!"
-"GODMODE activated. You are now invincible to embarrassment. Wait, no.","MODODIOS activado. Ahora eres invencible a la vergüenza ajena. Espera, no."
-"Ultimate power granted. It smells like ultimate power, actually.","Poder definitivo concedido. Huele a poder definitivo, la verdad."
-Root access: denied. Fart access: granted.,Acceso root: denegado. Acceso a pedos: concedido.
-"You now have unlimited everything, except dignity.","Ahora tienes todo ilimitado, menos dignidad."
-Whatever you want.,Lo que tú quieras.
-"As low as it gets [No shadows, 0.75x render scale, post-processing off, zero antialiasing]","Lo más bajo posible [Sin sombras, escala de renderizado 0.75x, postprocesado apagado, sin antialiasing]"
-"Bottom-of-the-barrel visuals [Post-proccesing off, zero antialiasing]","Gráficos de andar por casa [Postprocesado apagado, sin antialiasing]"
-"For the average computer [Post-processing low, basic antilaliasing]","Para el ordenador medio [Postprocesado bajo, antialiasing básico]"
-"Score: %d
-Highest Combo: %d
-Misses: %d
-Accuracy: %.2f%%
-Rank: %s
-Clear: %s","Puntuación: %d
-Combo máximo: %d
-Fallos: %d
-Precisión: %.2f%%
-Rango: %s
-Estado: %s"
-"
-
-NEW GRADE!!!","
-
-¡¡¡NUEVA MARCA!!!"
-TIME: %s,TIEMPO: %s
-Never Played,Nunca jugada
-Passed,Superada
-Language: ,Idioma: 
-Changes the game's UI language. A restart of any open menu may be needed for every label to catch up.,Cambia el idioma de la interfaz del juego. Puede que haga falta reabrir algún menú para que todas las etiquetas se actualicen.

@@ -3873,8 +3873,33 @@ unlocked!") % key`. One of them, `lullaby_song_grader.gd`'s
 is what `tr()` wraps anyway.
 
 **Coverage: the console (all Settings tabs, Hacks, Credits chrome), the
-boot-flow screens (Warning, ShittyGPU, Main Menu, First Boot Settings), and
-the results/pause-menu strings named above.** Deliberately left in English:
+boot-flow screens (Warning, ShittyGPU, Main Menu, First Boot Settings), the
+results/pause-menu strings named above, and the Collector's Shop's own UI
+chrome and Kollectadex.** That last pair needed a second pass -
+`env_collector_shop.tscn` and `lullaby_mod/resources/kollectadex/
+kollectadex.tscn` are not under `menus/`, not `console.tscn`, and do not
+match `lullaby_mod/rooms/scn_*.tscn`, so the first sweep's glob missed them
+entirely (along with `fuck_no.tscn`, which turned out to have no `text=` at
+all - it is animation and audio only). The Kollectadex's nine
+`character_subtitle`/`character_desc` values are real narrative text (the
+in-universe bios - Hypno, Girlfriend, Boyfriend, Gold, Gold No More, Unowns,
+Celebi, Serena, Hex Maniac), set via a plain `entry.character_desc ->
+label.text` assignment in `kollectadex.gd`, so auto-translate reaches them
+the same way it reaches everything else - only the CSV needed the nine new
+keys, no script change beyond the one dynamic string
+(`update_collection_info()`'s `"Seen On: %s\nCollected: %03d / %03d"`,
+wrapped in `tr()` same as the others). Character *names* stay untranslated,
+same convention as every other proper noun here.
+
+**If a future pass wants full coverage, don't trust a fixed glob list -
+grep the whole tree for `text = "` and diff against what is already in the
+CSV, the way this second pass was found.** The first pass's list
+(`menus/**`, `console.tscn`, `lullaby_mod/rooms/scn_*.tscn`) felt
+exhaustive and was not; nothing about the naming convention that missed
+`env_collector_shop.tscn` and `kollectadex.tscn` is visible from the glob
+itself.
+
+Deliberately left in English:
 person names and usernames everywhere (credits, artist handles), song/team
 proper nouns (Chimera, Monochrome, Safety Lullaby, Cabinet of Novelties,
 Kollectadex), rank letters and FC/GFC/PFC (universal rhythm-game shorthand),

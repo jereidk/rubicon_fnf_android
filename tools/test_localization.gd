@@ -24,6 +24,9 @@ const SAMPLE_KEYS: Dictionary[String, String] = {
 	"Invalid code.": "Código no válido.",
 	"Code accepted - \"%s\" unlocked!": "Código aceptado - ¡\"%s\" desbloqueado!",
 	"Never Played": "Nunca jugada",
+	"Buy": "Comprar",
+	"The Husked One": "El Vaciado",
+	"Seen On: %s\nCollected: %03d / %03d": "Visto en: %s\nColección: %03d / %03d",
 }
 
 var _failures: int = 0

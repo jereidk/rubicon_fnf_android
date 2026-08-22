@@ -233,7 +233,7 @@ func change_dex(entry: KollectadexEntry, sound: bool = true) -> void :
 
 
 func update_collection_info(entry: KollectadexEntry) -> void :
-	collection_label.text = "Seen On: %s\nCollected: %03d / %03d" % [
+	collection_label.text = tr("Seen On: %s\nCollected: %03d / %03d") % [
 		seen_on, 
 		collected, 
 		collected_max, 
