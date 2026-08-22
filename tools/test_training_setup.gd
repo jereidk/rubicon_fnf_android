@@ -60,6 +60,8 @@ func _initialize() -> void:
 	_check_pulse(host)
 	_check_typing(host)
 	_check_touch_scripts(host)
+	_check_flat_stage(host)
+	_check_no_dying(host, overlay)
 	_check_overlay_font_sizes(overlay)
 
 	print("training setup: %d/%d checks passed" % [_checks - _failures, _checks])
@@ -159,6 +161,63 @@ func _check_touch_scripts(host: String) -> void:
 	_check(button.contains("&\"lullaby_special\""),
 		"the tap target dispatches the action both mechanics actually read")
 
+## "el fondo no debería ser Test, sus notas molestan y no tienen mucho que ver
+## con la idea de probar mecánicas". A drill is one mechanic against a beat;
+## the Funkin stage, its two Boyfriends, four lanes of falling notes, the
+## judgment popup and the health bar are all a second thing to look at.
+func _check_flat_stage(host: String) -> void:
+	var body: String = _func_body(host, "_flatten_the_stage")
+	_check(_has_statement(body, "hide_for_training"),
+		"a drill hides what the test song brings")
+	_check(_has_statement(body, "visible\\s*=\\s*false"),
+		"...by actually switching it off")
+	# Hiding a Control does not stop it processing, so the lanes still have to
+	# be on autoplay or they keep judging notes nobody can see and feeding the
+	# health module the result.
+	_check(_has_statement(body, "&\"autoplay\", true"),
+		"the lanes are still put on autoplay as well as hidden")
+	_check(_has_statement(body, "_build_backdrop\\(\\)"),
+		"something flat goes in behind the mechanic")
+
+	# The scene is where the list lives, so a node renamed out from under it
+	# shows up as an empty NodePath rather than as a silent miss.
+	var scene: String = FileAccess.get_file_as_string("res://songs/test/test.tscn")
+	var line: String = ""
+	for candidate: String in scene.split("\n"):
+		if candidate.begins_with("hide_for_training = "):
+			line = candidate
+	_check(not line.is_empty(), "test.tscn declares hide_for_training")
+	for path: String in ["../Stage", "UI/Judgment", "UI/HealthBar", "UI/Opponent", "UI/Player"]:
+		_check(line.contains(path), "hide_for_training covers %s" % path)
+
+## "no morir": nothing may take a practice session away from you for
+## practising badly. There is no death path at all - the lanes cannot feed
+## health, health_depleted is not wired to anything, and the mechanics' own
+## terminal signal recovers in place behind a red vignette.
+func _check_no_dying(host: String, overlay: String) -> void:
+	_check(not _has_statement(host, "health_depleted"),
+		"nothing listens for health_depleted any more")
+
+	var failed: String = _func_body(host, "_on_mechanic_failed")
+	_check(not failed.contains("finish_session"),
+		"a failed mechanic does not end the drill")
+	_check(_has_statement(failed, "flash_fail\\(\\)"),
+		"a failed mechanic paints the red vignette")
+	_check(_has_statement(failed, "_recover\\.call\\(\\)"),
+		"a failed mechanic is put back on its feet")
+
+	# Both terminal signals repeat every frame once they fire - the pendulum's
+	# retention stays at zero and the heart's time_under_threshold only grows
+	# - so a recovery that does not clear them is a strobe, not a recovery.
+	_check(_has_statement(_func_body(host, "_build_pendulum"), "retention_value = server.retention_max"),
+		"the pendulum's recovery refills the retention its signal fires off")
+	_check(_has_statement(_func_body(host, "_build_pulse"), "call\\(&\"initialize\"\\)"),
+		"the heartbeat's recovery re-initialises the counters its signal fires off")
+
+	_check(overlay.contains("func flash_fail"), "the overlay can paint it")
+	_check(_has_statement(_func_body(overlay, "record_miss"), "flash_miss\\(\\)"),
+		"an ordinary miss paints it too, quieter")
+
 ## The whole overlay is built in code, so nothing inherits a scene-authored
 ## font size - every Label and Button came up at Godot's stock 16px on a
 ## 1920x1080 canvas, about 13 real pixels on a 1600x720 phone. Pinned as a
@@ -176,8 +235,15 @@ func _check_overlay_font_sizes(overlay: String) -> void:
 	for m: RegExMatch in creation.search_all(overlay):
 		var variable: String = m.get_string(1)
 		found += 1
-		if not overlay.contains("%s.add_theme_font_size_override" % variable):
-			missing.append(variable)
+		# Either form counts. RubiconActionButton draws its text through two
+		# child Labels, which a theme *override* on the Button does not reach
+		# - children resolve font_size through the Theme chain instead - so
+		# that one carries a Theme and the plain Buttons carry overrides.
+		if overlay.contains("%s.add_theme_font_size_override" % variable):
+			continue
+		if overlay.contains("%s.theme = " % variable):
+			continue
+		missing.append(variable)
 
 	_check(found >= 6, "the overlay still builds its labels and buttons in code (%d found)" % found)
 	_check(missing.is_empty(),

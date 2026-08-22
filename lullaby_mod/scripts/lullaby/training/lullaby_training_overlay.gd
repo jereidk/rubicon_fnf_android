@@ -32,6 +32,33 @@ const BUTTON_FONT_SIZE := 32
 ## twice, short enough that it is gone before the drill gets interesting.
 const HINT_SECONDS := 7.0
 
+## A missed beat paints the edges of the screen red and nothing else happens.
+##
+## This is the whole of a drill's failure feedback, on purpose: a training
+## session must not be able to end because you got it wrong, so there is no
+## death, no health bar and no gameover - see the host's _on_mechanic_failed,
+## which recovers the mechanic in place. What is left has to be legible
+## without stealing the middle of the screen, where the thing you are timing
+## against actually is, which is what a vignette is for.
+const MISS_COLOR := Color("c01010")
+const MISS_ALPHA := 0.7
+const MISS_FADE := 0.42
+
+## A mechanic bottoming out - the pendulum's retention at zero, the heart
+## under its threshold for four seconds - is the same event, only louder. It
+## still does not end anything.
+const FAIL_ALPHA := 1.0
+const FAIL_FADE := 0.75
+
+## How far out from the centre the vignette stays completely clear, as a
+## fraction of the distance to the corner.
+##
+## Half, because the widest mechanic - the pulse's ECG line - sweeps 863px of
+## a 1920 canvas, so it reaches 0.45 of the way to the side and the red has
+## to start outside that or it sits on the thing you are timing against
+## rather than around it.
+const VIGNETTE_CLEAR := 0.5
+
 enum State { RUNNING, PAUSED, FINISHED }
 
 ## Shown top-centre so a paused or finished panel is not the first time the
@@ -51,6 +78,8 @@ var _first_button: Button
 var _drill: Label
 var _hint: Label
 var _hint_left: float = 0.0
+var _vignette: TextureRect
+var _vignette_tween: Tween
 
 func _ready() -> void:
 	layer = LAYER
@@ -65,6 +94,18 @@ func _build() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	# First child, so the stats, the drill name and the way out all stay
+	# readable through a flash rather than being tinted by it.
+	_vignette = TextureRect.new()
+	_vignette.name = "MissVignette"
+	_vignette.texture = radial_texture(MISS_COLOR, VIGNETTE_CLEAR)
+	_vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_vignette.modulate = Color(1, 1, 1, 0)
+	root.add_child(_vignette)
 
 	_stats = Label.new()
 	_stats.name = "Stats"
@@ -112,7 +153,18 @@ func _build() -> void:
 	exit_button.offset_top = 32.0
 	exit_button.custom_minimum_size = Vector2(220, 96)
 	exit_button.size = exit_button.custom_minimum_size
-	exit_button.add_theme_font_size_override(&"font_size", BUTTON_FONT_SIZE)
+	# A Theme, not add_theme_font_size_override, and this one is worth
+	# knowing: RubiconActionButton does not draw its own text. It replaces it
+	# with two stacked child Labels, and a theme *override* applies to the
+	# node it is set on and nothing else - children resolve font_size through
+	# the Theme chain instead. So the override sized a Button that renders no
+	# text while the verb stayed at Godot's stock 16px, which is exactly the
+	# bug this pass exists to fix, hidden inside its own fix. A Theme is what
+	# children inherit; the addon's own docstring ("the verb keeps the
+	# button's own theme font size") assumes one.
+	var exit_theme := Theme.new()
+	exit_theme.default_font_size = BUTTON_FONT_SIZE
+	exit_button.theme = exit_theme
 	root.add_child(exit_button)
 
 	# The panel sits over live gameplay, which on Chimera's heartbeat is a
@@ -202,6 +254,67 @@ func record_hit() -> void:
 func record_miss() -> void:
 	misses += 1
 	_refresh_stats()
+	flash_miss()
+
+## The red edges, and the entire consequence of getting one wrong.
+func flash_miss() -> void:
+	_flash(MISS_ALPHA, MISS_FADE)
+
+## The same thing, held longer, for a mechanic that bottomed out. The host
+## puts the mechanic back on its feet; this is what says so.
+func flash_fail() -> void:
+	_flash(FAIL_ALPHA, FAIL_FADE)
+
+## Restarted rather than stacked: two misses half a second apart should read
+## as two flashes, and two tweens writing the same modulate on the same frame
+## is how a control gets stuck lit (the same fix RubiconActionButton needed).
+func _flash(alpha: float, seconds: float) -> void:
+	if _vignette == null:
+		return
+	if _vignette_tween != null and _vignette_tween.is_valid():
+		_vignette_tween.kill()
+
+	_vignette.modulate.a = alpha
+	# PROCESS_ALWAYS so a flash that lands on the frame the panel comes up
+	# still fades out instead of freezing at full red behind it.
+	_vignette_tween = create_tween()
+	_vignette_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_vignette_tween.tween_property(_vignette, "modulate:a", 0.0, seconds) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+## Transparent in the middle, `edge` at the corners. Static because the host
+## builds the drill's flat backdrop out of the same shape - a screen-sized
+## radial is the one thing both the calibration background and the miss
+## feedback need, and drawing it as a gradient texture means neither needs a
+## shader or an asset.
+static func radial_texture(edge: Color, clear_until: float) -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, clear_until, 1.0])
+	gradient.colors = PackedColorArray([
+		Color(edge.r, edge.g, edge.b, 0.0),
+		Color(edge.r, edge.g, edge.b, 0.0),
+		edge,
+	])
+
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	# Out to the CORNER, not to the side. fill_to = (1.0, 0.5) is the obvious
+	# choice and is wrong: it puts full strength half a texture across, so
+	# every corner is 1.41x past the end of the ramp and saturates - measured
+	# on the first render as red over most of the screen with only a small
+	# clear ellipse left in the middle. Ending the ramp at the corner
+	# distance (0.5 * sqrt(2)) leaves the sides at about 0.7 of the way along
+	# it, which is what makes this read as a vignette instead of a wash.
+	texture.fill_to = Vector2(0.5 + sqrt(0.5), 0.5)
+	# 512 rather than 256: this is stretched across the whole screen, and an
+	# 8-bit alpha ramp spread over 640px shows its steps as concentric rings
+	# on a near-black backdrop. Halving the band width halves how visible
+	# they are, which is as far as this goes without a dithering shader.
+	texture.width = 512
+	texture.height = 512
+	return texture
 
 func _refresh_stats() -> void:
 	if _stats == null:

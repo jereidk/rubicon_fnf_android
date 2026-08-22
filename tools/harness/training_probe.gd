@@ -14,10 +14,62 @@ func _ready() -> void:
 		_report(mech, lvl)
 		lvl.queue_free()
 		await get_tree().process_frame
+	await _flat_stage()
+	await _no_dying()
 	await _typing_chains()
 	await _button_reaches_mechanic()
 	print("OUT listo")
 	get_tree().quit()
+
+## El escenario de Test no debe quedar nada a la vista, y en su sitio va un
+## fondo plano. Reportado como "el fondo no deberia ser Test, sus notas
+## molestan".
+func _flat_stage() -> void:
+	var lvl: Node = _spawn(1)
+	for _i in 12: await get_tree().process_frame
+	var visibles: PackedStringArray = []
+	for path: String in ["Stage", "UILayer/UI/Judgment", "UILayer/UI/HealthBar",
+			"UILayer/UI/Opponent", "UILayer/UI/Player"]:
+		var n: CanvasItem = lvl.get_node_or_null(NodePath(path))
+		if n != null and n.visible:
+			visibles.append(path)
+	var ui: Control = lvl.get_node_or_null(^"UILayer/UI")
+	print("OUT fondo   nada de Test visible=%s   hijo0=%s hijo1=%s  autoplay_notas=%s" % [
+		"si" if visibles.is_empty() else "*** SIGUEN: " + ", ".join(visibles) + " ***",
+		ui.get_child(0).name, ui.get_child(1).name,
+		lvl.get_node(^"UILayer/UI/Player").autoplay])
+	lvl.queue_free()
+	await get_tree().process_frame
+
+## Fallar no puede terminar la sesion: pinta el vineteado rojo, recupera la
+## mecanica y sigue.
+func _no_dying() -> void:
+	var lvl: Node = _spawn(1)
+	var overlay: Node = _find_class(lvl, "LullabyTrainingOverlay")
+	var server: Node = _find_class(lvl, "LullabyPendulumServer")
+	for _i in 12: await get_tree().process_frame
+
+	var vig: TextureRect = overlay.get_node_or_null(^"Root/MissVignette")
+	var before_alpha: float = vig.modulate.a if vig else -1.0
+	server.retention_value = 0
+	server.emit_signal("mechanic_failed")
+	await get_tree().process_frame
+	var lit: float = vig.modulate.a if vig else -1.0
+	var panel: Control = overlay.get_node_or_null(^"Root/Panel")
+
+	# Y que se apaga solo.
+	var waited: float = 0.0
+	while waited < 2.0 and vig != null and vig.modulate.a > 0.01:
+		await get_tree().process_frame
+		waited += get_process_delta_time()
+
+	print("OUT fallo   vineteado %.2f -> %.2f -> %.2f en %.1fs   retencion=%d/%d  panel=%s  %s" % [
+		before_alpha, lit, vig.modulate.a if vig else -1.0, waited,
+		server.retention_value, server.retention_max,
+		"visible" if (panel and panel.visible) else "oculto",
+		"SIGUE VIVA" if (panel == null or not panel.visible) else "*** TERMINO LA SESION ***"])
+	lvl.queue_free()
+	await get_tree().process_frame
 
 ## Lo que un sondeo de un solo frame no puede ver: que al resolver una palabra
 ## llega la siguiente. typing_challenge.gd no encadena solo - Monochrome le da

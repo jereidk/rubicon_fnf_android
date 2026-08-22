@@ -40,6 +40,22 @@ extends Node
 ## as the metronome, they stop being a second task.
 @export var player_notes: Node
 
+## Everything the test song brings that a drill has no use for: the Funkin
+## stage and its two Boyfriends, the note lanes, the judgment popup and the
+## health bar.
+##
+## Reported as "el fondo no debería ser Test, sus notas molestan y no tienen
+## mucho que ver con la idea de probar mecánicas". They do not - the point of
+## a drill is one mechanic against a beat, and everything here is a second
+## thing to look at. What replaces them is a flat calibration backdrop (see
+## _build_backdrop), which is also what the drill's own instructions compare
+## it to.
+##
+## Declared in the scene rather than found by path so test.tscn says what a
+## drill hides, and so a rename shows up as an empty NodePath in the editor
+## instead of as a silent get_node_or_null miss at runtime.
+@export var hide_for_training: Array[CanvasItem] = []
+
 ## Words to practise with. Monochrome's own list is story text; these are
 ## neutral and short enough to land inside one pass.
 const TRAINING_WORDS: Array[String] = [
@@ -48,6 +64,15 @@ const TRAINING_WORDS: Array[String] = [
 ]
 
 const SHOP_SCENE := "res://lullaby_mod/rooms/env_collector_shop.tscn"
+
+## The flat backdrop a drill runs on. Near-black rather than black so the
+## mechanics' own dark art (the pendulum's drop shadow, Monochrome's stage
+## black) still separates from it, and a faint radial darkening on top so the
+## centre of the screen reads as the place to look - the same shape as an
+## offset-calibration screen, which is what this was asked to feel like.
+const BACKDROP_COLOR := Color("101015")
+const BACKDROP_EDGE := Color(0, 0, 0, 0.5)
+const BACKDROP_CLEAR := 0.15
 
 ## The round red "special" button the Touch gameplay mode already uses for
 ## Safety Lullaby's pendulum. Training needs it for two of the three drills
@@ -129,6 +154,11 @@ var _requested: LullabyTraining.Mechanic = LullabyTraining.Mechanic.NONE
 var _typing: Node
 var _typing_restarting: bool = false
 
+## How to put the drill's mechanic back on its feet after it bottoms out.
+## Nothing here is allowed to end a session, so every terminal signal needs a
+## way to carry on from - see _on_mechanic_failed.
+var _recover: Callable = Callable()
+
 func _ready() -> void:
 	var mechanic: LullabyTraining.Mechanic = LullabyTraining.take_request()
 	if mechanic == LullabyTraining.Mechanic.NONE:
@@ -143,7 +173,7 @@ func _ready() -> void:
 	# must not take the overlay down with it.
 	_build_overlay()
 	_watch_session()
-	_free_the_notes()
+	_flatten_the_stage()
 
 	var path: String = String(LullabyTraining.SCENES.get(mechanic, ""))
 	if path.is_empty() or not ResourceLoader.exists(path):
@@ -192,6 +222,16 @@ func _build_pendulum(packed: PackedScene) -> void:
 	# that was never on screen - the drill was invisible, not broken.
 	server.dropped = true
 	server.started = true
+
+	# Retention is what mechanic_failed fires off, and the server does not
+	# clear it - Safety Lullaby does not need it to, because there the signal
+	# is wired straight into health_depleted and the song is over. Refilling
+	# it is both "carry on" and the thing that stops the signal firing again
+	# on every following frame.
+	_recover = func() -> void:
+		if is_instance_valid(server):
+			server.retention_value = server.retention_max
+
 	_count(server, [&"pendulum_success"], [&"pendulum_missed"], [&"mechanic_failed"])
 
 	_add_special_button(host, "TAP ON THE SWING")
@@ -222,6 +262,16 @@ func _build_pulse(packed: PackedScene) -> void:
 		heart_node.position = _pulse_position(controller)
 
 	controller.call(&"initialize")
+
+	# initialize() IS the reset: it puts beating_rate back to its starting
+	# value and clears time_under_threshold and threshold_immunity, which are
+	# the three things mechanic_failed is a verdict on. Without it that
+	# signal repeats every frame, because time_under_threshold only ever
+	# grows.
+	_recover = func() -> void:
+		if is_instance_valid(controller):
+			controller.call(&"initialize")
+
 	_count(controller, [&"beat_hit"], [&"beat_missed"], [&"mechanic_failed"])
 
 	_add_special_button(host, "TAP ON THE BEAT")
@@ -459,38 +509,81 @@ func _drill_name(mechanic: LullabyTraining.Mechanic) -> String:
 			return "TYPING"
 	return "TRAINING"
 
-## The two ways a drill ends on its own. Neither exists in this level: there
-## is no gameover module to catch health_depleted, and nothing at all happens
-## when the chart runs out, so the instrumental finishing is the end-of-song
-## signal - the clock and the level do not have one.
+## The one way a drill ends on its own, now: the song running out.
+##
+## health_depleted used to be wired here as well and is deliberately not any
+## more - "no morir" was the whole point of this pass. Nothing should be able
+## to take a practice session away from you for practising badly, so there is
+## no death path at all: the lanes are on autoplay and hidden so they cannot
+## feed the health module, and the mechanics' own terminal signal recovers in
+## place instead (see _on_mechanic_failed). This level never had a gameover
+## module to catch health_depleted with anyway.
 func _watch_session() -> void:
-	if health_module != null and health_module.has_signal(&"health_depleted"):
-		health_module.connect(&"health_depleted", _on_died)
-
 	if instrumental != null and instrumental.has_signal(&"finished"):
 		instrumental.connect(&"finished", _on_song_finished)
 
-## Notes become scenery. should_autoplay() gates both the input path and the
-## judging, so with this on your lanes hit themselves and stop feeding the
-## health module anything you did or did not do.
-func _free_the_notes() -> void:
-	if player_notes == null or not is_instance_valid(player_notes):
-		return
-	if "autoplay" in player_notes:
+## Turns the test song into a calibration screen: everything it brings is
+## hidden and a flat backdrop goes in behind the mechanic.
+##
+## The song itself keeps playing, and that is deliberate - it is the clock
+## both the pendulum and the heartbeat time themselves against
+## (RubiconLevelClock drives off the instrumental), so silencing it would
+## stop the drill rather than simplify it. What goes is only what is drawn.
+func _flatten_the_stage() -> void:
+	# Still autoplay as well as hidden. should_autoplay() gates the input
+	# path AND the judging, so this is what stops your lanes feeding the
+	# health module notes you never saw - hiding a Control does not stop it
+	# processing.
+	if player_notes != null and is_instance_valid(player_notes) and "autoplay" in player_notes:
 		player_notes.set(&"autoplay", true)
 
-## What the songs treat as losing the mechanic. Safety Lullaby wires
-## LullabyPendulumServer.mechanic_failed straight into the health module's
-## health_depleted, so this is the same ending, reached the same way - and
-## now the only thing that can end a drill early, since the notes no longer
-## touch health.
+	for item: CanvasItem in hide_for_training:
+		if item != null and is_instance_valid(item):
+			item.visible = false
+
+	_build_backdrop()
+
+## A flat field with a soft vignette, behind everything the drill adds.
+##
+## Index 0 of the HUD rather than a CanvasLayer of its own: UILayer is layer
+## 1, so anything full-rect and opaque in it already covers the default
+## canvas the Funkin stage draws into, and one node ordering rule is easier
+## to reason about than two layers competing for the same z.
+func _build_backdrop() -> void:
+	var host: Control = _hud()
+	if host == null:
+		return
+
+	var flat := ColorRect.new()
+	flat.name = "TrainingBackdrop"
+	flat.color = BACKDROP_COLOR
+	flat.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(flat)
+	host.move_child(flat, 0)
+
+	var vignette := TextureRect.new()
+	vignette.name = "TrainingBackdropVignette"
+	vignette.texture = LullabyTrainingOverlay.radial_texture(BACKDROP_EDGE, BACKDROP_CLEAR)
+	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(vignette)
+	host.move_child(vignette, 1)
+
+## What the songs treat as losing the mechanic - Safety Lullaby wires
+## LullabyPendulumServer.mechanic_failed straight into health_depleted - and
+## what a drill treats as a louder version of a miss.
+##
+## Red edges, refill, keep going. A practice session that ends because you
+## practised badly is a session you have to start again to keep practising,
+## which is exactly backwards.
 func _on_mechanic_failed() -> void:
 	if _overlay != null:
-		_overlay.finish_session("MECHANIC FAILED")
-
-func _on_died() -> void:
-	if _overlay != null:
-		_overlay.finish_session("OUT OF HEALTH")
+		_overlay.flash_fail()
+	if _recover.is_valid():
+		_recover.call()
 
 func _on_song_finished() -> void:
 	if _overlay != null:

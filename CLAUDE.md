@@ -3909,6 +3909,70 @@ El botón redondo cae en `(1672, 440)` 200x200, o sea a 287px del extremo
 derecho de la línea ECG y fuera del arco del péndulo. El sondeo lo imprime al
 lado de las posiciones para que ese hueco se vea en vez de suponerse.
 
+### El escenario: Test fuera, pantalla de calibración dentro, y no se muere
+
+Reportado como *"el fondo no debería ser Test, sus notas molestan y no tienen
+mucho que ver con la idea de probar mecánicas"*. Correcto: una prueba de
+entrenamiento es **una** mecánica contra un pulso, y el nivel de test traía el
+escenario de Funkin, dos Boyfriends, cuatro carriles de notas cayendo, el popup
+de juicio y la barra de vida - todo segundas cosas que mirar.
+
+Ahora `hide_for_training` (un `Array[CanvasItem]` declarado **en `test.tscn`**,
+no buscado por ruta, para que un renombrado salga como NodePath vacío en el
+editor en vez de como un fallo silencioso) apaga los cinco, y en su sitio va un
+fondo plano: un `ColorRect` `#101015` más un viñeteado radial suave, en los
+índices 0 y 1 del HUD.
+
+Dos cosas que hay que respetar si alguien lo toca:
+
+- **Esconder un `Control` no lo para.** Los carriles siguen en `autoplay`
+  además de ocultos, o seguirían juzgando notas que nadie ve y alimentando con
+  el resultado al módulo de vida.
+- **La canción sigue sonando a propósito.** `RubiconLevelClock` va del
+  instrumental y es el reloj contra el que se temporizan el péndulo y el
+  latido; callarla pararía la prueba, no la simplificaría. Lo que se va es
+  sólo lo que se dibuja.
+
+**Y no se muere.** `health_depleted` ya no está enganchado a nada, y
+`mechanic_failed` -que en Safety Lullaby va directo a `health_depleted`- ahora
+pinta el viñeteado rojo, **recupera la mecánica en el sitio** y sigue. Una
+sesión de práctica que se acaba porque practicaste mal es una sesión que hay
+que volver a empezar para poder practicar.
+
+La recuperación no es opcional: **las dos señales terminales se repiten cada
+frame** una vez disparan - la retención del péndulo se queda en cero y el
+`time_under_threshold` del corazón sólo crece -, así que una recuperación que
+no las limpie es un estroboscopio. El péndulo rellena `retention_value`; el
+latido vuelve a llamar a `initialize()`, que es literalmente su reset.
+
+#### Dos cosas que sólo se vieron renderizando
+
+El render se hizo con la receta de este fichero (Xvfb + `--rendering-driver
+opengl3`) sobre el overlay **real** y la misma `radial_texture()` que usa el
+juego. Las dos habrían pasado cualquier guard textual:
+
+- **`fill_to = Vector2(1.0, 0.5)` en un `GradientTexture2D` radial es la
+  elección obvia y está mal.** Pone la fuerza máxima a media textura, así que
+  las cuatro esquinas quedan a 1.41x del final de la rampa y saturan: el
+  primer render salía rojo en casi toda la pantalla con una elipse limpia
+  pequeña en el centro. Terminando la rampa a la distancia de la esquina
+  (`0.5 + sqrt(0.5)`) los lados quedan a ~0.7 del recorrido, y **eso** es lo
+  que se lee como viñeteado en vez de como un lavado.
+- **`add_theme_font_size_override` sobre un `RubiconActionButton` no hace
+  nada**, y es el arreglo de este mismo pase escondido dentro de sí mismo. Ese
+  botón no dibuja su propio texto: lo sustituye por dos `Label` hijas, y un
+  *override* de tema se aplica al nodo donde se pone y a nada más - las hijas
+  resuelven `font_size` por la cadena de `Theme`. O sea que el override
+  dimensionaba un Button que no renderiza texto mientras el verbo seguía a los
+  16px de serie. Lo que las hijas sí heredan es un `Theme`, que es lo que la
+  propia documentación del addon da por hecho ("the verb keeps the button's
+  own theme font size"). El guard acepta las dos formas y distingue cuál toca.
+
+Un resto de banding concéntrico se queda: es la rampa de alfa de 8 bits
+repartida sobre 640px de fondo casi negro. Subir la textura de 256 a 512 parte
+el ancho de banda por la mitad y es hasta donde se llega sin un shader de
+dithering; no compensa uno para esto.
+
 ```bash
 godot --headless --path . --script tools/test_training_setup.gd   # en CI
 godot --headless --path . res://tools/harness/training_probe.tscn  # en vivo
