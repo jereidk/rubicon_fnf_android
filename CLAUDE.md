@@ -3963,6 +3963,24 @@ replaying all 115 real lines through `tr()` against the actual scene data
 and confirming every non-identical line changed and every identical one
 was one of those four.
 
+**A sixth pass swept `lullaby_mod/songs/safety_lullaby/` itself** (song
+scenes were out of scope for every earlier pass) **for anything that isn't
+a lyric.** One string: `SongTouchControls/RestartButton`'s `"Restart"`.
+Everything else already resolved to something already in the CSV or to
+inert defaults (`"*add text*"`, and `sng_safety_lullaby.tscn`'s own
+`"Score: 0 / Accuracy: 100.00% / Misses: 0"` placeholder - the real line is
+already `tr()`-wrapped in `score_label.gd` from the fourth pass). Checked
+`meta_safety_lullaby.tres` too - its `description` is composer/charter
+credits, not lyrics.
+
+**`lullaby_mod/songs/safety_lullaby/lyrics.gd` and
+`lullaby_mod/resources/funkin/ui/subtitles/lyrics.tscn` were deliberately
+not opened for extraction.** They hold the song's actual lyric text, which
+is copyrighted content this pass has no business reproducing or
+translating - the "real subtitle system already exists" note from the
+first pass stands, and stays a decision for whoever owns the song's
+localization, not something a menu-string sweep should touch.
+
 **Found and deliberately left alone, so the same ground doesn't get
 re-covered by a future sweep:**
 
