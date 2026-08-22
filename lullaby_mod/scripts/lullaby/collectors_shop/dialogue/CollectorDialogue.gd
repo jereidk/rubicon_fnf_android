@@ -96,7 +96,12 @@ func show_line() -> void :
 		end_dialogue()
 		return
 
-	_current_line = dialogue_lines[current_line_index]
+	# Translated BEFORE the pause tags are stripped, so the CSV key is the
+	# line exactly as authored ([pause] included) and the Spanish version can
+	# place its own pauses. Everything downstream - the typing walk, the
+	# pause handling in type_next_character() - then operates on the
+	# translated string.
+	_current_line = tr(dialogue_lines[current_line_index])
 	_display_line = _current_line.replace(PAUSE_TAG, "")
 
 	_raw_index = 0

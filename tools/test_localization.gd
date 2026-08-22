@@ -47,6 +47,16 @@ const LYRIC_SAMPLES: Array[String] = [
 	"[shake rate=35.0 level=15][color=#ff00657f]DREAMS...",
 ]
 
+## The shop tour's lines carry [pause] (pacing, consumed by
+## CollectorDialogue's typing walk) and custom effect tags. show_line() now
+## tr()s BEFORE stripping [pause], so the key keeps them - a translation
+## that drops them still resolves and just types at the wrong rhythm.
+const DIALOGUE_SAMPLES: Array[String] = [
+	"HELLO AND WELCOME![pause] TO THE CABINET OF NOVELTIES!",
+	"I’M [pause][collector]THE COLLECTOR[/collector].",
+	"WHAT YOU SEE IN FRONT OF YOU IS ME, [pause][collector]THE COLLECTOR[/collector] [pause]AND MY [pause][table]TABLE[/table].",
+]
+
 var _failures: int = 0
 var _checks: int = 0
 
@@ -85,6 +95,15 @@ func _initialize() -> void:
 			es_tags.append(m.get_string())
 		_check(en_tags == es_tags,
 			"lyric BBCode survives translation intact: %s" % _plain(tags, en))
+
+	for en: String in DIALOGUE_SAMPLES:
+		var es: String = tr(en)
+		_check(es != en, "shop dialogue line is translated: %s" % _plain(tags, en))
+		_check(en.count("[pause]") == es.count("[pause]"),
+			"[pause] count preserved (%d): %s" % [en.count("[pause]"), _plain(tags, en)])
+		for tag: String in ["[collector]", "[/collector]", "[table]", "[/table]"]:
+			_check(en.count(tag) == es.count(tag),
+				"%s count preserved: %s" % [tag, _plain(tags, en)])
 
 	print("localization: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:

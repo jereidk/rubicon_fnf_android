@@ -4023,6 +4023,37 @@ that a translation exists. Mutation-tested: deleting one inline
 `[color=#4f426b]` from the CSV makes that check FAIL and suppresses the
 `todo OK` line CI greps for.
 
+### The animation-track sweep, and what it finally turned up
+
+The lyrics being in a `values` array rather than a `text = "..."` line was
+not a one-off. Sweeping **every** `.tscn` for value tracks targeting
+`:text`/`:dialogue_text`/`:bbcode_text` found five more sources that six
+text-property passes had all walked straight past:
+
+| source | what |
+|---|---|
+| `scn_warning.tscn` | the **flashing-lights accessibility warning** and its Keep on/Keep off buttons |
+| `sng_chimera.tscn` `FrontText` | the three on-screen mechanic prompts ("Hold the key.", "Spam press.", the heartbeat one) |
+| `sng_chimera.tscn` `Prelude` | Serena's recovered-photo captions |
+| `env_collector_shop.tscn` `Dialogue` | the **48-line first-visit shop tour and outro speech** |
+| `console.tscn` `CollectorsNoteLabel` | the Collector's Note mechanic tips |
+
+**Run this sweep, not another glob, if a seventh language is ever added.**
+A property sweep cannot see them, and the shop tour alone is the second
+largest piece of content in the CSV.
+
+**And it exposed a live bug in the dialogue path.**
+`CollectorDialogue.show_line()` did
+`_display_line = _current_line.replace(PAUSE_TAG, "")` and then assigned
+that to the label - so whatever reached the label had `[pause]` already
+stripped, and the earlier greeting only worked because none of its lines
+carried one. The tour's lines are full of them. Fixed by translating
+first: `_current_line = tr(dialogue_lines[...])`, then stripping - the key
+is the line exactly as authored, the Spanish version places its own
+pacing, and the typing walk downstream operates on the translated string.
+The CI test pins the `[pause]` count and the custom `[collector]`/`[table]`
+effect-tag counts across translation for that reason.
+
 **Found and deliberately left alone, so the same ground doesn't get
 re-covered by a future sweep:**
 
