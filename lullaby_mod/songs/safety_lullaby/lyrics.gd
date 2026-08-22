@@ -25,7 +25,12 @@ func _process(delta: float) -> void :
 
 func create_lyrics() -> void :
 	var new_label: RichTextLabel = label.duplicate()
-	new_label.text = text
+	# Explicit rather than leaning on Control auto-translation: this label is
+	# duplicate()d from a template and its text is assigned from a script
+	# variable an animation track drives, which is exactly the path
+	# auto-translate is least predictable on. The CSV key is the whole
+	# authored string, BBCode and all, since that is what arrives here.
+	new_label.text = tr(text)
 	new_label.modulate.a = 0
 	new_label.visible = true
 	new_label.position += initial_position

@@ -36,6 +36,17 @@ const SAMPLE_KEYS: Dictionary[String, String] = {
 	"HELLO!": "¡HOLA!",
 }
 
+## Safety Lullaby's on-screen lyric lines carry BBCode, and two of them
+## switch [color=...] mid-sentence to highlight one word. The CSV key is the
+## whole authored string, tags included, so a translation that drops or
+## reorders a tag still "resolves" - it just renders wrong. These pin the
+## tag sequence, not only that a translation exists.
+const LYRIC_SAMPLES: Array[String] = [
+	"[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Come little Girlfriend",
+	"[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Your [color=#4f426b]friend[color=#ffffff7f] is waiting",
+	"[shake rate=35.0 level=15][color=#ff00657f]DREAMS...",
+]
+
 var _failures: int = 0
 var _checks: int = 0
 
@@ -61,10 +72,27 @@ func _initialize() -> void:
 	_check(TranslationServer.translate("Never Played") == "Nunca jugada",
 		"TranslationServer.translate() (the static-context path) also resolves \"es\"")
 
+	var tags := RegEx.new()
+	tags.compile("\\[/?[^\\]]*\\]")
+	for en: String in LYRIC_SAMPLES:
+		var es: String = tr(en)
+		_check(es != en, "lyric line is translated, not passed through: %s" % _plain(tags, en))
+		var en_tags: Array[String] = []
+		var es_tags: Array[String] = []
+		for m: RegExMatch in tags.search_all(en):
+			en_tags.append(m.get_string())
+		for m: RegExMatch in tags.search_all(es):
+			es_tags.append(m.get_string())
+		_check(en_tags == es_tags,
+			"lyric BBCode survives translation intact: %s" % _plain(tags, en))
+
 	print("localization: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:
 		print("todo OK")
 	quit(1 if _failures > 0 else 0)
+
+func _plain(tags: RegEx, s: String) -> String:
+	return tags.sub(s, "", true)
 
 func _check(condition: bool, label: String) -> void:
 	_checks += 1

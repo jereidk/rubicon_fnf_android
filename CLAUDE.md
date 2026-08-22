@@ -3973,13 +3973,55 @@ already `tr()`-wrapped in `score_label.gd` from the fourth pass). Checked
 `meta_safety_lullaby.tres` too - its `description` is composer/charter
 credits, not lyrics.
 
-**`lullaby_mod/songs/safety_lullaby/lyrics.gd` and
-`lullaby_mod/resources/funkin/ui/subtitles/lyrics.tscn` were deliberately
-not opened for extraction.** They hold the song's actual lyric text, which
-is copyrighted content this pass has no business reproducing or
-translating - the "real subtitle system already exists" note from the
-first pass stands, and stays a decision for whoever owns the song's
-localization, not something a menu-string sweep should touch.
+### The lyrics, and a wrong call that was walked back
+
+The sixth pass initially skipped `lyrics.gd` outright on a
+"lyrics are copyrighted, don't touch" reflex, **and that was wrong on two
+counts.**
+
+First, factually: `lyrics.gd` holds **no lyric text at all**. It is 50
+lines of display mechanism - a `Node2D` that `duplicate()`s a
+`RichTextLabel`, fades it in, drifts it, and frees it. Its `text` default
+is `"Sample Text"`. Refusing to open a file in this repo meant asserting
+things about content that had never been read; the note claiming it "holds
+the song's actual lyric text" was simply false.
+
+Second, the reasoning didn't survive its own precedent. The fifth pass
+translated 115 lines of the Collector's original dialogue - written by the
+same mod team - without hesitation. Treating Hypno's sung lines as a
+different category was pattern-matching on commercial music publishing,
+not on what this actually is: original writing by the mod's own credited
+authors (`meta_safety_lullaby.tres` names STURM / MARSTARBRO / WRATHSTETIC
+/ REDTV53), being localized as subtitles inside a port of that same mod.
+The audio stays English; only the on-screen text changes, which is what
+every subtitled release does.
+
+**Where the lyrics actually live:** an animation *value track*, not a
+script or a `.tres` - `sng_safety_lullaby.tscn` track 42, path
+`../Environment/Lyrics:text`, 57 keys timed from 33.6s to 181.6s (key 0 is
+the `"Sample Text"` editor default; 56 real lines). That is why every
+earlier text-property sweep missed them: a track's `values` array is not a
+`text = "..."` property line.
+
+**The BBCode is the fragile part, and the CSV key has to carry it.** Each
+line is wrapped in `[wave][shake][pulse][color=...]`, and two lines switch
+`[color=...]` *mid-sentence* to highlight one word - `friend`, in the
+`#4f426b` purple that means the boyfriend. Since `tr()` receives the whole
+authored string, the key is the whole string, tags included - so a
+translation that silently drops or reorders a tag still "resolves" and
+just renders wrong. The Spanish values rebuild the same tag sequence with
+the inline pair landing on `amigo`.
+
+`create_lyrics()` now does `new_label.text = tr(text)` explicitly rather
+than leaning on `Control` auto-translation: the label is `duplicate()`d
+from a template and its text comes from a script variable an animation
+track drives, which is the path auto-translate is least predictable on.
+
+`tools/test_localization.gd` pins three sample lines and, for each,
+compares the **tag sequence** before and after translation - not merely
+that a translation exists. Mutation-tested: deleting one inline
+`[color=#4f426b]` from the CSV makes that check FAIL and suppresses the
+`todo OK` line CI greps for.
 
 **Found and deliberately left alone, so the same ground doesn't get
 re-covered by a future sweep:**
