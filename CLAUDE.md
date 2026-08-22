@@ -1251,6 +1251,89 @@ dependencies hang a fresh project - so that check is structural.
 
 ---
 
+## Reemplazar el 74.6% de Chimera por vídeo: investigado y descartado
+
+El usuario propuso reemplazar los tramos de Chimera sin Serena en pantalla por
+vídeo pre-renderizado sin HUD. La idea pasó por tres rondas y vale la pena
+dejarlas todas, porque cada una cambió el veredicto.
+
+### Ronda 1: ¿hay algo reactivo en esos tramos? Sí - los dos personajes, se pensó
+
+Chimera tiene exactamente dos instancias de `RubiconCharacter` con
+`level_note_controller` conectado: `hex` (carril Opponent) y
+`Sequences/SerenaBase/SerenaBase` (carril Player). Cualquiera de los dos
+cantando o fallando en vivo según el jugador rompería un vídeo horneado.
+Primer veredicto (equivocado): sólo el 5.1% de la canción está libre de
+**ambos** - un solo tramo, `105_headingout`+`106_cameracheck`, 62.33s-72.50s,
+y ni siquiera es de los planos ya identificados como caros.
+
+### Ronda 2: el error estaba en tratar a `hex` como reactivo
+
+No lo es. `UILayer/GameUI/Opponent` (el controlador de `hex`) lleva
+**`autoplay = true`** - nunca recibe input real, siempre toca el chart
+perfecto. Y sus animaciones `miss_up/down/left/right` están *todas* alias a
+`hex_misc_anim_library/idle_anim` - no existe visualmente un "fallo" para él.
+`UILayer/GameUI/Player` (Serena) no tiene esa línea, lleva `inputs` conectado
+a las pulsaciones reales, y sus `miss_*` son clips propios y distintos.
+
+Recalculando con Serena como único límite real: recorriendo el reloj de la
+canción (`RubiconLevelClock`, 27 secuencias despachadas, animación "scene" de
+199.875s) y simulando cada pista `:visible` de Serena, ella sólo está en
+pantalla entre **3.00s y 53.78s** (`101_prelude`, `102_intro`, `103_stroll`).
+Todo lo demás - **149.1 de 199.9 segundos, 74.6%** - está libre. Casi
+exactamente la estimación original del usuario. La lección: comprobar
+`autoplay` y si las animaciones `miss_*` son distintas de `idle`, no sólo si
+un nodo está atado a un `level_note_controller` - eso solo, sin más, no basta
+para decir que algo es reactivo.
+
+### Ronda 3: el vídeo en sí, medido, y por qué se descarta igual
+
+Con la mitad del problema resuelta, la otra mitad decide todo. Tres hechos,
+medidos:
+
+**No hay descodificación por hardware, confirmado contra el APK real del
+proyecto.** `android_debug.apk` desempaquetado, `strings` sobre
+`libgodot_android.so`: sólo símbolos de `VideoStreamTheora`/`libtheora`. Nada
+de MediaCodec, nada de ExoPlayer. Software puro sin añadir un plugin nativo -
+que rompería la limpieza que hizo trivial el port a iOS.
+
+**El coste de decodificar es real y no se solapa gratis con la GPU.** Medido
+con `ffmpeg -benchmark` aislado (un hilo, sin Godot ni Xvfb de por medio),
+1600x720: 4.7-5.1ms/frame en el peor caso (alto detalle), 2.3ms/frame en
+contenido más comprimible, en una CPU de escritorio x86_64. Y dentro de Godot
+mismo el coste **escala con la resolución del vídeo** - evidencia de que no
+se esconde en el hueco de CPU que ya tiene Chimera (`script` 8ms contra `gpu`
+31ms): aterriza como coste añadido al frame, no como relleno gratis. Sin
+dispositivo real no hay número exacto para el Adreno 619, pero el patrón de
+toda la sesión (el móvil siempre más lento que cualquier x86 de escritorio)
+apunta a 5-20ms por fotograma sólo en decodificar - entre un tercio y la
+totalidad del presupuesto de 16.7ms a 60fps, antes de que la CPU haga nada
+más.
+
+**El peso, para los 149s candidatos:** 219-305MB a 1600x720 según calidad,
+71-96MB incluso en el mejor caso probado (contenido comprimible u
+horneado a media resolución). Más del doble de los 33MB que ganó toda la
+conversión a ASTC de esta sesión - por una sola canción.
+
+**Y no hay precedente en este proyecto.** Ni el port ni el pck original en PC
+usan vídeo en ningún sitio - cero `.ogv`, cero `VideoStreamPlayer`, en
+ninguna escena, comprobado por texto y por `get_dependencies()`. El "vídeo"
+del intro de Safety Lullaby que parece justificar la idea no es un vídeo:
+`intro.tscn` es una escena 2D normal (`AnimatedSprite2D` + `AnimationPlayer`,
+la misma arquitectura de siempre) con cinco capas de niebla en `shd_blend_modes`
+copiando el framebuffer cinco veces - por eso cuesta 20.6ms, y por eso *parece*
+cinemático sin serlo. No hay ningún caso en este proyecto donde la
+descodificación de vídeo se haya probado, ni bien ni mal.
+
+**Veredicto: no compensa.** Cambiaría un cuello de botella de GPU que ya se
+sabe atacar (luces, relleno 2D, escala) por uno de CPU sin garantía de
+aguantar 60fps en el Adreno 619, con más del doble de peso de APK por una sola
+canción, y sin poder verificar la calidad visual real aquí - este entorno no
+renderiza Chimera con su iluminación correcta, así que "se ve prácticamente
+igual" no se pudo comprobar. Si algún día se quiere cerrar la duda del todo,
+el experimento que falta es en el teléfono real: un `.ogv` de 10-15s grabado
+de Chimera, reproducido solo, leyendo `gpu=`/`proc=` del log.
+
 ## Lo que NO hay que optimizar en Chimera, medido
 
 Escrito para que nadie vuelva a gastar una sesión donde ya está contestado. Todo
