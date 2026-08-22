@@ -540,6 +540,51 @@ entero de Chimera no la llevaría por debajo de ese suelo.
 El barrido de la tienda (arriba) demuestra que el método funciona y que en un
 frame limitado por GPU `bench` no confunde nada.
 
+#### Las 58 mallas de la casa: ninguna fuera de cámara en toda la canción
+
+La pregunta obvia después de medir que el 3D es sólo el 8% de los píxeles:
+¿hay geometría de la casa que nunca entra en cuadro y sigue `visible = true`
+todo el rato? El patrón de Peepers (256 `_process` corriendo oculto) sugiere
+que sí podría haberlo. La respuesta, con geometría real y no con suposición:
+**no, ninguna de las 58 mallas de `chimera.gltf` queda nunca fuera del
+frustum de cámara en toda la canción.**
+
+Y llegar a esa respuesta necesitó rodear un bloqueo real. Las mallas
+individuales de la casa (`window_001`, `floorfucked`, `Cube_022`...) viven
+dentro de `chimera.gltf`, un recurso importado - opaco a un barrido de texto,
+como ya se sabía. El camino habitual para esto sin autoloads,
+`PackedScene.get_state()`, tampoco sirvió aquí: el `.scn` cacheado de este
+checkout (`.godot/imported/chimera.gltf-*.scn`) no parsea, y reimportarlo
+puso a Godot a escanear los 875 pasos del proyecto entero - horas, por el
+mismo motivo que el ASTC EXHAUSTIVE. Se abortó antes de que hiciera nada.
+
+La salida: **`.gltf`, a diferencia de `.glb`, es JSON de texto plano.** Nada
+de pipeline de importación de por medio. `nodes[].translation/rotation/scale`
+más `meshes[].primitives[].attributes.POSITION` -> `accessors[].min/max` da
+una AABB local por malla, compuesta a mano con la matriz de rotación del
+cuaternión. Confirmado que la matemática cuaternión->matriz coincide con
+`Basis.from_euler` real del motor a 8+ decimales, en cuatro casos con
+rotaciones combinadas en los tres ejes - no se dio por buena de memoria.
+
+Con eso y el camino de cámara completo de la canción (las 26 secuencias con
+pista propia de `Camera3D:position/:rotation/:fov`, interpoladas cada 0.5s -
+377 muestras sobre 199.9s), cada una de las 58 mallas se probó contra un cono
+de visión con 15° de margen extra. **Cero mallas nunca encuadradas**, y no por
+poco: la peor (`Circle`) despeja el borde del cuadro por 29° en su mejor
+momento. Repetido con margen cero, incluso con un cono artificialmente
+estrecho de 0.001° -que sí encuentra diez mallas cuando se prueba así, así que
+el mecanismo detecta de verdad casos negativos- las 58 siguen dentro con los
+parámetros reales. La casa mide unos 10 metros y son 26 planos distintos
+barriéndola durante tres minutos: no hay rincón que la cámara no toque nunca.
+
+**Veredicto: no hay nada que ocultar por encuadre en la casa.** Y aunque lo
+hubiera, esta sesión ya midió que `draw`/`prims`/`objs` no correlacionan con
+el coste de GPU de Chimera - el techo son las luces por fragmento, no los
+vértices. `tools/audit_house_mesh_visibility.py` deja la técnica completa
+(lectura de `.gltf` en crudo, matemática de cámara verificada, camino de
+cámara por secuencia) como herramienta para la próxima pregunta de "¿esto se
+ve alguna vez?", que si no se habría vuelto a pagar desde cero.
+
 #### El nodo `Ray`, medido - y por qué el arreglo es inerte
 
 `Environment/Lights/Ray` es un BoxMesh de 4.97x13.57x6.6 cuyo material vive en
