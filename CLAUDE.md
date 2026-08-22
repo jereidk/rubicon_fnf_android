@@ -3820,9 +3820,10 @@ walk, not one per node you are looking for.
 ## The Hacks tab has a joke code
 
 `hacks_tab.gd`'s `CODES` dictionary is real cheat codes (unlock a song,
-Showcase, the speed hack). `PRANK_CODE` (`"FART"`) is not one of them -
+Showcase, the speed hack). `PRANK_CODE` (`"GODMODE"`) is not one of them -
 checked first so it never falls into "Invalid code.", sets no `SaveData`
-flag, so it can be entered over and over. It plays
+flag, so it can be entered over and over. The bit is typing the most
+mythical cheat code in gaming and getting a fart sound instead: it plays
 `sfx_wet_disguisting_fart.mp3`, already in the project and already used by
 the ShittyGPU screen, and prints a random mocking line from `PRANK_LINES`.
 

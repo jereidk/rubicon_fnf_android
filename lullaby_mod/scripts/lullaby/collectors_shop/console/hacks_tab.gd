@@ -17,13 +17,14 @@ const CODES: Dictionary[String, StringName] = {
 
 ## Not a real code - unlocks nothing, sets no flag, so it can be entered as
 ## many times as someone wants to keep hearing it. Checked before CODES so it
-## never falls into the "Invalid code." path.
-const PRANK_CODE := "FART"
+## never falls into the "Invalid code." path. GODMODE, not FART: the bit is
+## typing the most mythical cheat code in gaming and getting this instead.
+const PRANK_CODE := "GODMODE"
 const PRANK_LINES: Array[String] = [
-	"Real mature. Here you go, genius.",
-	"You actually typed that in. Incredible.",
-	"Congratulations, you found the fart code. Proud of yourself?",
-	"This is what you chose to spend your time on. Okay.",
+	"GODMODE activated. You are now invincible to embarrassment. Wait, no.",
+	"Ultimate power granted. It smells like ultimate power, actually.",
+	"Root access: denied. Fart access: granted.",
+	"You now have unlimited everything, except dignity.",
 ]
 
 @export var code_input: LineEdit
