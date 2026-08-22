@@ -4343,7 +4343,7 @@ size = 3.0
 far = 10.0
 
 [node name="ui_hacks" type="Node3D" parent="TabContainer/Home/IconSubViewport/SubViewport" unique_id=3057231920]
-transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, 1.076, 1.496, 0)
+transform = Transform3D(0.881, 0, 0, 0, 0.881, 0, 0, 0, 0.881, 1.076, 1.4766, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_hacks" unique_id=3057231921]
 mesh = SubResource("QuadMesh_hacks_icon")

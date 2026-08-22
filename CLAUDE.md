@@ -3897,6 +3897,57 @@ because every one of them is driven by the focus swap that an override
 silently wins over. Mutation-tested - reintroducing the line fails with
 `offenders: TRAINING`.
 
+### And its select bubble looked off-centre, which was the icon being small
+
+Third report on the same icon, and the answer is measurement rather than
+argument. The red circle is `SelectBubble`, a **419x419 `Sprite2D`,
+`centered`**, that `home.gd` lerps to `bubble_target`, which
+`ConsoleHomeButton._focus_entered()` sets to `position + pivot_offset` -
+the centre of the button's 2D rect. Every button's pivot really is its
+rect centre (checked: ±0.5px on all six), so **the bubble is placed
+identically for every icon and is not the problem.**
+
+The icons are 3D models in `IconSubViewport`, a `SubViewportContainer` at
+(0,0)-(1440,1080) with `stretch_shrink = 2` over a 720x540 `SubViewport`,
+viewed by an **orthogonal** camera at `size = 3.0`. That fixes the mapping
+exactly: 540px / 3.0 units = **180 px per unit inside the viewport, 360
+after the x2 stretch**. Projecting each icon's origin lands within ±0.7px
+of its button centre in X for all six, so nothing is off horizontally.
+
+Rendering the icons in isolation (same viewport, same camera, same
+authored transforms) and measuring each one's opaque bounding box:
+
+    Settings    dibujo 366x192   desfase Y +81.5
+    Credits     dibujo 378x200   desfase Y +85.5
+    Training    dibujo 436x230   desfase Y +82.5
+    Gallery     dibujo 348x168   desfase Y +73.5
+    Cartridges  dibujo 506x266   desfase Y +82.5
+    Codes       dibujo 236x124   desfase Y +75.5     <- el unico raro
+
+Every icon draws ~80px *below* its button centre - that is uniform and
+authored, not a bug. What Codes does differently is **size**: 236px wide
+against a 348-506px group, inside a 419px bubble. A small icon low in a
+big circle is what reads as "off-centre".
+
+It is the only icon that is not one of the `ui_*.gltf` models - it is a
+hand-made `QuadMesh` of `size = Vector2(1.2, 0.635)`, which makes its
+drawn size fully deterministic: `1.2 x scale x 180 x 2`. At the authored
+`scale = 0.55` that is 238x126, matching the measured 236x124. Setting
+`scale = 0.881` and `y = 1.4766` gives **381x201 at +84.3**, against the
+group's median 378x200 at +82.5.
+
+Two things worth knowing for the next time this harness is used:
+
+- **A missing texture does not invalidate an alpha-box measurement.** The
+  `ui_*.gltf` icons render with their material failing to load here (the
+  `.godot/imported` cache still holds `.ctex` for them while the ASTC
+  importer now emits `.res`), but the geometry still draws, and the opaque
+  bounding box is exactly as valid. The numbers above are sound; a
+  *colour* reading off the same render would not be.
+- The preview sent to the user was composited in PIL from those measured
+  boxes, not screenshotted from the game - same caveat as every other
+  mock-up in this file.
+
 ### The 37 guard steps are one step now
 
 The workflow had grown to 71 steps, 37 of them guards, each its own
