@@ -706,6 +706,17 @@ jobs:
           # CLAUDE.md and were all found by reading code months late.
           guard_godot tools/test_preset_ladder.gd
 
+          # === Verify the baked-light cull only ever hides what the bake carries
+          # Chimera's frame is 90% the 3D pass and 90.8 ms/Mpx is what six
+          # lights per fragment cost on this path. Its own log does the A/B:
+          # the closet shots have three lights reaching the camera and cost
+          # 33.5ms, the wide shots have four and cost 57-59ms, and the fourth is
+          # MoonSpotlight - BAKE_STATIC, so already inside chimera_base.lmbake.
+          # The pass refuses to act without a LightmapGI holding real light
+          # data, because hiding baked lights on a bake that failed to load is
+          # the eleven-day black house all over again.
+          guard_godot tools/test_baked_light_cull.gd
+
           # === Verify the Kollectadex only renders while it is open
           # Its SubViewport is 620x464 - the same pixel count as the whole
           # game at scale 0.50 - and the device log has it rendering in 62 of

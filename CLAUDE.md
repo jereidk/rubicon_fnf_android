@@ -2900,6 +2900,103 @@ del `@export`, que es exactamente el fallo que dejó a Medium con el atlas de
 sombras de High. Mutado devolviendo las dos filas: fallan tres comprobaciones
 y desaparece el `todo OK`.
 
+## Y las luces horneadas se estaban pagando dos veces
+
+El hallazgo que sale de leer `3d21ba99` (moto g53, `scale=0.70`) por secuencia
+en vez de en agregado, y es el A/B que este fichero llevaba meses pidiendo -
+lo hizo la propia canción sin que nadie se lo pidiera:
+
+| tramo | cámara | `luz=` | `gpu` |
+|---|---|---|---|
+| `117_heartbeat` + 4 latidos parados | armario, `fov80@-15.7,1.8,-1.6` | **3** | **33.5-34.2ms** |
+| `101_prelude`..`103_stroll`, 11 latidos | fuera, `fov75-80@0,3.0,3.7` | **4** | **57-59ms** |
+
+Cinco muestras seguidas contra once seguidas, misma escena, mismo `bake=`,
+mismos contadores de geometría. **Una luz vale 24ms de un frame de 57.**
+
+Y cuál es la cuarta sale de la aritmética de alcances: desde el armario,
+`MoonSpotlight` (r=21.46, en (1,18,1.09)) queda a 23.4 unidades y **no llega**;
+`AmbLight` (r=18.14) llega por los pelos a 16.1. Desde fuera llegan las dos.
+La diferencia entre 34ms y 58ms es **`MoonSpotlight`**, autorada
+`light_bake_mode = 1` (`BAKE_STATIC`), energía 0.37.
+
+**O sea que una luz BAKE_STATIC se sigue renderizando en tiempo real.** El bake
+cubre las 56-62 mallas registradas en el `LightmapGI`; la pasada en tiempo real
+cubre todo lo demás, y la geometría estática acaba pagando las dos. Este
+fichero ya decía "sobre geometría con bake Godot debería excluirla y eso **no
+está medido aquí**" - ya lo está, y no la excluye.
+
+`bake=[luces=est5/din5/off1 mallas=est60]` en los 42 latidos: de once luces
+visibles, **cinco o seis son BAKE_STATIC**, y **ninguna animación de la canción
+toca ninguna de las seis** - comprobado sobre las 27 secuencias. Son estáticas
+toda la canción, así que el bake lleva su contribución entera.
+
+`hide_baked_lights` (fila del preset, Low y Very Low) las esconde. Tres
+condiciones, cada una por un bug que este repo ya envió:
+
+| condición | por qué |
+|---|---|
+| la escena tiene un `LightmapGI` **con `light_data`** | esconder las horneadas de un bake que no cargó deja la habitación negra: es literalmente el bug de once días y diez builds. Un `LightmapGI` sin textura es un `LightmapGI` perfectamente legal |
+| nunca una luz bajo un `RubiconCharacter` | `chr_serena_base.tscn` autora la suya como BAKE_STATIC **sobre la raíz del personaje**, y una luz que anda con el personaje no está en el bake de la casa diga lo que diga su modo |
+| solo luces visibles, y se guarda el valor | `ClosetLight` shipea `visible = false` y nada la enciende nunca |
+
+Solo dos escenas del proyecto tienen `LightmapGI` -Chimera y la tienda- y son
+las dos más caras; el resto se cae en la primera condición.
+
+**Lo que NO protege es una animación conduciendo una de esas luces**, porque
+una luz escondida ignora lo que le escriba una pista. De ahí que el guard fije
+el dato y no solo el código. `TvLight`, que sí anima nueve secuencias, es
+`BAKE_DISABLED` y por tanto nunca candidata.
+
+Verificado sobre el applier real con los autoloads reales
+(`tools/harness/baked_light_probe.tscn`, porque bajo `--script` no compila):
+
+    lightmap sin datos   horneada=true  tv=true dinamica=true ya_oculta=false serena=true
+    lightmap con datos   horneada=FALSE tv=true dinamica=true ya_oculta=false serena=true
+    restaurado           horneada=true  tv=true dinamica=true ya_oculta=false serena=true
+
+### Y por qué 60fps no se alcanza sin bajar la escala
+
+La aritmética, con el modelo del propio teléfono (`gpu = 5.7 + 90.8 x Mpx3d`)
+y la curva de luces aislada:
+
+    suelo (todo el 2D, no escala)                          5.7ms
+    presupuesto a 60fps                                   16.7ms
+    -> queda para el pase 3D                              11.0ms sobre 0.564 Mpx
+    -> hacen falta                                        19.5 ms/Mpx
+
+    0 luces por fragmento    12.7 ms/Mpx  ->  12.9ms total   (77fps)
+    1 luz                    28.4         ->  21.7ms         (46fps)
+    2 luces                  47.4         ->  32.4ms         (31fps)
+
+Y **dos es el suelo alcanzable**: `TvLight` la animan nueve secuencias y la luz
+propia de la `Camera3D` es la que ilumina a los personajes. Así que quitar las
+horneadas lleva Chimera de ~17fps a **~30fps**, que es exactamente el
+`target_fps = 30` que Very Low acaba de estrenar - las dos filas no se pelean,
+apuntan al mismo sitio. **60fps a esta resolución no está en la mesa sin tocar
+`render_scale`**, y decirlo con el número delante evita la siguiente ronda de
+buscarlo donde no está.
+
+### Lo que este log tacha de la lectura por conteos
+
+`corr(gpu, ...)` sobre los 42 latidos de la canción:
+
+    prims3D +0.20   draws3D +0.12   objs3D +0.12   prims2D -0.30
+    bench   +0.11   script  +0.33   luz     +0.41   fov     -0.36
+
+Nada llega a 0.5 salvo las luces. Y el contraejemplo directo: `101_prelude`
+dibuja **10 draws / 9862 prims** y cuesta 59.1ms; `124_weoutthisbitch` dibuja
+**48 / 32960** y cuesta 53.5ms. El frame más barato de la canción
+(`122_fall@4.4s`, 24.1ms) dibuja 1.4x más primitivas que el más caro.
+
+Corolario para leer análisis ajenos: `gpu ≈ proc` con `cpu_render ≈ 0.96ms` en
+todas las líneas, o sea que la CPU construye el frame en un milisegundo y se
+bloquea. Cualquier recomendación sobre polígonos, huesos, batching de
+materiales o SubViewports está atacando contadores que no correlacionan. Y
+ojo con leer un log de este proyecto sin filtrar por escena: `MeshInstance3D=113`,
+`materiales_unicos=83`, `esqueletos=21(huesos=586)` y `sub_px=2.00M` son **de la
+tienda**; Chimera es 64, 32, `esqueletos=1(huesos=114)` y `sub_px=0.00M`.
+
 ## Lo que hace caro un píxel de 3D son las luces, no la resolución
 
 Y esto reencuadra todo lo demás de este fichero, así que va antes.

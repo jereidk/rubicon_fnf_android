@@ -76,6 +76,31 @@ var anisotropic_filtering: int = 2
 ## the shop console's toon shading, the cartridge dissolve-in animation).
 @export var disable_shader_effects: bool = false
 
+## Hide every BAKE_STATIC light in a scene that has a working LightmapGI.
+##
+## Chimera is the reason. Its frame is 90% the 3D pass (gpu = 5.7ms + 90.8ms
+## per Mpx of 3D on a moto g53), and 90.8 ms/Mpx is what six lights per
+## fragment cost on this exact path - the isolated bench measures 6 full-screen
+## omnis at 108.6ms over 1.152 Mpx, i.e. 94 ms/Mpx. It is lights, not geometry:
+## the cheapest frame of the song draws 32960 primitives and the most expensive
+## draws 9862.
+##
+## The song's own log does the A/B without being asked. The camera in the
+## closet has three lights reaching it and costs 33.5ms; the wide shots of the
+## house have four and cost 57-59ms. The fourth is MoonSpotlight - authored
+## BAKE_STATIC, energy 0.37, and therefore already inside chimera_base.lmbake.
+## One light that the bake already contains is worth 24ms of a 57ms frame.
+##
+## Six of Chimera's lights are BAKE_STATIC and **no animation track in the
+## scene touches any of them** - checked, all 27 sequences: they are static for
+## the whole song, so the bake carries their entire contribution to the 60-64
+## meshes that ship GI_MODE_STATIC. What hiding them costs is the light they
+## throw on what the bake does not cover: the characters. Serena's own light is
+## excluded for exactly that reason (see the applier).
+##
+## Low and Very Low. Not Medium, which is meant to look right.
+@export var hide_baked_lights: bool = false
+
 ## How many atlas frames pass between gdanimate symbol updates. 1 is stock.
 ##
 ## The only lever on gdanimate's cost that does not require rewriting the
@@ -127,6 +152,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_physics_ticks_per_second == physics_ticks_per_second and
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects and
+		settings.graphics_hide_baked_lights == hide_baked_lights and
 		settings.graphics_atlas_frame_step == atlas_frame_step
 	)
 
@@ -147,4 +173,5 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_physics_ticks_per_second = physics_ticks_per_second
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects
+	settings.graphics_hide_baked_lights = hide_baked_lights
 	settings.graphics_atlas_frame_step = atlas_frame_step

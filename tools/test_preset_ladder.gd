@@ -110,13 +110,12 @@ func _initialize() -> void:
 			"light_distance_fade: %s (%.1f) no recorta menos que %s (%.1f)" %
 			[loaded[i].name, here, loaded[i - 1].name, above])
 
-	# Y el `disable_shader_effects`, que solo Very Low pone: una vez puesto no
-	# se quita bajando.
-	for i: int in range(1, loaded.size()):
-		_check(not (loaded[i - 1].disable_shader_effects
-				and not loaded[i].disable_shader_effects),
-			"disable_shader_effects: %s no lo desactiva tras %s" %
-			[loaded[i].name, loaded[i - 1].name])
+	# Y los dos recortes que son booleanos "una vez puesto, no se quita".
+	for field: StringName in [&"disable_shader_effects", &"hide_baked_lights"]:
+		for i: int in range(1, loaded.size()):
+			_check(not (loaded[i - 1].get(field) and not loaded[i].get(field)),
+				"%s: %s no lo desactiva tras %s" %
+				[field, loaded[i].name, loaded[i - 1].name])
 
 	# El peldaño concreto que motivó este fichero, fijado por su nombre para
 	# que el fallo diga de que iba en vez de solo "render_scale sube".

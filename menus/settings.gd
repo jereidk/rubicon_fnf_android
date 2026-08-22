@@ -133,6 +133,14 @@ var graphics_light_distance_fade: float = 0.0
 var graphics_physics_ticks_per_second: int = 60
 var graphics_disable_shader_effects: bool = false
 
+## Hide lights whose contribution is already inside a scene's LightmapGI.
+##
+## A BAKE_STATIC light is baked into the lightmap AND still rendered in real
+## time for anything the bake does not cover, so on a lightmapped scene the
+## house pays for it twice. Applied by MobileLightBudget, which refuses to act
+## unless the scene really has a LightmapGI with light data loaded.
+var graphics_hide_baked_lights: bool = false
+
 ## Written straight through to AnimateSymbol.frame_step. See that property and
 ## LullabyQualityPreset.atlas_frame_step for the measurement behind it.
 var graphics_atlas_frame_step: int = 1
