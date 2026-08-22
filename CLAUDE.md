@@ -3827,6 +3827,44 @@ mythical cheat code in gaming and getting a fart sound instead: it plays
 `sfx_wet_disguisting_fart.mp3`, already in the project and already used by
 the ShittyGPU screen, and prints a random mocking line from `PRANK_LINES`.
 
+### And its home icon did not light up, for a reason worth knowing
+
+Reported as "the keyboard icon doesn't go red/white like the others when
+it's the current index". Everything about the button was correct - same
+`ConsoleHomeButton` script, same exports, a real `MeshInstance3D`, and
+`_focus_entered()` *did* run `surface_set_material(0, material_select)`.
+**The two materials just looked the same.**
+
+Every other home icon swaps between `mat_console_idle.tres` and
+`mat_console_select.tres`, and those are two *different gradient textures* -
+`uigradient_tex.png` (grey-beige throughout) against
+`uigradientSELECT_tex.png`, which is white at the top and red from the
+midpoint down. That texture swap is where the red comes from. The Codes
+icon is a flat `QuadMesh` showing `keyboard_icon_hacks_button.png`, so it
+cannot use those gradients at all; its select material was the same
+keyboard texture at `albedo_color = Color(1.3, 1.3, 1.3)` - 30% brighter,
+zero hue change.
+
+Measured rather than guessed, per-row over the two real gradients:
+
+    15% de altura   ratio select/idle = (0.95, 0.99, 1.01)   <- blanco
+    35%                                 (0.82, 0.91, 0.97)
+    55%                                 (1.22, 0.64, 0.68)   <- ya rojo
+    75%                                 (1.05, 0.59, 0.66)
+    95%                                 (1.10, 0.60, 0.65)
+
+The top third is white and the bottom half is decisively red, so a flat
+quad that wants to read like the others has to sit on the red half:
+`albedo_color = Color(1.1, 0.6, 0.66)`. The keyboard texture is a
+near-uniform light silhouette (mean RGB 231/212/212, saturation 0.08), so
+a flat tint lands cleanly on it - which is the only reason this works at
+all.
+
+`tools/test_console_icon_select_tint.gd` (in CI) pins the property that was
+broken: idle and select must differ by a **hue** shift, not just
+brightness (`r / max(g, b) >= 1.25`). Mutation-tested - restoring the old
+`Color(1.3, 1.3, 1.3)` gives a ratio of exactly 1.00 and fails the check.
+
 `console.play_sound` only ever reached `sfx/shop/console/*.wav` -
 `console_sfx.gd`'s handler had the folder and the extension hardcoded. Given
 a name it can't find there, it now falls back to `sfx/misc/*.mp3` before

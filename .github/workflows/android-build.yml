@@ -830,6 +830,19 @@ jobs:
           $GODOT --headless --path . --script tools/test_localization.gd 2>&1 | tee /tmp/i18n.txt
           grep -q "todo OK" /tmp/i18n.txt
 
+      - name: Verify the Codes home icon still changes colour when selected
+        run: |
+          # The kind of bug a test normally misses: the button was wired
+          # correctly and did swap materials on focus - the two materials just
+          # looked the same. Every other icon swaps between two different
+          # gradient textures (grey-beige vs a white-to-red ramp); the keyboard
+          # icon is a flat quad with its own texture, and its "selected"
+          # material was that same texture at albedo_color 1.3 - a brightness
+          # bump with no hue shift, so the icon read as dead when focused.
+          # This pins that idle and select differ by a real shift toward red.
+          $GODOT --headless --path . --script tools/test_console_icon_select_tint.gd 2>&1 | tee /tmp/icontint.txt
+          grep -q "todo OK" /tmp/icontint.txt
+
       - name: Verify hardcoded uid:// references resolve
         run: |
           # Catches the collector-shop crash class before it ships: a bare
