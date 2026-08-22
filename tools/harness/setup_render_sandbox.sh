@@ -57,7 +57,7 @@ find . -maxdepth 1 -mindepth 1 ! -name .git ! -name .godot -exec cp -al {} "$SAN
 # through a shared inode.
 find . \( -name '*.import' -o -name '*.uid' -o -name '*.tscn' -o -name '*.tres' \
 	-o -name '*.gd' -o -name '*.cfg' -o -name '*.godot' -o -name '*.gdshader' \) \
-	-type f -not -path './.git/*' -print0 \
+	-type f -not -path './.git/*' -not -path './.godot/*' -print0 \
 	| while IFS= read -r -d '' f; do cp --remove-destination "$f" "$SANDBOX/$f"; done
 
 echo "== degradando las texturas del sandbox"

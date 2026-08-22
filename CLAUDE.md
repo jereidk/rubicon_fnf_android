@@ -732,6 +732,46 @@ los tres sigan en `transparency=0`. El barrido con Pillow que encontró esto
 (`audit_opaque_transparency_modes.py`) es herramienta de descubrimiento, igual
 que el análisis de texeles de la casa - no está en CI, sólo su resultado.
 
+### HexBroeknArms: el cuarto material caro, medido y cerrado sin arreglo
+
+La nota que dejó fuera del barrido de la casa a
+`models/hex/materials/HexBroeknArms.tres` (`transparency=4`,
+`ALPHA_DEPTH_PRE_PASS`) decía "un gradiente de verdad, en otra carpeta" sin
+haberlo medido nunca con la misma regla que decidió la casa. Medido ahora:
+
+    opaco (>=254/255)        69.4%
+    transparente (<=1/255)   20.3%
+    banda parcial             10.2%   (media 86/255 dentro de la banda)
+
+10.2% de banda parcial es 3-40x lo que tenían las cinco superficies de la casa
+(0.26%-3.96%), así que la nota tenía razón, y ahora con un número: no es una
+máscara binaria con el borde suavizado, tiene una fracción real de píxeles a
+medio camino. Renderizado en Python contra dos fondos (gris neutro y uno
+saturado, para forzar el peor caso de fringing) comparando alpha real contra
+`ALPHA_SCISSOR` a threshold=0.5: **PSNR 33.3dB, error de píxel hasta 93/255,
+10.1% de los píxeles cambiados** - muy por debajo de cualquier cosa que se
+haya enviado este proyecto (los 337 ASTC van de 18.9 a 45.9dB de PSNR, y esto
+es un borde de personaje, no una textura de fondo).
+
+Y no hay un modo intermedio gratis: el banco de la casa midió `ALPHA` (modo 1)
+a 404.1ms contra `ALPHA_DEPTH_PRE_PASS` (modo 4) a 399.0ms - prácticamente
+idénticos, los dos ~11x más caros que `OPAQUE`. Cambiar de modo sin pasar a
+scissor no ahorra nada.
+
+Es además una superficie que dibuja siempre que Hex está en pantalla, no un
+evento raro: `hex.gltf` tiene una única malla (`Plane_001`) con cuatro
+superficies - Head, Body, Hair, BroeknArms - las cuatro se dibujan juntas, sin
+condición de visibilidad propia, y `hex.tscn` autora
+`blend_shapes/ArmGo(Broken) = 1.0` fijo, o sea el estado "brazo roto" es el
+estado por defecto del personaje, no una pose transitoria.
+
+**Cerrado sin arreglo.** La única vía sin pérdida de calidad sería partir la
+malla por región de UV (opaco aparte de la banda de borde), que es un cambio
+de modelado real y no algo que se pueda hacer aquí sin Blender. Escrito para
+que nadie vuelva a marcarlo "gradiente real, no tocar" sin el número detrás,
+y para que nadie intente el canje a scissor pensando que es gratis como lo
+fue en la casa - aquí no lo es.
+
 ### El barrido de escala de render, por fin medido - y sale lineal
 
 
@@ -910,6 +950,35 @@ solo se ha registrado **jamás** a `scale=0.50`. Dos pasadas seguidas a 0.35 y a
 es por píxel. Es más barato y más informativo que el A/B de sombras, que además
 ya no procede: a Very Low las sombras salen apagadas, `post=0` deja el NTSC y
 los godrays de `Ray` fuera, y `env=limpio` en los 42 latidos.
+
+**Intento de correrlo aquí en frío, sin teléfono: se atasca, no se resuelve.**
+`tools/harness/render_scale_sweep.gd` (nuevo) hace exactamente esto - congela
+el reloj de Chimera en un `t=` y cicla `Viewport.scaling_3d_scale` por
+0.35/0.50/0.70/1.00, midiendo tiempo de pared real por frame (no
+`viewport_get_measured_render_time_gpu`, que en un renderer software puede no
+contestar igual que el Mali-G76 del log real). Parsea limpio contra el
+analizador real. Pero `setup_render_sandbox.sh` -degrada las 503 texturas a
+128px sin compresión para que lavapipe no se atasque decodificando ASTC, ya
+descrito en la sección de renderizado más abajo- tenía un bug real que se
+arregló de paso: el segundo `find` (copias reales de `.tscn`/`.tres`/`.gd`/
+`.cfg`...) no excluía `.godot/`, así que un `.cfg` de estado de plegado del
+editor dentro de `.godot/editor/` rompía el `cp` porque el directorio destino
+no existía (`.godot` está excluido a propósito del hardlink inicial). Arreglado
+con `-not -path './.godot/*'` en ese find.
+
+Con eso el import del sandbox termina (unos minutos, no horas - las texturas
+ya no son EXHAUSTIVE). Pero **correr la escena de verdad bajo
+`--rendering-method mobile --rendering-driver vulkan` se cuelga antes de
+`_ready()` terminar** - RAM en el proceso se estabiliza en ~670MB, CPU cae
+hacia 0%, y los 23 hilos están todos en `futex_do_wait`/`hrtimer_nanosleep`
+(motor inactivo, no calculando). Matado a los ~6 minutos sin una sola línea
+`OUT`. Probado con y sin `--headless` - la receta de `scene_shot.gd` tampoco
+lleva `--headless`, así que el intento final ya coincidía con eso. No se llegó
+a averiguar si el atasco es el tamaño de Chimera, esta build concreta de
+lavapipe del contenedor, o algo que `--headless --import` deja en un estado
+que la ejecución en vivo no puede usar - lo primero que hay que acotar la
+próxima vez, o directamente correr esto en una build de teléfono real en vez
+de seguir peleando con el sandbox.
 
 ### Tools for this: diff the port against the pck directly
 
