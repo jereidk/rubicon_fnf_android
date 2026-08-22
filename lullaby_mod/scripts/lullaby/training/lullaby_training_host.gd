@@ -49,12 +49,73 @@ const TRAINING_WORDS: Array[String] = [
 
 const SHOP_SCENE := "res://lullaby_mod/rooms/env_collector_shop.tscn"
 
+## The round red "special" button the Touch gameplay mode already uses for
+## Safety Lullaby's pendulum. Training needs it for two of the three drills
+## and had NONE of it: the test level's only touch node is
+## addons/rubicon_mobile_controls/mobile_controls.tscn, which is a bare
+## Control with nothing inside - no RubiconMechanicHitbox (Safety Lullaby
+## supplies its own), no typing controls (Monochrome supplies its own). Both
+## the pendulum server and the heartbeat controller read
+## `event.is_action_pressed(&"lullaby_special")` and nothing on a phone was
+## ever producing that action, so those two drills were unplayable by touch
+## and the typing one had no keyboard.
+##
+## Loaded by path rather than by class_name for the same reason
+## lullaby_mobile_controls_applier.gd does it: the button is created at
+## runtime with Button.new() + set_script, which needs the Script resource.
+const MECHANIC_BUTTON_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_mechanic_action_button.gd"
+
+## Monochrome's own typing touch layer - a hidden focused LineEdit for the
+## system keyboard, or the drawn RubiconPaintedKeyboard when the player
+## picked In-Game (or is in Showcase Mode). Reused whole rather than
+## reimplemented: it already handles both paths, the Mobile > Keyboard
+## setting, hiding itself on desktop, and lifting the unowns clear of the
+## keyboard.
+const TYPING_TOUCH_SCRIPT := "res://lullaby_mod/songs/monochrome/scripts/monochrome_typing_touch_controls.gd"
+
+## Square, and generous: this is the only control in a drill whose whole
+## point is hitting a beat, so it is bigger than the 140px the Touch overlay
+## uses next to four note lanes it must not cover. Nothing competes with it
+## here - the lanes play themselves.
+const SPECIAL_BUTTON_SIZE := 200.0
+const SPECIAL_BUTTON_GAP := 48.0
+
+## Where the heart goes. mch_heartbeat.tscn authors no position of its own -
+## Chimera places the instance at (1185, 786) - so parenting it to the HUD
+## put it at (0, 0), with an ECG line authored from x=-700 to x=+150 drawn
+## almost entirely off the left edge of the screen. Same figure as Chimera's,
+## lifted a little because there is no Serena underneath it here.
+const PULSE_POSITION := Vector2(1185.0, 700.0)
+
+## How long each typing round gets, in song seconds.
+##
+## typing_challenge.gd is driven entirely by `time_end`, an absolute position
+## on the level clock that Monochrome writes from its scene animation. Nobody
+## wrote it here, so it kept its authored 0.0 - and both initiate_challenge()
+## and start_challenge() bail out when `current_time >= time_end + end_offset`.
+## The drill therefore did nothing at all: no word, no unowns, no Celebi, no
+## timer. Training writes a rolling deadline instead, one per round.
+##
+## Eight seconds against Monochrome's own windows, which run 6.7s, 6.3s, 4.2s,
+## 2.75s and 3.1s: a practice round should be the comfortable end of that,
+## not the tightest.
+const TYPING_WINDOW_SECONDS := 8.0
+
+## Gap between one word being resolved and the next one arriving. Long enough
+## to clear succeed()/fail()'s own 0.5s unown exit and read the result.
+const TYPING_GAP_SECONDS := 1.5
+
+
 ## Set the moment an exit is accepted, so the release half of one tap cannot
 ## start a second one - the same guard the death screens needed.
 var _leaving: bool = false
 
 var _overlay: LullabyTrainingOverlay
 var _requested: LullabyTraining.Mechanic = LullabyTraining.Mechanic.NONE
+
+## The typing drill loops itself; these two hold that loop.
+var _typing: Node
+var _typing_restarting: bool = false
 
 func _ready() -> void:
 	var mechanic: LullabyTraining.Mechanic = LullabyTraining.take_request()
@@ -109,8 +170,19 @@ func _build_pendulum(packed: PackedScene) -> void:
 	var pendulum: Node = packed.instantiate()
 	server.add_child(pendulum)
 
+	# BOTH flags, not just started. The pendulum's Anchor is authored
+	# modulate = Color(1,1,1,0) and its RESET animation paints the same
+	# alpha 0; the only thing that ever reveals it is the "drop" animation,
+	# which lullaby_pendulum.gd plays from _on_drop_changed(). Safety
+	# Lullaby drives `started` AND `dropped` from its scene animation
+	# (sng_safety_lullaby.tscn tracks 0/1 and 3/4). Training set only
+	# `started`, so the mechanic ran, judged and scored against a pendulum
+	# that was never on screen - the drill was invisible, not broken.
+	server.dropped = true
 	server.started = true
 	_count(server, [&"pendulum_success"], [&"pendulum_missed"], [&"mechanic_failed"])
+
+	_add_special_button(host, "TAP ON THE SWING")
 
 ## heartbeat_controller.gd already exposes initialize()/stop() as tool
 ## buttons for playtesting in the editor, which is exactly a training
@@ -127,6 +199,9 @@ func _build_pulse(packed: PackedScene) -> void:
 		# Chimera ships this instance hidden and reveals it from a sequence;
 		# there is no sequence here to do it.
 		heart_item.visible = true
+	var heart_node := heart as Node2D
+	if heart_node != null:
+		heart_node.position = PULSE_POSITION
 	host.add_child(heart)
 
 	var controller: Node = _first_with_method(heart, &"initialize")
@@ -135,6 +210,8 @@ func _build_pulse(packed: PackedScene) -> void:
 		return
 	controller.call(&"initialize")
 	_count(controller, [&"beat_hit"], [&"beat_missed"], [&"mechanic_failed"])
+
+	_add_special_button(host, "TAP ON THE BEAT")
 
 ## The one that is not drop-in. Monochrome wires reference_level,
 ## bar_animation and health_module from the song; two of those exist here and
@@ -158,15 +235,165 @@ func _build_typing(packed: PackedScene) -> void:
 	if "choose_from_list" in typing:
 		typing.set(&"choose_from_list", true)
 
-	# active then prompt_user, the order the song's own scene animation uses
-	# (scene t16 leads t19 by a couple of seconds); doing it the other way
-	# round asks for input before the challenge exists.
-	if "active" in typing:
-		typing.set(&"active", true)
-	if "prompt_user" in typing:
-		typing.set(&"prompt_user", true)
+	# After add_child, so the setter's own $Celebi / celebi_animator work and
+	# so _ready() has already applied the starting state it would otherwise
+	# overwrite. Without this the mechanic's whole _process body returns on
+	# its first line (`or not show_celebi`) - no ticking clock, no Celebi, no
+	# timeout, so a word could never end and the drill could never advance.
+	if "show_celebi" in typing:
+		typing.set(&"show_celebi", true)
 
+	_typing = typing
 	_count(typing, [&"challenge_success"], [&"challenge_fail"], [])
+
+	# Separate from _count's scoring hooks: those two feed the readout, these
+	# drive the loop. Monochrome gets a fresh word from its scene animation
+	# every bout; a drill has no animation, so it queues its own.
+	if typing.has_signal(&"challenge_success"):
+		typing.connect(&"challenge_success", _on_typing_round_over)
+	if typing.has_signal(&"challenge_fail"):
+		typing.connect(&"challenge_fail", _on_typing_round_over.unbind(1))
+
+	_add_typing_touch(host, typing)
+	_start_typing_round()
+
+## One word, with a deadline the level clock can actually reach.
+##
+## Every field here is written in the order typing_challenge.gd's own setters
+## need: time_end first, because its setter is what clears challenge_over and
+## passed_challenge, and both initiate_challenge() and start_challenge()
+## refuse to run while challenge_over is set or the deadline is in the past.
+##
+## active/prompt_user are toggled only on the first round and called directly
+## afterwards. Toggling active off and on again would work too, but active is
+## also what MonochromeTypingTouchControls watches to decide whether the
+## system keyboard belongs on screen - flipping it between every word would
+## dismiss and re-raise the Android keyboard each time, and that animation
+## comes out of the player's next typing window.
+func _start_typing_round() -> void:
+	if _typing == null or not is_instance_valid(_typing):
+		return
+
+	# fail_count is Monochrome's three-strikes game-over counter. It never
+	# resets on its own, and at 3 fail() returns early without exiting the
+	# unowns - so after three dropped words a drill would leave the previous
+	# word's letters sitting on screen forever. A drill has no game over.
+	if "fail_count" in _typing:
+		_typing.set(&"fail_count", 0)
+
+	_typing.set(&"time_end", _clock_position() + TYPING_WINDOW_SECONDS)
+
+	if not bool(_typing.get(&"active")):
+		_typing.set(&"active", true)
+	else:
+		_typing.call(&"initiate_challenge")
+
+	if not bool(_typing.get(&"prompt_user")):
+		_typing.set(&"prompt_user", true)
+	else:
+		_typing.call(&"start_challenge")
+
+## Both outcomes queue the next word. The guard is because a round can end
+## twice in the same frame - input_letter() calls end_challenge() on the last
+## letter and _process can set active = false on the same frame's timeout.
+func _on_typing_round_over() -> void:
+	if _typing_restarting or _typing == null or not is_instance_valid(_typing):
+		return
+	_typing_restarting = true
+
+	# process_always = false on purpose: pausing the drill has to pause the
+	# queue with it, or the panel comes up and a new word starts behind it.
+	await get_tree().create_timer(TYPING_GAP_SECONDS, false).timeout
+
+	_typing_restarting = false
+	if is_instance_valid(_typing):
+		_start_typing_round()
+
+## Where the mechanic thinks it is. typing_challenge.gd reads exactly this,
+## so a deadline built from it is in the same units as the comparison that
+## consumes it.
+func _clock_position() -> float:
+	if level == null or not is_instance_valid(level):
+		return 0.0
+	var clock: Object = level.get(&"clock")
+	if clock == null:
+		return 0.0
+	var player: AnimationPlayer = clock.get(&"animation_player")
+	if player == null:
+		return 0.0
+	return player.current_animation_position
+
+## The tap target for `lullaby_special`, for the two drills that read it.
+##
+## Deliberately the round button rather than Safety Lullaby's full-width
+## RubiconMechanicHitbox: one control that means one thing, in the same place
+## for both drills, regardless of what the Mobile > Gameplay Control setting
+## is set to. It is also useful on desktop - RubiconActionButton draws the
+## key currently bound to the action underneath the glyph, which is the one
+## place in the game that tells you what to press.
+func _add_special_button(host: Control, hint: String) -> void:
+	var script: Script = load(MECHANIC_BUTTON_SCRIPT)
+	if script == null:
+		push_error("Training: could not load %s" % MECHANIC_BUTTON_SCRIPT)
+		return
+
+	var button := Button.new()
+	button.set_script(script)
+	button.name = "TrainingSpecialButton"
+	button.set(&"action", &"lullaby_special")
+	button.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	button.offset_right = -SPECIAL_BUTTON_GAP
+	button.offset_left = button.offset_right - SPECIAL_BUTTON_SIZE
+	button.offset_top = -SPECIAL_BUTTON_SIZE * 0.5
+	button.offset_bottom = SPECIAL_BUTTON_SIZE * 0.5
+	host.add_child(button)
+
+	if _overlay != null:
+		_overlay.set_hint(hint)
+
+## The typing drill's keyboard. Everything is assigned before add_child
+## because MonochromeTypingTouchControls._ready() is what reads raise_targets
+## (to remember where the unowns started) and connects text_changed - an
+## export set afterwards is set too late for both.
+func _add_typing_touch(host: Control, typing: Node) -> void:
+	var script: Script = load(TYPING_TOUCH_SCRIPT)
+	if script == null:
+		push_error("Training: could not load %s" % TYPING_TOUCH_SCRIPT)
+		return
+
+	var controls := Control.new()
+	controls.set_script(script)
+	controls.name = "TrainingTypingTouch"
+	controls.set_anchors_preset(Control.PRESET_FULL_RECT)
+	controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Invisible and untappable by design - it exists to hold focus so Android
+	# raises its own keyboard, and is drained a character at a time into the
+	# mechanic. Same shape as Monochrome's authored TextInput.
+	var field := LineEdit.new()
+	field.name = "TextInput"
+	field.modulate = Color(1, 1, 1, 0)
+	field.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	field.offset_top = -8.0
+	field.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	field.caret_blink = false
+	controls.add_child(field)
+
+	controls.set(&"typing_challenge", typing)
+	controls.set(&"text_input", field)
+
+	var raise: Array[Node2D] = []
+	for child_name: String in ["Unowns", "UnownLetters"]:
+		var node := typing.get_node_or_null(NodePath(child_name)) as Node2D
+		if node != null:
+			raise.append(node)
+	controls.set(&"raise_targets", raise)
+
+	host.add_child(controls)
+
+	if _overlay != null:
+		_overlay.set_hint("TYPE THE LETTERS")
 
 ## The overlay owns the exit, the pause, the end of the drill and the
 ## readout. Kept as its own node rather than folded in here so that the host
@@ -176,7 +403,21 @@ func _build_overlay() -> void:
 	_overlay.name = "TrainingOverlay"
 	_overlay.exit_requested.connect(_on_exit_requested)
 	_overlay.restart_requested.connect(_on_restart_requested)
+	_overlay.drill_name = _drill_name(_requested)
 	add_child(_overlay)
+
+## What the overlay calls the drill. The three Training buttons are labelled
+## Pendulum / Pulse / Typing in the console, so these match them rather than
+## the mechanics' internal names.
+func _drill_name(mechanic: LullabyTraining.Mechanic) -> String:
+	match mechanic:
+		LullabyTraining.Mechanic.PENDULUM:
+			return "PENDULUM"
+		LullabyTraining.Mechanic.PULSE:
+			return "PULSE"
+		LullabyTraining.Mechanic.TYPING:
+			return "TYPING"
+	return "TRAINING"
 
 ## The two ways a drill ends on its own. Neither exists in this level: there
 ## is no gameover module to catch health_depleted, and nothing at all happens

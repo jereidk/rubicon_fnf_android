@@ -128,6 +128,14 @@ func _ready() -> void:
 
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	# Has to keep running through get_tree().paused = true so it can put the
+	# keyboard away when that happens - the same reason RubiconMobileControls
+	# and ChimeraHeartbeatTouchZone both override this. Without it the pause
+	# menu comes up underneath a system keyboard nobody can dismiss, because
+	# Godot only lowers it as a side effect of a focus change, and the focus
+	# change is exactly what this _process was frozen out of making.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	for t in raise_targets:
 		_base_positions.append(t.position if t else Vector2.ZERO)
 
@@ -139,10 +147,15 @@ func _process(_delta: float) -> void:
 	if not text_input or not typing_challenge:
 		return
 
+	# Paused is not "the challenge stopped" - it is "nothing may be on top of
+	# the pause menu", which the drawn keyboard and the system one both are.
+	var paused: bool = get_tree().paused
+
 	var challenge_wants: bool = (
 		typing_challenge.active
 		and typing_challenge.prompt_user
 		and not typing_challenge.challenge_over
+		and not paused
 	)
 
 	# Showcase overrides the setting rather than reading it. The system
@@ -172,6 +185,7 @@ func _process(_delta: float) -> void:
 	var keyboard_wants: bool = (
 		typing_challenge.active
 		and not typing_challenge.challenge_over
+		and not paused
 	)
 
 	var wants_input: bool = keyboard_wants and not typing_challenge.autoplay and not drawn

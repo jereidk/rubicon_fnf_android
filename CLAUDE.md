@@ -3817,6 +3817,90 @@ walk, not one per node you are looking for.
 
 ---
 
+## Training: las tres pruebas se construían bien y ninguna se podía jugar
+
+Reportado como "no está pulido y está muy bug". El diagnóstico es el mismo para
+las tres y merece la pena escribirlo como clase, porque **no había nada mal
+cableado**: `lullaby_training_host.gd` encontraba las tres escenas, todas las
+señales que conecta existen, y un sondeo en vivo confirmaba el nodo de la
+mecánica presente en los tres casos. Lo que faltaba es que **cada mecánica la
+conduce normalmente la animación de escena de su propia canción**, y el host
+sólo sustituía parte de lo que esa animación hace.
+
+| prueba | lo que la canción escribe y el host no | síntoma |
+|---|---|---|
+| **Pendulum** | `started` **y** `dropped` (`sng_safety_lullaby.tscn`, pistas 0/1 y 3/4) | `lullaby_pendulum.gd` revela el visual desde `_on_drop_changed()`; el `Anchor` shipea `modulate = Color(1,1,1,0)` y su `RESET` repinta el mismo alfa. La mecánica corría, juzgaba y puntuaba contra un péndulo **invisible** |
+| **Pulse** | la posición: `mch_heartbeat.tscn` no autora ninguna, Chimera coloca la instancia en `(1185, 786)` | colgado del HUD se quedaba en `(0,0)`, con una línea ECG autorada de `x=-700` a `x=+150` dibujada casi entera fuera del borde izquierdo |
+| **Typing** | `time_end` (una posición absoluta del reloj del nivel) y `show_celebi` | `time_end` conservaba su `0.0` autorado, y **`initiate_challenge()` y `start_challenge()` salen las dos** por su guarda `current_time >= time_end + end_offset`. Sin palabra, sin unowns, sin temporizador: la prueba no hacía literalmente **nada** |
+
+Y encima, **cero controles táctiles**. El único nodo táctil de
+`songs/test/test.tscn` es `addons/rubicon_mobile_controls/mobile_controls.tscn`,
+que es un `Control` vacío: Safety Lullaby aporta su propio
+`RubiconMechanicHitbox` y Monochrome sus propios controles de escritura, así
+que Training no heredaba ninguno de los dos. El péndulo y el latido leen los
+dos `event.is_action_pressed(&"lullaby_special")` y en un teléfono nadie
+producía esa acción; la de escribir no tenía teclado.
+
+**La regla que sale de aquí:** instanciar la escena de una mecánica no la pone
+en marcha. Antes de dar por hecho que arranca, diff las pistas que la canción
+de origen le dedica -no sólo las que parecen el interruptor principal- y
+comprueba qué escribe cada una.
+
+Arreglado en el host, reutilizando lo que ya existía en vez de escribir
+controles nuevos: `LullabyMechanicActionButton` (el botón rojo redondo del modo
+Touch, `PRESET_CENTER_RIGHT`, 200px) para las dos que leen `lullaby_special`, y
+`MonochromeTypingTouchControls` entero -teclado del sistema o dibujado, ajuste
+Mobile > Teclado, Showcase, ocultarse en escritorio- para la de escribir.
+`_start_typing_round()` encadena palabras: `time_end` primero, porque **su
+setter es lo único que limpia `challenge_over`**, y luego `active`/`prompt_user`
+la primera vez o `initiate_challenge()`/`start_challenge()` directamente
+después. Directamente y no volviendo a conmutar `active`, porque `active` es
+también lo que mira `MonochromeTypingTouchControls` para decidir si el teclado
+del sistema debe estar en pantalla: conmutarlo entre cada palabra bajaría y
+subiría el teclado de Android cada vez, y esa animación sale de la ventana de
+escritura del jugador.
+
+**Y una tercera cosa, de acabado:** el overlay se construye entero en código,
+así que ni una sola `Label` o `Button` heredaba tamaño de fuente de escena -
+todas salían a los 16px de serie de Godot sobre un lienzo de 1920x1080, unos
+13 píxeles reales en una pantalla de 1600x720. Legible en un monitor,
+ilegible en la mano. Ahora todas lo declaran, y el guard lo fija como forma
+("toda `Label`/`Button` que este fichero cree tiene que decir su tamaño"), no
+como lista de nombres.
+
+De paso, `MonochromeTypingTouchControls` pasó a `PROCESS_MODE_ALWAYS` con
+`get_tree().paused` en sus dos condiciones. Sin eso el menú de pausa sale
+**debajo** de un teclado del sistema que nadie puede quitar - Godot sólo lo
+baja como efecto secundario de un cambio de foco, y el cambio de foco es
+justo lo que ese `_process` congelado no podía hacer. Es el mismo patrón que
+`RubiconMobileControls` y `ChimeraHeartbeatTouchZone` ya usaban; esto también
+arregla Monochrome, no sólo Training.
+
+```bash
+godot --headless --path . --script tools/test_training_setup.gd   # en CI
+godot --headless --path . res://tools/harness/training_probe.tscn  # en vivo
+```
+
+El guard es textual a propósito -nada de esto lo ve un parse check, ni el
+barrido de propiedades autoradas, ni el de pistas de animación, porque **son
+todos valores que un script tiene que escribir en tiempo de ejecución**- y
+cada regla se comprueba **junto a su motivo**: que `mch_pendulum.tscn` siga
+shipeando el `Anchor` transparente, que `mch_heartbeat.tscn` siga sin autorar
+posición, que `mch_typing.tscn` siga autorando `time_end = 0.0`. Si algún día
+dejan de serlo, el guard lo dice en vez de seguir fijando una línea que ya no
+hace falta. Mutado con cuatro cambios (comentar `server.dropped`, borrarlo,
+comentar `show_celebi`, quitar el botón del pulse) y los cuatro fallan.
+
+Una trampa que costó una vuelta: `body.contains("dropped = true")` **pasa sobre
+una línea comentada**, y estas funciones nombran en sus propios comentarios de
+documentación justo lo que el guard busca. `_has_statement()` exige una línea
+cuyo primer carácter no blanco no sea `#`.
+
+`training_probe.tscn` es el sondeo en vivo, y comprueba las dos mitades que un
+guard textual no puede: que resolver una palabra trae la siguiente, y que el
+botón redondo llega de verdad a la mecánica (es un `InputEventAction` sintético
+por `Input.parse_input_event`, no una llamada directa).
+
 ## The Hacks tab has a joke code
 
 `hacks_tab.gd`'s `CODES` dictionary is real cheat codes (unlock a song,

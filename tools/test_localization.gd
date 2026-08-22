@@ -34,6 +34,14 @@ const SAMPLE_KEYS: Dictionary[String, String] = {
 	"*COUGHS*": "*TOSE*",
 	"WELCOME BACK, COLLECTOREE!": "¡BIENVENIDO DE VUELTA, COLECCIONISTOIDE!",
 	"HELLO!": "¡HOLA!",
+	# The Training overlay builds every string it shows in code, so all of
+	# these are tr()'d explicitly rather than reaching Godot's auto-translate
+	# - a dropped key here shows English on a Spanish save with nothing to
+	# say so.
+	"PENDULUM": "PÉNDULO",
+	"DRILL OVER": "FIN DEL ENTRENAMIENTO",
+	"TAP ON THE BEAT": "TOCA AL LATIDO",
+	"HITS  %d\nMISSES  %d\nTIME  %d:%02d": "ACIERTOS  %d\nFALLOS  %d\nTIEMPO  %d:%02d",
 }
 
 ## Safety Lullaby's on-screen lyric lines carry BBCode, and two of them

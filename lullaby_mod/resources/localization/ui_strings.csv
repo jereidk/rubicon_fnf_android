@@ -623,3 +623,31 @@ PULSA PARA CONTINUAR  →"
 [wave amp=70.0 freq=3.5][shake rate=20.0 level=12][pulse freq=1.1 color=#ff0000a0 ease=1.0][color=#ff00657f]DOOM.,[wave amp=70.0 freq=3.5][shake rate=20.0 level=12][pulse freq=1.1 color=#ff0000a0 ease=1.0][color=#ff00657f]PERDICIÓN.
 reset save data,restablecer datos guardados
 uegh,uegh
+PENDULUM,PÉNDULO
+PULSE,PULSO
+TYPING,ESCRITURA
+TRAINING,ENTRENAMIENTO
+TAP ON THE SWING,TOCA AL PASAR EL PÉNDULO
+TAP ON THE BEAT,TOCA AL LATIDO
+TYPE THE LETTERS,ESCRIBE LAS LETRAS
+"HITS  %d
+MISSES  %d
+TIME  %d:%02d","ACIERTOS  %d
+FALLOS  %d
+TIEMPO  %d:%02d"
+"%s
+
+HITS  %d
+MISSES  %d
+TIME  %d:%02d
+%s","%s
+
+ACIERTOS  %d
+FALLOS  %d
+TIEMPO  %d:%02d
+%s"
+ACCURACY  %d%%,PRECISIÓN  %d%%
+PAUSED,EN PAUSA
+MECHANIC FAILED,MECÁNICA FALLIDA
+OUT OF HEALTH,SIN VIDA
+DRILL OVER,FIN DEL ENTRENAMIENTO

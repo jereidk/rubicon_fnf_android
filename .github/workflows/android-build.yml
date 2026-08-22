@@ -835,6 +835,21 @@ jobs:
           # This pins that idle and select differ by a real shift toward red.
           guard_godot tools/test_console_icon_select_tint.gd
 
+          # === Verify the three Training drills are actually playable
+          # Each mechanic is normally driven by its own song's scene animation
+          # and the Training host only replaced part of what that animation
+          # does, so all three built cleanly and none of them worked: the
+          # pendulum was never revealed (the song drives `dropped` as well as
+          # `started`), the heart sat at (0,0) with its ECG line off-screen,
+          # and the typing challenge kept its authored time_end = 0.0, which
+          # makes both of its entry points return on their own deadline guard
+          # - no word, no unowns, no timer. On top of that the test level's
+          # only touch node is a bare Control, so nothing on a phone produced
+          # the `lullaby_special` two of them read, and typing had no keyboard.
+          # None of that is visible to a parse check or to either scene sweep;
+          # every one of them is a value a script has to write at runtime.
+          guard_godot tools/test_training_setup.gd
+
           # === Verify hardcoded uid:// references resolve
           # Catches the collector-shop crash class before it ships: a bare
           # "uid://..." string literal in .gd code (SceneChanger.change_to,

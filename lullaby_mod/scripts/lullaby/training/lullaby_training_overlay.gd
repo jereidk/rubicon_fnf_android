@@ -17,7 +17,26 @@ signal restart_requested
 ## Above the level's own UILayer, below SceneChanger's loading screen at 128.
 const LAYER := 40
 
+## Every Label and Button here is created in code, which means none of them
+## inherits a scene-authored font size - they all came up at Godot's stock
+## 16px on a 1920x1080 canvas, which on a 1600x720 phone screen renders at
+## about 13 real pixels. Legible on a monitor, unreadable in a hand. Sized
+## explicitly instead, in the same units as the rest of the game's HUD.
+const STATS_FONT_SIZE := 34
+const DRILL_FONT_SIZE := 48
+const HINT_FONT_SIZE := 30
+const TITLE_FONT_SIZE := 44
+const BUTTON_FONT_SIZE := 32
+
+## How long the "what am I meant to press" line stays up. Long enough to read
+## twice, short enough that it is gone before the drill gets interesting.
+const HINT_SECONDS := 7.0
+
 enum State { RUNNING, PAUSED, FINISHED }
+
+## Shown top-centre so a paused or finished panel is not the first time the
+## screen says which of the three drills this is.
+var drill_name: String = "TRAINING"
 
 var hits: int = 0
 var misses: int = 0
@@ -29,6 +48,9 @@ var _dim: ColorRect
 var _panel: VBoxContainer
 var _title: Label
 var _first_button: Button
+var _drill: Label
+var _hint: Label
+var _hint_left: float = 0.0
 
 func _ready() -> void:
 	layer = LAYER
@@ -52,7 +74,31 @@ func _build() -> void:
 	_stats.offset_top = 32.0
 	_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stats.add_theme_font_size_override(&"font_size", STATS_FONT_SIZE)
+	_shadow(_stats)
 	root.add_child(_stats)
+
+	_drill = Label.new()
+	_drill.name = "Drill"
+	_drill.text = tr(drill_name)
+	_drill.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_drill.offset_top = 36.0
+	_drill.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_drill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drill.add_theme_font_size_override(&"font_size", DRILL_FONT_SIZE)
+	_shadow(_drill)
+	root.add_child(_drill)
+
+	_hint = Label.new()
+	_hint.name = "Hint"
+	_hint.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_hint.offset_top = 36.0 + float(DRILL_FONT_SIZE) + 10.0
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hint.add_theme_font_size_override(&"font_size", HINT_FONT_SIZE)
+	_hint.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_shadow(_hint)
+	root.add_child(_hint)
 
 	# EXIT stays reachable at all times, including mid-drill. ui_cancel is
 	# Esc, gamepad B and Android's hardware Back, and _unhandled_input below
@@ -64,8 +110,9 @@ func _build() -> void:
 	exit_button.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	exit_button.offset_left = 32.0
 	exit_button.offset_top = 32.0
-	exit_button.custom_minimum_size = Vector2(180, 72)
+	exit_button.custom_minimum_size = Vector2(220, 96)
 	exit_button.size = exit_button.custom_minimum_size
+	exit_button.add_theme_font_size_override(&"font_size", BUTTON_FONT_SIZE)
 	root.add_child(exit_button)
 
 	# The panel sits over live gameplay, which on Chimera's heartbeat is a
@@ -93,6 +140,8 @@ func _build() -> void:
 
 	_title = Label.new()
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title.add_theme_font_size_override(&"font_size", TITLE_FONT_SIZE)
+	_shadow(_title)
 	_panel.add_child(_title)
 
 	_add_panel_button("RESUME", _on_resume)
@@ -105,13 +154,38 @@ func _add_panel_button(text: String, handler: Callable) -> Button:
 	var button := Button.new()
 	button.name = text
 	button.text = text
-	button.custom_minimum_size = Vector2(260, 72)
+	button.custom_minimum_size = Vector2(340, 96)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.add_theme_font_size_override(&"font_size", BUTTON_FONT_SIZE)
 	button.pressed.connect(handler)
 	_panel.add_child(button)
 	return button
 
+## Drawn over live gameplay - a bright red ECG line, a white stage, a
+## swinging pendulum - so every label needs its own contrast rather than
+## relying on whatever happens to be behind it that second.
+func _shadow(label: Label) -> void:
+	label.add_theme_color_override(&"font_shadow_color", Color(0, 0, 0, 0.85))
+	label.add_theme_constant_override(&"shadow_offset_x", 2)
+	label.add_theme_constant_override(&"shadow_offset_y", 2)
+	label.add_theme_constant_override(&"shadow_outline_size", 6)
+
+## What to press, in the drill's own terms. Set by the host as it builds each
+## mechanic's controls, so the line always describes the control that was
+## actually added rather than a guess made from the mechanic's name.
+func set_hint(text: String) -> void:
+	if _hint == null:
+		return
+	_hint.text = tr(text)
+	_hint_left = HINT_SECONDS
+
 func _process(delta: float) -> void:
+	if _hint != null and _hint_left > 0.0:
+		_hint_left -= delta
+		# Solid while it matters, then a half-second fade, so it leaves
+		# without a pop.
+		_hint.modulate.a = clampf(_hint_left * 2.0, 0.0, 1.0)
+
 	if _state != State.RUNNING:
 		return
 	_elapsed += delta
@@ -132,7 +206,11 @@ func record_miss() -> void:
 func _refresh_stats() -> void:
 	if _stats == null:
 		return
-	_stats.text = "HITS  %d\nMISSES  %d\nTIME  %d:%02d" % [
+	# tr() explicitly rather than leaning on Control auto-translation: the
+	# string is formatted before it is assigned, so what reaches the Label is
+	# "HITS  3\n..." and no CSV key can ever match it. Same treatment the
+	# results screen and the pause timer already needed.
+	_stats.text = tr("HITS  %d\nMISSES  %d\nTIME  %d:%02d") % [
 		hits, misses, int(_elapsed) / 60, int(_elapsed) % 60,
 	]
 
@@ -142,7 +220,7 @@ func _accuracy() -> String:
 	var total: int = hits + misses
 	if total <= 0:
 		return ""
-	return "ACCURACY  %d%%" % int(round(100.0 * float(hits) / float(total)))
+	return tr("ACCURACY  %d%%") % int(round(100.0 * float(hits) / float(total)))
 
 func pause_session() -> void:
 	if _state != State.RUNNING:
@@ -159,8 +237,8 @@ func finish_session(reason: String) -> void:
 
 func _show_panel(state: State, title: String) -> void:
 	_state = state
-	_title.text = "%s\n\nHITS  %d\nMISSES  %d\nTIME  %d:%02d\n%s" % [
-		title, hits, misses, int(_elapsed) / 60, int(_elapsed) % 60, _accuracy(),
+	_title.text = tr("%s\n\nHITS  %d\nMISSES  %d\nTIME  %d:%02d\n%s") % [
+		tr(title), hits, misses, int(_elapsed) / 60, int(_elapsed) % 60, _accuracy(),
 	]
 	# Resuming a drill that has ended is meaningless; restarting it is not.
 	_panel.get_node(^"RESUME").visible = state == State.PAUSED
