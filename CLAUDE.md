@@ -800,6 +800,41 @@ el paso es SMAA->FXAA y atribuirlo al anisotrópico habría sido exactamente el
 error que este fichero documenta cuatro veces. `ssaa=off/fxaa/smaa` está ahora
 en `_graphics_summary()`.
 
+### Tres sospechas más, comprobadas contra código y cerradas
+
+Ninguna de las tres era un problema real. Se dejan escritas para que nadie
+vuelva a gastar una sesión en ellas.
+
+**El bus de audio `"Radio"` con cinco efectos no cuesta nada, comprobado en el
+código fuente de Godot.** `default_bus_layout.tres` lleva un bus `Radio` con
+Distortion+HighPass+LowPass+BandPass+Amplify siempre presentes, y nada en el
+proyecto envía audio ahí (`grep` de `"Radio"` y de `get_bus_index` no encuentra
+ni una referencia, ni literal ni dinámica). Parecía trabajo de mezcla gratis
+por descubrir, pero `servers/audio/audio_server.cpp:578` salta el efecto
+entero cuando el canal no tiene audio activo, salvo que el efecto override
+`process_silence()` - y de los built-in sólo `AudioEffectCapture` y
+`AudioEffectRecord` lo hacen. Un bus sin nada sonando cuesta cero, verificado
+contra el código, no supuesto.
+
+**El glow del `PostProcessingTree` de la tienda ya está bien enganchado.**
+`Environment` shipea `glow_enabled = true` como valor autorado base, que
+parecía un candidato a "el preset no lo alcanza" (la clase de bug que ya
+salió cuatro veces con `screen_space_aa`, el atlas de sombras direccional,
+etc). No lo es: el estado `off` del árbol (post=0, o sea Low y Very Low) lo
+apaga, `low` y `high` (post=1/2) lo dejan encendido - exactamente lo que
+debería.
+
+**"El coste de física de la tienda corre 10-25x el de Chimera" no está en los
+datos.** Contado sobre los 33 logs del proyecto: `p3d_objs=0` de mediana en
+**las dos** escenas (`env_collector_shop.tscn` y `sng_chimera.tscn`), y
+`p3d_pairs` comparable (tienda mediana 10/máx 52, Chimera mediana 0/máx 31).
+La causa sospechada tampoco era real: el apuntado de la tienda es un solo
+`RayCast3D` en `mouse_controller.gd`, no picking por `Area3D`, y
+`enable_object_picking` ni siquiera es una propiedad real de `Viewport` (la
+que existe es `physics_object_picking`, sin usar en ningún sitio del
+proyecto). Corregido también el comentario que originó la sospecha en
+`lullaby_diagnostics_log.gd`.
+
 ### Cómo se lee un A/B de gráficos, y por qué los anteriores no valieron
 
 ```bash
@@ -1097,9 +1132,15 @@ How to read it:
   pipeline compiling), `proc` high with `gpu` flat points back at the CPU
   (skinning, culling/octree inserts, instancing).
 - **`p3d_objs=`/`p3d_pairs=`** are `Performance.PHYSICS_3D_ACTIVE_OBJECTS`/
-  `PHYSICS_3D_COLLISION_PAIRS` - added for the shop's physics cost (10-25x
-  Chimera's, suspected `enable_object_picking`) which was flagged and never
-  actually measured.
+  `PHYSICS_3D_COLLISION_PAIRS` - added for a suspected "shop's physics cost
+  10-25x Chimera's" that was flagged and never actually measured. Now it has
+  been, across the project's 33 logs: median `p3d_objs=0` in **both**
+  `env_collector_shop.tscn` and `sng_chimera.tscn`, and pairs comparable (shop
+  median 10/max 52, Chimera median 0/max 31). The suspected cause was also
+  never real - `mouse_controller.gd`'s aim is one `RayCast3D` in
+  `_physics_process`, not per-`Area3D` picking, and `enable_object_picking`
+  is not a real property (`Viewport.physics_object_picking` is, and nothing
+  in this project sets it). Closed: not a lever.
 - **CENSUS `lights=N(shadow=M)`** counts currently-visible `Light3D` nodes
   and how many of those have `shadow_enabled` - Godot exposes no shadow-atlas
   counter directly, so this is the closest indirect read on whether a new

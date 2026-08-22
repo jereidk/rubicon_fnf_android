@@ -3250,10 +3250,16 @@ func _entry(kind: String, detail: String) -> void:
 		int(anim.get(&"shared_max", 0)),
 		anim[&"worst"] if not String(anim[&"worst"]).is_empty() else "-",
 		float(anim[&"worst_usec"]) / 1000.0,
-		# The shop's physics cost runs 10-25x Chimera's on nothing but
-		# enable_object_picking's per-frame Area3D raycasts - these two were
-		# flagged as worth measuring and never were, so they ride along here
-		# rather than costing a separate investigation later.
+		# Read across the project's 33 logs after this landed: median
+		# p3d_objs=0 in both env_collector_shop.tscn and sng_chimera.tscn, and
+		# pairs comparable (shop median 10/max 52, Chimera median 0/max 31).
+		# The "10-25x, suspected enable_object_picking" this comment used to
+		# say was never actually true - the shop's own aim raycast is a
+		# single RayCast3D in mouse_controller.gd, not per-Area3D picking, and
+		# there is no property named enable_object_picking on Viewport (the
+		# real one is physics_object_picking, unset anywhere in this project).
+		# Kept for the same reason as before: cheap to log, no separate
+		# investigation needed - just no longer a live suspicion.
 		int(Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS)),
 		int(Performance.get_monitor(Performance.PHYSICS_3D_COLLISION_PAIRS)),
 		_current_scene_name(),
