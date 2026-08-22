@@ -5384,7 +5384,7 @@ focus_neighbor_bottom = NodePath(".")
 text = "Reduce Visual Effects"
 property = &"graphics_disable_shader_effects"
 console = NodePath("../../../../../..")
-tooltip = "Strips decorative shader effects throughout the game. Very Low turns this on automatically; use it to get the same boost without dropping the rest of your preset."
+tooltip = "Strips decorative shader effects throughout the game. Optimized turns this on automatically; use it to get the same boost without dropping the rest of your preset."
 
 [node name="Misc" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=740240314 node_paths=PackedStringArray("tab_container", "default_focus")]
 visible = false
@@ -5679,7 +5679,7 @@ theme = ExtResource("1")
 text = "Quality Preset: "
 alignment = 0
 script = ExtResource("55")
-display_list = ["Very Low", "Low", "Medium", "High"]
+display_list = ["Optimized", "Low", "Medium", "High"]
 values_list = [0, 1, 2, 3]
 console = NodePath("../../../../../..")
 tooltip = "Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible."
