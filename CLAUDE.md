@@ -1523,6 +1523,114 @@ igual" no se pudo comprobar. Si algún día se quiere cerrar la duda del todo,
 el experimento que falta es en el teléfono real: un `.ogv` de 10-15s grabado
 de Chimera, reproducido solo, leyendo `gpu=`/`proc=` del log.
 
+## El barrido de escala de render de Chimera, por fin hecho - y el 3D es el frame
+
+Este fichero lleva media sesión pidiendo esto: *"Chimera solo se ha registrado
+**jamás** a `scale=0.50`. Dos pasadas a 0.35 y a 0.75 dicen de una vez si el
+techo es por píxel."* Hecho, sin querer, al subir Very Low a 0.70:
+`3d21ba99` es un **moto g53, 1600x720, scale=0.70**, el mismo teléfono y la
+misma ventana que todos los números históricos.
+
+| | scale | 3D | `gpu` p50 |
+|---|---|---|---|
+| Chimera (histórico, `10152`) | 0.50 | 0.288 Mpx | **31.85ms** |
+| Chimera (`10159`, este log) | **0.70** | 0.564 Mpx | **56.9ms** |
+| tienda (histórico) | 0.50 | 0.288 Mpx | 15.49ms |
+| tienda (`10159`) | 0.70 | 0.564 Mpx | 26.1ms |
+
+Ajustando `gpu = suelo + k·Mpx3d` con esos dos puntos:
+
+    Chimera   k = 90.8 ms/Mpx    suelo = 5.7ms
+    tienda    k = 38.4 ms/Mpx    suelo = 4.4ms
+
+**El pase 3D es el 82% del frame de Chimera a 0.50 y el 90% a 0.70.** El suelo
+-todo el canvas 2D, el HUD, las notas, gdanimate- son menos de 6ms.
+
+### El control, que es lo que lo hace creíble
+
+Dentro del propio log, partiendo los 54 latidos de Chimera por `bench`:
+
+    mitad con reloj rápido (bench 207-438us):  gpu mediana 57.7ms
+    mitad con reloj lento  (bench 438-1156us): gpu mediana 56.4ms
+    -> el reloj cambia 5.6x y el gpu 0.98x, correlación +0.14
+
+O sea que confirma la regla que este fichero ya tenía: **en un frame
+profundamente limitado por la GPU, `bench` no explica nada.** La comparación
+entre escalas es limpia.
+
+### Y desmiente el razonamiento del "número imposible"
+
+Este fichero decía:
+
+> `gpu` p50 = 31.85ms para 0.29 Mpx de 3D son **9.0 Mpíxeles/s**, un número
+> imposible para un Adreno 619 si el techo fuera el relleno del 3D.
+
+No es imposible: es exactamente lo que cuestan 6-8 luces por fragmento, y eso
+lo mide **este mismo fichero** en aislado - 8 luces a pantalla completa
+(1.152 Mpx) son 134.8ms, o sea 117 ms/Mpx, y 6 luces 108.6ms, o sea 94
+ms/Mpx. Los 90.8 ms/Mpx de Chimera caen justo ahí. El error era suponer una
+tasa de relleno de geometría sin iluminar; Forward Mobile evalúa cada luz que
+alcanza el fragmento **en el shader de ese fragmento**, y el censo de Chimera
+da `lights=10..13`, de las que el motor aplica hasta 8.
+
+La tienda, con 38.4 ms/Mpx, sale en ~2-3 luces efectivas por fragmento. Las
+dos escenas encajan con la curva de luces sin tocar nada más.
+
+### Lo que eso le costó a Very Low
+
+**El modelo que este fichero usó para justificar el 0.70 predijo 22.3ms y la
+realidad son 56.9ms.** Ese modelo (`7.3 + 26.6·Mpx`) venía del barrido de la
+**tienda** en un **moto g(60)s**, y se aplicó a **Chimera** en un **g53**. La
+pendiente real de Chimera es 3.4x la de aquel ajuste. La lección: el suelo y
+la pendiente son **por escena y por dispositivo**, porque los fija cuántas
+luces alcanzan cada píxel, no la GPU.
+
+En el teléfono del usuario eso es Chimera a ~17fps de mediana en vez de ~31.
+Subir Very Low a 0.70 sigue siendo una decisión de aspecto legítima, pero hay
+que contarla con este número delante, no con el 22.3.
+
+### Y el ranking por secuencia, ahora sí con `bench` al lado
+
+54 latidos, casi todos a `bench` 438-440us, así que son comparables entre sí:
+
+    122_fall              94.3ms      113_reaching          41.7ms
+    104_photographysesh   84.7ms      123_crawling          38.7ms
+    116_hexstare          71.8ms      121_closetrunout      33.7ms
+    111_disorient         64.7ms      117_heartbeat         33.5ms
+    103_stroll            57.7ms  (a bench=240us, o sea con el reloj arriba)
+
+**Esto tacha lo que este fichero decía de `113_reaching` y `116_hexstare`
+("los dos a 60fps").** `116_hexstare` es de los tres planos más caros. El
+único que sobrevive de la tabla vieja es `103_stroll`, que sigue siendo caro
+con el reloj arriba.
+
+### Segundo dispositivo, misma escala
+
+`063de2e1`, **ZTE 8550 / Mali-G57 / scale=0.50**: Chimera `gpu` p50 **29.3ms**,
+tienda 17.2ms - a un pelo de los 31.85/15.49 del Adreno 619 a la misma escala.
+Dos GPUs distintas dan el mismo número: más evidencia de que el techo es el
+relleno iluminado y no la arquitectura.
+
+Y un aviso de lectura: ese log trae un `SPIKE frame=585377.8ms` y un
+`SUMMARY vs_first=+34404%`. **No es un cuelgue**: la línea de al lado dice
+`console viewport on (switch #3, 631794ms since last)`, o sea que la app
+estuvo diez minutos en segundo plano. Un frame de 585 segundos es siempre eso.
+
+### Training en el teléfono, primera medida
+
+`test.tscn` en el mismo log: **`gpu` p50 = 6.0ms**, `rend=[3d=0/0/0]`,
+`vis3d=0/140`, `notes=0(visible=0)`, `lights=0`, y `top_anims` con
+`AnimationPlayer/drop` - o sea que el escenario de Test está apagado, el
+péndulo se ve y la pantalla no cuesta nada. Mediana de frame 16.6ms.
+
+**Lo que sí sigue costando es lo que está escondido pero no parado:**
+`notes=46.19 ms/s(lanes=46.19)` con cero notas en pantalla, y un `SPIKE`
+atribuido a `AnimationPlayer/bf_note_left`. Esconder un `Control` no lo para,
+que es justo lo que dice el comentario de `_flatten_the_stage()` - pero ahí se
+resolvió sólo poniendo los carriles en `autoplay`, que quita el juicio y no el
+`_process`. Son ~0.8ms por frame de puro desperdicio en una pantalla que no
+tiene notas. Pendiente: `process_mode = DISABLED` sobre lo que ya se esconde.
+
 ## Lo que NO hay que optimizar en Chimera, medido
 
 Escrito para que nadie vuelva a gastar una sesión donde ya está contestado. Todo
