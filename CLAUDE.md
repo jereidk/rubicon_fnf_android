@@ -3814,3 +3814,21 @@ to it that walks a scene tree runs on every keypress in the console - and
 the Collector's Shop tree is enormous. Guard scene-walking appliers on
 "is this actually a song" (`UILayer/GameUI/Player` exists) and do one
 walk, not one per node you are looking for.
+
+---
+
+## The Hacks tab has a joke code
+
+`hacks_tab.gd`'s `CODES` dictionary is real cheat codes (unlock a song,
+Showcase, the speed hack). `PRANK_CODE` (`"FART"`) is not one of them -
+checked first so it never falls into "Invalid code.", sets no `SaveData`
+flag, so it can be entered over and over. It plays
+`sfx_wet_disguisting_fart.mp3`, already in the project and already used by
+the ShittyGPU screen, and prints a random mocking line from `PRANK_LINES`.
+
+`console.play_sound` only ever reached `sfx/shop/console/*.wav` -
+`console_sfx.gd`'s handler had the folder and the extension hardcoded. Given
+a name it can't find there, it now falls back to `sfx/misc/*.mp3` before
+giving up, which is what let the fart code reuse the existing 3D-positioned
+console speaker instead of adding a second, disconnected audio player just
+for this.

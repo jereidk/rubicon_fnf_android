@@ -15,6 +15,17 @@ const CODES: Dictionary[String, StringName] = {
 	"SPEEDHACK": &"speed_hack",
 }
 
+## Not a real code - unlocks nothing, sets no flag, so it can be entered as
+## many times as someone wants to keep hearing it. Checked before CODES so it
+## never falls into the "Invalid code." path.
+const PRANK_CODE := "FART"
+const PRANK_LINES: Array[String] = [
+	"Real mature. Here you go, genius.",
+	"You actually typed that in. Incredible.",
+	"Congratulations, you found the fart code. Proud of yourself?",
+	"This is what you chose to spend your time on. Okay.",
+]
+
 @export var code_input: LineEdit
 @export var feedback_label: Label
 @export var console: Console
@@ -25,6 +36,12 @@ func _ready() -> void:
 func _on_code_submitted(text: String) -> void:
 	var code: String = text.strip_edges().to_upper()
 	code_input.text = ""
+
+	if code == PRANK_CODE:
+		feedback_label.text = PRANK_LINES.pick_random()
+		if console:
+			console.play_sound.emit("sfx_wet_disguisting_fart")
+		return
 
 	if not CODES.has(code):
 		feedback_label.text = "Invalid code."
