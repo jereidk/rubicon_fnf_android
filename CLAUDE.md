@@ -4225,11 +4225,39 @@ suite` step (71 -> 35 steps), which is not just tidier:
   `/tmp/sweep.txt`, which only worked because they were separate steps.
 
 The per-guard comments moved with them, verbatim, above their own
-`guard_godot`/`guard_python` line - that "why" is the point of them. Two
-shapes are supported: a Godot script that prints `todo OK`, and a Python
-audit that exits non-zero (`--no-path` for the one guard that runs without
-`--path .`). Verified by extracting the step's own shell out of the YAML
-and running it against fake passing and failing guards, both paths.
+`guard_godot`/`guard_python` line - that "why" is the point of them.
+
+**There are THREE shapes, not two, and getting that wrong cost a red build.**
+A Godot script that prints `todo OK`; a Godot script that reports only by
+**exit code**; and a Python audit that exits non-zero (`--no-path` for the
+guards that run without `--path .`).
+
+The consolidation only knew about two, so `guard_godot` decided purely by
+`grep -q "todo OK"` - and `tools/verify_hardcoded_uids.gd` prints
+`OK: every bare uid:// reference resolves.` and quits 0. It passed its own
+check and the harness called it failed:
+
+    Found 9 unique bare uid:// reference(s) in .gd source.
+    OK: every bare uid:// reference resolves.
+    FAIL  tools/verify_hardcoded_uids.gd
+
+The lesson is the one this file already has about "verification deferred to
+CI": the consolidation **was** verified, against fake guards of the two
+shapes it knew about, which is exactly why it could not find the third. And
+it sat latent - the commit that introduced it never had a build run against
+it, so it only surfaced four commits later.
+
+The fix is `guard_godot_exit` for that shape, plus `guard_godot` now
+requiring **both** the marker and a clean exit - the marker alone would pass
+a guard that printed it and then crashed on a later check. Measured before
+changing it, so the added exit requirement could not turn anything else red:
+all 30 marker guards exit 0 and print the marker.
+
+Re-verified by extracting the step's own shell out of the YAML and running
+it against one guard of **each** shape plus each shape's failure mode -
+marker+exit0 passes, marker+exit1 now fails, exit0-without-marker passes,
+exit1-without-marker fails - and the whole step exits 0 when all pass and 1
+when any fails.
 
 `console.play_sound` only ever reached `sfx/shop/console/*.wav` -
 `console_sfx.gd`'s handler had the folder and the extension hardcoded. Given

@@ -450,10 +450,11 @@ jobs:
           #   * Each guard's output is wrapped in a ::group::, so the log is
           #     collapsed by default and still one click from the detail.
           #
-          # Two shapes of guard, both handled below: a Godot script that
-          # prints "todo OK" on success, and a Python audit that just exits
-          # non-zero. The reason each one exists stays in the comment above
-          # its own line here, which is where it has always lived.
+          # Three shapes of guard, all handled below: a Godot script that
+          # prints "todo OK" on success, a Godot script that only sets an
+          # exit code, and a Python audit that just exits non-zero. The
+          # reason each one exists stays in the comment above its own line
+          # here, which is where it has always lived.
           #
           # Log files are named after the script rather than by hand - the
           # old steps had test_preload_sweep and test_retained_sweep both
@@ -465,23 +466,58 @@ jobs:
           failed=()
           ran=0
 
-          guard_godot() {   # <script> [--no-path]
+          # Runs a Godot guard and returns its exit status, with the output
+          # both shown and kept for the caller to inspect.
+          run_godot() {     # <script> [--no-path] -> sets $LAST_LOG
             local script="$1"; shift
-            local log="/tmp/guard_$(basename "$script" .gd).txt"
-            ran=$((ran + 1))
-            echo "::group::$script"
+            LAST_LOG="/tmp/guard_$(basename "$script" .gd).txt"
             if [ "${1:-}" = "--no-path" ]; then
-              $GODOT --headless --script "$script" 2>&1 | tee "$log"
+              $GODOT --headless --script "$script" 2>&1 | tee "$LAST_LOG"
             else
-              $GODOT --headless --path . --script "$script" 2>&1 | tee "$log"
+              $GODOT --headless --path . --script "$script" 2>&1 | tee "$LAST_LOG"
             fi
-            if grep -q "todo OK" "$log"; then
-              echo "PASS  $script"
+          }
+
+          verdict() {       # <script> <passed 0|1>
+            if [ "$2" -eq 0 ]; then
+              echo "PASS  $1"
             else
-              echo "FAIL  $script"
-              failed+=("$script")
+              echo "FAIL  $1"
+              failed+=("$1")
             fi
             echo "::endgroup::"
+          }
+
+          # A Godot guard of the "todo OK" shape. Requires BOTH the marker and
+          # a clean exit - the marker alone would pass a guard that printed it
+          # and then crashed on a later check.
+          guard_godot() {   # <script> [--no-path]
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            run_godot "$@"
+            local status=$?
+            if [ "$status" -eq 0 ] && grep -q "todo OK" "$LAST_LOG"; then
+              verdict "$script" 0
+            else
+              verdict "$script" 1
+            fi
+          }
+
+          # A Godot guard that reports by exit code and prints no marker.
+          #
+          # This shape was missed when the 37 steps were consolidated, and it
+          # cost a red build: verify_hardcoded_uids.gd prints "OK: every bare
+          # uid:// reference resolves." and quits 0, so a grep for "todo OK"
+          # called a passing guard failed. The consolidation was verified
+          # against fake guards of the two shapes it knew about, which is
+          # exactly why it could not find the third.
+          guard_godot_exit() {  # <script> [--no-path]
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            run_godot "$@"
+            verdict "$script" $?
           }
 
           guard_python() {  # <script>
@@ -863,7 +899,7 @@ jobs:
           # (ext_resource uid mismatches - those degrade gracefully to a
           # text-path fallback instead of crashing, so they're a quality
           # issue, not a build-breaking one).
-          guard_godot tools/verify_hardcoded_uids.gd --no-path
+          guard_godot_exit tools/verify_hardcoded_uids.gd --no-path
           if [ ${#failed[@]} -ne 0 ]; then
             echo
             echo "::error::${#failed[@]} guard(s) failed:"
