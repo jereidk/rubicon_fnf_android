@@ -4,6 +4,6 @@
 
 [resource]
 resource_name = "UIMat"
-transparency = 4
+transparency = 0
 shading_mode = 0
 albedo_texture = ExtResource("1")

@@ -654,7 +654,41 @@ medido, y el cambio se hizo **en medio de la caza del gráfico negro**, sobre la
 única escena que el usuario reportaba como rota. Ese bug se cerró en la build
 152, y la medida ya está arriba. Los dos reparos han caducado.
 
+### Tres materiales más en el modo caro, fuera de la casa - y esta vez sin decisión de calidad
+
+El barrido de `transparency = 4` de la casa se limitó a esa carpeta a
+propósito. Repetido sobre **todo** el proyecto (`tools/audit_opaque_transparency_modes.py`,
+nueva) encuentra tres más: `mat_console_inactive/select/idle.tres`, las
+placas de los seis modelos de icono del `IconSubViewport` del Home de la
+consola - el SubViewport que este mismo fichero ya documenta como el más caro
+de la tienda.
+
+Y aquí no hay que decidir nada de calidad: las dos texturas que usan
+(`uigradient_tex.png`, `uigradientSELECT_tex.png`) son opacas en la práctica -
+el peor texel de las dos es un 254/255 aislado, ruido de redondeo, no un
+borde suave real (un borde suave de verdad deja una franja de texeles, no uno
+suelto). `transparency = 0` es matemáticamente idéntico en píxeles a lo que
+había, así que no hace falta ajustar ningún `alpha_scissor_threshold` como sí
+hizo falta en la casa.
+
+Medido en la ruta del teléfono, seis placas a la resolución real del
+SubViewport (720x540) en vez de las paredes grandes de la casa:
+
+    OPAQUE (0)          4.07ms
+    ALPHA_SCISSOR (2)   4.38ms
+    DEPTH_PRE_PASS (4)  4.33ms  <- lo que shipeaba
+
+Real pero modesto a este tamaño de pantalla - nada que ver con el 3.86x de la
+casa, porque seis placas de icono no tienen tanto que duplicar por píxel. Aun
+así es dinero gratis: cero coste de calidad, cero umbral que ajustar.
+
+`tools/audit_console_icon_materials.py` (sin dependencias, en CI) fija que
+los tres sigan en `transparency=0`. El barrido con Pillow que encontró esto
+(`audit_opaque_transparency_modes.py`) es herramienta de descubrimiento, igual
+que el análisis de texeles de la casa - no está en CI, sólo su resultado.
+
 ### El barrido de escala de render, por fin medido - y sale lineal
+
 
 Este fichero lleva toda la sesión pidiendo el experimento: *"Chimera solo se ha
 registrado **jamás** a `scale=0.50`. Dos pasadas seguidas a 0.35 y a 0.75 dicen

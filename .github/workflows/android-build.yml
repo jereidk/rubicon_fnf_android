@@ -456,6 +456,16 @@ jobs:
           # count-based reading of a device log could ever find it.
           python3 tools/audit_house_transparency.py
 
+      - name: Verify the console's icon materials are off any alpha mode
+        run: |
+          # mat_console_inactive/select/idle drive the shop's Home tab icon
+          # models, inside the SubViewport already measured as the single
+          # most expensive one in the shop. All three shipped
+          # ALPHA_DEPTH_PRE_PASS over textures with no real transparency to
+          # draw (worst texel is compression noise at 254/255) - free money,
+          # no threshold to tune, unlike a scissor conversion.
+          python3 tools/audit_console_icon_materials.py
+
       - name: Verify every precompiled sidecar describes its own source
         run: |
           # Godot reads a sidecar's source_md5 back to decide whether to
