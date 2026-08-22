@@ -2829,7 +2829,7 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
-## Very Low pasó a `render_scale = 0.70`, y hay que decir qué compra y qué no
+## Very Low pasó a `render_scale = 0.70`, y de ahí a 0.55
 
 Decisión del usuario, correcta: **0.50 no es "el juego yendo bien", es el
 juego a un cuarto de resolución escondiendo que hay lag de verdad.** Bajar la
@@ -2853,6 +2853,52 @@ cuatro presets y sólo cubre las cuatro luces locales pequeñas (radio < 6),
 nunca las cuatro que iluminan la casa entera. Subir la escala y dejar el
 resto de la escalera igual es aceptar ese coste a cambio de que Very Low dé
 una imagen reconocible en vez de un cuarto de resolución.
+
+### Y a 0.70 quedó por ENCIMA de Low, que es un bug de la escalera
+
+Peldaño roto durante toda la vida de ese cambio: `qol_low.tres` shipea
+`render_scale = 0.65` y `qol_very_low.tres` shipeaba **0.70**. O sea que bajar
+de Low al preset de emergencia **subía** los píxeles de 3D, la única mitad del
+frame que este proyecto tiene medida como dominante. Es la cuarta vez que un
+preset no baja lo que dice bajar, y las tres anteriores están escritas arriba.
+
+Y ahora hay modelo del **teléfono del usuario**, no prestado de la tienda de
+otro dispositivo. Dos pasadas de Chimera en el g53 (0.50 y 0.70, con `bench=`
+de control - reloj 5.6x contra frame 0.98x, correlación +0.14):
+
+    gpu = 5.7ms + 90.8ms x Mpx del pase 3D          (1600x720)
+
+    0.70 -> 0.564 Mpx -> 57.0ms  (17.6 fps)   <- lo que shipeaba
+    0.65 -> 0.487 Mpx -> 49.9ms  (20.0 fps)   <- Low
+    0.55 -> 0.348 Mpx -> 37.3ms  (26.8 fps)   <- Very Low ahora
+    0.50 -> 0.288 Mpx -> 31.9ms  (31.4 fps)
+
+Control del ajuste: a 0.50 el modelo predice 31.9ms y el histórico medido de
+Chimera son **31.85ms**.
+
+**La pendiente prestada de la tienda estaba mal por 3.4x** y por eso la tabla
+de arriba predecía 22.3ms para 0.70 cuando el teléfono da 57.0. Una pendiente
+medida en otro dispositivo y otra escena no traslada; el modelo bueno es el de
+las dos pasadas de la misma escena en el mismo teléfono.
+
+0.55 sigue por encima del 0.50 que el usuario rechazó y **por debajo de Low**,
+que es la parte que no era opinable.
+
+**Y Very Low capa el frame a 30.** `target_fps` lleva siendo una fila del
+preset desde siempre y los cuatro presets shipeaban 60, incluido el que existe
+precisamente porque el teléfono no sostiene 60. El propio docstring del campo
+ya lo argumentaba y nadie lo había puesto: Chimera oscila entre 60fps en
+`113_reaching` (14.8ms) y menos de 20 en los planos anchos, y **ese vaivén es
+lo que se lee como tartamudeo** - el síntoma reportado. Un cap a 30 no cuesta
+nada en los planos caros, que ya van por debajo, y quita el salto en los
+baratos.
+
+`tools/test_preset_ladder.gd` (51 comprobaciones, en CI) fija que los cuatro
+presets no crezcan en coste en ningún campo de la escalera, **sobre el recurso
+cargado y no sobre el texto** - un campo omitido en un `.tres` toma el default
+del `@export`, que es exactamente el fallo que dejó a Medium con el atlas de
+sombras de High. Mutado devolviendo las dos filas: fallan tres comprobaciones
+y desaparece el `todo OK`.
 
 ## Lo que hace caro un píxel de 3D son las luces, no la resolución
 

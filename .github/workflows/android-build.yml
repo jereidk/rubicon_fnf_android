@@ -697,6 +697,15 @@ jobs:
           # Godot does not filter for you.
           guard_godot tools/test_settings_shadow_reapply.gd
 
+          # === Verify the quality ladder actually gets cheaper each step
+          # qol_very_low shipped render_scale = 0.70 against Low's 0.65: the
+          # emergency preset rendered MORE 3D pixels than the one above it. On
+          # the user's g53 the measured model is gpu = 5.7ms + 90.8ms x Mpx3d,
+          # so that step was 57.0ms (17.6fps) where Low was 49.9ms. Fourth time
+          # a preset did not lower what it claimed to; the other three are in
+          # CLAUDE.md and were all found by reading code months late.
+          guard_godot tools/test_preset_ladder.gd
+
           # === Verify the Kollectadex only renders while it is open
           # Its SubViewport is 620x464 - the same pixel count as the whole
           # game at scale 0.50 - and the device log has it rendering in 62 of
