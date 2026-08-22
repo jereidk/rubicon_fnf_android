@@ -37,6 +37,54 @@ extends Camera3D
 @export var animation_name: StringName
 @export var camera_to_focus: Camera3D
 
+## Extra animations whose OWN camera track gets folded into the sweep, on top
+## of this node's own precache animation.
+##
+## Why this exists: `122_fall@6.8s` still costs `frame=1911.7ms` for `spec+8`
+## with RAM and VRAM flat - a pipeline-compile stall, not loading or upload -
+## and three more sequences show the same shape (`121_closetrunout@0.7s`
+## 489ms `pipe+5`, `104_photographysesh@6.6s` 481ms `pipe+5`,
+## `107_turnaround@0.1s` 350ms). All four are cutscene shots whose camera
+## frames things nothing else in the song points a camera at - `122_fall`
+## alone reveals hex, SerenaFalling, SerenaBrokenArm and three pieces of the
+## house on one frame, per its own `:visible` tracks. The precache's own
+## sweep (`_sweep_poses` below) only visits the fixed handful of viewpoints
+## *its own* animation authors, so a mesh can be `visible = true` for the
+## entire loading screen and still never be drawn - and a material that is
+## never drawn never compiles. Revealing it does nothing if the camera is
+## never pointed at it.
+##
+## Read from `animation_player` (SequencePlayer, not this node's own
+## animation) by name, exactly the same way `_collect_sweep_poses()` reads
+## its own animation - the only difference is the node path, since a
+## SequencePlayer animation's tracks are written relative to `Sequences`
+## (this node's animation is instead its own `.:position`/`.:rotation`,
+## because the animated node is the AnimationPlayer's own parent). A name
+## with no camera track, or that does not exist, is skipped - this can never
+## make the sweep worse, only leave it exactly as it was.
+##
+## Deliberately does NOT touch `KEEP_VISIBLE`, `_hide_everything()`, or any
+## `:visible`/light state - the one thing this project's own history says not
+## to touch without eleven days to spare. It only adds camera *viewpoints* for
+## the reveal loop that already exists to pass through.
+##
+## **Unverified on device.** This changes which frame a pipeline first
+## compiles on, not whether it compiles - the total pipeline count and the
+## precache's own total cost should be unaffected either way. What it should
+## move is `pipe+N` on the four sequences named above, from live play into the
+## precache. A device log is what confirms or kills it, not this comment.
+@export var extra_sweep_animations: Array[StringName] = []
+
+## Where `extra_sweep_animations` actually live. NOT the same node as
+## `animation_player` above: this node's own `animation_player` is
+## `PreloadCamera/AnimationPlayer`, whose library holds only `precache` (plus
+## the RESET replays already inside it) - checked directly against the scene,
+## not assumed. The stalling sequences (`122_fall` etc.) are dispatched by
+## `Sequences/SequencePlayer`, a sibling node with its own separate
+## `AnimationLibrary`. Left unset, `extra_sweep_animations` does nothing, same
+## as an empty array.
+@export var extra_sweep_player: AnimationPlayer
+
 ## What a revealing frame is allowed to cost before the batch shrinks.
 ##
 ## Generous on purpose: the goal is a loading screen that keeps moving, not one
@@ -224,6 +272,56 @@ func _collect_sweep_poses() -> void:
 		if rot_track >= 0:
 			basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
 		_sweep_poses.append(Transform3D(basis, origin))
+
+	_collect_extra_sweep_poses()
+
+## Folds `extra_sweep_animations` into `_sweep_poses` - see the export's own
+## comment for why. Runs after the precache's own poses so a scene with none
+## configured is byte-identical to before this existed.
+##
+## Matches a track by path *suffix* (`Camera3D:position`/`Camera3D:rotation`)
+## rather than resolving the NodePath, deliberately: a SequencePlayer
+## animation's tracks are relative to `Sequences`, so the same camera is
+## `../Camera3D:position` here and `.:position` in this node's own animation.
+## Matching the literal prefix would have to know which convention applies to
+## which player; matching the suffix does not have to care, and is safe
+## because every camera in these scenes really is named `Camera3D` - checked
+## against every sequence's own tracks, not assumed.
+func _collect_extra_sweep_poses() -> void:
+	if extra_sweep_player == null:
+		return
+
+	for extra_name: StringName in extra_sweep_animations:
+		if not extra_sweep_player.has_animation(extra_name):
+			continue
+		var anim: Animation = extra_sweep_player.get_animation(extra_name)
+		if anim == null:
+			continue
+
+		var pos_track: int = -1
+		var rot_track: int = -1
+		for i in anim.get_track_count():
+			if anim.track_get_type(i) != Animation.TYPE_VALUE:
+				continue
+			var path: String = String(anim.track_get_path(i))
+			if path.ends_with("Camera3D:position"):
+				pos_track = i
+			elif path.ends_with("Camera3D:rotation"):
+				rot_track = i
+
+		if pos_track < 0:
+			continue
+
+		var count: int = anim.track_get_key_count(pos_track)
+		if rot_track >= 0:
+			count = mini(count, anim.track_get_key_count(rot_track))
+
+		for i in count:
+			var origin: Vector3 = anim.track_get_key_value(pos_track, i)
+			var basis := Basis.IDENTITY
+			if rot_track >= 0:
+				basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
+			_sweep_poses.append(Transform3D(basis, origin))
 
 ## Puts the camera at the next sweep pose, for the frame that is about to draw
 ## whatever the reveal just switched on.

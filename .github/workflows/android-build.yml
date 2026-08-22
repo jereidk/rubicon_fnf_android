@@ -585,6 +585,22 @@ jobs:
           $GODOT --headless --path . --script tools/test_preload_sweep.gd 2>&1 | tee /tmp/sweep.txt
           grep -q "todo OK" /tmp/sweep.txt
 
+      - name: Verify the precache sweep also visits the stalling cutscenes
+        run: |
+          # 122_fall@6.8s still costs frame=1911.7ms for spec+8 with RAM/VRAM
+          # flat - a pipeline-compile stall, not loading. Three more sequences
+          # show the same shape. All four are shots the precache's own sweep
+          # never visited, because that sweep only cycles through the
+          # viewpoints its own animation authors - a mesh can be
+          # visible=true the whole loading screen and never get drawn if the
+          # camera never points at it, and an undrawn material never
+          # compiles. extra_sweep_animations folds each sequence's own camera
+          # track into the cycling sweep. Unverified on device - it changes
+          # which frame a pipeline first compiles on, not whether it does; a
+          # fresh log's pipe= on these four sequences is what confirms it.
+          $GODOT --headless --path . --script tools/test_preload_extra_sweep.gd 2>&1 | tee /tmp/extrasweep.txt
+          grep -q "todo OK" /tmp/extrasweep.txt
+
       - name: Verify the cached hit order matches the sorted one
         run: |
           # update_performance() rebuilt and re-sorted every result hit so far

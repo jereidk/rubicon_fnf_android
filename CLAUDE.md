@@ -3301,17 +3301,42 @@ cut-down stage by hand would work but stops being the scene under test.
    (58.95s de ese log) con `pipe+0`, `vram_delta=+0.0MB`, RAM plana, `in=0` y
    nada en el censo. No compila ni reserva nada. Sin teoría.
 
-4. **The multi-second stall at cutscene starts is still there and is still
-   the worst thing in the song.** `122_fall@6.8s` logs **`frame=1911.7ms`**
-   with `pipe+8` - unchanged from the 1878ms recorded months ago, and now with
-   the pipeline counter naming the cause on the same line. Three more of the
-   same shape: `121_closetrunout@0.7s` 489ms `pipe+5`,
-   `104_photographysesh@6.6s` 481ms `pipe+5`, `107_turnaround@0.1s` 350ms.
-   Texture upload, resource loading and the AnimationMixer track cache are all
-   ruled out (see the `122_fall` section). The untried fix is a prewarm that
-   puts just that cutscene's cast in front of an off-screen camera - and note
-   that the `precache` is now **forbidden from touching any mesh registered in
-   the `.lmbake`**, which is what made the last attempt black the house out.
+4. **The multi-second stall at cutscene starts, and the first thing tried
+   against it since the "untried fix" note was written.** `122_fall@6.8s`
+   logged **`frame=1911.7ms`** with `pipe+8` the last time this was measured -
+   before `4706758` fixed the sweep to run off the reveal instead of the
+   clock, so that number needs a fresh log before it can be trusted as
+   current. Three more sequences show the same shape: `121_closetrunout@0.7s`
+   489ms `pipe+5`, `104_photographysesh@6.6s` 481ms `pipe+5`,
+   `107_turnaround@0.1s` 350ms. Texture upload, resource loading and the
+   AnimationMixer track cache are all ruled out (see the `122_fall` section).
+
+   **Shipped, unverified on device:** `extra_sweep_player`/
+   `extra_sweep_animations` on `lullaby_preload_camera.gd`, wired on
+   Chimera's `PreloadCamera` to all four stalling sequences. Each sequence's
+   own `Camera3D:position`/`:rotation` keys get folded into the cycling sweep
+   (`tools/test_preload_extra_sweep.gd`, in CI), so the loading-screen camera
+   also passes through the viewpoints those cutscenes use, not only the ones
+   the precache's own animation authors. This is deliberately the narrowest
+   version of "put the cast in front of a camera": it adds viewpoints to the
+   reveal loop that already exists and touches nothing else - not
+   `KEEP_VISIBLE`, not `_hide_everything()`, no `:visible` or light state, the
+   one class of change this file has the most reason to be careful with (the
+   eleven-day black house was exactly a precache `:visible` change). Caught
+   during design, not after shipping: the first draft pointed
+   `extra_sweep_player` at this node's own `animation_player`
+   (`PreloadCamera/AnimationPlayer`, whose library holds only `precache`)
+   instead of `Sequences/SequencePlayer`, where `122_fall` etc. actually live
+   - would have silently collected nothing forever. The mutation-tested test
+   pins that.
+
+   **What it should move, and what would say it worked:** the total pipeline
+   count and the precache's own cost should be about the same either way -
+   this does not create or destroy work, it moves *when* each pipeline first
+   compiles. A `pipe+N` on one of the four sequences during play, dropping to
+   near zero with a corresponding rise during the precache line, is the
+   result that confirms it. A device log is what settles this, not this
+   note.
 5. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.

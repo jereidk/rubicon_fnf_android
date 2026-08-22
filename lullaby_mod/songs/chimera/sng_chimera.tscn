@@ -15448,12 +15448,14 @@ metadata/_edit_lock_ = true
 [node name="FloorCrash" type="AudioStreamPlayer" parent="." unique_id=1581391770]
 volume_db = 1.919
 
-[node name="PreloadCamera" type="Camera3D" parent="." unique_id=1066157543 node_paths=PackedStringArray("animation_player")]
+[node name="PreloadCamera" type="Camera3D" parent="." unique_id=1066157543 node_paths=PackedStringArray("animation_player", "extra_sweep_player")]
 transform = Transform3D(-1, 5.120216e-07, 0.00016918899, 0, 0.9999954, -0.0030263155, -0.00016918976, -0.0030263155, -0.9999954, 0.79251933, 2.618064, 4.842662)
 fov = 120.0
 script = ExtResource("132")
 animation_player = NodePath("AnimationPlayer")
 animation_name = &"precache"
+extra_sweep_player = NodePath("../Sequences/SequencePlayer")
+extra_sweep_animations = Array[StringName]([&"104_photographysesh", &"114_hexapproach", &"121_closetrunout", &"122_fall"])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera" unique_id=737729031]
 libraries/ = SubResource("AnimationLibrary_umtp6")
