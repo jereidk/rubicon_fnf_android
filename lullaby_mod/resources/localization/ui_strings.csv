@@ -7,6 +7,7 @@ NEW GRADE!!!","
 """%s"" is already unlocked.","""%s"" ya está desbloqueado."
 $BIND Switch Cartridge,$BIND Cambiar cartucho
 (Must delete shader cache after each benchmark to see differences),(Hay que borrar la caché de shaders tras cada prueba para ver diferencias)
+*COUGHS*,*TOSE*
 2D Art,Arte 2D
 2D Artist,Artista 2D
 3D Artist,Artista 3D
@@ -21,6 +22,7 @@ Advanced Settings,Ajustes avanzados
 Affects overall volume of the game.,Afecta al volumen general del juego.
 Affects volume for the Collector's voice. No need to bring it down.,Afecta al volumen de la voz del Coleccionista. No hace falta bajarlo.
 "Affects volume for the sound effects in the game. Floor breaking, unowns, etc.","Afecta al volumen de los efectos de sonido del juego. Rotura de suelo, unowns, etc."
+Ahhh who’re we kiddin?,"Ahhh, ¿a quién engañamos?"
 Ambient Occlusion,Oclusión ambiental
 And You!,¡Y tú!
 Anti-Aliasing (MSAA): ,Antialiasing (MSAA): 
@@ -70,6 +72,7 @@ Decorative extras like glow and screen effects. Lower settings skip loading them
 Delete Save Data!!!,¡¡¡Borrar datos guardados!!!
 Deletes all save data for FNF Lullaby. Start from the beginning.,Borra todos los datos guardados de FNF Lullaby. Empieza desde cero.
 Diagnostics Log,Registro de diagnóstico
+Did you see my commercial?,¿Viste mi anuncio?
 Down,Abajo
 Downscroll,Desplazamiento hacia abajo
 Draws the outline around each lane zone so you can see where one starts and another ends.,Dibuja el contorno de cada zona de carril para que veas dónde empieza una y termina otra.
@@ -107,6 +110,7 @@ Gameplay Control: ,Control de juego:
 Ghost Tapping,Toque fantasma
 Graphics,Gráficos
 Graphics. High: Director's visual experience. Normal: Lower graphics. Low: As low as possible.,Gráficos. Alto: la experiencia visual pensada por la dirección. Normal: gráficos reducidos. Bajo: lo más bajo posible.
+Hello and Welcome to the Cabinet of Novelties!,¡Hola y bienvenido al Gabinete de las Novedades!
 Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show!,¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer! ¡Hola! ¿Cantas conmigo? ¡Qué amable por aparecer!
 Hitbox Gradient,Degradado de zona de impacto
 Hitbox Hint,Guía de zona de impacto
@@ -143,6 +147,7 @@ Invalid code.,Código no válido.
 "It is thought that Celebi's song forever echoes within it, promising a brightly shining future to all who hear it. A beacon of light once loyal to their trainer, now faithful to another.
 ","Se cree que el canto de Celebi resuena en su interior para siempre, prometiendo un futuro brillante a quien lo escuche. Un faro de luz que una vez fue leal a su entrenador, ahora fiel a otro.
 "
+"I’m The Collector, the finest connoisseur of magical items across all planes!","¡Soy el Coleccionista, el más fino conocedor de objetos mágicos de todos los planos!"
 Keyboard: ,Teclado: 
 LALALALA,LALALALA
 Language: ,Idioma: 
@@ -151,6 +156,9 @@ Leave the shop?,¿Salir de la tienda?
 Left,Izquierda
 Light Culling: ,Descarte de luces: 
 Locks frame rate to monitor's refreshrate to combat screen tearing.,Limita la tasa de fotogramas a la frecuencia de refresco del monitor para evitar el tearing.
+MYAHAHAHA!,¡MUAJAJAJA!
+MYAHAHAHAHA!,¡MUAJAJAJAJA!
+MYAHAHAHAHAHAHA!,¡MUAJAJAJAJAJAJA!
 Master Volume: ,Volumen general: 
 Max FPS: ,FPS máximos: 
 Mechanic Direction: ,Dirección de la mecánica: 
@@ -169,6 +177,7 @@ Note Layout: ,Disposición de notas:
 Note Left: ,Nota Izquierda: 
 Note Right: ,Nota Derecha: 
 Note Up: ,Nota Arriba: 
+"OF COURSE YOU DID, YOU’RE HERE! ","¡CLARO QUE SÍ, AQUÍ ESTÁS! "
 Offset: ,Desfase: 
 "Offsets the position of all notes, in case of delays.","Desplaza la posición de todas las notas, por si hay retrasos."
 P e n d u l u m,P é n d u l o
@@ -330,6 +339,7 @@ WARNING,ADVERTENCIA
 Warning Screen,Pantalla de advertencia
 "Watch the game play itself perfectly, hitting every note on its own.","Observa cómo el juego se juega solo a la perfección, acertando cada nota por su cuenta."
 Whatever you want.,Lo que tú quieras.
+What’d you think of it? D’you love it???,¿Qué te pareció? ¿Te encantó???
 "Where the pendulum mechanic's own red hitbox sits. Up is the original top strip. Bottom parks it at the bottom edge. Center puts it between the lane pairs, splitting the lanes above and below it.","Dónde se sitúa la zona de impacto roja propia de la mecánica del péndulo. Arriba es la franja superior original. Abajo la aparca en el borde inferior. Centro la coloca entre los pares de carriles, repartiéndolos por encima y por debajo."
 Which clock the Memory Card header up there reads in.,Con qué reloj marca la hora la cabecera de la Tarjeta de memoria de ahí arriba.
 "Which debug overlay to show. Simple is FPS and memory, Detailed adds build info, Advanced adds rendering diagnostics. The keybind above cycles it.","Qué panel de depuración mostrar. Simple son FPS y memoria, Detallado añade info de la build, Avanzado añade diagnóstico de renderizado. El atajo de arriba lo rota."

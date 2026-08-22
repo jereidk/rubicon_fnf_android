@@ -3909,6 +3909,27 @@ persistent score/accuracy/misses readout shown during any song, not a
 lyric, so it followed the same `tr()` treatment as the results screen and
 pause timer.
 
+**A fourth pass widened the regex to `dialogue_text` (not just
+`text`/`tooltip`) and found the biggest single piece of narrative content
+in the whole sweep: the Collector's live intro greeting**, authored on
+`UI/Control/Dialogue` in `env_collector_shop.tscn` (confirmed live, not
+demo content - `start_dialogue_from_text()` is called on it twice from
+scene animation tracks). `CollectorDialogue.show_line()` splits
+`dialogue_text` on `"\n"` and assigns **one line at a time** to a Label as
+the player advances - so unlike the Kollectadex bios, this needed **ten
+separate CSV keys**, one per line, not the whole ten-line blob as one key.
+Verified by replaying the real split-and-`tr()` loop against the actual
+scene text before trusting it, since a single line that fails to match
+loses its translation silently rather than erroring. The source uses curly
+apostrophes (`’`), which the CSV keys have to match exactly.
+
+Also found in that pass, and skipped: `CodeInput`'s `placeholder_text =
+"IAMDEAD"` in the Hacks tab (console.tscn) - it is showing a real code as
+a formatting example, not describing one, so translating it would mean
+showing players an example that does not work if typed - and `toggle_button
+.tscn`'s default `text = "Toggle"`, the same kind of inert template default
+as `kollectadex_entry.tscn`'s `"Name"`/`"001"`.
+
 **Found and deliberately left alone, so the same ground doesn't get
 re-covered by a future sweep:**
 
