@@ -4250,17 +4250,64 @@ drawn size fully deterministic: `1.2 x scale x 180 x 2`. At the authored
 `scale = 0.881` and `y = 1.4766` gives **381x201 at +84.3**, against the
 group's median 378x200 at +82.5.
 
-Two things worth knowing for the next time this harness is used:
+**Ese último párrafo era falso y shipeó dos veces mal el icono.** Lo que
+sigue lo corrige con medidas del dispositivo, que es lo que había que haber
+usado desde el principio.
 
-- **A missing texture does not invalidate an alpha-box measurement.** The
-  `ui_*.gltf` icons render with their material failing to load here (the
-  `.godot/imported` cache still holds `.ctex` for them while the ASTC
-  importer now emits `.res`), but the geometry still draws, and the opaque
-  bounding box is exactly as valid. The numbers above are sound; a
-  *colour* reading off the same render would not be.
-- The preview sent to the user was composited in PIL from those measured
-  boxes, not screenshotted from the game - same caveat as every other
-  mock-up in this file.
+#### Y la escala y el color estaban mal, medidos por fin sobre el teléfono
+
+`scale = 0.881` salió de casar la **caja de alfa** de un render aislado contra
+la de los otros cinco. Ese render tenía los materiales de los `ui_*.gltf` sin
+cargar, así que sus cajas eran la **geometría sin texturizar**, no el icono
+dibujado. O sea:
+
+- **Una textura que no carga SÍ invalida una medida de tamaño.** La nota que
+  decía lo contrario es la que produjo el 0.881.
+
+Medido sobre cinco capturas del teléfono, sobre los píxeles de cada icono:
+
+| icono | ancho | alto | px opacos |
+|---|---|---|---|
+| Credits | 92 | 116 | 5866 |
+| Settings | 100 | 113 | 2854 |
+| Gallery | 97 | 109 | 4532 |
+| **Codes** | **223** | 105 | 5681 |
+
+**223px de ancho contra 92-100.** Desbordaba la burbuja de selección de 419px
+y se sentaba sobre su propia etiqueta. El ancho en pantalla es lineal con la
+escala del nodo, así que casar la dimensión mayor del grupo (mediana 113) da
+`0.881 x 113/223 = 0.446`, que deja el teclado en 113x53.
+
+Y el color, sobre los mismos píxeles:
+
+    Credits  #fc4242    Settings #fb4747    Gallery #fa4a4a    Training #fd5555
+    grupo    #fc4a4a  (saturación 0.71)
+    Codes    #dc767f  (saturación 0.46)   <- el rosa lavado del reporte
+
+El tinte es plano sobre la textura del teclado, cuya media opaca es
+`(0.906, 0.831, 0.831)`, así que el tinte que aterriza en el rojo del grupo es
+`grupo/textura = (1.091, 0.350, 0.351)`. El que shipeaba era `(1.1, 0.6, 0.66)`
+- **el rojo estaba bien y el verde y el azul iban 1.8x altos**, que es
+exactamente el lavado. Ese 0.6/0.66 salió de la razón select/idle de las dos
+rampas, que es un cociente entre texturas y no un color absoluto.
+
+**Y la comprobación de tono sola no lo cazaba:** `1.1/0.6 = 1.83` pasaba
+cómodamente el umbral de 1.25 del guard mientras el color seguía siendo el
+equivocado. Lo que los separa es la **saturación**, y eso es lo que pinta
+ahora el guard, junto con la distancia al rojo medido (con el tinte nuevo:
+#fc4a4a, distancia 0.001).
+
+**La posición, en cambio, estaba bien y no se tocó.** Los centros medidos en
+pantalla son simétricos respecto al centro del anillo -Credits en −133.5px,
+Codes en +135.0px, y sus `y` a 5.5px- así que lo que se leía como "mal
+posicionado" era el ancho invadiendo el vecindario. Cuidado con razonar la
+posición desde las coordenadas del `.tscn`: el teclado es un `QuadMesh`
+centrado en su origen y los otros cinco son modelos que cuelgan del suyo, así
+que sus `transform` no son comparables. Compara centros dibujados.
+
+- El preview que se mandó al usuario aquella vez se compuso en PIL a partir de
+  aquellas cajas equivocadas, así que tampoco valía. El A/B bueno se renderiza
+  con la textura y el material reales, a las dos escalas relativas de verdad.
 
 ### The 37 guard steps are one step now
 
