@@ -117,7 +117,7 @@ volume_mute={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://lullaby_mod/resources/localization/ui_strings.es.translation")
+locale/translations=PackedStringArray("res://lullaby_mod/resources/localization/ui_strings.es.translation", "res://lullaby_mod/resources/localization/ui_strings.pt_BR.translation")
 
 [rendering]
 

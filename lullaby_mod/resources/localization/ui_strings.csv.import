@@ -6,10 +6,10 @@ uid="uid://qrbqahcphlxi"
 
 [deps]
 
-files=["res://lullaby_mod/resources/localization/ui_strings.es.translation"]
+files=["res://lullaby_mod/resources/localization/ui_strings.es.translation", "res://lullaby_mod/resources/localization/ui_strings.pt_BR.translation"]
 
 source_file="res://lullaby_mod/resources/localization/ui_strings.csv"
-dest_files=["res://lullaby_mod/resources/localization/ui_strings.es.translation"]
+dest_files=["res://lullaby_mod/resources/localization/ui_strings.es.translation", "res://lullaby_mod/resources/localization/ui_strings.pt_BR.translation"]
 
 [params]
 

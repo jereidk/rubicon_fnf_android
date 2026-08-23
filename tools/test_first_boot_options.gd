@@ -80,11 +80,21 @@ func _check_language(script: String) -> void:
 	# The console's Misc tab drives the same Setting through list_button.gd's
 	# values_list. If the two ever disagree, one of the two rows silently
 	# writes a locale the other cannot show.
+	# Compared to each other rather than to a hardcoded pair: pinning the
+	# literal list made adding a third language fail two checks that had no
+	# opinion about how many languages there should be. The invariant is that
+	# the two rows agree, and that survives the next locale.
 	var console: String = FileAccess.get_file_as_string(CONSOLE)
-	_check(console.contains('values_list = ["en", "es"]'),
-		"the console's Language row still offers the same values")
-	_check(script.contains('["en", "es"]'),
-		"...and the first-boot row matches it")
+	var console_values: String = _list_after(console, "values_list = [", "\"en\"")
+	var boot_values: String = _list_after(script, "LANGUAGE_VALUES: Array[String] = [", "\"en\"")
+	_check(console_values != "" and boot_values != "" and console_values == boot_values,
+		"both Language rows offer the same locales (%s)" % console_values)
+
+	# And the console shows one name per locale, or the picker writes a locale
+	# whose label belongs to another one.
+	var console_names: String = _list_after(console, "display_list = [", "\"English\"")
+	_check(console_names.count(",") == console_values.count(","),
+		"the console names every locale it offers (%s)" % console_names)
 
 	# apply_settings() is what calls TranslationServer.set_locale(); writing
 	# the var alone changes nothing on screen.
@@ -170,6 +180,24 @@ func _has_statement(body: String, pattern: String) -> bool:
 	var re := RegEx.new()
 	re.compile("(?m)^[\\t ]*[^#\\n]*" + pattern)
 	return re.search(body) != null
+
+## The bracketed list that starts at `prefix` and contains `must_contain`,
+## returned verbatim. There are several values_list/display_list rows in the
+## console, so the marker is what picks the language one out.
+func _list_after(text: String, prefix: String, must_contain: String) -> String:
+	var from: int = 0
+	while true:
+		var head: int = text.find(prefix, from)
+		if head < 0:
+			return ""
+		var tail: int = text.find("]", head + prefix.length())
+		if tail < 0:
+			return ""
+		var body: String = text.substr(head + prefix.length(), tail - head - prefix.length())
+		if body.contains(must_contain):
+			return body
+		from = head + prefix.length()
+	return ""
 
 func _func_body(text: String, name: String) -> String:
 	var head: int = text.find("func %s(" % name)

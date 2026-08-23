@@ -708,6 +708,14 @@ jobs:
           # for - the tap never reached _unhandled_input.
           guard_godot tools/test_aim_field.gd
 
+          # === Verify no translation lost a placeholder or a tag
+          # A missing translation falls back to English and is harmless. One
+          # that dropped a %d does not: the score screen's format strings
+          # throw at runtime rather than falling back. Same for $SPECIAL,
+          # which LullabyInputBinds rewrites into the bound button, and for
+          # the lyrics, which are almost entirely BBCode.
+          guard_python tools/audit_translation_csv.py
+
           # === Verify the cached hit order matches the sorted one
           # update_performance() rebuilt and re-sorted every result hit so far
           # once per note that lands - O(n log n) per note. Monochrome's log

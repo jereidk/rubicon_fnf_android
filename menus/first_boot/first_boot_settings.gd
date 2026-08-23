@@ -7,7 +7,7 @@ const INTRO_SCENE := "res://menus/intro/intro.tscn"
 ## names are deliberately NOT translated - a language is named in its own
 ## language on every language picker, which is also why "Español" is spelt
 ## that way in an English build.
-const LANGUAGE_VALUES: Array[String] = ["en", "es"]
+const LANGUAGE_VALUES: Array[String] = ["en", "es", "pt_BR"]
 
 @export var language_button: OptionButton
 

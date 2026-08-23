@@ -5472,8 +5472,8 @@ text = "Language: "
 alignment = 0
 script = ExtResource("54")
 property = &"lullaby_language"
-display_list = ["English", "Español"]
-values_list = ["en", "es"]
+display_list = ["English", "Español", "Português (BR)"]
+values_list = ["en", "es", "pt_BR"]
 console = NodePath("../../../../../..")
 tooltip = "Changes the game's UI language. A restart of any open menu may be needed for every label to catch up."
 
