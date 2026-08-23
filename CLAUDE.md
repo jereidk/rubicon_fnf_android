@@ -3134,6 +3134,95 @@ ojo con leer un log de este proyecto sin filtrar por escena: `MeshInstance3D=113
 `materiales_unicos=83`, `esqueletos=21(huesos=586)` y `sub_px=2.00M` son **de la
 tienda**; Chimera es 64, 32, `esqueletos=1(huesos=114)` y `sub_px=0.00M`.
 
+## Lo que quedaba por sacar de los logs, y un contador que mentía
+
+Barrido completo de `3d21ba99` (g53) leyendo campos que nadie había mirado.
+
+### `over=` contaba nodos del árbol, no capas que la GPU dibuja
+
+**Y por eso este fichero tenía escrito que no correlaciona con `gpu=`.**
+`_screen_area()` sólo miraba `is_visible_in_tree()`, así que un rect a pantalla
+completa con `modulate.a = 0` sumaba como capa entera - y Godot **salta ese
+item y su subárbol enteros antes del rasterizador**, medido en la ruta del
+teléfono a 0.79ms y `draws=0` contra 28.8ms opaco.
+
+No es hipotético: Training registra `over=7.2x top=.../MissVignette@1.0x` para
+un vignette que entre fallos está exactamente en `modulate = Color(1,1,1,0)`.
+La GPU no lo toca nunca.
+
+Arreglado multiplicando la cadena de `modulate` hacia arriba.
+`tools/test_overdraw_modulate.gd` (11 comprobaciones, en CI) fija también su
+**límite**: `self_modulate` y el `color` de un ColorRect **no** entran, porque
+los dos son por item y Godot dibuja el item igual - el mismo banco mide
+`color.a = 0` a 30.5ms, *más caro* que opaco.
+
+Consecuencia para releer este fichero: **cualquier cifra de `over=` anterior a
+esto es un límite superior**, no una medida. Las lecturas de "over=3.0x con
+gpu=33.4 y over=3.1x con gpu=18.2, no correlaciona" hay que rehacerlas.
+
+### El peor frame del proyecto ya tiene nombre
+
+El problema abierto nº3 de este fichero decía que el frame de 7787ms del
+precache de la tienda "todavía no tiene nombre". Ya lo tiene:
+
+    t=33.4  frame=7765.3ms  pipe+51  vram +0.0MB  env_collector_shop.tscn
+
+**51 pipelines compilados en un solo frame**, con VRAM y RAM planas. Es
+compilación de shaders, no carga ni subida.
+
+Y el reparto de la sesión entera, 1067 pipelines:
+
+| escena | pipelines |
+|---|---|
+| **tienda** | **+1011** |
+| chimera | +162 |
+| test / menús | +5 |
+
+**La tienda compila 6x lo que Chimera.** Todo el dolor de arranque de este
+proyecto es la tienda.
+
+### El diente de sierra de VRAM: +65MB en un frame, tres veces por sesión
+
+    t= 25.4   103 -> 168 MB  (+65)   frame=1162.8ms   entrar a la tienda
+    t= 99.8   146 ->  43 MB (-103)                    salir
+    t=152.5   128 -> 179 MB  (+51)   frame= 812.2ms   entrar otra vez
+    t=451.4   125 -> 177 MB  (+52)   frame= 925.6ms   y otra
+    t=434.4   214 ->  46 MB (-168)                    salir de chimera
+
+Más `MEMORY +44.6 MB in one frame`. Cada visita a la tienda paga la subida
+entera de golpe en un frame de ~1s. Nada cachea entre visitas.
+
+### Térmico: +97%, el peor registrado en este proyecto
+
+    frames=4961 mean=24.2ms (41 fps) worst=7765.3ms vs_first= +0%
+    frames=5429 mean=22.1ms (45 fps)                vs_first= -9%
+    frames=2515 mean=47.7ms (21 fps)                vs_first=+97%   <- chimera
+    frames=3297 mean=36.4ms (27 fps)                vs_first=+50%
+    frames=4055 mean=29.6ms (34 fps)                vs_first=+22%
+
+El récord anterior escrito aquí era +23%, y +74% en un arranque en frío.
+**Chimera a `scale=0.70` deja el teléfono a la mitad de velocidad**, y se
+queda así media sesión. Es un argumento extra para todo lo de arriba: bajar el
+coste de GPU paga dos veces, en el frame y en el calor.
+
+### Cosas concretas que quedan, sacadas del mismo barrido
+
+- **Training pooleaba 7729 nodos huérfanos** y registra `notes=119.56 ms/s` -
+  el coste de sistema de notas más alto del log, en la pantalla que no tiene
+  notas. La mitad de `notes` ya está arreglada en `55442a7`
+  (`PROCESS_MODE_DISABLED` sobre los carriles) y **este log es de una build
+  anterior**, así que el próximo lo verifica. Los huérfanos no.
+- **`RETAINEDBY` delata lo que no se suelta:** tras salir de Training siguen
+  residentes `songs/test/resources/Inst.ogg`, `Vocals.ogg`,
+  `resources/levels/maps/fnf_stage.tscn` y `characters/bf.tscn` - contenido de
+  demo de Rubicon que Lullaby no vuelve a usar. Y tras Chimera siguen sus tres
+  `.ogg`.
+- **`res=` sube dentro de una misma sesión de tienda**: 1620 -> 1832 -> 1929
+  -> 1992 recursos vivos sin cambiar de escena.
+- **`STALL 50.0% for 14.7s`** en la segunda carga de la tienda y 13.1s en la
+  de Chimera - el tramo ciego que este fichero ya describe, ahora con su
+  duración por visita.
+
 ## Lo que hace caro un píxel de 3D son las luces, no la resolución
 
 Y esto reencuadra todo lo demás de este fichero, así que va antes.

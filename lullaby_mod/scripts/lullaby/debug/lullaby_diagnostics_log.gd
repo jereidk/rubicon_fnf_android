@@ -2017,6 +2017,22 @@ func _lights_the_main_frame(light: Light3D) -> bool:
 ## Geometry only, deliberately: alpha is not folded in, because a sprite at
 ## 10% alpha still costs a full blend on a tile GPU and hiding it behind a
 ## weighting would under-report the exact thing being hunted.
+## The modulate alpha this item actually draws with, multiplied down the
+## CanvasItem chain the way Godot does. Stops at the first non-CanvasItem
+## parent, which is where a CanvasLayer or the scene root ends the chain.
+func _inherited_modulate_alpha(node: CanvasItem) -> float:
+	var alpha: float = 1.0
+	var walk: Node = node
+	while walk != null:
+		var item := walk as CanvasItem
+		if item == null:
+			break
+		alpha *= item.modulate.a
+		if alpha <= 0.0:
+			return 0.0
+		walk = walk.get_parent()
+	return alpha
+
 func _screen_area(node: CanvasItem) -> float:
 	# Only what the main frame pays for. An item inside a SubViewport is
 	# measured against that viewport's rect and then divided by the root's
@@ -2027,6 +2043,27 @@ func _screen_area(node: CanvasItem) -> float:
 		return 0.0
 
 	if not _paints_anything(node):
+		return 0.0
+
+	# Godot skips a CanvasItem whose *inherited* modulate alpha is zero - the
+	# whole subtree, before it reaches the rasteriser. Measured on the phone's
+	# path with eight full-screen rects: modulate.a = 0 is 0.79ms, draws=0,
+	# prims=0, against 28.8ms opaque. So a transparent layer is not a layer,
+	# and counting it made this field describe the scene tree instead of the
+	# frame.
+	#
+	# That is not hypothetical - it is what this field was reporting. Training
+	# logged `over=7.2x top=.../MissVignette@1.0x` for a full-rect vignette
+	# sitting at `modulate = Color(1, 1, 1, 0)` between misses, i.e. a layer
+	# the GPU never touched. It also explains why every reading of `over=`
+	# here failed to correlate with `gpu=`: 3.0x at 33.4ms against 3.1x at
+	# 18.2ms was partly counting layers that were never drawn.
+	#
+	# `self_modulate` and a ColorRect's `color` are deliberately NOT part of
+	# this test - both are per-item and Godot draws the item anyway, and the
+	# same bench measured `color.a = 0` at 30.5ms, *more* than opaque. Only
+	# the inherited `modulate` chain culls.
+	if _inherited_modulate_alpha(node) <= 0.0:
 		return 0.0
 
 	var screen: Rect2 = Rect2(Vector2.ZERO, node.get_viewport_rect().size)

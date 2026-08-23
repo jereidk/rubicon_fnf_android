@@ -717,6 +717,15 @@ jobs:
           # the eleven-day black house all over again.
           guard_godot tools/test_baked_light_cull.gd
 
+          # === Verify over= counts layers the GPU draws, not nodes in the tree
+          # Godot skips a CanvasItem whose inherited modulate alpha is zero,
+          # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the
+          # phone's path. _screen_area() keyed only on is_visible_in_tree(),
+          # so a transparent full-rect counted as a whole layer: Training
+          # logged over=7.2x for a vignette at modulate.a = 0. It is also why
+          # over= never correlated with gpu=.
+          guard_godot tools/test_overdraw_modulate.gd
+
           # === Verify a light at zero energy stops being evaluated
           # The renderer pairs a light with an object by RANGE, never by
           # energy, so a light switched on at light_energy = 0 is shaded per
