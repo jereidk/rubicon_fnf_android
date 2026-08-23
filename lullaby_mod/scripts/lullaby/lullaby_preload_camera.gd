@@ -68,11 +68,42 @@ extends Camera3D
 ## to touch without eleven days to spare. It only adds camera *viewpoints* for
 ## the reveal loop that already exists to pass through.
 ##
-## **Unverified on device.** This changes which frame a pipeline first
-## compiles on, not whether it compiles - the total pipeline count and the
-## precache's own total cost should be unaffected either way. What it should
-## move is `pipe+N` on the four sequences named above, from live play into the
-## precache. A device log is what confirms or kills it, not this comment.
+## **Verified on device, and the viewpoints alone do not do it.** Log
+## 618afe39, build 27868ddd, which ships this feature configured with all four
+## names:
+##
+##     210.3s  104_photographysesh@0.3s   frame=1693.0ms   spec+31
+##     213.1s  104_photographysesh@2.5s   frame= 367.9ms   spec+6
+##     230.5s  107_turnaround@0.5s        frame= 322.5ms   spec+9
+##     313.6s  122_fall@6.8s              frame= 326.0ms   spec+4
+##     314.8s  122_fall@7.2s              frame= 929.5ms   spec+8
+##
+## `vram_delta=+0.0MB` on every one, and the spikes carrying `spec+0` in the
+## same stretch are 43-72ms rather than hundreds - so the stall size tracks
+## the pipeline count and nothing else, at roughly 50-115ms per pipeline on
+## the Adreno 619. Checked before concluding the sweep was at fault: all four
+## names resolve in the SequencePlayer's library and all four animations carry
+## `../Camera3D:position` and `:rotation`, so it did find them and did run.
+##
+## The reason is already measured further down this file:
+##
+##     geometria, cero luces          spec=3
+##     + una omni                     spec=6   (+3, recompila las mismas)
+##
+## **The lighting state is part of the pipeline key**, and the sweep runs with
+## the sequence's lights off - `flash` and `PhoneGlow` live under
+## `Sequences/SerenaTakingPictures`, whose parents ship `visible = false`, as
+## the KEEP_VISIBLE note below already records. Pointing the camera at the
+## geometry compiles the "without those lights" variant; when the photo
+## session switches them on, every surface they reach needs a different
+## specialization. That is the +31.
+##
+## So the viewpoints are necessary and not sufficient. Warming these shots
+## needs the lights that will be on when they play to be on while they are
+## swept - `:visible`/light state during the precache, which the paragraph
+## above deliberately refuses to touch and which this project's history prices
+## at eleven days when it goes wrong. Next thing to try, on its own, with a
+## device log either side.
 @export var extra_sweep_animations: Array[StringName] = []
 
 ## Where `extra_sweep_animations` actually live. NOT the same node as
