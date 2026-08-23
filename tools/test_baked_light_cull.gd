@@ -76,6 +76,25 @@ func _initialize() -> void:
 	_check(_has_statement(src, "_restore_hidden()"),
 		"y devuelve las escondidas al subir de preset")
 
+	# El timing, que costo una regresion de 7x en el precache: el pase de
+	# materiales tiene que aterrizar ANTES del primer dibujo de la escena
+	# nueva, o el driver compila los dos juegos de variantes.
+	_check(not _has_statement(src, "await get_tree().process_frame\n\tawait"),
+		"no quedan dos esperas seguidas antes de aplicar")
+	_check(_has_statement(src, "for _i: int in SCENE_WAIT_FRAMES:"),
+		"espera a que current_scene exista en vez de contar frames a ojo")
+	_check(_has_statement(src, "if get_tree().current_scene != null:"),
+		"y sale en cuanto existe, o sea el primer frame de la escena nueva")
+
+	# Y la cobertura no se puede leer mientras el precache tiene todo
+	# escondido: `lm=... users=58 vis=0/0` es lo que midio la primera build.
+	_check(_has_statement(src, "if shown < BAKE_MIN_SAMPLE:"),
+		"sin muestra de geometria visible no se decide")
+	_check(_has_statement(src, "_bake_decided = true"),
+		"y cuando se decide, se decide una vez")
+	_check(_has_statement(src, "_bake_retry_countdown = BAKE_RETRY_FRAMES"),
+		"el reintento va throttleado, no un recorrido del arbol por frame")
+
 	# 2. El dato del que depende todo: la escena de Chimera sigue autorando
 	#    esas seis como BAKE_STATIC y ninguna animacion las toca.
 	var scene: String = _read(CHIMERA)

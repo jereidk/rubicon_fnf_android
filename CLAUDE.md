@@ -3029,6 +3029,58 @@ vértice) y trasladan en dirección a cualquier GPU, pero **la magnitud en un
 Adreno no tiene por qué ser la misma** - un tiler puede estar limitado por
 ancho de banda y ahorrar menos. El log del teléfono es el que lo decide.
 
+### Un frame de retraso costó 7x el precache
+
+La build 10166 salió **peor**, y las dos causas son de esta misma sesión. Se
+escribe entero porque ninguna de las dos parecía peligrosa al escribirla.
+
+| precache | 10159 | 10166 |
+|---|---|---|
+| tienda 1a visita | 9889ms | **34493ms** |
+| chimera | 3715ms | **27371ms** |
+| tienda 2a visita | 1144ms | **6419ms** |
+
+Con dos frames sueltos de **17.7s y 17.4s** dentro, y `surf` de la sesión
+pasando de **209 a 491**.
+
+**Causa 1: el pase de materiales aterrizaba un frame tarde.**
+`scene_change_finished` se emite **antes** de `change_scene_to_packed()`, y ese
+cambio va diferido al final del mismo frame - o sea que el `_ready` de la
+escena nueva (y con él `PreloadCamera._hide_everything()` y el arranque del
+precache) corre ahí. `_apply_when_scene_ready()` esperaba **dos**
+`process_frame`, así que caía en el frame N+2: la escena ya había dibujado una
+vez con las banderas autoradas. `cheap_shading` reescribe `diffuse_mode` y
+`specular_mode` de todos los materiales, o sea que cambia la variante de shader
+de todas las superficies - y el driver acabó compilando **los dos juegos**.
+
+Arreglado esperando **una** espera y a que `current_scene` exista, con tope de
+8 frames. El `await` se reanuda en `SceneTree.process_frame`, que es después de
+procesar los nodos y **antes de dibujar**, así que el cambio llega a tiempo sin
+depender del `process_priority` del autoload.
+
+**La regla que sale:** cualquier pase que cambie la *variante de shader* de un
+material tiene que correr antes del primer dibujo de la escena. Un frame tarde
+no cuesta un frame, cuesta el juego entero de pipelines otra vez.
+
+**Causa 2: la cobertura del bake se medía sobre una escena escondida.**
+`_bake_coverage()` cuenta mallas **visibles**, y `PreloadCamera` esconde las
+117/72 en su `_ready` - que es justo cuando corría. El log lo dice a la cara:
+
+    lm=on tex=512x512x8 users=58 vis=0/0 sh=true
+    bake=[luces=est5/din5/off1]      <- las horneadas, encendidas toda la sesion
+
+0/0 cae por debajo del umbral, el pase se plantaba **para siempre**, y
+`hide_baked_lights` no llegó a ejecutarse ni una vez en ninguna de las dos
+escenas. Ahora, sin muestra (`< BAKE_MIN_SAMPLE = 20` mallas visibles) **no se
+decide**: se reintenta desde `_process`, throttleado a un intento cada 15
+frames, hasta que hay escena que mirar. Contar geometría visible es un
+recorrido de 1345 nodos en la tienda y el precache es justo el tramo que no
+puede pagar uno por frame.
+
+Y el aviso general que esto deja: **una medida tomada durante el precache no
+mide la escena.** El precache existe para esconderlo todo; cualquier lectura
+que dependa de visibilidad y corra ahí lee ceros.
+
 ### La tienda no es Chimera, y el pase de luces horneadas casi lo paga
 
 `hide_baked_lights` se diseñó leyendo Chimera y se aplica a las dos escenas con

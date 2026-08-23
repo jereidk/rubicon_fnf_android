@@ -74,6 +74,25 @@ var _dark_masks: Dictionary = {}
 var _shading: Dictionary = {}
 var _applied_cheap_shading: bool = false
 
+## Whether the baked-light decision has been taken for this scene. It cannot
+## be taken while the precache still has everything hidden, so it is deferred
+## rather than resolved to "no".
+var _bake_decided: bool = false
+
+## How many meshes have to be on screen before the coverage reading means
+## anything. Chimera shows 62 and the shop 101 once the precache lets go; a
+## handful is the precache mid-reveal and would measure the wrong scene.
+const BAKE_MIN_SAMPLE := 20
+
+## Frames between retries of that decision. The physics rate on the low
+## presets is 30Hz and the frame is 30-60ms, so 15 is roughly four tries a
+## second - often enough to catch the scene the moment the precache lets go,
+## rare enough that the tree walk does not show up in the precache it is
+## waiting on.
+const BAKE_RETRY_FRAMES := 15
+
+var _bake_retry_countdown: int = 0
+
 func _ready() -> void:
 	# After the AnimationPlayers. An autoload is at the top of the tree and
 	# therefore processes before the scene by default, which would read
@@ -101,6 +120,8 @@ func _on_scene_changed(_path: String) -> void:
 	_applied_multiplier = DISABLED
 	_applied_hide_baked = false
 	_applied_cheap_shading = false
+	_bake_decided = false
+	_bake_retry_countdown = 0
 	_apply_when_scene_ready()
 
 ## Settings.applied fires on every single option row in the console, and
@@ -113,12 +134,32 @@ func _on_settings_applied() -> void:
 		return
 	_apply_to_current_scene()
 
-## get_tree().current_scene is not assigned on the frame change_scene_to_packed
-## runs, and call_deferred fires at the end of that same frame - see the note
-## in lullaby_note_layout_applier.gd, which this repeats deliberately.
+## One frame, not two, and this is load-bearing rather than tidy.
+##
+## `scene_change_finished` is emitted *before* `change_scene_to_packed()`, and
+## that swap is deferred to the end of the same frame - so the new scene's
+## `_ready` runs there, which is where `PreloadCamera` hides everything and
+## starts the precache. One `process_frame` lands on the first frame the new
+## scene exists, **before it has drawn anything**. Two landed one frame late.
+##
+## That one frame cost a 7x regression in the precache and it is worth
+## spelling out, because nothing about the number two looked dangerous. The
+## material pass below rewrites every material's shading flags, which changes
+## the shader variant every surface needs. Applied a frame late, the scene has
+## already drawn once with the authored flags, so the driver compiles **both**
+## sets: `surf` pipelines went 209 -> 491 in one build, Chimera's precache from
+## 3715ms to 27371ms and the shop's from 9889ms to 34493ms, with two single
+## frames of 17.4 and 17.7 seconds inside them.
+##
+## Godot does not promise `current_scene` is assigned by then, so this waits
+## for it rather than assuming, and gives up rather than spinning.
+const SCENE_WAIT_FRAMES := 8
+
 func _apply_when_scene_ready() -> void:
-	await get_tree().process_frame
-	await get_tree().process_frame
+	for _i: int in SCENE_WAIT_FRAMES:
+		await get_tree().process_frame
+		if get_tree().current_scene != null:
+			break
 	_apply_to_current_scene()
 
 func _apply_to_current_scene() -> void:
@@ -204,8 +245,38 @@ func _cull_dark_lights() -> void:
 		_dark_masks[id] = light.light_cull_mask
 		light.light_cull_mask = 0
 
+## Counts the geometry actually on screen, which is what makes the coverage
+## reading meaningful - and what the precache temporarily takes away.
+func _visible_geometry_count(root: Node) -> int:
+	var shown: int = 0
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var geo := node as GeometryInstance3D
+		if geo != null and geo.is_visible_in_tree():
+			shown += 1
+	return shown
+
 func _process(_delta: float) -> void:
 	_cull_dark_lights()
+
+	# La decision de las luces horneadas se aplaza mientras el precache tiene
+	# la escena escondida, asi que se vuelve a intentar aqui hasta que haya
+	# algo que medir. Contar geometria visible es un recorrido del arbol -
+	# 1345 nodos en la tienda - y el precache es justo el tramo que no puede
+	# permitirse uno por frame, asi que se reintenta cuatro veces por segundo.
+	# En el caso normal esto es un booleano y nada mas.
+	if _bake_decided or not Settings.graphics_hide_baked_lights:
+		return
+	_bake_retry_countdown -= 1
+	if _bake_retry_countdown > 0:
+		return
+	_bake_retry_countdown = BAKE_RETRY_FRAMES
+	var scene: Node = get_tree().current_scene
+	if scene != null:
+		_apply_baked_light_cull(scene)
 
 ## How many lights the zero-energy pass is holding culled right now. Read by the
 ## diagnostics log: without it the device log cannot tell a pass that fired from
@@ -263,8 +334,19 @@ func _apply_baked_light_cull(scene: Node) -> void:
 	if not _applied_hide_baked:
 		_restore_hidden()
 		return
-	if not _hidden.is_empty():
+	if not _hidden.is_empty() or _bake_decided:
 		return
+
+	# El precache esconde la escena entera en su `_ready`, asi que preguntar
+	# ahora "que fraccion de lo visible cubre el bake" contesta 0/0 y el pase
+	# se plantaria para siempre - que es exactamente lo que hizo en la primera
+	# build que lo llevaba: `lm=... users=58 vis=0/0` y las nueve horneadas
+	# encendidas toda la sesion. Sin muestra no se decide; se vuelve a
+	# preguntar desde `_process` hasta que haya escena que mirar.
+	var shown: int = _visible_geometry_count(scene)
+	if shown < BAKE_MIN_SAMPLE:
+		return
+	_bake_decided = true
 	if not _bake_carries_the_room(scene):
 		return
 
