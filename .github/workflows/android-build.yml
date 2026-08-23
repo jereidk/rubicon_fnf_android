@@ -726,6 +726,16 @@ jobs:
           # over= never correlated with gpu=.
           guard_godot tools/test_overdraw_modulate.gd
 
+          # === Verify an early resume_typing is banked, not dropped
+          # sequence_intro is a 78-key method track and the text and the
+          # animation advance off the same delta. On a long frame the
+          # AnimationPlayer fires every key inside it while _process types at
+          # most one pause - the loop breaks the instant typing_paused goes
+          # true - so a resume gets lost and the line freezes at its next
+          # [pause] with nothing to clear it. The shop is where the long frames
+          # are: 17.7s single frames inside its precache this session.
+          guard_godot tools/test_dialogue_resume.gd
+
           # === Verify a light at zero energy stops being evaluated
           # The renderer pairs a light with an object by RANGE, never by
           # energy, so a light switched on at light_energy = 0 is shaded per

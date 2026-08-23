@@ -4728,6 +4728,70 @@ guard textual no puede: que resolver una palabra trae la siguiente, y que el
 botón redondo llega de verdad a la mecánica (es un `InputEventAction` sintético
 por `Input.parse_input_event`, no una llamada directa).
 
+## El diálogo del Collector se congelaba, y no era la traducción
+
+Reportado como "en el intro del coleccionista un diálogo se queda congelado más
+de lo que dice en audio, pasa en español". La primera hipótesis -el español es
+más largo, la línea sigue tecleando cuando llega su `next_line`, y `next_line()`
+**no avanza** si la línea sigue viva (hace `finish_line()` y `return`, o sea que
+se gasta la clave)- es plausible, encaja con el síntoma, y **es falsa**.
+
+Simulado el tour entero con los datos reales -las 78 claves de la pista de
+métodos de `sequence_intro`, el `seconds_per_character` **animado** entre 0.025
+y 0.07, y las 36 líneas en los dos idiomas-: **cero colisiones y cero pausas sin
+resume, en inglés y en español.** El español teclea 88.0s contra 84.4s del
+inglés sobre una animación de 155.8s; hay holgura de sobra. Las 36 líneas están
+todas en el CSV y los `[pause]` cuadran uno a uno.
+
+Dos trampas de método que costaron esa vuelta y valen para la próxima:
+
+- **`tracks/N/keys` no se puede recortar con `(.*?)\n\}`.** El array de
+  valores de una pista de métodos son diccionarios, así que el primer `\n}`
+  cierra una clave, no la pista. Salieron 78 tiempos contra 85 métodos y la
+  simulación quedó desalineada sin avisar. Hay que contar llaves.
+- **`seconds_per_character` está animado** (17 claves en el intro, 8 en el
+  outro). Simular con el valor autorado del nodo se equivoca hasta en un 1.56x.
+
+### Lo que sí es
+
+`sequence_intro` son **41 `resume_typing` y 35 `next_line` a tiempos fijos**, y
+el texto y la animación avanzan del **mismo `delta`**. Eso va bien a framerate
+estable y es asimétrico en cuanto un frame se alarga:
+
+> el AnimationPlayer dispara **todas** las claves dentro de ese delta, mientras
+> `_process` teclea como mucho **una** pausa por frame - el bucle rompe en
+> cuanto `typing_paused` se pone a true.
+
+Así que cualquier frame lo bastante largo como para cruzar dos `resume_typing`
+pierde al menos uno. Y perderlo era **definitivo**: `resume_typing()` hacía
+`typing_paused = false` sin más, así que llegar con nada parado no dejaba
+rastro. La línea alcanzaba luego su `[pause]`, se paraba, y no quedaba nada que
+la reanudara - congelada hasta el siguiente `next_line`, que son segundos. Las
+líneas 23, 29 y 30 del tour tienen **diez, seis y cinco** pausas.
+
+**Y por eso empezó a pasar ahora y no antes: la tienda es justo donde están los
+frames largos.** Esta misma sesión le registró frames sueltos de **17.7s** dentro
+del precache. No hacía falta que la traducción cambiara nada.
+
+Arreglado guardando el crédito: un `resume_typing()` que llega sin pausa activa
+suma a `_pending_resumes`, y la siguiente pausa lo gasta en vez de pararse. Se
+limpia al empezar línea, al terminarla y al cerrar el diálogo, así que un
+crédito no cruza de una línea a la siguiente. (Dato de fondo: 39 pausas contra
+41 resumes, o sea que dos ya se estaban tirando sin consecuencias.)
+
+`tools/test_dialogue_resume.gd` (11 comprobaciones, en CI) lo fija **sobre el
+nodo real**, no sobre el texto del fichero: instancia el script con sus tres
+hijos, adelanta dos resumes y comprueba que el tecleo atraviesa las dos pausas,
+que sin crédito la pausa sigue parando, y que los créditos no cruzan de línea.
+Mutado quitando el banco: fallan dos.
+
+**Lo que NO se hizo, a propósito:** escalar `seconds_per_character` por línea
+para que una traducción larga tarde lo mismo que el original. Es la idea
+elegante y **ninguna medida la pide** - la simulación de arriba dice que la
+longitud del español no colisiona con nada. Cambiar lo que el jugador ve sobre
+una hipótesis que ya salió falsa una vez es exactamente lo que este fichero
+lleva toda la vida prohibiendo.
+
 ## Idioma y la intro del Collector, desde la pantalla de first boot
 
 Tres filas nuevas en `menus/first_boot/first_boot_settings.tscn`, que es la

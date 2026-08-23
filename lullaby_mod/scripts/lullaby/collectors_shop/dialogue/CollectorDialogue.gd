@@ -32,6 +32,33 @@ var _raw_index: int = 0
 var _visible_characters: int = 0
 var _current_line: String = ""
 var _display_line: String = ""
+
+## `resume_typing()` calls that arrived while nothing was paused.
+##
+## `sequence_intro` is a 78-key method track - 41 `resume_typing` and 35
+## `next_line` at fixed timestamps cut against the Collector's audio - and the
+## text and the animation advance off the same `delta`. That is fine at a
+## steady frame rate and asymmetric the moment one frame is long, because:
+##
+##   the AnimationPlayer fires **every** key inside that delta, while
+##   `_process` types at most **one** pause per frame - the typing loop breaks
+##   the instant `typing_paused` goes true.
+##
+## So any frame long enough to cross two resume keys loses at least one of
+## them, and a dropped resume is permanent: the line reaches its next
+## `[pause]`, sets `typing_paused`, and nothing is left to clear it. It sits
+## frozen until the next `next_line` key, which is seconds later. Line 23 of
+## the tour has ten pauses, line 29 six and line 30 five, so those are the ones
+## it lands on.
+##
+## The shop is exactly where the long frames are - this same session logged
+## single frames of 17.7s inside its precache - which is why this began showing
+## up now rather than being a translation bug. (39 pauses against 41 resumes,
+## so two were already being dropped harmlessly.)
+##
+## Banking the call means an early resume is spent by the pause it was meant
+## for instead of falling on the floor.
+var _pending_resumes: int = 0
 var _scale_tween: Tween
 var _up_tween: Tween
 
@@ -104,6 +131,7 @@ func show_line() -> void :
 	_current_line = tr(dialogue_lines[current_line_index])
 	_display_line = _current_line.replace(PAUSE_TAG, "")
 
+	_pending_resumes = 0
 	_raw_index = 0
 	_visible_characters = 0
 	_typing_time = 0.0
@@ -122,6 +150,9 @@ func type_next_character() -> void :
 
 	if _current_line.substr(_raw_index, PAUSE_TAG.length()) == PAUSE_TAG:
 		_raw_index += PAUSE_TAG.length()
+		if _pending_resumes > 0:
+			_pending_resumes -= 1
+			return
 		typing_paused = true
 		return
 
@@ -142,6 +173,9 @@ func type_next_character() -> void :
 
 
 func resume_typing() -> void :
+	if not typing_paused:
+		_pending_resumes += 1
+		return
 	typing_paused = false
 
 
@@ -161,11 +195,13 @@ func finish_line() -> void :
 	_raw_index = _current_line.length()
 	is_typing = false
 	typing_paused = false
+	_pending_resumes = 0
 
 
 func end_dialogue() -> void :
 	is_typing = false
 	typing_paused = false
+	_pending_resumes = 0
 	dialogue_lines.clear()
 	current_line_index = 0
 
