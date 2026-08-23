@@ -717,6 +717,16 @@ jobs:
           # the eleven-day black house all over again.
           guard_godot tools/test_baked_light_cull.gd
 
+          # === Verify a light at zero energy stops being evaluated
+          # The renderer pairs a light with an object by RANGE, never by
+          # energy, so a light switched on at light_energy = 0 is shaded per
+          # fragment for a result multiplied by zero. Chimera's TvLight is that
+          # light for the song's first ~78 seconds, with range 43.9 in a house
+          # ten units across - exactly the wide shots measured at 57-59ms. The
+          # log's own luz= counter skips zero-energy lights, so it was
+          # invisible to the field written to find expensive lights.
+          guard_godot tools/test_dark_light_cull.gd
+
           # === Verify the Kollectadex only renders while it is open
           # Its SubViewport is 620x464 - the same pixel count as the whole
           # game at scale 0.50 - and the device log has it rendering in 62 of

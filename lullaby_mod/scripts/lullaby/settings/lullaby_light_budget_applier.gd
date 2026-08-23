@@ -58,7 +58,25 @@ var _applied_multiplier: float = DISABLED
 var _hidden: Dictionary = {}
 var _applied_hide_baked: bool = false
 
+## Every Light3D in the current scene, cached at the scene change so the
+## zero-energy pass below is a float compare over a small array rather than a
+## tree walk. Chimera has twelve, the shop fourteen; everything else has none
+## and the pass switches itself off.
+var _watched: Array[Light3D] = []
+
+## instance_id -> the cull mask the scene authored, for the lights the pass is
+## currently holding at zero. Absent means "not culled by us right now", which
+## is what makes the restore exact instead of a guess at the default 0xFFFFF.
+var _dark_masks: Dictionary = {}
+
 func _ready() -> void:
+	# After the AnimationPlayers. An autoload is at the top of the tree and
+	# therefore processes before the scene by default, which would read
+	# light_energy one frame stale - and a light coming back on one frame late
+	# is a visible flicker on a TV that strobes every two frames.
+	process_priority = 100000
+	set_process(false)
+
 	if SceneChanger.has_signal("scene_change_finished"):
 		SceneChanger.scene_change_finished.connect(_on_scene_changed)
 	if Settings.has_signal("applied"):
@@ -71,6 +89,9 @@ func _on_scene_changed(_path: String) -> void:
 	# could never match again anyway.
 	_stashed.clear()
 	_hidden.clear()
+	_watched.clear()
+	_dark_masks.clear()
+	set_process(false)
 	_applied_multiplier = DISABLED
 	_applied_hide_baked = false
 	_apply_when_scene_ready()
@@ -96,6 +117,9 @@ func _apply_to_current_scene() -> void:
 	var scene: Node = get_tree().current_scene
 	if scene == null:
 		return
+
+	_watched = _lights_of(scene)
+	set_process(not _watched.is_empty())
 
 	_apply_baked_light_cull(scene)
 
@@ -124,6 +148,61 @@ func _apply_to_current_scene() -> void:
 		light.distance_fade_begin = light_range * multiplier
 		light.distance_fade_length = light_range
 		light.distance_fade_shadow = light_range * multiplier * 0.5
+
+## Culls lights that are switched on and contributing nothing.
+##
+## Godot's mobile renderer pairs a light with an object when the light's range
+## reaches the object's AABB. Energy is not part of that test, so a light at
+## `light_energy = 0.0` is still handed to the shader and still evaluated on
+## every fragment it covers - for a result that is multiplied by zero.
+##
+## Chimera's TvLight is that light for the first ~78 seconds of the song. It is
+## authored at energy 0, `prelude` writes 0 again, and nothing raises it until
+## the sequence where Hex first appears. Its range is 43.9 in a house about ten
+## units across, so it reaches every fragment of every wide shot - which is the
+## stretch the device measures at 57-59ms, the worst sustained part of the song.
+## `HexStare` then writes `omni_range = 4096`, and from there to the end it
+## reaches everything in the level including the sky.
+##
+## This is the one light pass that is not a quality trade, so it has no preset
+## row and runs at every level including High: a light multiplied by zero looks
+## identical whether it is evaluated or not. The other two passes change what
+## you see and are gated accordingly.
+##
+## `light_cull_mask` rather than `visible`, and the difference matters. Six of
+## Chimera's sequences animate `visible` on its lights, and a pass that writes
+## the same property an animation writes ends up fighting it - that hazard is
+## documented on the baked pass below, which avoids it by only touching lights
+## no track targets. Nothing in this project animates a cull mask: it appears
+## as a static node property in five places and in no track anywhere, checked
+## across every .tscn, .tres and .gd. A mask of 0 pairs with no instance, so
+## the light is dropped before shading rather than shaded to black.
+##
+## The authored mask is stashed per light instead of restored to a constant,
+## because three of Chimera's lights and two of the shop's ship a custom one.
+func _cull_dark_lights() -> void:
+	for light: Light3D in _watched:
+		if not is_instance_valid(light):
+			continue
+		var id: int = light.get_instance_id()
+		if light.light_energy > 0.0:
+			if _dark_masks.has(id):
+				light.light_cull_mask = _dark_masks[id]
+				_dark_masks.erase(id)
+			continue
+		if _dark_masks.has(id):
+			continue
+		_dark_masks[id] = light.light_cull_mask
+		light.light_cull_mask = 0
+
+func _process(_delta: float) -> void:
+	_cull_dark_lights()
+
+## How many lights the zero-energy pass is holding culled right now. Read by the
+## diagnostics log: without it the device log cannot tell a pass that fired from
+## one that never found a candidate, and both look like "no change".
+func dark_culled_count() -> int:
+	return _dark_masks.size()
 
 ## Hides lights whose contribution a LightmapGI already carries.
 ##

@@ -1696,10 +1696,24 @@ func _light_reach() -> String:
 	# and knowing which ones they are is the difference between cutting the
 	# right one and guessing.
 	var who: String = ",".join(names) if not names.is_empty() else "-"
+
+	# `apagadas=` is the count LightBudget is holding at cull mask 0, and it is
+	# here because the loop above cannot report it: this function has skipped
+	# `light_energy <= 0.0` since it was written, so a light switched on at zero
+	# energy was never in `reaching` - while the renderer paired and evaluated
+	# it on every fragment in range all along. That gap is the difference
+	# between the four lights this field reported for Chimera's wide shots and
+	# the ~6 per fragment its 90.8 ms/Mpx slope implies. Without this number a
+	# pass that fired and a pass that found no candidate read identically.
+	var dark: String = ""
+	var budget: Node = get_node_or_null(^"/root/LightBudget")
+	if budget != null and budget.has_method("dark_culled_count"):
+		dark = " apagadas=%d" % budget.call("dark_culled_count")
+
 	if nearest == INF:
-		return "0alcanzan dir=%d fant=%d [%s]" % [directional, phantom, who]
-	return "%dalcanzan dir=%d fant=%d [%s] cerca=%s@%.1f" % [
-		reaching, directional, phantom, who, nearest_name, nearest]
+		return "0alcanzan dir=%d fant=%d%s [%s]" % [directional, phantom, dark, who]
+	return "%dalcanzan dir=%d fant=%d%s [%s] cerca=%s@%.1f" % [
+		reaching, directional, phantom, dark, who, nearest_name, nearest]
 
 ## Whether the LightmapGI in this scene actually has a bake to apply.
 ##
