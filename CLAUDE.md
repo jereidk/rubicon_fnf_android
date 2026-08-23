@@ -3205,6 +3205,48 @@ El récord anterior escrito aquí era +23%, y +74% en un arranque en frío.
 queda así media sesión. Es un argumento extra para todo lo de arriba: bajar el
 coste de GPU paga dos veces, en el frame y en el calor.
 
+### La carga de la tienda no es un problema de la tienda
+
+Perseguido a fondo porque este fichero lleva meses citando "66 segundos hasta
+poder jugar" como el peor número de UX del proyecto. Sacando `bench` al lado de
+cada `SCENE_IN` de `3d21ba99`, la respuesta es que no hay nada que optimizar
+ahí:
+
+| carga | `took` | `bench` cercano |
+|---|---|---|
+| menús | 1246-1462ms | **204us** |
+| **tienda 1a visita** | **5718ms** | **205us** |
+| Training | 1917ms | 242us |
+| **tienda 2a visita** | **17092ms** | **861us** |
+| chimera | 18355ms | 947us |
+| **tienda 3a visita** | **17662ms** | 602us |
+
+**`took` sigue a `bench`, no a la escena.** La tienda carga en **5.7 segundos**
+con el teléfono frío y en **17** cuando está estrangulado a un cuarto de reloj
+- y lo que lo estrangula es Chimera, que en la ventana justo anterior registra
+`vs_first=+97%`.
+
+O sea que **el tiempo de carga de la tienda es aguas abajo del calor de
+Chimera.** Bajar el coste de GPU de la canción paga tres veces: el frame, el
+calor, y las cargas de todo lo que venga después.
+
+Y el desglose de la carga en frío no deja nada que cortar: `assets/collector`
+1.6s/186 deps, `resources/audio` 0.7s/76, `scripts/lullaby` 0.6s/76,
+`assets/menus` 0.5s/66. Todo repartido y todo necesario. Las 32
+`VoicelineGroup` que la escena referencia arrastran una carpeta de 124 `.ogg` y
+13.0 MB - **0.7 segundos de los 5.7**, y son la voz entera del Collector.
+
+Lo único que sí es grande y sí es de la tienda son los **+1011 pipelines por
+sesión** contra los +162 de Chimera, y eso es **coste de primera ejecución**:
+la caché de pipelines del driver sobrevive a cerrar la app (medido, 12x entre
+dos arranques), `rendering/rendering_device/pipeline_cache/enable` ya está en
+`true`, y la caché va indexada por UUID de driver y dispositivo, así que no se
+puede precocinar en el APK. El precache ya lo mueve al único sitio bueno, que
+es la pantalla de carga.
+
+**Regla:** antes de atribuir un `took=` a una escena, mira `bench`. Tres de las
+cuatro cargas largas de este log son el gobernador.
+
 ### Cosas concretas que quedan, sacadas del mismo barrido
 
 - **Training pooleaba 7729 nodos huérfanos** y registra `notes=119.56 ms/s` -
