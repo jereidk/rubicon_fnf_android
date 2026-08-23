@@ -227,6 +227,24 @@ var _revealed_at_anim_end: int = -1
 var _kept_lit: Array[Node] = []
 var _kept_lit_before: int = 0
 
+## Ancestors this walk un-hid so a light underneath them could reach the scene,
+## in the order they were opened. Put back in reverse at hand-over.
+##
+## KEEP_VISIBLE exempts Light3D from the hide walk, but `visible` is local and
+## lighting is not: a light whose ANCESTOR ships hidden is exempted and still
+## lights nothing, because `is_visible_in_tree()` is false. That is what the
+## `_kept_lit_before` gap has been reporting all along - Chimera keeps 11 of
+## 16, and two of the missing five are `flash` and `PhoneGlow` under
+## `Sequences/SerenaTakingPictures`, which the scene ships `visible = false`.
+##
+## Those two are the photo session's lights, and the photo session is where
+## the device log measures `frame=1693.0ms spec+31`. The bench further down
+## this file is why that follows: the lighting state is part of the pipeline
+## key, so a surface swept in an unlit room compiles the unlit variant and
+## needs a fresh one the moment the flash comes on. Opening the ancestor makes
+## the sweep compile the variant the song will actually ask for.
+var _opened_ancestors: Array[Node] = []
+
 func _kept_lit_effective() -> int:
 	var n: int = 0
 	for node in _kept_lit:
@@ -440,9 +458,76 @@ func _hide_everything(from: Node = null) -> void:
 
 	_kept_lit_before = _kept_lit_effective()
 
+	# After the collect walk and after the baseline, so neither changes meaning:
+	# `to_hide` stays the set the scene shipped visible, and `_kept_lit_before`
+	# still reads the scene as it shipped. Whatever else lives under an opened
+	# ancestor is therefore not in `_hidden` and simply stays drawn for the
+	# whole precache, which is what warming wants - it is on screen for every
+	# sweep pose instead of one. Closing the ancestor at hand-over puts the
+	# entire subtree back, because nothing below it was touched.
+	_open_lit_ancestors(scene)
+
 	for node in to_hide:
 		node.visible = false
 		_hidden.append(node)
+
+## Un-hides the ancestors standing between a light and the scene.
+##
+## KEEP_VISIBLE exempts every Light3D from the hide walk and that is not the
+## same as the light reaching anything: `visible` is local, and a light under
+## an ancestor the scene ships hidden has `is_visible_in_tree() == false`. It
+## contributes nothing to the sweep, so every surface is swept unlit, and the
+## bench further down this file prices that exactly - the same geometry
+## compiles a fresh set of specializations the first time a light reaches it.
+##
+## Only ancestors, and only ones that are hidden. The light itself is never
+## touched: one the scene authored `visible = false` (Chimera's ClosetLight,
+## which nothing anywhere turns on) has no ancestor problem and must stay off,
+## or the precache would light a room the game never lights.
+##
+## `light_energy` is not touched either. Chimera's TvLight sits at 0 for the
+## song's first 78 seconds and LightBudget culls it while it does, so its
+## variant is not warmed here - deliberately, because forcing energy would be
+## inventing a lighting state the scene never has, and the mid-song stalls
+## this exists to remove are the ones the log attributes to lights that do
+## come on.
+func _open_lit_ancestors(scene: Node) -> void:
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		if not (node is Light3D) or not node.visible:
+			continue
+		# Collected root-first so the opens happen top-down; opening a child
+		# before its parent leaves the child still dark and the check below
+		# would then skip the parent as already handled.
+		var chain: Array[Node] = []
+		var walk: Node = node.get_parent()
+		while walk != null and walk != scene.get_parent():
+			var spatial := walk as Node3D
+			if spatial != null and not spatial.visible:
+				chain.push_front(spatial)
+			walk = walk.get_parent()
+		for ancestor: Node in chain:
+			if _opened_ancestors.has(ancestor):
+				continue
+			_opened_ancestors.append(ancestor)
+			(ancestor as Node3D).visible = true
+
+## Puts back every ancestor _open_lit_ancestors() opened, deepest first.
+##
+## Reverse order for the same reason the opens were top-down: closing a parent
+## first would hide its children in the tree while their own `visible` stays
+## true, and the next close would then be writing false to a node the scene
+## already had at false - correct here only because nothing below them was
+## ever touched, and not worth relying on.
+func _close_lit_ancestors() -> void:
+	for i in range(_opened_ancestors.size() - 1, -1, -1):
+		var node: Node = _opened_ancestors[i]
+		if is_instance_valid(node) and node is Node3D:
+			(node as Node3D).visible = false
+	_opened_ancestors.clear()
 
 ## Whether this node defines the scene's lighting rather than drawing into it.
 ##
@@ -584,6 +669,13 @@ func finish_preload(_anim: StringName = &"") -> void :
 	# Anything still hidden gets its visibility back even on the paths that
 	# skip the reveal, or the scene hands over with holes in it.
 	_reveal(_hidden.size() - _revealed)
+
+	# And anything opened to let a light through goes back to hidden. Before
+	# the hand-over, not after: this runs on every exit path including the
+	# manual-end branch, and a scene handed over with SerenaTakingPictures
+	# visible would show the photo-session props standing in the room from the
+	# first frame of the song.
+	_close_lit_ancestors()
 
 	# 0 when the manual-end branch above skipped straight here without ever
 	# starting an animation - worth distinguishing from an animation that
