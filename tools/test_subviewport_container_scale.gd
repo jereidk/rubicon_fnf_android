@@ -181,6 +181,42 @@ func _scaler_checks() -> void:
 	_check(viewport.get_visible_rect().size == Vector2(720, 540),
 		"y la maquetacion sigue siendo la de siempre (es %s)" % viewport.get_visible_rect().size)
 
+	# El caso que se escapo la primera vez y costo una build entera.
+	#
+	# Los dos contenedores de la consola son 1440x1080 con stretch_shrink=2
+	# AUTORADO, o sea que 720x540 ya era el tamaño reducido. Escribir
+	# round(1/0.50)=2 encima de un 2 no cambia nada, y el log lo dijo: sub_px
+	# se quedo en 1.38M en la build que lo llevaba. La decision del autor y la
+	# del jugador se multiplican.
+	var authored := SubViewportContainer.new()
+	authored.stretch = true
+	authored.stretch_shrink = 2
+	authored.size = Vector2(1440, 1080)
+	var inner := SubViewport.new()
+	authored.add_child(inner)
+	root.add_child(authored)
+
+	settings.call("_scale_subviewport", inner)
+	_check(authored.stretch_shrink == 4,
+		"un shrink=2 autorado por 0.50 da 4, no 2 (es %d)" % authored.stretch_shrink)
+	_check(inner.size_2d_override == Vector2i(720, 540),
+		"y la maquetacion sigue siendo la del autor, 720x540 (es %s)" % inner.size_2d_override)
+
+	# Idempotente: aplicar los ajustes otra vez no vuelve a multiplicar.
+	settings.call("_scale_subviewport", inner)
+	settings.call("_scale_subviewport", inner)
+	_check(authored.stretch_shrink == 4,
+		"y tres pasadas siguen dando 4, no 8 ni 16 (es %d)" % authored.stretch_shrink)
+
+	# Y a escala 1.0 se vuelve a lo que puso el autor, no a 1.
+	settings.graphics_render_scale = 1.0
+	settings.call("_scale_subviewport", inner)
+	_check(authored.stretch_shrink == 2,
+		"a escala 1.0 se recupera el 2 del autor (es %d)" % authored.stretch_shrink)
+	settings.graphics_render_scale = 0.5
+
+	authored.queue_free()
+
 	# Y el caso suelto sigue por el camino de siempre.
 	var loose := SubViewport.new()
 	loose.size = Vector2i(1240, 928)

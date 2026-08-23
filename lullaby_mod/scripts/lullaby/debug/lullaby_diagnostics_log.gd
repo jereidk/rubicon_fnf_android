@@ -1257,6 +1257,31 @@ func census(reason: String) -> void:
 	var covers_maybe: Array[String] = []
 	var lights_visible: int = 0
 	var lights_shadow: int = 0
+
+	## 2D lights, which no counter in this log has ever seen.
+	##
+	## `lights=` is Light3D only, so Safety Lullaby - a scene with five
+	## PointLight2D on stage - reports `lights=0(shadow=0)` on every census. And
+	## `over=` cannot cover for it, because a light is not an item: Godot's
+	## canvas renderer draws each affected CanvasItem **again, once per light**,
+	## so a screen-covering Light2D doubles the fill of everything it touches
+	## while adding nothing to the item count.
+	##
+	## That gap is the current suspect for the song's 32.48ms of GPU on 592
+	## primitives. The two pure-2D scenes in log d67addb8 do not lie on one line:
+	## credits `over=2.0x -> gpu 7.41ms` against Safety `over=5.0x -> 32.48ms`
+	## is 2.5x the items and 4.4x the GPU, and the alley authors one light whose
+	## texture is 1049x480 at `texture_scale = 4.0` - a 4196x1920 rect over a
+	## 1920x1080 stage - plus two more around 900x700.
+	##
+	## Reported as count, how many of them reach the frame, and the worst
+	## offenders by screen coverage with the number of items each one is masked
+	## to pair with. Coverage rather than a plain count because a lamp lighting
+	## a doorway and a gradient covering the whole stage are the same node type
+	## and nothing like the same cost.
+	var lights2d_total: int = 0
+	var lights2d_live: int = 0
+	var lights2d_rank: Array = []
 	# Every prior census of Chimera happened to land during a cutscene, where
 	# "playing" AnimationPlayers sat at 5-17 - nowhere near the ~240 the
 	# 40-notes-on-screen x 6-AnimationPlayers-each theory implies. That
@@ -1337,6 +1362,16 @@ func census(reason: String) -> void:
 		# looking like one of the song's three shadow casters when the real
 		# count is two. tools/audit_gpu_cost.py already had to learn this;
 		# the census had not.
+		var light2d := node as Light2D
+		if light2d != null:
+			lights2d_total += 1
+			var share: float = _light2d_coverage(light2d)
+			if share > 0.0:
+				lights2d_live += 1
+				lights2d_rank.append([share, "%s@%.2fx mascara=%d" % [
+					_scene_relative_path(light2d), share, light2d.range_item_cull_mask,
+				]])
+
 		if node is Light3D and node.is_visible_in_tree() and not node.editor_only \
 				and _lights_the_main_frame(node):
 			lights_visible += 1
@@ -1461,7 +1496,7 @@ func census(reason: String) -> void:
 			class_delta.append(moved[i][1])
 	_last_census_counts = counts
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d maybe=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | maybe=[%s] | relleno=[%s] | %s | delta=[%s]" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) luz2d=%d/%d fx=%d(effect=%d full=%d uniq=%d) opaque=%d maybe=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | maybe=[%s] | relleno=[%s] | luces2d=[%s] | %s | delta=[%s]" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
 		notes_total, notes_visible, notes_parked,
 		audio_total, audio_playing,
@@ -1471,6 +1506,7 @@ func census(reason: String) -> void:
 		int(Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)),
 		int(Performance.get_monitor(Performance.PHYSICS_2D_COLLISION_PAIRS)),
 		lights_visible, lights_shadow,
+		lights2d_live, lights2d_total,
 		fx_live, fx_effect, fx_fullscreen, fx_materials.size(),
 		covers.size(), covers_maybe.size(),
 		overdraw_px / maxf(1.0, _screen_px()), overdraw_items,
@@ -1480,8 +1516,63 @@ func census(reason: String) -> void:
 		", ".join(covers.slice(0, 6)),
 		", ".join(covers_maybe.slice(0, 6)),
 		_overdraw_rank_text(overdraw_rank),
+		_light2d_rank_text(lights2d_rank),
 		" ".join(classes), " ".join(class_delta),
 	])
+
+## The 2D lights that reach the frame, biggest first, with the mask each one
+## pairs by. Three, same reason `relleno=` stops at six.
+##
+## `mascara=` is `range_item_cull_mask`, and it is the actionable half: a light
+## only costs a second pass on items whose own `light_mask` shares a bit with
+## it. The alley authors 257 (bits 1 and 9) on three of its lights and nothing
+## at all on the fourth, while nine of its eleven parallax sprites carry
+## `light_mask = 3` - so they share bit 1, and every one of those nine is drawn
+## again per light. Narrowing either side is the lever; the number is here so
+## the next log can say whether it worked.
+func _light2d_rank_text(rank: Array) -> String:
+	rank.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+	var parts: PackedStringArray = []
+	for i in mini(3, rank.size()):
+		parts.append(String(rank[i][1]))
+	return ", ".join(parts)
+
+## How much of the frame this 2D light reaches, as a fraction of one screen.
+##
+## Zero for a light that cannot cost anything: switched off, hidden, no energy,
+## living in a SubViewport rather than the frame the player is looking at, or -
+## the common case in this project - positioned in another part of the 2D world.
+## Safety Lullaby keeps its ending in the same scene at y=2426 and y=3420 while
+## the song's camera sits at y=540, so the huge `Glow` sprite and the `Darkness`
+## light down there cost nothing during the song. That was worth measuring
+## rather than assuming: they were both about to be blamed for the song's GPU.
+##
+## Rect the same way `_screen_area()` does it, with the same caveat about
+## world-versus-screen space, so the two fields are comparable and wrong in the
+## same direction if they are wrong at all. A PointLight2D's reach is its
+## texture scaled by `texture_scale` and by the node's own transform;
+## DirectionalLight2D reaches everything.
+func _light2d_coverage(light: Light2D) -> float:
+	if not light.enabled or not light.is_visible_in_tree() or light.energy <= 0.0:
+		return 0.0
+	if light.get_viewport() != get_tree().root:
+		return 0.0
+
+	var screen := Rect2(Vector2.ZERO, light.get_viewport_rect().size)
+	if screen.size.x <= 0.0 or screen.size.y <= 0.0:
+		return 0.0
+
+	var reach: Rect2 = screen
+	var point := light as PointLight2D
+	if point != null:
+		if point.texture == null:
+			return 0.0
+		var size: Vector2 = point.texture.get_size() * point.texture_scale
+		reach = light.get_global_transform() * Rect2(point.offset - size * 0.5, size)
+	elif light is not DirectionalLight2D:
+		return 0.0
+
+	return screen.intersection(reach).get_area() / maxf(1.0, _screen_px())
 
 ## Keeps the OVERDRAW_RANK biggest contributors, by insertion rather than by
 ## sorting the whole list: the shop has thousands of visible CanvasItems and

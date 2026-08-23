@@ -694,6 +694,15 @@ func apply_settings() -> void:
 ## mask, or anything sampled for a picking test.
 const SUBVIEWPORT_NATIVE_GROUP := &"native_resolution_viewport"
 
+## The `stretch_shrink` a SubViewportContainer shipped with, stashed on the node
+## the first time it is scaled.
+##
+## Needed because the render scale multiplies it rather than replacing it, and
+## `stretch_shrink` is the same property the result is written to - so reading
+## it back on the next apply_settings() would compound with itself, and a player
+## toggling a graphics row three times would end up at shrink 8.
+const SUBVIEWPORT_AUTHORED_SHRINK := &"lullaby_authored_stretch_shrink"
+
 ## Render scale, applied to SubViewports as well as to the window.
 ##
 ## The window has honoured this setting since the graphics rows existed;
@@ -767,13 +776,22 @@ func _scale_subviewport(viewport: SubViewport) -> void:
 	#
 	# So the block below has never reached one of these, and the two that
 	# matter are in the shop's console: IconSubViewport/SubViewport and
-	# console_bg/.../SubViewport, both 720x540 - the device log measures them
-	# live at exactly that while everything else runs at 0.50, and together
-	# they are 0.78 Mpx of the 1.38 Mpx the shop's SubViewports cost with the
-	# console open. That is what puts the room over the 16.67ms line: closed it
-	# medians 16.90ms, open 20.75ms, and the frame histogram splits clean into
-	# 12-20ms and 28-40ms because a frame that misses a 60Hz refresh waits for
-	# the next one.
+	# console_bg/.../SubViewport, both live at 720x540 while everything else
+	# runs at 0.50, together 0.78 Mpx of the 1.38 Mpx the shop's SubViewports
+	# cost with the console open. That is what puts the room over the 16.67ms
+	# line: closed it medians 16.90ms, open 20.75ms, and the frame histogram
+	# splits clean into 12-20ms and 28-40ms because a frame that misses a 60Hz
+	# refresh waits for the next one.
+	#
+	# **The shrink COMPOUNDS with the scene's own, and the first version of this
+	# did not.** Those two containers are 1440x1080 with `stretch_shrink = 2`
+	# authored, so 720x540 is already the shrunk size - not, as this comment
+	# first claimed, an unscaled one. Writing `round(1 / 0.50) = 2` over an
+	# authored 2 changed nothing, and the device log said so: sub_px stayed at
+	# 1.38M across the build that shipped it. The authored value is a decision
+	# the scene made and the render scale is a decision the player made, so the
+	# two multiply - captured once in metadata, or re-reading it would compound
+	# with itself on every apply_settings().
 	#
 	# stretch_shrink is the same knob the container respects, so nothing fights
 	# over the size. On its own it is NOT enough, and that is worth spelling
@@ -790,20 +808,27 @@ func _scale_subviewport(viewport: SubViewport) -> void:
 	# the override for the layout - which is exactly the pair the branch below
 	# sets the long way round.
 	#
-	# The layout size comes from the container's own rect rather than a cached
-	# "authored" value: that rect IS what the engine would have given the
-	# viewport at shrink 1, and it stays right if the container ever resizes.
+	# The layout size is the container's rect divided by the AUTHORED shrink,
+	# which is the space the scene's own content was laid out in. Dividing by
+	# nothing - using the raw rect - doubles that space on any container the
+	# author had already shrunk, which is these two.
 	#
-	# Integer, so it cannot express every scale: 0.50 gives 2, 0.70 gives 1
-	# (i.e. no reduction). Coarser than the window's, and still the only lever
-	# the engine offers here.
+	# Integer, so it cannot express every scale: at an authored 2, 0.50 gives 4
+	# and 0.70 gives 3. Coarser than the window's, and still the only lever the
+	# engine offers here.
 	var container := viewport.get_parent() as SubViewportContainer
 	if container != null and container.stretch:
-		var layout := Vector2i(container.size.round())
+		var authored: int = maxi(1, int(container.get_meta(
+			SUBVIEWPORT_AUTHORED_SHRINK, container.stretch_shrink)))
+		container.set_meta(SUBVIEWPORT_AUTHORED_SHRINK, authored)
+
+		var layout := Vector2i((container.size / float(authored)).round())
 		if layout.x <= 0 or layout.y <= 0:
 			# Called from node_added, before the container has been laid out.
-			layout = viewport.size * maxi(1, container.stretch_shrink)
-		container.stretch_shrink = maxi(1, int(round(1.0 / maxf(graphics_render_scale, 0.05))))
+			layout = viewport.size * maxi(1, container.stretch_shrink) / authored
+
+		container.stretch_shrink = maxi(1, int(round(
+			float(authored) / maxf(graphics_render_scale, 0.05))))
 		viewport.size_2d_override = layout
 		viewport.size_2d_override_stretch = true
 		return

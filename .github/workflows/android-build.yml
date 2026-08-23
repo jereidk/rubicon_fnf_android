@@ -702,6 +702,16 @@ jobs:
           # y parte los frames entre 12-20ms y 28-40ms.
           guard_godot tools/test_subviewport_container_scale.gd
 
+          # === Las luces 2D, que ningun contador de este log veia
+          # lights= es solo Light3D, asi que Safety Lullaby - con cinco
+          # PointLight2D en el decorado - reportaba lights=0 en todos sus
+          # censos. Y over= no puede cubrirlo: el renderizador de canvas dibuja
+          # cada item otra vez por cada luz, asi que una luz a pantalla completa
+          # duplica el relleno sin sumar un solo item. BG/BgLight es 1049x480
+          # con texture_scale 4.0, o sea 4196x1920 sobre un escenario de
+          # 1920x1080.
+          guard_godot tools/test_light2d_census.gd
+
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero
