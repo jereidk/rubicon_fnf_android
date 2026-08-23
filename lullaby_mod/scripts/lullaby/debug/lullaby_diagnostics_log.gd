@@ -1537,6 +1537,24 @@ var _mixer_watch: Array[AnimationMixer] = []
 ## log second 291" into "1829ms at 122_fall@7.5s" without the reconstruction.
 var _sequence_player: AnimationPlayer = null
 
+## The Collector's Shop aim, cached with the rest of the per-scene watches.
+##
+## Why it is worth a field: the shop's 3D reticle is the only pointer in the
+## game with no cursor behind it, and the report that produced this - "no puedo
+## apuntar al sombrero del coleccionista, siempre es al medio" - could not be
+## resolved by reading the scene. Three readings of it were wrong in a row.
+## What was ruled out with numbers: the hat is on the same collision layer as
+## the Kollectadex and the board, both desk animations set its `can_interact`
+## true, and from the desk camera pose its box is a clean 7.5% of the screen
+## above the Collector rather than buried inside him.
+##
+## What that left is the aim itself, and nothing in the log could see it. The
+## same arithmetic says the screen CENTRE at that pose hits neither the hat nor
+## the Collector, so `centrada` plus `obj=-` is the shape to look for: the aim
+## never left the middle, which means the tap that should have latched it never
+## reached MouseController._unhandled_input.
+var _aim_controller: Node = null
+
 ## Node names that identify the sequence driver, in preference order. Checked
 ## by name rather than by type because every song scene has dozens of
 ## AnimationPlayers and only one of them is the timeline.
@@ -1557,6 +1575,7 @@ func _collect_blackout_watch() -> void:
 	# Per scene, so every song gets its own unshaded probe - and so a scene
 	# change during one cannot leave the viewport stuck in a debug draw mode.
 	_sequence_player = null
+	_aim_controller = null
 	_physics_nodes = 0
 	_skeleton_bones = 0
 	_skeleton_count = 0
@@ -1588,6 +1607,8 @@ func _collect_blackout_watch() -> void:
 		if skeleton != null:
 			_skeleton_count += 1
 			_skeleton_bones += skeleton.get_bone_count()
+		if _aim_controller == null and node is MouseController:
+			_aim_controller = node
 		var visual := node as VisualInstance3D
 		if visual != null:
 			_visual3d_watch.append(visual)
@@ -1987,6 +2008,59 @@ func _light_reach() -> String:
 		return "0alcanzan dir=%d fant=%d%s [%s]" % [directional, phantom, dark, who]
 	return "%dalcanzan dir=%d fant=%d%s [%s] cerca=%s@%.1f" % [
 		reaching, directional, phantom, dark, who, nearest_name, nearest]
+
+## Where the shop's 3D pointer is aiming, and what is under it.
+##
+## `-` in every scene without a MouseController, which is every scene but the
+## Collector's Shop.
+##
+##     mira=[estado=2 pos=960,540 centrada obj=- clic=no toque=si]
+##
+## `centrada` vs `fijada`: the aim is the screen centre until a tap latches
+## `touch_aim`, and it is reset to the centre on every shop state change. So
+## `centrada` on a FOCUSED line means no tap has landed since the camera moved.
+## Read with `obj=`: centred AND nothing under it is the reported bug, because
+## at the desk pose the centre of the screen is empty - the Collector stands
+## left of it and his hat above that.
+##
+## `clic=` is `colliding and can_click`, i.e. whether a confirm would do
+## anything right now, which is also what turns the reticle from idle to hover.
+## `toque=` is is_touch_controls_active(), so a desktop run says `no` and the
+## whole field can be read as "mouse, ignore the latching".
+func _aim_summary() -> String:
+	if _aim_controller == null or not is_instance_valid(_aim_controller):
+		return "-"
+
+	var state: int = -1
+	var root_node: Object = _aim_controller.get("root")
+	if root_node != null and "state" in root_node:
+		state = root_node.get("state")
+
+	var pos: Vector2 = Vector2.ZERO
+	if _aim_controller.has_method("get_aim_position"):
+		pos = _aim_controller.call("get_aim_position")
+
+	var latched: bool = _aim_controller.get("touch_aim") != Vector2.INF
+
+	# The collider the ray is on, not the one the last tap chose: this is
+	# sampled while the log line is written, so it is the live answer to "is
+	# the pointer on the hat".
+	var target: String = "-"
+	var ray: Object = _aim_controller.get("ray_cast")
+	if ray != null and ray.has_method("is_colliding") and ray.call("is_colliding"):
+		var collider: Object = ray.call("get_collider")
+		if collider != null and "name" in collider:
+			target = String(collider.get("name"))
+
+	var touch: bool = _aim_controller.has_method("is_touch_controls_active") \
+		and _aim_controller.call("is_touch_controls_active")
+
+	return "[estado=%d pos=%d,%d %s obj=%s clic=%s toque=%s]" % [
+		state, roundi(pos.x), roundi(pos.y),
+		"fijada" if latched else "centrada", target,
+		"si" if bool(_aim_controller.get("colliding")) and bool(_aim_controller.get("can_click")) else "no",
+		"si" if touch else "no",
+	]
 
 ## Whether the LightmapGI in this scene actually has a bake to apply.
 ##
@@ -3509,7 +3583,7 @@ func _entry(kind: String, detail: String) -> void:
 		top_viewports.append(live_viewports[i][1])
 	var biggest_name: String = "-" if top_viewports.is_empty() else ",".join(top_viewports)
 
-	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d rend=[%s] nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%sms cpu_render=%.2fms sub=%d/%d sub_gpu=%sms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
+	_file.store_line("[%9.2fs] %-10s %s | ram=%s peak=%s vram=%s buf=%s video=%s scale=%s draw=%d prims=%d objs=%d rend=[%s] nodes=%d orphans=%s res=%d pipe=%d(+%d %s) drawn=%d/%d in=%d(touch=%d key=%d act=%d oth=%d idle=%.1fs) mix=%.1fms proc=%.2fms phys=%.2fms nav=%.2fms audio=%.1fms gpu=%sms cpu_render=%.2fms sub=%d/%d sub_gpu=%sms sub_px=%.2fM sub_top=%s seq=%s anim=%d/%d procn=%d vis3d=%d/%d parts=%d/%d tweens=%d msgq=%s focus=%s vp=[%s] eng=[%s] alat=%.1f/%.1fms env=%s lm=%s luz=%s mira=%s bake=[%s] cam=%s psteps=%d bench=%dus physn=%d bones=%d mat3d=%d/%d script=%.2fms script_max=%.2fms(notes=%.2f lanes=%.2f bounds=%.2f pump=%.2f chars=%.2f/%d self=%.2f rest=%.2f at=%s anim=%d/%d) spawn=%d despawn=%d park=%d inst=%d churn=%.2fms/s churn_max=%.2fms notes=%.2fms/s(lanes=%.2f bounds=%.2f pump=%.2f) chars=%.2fms/s anim2d=%.2fms/s(rebuild=%.2fms/s x%d peak=%.2fms cached=%d sym=%d atlas=%d/%d worst=%s@%.2fms) p3d_objs=%d p3d_pairs=%d scene=%s" % [
 		seconds,
 		kind,
 		detail,
@@ -3574,6 +3648,7 @@ func _entry(kind: String, detail: String) -> void:
 		_environment_state(),
 		_lightmap_state(),
 		_light_reach(),
+		_aim_summary(),
 		_bake_modes(),
 		_camera_state(), _physics_steps, _bench_usec,
 		_physics_nodes, _skeleton_bones, _material_count, _surface_count,

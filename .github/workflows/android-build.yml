@@ -696,6 +696,18 @@ jobs:
           # whole event list, which would take the keyboard off ui_accept.
           guard_godot tools/test_gamepad_defaults.gd
 
+          # === Verify the shop's aim field can name the reported bug
+          # "no puedo apuntar al sombrero del coleccionista, siempre es al
+          # medio", and three readings of the scene were wrong before this
+          # field existed. Ruled out with numbers: the hat is on the same
+          # collision layer as the Kollectadex and the board, both desk
+          # animations set its can_interact true, and through the desk camera
+          # pose its box is 7.5% of the screen, clear above the Collector. The
+          # same projection says the screen centre hits neither of them, so
+          # `centrada` with `obj=-` on a FOCUSED line is the signature to look
+          # for - the tap never reached _unhandled_input.
+          guard_godot tools/test_aim_field.gd
+
           # === Verify the cached hit order matches the sorted one
           # update_performance() rebuilt and re-sorted every result hit so far
           # once per note that lands - O(n log n) per note. Monochrome's log
