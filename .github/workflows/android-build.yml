@@ -744,6 +744,26 @@ jobs:
           # early return, or the game is left rendering flat albedo.
           guard_godot tools/test_gpu_split.gd
 
+          # === Verify the script split restores exactly what it paused
+          # Same method as the GPU split, for the CPU half: rest= is the whole
+          # of Chimera's script cost (p50 5.24ms, p90 24.18, max 30.60 against
+          # notes= at 1.24) and correlates with nothing the log counts, so it
+          # gets measured by running one frame with the animation mixers off.
+          # A mixer left inactive freezes what it drives for the rest of the
+          # scene, and one the scene had deliberately stopped must not come
+          # back on.
+          guard_godot tools/test_script_split.gd
+
+          # === Verify mpx3d measures the render target, not the base
+          # Under canvas_items stretch get_visible_rect() is a constant
+          # 1920x1080 - the space 2D is laid out in - while the GPU fills the
+          # letterboxed window, 1280x720 on the g53. mpx3d read the first, so
+          # it printed 0.518 on every GPUSPLIT line of every log regardless of
+          # scale or scene, and every ms/Mpx figure derived from it is 2.25x
+          # low - including the 90.8 slope two render-scale decisions were
+          # made from.
+          guard_godot tools/test_mpx_3d_is_the_render_target.gd
+
           # === Verify a light at zero energy stops being evaluated
           # The renderer pairs a light with an object by RANGE, never by
           # energy, so a light switched on at light_energy = 0 is shaded per

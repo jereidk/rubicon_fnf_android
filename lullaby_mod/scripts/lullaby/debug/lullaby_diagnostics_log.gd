@@ -385,6 +385,49 @@ var _gpu_split_base: float = 0.0
 ## two halves interleave across a song.
 var _gpu_split_overdraw_turn: bool = false
 
+## SCRIPTSPLIT: the same frame timed twice, once with the animation mixers off.
+##
+## `rest=` is everything in the idle step that none of the named counters
+## claim, and on Chimera it is the whole story - p50 5.24ms, p90 24.18ms, max
+## 30.60ms, against notes= at p50 1.24 and this node's own share at 3.73. Its
+## own docstring already says what to do about that: "if it is most of
+## script_max, whatever owns the spike has still never been timed."
+##
+## Correlating it against everything the log already counts settles nothing.
+## Over 45 Chimera heartbeats, `rest` against players playing is r=+0.26,
+## against nodes with _process +0.14, against tweens -0.16, against bones
+## -0.14. Not one of them explains it, which is the whole reason to measure
+## instead of reason: the obvious suspect is 73 AnimationPlayers and 14
+## AnimationTrees over 304 tracks, and the counters say the obvious suspect is
+## not obviously it.
+##
+## So it borrows GPUSPLIT's method rather than inventing one. `sin_luz` works
+## by rendering one frame with the lights gone and subtracting; this runs one
+## frame with every AnimationMixer inactive and subtracts. The engine's
+## animation step cannot be bracketed from GDScript - a mixer is an ordinary
+## Node processing at its own priority, so no pair of probes isolates it - but
+## it can be switched off, and a difference is a measurement.
+##
+## One frozen frame per sample: 1/60s with nothing animating, against the
+## debug_draw switch GPUSPLIT already ships (which costs 40-68ms of shader
+## variant compilation on its first sample in a scene). Offset half a period
+## from it so the two never land on the same frame and neither measures the
+## other.
+const SCRIPT_SPLIT_SECONDS := 20.0
+
+## Half a period out of phase with GPU_SPLIT_SECONDS, in milliseconds of
+## credit, so the first sample of each lands ten seconds from the other's.
+const SCRIPT_SPLIT_PHASE := 10000.0
+
+var _script_split_state: int = 0
+var _time_since_script_split: float = -SCRIPT_SPLIT_PHASE
+var _script_split_base: float = 0.0
+
+## The mixers this sample switched off. Stashed rather than re-activated
+## wholesale, so the restore puts back exactly what was running instead of
+## starting something the scene had deliberately stopped.
+var _script_split_paused: Array[AnimationMixer] = []
+
 ## Physics ticks executed inside the last frame.
 ##
 ## A late frame asks for catch-up ticks and pays for all of them before it
@@ -996,6 +1039,7 @@ func _process(delta: float) -> void:
 	# but every frame-shape statistic was reading a number Godot never
 	# promised.
 	_step_gpu_split()
+	_step_script_split()
 
 	var physics_now: int = Engine.get_physics_frames()
 	_physics_steps = physics_now - _last_physics_frames
@@ -1646,6 +1690,77 @@ func _step_gpu_split() -> void:
 	])
 
 
+## Times the idle step twice and writes SCRIPTSPLIT. See SCRIPT_SPLIT_SECONDS.
+##
+## `_script_usec` is the bracket this node opens and `_ScriptTail` closes, so
+## when `_process` runs it still holds the PREVIOUS frame's total - the same
+## one-frame lag the GPU timing read has, and it lines up the same way. Frame
+## A reads the frame before it (mixers running) and then switches them off;
+## the mixers process later in frame A, so frame A is the frame without them;
+## frame B reads frame A and puts them back.
+func _step_script_split() -> void:
+	if not is_inside_tree():
+		return
+
+	if _script_split_state == 0:
+		if not Settings.lullaby_diagnostics_gpu_split:
+			return
+		_time_since_script_split += _last_frame_wall_ms
+		if _time_since_script_split < SCRIPT_SPLIT_SECONDS * 1000.0:
+			return
+		var mixers: Array[AnimationMixer] = _active_mixers()
+		if mixers.is_empty():
+			# Nothing to subtract. Reset the clock anyway so a scene with no
+			# animation does not walk its tree on every single frame.
+			_time_since_script_split = 0.0
+			return
+		_time_since_script_split = 0.0
+		_script_split_base = float(_script_usec) / 1000.0
+		_script_split_paused = mixers
+		for mixer: AnimationMixer in mixers:
+			mixer.active = false
+		_script_split_state = 1
+		return
+
+	var probed: float = float(_script_usec) / 1000.0
+	for mixer: AnimationMixer in _script_split_paused:
+		if is_instance_valid(mixer):
+			mixer.active = true
+	var paused: int = _script_split_paused.size()
+	_script_split_paused.clear()
+	_script_split_state = 0
+
+	# A base of zero is not a measurement, same rule as GPUSPLIT's.
+	if _script_split_base <= 0.0:
+		return
+
+	var animation: float = maxf(_script_split_base - probed, 0.0)
+	_entry("SCRIPTSPLIT", "base=%.2fms sin_anim=%.2fms | anim=%.2fms(%.0f%%) mixers=%d" % [
+		_script_split_base, probed, animation,
+		100.0 * animation / _script_split_base, paused,
+	])
+
+## Every AnimationMixer in the current scene that is currently active.
+##
+## Walked at the sample rather than cached at the scene change: this runs once
+## every twenty seconds, and a cache would have to be invalidated by every
+## AnimationPlayer the sequences add and free mid-song - Chimera's census moves
+## between 69 and 104 of them.
+func _active_mixers() -> Array[AnimationMixer]:
+	var out: Array[AnimationMixer] = []
+	var scene: Node = get_tree().current_scene
+	if scene == null:
+		return out
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		var mixer := node as AnimationMixer
+		if mixer != null and mixer.active:
+			out.append(mixer)
+		for child in node.get_children():
+			stack.append(child)
+	return out
+
 ## The main viewport's last measured GPU frame, in milliseconds. Zero when the
 ## driver does not answer - which the GPUTIMING latch elsewhere reports once
 ## and which GPUSPLIT treats as "no measurement" rather than as three zeroes.
@@ -1655,15 +1770,36 @@ func _viewport_gpu_ms() -> float:
 	return RenderingServer.viewport_get_measured_render_time_gpu(
 		get_viewport().get_viewport_rid())
 
-## Megapixels the 3D pass actually renders: the viewport size times the render
+## Megapixels the 3D pass actually renders: the render target times the render
 ## scale, squared. Printed rather than left to be reconstructed by hand from
 ## `vp=` and the window line, which is arithmetic this file has got wrong in
-## writing more than once.
+## writing more than once - including here, in the line below.
+##
+## **Not `get_visible_rect()`.** Under `canvas_items` stretch, which is what
+## this project ships, that returns the BASE resolution - a constant 1920x1080
+## whatever the phone is - because it is the rect 2D is laid out in. The thing
+## the GPU actually fills is the window, letterboxed to the aspect: 1280x720 on
+## the g53's 1600x720 panel. So the old line reported
+##
+##     1920 x 1080 x 0.50^2 = 0.5184 Mpx
+##
+## for a pass that renders 1280 x 720 x 0.50^2 = 0.2304 Mpx. Every figure in
+## this repo quoted in ms/Mpx - the 90.8 slope, the 6-8 lights-per-fragment
+## reading taken off it, `luz_por_mpx` in GPUSPLIT - is 2.25x low as a result,
+## and the number was steady at 0.518 across two devices and every preset
+## precisely because it never depended on either.
+##
+## `get_texture().get_size()` is the render target. scene_shot.gd measured the
+## same thing from the other side and says so in its own header: at 1600x720
+## with aspect KEEP it is 1280x720, already free of the pillarbox.
 func _mpx_3d() -> float:
 	if not is_inside_tree():
 		return 0.0
 	var viewport: Viewport = get_viewport()
-	var size: Vector2i = viewport.get_visible_rect().size
+	var target: ViewportTexture = viewport.get_texture()
+	if target == null:
+		return 0.0
+	var size: Vector2i = target.get_size()
 	var scale: float = viewport.scaling_3d_scale
 	return float(size.x) * float(size.y) * scale * scale / 1000000.0
 
