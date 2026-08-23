@@ -269,17 +269,22 @@ func _kept_lit_effective() -> int:
 
 ## Whether this Node3D actually renders, walking the ancestors by hand.
 ##
-## `is_visible_in_tree()` does not answer this, which was measured rather than
-## assumed. Godot 4.7.1, headless, a light parented under a Node3D that is
-## `visible = false`:
+## `is_visible_in_tree()` gives the same answer at runtime and would do here.
+## It is not used because it is only correct for a node that is **inside the
+## tree**: `Node3D` caches its 3D parent on ENTER_TREE, so a subtree that has
+## been built but not yet added reports every child visible regardless of a
+## hidden ancestor. Measured on 4.7.1 headless, the same light before and after
+## the tree is wired:
 ##
-##     branch.is_visible_in_tree() == false
-##     light.is_visible_in_tree()  == true      <- the light is not drawn
+##     dentro=false   is_visible_in_tree()=true    walk=false
+##     dentro=true    is_visible_in_tree()=false   walk=false
 ##
-## and it stays true after the subtree is removed and re-added. Whatever that
-## flag caches, it is not "an ancestor is hidden", so anything asking the
-## question this way gets `encendidos 16 -> 16` on a scene where four of the
-## sixteen are dark - which is the whole set this file cares about.
+## That difference is not hypothetical for this file. A guard has to assemble a
+## scene to test the selection at all, and under `--script` the tree is not
+## wired until after `_initialize()` returns - so the version of this that asked
+## the engine passed its behavioural check by accident and would have gone on
+## passing it if the selection were inverted. The walk answers the same in both
+## states, which is what makes the rule checkable.
 ##
 ## The walk stops at the first non-Node3D parent on purpose: 3D visibility
 ## propagates through Node3D and nothing else, so a Node3D under a plain Node

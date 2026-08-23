@@ -137,19 +137,28 @@ func _behavioural_checks() -> void:
 	var cam := Camera3D.new()
 	cam.set_script(script)
 
-	# El predicado, antes de nada: is_visible_in_tree() NO contesta esto en
-	# Godot 4.7.1 - una luz bajo un Node3D con visible=false sigue diciendo
-	# true, y sigue diciendolo tras sacar y volver a meter el subarbol. Si
-	# alguna vez el motor lo arregla, esta comprobacion sigue pasando; lo que
-	# no puede pasar es que _lit_in_tree vuelva a delegar en el.
+	# El predicado, antes de nada, y por que no es is_visible_in_tree().
+	#
+	# El motor contesta lo mismo EN EJECUCION. Lo que no hace es contestarlo
+	# fuera del arbol: Node3D cachea su padre 3D en ENTER_TREE, y bajo --script
+	# el arbol no esta montado hasta que _initialize() termina. Medido sobre la
+	# misma luz, antes y despues de montarlo:
+	#
+	#     dentro=false   is_visible_in_tree()=true    walk=false
+	#     dentro=true    is_visible_in_tree()=false   walk=false
+	#
+	# O sea que la version de esta comprobacion que preguntaba al motor pasaba
+	# por accidente, y habria seguido pasando con la seleccion invertida. El
+	# recorrido explicito contesta igual en los dos estados, que es lo que hace
+	# que esto se pueda comprobar.
+	_check(not dark_light.is_inside_tree(),
+		"(aqui los nodos aun no estan dentro del arbol, que es justo el caso)")
 	_check(not cam.call("_lit_in_tree", dark_light),
 		"_lit_in_tree ve el ancestro apagado")
 	_check(cam.call("_lit_in_tree", lit_light),
 		"...y no confunde una luz encendida con una apagada")
 	_check(not cam.call("_lit_in_tree", self_dark),
 		"...ni una que se apago a si misma")
-	if dark_light.is_visible_in_tree():
-		print("  nota  is_visible_in_tree() sigue devolviendo true aqui: %s" % SCRIPT_PATH.get_file())
 
 	cam.call("_hide_everything", scene)
 
