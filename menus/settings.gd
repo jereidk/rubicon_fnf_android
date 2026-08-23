@@ -325,23 +325,30 @@ var lullaby_diagnostics_log: bool = true
 ## Let the diagnostics log split the GPU frame into lighting, fill and the
 ## rest, by re-rendering two frames per sample through Viewport.debug_draw.
 ##
-## Off by default, and a row in the console's Misc tab right under Diagnostics
-## Log - the same place, because it is the same kind of thing. It first went in
-## as a cheat code on the reasoning that "a diagnostic is not a preference",
-## which is wrong on its own terms: the master switch for this whole log is a
-## row six lines above it. The real reason was that console.tscn is the one
-## scene this workspace cannot load, and that is a reason to validate the edit
-## structurally, not to put the control somewhere else.
+## **On by default**, and a row in the console's Misc tab right under
+## Diagnostics Log, so it can be switched off for a clean recording.
 ##
-## Two frames per sample render visibly wrong - flat albedo, then an additive
-## overdraw view - which is what the tooltip says and why it ships off. It
-## costs no GPU->CPU readback, which is what made the old `sonda=` field
-## expensive enough to delete.
+## It shipped off, twice over the wrong reason. First as a cheat code on
+## "a diagnostic is not a preference" - wrong on its own terms, since the
+## master switch for this whole log is a row six lines above it. Then as an
+## opt-in row, on the cost of the debug frames. That is the weaker argument:
+## **an instrument that needs someone to remember it is an instrument that
+## does not run.** This session lost two device passes to exactly that -
+## hide_baked_lights never executed once because of a bug nobody could see
+## without the log, and the log did not carry the field that would have shown
+## it.
+##
+## What made it affordable by default is alternating the two passes instead of
+## doing both per sample: **one** wrong frame every 20 seconds, not two. And
+## `debug_draw` only reaches the 3D pass, so that frame is the world going
+## flat-albedo (or additive) for 33ms with the HUD untouched - a single-frame
+## blink, not a flash. No GPU->CPU readback either, which is what made the old
+## `sonda=` field expensive enough to delete.
 ##
 ## It is the only instrument that can tell "Chimera is per-fragment lighting"
 ## from "Chimera is 3D overdraw": both fit a single gpu= number and neither
 ## could be ruled out from one.
-var lullaby_diagnostics_gpu_split: bool = false
+var lullaby_diagnostics_gpu_split: bool = true
 
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.

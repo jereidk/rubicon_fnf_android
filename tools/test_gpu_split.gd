@@ -50,17 +50,21 @@ func _initialize() -> void:
 	#    siguiente. Si alguien invierte el orden, los tres numeros siguen
 	#    saliendo y ninguno mide lo que dice.
 	var read_base: int = body.find("_gpu_split_base = _viewport_gpu_ms()")
-	var set_unshaded: int = body.find("Viewport.DEBUG_DRAW_UNSHADED")
-	var read_unshaded: int = body.find("_gpu_split_unshaded = _viewport_gpu_ms()")
-	var set_overdraw: int = body.find("Viewport.DEBUG_DRAW_OVERDRAW")
-	var read_overdraw: int = body.find("var overdraw: float = _viewport_gpu_ms()")
+	var set_mode: int = body.find("Viewport.DEBUG_DRAW_OVERDRAW")
+	var read_probe: int = body.find("var probed: float = _viewport_gpu_ms()")
 	var restore: int = body.find("Viewport.DEBUG_DRAW_DISABLED")
-	for pair: Array in [[read_base, set_unshaded, "base se lee antes de pedir UNSHADED"],
-			[set_unshaded, read_unshaded, "UNSHADED se pide antes de leerlo"],
-			[read_unshaded, set_overdraw, "sin_luz se lee antes de pedir OVERDRAW"],
-			[set_overdraw, read_overdraw, "OVERDRAW se pide antes de leerlo"],
-			[read_overdraw, restore, "overdraw se lee antes de restaurar"]]:
+	for pair: Array in [[read_base, set_mode, "base se lee antes de pedir el modo de depuracion"],
+			[set_mode, read_probe, "el modo se pide antes de leer su frame"],
+			[read_probe, restore, "y se lee antes de restaurar"]]:
 		_check(pair[0] >= 0 and pair[1] >= 0 and pair[0] < pair[1], pair[2])
+
+	# Un solo frame mal por muestra: las dos pasadas se alternan en vez de
+	# hacerse las dos en el mismo ciclo. Es lo que hace asumible tenerlo
+	# encendido de fabrica.
+	_check(_has_statement(body, "_gpu_split_overdraw_turn = not _gpu_split_overdraw_turn"),
+		"las dos pasadas se alternan, una por muestra")
+	_check(body.count("_viewport_gpu_ms()") == 2,
+		"y por tanto solo hay dos lecturas por ciclo, no tres")
 
 	# 2. Restaurar pase lo que pase. La unica salida despues del ultimo paso es
 	#    la de "el driver no contesta", y tiene que ir DESPUES del restore.
@@ -74,13 +78,16 @@ func _initialize() -> void:
 	# en el paso 0, asi que apagarlo mientras corre no deja el viewport en
 	# modo depuracion.
 	var gate: int = body.find("lullaby_diagnostics_gpu_split")
-	_check(gate >= 0 and gate < set_unshaded,
+	_check(gate >= 0 and gate < set_mode,
 		"el ajuste solo se consulta al empezar un ciclo, nunca a mitad")
 
-	# 3. Opt-in, y apagado de fabrica.
+	# 3. Encendido de fabrica, y con fila para apagarlo.
 	var settings: String = _read(SETTINGS)
-	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = false"),
-		"el ajuste existe y sale apagado")
+	# Encendido de fabrica: un instrumento que hay que acordarse de encender es
+	# un instrumento que no corre. Esta sesion perdio dos pasadas de
+	# dispositivo por exactamente eso.
+	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = true"),
+		"el ajuste sale ENCENDIDO, y la fila esta para apagarlo")
 	# Y vive donde vive su interruptor maestro: la fila de Diagnostics Log
 	# esta seis lineas mas arriba en la misma pestaña. Meterlo en los codigos
 	# de la pestaña Hacks era esconder un diagnostico en contenido de jugador.

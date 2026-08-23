@@ -378,7 +378,12 @@ const GPU_SPLIT_SECONDS := 20.0
 var _gpu_split_state: int = 0
 var _time_since_gpu_split: float = 0.0
 var _gpu_split_base: float = 0.0
-var _gpu_split_unshaded: float = 0.0
+
+## Which of the two debug passes this sample takes. Alternating instead of
+## doing both in one cycle is what gets this down to **one** wrong frame per
+## sample: each line is self-contained (base against one of the two) and the
+## two halves interleave across a song.
+var _gpu_split_overdraw_turn: bool = false
 
 ## Physics ticks executed inside the last frame.
 ##
@@ -1609,32 +1614,37 @@ func _step_gpu_split() -> void:
 			return
 		_time_since_gpu_split = 0.0
 		_gpu_split_base = _viewport_gpu_ms()
-		get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
+		get_viewport().debug_draw = (Viewport.DEBUG_DRAW_OVERDRAW
+			if _gpu_split_overdraw_turn else Viewport.DEBUG_DRAW_UNSHADED)
 		_gpu_split_state = 1
 		return
 
-	if _gpu_split_state == 1:
-		_gpu_split_unshaded = _viewport_gpu_ms()
-		get_viewport().debug_draw = Viewport.DEBUG_DRAW_OVERDRAW
-		_gpu_split_state = 2
-		return
-
-	var overdraw: float = _viewport_gpu_ms()
+	var probed: float = _viewport_gpu_ms()
 	get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
 	_gpu_split_state = 0
+	var was_overdraw: bool = _gpu_split_overdraw_turn
+	_gpu_split_overdraw_turn = not _gpu_split_overdraw_turn
 
-	# A driver that will not answer reports 0.00 for all three, and three
-	# zeroes are not a measurement - see the GPUTIMING note.
+	# A driver that will not answer reports 0.00 for both, and two zeroes are
+	# not a measurement - see the GPUTIMING note.
 	if _gpu_split_base <= 0.0:
 		return
 
-	var lighting: float = maxf(_gpu_split_base - _gpu_split_unshaded, 0.0)
 	var mpx: float = _mpx_3d()
-	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms overdraw=%.2fms | luz=%.2fms(%.0f%%) resto=%.2fms mpx3d=%.3f luz_por_mpx=%.1f" % [
-		_gpu_split_base, _gpu_split_unshaded, overdraw,
-		lighting, 100.0 * lighting / _gpu_split_base, _gpu_split_unshaded,
-		mpx, lighting / maxf(mpx, 0.0001),
+	if was_overdraw:
+		_entry("GPUSPLIT", "base=%.2fms overdraw=%.2fms | relleno=%.0f%% mpx3d=%.3f" % [
+			_gpu_split_base, probed,
+			100.0 * probed / _gpu_split_base, mpx,
+		])
+		return
+
+	var lighting: float = maxf(_gpu_split_base - probed, 0.0)
+	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms | luz=%.2fms(%.0f%%) mpx3d=%.3f luz_por_mpx=%.1f" % [
+		_gpu_split_base, probed, lighting,
+		100.0 * lighting / _gpu_split_base, mpx,
+		lighting / maxf(mpx, 0.0001),
 	])
+
 
 ## The main viewport's last measured GPU frame, in milliseconds. Zero when the
 ## driver does not answer - which the GPUTIMING latch elsewhere reports once

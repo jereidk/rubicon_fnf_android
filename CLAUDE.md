@@ -4752,9 +4752,6 @@ nada de leer:
 hasta borrarlo (6.5-8.8ms cada 8s). Esto sólo cambia un enum y lee un contador
 que ya se estaba recogiendo.
 
-    GPUSPLIT base=26.05ms sin_luz=9.81ms overdraw=6.12ms | luz=16.24ms(62%)
-             resto=9.81ms mpx3d=0.288 luz_por_mpx=56.4
-
 Cuatro cosas que hay que respetar si alguien lo toca:
 
 - **`viewport_get_measured_render_time_gpu()` va un frame atrás**, así que cada
@@ -4768,17 +4765,35 @@ Cuatro cosas que hay que respetar si alguien lo toca:
 - **Sólo con cámara 3D y algo visible**: en las dos canciones 2D y en los menús
   las tres lecturas serían el canvas tres veces.
 
-Es **opt-in** (`Settings.lullaby_diagnostics_gpu_split`, apagado de fábrica) y
-vive donde vive su interruptor maestro: **una fila en Misc, justo debajo de
-Diagnostics Log**.
+**Encendido de fábrica**, con fila en Misc justo debajo de Diagnostics Log
+para poder apagarlo en una grabación limpia.
 
-Primero salió como código de la pestaña Hacks, con el razonamiento de que "un
-diagnóstico no es una preferencia". **Ese razonamiento es falso en sus propios
-términos** - el interruptor maestro de todo este log es una fila seis líneas
-más arriba en la misma pestaña. El motivo de verdad era que `console.tscn` es
-la única escena que este workspace no puede cargar, y eso es un motivo para
-**validar la edición estructuralmente**, no para poner el control en otro
-sitio. Corregido, y el guard fija que no vuelva a los códigos.
+Salió apagado dos veces por dos motivos malos, y las dos correcciones valen
+como regla:
+
+1. **Como código de la pestaña Hacks**, razonando que "un diagnóstico no es una
+   preferencia". Falso en sus propios términos: el interruptor maestro de todo
+   este log es una fila seis líneas más arriba en la misma pestaña. El motivo
+   de verdad era que `console.tscn` es la única escena que este workspace no
+   puede cargar - lo cual es un motivo para **validar la edición
+   estructuralmente**, no para poner el control en otro sitio.
+2. **Como fila opt-in**, razonando el coste de los frames de depuración. Es el
+   argumento más débil: **un instrumento que hay que acordarse de encender es
+   un instrumento que no corre.** Esta sesión perdió dos pasadas de dispositivo
+   por exactamente eso - `hide_baked_lights` no se ejecutó ni una vez por un
+   bug que no se podía ver sin el log, y el log no llevaba el campo que lo
+   habría enseñado.
+
+Lo que lo hace asumible por defecto es **alternar las dos pasadas** en vez de
+hacer las dos por muestra: **un** frame mal cada 20 segundos, no dos. Y
+`debug_draw` sólo alcanza el pase 3D, así que ese frame es el mundo en albedo
+plano (o aditivo) durante 33ms **con el HUD intacto** - un parpadeo de un
+fotograma, no un fogonazo. Cada línea es autocontenida:
+
+    GPUSPLIT base=26.05ms sin_luz=9.81ms | luz=16.24ms(62%) mpx3d=0.288 luz_por_mpx=56.4
+    GPUSPLIT base=25.90ms overdraw=6.12ms | relleno=24% mpx3d=0.288
+
+y las dos mitades se intercalan a lo largo de una canción.
 
 La validación estructural que sustituye a no poder abrir la escena: ids de
 `ext_resource` declarados contra usados, y que todos los `focus_neighbor_*` de
