@@ -652,5 +652,8 @@ MECHANIC FAILED,MECÁNICA FALLIDA
 OUT OF HEALTH,SIN VIDA
 DRILL OVER,FIN DEL ENTRENAMIENTO
 Game,Juego
-Skip the Collector's introduction,Omitir la introducción del Collector
-Always play the Collector's introduction,Reproducir siempre la introducción del Collector
+Intro: ,Introducción: 
+Play it,Reproducir
+Skip it,Omitir
+Leave it,No repetir
+Replay on launch,Repetir al arrancar

@@ -411,7 +411,21 @@ var lullaby_language: String = "en"
 ## seen). Clearing it to re-watch the tour would therefore also mute the
 ## entry voicelines from then on, which is not what "play the intro again"
 ## should mean.
+##
+## **Once per launch, not once per visit.** This used to be read directly by
+## the shop, which runs that check in its `_ready` - so the 152-second tour
+## replayed every single time the room loaded, including walking back in after
+## finishing a song. `force_shop_intro_pending` below is what the shop actually
+## consumes; this is only the stored preference that arms it at boot.
 var lullaby_force_shop_intro: bool = false
+
+## The armed, one-shot form of the preference above: true from launch until the
+## shop plays the forced tour, then false for the rest of the session.
+##
+## No `lullaby_`/`graphics_`/`audio_`/`game_`/`display_` prefix on purpose, so
+## `save()` skips it - it is session state, not a setting, and persisting it
+## would put the replay back on every visit through the back door.
+var force_shop_intro_pending: bool = false
 
 ## Which keyboard Monochrome's typing mechanic uses.
 ##
@@ -442,6 +456,11 @@ func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
 		save(SAVE_PATH)
+
+	# Arm the forced intro for this launch. The shop disarms it the first time
+	# it plays the tour, so the preference means "once when I start the game",
+	# not "every time I walk into the room".
+	force_shop_intro_pending = lullaby_force_shop_intro
 
 	_check_shader_cache()
 	apply_settings()

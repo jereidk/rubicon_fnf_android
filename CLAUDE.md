@@ -4728,6 +4728,65 @@ guard textual no puede: que resolver una palabra trae la siguiente, y que el
 botón redondo llega de verdad a la mecánica (es un `InputEventAction` sintético
 por `Input.parse_input_event`, no una llamada directa).
 
+## Forzar la intro forzaba SIEMPRE, y la fila ocupaba media pantalla
+
+Dos reportes del mismo sitio, y los dos son míos.
+
+**El de comportamiento.** `Settings.lullaby_force_shop_intro` lo leía
+`env_collector_shop.gd` **en su `_ready`**, o sea que el tour de 152 segundos
+se reproducía cada vez que la habitación cargaba - incluidas las vueltas a la
+tienda después de una canción. Tenía que dispararse una vez, en la entrada
+desde el arranque.
+
+Arreglado partiendo la bandera en dos:
+
+| | |
+|---|---|
+| `lullaby_force_shop_intro` | la preferencia guardada, la que marca el jugador |
+| `force_shop_intro_pending` | el disparo armado, lo que la tienda consume |
+
+`Settings._ready()` arma el segundo desde el primero al lanzar; la tienda lo
+gasta la primera vez que reproduce el tour. **`force_shop_intro_pending` no
+lleva ningún prefijo a propósito** - `save()` solo persiste `lullaby_`,
+`graphics_`, `audio_`, `game_` y `display_`, así que guardarlo devolvería el
+bug por la puerta de atrás. La pantalla de first boot lo arma también, porque
+se sienta entre el arranque que lo armó y la tienda que lo gasta.
+
+**El de interfaz.** Eran dos `CheckBox` y las tres quejas del jugador salen de
+esa forma:
+
+- 47 caracteres de etiqueta ("Reproducir siempre la introducción del
+  Collector") hacían el panel **más ancho que la pantalla**;
+- dos filas de más lo hacían **más alto que los 720px**;
+- y el icono `unchecked` de Godot es un cuadrado casi negro a media alfa
+  (medido en ThemeDB: RGB medio 0.10, alfa máxima 0.50) sobre un panel oscuro,
+  así que **la casilla sin marcar se leía como una etiqueta suelta**. Eso ya se
+  había parcheado reconstruyendo el icono y seguía sin ser suficiente.
+
+Ahora es **una fila**, con la misma forma y el mismo control que las dos de
+arriba (`Idioma:` y `Preajuste de calidad:`), y con dos juegos de etiquetas
+según el estado - son dos preguntas que nunca se hacen a la vez:
+
+    nunca visto    Reproducir  /  Omitir                -> SaveData "intro_seen"
+    ya visto       No repetir  /  Repetir al arrancar   -> Settings.lullaby_force_shop_intro
+
+Cuatro filas pasan a dos, y un OptionButton se etiqueta solo.
+
+Verificado sobre la escena real con los autoloads reales
+(`tools/harness/first_boot_probe.tscn`):
+
+    intro_seen=false  opciones=["Reproducir", "Omitir"]              sel=0
+      tras elegir [1]: intro_seen=true  force=false armado=false
+    intro_seen=true   opciones=["No repetir", "Repetir al arrancar"] sel=0
+      tras elegir [1]: intro_seen=true  force=true  armado=true
+
+**Y una limitación del workspace que hay que respetar:** `thm_boot_panel.tres`
+no importa aquí, así que la escena carga sin tema y **un render local de esta
+pantalla no dice nada sobre su aspecto**. Es la misma trampa que ya produjo el
+icono de Codes mal escalado - una textura que no carga invalida una medida de
+tamaño. La sonda comprueba cableado y etiquetas; el aspecto lo decide una
+captura del dispositivo.
+
 ## El diálogo del Collector se congelaba, y no era la traducción
 
 Reportado como "en el intro del coleccionista un diálogo se queda congelado más

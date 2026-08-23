@@ -11,67 +11,47 @@ const LANGUAGE_VALUES: Array[String] = ["en", "es"]
 
 @export var language_button: OptionButton
 
-## Only shown while the Collector's welcome has never played. Ticking it sets
-## SaveData's "intro_seen" straight away, which is the same flag the shop
-## reads - so the tour is skipped by making the save look like it already
-## happened, rather than by adding a second condition next to the first.
-@export var skip_intro_check: CheckBox
+## One row for both halves of "what should the Collector's welcome do", which
+## is two questions that are never asked at the same time:
+##
+##   never seen it   Play it  /  Skip it            -> SaveData "intro_seen"
+##   seen it         Leave it /  Replay on launch   -> Settings.lullaby_force_shop_intro
+##
+## It was two CheckBoxes and all three of the player's complaints came from
+## that shape: 47 characters of label made the panel wider than the screen,
+## two extra rows made it taller than 720px, and Godot's `unchecked` icon is
+## a near-black square on a dark panel so the box read as a plain label. An
+## OptionButton is the control the two rows above it already use, it costs one
+## row instead of two, and it labels its own state.
+@export var intro_button: OptionButton
 
-## Always shown, and bound to a Setting rather than to the flag. See
-## Settings.lullaby_force_shop_intro for why the flag alone cannot express
-## this: it also gates the entry voicelines.
-@export var force_intro_check: CheckBox
+## Whether the row is asking the never-seen question or the seen-it question.
+## Decided once in _ready, not per frame: choosing "Skip it" writes the very
+## flag this reads, and a live condition would relabel the row under the
+## finger that just used it.
+var _intro_already_seen: bool = false
+
+## Kept as the source of the two option labels rather than authoring them in
+## the scene, because the row has to say different things in the two states
+## and the scene can only hold one pair.
+const INTRO_FIRST_TIME: Array[String] = ["Play it", "Skip it"]
+const INTRO_SEEN: Array[String] = ["Leave it", "Replay on launch"]
 
 func _ready() -> void:
 	if language_button != null:
 		var current: int = LANGUAGE_VALUES.find(Settings.lullaby_language)
 		language_button.selected = maxi(current, 0)
 
-	if skip_intro_check != null:
-		# Decided once, here, rather than every frame: ticking the box writes
-		# the very flag this reads, and a live condition would make the row
-		# vanish under the finger that just ticked it.
-		skip_intro_check.visible = not SaveData.get_flag(&"intro_seen")
-		skip_intro_check.button_pressed = SaveData.get_flag(&"intro_seen")
-
-	if force_intro_check != null:
-		force_intro_check.button_pressed = Settings.lullaby_force_shop_intro
-
-	for box: CheckBox in [skip_intro_check, force_intro_check]:
-		if box != null:
-			_light_unchecked_box(box)
-
-## Makes an unticked box visible on this screen's dark panel.
-##
-## Godot's default `unchecked` icon is a near-black square at half alpha -
-## measured off ThemeDB at mean RGB 0.10 and max alpha 0.50 - while `checked`
-## is light (0.87) and shows fine. On a dark panel that means a ticked option
-## reads as a checkbox and an unticked one reads as a plain label, which is
-## the opposite of what a checkbox is for.
-##
-## Tinting cannot fix it: checkbox_unchecked_color multiplies, so a black
-## icon stays black however it is coloured. The icon has to be replaced. It
-## is rebuilt from the engine's own, keeping its alpha shape and therefore
-## its exact size and metrics, rather than shipping two new PNGs for a
-## sixteen-pixel square.
-func _light_unchecked_box(box: CheckBox) -> void:
-	var source: Texture2D = box.get_theme_icon(&"unchecked")
-	if source == null:
-		return
-
-	var image: Image = source.get_image()
-	if image == null:
-		return
-	image.convert(Image.FORMAT_RGBA8)
-
-	for y: int in image.get_height():
-		for x: int in image.get_width():
-			var pixel: Color = image.get_pixel(x, y)
-			if pixel.a <= 0.0:
-				continue
-			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, minf(pixel.a * 1.5, 0.8)))
-
-	box.add_theme_icon_override(&"unchecked", ImageTexture.create_from_image(image))
+	_intro_already_seen = SaveData.get_flag(&"intro_seen")
+	if intro_button != null:
+		var labels: Array[String] = INTRO_SEEN if _intro_already_seen else INTRO_FIRST_TIME
+		intro_button.clear()
+		for label: String in labels:
+			# tr() by hand: these are built here rather than authored on the
+			# node, so Control auto-translation never sees them.
+			intro_button.add_item(tr(label))
+		intro_button.selected = 1 if (_intro_already_seen
+			and Settings.lullaby_force_shop_intro) else 0
 
 func _on_language_changed(index: int) -> void:
 	if index < 0 or index >= LANGUAGE_VALUES.size():
@@ -84,12 +64,24 @@ func _on_language_changed(index: int) -> void:
 	Settings.apply_settings()
 	Settings.save()
 
-func _on_skip_intro_toggled(pressed: bool) -> void:
-	SaveData.set_flag(&"intro_seen", pressed)
-	SaveData.save()
+## Index 1 is the non-default in both states: "Skip it" before the tour has
+## ever played, "Replay on launch" after.
+func _on_intro_choice_changed(index: int) -> void:
+	var chose_second: bool = index == 1
 
-func _on_force_intro_toggled(pressed: bool) -> void:
-	Settings.lullaby_force_shop_intro = pressed
+	if not _intro_already_seen:
+		# Skipping is done by making the save look like the tour already
+		# happened, which is the same flag the shop reads - rather than adding
+		# a second condition next to the first.
+		SaveData.set_flag(&"intro_seen", chose_second)
+		SaveData.save()
+		return
+
+	Settings.lullaby_force_shop_intro = chose_second
+	# Armed here too, because this screen sits between the launch that arms it
+	# and the shop that spends it - picking it has to reach the very next
+	# visit, and unpicking it has to call that off.
+	Settings.force_shop_intro_pending = chose_second
 	Settings.save()
 
 ## Uses the same LullabyQualityPreset resources (render_scale, shadows,

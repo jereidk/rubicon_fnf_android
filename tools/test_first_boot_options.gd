@@ -40,22 +40,25 @@ func _initialize() -> void:
 ## null, so a broken NodePath would show up as a screen that silently does
 ## nothing rather than as an error.
 func _check_wiring(scene: String) -> void:
-	for export_name: String in ["language_button", "skip_intro_check", "force_intro_check"]:
+	for export_name: String in ["language_button", "intro_button"]:
 		_check(scene.contains("%s = NodePath(\"" % export_name),
 			"%s is wired in the scene" % export_name)
 
-	for method: String in ["_on_language_changed", "_on_skip_intro_toggled", "_on_force_intro_toggled"]:
+	for method: String in ["_on_language_changed", "_on_intro_choice_changed"]:
 		_check(scene.contains('method="%s"' % method), "%s is connected" % method)
 
-	_check(scene.count("type=\"CheckBox\"") >= 2,
-		"both intro options are CheckBoxes, as asked")
-
-	# Godot's default `unchecked` icon is a near-black square at half alpha
-	# (measured off ThemeDB: mean RGB 0.10, max alpha 0.50) and this panel is
-	# dark, so an unticked box was invisible - a checkbox that only looks like
-	# a checkbox once ticked. Tinting cannot fix it, the icon is replaced.
-	_check(scene.contains("checkbox_unchecked_color") or scene.contains("checkbox_checked_color"),
-		"the checkboxes carry their dark-panel colour overrides")
+	# One row, not two CheckBoxes, and all three of the player's complaints
+	# came from that earlier shape: 47 characters of label made the panel
+	# wider than the screen, two extra rows made it taller than 720px, and
+	# Godot's `unchecked` icon is a near-black square at half alpha (measured
+	# off ThemeDB: mean RGB 0.10, max alpha 0.50) on a dark panel, so the box
+	# read as a plain label until it was ticked.
+	_check(not scene.contains("type=\"CheckBox\""),
+		"the intro row is not a CheckBox any more")
+	_check(scene.contains('[node name="IntroRow" type="HBoxContainer"'),
+		"it is one row, the same shape as the Language row above it")
+	_check(scene.count('type="OptionButton"') >= 3,
+		"and the same control: language, intro, quality preset")
 
 func _check_language(script: String) -> void:
 	_check(script.contains("LANGUAGE_VALUES"), "the language row has a value list")
@@ -81,16 +84,18 @@ func _check_language(script: String) -> void:
 	_check(settings.contains("TranslationServer.set_locale(lullaby_language)"),
 		"apply_settings() is still the thing that sets the locale")
 
-## Only shown while the Collector's welcome has never played - "el omitir la
-## primera vez solamente aparece".
+## The row asks one of two questions and never both, decided once in _ready -
+## "el omitir la primera vez solamente aparece".
 func _check_skip(script: String) -> void:
 	var ready: String = _func_body(script, "_ready")
-	_check(_has_statement(ready, "skip_intro_check\\.visible = not SaveData\\.get_flag\\(&\"intro_seen\"\\)"),
-		"the skip row only appears while the intro has never been seen")
+	_check(_has_statement(ready, "_intro_already_seen = SaveData\\.get_flag\\(&\"intro_seen\"\\)"),
+		"which question the row asks is decided once, off intro_seen")
+	_check(script.contains("INTRO_FIRST_TIME") and script.contains("INTRO_SEEN"),
+		"and it carries a label pair for each state")
 
-	var body: String = _func_body(script, "_on_skip_intro_toggled")
-	_check(_has_statement(body, "set_flag\\(&\"intro_seen\", pressed\\)"),
-		"ticking skip marks the intro as already seen")
+	var body: String = _func_body(script, "_on_intro_choice_changed")
+	_check(_has_statement(body, "set_flag\\(&\"intro_seen\", chose_second\\)"),
+		"choosing Skip marks the intro as already seen")
 	_check(_has_statement(body, "SaveData\\.save\\(\\)"), "...and saves")
 
 	# The flag is what the shop actually reads. If that condition is ever
@@ -99,15 +104,17 @@ func _check_skip(script: String) -> void:
 	_check(shop.contains('SaveData.get_flag("intro_seen")'),
 		"the shop still gates the Collector's intro on that flag")
 
-## Always shown - "y la de forzar siempre".
+## The other half of the same row, offered once the tour has been seen.
 func _check_force(script: String) -> void:
 	var ready: String = _func_body(script, "_ready")
-	_check(not ready.contains("force_intro_check.visible"),
-		"the force row is never hidden")
+	_check(not ready.contains("intro_button.visible"),
+		"the row itself is never hidden - only its labels change")
 
-	var body: String = _func_body(script, "_on_force_intro_toggled")
-	_check(_has_statement(body, "Settings\\.lullaby_force_shop_intro = pressed"),
-		"ticking force writes the Setting")
+	var body: String = _func_body(script, "_on_intro_choice_changed")
+	_check(_has_statement(body, "Settings\\.lullaby_force_shop_intro = chose_second"),
+		"choosing Replay writes the Setting")
+	_check(_has_statement(body, "if not _intro_already_seen:"),
+		"and the two halves cannot both fire on one pick")
 
 	# A Setting rather than clearing intro_seen, because that flag also tells
 	# EntryVoicelines whether you are a returning visitor - clearing it to
@@ -116,9 +123,29 @@ func _check_force(script: String) -> void:
 	_check(settings.contains("var lullaby_force_shop_intro"),
 		"the Setting exists (and persists, being lullaby_-prefixed)")
 
+	# One shot per launch, not per visit. The shop runs this check in its
+	# _ready, so reading the stored preference directly replayed the
+	# 152-second tour every time the room loaded - including walking back in
+	# after a song, which is what the player reported.
 	var shop: String = FileAccess.get_file_as_string(SHOP)
-	_check(shop.contains("Settings.lullaby_force_shop_intro or not SaveData.get_flag(\"intro_seen\")"),
-		"the shop honours it alongside the flag")
+	_check(shop.contains("Settings.force_shop_intro_pending or not SaveData.get_flag(\"intro_seen\")"),
+		"the shop honours the armed one-shot alongside the flag")
+	_check(shop.contains("Settings.force_shop_intro_pending = false"),
+		"...and spends it, so the next visit is a normal one")
+	_check(not shop.contains("Settings.lullaby_force_shop_intro"),
+		"the shop never reads the stored preference directly")
+
+	_check(settings.contains("var force_shop_intro_pending"),
+		"the armed one-shot exists")
+	for prefix: String in ["lullaby_", "graphics_", "audio_", "game_", "display_"]:
+		_check(not settings.contains("var %sforce_shop_intro_pending" % prefix),
+			"...and carries no %s prefix, so save() skips it" % prefix)
+	_check(settings.contains("force_shop_intro_pending = lullaby_force_shop_intro"),
+		"the launch arms it from the stored preference")
+
+	var boot: String = FileAccess.get_file_as_string(SCRIPT)
+	_check(boot.contains("Settings.force_shop_intro_pending = chose_second"),
+		"and this screen arms it too, sitting between launch and shop")
 
 	var voicelines: String = FileAccess.get_file_as_string(
 		"res://lullaby_mod/scripts/lullaby/collectors_shop/dialogue/EntryVoicelines.gd")

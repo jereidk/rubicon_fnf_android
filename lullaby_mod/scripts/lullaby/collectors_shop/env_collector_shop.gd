@@ -171,11 +171,15 @@ func _ready() -> void :
 			voiceline_state_end.stop()
 		)
 
-	# The Setting is checked first so it can force the tour on a save that has
-	# already seen it. intro_seen is still set below either way - the forced
-	# path is additive, and turning the Setting back off has to leave a normal
-	# save behind rather than one that replays the intro once more.
-	if Settings.lullaby_force_shop_intro or not SaveData.get_flag("intro_seen"):
+	# The armed one-shot is checked first so it can force the tour on a save
+	# that has already seen it, and is spent here - this runs in _ready, so
+	# reading the stored preference directly replayed the 152-second tour on
+	# every load of the room, including walking back in after a song.
+	# intro_seen is still set below either way: the forced path is additive,
+	# and turning the preference back off has to leave a normal save behind
+	# rather than one that replays the intro once more.
+	if Settings.force_shop_intro_pending or not SaveData.get_flag("intro_seen"):
+		Settings.force_shop_intro_pending = false
 		_add_intro_animation()
 
 		if sequence_controller != null and sequence_controller._animation_player != null:
