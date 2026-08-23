@@ -758,6 +758,56 @@ func _scale_subviewport(viewport: SubViewport) -> void:
 	if viewport.is_in_group(SUBVIEWPORT_NATIVE_GROUP):
 		return
 
+	# A SubViewportContainer with `stretch` on owns its child's size, and it
+	# does not merely overwrite it on the next resize - it writes it back on
+	# the spot. Measured on 4.7.1, container 720x540, stretch on:
+	#
+	#     escribir viewport.size = 360x270   ->  size sigue 720x540
+	#     container.stretch_shrink = 2       ->  size 360x270, override 720x540
+	#
+	# So the block below has never reached one of these, and the two that
+	# matter are in the shop's console: IconSubViewport/SubViewport and
+	# console_bg/.../SubViewport, both 720x540 - the device log measures them
+	# live at exactly that while everything else runs at 0.50, and together
+	# they are 0.78 Mpx of the 1.38 Mpx the shop's SubViewports cost with the
+	# console open. That is what puts the room over the 16.67ms line: closed it
+	# medians 16.90ms, open 20.75ms, and the frame histogram splits clean into
+	# 12-20ms and 28-40ms because a frame that misses a 60Hz refresh waits for
+	# the next one.
+	#
+	# stretch_shrink is the same knob the container respects, so nothing fights
+	# over the size. On its own it is NOT enough, and that is worth spelling
+	# out because the shrink alone looks like it works: the container writes
+	# `size` and never `size_2d_override`, so the 2D layout space shrinks with
+	# the render target. Same bench, a Control placed at x=600 inside a 720-wide
+	# viewport:
+	#
+	#     shrink=2 solo                 vis_rect 360x270  -> el control cae fuera
+	#     shrink=2 + override 720x540   vis_rect 720x540  -> intacto
+	#
+	# and the override survives the container's next resize, because the
+	# container never touches it. So both: the shrink for the render target,
+	# the override for the layout - which is exactly the pair the branch below
+	# sets the long way round.
+	#
+	# The layout size comes from the container's own rect rather than a cached
+	# "authored" value: that rect IS what the engine would have given the
+	# viewport at shrink 1, and it stays right if the container ever resizes.
+	#
+	# Integer, so it cannot express every scale: 0.50 gives 2, 0.70 gives 1
+	# (i.e. no reduction). Coarser than the window's, and still the only lever
+	# the engine offers here.
+	var container := viewport.get_parent() as SubViewportContainer
+	if container != null and container.stretch:
+		var layout := Vector2i(container.size.round())
+		if layout.x <= 0 or layout.y <= 0:
+			# Called from node_added, before the container has been laid out.
+			layout = viewport.size * maxi(1, container.stretch_shrink)
+		container.stretch_shrink = maxi(1, int(round(1.0 / maxf(graphics_render_scale, 0.05))))
+		viewport.size_2d_override = layout
+		viewport.size_2d_override_stretch = true
+		return
+
 	# First time through, the size in the scene file is the authored size.
 	# After that it is the override, because size itself has been scaled.
 	var authored: Vector2i = viewport.size_2d_override

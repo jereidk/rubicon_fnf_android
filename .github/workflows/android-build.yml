@@ -692,6 +692,16 @@ jobs:
           # the rule is the mechanic, not the HUD.
           guard_godot tools/test_pendulum_hitbox_window.gd
 
+          # === El render scale tiene que llegar a los SubViewport en contenedor
+          # _scale_subviewport escalaba escribiendo viewport.size, y un
+          # SubViewportContainer con stretch lo reescribe en el acto - asi que
+          # el ajuste nunca llego a ninguno. Los dos de la consola son 720x540
+          # y el log los mide vivos a ese tamano mientras todo lo demas corre a
+          # 0.50: 0.78 de los 1.38 Mpx que cuestan los SubViewport de la tienda
+          # con la consola abierta, que es lo que la pasa de 16.90ms a 20.75ms
+          # y parte los frames entre 12-20ms y 28-40ms.
+          guard_godot tools/test_subviewport_container_scale.gd
+
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero
