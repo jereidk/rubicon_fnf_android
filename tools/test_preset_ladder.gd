@@ -126,11 +126,15 @@ func _initialize() -> void:
 		"Very Low (%.2f) renderiza menos pixeles de 3D que Low (%.2f)" %
 		[very_low.render_scale, low.render_scale])
 
-	# Very Low existe para que el juego corra, no para que se vea: capar el
-	# frame a algo que el telefono sostiene es lo que quita el tartamudeo, y
-	# es su propia fila del preset desde siempre sin que nadie la moviera.
-	_check(very_low.target_fps > 0 and very_low.target_fps <= 30,
-		"Very Low capa el frame (target_fps=%d)" % very_low.target_fps)
+	# Ningun preset pone un numero fijo de fps. -1 es TARGET_FPS_NATIVE, o sea
+	# seguir la pantalla: capar a 30 tira los frames que el telefono si podia
+	# dar en los planos baratos (Chimera tiene planos a 13ms al lado de planos
+	# a 60), y fijar 60 esta mal en el primer telefono de 90 o 120Hz. La fila
+	# sigue existiendo para el jugador en la consola; los presets ya no opinan.
+	for preset: LullabyQualityPreset in loaded:
+		_check(preset.target_fps == -1,
+			"%s deja el frame libre a la pantalla (target_fps=%d)" %
+			[preset.name, preset.target_fps])
 
 	_finish()
 

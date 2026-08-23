@@ -500,10 +500,19 @@ func _apply_cheap_shading(scene: Node) -> void:
 		_shading[id] = {
 			"diffuse": material.diffuse_mode,
 			"specular": material.specular_mode,
+			"normal": material.normal_enabled,
 		}
 		material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 		if not _is_metallic(material):
 			material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		# A normal map is a second texture fetch plus the tangent-space
+		# transform, per fragment, and the same bench prices it: 21.43ms base,
+		# 25.33ms with a normal map, 26.16ms with roughness/metallic on top.
+		# +18% for the normal alone, and only +4% more for the other two - so
+		# this drops the normal and leaves roughness and metallic, which cost
+		# little and change the look more. Chimera's props1 and props2 carry
+		# one; the texture stays assigned and comes back with the flag.
+		material.normal_enabled = false
 
 func _restore_shading() -> void:
 	for id: int in _shading:
@@ -513,6 +522,7 @@ func _restore_shading() -> void:
 		var saved: Dictionary = _shading[id]
 		(material as BaseMaterial3D).diffuse_mode = saved["diffuse"]
 		(material as BaseMaterial3D).specular_mode = saved["specular"]
+		(material as BaseMaterial3D).normal_enabled = saved["normal"]
 	_shading.clear()
 
 ## A metal is all specular and no diffuse, so dropping the specular lobe turns

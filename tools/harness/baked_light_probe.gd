@@ -26,6 +26,19 @@ func _ready() -> void:
 	for light: OmniLight3D in [baked, tv_like, dynamic, ships_hidden]:
 		scene.add_child(light)
 
+	# El pase de luces horneadas ya no decide sobre una escena sin geometria
+	# visible - el precache la esconde entera y medir ahi contesta 0/0. Asi que
+	# la sonda tiene que traer mallas de verdad, y las registra en el bake para
+	# reproducir los dos casos reales: Chimera (el bake lleva la habitacion) y
+	# la tienda (no la lleva).
+	var meshes: Array[MeshInstance3D] = []
+	for i: int in 25:
+		var mesh_node := MeshInstance3D.new()
+		mesh_node.name = "Baked%d" % i
+		mesh_node.mesh = BoxMesh.new()
+		scene.add_child(mesh_node)
+		meshes.append(mesh_node)
+
 	var character := RubiconCharacter.new()
 	scene.add_child(character)
 	var serena_light: OmniLight3D = _light(Light3D.BAKE_STATIC, true)
@@ -37,14 +50,31 @@ func _ready() -> void:
 	# 1. Con el ajuste puesto pero SIN bake cargado no se toca nada. Es la
 	#    condicion que impide repetir la casa negra de once dias.
 	Settings.graphics_hide_baked_lights = true
-	print("OUT lightmap_sin_datos_vivo=%s" % applier._has_live_lightmap(scene))
+	print("OUT sin_datos_sirve=%s" % applier._bake_carries_the_room(scene))
 	applier._apply_baked_light_cull(scene)
 	_report("sin_bake", baked, tv_like, dynamic, ships_hidden, serena_light)
 
-	# 2. Con bake cargado esconde la horneada y solo la horneada.
-	lightmap.light_data = LightmapGIData.new()
+	# 2. Con bake cargado pero cubriendo poco - el caso de la tienda, 44/101 -
+	#    el pase se planta y no toca nada.
+	var data := LightmapGIData.new()
+	for i: int in 5:
+		data.add_user(lightmap.get_path_to(meshes[i]), Rect2(0, 0, 1, 1), 0, -1)
+	lightmap.light_data = data
 	applier._applied_hide_baked = false
-	print("OUT lightmap_con_datos_vivo=%s" % applier._has_live_lightmap(scene))
+	applier._bake_decided = false
+	print("OUT cobertura_baja_sirve=%s (%d/25)" %
+		[applier._bake_carries_the_room(scene), 5])
+	applier._apply_baked_light_cull(scene)
+	_report("poca_cobert", baked, tv_like, dynamic, ships_hidden, serena_light)
+
+	# 3. Y con el bake llevando la habitacion - el caso de Chimera, 56/62 -
+	#    esconde la horneada y solo la horneada.
+	for i: int in range(5, 24):
+		data.add_user(lightmap.get_path_to(meshes[i]), Rect2(0, 0, 1, 1), 0, -1)
+	applier._applied_hide_baked = false
+	applier._bake_decided = false
+	print("OUT cobertura_alta_sirve=%s (%d/25)" %
+		[applier._bake_carries_the_room(scene), 24])
 	applier._apply_baked_light_cull(scene)
 	_report("con_bake", baked, tv_like, dynamic, ships_hidden, serena_light)
 
@@ -80,8 +110,11 @@ func _check_cheap_shading(applier: Node) -> void:
 	var metal_tex := StandardMaterial3D.new()
 	metal_tex.metallic = 0.0
 	metal_tex.metallic_texture = PlaceholderTexture2D.new()
+	var bumped := StandardMaterial3D.new()
+	bumped.normal_enabled = true
+	bumped.normal_texture = PlaceholderTexture2D.new()
 	for pair: Array in [["_sintetico_mate", matte], ["_sintetico_metal", metal],
-			["_sintetico_metal_tex", metal_tex]]:
+			["_sintetico_metal_tex", metal_tex], ["_sintetico_normal", bumped]]:
 		loaded[pair[0]] = pair[1]
 		var synthetic := MeshInstance3D.new()
 		synthetic.mesh = BoxMesh.new()
@@ -103,16 +136,18 @@ func _check_cheap_shading(applier: Node) -> void:
 	applier._apply_cheap_shading(holder)
 	for name: String in loaded:
 		var material: BaseMaterial3D = loaded[name]
-		print("OUT barato    %-22s metallic=%.2f tex=%s diffuse=%d specular=%d shading=%d" % [
+		print("OUT barato    %-22s metallic=%.2f tex=%s diffuse=%d specular=%d shading=%d normal=%s" % [
 			name, material.metallic, material.metallic_texture != null,
-			material.diffuse_mode, material.specular_mode, material.shading_mode])
+			material.diffuse_mode, material.specular_mode, material.shading_mode,
+			material.normal_enabled])
 
 	Settings.graphics_cheap_shading = false
 	applier._apply_cheap_shading(holder)
 	for name: String in loaded:
 		var material: BaseMaterial3D = loaded[name]
-		print("OUT restaurado %-21s diffuse=%d specular=%d" % [
-			name, material.diffuse_mode, material.specular_mode])
+		print("OUT restaurado %-21s diffuse=%d specular=%d normal=%s" % [
+			name, material.diffuse_mode, material.specular_mode,
+			material.normal_enabled])
 	Settings.graphics_cheap_shading = before
 
 func _light(bake: int, visible_now: bool) -> OmniLight3D:

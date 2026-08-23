@@ -2829,7 +2829,7 @@ Three consequences, all of which have already misled this file:
 The habit to build: **read `bench` before any other number on the line.** It
 is already on every entry.
 
-## Very Low pasó a `render_scale = 0.70`, y de ahí a 0.55
+## Very Low pasó a `render_scale = 0.70`, y de ahí a 0.50
 
 Decisión del usuario, correcta: **0.50 no es "el juego yendo bien", es el
 juego a un cuarto de resolución escondiendo que hay lag de verdad.** Bajar la
@@ -2870,8 +2870,8 @@ de control - reloj 5.6x contra frame 0.98x, correlación +0.14):
 
     0.70 -> 0.564 Mpx -> 57.0ms  (17.6 fps)   <- lo que shipeaba
     0.65 -> 0.487 Mpx -> 49.9ms  (20.0 fps)   <- Low
-    0.55 -> 0.348 Mpx -> 37.3ms  (26.8 fps)   <- Very Low ahora
-    0.50 -> 0.288 Mpx -> 31.9ms  (31.4 fps)
+    0.55 -> 0.348 Mpx -> 37.3ms  (26.8 fps)
+    0.50 -> 0.288 Mpx -> 31.9ms  (31.4 fps)   <- Very Low ahora
 
 Control del ajuste: a 0.50 el modelo predice 31.9ms y el histórico medido de
 Chimera son **31.85ms**.
@@ -2881,17 +2881,17 @@ de arriba predecía 22.3ms para 0.70 cuando el teléfono da 57.0. Una pendiente
 medida en otro dispositivo y otra escena no traslada; el modelo bueno es el de
 las dos pasadas de la misma escena en el mismo teléfono.
 
-0.55 sigue por encima del 0.50 que el usuario rechazó y **por debajo de Low**,
-que es la parte que no era opinable.
+Pasó por 0.55 y acabó en **0.50**, que es donde el usuario lo quiere. Lo que
+no era opinable es que quedara **por debajo de Low**.
 
-**Y Very Low capa el frame a 30.** `target_fps` lleva siendo una fila del
-preset desde siempre y los cuatro presets shipeaban 60, incluido el que existe
-precisamente porque el teléfono no sostiene 60. El propio docstring del campo
-ya lo argumentaba y nadie lo había puesto: Chimera oscila entre 60fps en
-`113_reaching` (14.8ms) y menos de 20 en los planos anchos, y **ese vaivén es
-lo que se lee como tartamudeo** - el síntoma reportado. Un cap a 30 no cuesta
-nada en los planos caros, que ya van por debajo, y quita el salto en los
-baratos.
+**Y los cuatro presets dejan `target_fps` en `TARGET_FPS_NATIVE` (-1).**
+Hubo una build en la que Very Low capaba a 30 con el argumento de que el
+vaivén entre 60 y 17 se lee como tartamudeo. **Decisión del usuario, y es la
+correcta: el cap sigue a la pantalla y no se fija a mano.** Capar a 30 tira
+todos los frames que el teléfono sí podía dar en los planos baratos -Chimera
+tiene planos a 13ms al lado de planos a 60- y fijar 60 está mal en el primer
+teléfono de 90 o 120Hz que abra esto. La fila sigue existiendo en la consola
+para el jugador; los presets ya no opinan sobre el panel.
 
 `tools/test_preset_ladder.gd` (51 comprobaciones, en CI) fija que los cuatro
 presets no crezcan en coste en ningún campo de la escalera, **sobre el recurso
@@ -2949,11 +2949,16 @@ el dato y no solo el código. `TvLight`, que sí anima nueve secuencias, es
 `BAKE_DISABLED` y por tanto nunca candidata.
 
 Verificado sobre el applier real con los autoloads reales
-(`tools/harness/baked_light_probe.tscn`, porque bajo `--script` no compila):
+(`tools/harness/baked_light_probe.tscn`, porque bajo `--script` no compila).
+La sonda registra usuarios de verdad en un `LightmapGIData` con `add_user()`,
+así que reproduce las **tres** ramas y no solo la de "hay bake":
 
-    lightmap sin datos   horneada=true  tv=true dinamica=true ya_oculta=false serena=true
-    lightmap con datos   horneada=FALSE tv=true dinamica=true ya_oculta=false serena=true
-    restaurado           horneada=true  tv=true dinamica=true ya_oculta=false serena=true
+    sin datos                     sirve=false   horneada=true
+    cobertura baja (5/25 = 20%)   sirve=false   horneada=true    <- el caso tienda
+    cobertura alta (24/25 = 96%)  sirve=TRUE    horneada=FALSE   <- el caso Chimera
+    restaurado                                  horneada=true
+
+y en las cuatro `tv`, `dinamica`, `serena` y `ya_oculta` se quedan como estaban.
 
 ### El truco que faltaba: los materiales corren los defaults caros de Godot
 
@@ -3080,6 +3085,19 @@ puede pagar uno por frame.
 Y el aviso general que esto deja: **una medida tomada durante el precache no
 mide la escena.** El precache existe para esconderlo todo; cualquier lectura
 que dependa de visibilidad y corra ahí lee ceros.
+
+### Y `cheap_shading` se lleva también el mapa de normales
+
+Del mismo banco, en la ruta del teléfono a 880x396 con dos luces:
+
+    base                              21.43ms
+    + mapa de normales                25.33ms   **+18%**
+    + normales y rugosidad/metalico   26.16ms   +22%
+
+O sea que el normal solo son 18 puntos y las otras dos texturas cuatro más. El
+pase quita **solo el normal** (`normal_enabled = false`, la textura se queda
+asignada y vuelve con la bandera) y deja rugosidad y metálico, que cuestan poco
+y cambian más el aspecto. En la casa lo llevan `props1` y `props2`.
 
 ### La tienda no es Chimera, y el pase de luces horneadas casi lo paga
 

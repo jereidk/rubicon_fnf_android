@@ -168,6 +168,13 @@ func _initialize() -> void:
 		"no shipea PER_VERTEX: mide mejor pero interpola la luz por triangulo")
 	_check(_has_statement(src, "_restore_shading()"),
 		"y devuelve diffuse/specular al subir de preset")
+	_check(_has_statement(src, "material.normal_enabled = false"),
+		"y quita el mapa de normales, que el banco cobra a +18%")
+	_check(_has_statement(src, 'saved["normal"]'),
+		"guardandolo para devolverlo")
+	_check(not _has_statement(src, "material.roughness_texture = null")
+			and not _has_statement(src, "material.metallic_texture = null"),
+		"pero NO rugosidad/metalico: +4% mas y cambian mas el aspecto")
 
 	const HOUSE := "res://lullaby_mod/assets/funkin/chimera/models/house/materials/"
 	for name: String in ["Material", "props1", "props2"]:

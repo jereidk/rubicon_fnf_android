@@ -17,4 +17,4 @@ anisotropic_filtering = 2
 mesh_lod_threshold = 1.0
 light_distance_fade = 0.0
 physics_ticks_per_second = 60
-target_fps = 60
+target_fps = -1

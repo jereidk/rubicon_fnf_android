@@ -62,13 +62,16 @@ var anisotropic_filtering: int = 2
 ## eight physics steps inside the frame that was already late.
 @export var physics_ticks_per_second: int = 60
 
-## Frame rate cap. Not a graphics setting in the usual sense - it does
-## nothing for image quality - but on a device that cannot hold 60 it is
-## worth more than any of the above. Chimera on a moto g53 oscillates
-## between 60fps and sub-20 with spikes past 140ms, and that swing is what
-## reads as stuttering; a phone locked to a rate it can actually sustain
-## feels smooth at half the numbers. 0 means uncapped.
-@export var target_fps: int = 0
+## Frame rate cap, as LullabySettings.display_target_fps.
+##
+## **Every preset ships TARGET_FPS_NATIVE (-1): follow whatever the panel is
+## running at, and never pin a number.** A preset that hard-caps to 30 throws
+## away every frame the device could have delivered on the cheap shots - and
+## Chimera has shots at 13ms next to shots at 60 - while a preset that pins 60
+## is wrong on the first 90Hz or 120Hz phone this runs on. The row still exists
+## for the player, who can pick a fixed rate in the console; the presets just
+## stop having an opinion about the panel.
+@export var target_fps: int = -1
 
 ## Only Very Low sets this - strips every decorative/post-processing shader
 ## effect in the project (see LullabySettings.EFFECT_SHADER_PATHS) while
