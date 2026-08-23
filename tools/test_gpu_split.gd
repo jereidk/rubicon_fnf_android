@@ -33,6 +33,7 @@ extends SceneTree
 const LOG := "res://lullaby_mod/scripts/lullaby/debug/lullaby_diagnostics_log.gd"
 const SETTINGS := "res://menus/settings.gd"
 const HACKS := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/hacks_tab.gd"
+const CONSOLE := "res://lullaby_mod/resources/console/console.tscn"
 
 var _failures: int = 0
 var _checks: int = 0
@@ -80,8 +81,16 @@ func _initialize() -> void:
 	var settings: String = _read(SETTINGS)
 	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = false"),
 		"el ajuste existe y sale apagado")
-	_check(_read(HACKS).contains('const GPU_SPLIT_CODE := "GPUSPLIT"'),
-		"y se enciende con un codigo, no con una fila de preferencias")
+	# Y vive donde vive su interruptor maestro: la fila de Diagnostics Log
+	# esta seis lineas mas arriba en la misma pestaña. Meterlo en los codigos
+	# de la pestaña Hacks era esconder un diagnostico en contenido de jugador.
+	var console: String = _read(CONSOLE)
+	_check(console.contains('property = &"lullaby_diagnostics_gpu_split"'),
+		"tiene fila en la consola, junto a Diagnostics Log")
+	_check(console.contains('[node name="GpuSplitLog"'),
+		"con nodo propio")
+	_check(not _read(HACKS).contains("GPUSPLIT"),
+		"y NO es un codigo de la pestaña Hacks")
 
 	# 4. El reloj de pared, no delta - la regla de este fichero, que ya dejo
 	#    mudos a cuatro temporizadores en los frames que existian para medir.

@@ -657,3 +657,5 @@ Play it,Reproducir
 Skip it,Omitir
 Leave it,No repetir
 Replay on launch,Repetir al arrancar
+GPU Split Logging,Registro de reparto de GPU
+"Times the same shot with and without lighting, so the log can say how much of the frame is lights and how much is overdraw. Two frames per sample render deliberately wrong - leave it off unless you are capturing a log.","Cronometra el mismo plano con y sin iluminación, para que el registro pueda decir cuánto del frame son luces y cuánto sobredibujado. Dos fotogramas por muestra se dibujan mal a propósito: déjalo apagado salvo que estés capturando un registro."

@@ -4768,11 +4768,23 @@ Cuatro cosas que hay que respetar si alguien lo toca:
 - **Sólo con cámara 3D y algo visible**: en las dos canciones 2D y en los menús
   las tres lecturas serían el canvas tres veces.
 
-Es **opt-in** (`Settings.lullaby_diagnostics_gpu_split`, apagado de fábrica),
-encendido con el código **`GPUSPLIT`** en la pestaña Hacks de la consola, porque
-las dos frames por muestra salen visiblemente mal y eso no se le hace a alguien
-jugando. Un código y no una fila de preferencias: se enciende para una pasada
-registrada y se apaga.
+Es **opt-in** (`Settings.lullaby_diagnostics_gpu_split`, apagado de fábrica) y
+vive donde vive su interruptor maestro: **una fila en Misc, justo debajo de
+Diagnostics Log**.
+
+Primero salió como código de la pestaña Hacks, con el razonamiento de que "un
+diagnóstico no es una preferencia". **Ese razonamiento es falso en sus propios
+términos** - el interruptor maestro de todo este log es una fila seis líneas
+más arriba en la misma pestaña. El motivo de verdad era que `console.tscn` es
+la única escena que este workspace no puede cargar, y eso es un motivo para
+**validar la edición estructuralmente**, no para poner el control en otro
+sitio. Corregido, y el guard fija que no vuelva a los códigos.
+
+La validación estructural que sustituye a no poder abrir la escena: ids de
+`ext_resource` declarados contra usados, y que todos los `focus_neighbor_*` de
+los diez nodos de Misc resuelvan a un hermano que existe. Más
+`audit_duplicate_scene_nodes.py`, que es lo que cazó el `HSeparator` repetido
+que descolocó la pantalla de first boot.
 
 ### Y dos contadores más, gratis
 
