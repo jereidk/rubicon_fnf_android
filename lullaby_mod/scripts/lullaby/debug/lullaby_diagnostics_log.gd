@@ -138,6 +138,11 @@ const GPU_TIMING_UNSUPPORTED_ENTRIES := 12
 const CENSUS_SECONDS := 30.0
 const CENSUS_ON_PROC_MS := 300.0
 
+## How many 2D fill contributors `relleno=` names. Six fits the line and is
+## more than enough: Safety Lullaby's five screens come from twenty-three
+## items, and anything outside the top six is under a tenth of a screen.
+const OVERDRAW_RANK := 6
+
 ## Progress fractions to report during a threaded load.
 ##
 ## Dense right after 0.50, because that is where the whole thing lives.
@@ -1228,6 +1233,22 @@ func census(reason: String) -> void:
 	var overdraw_items: int = 0
 	var overdraw_top_px: float = 0.0
 	var overdraw_top: String = ""
+	## The biggest contributors, not just the biggest one.
+	##
+	## `over=` has been the most useful number in this log for 2D scenes and the
+	## least actionable. Safety Lullaby measures `gpu=32.48ms` against Chimera's
+	## `15.27ms` while drawing 592 primitives to Chimera's 15645 and no 3D at
+	## all; the only counter that separates them is `over=5.0x` against `1.1x`,
+	## and across the two pure-2D scenes in that log the slope is about 8ms of
+	## GPU per screen of 2D fill at 1600x720. So four wasted screens is the
+	## whole song's frame budget - and the line named exactly one of them.
+	##
+	## Named with its alpha, because the trap here is specifically the item that
+	## costs a full screen and shows nothing. A ColorRect at `color.a = 0` is
+	## still rasterised and still blended; this project has it measured, in
+	## `trance_shaders.gd`, at 20.0ms for the identity pass against 6.7ms hidden
+	## - and `_alpha_is_knowable()` says when the number cannot be trusted.
+	var overdraw_rank: Array = []
 	## Visible, opaque, full-frame CanvasItems, deepest last - which is
 	## roughly draw order, so the last one named is the one on top.
 	var covers: Array[String] = []
@@ -1345,6 +1366,7 @@ func census(reason: String) -> void:
 					if area > overdraw_top_px:
 						overdraw_top_px = area
 						overdraw_top = _scene_relative_path(node)
+					_rank_overdraw(overdraw_rank, area, node)
 
 				if _covers_screen(node) and _paints_anything(node):
 					var opacity: float = _opaque_coverage(node)
@@ -1439,7 +1461,7 @@ func census(reason: String) -> void:
 			class_delta.append(moved[i][1])
 	_last_census_counts = counts
 
-	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d maybe=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | maybe=[%s] | %s | delta=[%s]" % [
+	_entry("CENSUS", "%s | anim_players=%d playing=%d anim_tracks=%d trees=%d(active=%d manual=%d) notes=%d(visible=%d) parked=%d audio=%d(playing=%d) phys2d=%d/%d lights=%d(shadow=%d) fx=%d(effect=%d full=%d uniq=%d) opaque=%d maybe=%d over=%.1fx(n=%d top=%s@%.1fx) | %s | top_anims=[%s] | shadows=[%s] | opaque=[%s] | maybe=[%s] | relleno=[%s] | %s | delta=[%s]" % [
 		reason, players.size(), playing, total_tracks, trees_total, trees_active, trees_manual,
 		notes_total, notes_visible, notes_parked,
 		audio_total, audio_playing,
@@ -1457,8 +1479,41 @@ func census(reason: String) -> void:
 		_graphics_summary(), ", ".join(top), ", ".join(shadow_names),
 		", ".join(covers.slice(0, 6)),
 		", ".join(covers_maybe.slice(0, 6)),
+		_overdraw_rank_text(overdraw_rank),
 		" ".join(classes), " ".join(class_delta),
 	])
+
+## Keeps the OVERDRAW_RANK biggest contributors, by insertion rather than by
+## sorting the whole list: the shop has thousands of visible CanvasItems and
+## this runs inside the same walk.
+func _rank_overdraw(rank: Array, area: float, node: CanvasItem) -> void:
+	var at: int = rank.size()
+	while at > 0 and area > float(rank[at - 1][0]):
+		at -= 1
+	if at >= OVERDRAW_RANK:
+		return
+	rank.insert(at, [area, node])
+	if rank.size() > OVERDRAW_RANK:
+		rank.resize(OVERDRAW_RANK)
+
+## `name@1.00x a=0.00` per entry - the share of one screen it paints, and the
+## alpha it paints it at. `a=?` where the pixels come from a texture or a shader
+## and the census cannot read them, same rule the BLACKOUT line uses.
+func _overdraw_rank_text(rank: Array) -> String:
+	var parts: PackedStringArray = []
+	for pair in rank:
+		var node: CanvasItem = pair[1]
+		if not is_instance_valid(node):
+			continue
+		var opacity: float = _opaque_coverage(node)
+		var alpha: String = "?" if is_equal_approx(opacity, UNKNOWN_COVERAGE) \
+			and not _alpha_is_knowable(node) else "%.2f" % opacity
+		parts.append("%s@%.2fx a=%s" % [
+			_scene_relative_path(node),
+			float(pair[0]) / maxf(1.0, _screen_px()),
+			alpha,
+		])
+	return ", ".join(parts)
 
 ## Whether a visible CanvasItem covers most of the frame, which is what makes
 ## a shader on it a full-screen pass rather than a decoration on one sprite.
