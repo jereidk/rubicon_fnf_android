@@ -60,6 +60,20 @@ func _check_wiring(scene: String) -> void:
 	_check(scene.count('type="OptionButton"') >= 3,
 		"and the same control: language, intro, quality preset")
 
+	# No key rebinder on an Android first-boot screen. It shipped with an
+	# "Input" section - four note lanes and a mechanic key, each a button that
+	# waits for an InputEventKey - which on a phone is five controls nobody can
+	# reach and the tallest block on the panel. With it in, the panel overflowed
+	# 1600x720 and cut "Apply and Continue" off the bottom of the screen.
+	#
+	# The bindings themselves are untouched: Z/F/J/K and Space still live in
+	# Settings and still work for anyone on a Bluetooth keyboard. What is gone
+	# is the UI for changing them at first boot.
+	_check(not scene.contains("key_rebind_button.gd"),
+		"first boot does not ship a key rebinder on a touch port")
+	_check(not scene.contains('[node name="Input"'),
+		"and the Input section is gone with it")
+
 func _check_language(script: String) -> void:
 	_check(script.contains("LANGUAGE_VALUES"), "the language row has a value list")
 
