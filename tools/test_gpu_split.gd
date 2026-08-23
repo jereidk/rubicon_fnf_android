@@ -77,7 +77,7 @@ func _initialize() -> void:
 	# Y el ciclo en vuelo no se puede abortar a media: el ajuste solo se mira
 	# en el paso 0, asi que apagarlo mientras corre no deja el viewport en
 	# modo depuracion.
-	var gate: int = body.find("lullaby_diagnostics_gpu_split")
+	var gate: int = body.find("diagnostics_gpu_split")
 	_check(gate >= 0 and gate < set_mode,
 		"el ajuste solo se consulta al empezar un ciclo, nunca a mitad")
 
@@ -100,15 +100,41 @@ func _initialize() -> void:
 	# El motivo original se resuelve en la cabecera del log en vez de en el
 	# frame: `gpu_split:` se escribe siempre, asi que un log sin GPUSPLIT dice
 	# por que no lo tiene.
-	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = false"),
+	_check(settings.contains("var diagnostics_gpu_split: bool = false"),
 		"el ajuste sale APAGADO: altera lo que el jugador ve")
+
+	# Y APAGADO EN CADA ARRANQUE, que no es lo mismo y costo una build entera.
+	#
+	# Cambiar el valor por defecto no apago nada. El ajuste se llamaba
+	# `lullaby_diagnostics_gpu_split`, y save() escribe toda variable con uno de
+	# sus cinco prefijos; el movil que ya habia corrido la build encendida tenia
+	# `[lullaby] diagnostics_gpu_split=true` en settings.ini, load_from() lo
+	# restauraba por encima del nuevo defecto y el flash seguia igual. Lo dijo la
+	# cabecera del siguiente log: `gpu_split : on`, quince muestras, de 133s a
+	# 484s, en la tienda y en Chimera. Un valor por defecto no arregla nada que
+	# ya este guardado.
+	#
+	# Sin prefijo no se guarda ni se lee: apagado en cada arranque. Las claves
+	# viejas quedan muertas en el fichero porque load_from() salta lo que no
+	# existe en Settings.
+	var prefixed: bool = false
+	for prefix: String in ["lullaby_", "graphics_", "audio_", "game_", "display_"]:
+		if settings.contains("var %sdiagnostics_gpu_split" % prefix):
+			prefixed = true
+	_check(not prefixed,
+		"y sin prefijo de save(): no se persiste, asi que ninguna instalacion lo hereda encendido")
+	_check(settings.contains('and not property_name.begins_with("lullaby_")'),
+		"...que es exactamente el filtro de save() del que se esta quedando fuera")
+	_check(settings.contains("if property_name in self:"),
+		"...y load_from() salta la clave vieja porque la propiedad ya no existe")
+
 	_check(_read(LOG).contains('_file.store_line("gpu_split : '),
 		"y la cabecera del log declara el interruptor en los dos casos")
 	# Y vive donde vive su interruptor maestro: la fila de Diagnostics Log
 	# esta seis lineas mas arriba en la misma pestaña. Meterlo en los codigos
 	# de la pestaña Hacks era esconder un diagnostico en contenido de jugador.
 	var console: String = _read(CONSOLE)
-	_check(console.contains('property = &"lullaby_diagnostics_gpu_split"'),
+	_check(console.contains('property = &"diagnostics_gpu_split"'),
 		"tiene fila en la consola, junto a Diagnostics Log")
 	_check(console.contains('[node name="GpuSplitLog"'),
 		"con nodo propio")

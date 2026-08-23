@@ -5495,7 +5495,7 @@ focus_neighbor_top = NodePath("../DiagnosticsLog")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../DeleteSaveData")
 text = "GPU Split Logging"
-property = &"lullaby_diagnostics_gpu_split"
+property = &"diagnostics_gpu_split"
 console = NodePath("../../../../../..")
 tooltip = "Times the same shot with and without lighting, so the log can say how much of the frame is lights and how much is overdraw. Two frames per sample render deliberately wrong - leave it off unless you are capturing a log."
 

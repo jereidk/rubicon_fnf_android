@@ -370,9 +370,12 @@ var _alpha_surface_count: int = 0
 ## expensive enough to delete: this only swaps an enum and reads a counter that
 ## is already being collected.
 ##
-## Costs two visually wrong frames per sample, which is why it is opt-in
-## (`Settings.lullaby_diagnostics_gpu_split`, the GPUSPLIT code in the console's
-## Hacks tab) rather than on with the rest of the log.
+## Costs one visually wrong frame per sample - the player reported it as "un
+## flash blanco opaco" in both 3D scenes, unprompted and without knowing it
+## existed - which is why it is opt-in **per launch**: `Settings`'
+## `diagnostics_gpu_split`, the row under Diagnostics Log in the console's Misc
+## tab, deliberately unprefixed so save() never writes it and no install can
+## come back up with it still on.
 const GPU_SPLIT_SECONDS := 20.0
 
 var _gpu_split_state: int = 0
@@ -1669,7 +1672,7 @@ func _step_gpu_split() -> void:
 	if not is_inside_tree():
 		return
 	if _gpu_split_state == 0:
-		if not Settings.lullaby_diagnostics_gpu_split:
+		if not Settings.diagnostics_gpu_split:
 			return
 		_time_since_gpu_split += _last_frame_wall_ms
 		if _time_since_gpu_split < GPU_SPLIT_SECONDS * 1000.0:
@@ -1724,7 +1727,7 @@ func _step_script_split() -> void:
 		return
 
 	if _script_split_state == 0:
-		if not Settings.lullaby_diagnostics_gpu_split:
+		if not Settings.diagnostics_gpu_split:
 			return
 		_time_since_script_split += _last_frame_wall_ms
 		if _time_since_script_split < SCRIPT_SPLIT_SECONDS * 1000.0:
@@ -3949,8 +3952,8 @@ func _write_header() -> void:
 	# the wrong side of that trade. Saying so in the header costs nothing and
 	# removes the ambiguity the default was covering for.
 	_file.store_line("gpu_split : %s%s" % [
-		"on" if Settings.lullaby_diagnostics_gpu_split else "off",
-		"" if Settings.lullaby_diagnostics_gpu_split
+		"on" if Settings.diagnostics_gpu_split else "off",
+		"" if Settings.diagnostics_gpu_split
 			else "  (sin GPUSPLIT/SCRIPTSPLIT en este log; la fila esta en la consola)",
 	])
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())

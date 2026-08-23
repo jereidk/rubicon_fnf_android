@@ -325,8 +325,8 @@ var lullaby_diagnostics_log: bool = true
 ## Let the diagnostics log split the GPU frame into lighting, fill and the
 ## rest, by re-rendering two frames per sample through Viewport.debug_draw.
 ##
-## **On by default**, and a row in the console's Misc tab right under
-## Diagnostics Log, so it can be switched off for a clean recording.
+## **Off at every launch, and never persisted**, with a row in the console's
+## Misc tab right under Diagnostics Log to turn it on for a measurement pass.
 ##
 ## It shipped off, twice over the wrong reason. First as a cheat code on
 ## "a diagnostic is not a preference" - wrong on its own terms, since the
@@ -350,20 +350,36 @@ var lullaby_diagnostics_log: bool = true
 ## flash blanco opaco... aparece en ocasiones y molesta, se ve feo". Both 3D
 ## scenes, occasional, bright - which is a 20-second period, a camera check,
 ## and `DEBUG_DRAW_UNSHADED` throwing away the lighting on a scene whose whole
-## look is dark. The prediction was wrong on the one point that decides it, so
-## the default goes back.
+## look is dark.
+##
+## **Changing the default did not turn it off, and this is why the name has no
+## prefix.** It shipped as `lullaby_diagnostics_gpu_split`, and every var with
+## one of save()'s five prefixes is written to settings.ini and read back by
+## load_from(). So the phone that had already run the on-by-default build had
+## `[lullaby] diagnostics_gpu_split=true` on disk, load_from() restored it over
+## the new default on the next launch, and the flash carried on exactly as
+## before - "el destello blanco sigue". The next device log settled it in its
+## own header: `gpu_split : on`, fifteen samples, 133s to 484s, spread across
+## the shop and Chimera, seven of them the UNSHADED pass. A default is not a
+## fix for anything already persisted.
+##
+## Unprefixed, so it is not saved and not loaded: off at every launch, on for as
+## long as the console row says so and no longer. Old settings.ini files carry
+## the dead `[lullaby] diagnostics_gpu_split` key, which load_from() skips
+## because the property no longer exists - no migration needed, and the flash
+## stops on installs that already have the key.
 ##
 ## The concern that turned it on stands and is handled differently: a log with
 ## no GPUSPLIT lines used to be indistinguishable from an instrument nobody
-## remembered to switch on, so the header now states the switch either way
+## remembered to switch on, so the header states the switch either way
 ## (`gpu_split:` in the log preamble). Absence is loud instead of silent, and
 ## nothing has to be paid for in frames the player sees.
 ##
 ## It is the only instrument that can tell "Chimera is per-fragment lighting"
 ## from "Chimera is 3D overdraw": both fit a single gpu= number and neither
 ## could be ruled out from one. Turn it on from the console row for a
-## measurement pass, off for playing.
-var lullaby_diagnostics_gpu_split: bool = false
+## measurement pass; it turns itself off when the game is next launched.
+var diagnostics_gpu_split: bool = false
 
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.

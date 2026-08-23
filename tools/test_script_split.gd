@@ -48,7 +48,7 @@ func _run() -> void:
 		print("FALLO: no existe el autoload Settings")
 		quit(1)
 		return
-	settings.lullaby_diagnostics_gpu_split = true
+	settings.diagnostics_gpu_split = true
 
 	var scene := Node.new()
 	var running := AnimationPlayer.new()
