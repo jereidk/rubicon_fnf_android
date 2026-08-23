@@ -69,6 +69,11 @@ var _watched: Array[Light3D] = []
 ## is what makes the restore exact instead of a guess at the default 0xFFFFF.
 var _dark_masks: Dictionary = {}
 
+## Materials this pass simplified, keyed by instance id, holding their authored
+## diffuse/specular modes.
+var _shading: Dictionary = {}
+var _applied_cheap_shading: bool = false
+
 func _ready() -> void:
 	# After the AnimationPlayers. An autoload is at the top of the tree and
 	# therefore processes before the scene by default, which would read
@@ -92,8 +97,10 @@ func _on_scene_changed(_path: String) -> void:
 	_watched.clear()
 	_dark_masks.clear()
 	set_process(false)
+	_shading.clear()
 	_applied_multiplier = DISABLED
 	_applied_hide_baked = false
+	_applied_cheap_shading = false
 	_apply_when_scene_ready()
 
 ## Settings.applied fires on every single option row in the console, and
@@ -101,7 +108,8 @@ func _on_scene_changed(_path: String) -> void:
 ## script exists to avoid. Only re-walk when the value actually moved.
 func _on_settings_applied() -> void:
 	if Settings.graphics_light_distance_fade == _applied_multiplier \
-			and Settings.graphics_hide_baked_lights == _applied_hide_baked:
+			and Settings.graphics_hide_baked_lights == _applied_hide_baked \
+			and Settings.graphics_cheap_shading == _applied_cheap_shading:
 		return
 	_apply_to_current_scene()
 
@@ -122,6 +130,7 @@ func _apply_to_current_scene() -> void:
 	set_process(not _watched.is_empty())
 
 	_apply_baked_light_cull(scene)
+	_apply_cheap_shading(scene)
 
 	var multiplier: float = maxf(0.0, Settings.graphics_light_distance_fade)
 	_applied_multiplier = multiplier
@@ -295,6 +304,111 @@ func _is_under_character(light: Light3D) -> bool:
 			return true
 		node = node.get_parent()
 	return false
+
+## Drops the two most expensive terms of the lighting shader.
+##
+## Every 3D material in this project ships Godot's defaults - 89 of 93 declare
+## no `specular_mode` and 89 no `diffuse_mode`, so they all run Burley diffuse
+## plus Schlick-GGX specular, **per light, per fragment**. Nobody ever chose
+## that; it is just what a StandardMaterial3D is out of the box.
+##
+## Measured on the phone's path (Vulkan, Forward Mobile, 880x396 - the 3D pass
+## of Chimera at scale 0.55 - three overlapping full-screen layers):
+##
+##     2 lights   base (Burley + SchlickGGX)   gpu 21.43ms
+##                LAMBERT + specular off           13.33ms   -38%
+##     4 lights   base                             34.63ms
+##                LAMBERT + specular off           18.47ms   -47%
+##
+## The saving grows with the light count because both terms are evaluated once
+## per light. Against the unshaded floor (5.46ms on the same bench) that is
+## **55% of the lighting maths gone** at four lights.
+##
+## Two things it deliberately does not do:
+##
+## - **Never touches a metallic material.** A metal surface has no diffuse
+##   term: its whole appearance *is* the specular lobe, so disabling it renders
+##   the surface nearly black. The house has three (`Material`, `props1`,
+##   `props2`, all `metallic = 1.0` with a metallic texture) and they keep
+##   Schlick-GGX. They still get Lambert, which is a diffuse-side choice and
+##   costs a metal nothing.
+## - **Never `SHADING_MODE_PER_VERTEX`**, which measured better than either
+##   (10.11ms at four lights, -71%) and is not a like-for-like swap: it moves
+##   the light loop to the vertex shader, so lighting is interpolated across a
+##   triangle. On a house made of large flat quads that reads as banding, and
+##   this project's geometry is exactly that. It is on the table as a further
+##   step, measured, but not shipped blind.
+##
+## Materials are shared resources, so this is keyed and stashed by instance id
+## and restored on preset change - two meshes bound to the same `.tres` are
+## visited once.
+func _apply_cheap_shading(scene: Node) -> void:
+	_applied_cheap_shading = Settings.graphics_cheap_shading
+
+	if not _applied_cheap_shading:
+		_restore_shading()
+		return
+	if not _shading.is_empty():
+		return
+
+	for material: BaseMaterial3D in _materials_of(scene):
+		# An unshaded material has no lighting terms to drop.
+		if material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+			continue
+		var id: int = material.get_instance_id()
+		if _shading.has(id):
+			continue
+		_shading[id] = {
+			"diffuse": material.diffuse_mode,
+			"specular": material.specular_mode,
+		}
+		material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+		if not _is_metallic(material):
+			material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+
+func _restore_shading() -> void:
+	for id: int in _shading:
+		var material: Object = instance_from_id(id)
+		if not is_instance_valid(material) or not (material is BaseMaterial3D):
+			continue
+		var saved: Dictionary = _shading[id]
+		(material as BaseMaterial3D).diffuse_mode = saved["diffuse"]
+		(material as BaseMaterial3D).specular_mode = saved["specular"]
+	_shading.clear()
+
+## A metal is all specular and no diffuse, so dropping the specular lobe turns
+## it black. A metallic texture counts even when the scalar is low, because the
+## scalar multiplies it.
+func _is_metallic(material: BaseMaterial3D) -> bool:
+	return material.metallic >= 0.5 or material.metallic_texture != null
+
+## Every BaseMaterial3D actually bound in the scene, in the order the renderer
+## resolves them: the instance override wins, then the per-surface override,
+## then the material living on the mesh resource. A ShaderMaterial has its own
+## hand-written lighting and is skipped.
+func _materials_of(root: Node) -> Array[BaseMaterial3D]:
+	var out: Array[BaseMaterial3D] = []
+	var seen: Dictionary = {}
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var mesh_node := node as MeshInstance3D
+		if mesh_node == null:
+			continue
+		for surface: int in mesh_node.get_surface_override_material_count():
+			var material: Material = mesh_node.material_override
+			if material == null:
+				material = mesh_node.get_surface_override_material(surface)
+			if material == null and mesh_node.mesh != null:
+				material = mesh_node.mesh.surface_get_material(surface)
+			var base := material as BaseMaterial3D
+			if base == null or seen.has(base.get_instance_id()):
+				continue
+			seen[base.get_instance_id()] = true
+			out.append(base)
+	return out
 
 func _restore() -> void:
 	for id: int in _stashed:

@@ -101,6 +101,27 @@ var anisotropic_filtering: int = 2
 ## Low and Very Low. Not Medium, which is meant to look right.
 @export var hide_baked_lights: bool = false
 
+## Drop the two most expensive terms of the lighting shader.
+##
+## Every 3D material in this project ships Godot's defaults - 89 of 93 declare
+## no `specular_mode` and 89 no `diffuse_mode` - so all of them run Burley
+## diffuse plus Schlick-GGX specular once per light per fragment. Nobody chose
+## that; it is what a StandardMaterial3D is out of the box.
+##
+## Measured on the phone's path (Vulkan, Forward Mobile, 880x396, three
+## overlapping full-screen layers):
+##
+##     2 lights  base 21.43ms  ->  LAMBERT + specular off  13.33ms   -38%
+##     4 lights  base 34.63ms  ->  LAMBERT + specular off  18.47ms   -47%
+##
+## Both terms run per light, so the saving grows with the light count. Metallic
+## materials keep their specular - for a metal that lobe IS the material, and
+## disabling it renders the surface nearly black.
+##
+## Low and Very Low, alongside hide_baked_lights: the two together are what
+## puts 60fps back on the table without lowering render scale.
+@export var cheap_shading: bool = false
+
 ## How many atlas frames pass between gdanimate symbol updates. 1 is stock.
 ##
 ## The only lever on gdanimate's cost that does not require rewriting the
@@ -153,6 +174,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects and
 		settings.graphics_hide_baked_lights == hide_baked_lights and
+		settings.graphics_cheap_shading == cheap_shading and
 		settings.graphics_atlas_frame_step == atlas_frame_step
 	)
 
@@ -174,4 +196,5 @@ func apply(settings: LullabySettings) -> void :
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects
 	settings.graphics_hide_baked_lights = hide_baked_lights
+	settings.graphics_cheap_shading = cheap_shading
 	settings.graphics_atlas_frame_step = atlas_frame_step

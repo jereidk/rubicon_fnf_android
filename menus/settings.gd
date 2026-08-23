@@ -141,6 +141,12 @@ var graphics_disable_shader_effects: bool = false
 ## unless the scene really has a LightmapGI with light data loaded.
 var graphics_hide_baked_lights: bool = false
 
+## Drop Burley diffuse and Schlick-GGX specular from 3D materials, which every
+## one of them runs per light per fragment purely because they are Godot's
+## defaults. Applied by MobileLightBudget; metallic materials keep their
+## specular, since for a metal that lobe is the entire appearance.
+var graphics_cheap_shading: bool = false
+
 ## Written straight through to AnimateSymbol.frame_step. See that property and
 ## LullabyQualityPreset.atlas_frame_step for the measurement behind it.
 var graphics_atlas_frame_step: int = 1

@@ -22,5 +22,6 @@ physics_ticks_per_second = 30
 target_fps = 30
 disable_shader_effects = true
 atlas_frame_step = 2
+cheap_shading = true
 hide_baked_lights = true
 metadata/_custom_type_script = "uid://dvyolplt7oov0"

@@ -10,6 +10,7 @@ positional_shadow_atlas_size = 4096
 positional_shadow_filter_quality = 2
 msaa_3d_quality = 2
 atlas_frame_step = 1
+cheap_shading = false
 hide_baked_lights = false
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
 anisotropic_filtering = 2

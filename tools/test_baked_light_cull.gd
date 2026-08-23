@@ -122,6 +122,30 @@ func _initialize() -> void:
 		_check(very_low.hide_baked_lights, "Very Low lo enciende")
 		_check(not medium.hide_baked_lights, "Medium no (tiene que verse bien)")
 		_check(not high.hide_baked_lights, "High no")
+		_check(low.cheap_shading and very_low.cheap_shading,
+			"cheap_shading va en los mismos dos presets")
+		_check(not medium.cheap_shading and not high.cheap_shading,
+			"y no en Medium ni High")
+
+	# 7. El segundo pase: nunca un metalico se queda sin specular, porque para
+	#    un metal ese lobulo ES el material y sin el sale casi negro. La casa
+	#    tiene tres asi y los tres siguen declarandose metalicos.
+	_check(_has_statement(src, "_is_metallic(material)"),
+		"cheap_shading exime a los materiales metalicos")
+	_check(_has_statement(src, "material.metallic >= 0.5 or material.metallic_texture != null"),
+		"y metalico es el escalar O la textura, no solo el escalar")
+	_check(_has_statement(src, "BaseMaterial3D.SHADING_MODE_UNSHADED"),
+		"y salta los unshaded, que no tienen luz que quitar")
+	_check(not _has_statement(src, "SHADING_MODE_PER_VERTEX"),
+		"no shipea PER_VERTEX: mide mejor pero interpola la luz por triangulo")
+	_check(_has_statement(src, "_restore_shading()"),
+		"y devuelve diffuse/specular al subir de preset")
+
+	const HOUSE := "res://lullaby_mod/assets/funkin/chimera/models/house/materials/"
+	for name: String in ["Material", "props1", "props2"]:
+		var body: String = _read(HOUSE + name + ".tres")
+		_check(body.contains("metallic = 1.0") or body.contains("metallic_texture"),
+			"%s sigue siendo metalico, o sea exento" % name)
 
 	_finish()
 

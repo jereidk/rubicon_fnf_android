@@ -2955,6 +2955,80 @@ Verificado sobre el applier real con los autoloads reales
     lightmap con datos   horneada=FALSE tv=true dinamica=true ya_oculta=false serena=true
     restaurado           horneada=true  tv=true dinamica=true ya_oculta=false serena=true
 
+### El truco que faltaba: los materiales corren los defaults caros de Godot
+
+Y con esto **60fps vuelve a estar en la mesa sin tocar `render_scale`**, así que
+la sección de abajo hay que leerla con esta delante.
+
+`StandardMaterial3D` sale de fábrica con `diffuse_mode = DIFFUSE_BURLEY` y
+`specular_mode = SPECULAR_SCHLICK_GGX`, y los dos se evalúan **una vez por luz
+y por fragmento**. En este proyecto **89 de 93 materiales 3D no declaran
+ninguno de los dos** - nadie eligió eso, es lo que un material es si no lo
+tocas.
+
+Medido en la ruta del teléfono (Vulkan, Forward Mobile, 880x396 = el pase 3D de
+Chimera a `scale=0.55`, tres capas a pantalla completa solapadas):
+
+| | 2 luces | 4 luces |
+|---|---|---|
+| base (Burley + SchlickGGX) | 21.43ms | 34.63ms |
+| `specular_mode = DISABLED` | 19.14 | - |
+| `diffuse_mode = LAMBERT` | 21.41 | - |
+| **LAMBERT + sin specular** | **13.33 (−38%)** | **18.47 (−47%)** |
+| `SHADING_MODE_PER_VERTEX` | 8.26 (−64%) | 10.11 (−71%) |
+| `UNSHADED` (el suelo) | 5.46 | - |
+
+**El ahorro crece con el número de luces**, porque los dos términos corren por
+luz. Contra el suelo sin iluminar (5.46ms) eso es **el 55% de la matemática de
+luz eliminada** a cuatro luces.
+
+Y de paso, lo que cuesta lo que ya está puesto: **un mapa de normales es +18%**
+y sumarle rugosidad/metálico por textura +22%. `props1` y `props2` los llevan.
+
+Dos cosas que el pase **no** hace, y las dos importan:
+
+- **Nunca toca un material metálico.** Un metal no tiene término difuso: su
+  aspecto entero *es* el lóbulo especular, y quitárselo lo deja casi negro. La
+  casa tiene tres (`Material`, `props1`, `props2`, `metallic = 1.0` con textura
+  metálica) y conservan Schlick-GGX. Lambert sí lo reciben, que es del lado
+  difuso y a un metal no le cuesta nada.
+- **Nunca `PER_VERTEX`**, que mide mejor que ninguno y **no es un canje
+  equivalente**: mueve el bucle de luces al vértice, o sea que la iluminación
+  se interpola por triángulo. Sobre una casa hecha de cuadriláteros grandes y
+  planos eso se lee como bandas. Queda anotado como escalón siguiente, medido,
+  pero no se envía a ciegas.
+
+`cheap_shading` es una fila del preset (Low y Very Low) aplicada por el mismo
+applier que las luces horneadas, con guardado y restauración por id de recurso
+- los materiales son recursos compartidos, así que dos mallas con el mismo
+`.tres` se visitan una vez.
+
+Verificado en vivo contra el applier real y contra los materiales reales de la
+casa (`tools/harness/baked_light_probe.tscn`):
+
+    barato     _sintetico_mate       metallic=0.00 tex=false  diffuse=1 specular=2
+    barato     _sintetico_metal      metallic=1.00 tex=false  diffuse=1 specular=0   <- conserva
+    barato     _sintetico_metal_tex  metallic=0.00 tex=true   diffuse=1 specular=0   <- conserva
+    barato     wood                  metallic=0.00 tex=false  diffuse=1 specular=2
+    barato     outside               (UNSHADED)               diffuse=0 specular=0   <- intacto
+    restaurado todos                                          diffuse=0 specular=0
+
+Y la aritmética sobre el teléfono, encadenando las dos filas nuevas. La tasa
+medida de Chimera a 4 luces son 90.8 ms/Mpx; el banco dice que pasar de
+"4 luces, base" a "2 luces, LAMBERT sin specular" es un factor **x0.385**:
+
+    90.8 x 0.385 = 35.0 ms/Mpx
+    a scale 0.55 -> 0.348 Mpx -> 12.2ms + 5.7 de suelo = 17.9ms   (56 fps)
+    a scale 0.50 -> 0.288 Mpx -> 10.1ms + 5.7          = 15.8ms   (63 fps)
+
+O sea que **la palanca que faltaba no eran píxeles, era el shader**. Aviso
+obligatorio al citar esto: el banco corre sobre **llvmpipe**, un rasterizador
+por software. Las razones salen de complejidad de ALU del fragmento (Burley
+contra Lambert, GGX contra nada, bucle de luces por fragmento contra por
+vértice) y trasladan en dirección a cualquier GPU, pero **la magnitud en un
+Adreno no tiene por qué ser la misma** - un tiler puede estar limitado por
+ancho de banda y ahorrar menos. El log del teléfono es el que lo decide.
+
 ### Y por qué 60fps no se alcanza sin bajar la escala
 
 La aritmética, con el modelo del propio teléfono (`gpu = 5.7 + 90.8 x Mpx3d`)

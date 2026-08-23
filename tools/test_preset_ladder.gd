@@ -111,7 +111,8 @@ func _initialize() -> void:
 			[loaded[i].name, here, loaded[i - 1].name, above])
 
 	# Y los dos recortes que son booleanos "una vez puesto, no se quita".
-	for field: StringName in [&"disable_shader_effects", &"hide_baked_lights"]:
+	for field: StringName in [&"disable_shader_effects", &"hide_baked_lights",
+			&"cheap_shading"]:
 		for i: int in range(1, loaded.size()):
 			_check(not (loaded[i - 1].get(field) and not loaded[i].get(field)),
 				"%s: %s no lo desactiva tras %s" %
