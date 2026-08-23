@@ -338,17 +338,32 @@ var lullaby_diagnostics_log: bool = true
 ## without the log, and the log did not carry the field that would have shown
 ## it.
 ##
-## What made it affordable by default is alternating the two passes instead of
-## doing both per sample: **one** wrong frame every 20 seconds, not two. And
+## What made it affordable by default was alternating the two passes instead of
+## doing both per sample: **one** wrong frame every 20 seconds, not two, and
 ## `debug_draw` only reaches the 3D pass, so that frame is the world going
-## flat-albedo (or additive) for 33ms with the HUD untouched - a single-frame
-## blink, not a flash. No GPU->CPU readback either, which is what made the old
-## `sonda=` field expensive enough to delete.
+## flat-albedo (or additive) for 33ms with the HUD untouched. That was argued
+## as "a single-frame blink, not a flash".
+##
+## **It is a flash, and the player found it before we did.** Reported off the
+## 27868ddd build, unprompted and without knowing this existed: "hay ocasiones
+## que en el 3D, tanto en la tienda como tambien en chimera, hay una especie de
+## flash blanco opaco... aparece en ocasiones y molesta, se ve feo". Both 3D
+## scenes, occasional, bright - which is a 20-second period, a camera check,
+## and `DEBUG_DRAW_UNSHADED` throwing away the lighting on a scene whose whole
+## look is dark. The prediction was wrong on the one point that decides it, so
+## the default goes back.
+##
+## The concern that turned it on stands and is handled differently: a log with
+## no GPUSPLIT lines used to be indistinguishable from an instrument nobody
+## remembered to switch on, so the header now states the switch either way
+## (`gpu_split:` in the log preamble). Absence is loud instead of silent, and
+## nothing has to be paid for in frames the player sees.
 ##
 ## It is the only instrument that can tell "Chimera is per-fragment lighting"
 ## from "Chimera is 3D overdraw": both fit a single gpu= number and neither
-## could be ruled out from one.
-var lullaby_diagnostics_gpu_split: bool = true
+## could be ruled out from one. Turn it on from the console row for a
+## measurement pass, off for playing.
+var lullaby_diagnostics_gpu_split: bool = false
 
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.

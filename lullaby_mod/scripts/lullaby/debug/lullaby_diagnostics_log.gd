@@ -3865,6 +3865,19 @@ func _write_header() -> void:
 	# change these afterwards, which is why _on_settings_applied() logs a
 	# SETTINGS entry on every real change rather than trusting this line.
 	_file.store_line("graphics  : %s (at boot)" % _graphics_summary())
+	# Stated either way, and this line is why the split can afford to ship off.
+	#
+	# It shipped on because a log with no GPUSPLIT lines is indistinguishable
+	# from an instrument nobody remembered to switch on, and two device passes
+	# were lost to that. But paying for it in a visible flash every 20 seconds
+	# in both 3D scenes - which is what the player reported off 27868ddd - is
+	# the wrong side of that trade. Saying so in the header costs nothing and
+	# removes the ambiguity the default was covering for.
+	_file.store_line("gpu_split : %s%s" % [
+		"on" if Settings.lullaby_diagnostics_gpu_split else "off",
+		"" if Settings.lullaby_diagnostics_gpu_split
+			else "  (sin GPUSPLIT/SCRIPTSPLIT en este log; la fila esta en la consola)",
+	])
 	_file.store_line("window    : %s" % DisplayServer.window_get_size())
 	_file.store_line("path      : %s" % ProjectSettings.globalize_path(log_path))
 	_file.store_line("dir_used  : %s" % _log_dir)

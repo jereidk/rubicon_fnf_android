@@ -38,6 +38,18 @@ func _run() -> void:
 		quit(1)
 		return
 
+	# Both splits ship off - they alter the frame the player sees, which is how
+	# the GPU one was found: reported from the device as "un flash blanco
+	# opaco" in both 3D scenes. Switched on here because what is under test is
+	# the probe's behaviour, not its default; test_gpu_split.gd owns the
+	# default.
+	var settings: Node = root.get_node_or_null(^"Settings")
+	if settings == null:
+		print("FALLO: no existe el autoload Settings")
+		quit(1)
+		return
+	settings.lullaby_diagnostics_gpu_split = true
+
 	var scene := Node.new()
 	var running := AnimationPlayer.new()
 	running.name = "Corriendo"

@@ -83,11 +83,27 @@ func _initialize() -> void:
 
 	# 3. Encendido de fabrica, y con fila para apagarlo.
 	var settings: String = _read(SETTINGS)
-	# Encendido de fabrica: un instrumento que hay que acordarse de encender es
-	# un instrumento que no corre. Esta sesion perdio dos pasadas de
-	# dispositivo por exactamente eso.
-	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = true"),
-		"el ajuste sale ENCENDIDO, y la fila esta para apagarlo")
+	# APAGADO de fabrica, y esta comprobacion estuvo invertida.
+	#
+	# Se encendio con el argumento de que un instrumento que hay que acordarse
+	# de encender es un instrumento que no corre - cierto, y esta sesion habia
+	# perdido dos pasadas de dispositivo por eso. Lo que decidia el intercambio
+	# era la prediccion de que un frame en flat-albedo cada 20 segundos seria
+	# "un parpadeo, no un flash". No lo es: el jugador lo reporto solo, sin
+	# saber que esto existia, sobre la build 27868ddd - "hay ocasiones que en
+	# el 3D, tanto en la tienda como tambien en chimera, hay una especie de
+	# flash blanco opaco... molesta, se ve feo". Las dos escenas 3D,
+	# intermitente, brillante: periodo de 20s, comprobacion de camara y
+	# DEBUG_DRAW_UNSHADED tirando la iluminacion de una escena cuyo aspecto
+	# entero es oscuro.
+	#
+	# El motivo original se resuelve en la cabecera del log en vez de en el
+	# frame: `gpu_split:` se escribe siempre, asi que un log sin GPUSPLIT dice
+	# por que no lo tiene.
+	_check(settings.contains("var lullaby_diagnostics_gpu_split: bool = false"),
+		"el ajuste sale APAGADO: altera lo que el jugador ve")
+	_check(_read(LOG).contains('_file.store_line("gpu_split : '),
+		"y la cabecera del log declara el interruptor en los dos casos")
 	# Y vive donde vive su interruptor maestro: la fila de Diagnostics Log
 	# esta seis lineas mas arriba en la misma pestaña. Meterlo en los codigos
 	# de la pestaña Hacks era esconder un diagnostico en contenido de jugador.
