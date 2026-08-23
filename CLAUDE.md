@@ -4728,6 +4728,70 @@ guard textual no puede: que resolver una palabra trae la siguiente, y que el
 botón redondo llega de verdad a la mecánica (es un `InputEventAction` sintético
 por `Input.parse_input_event`, no una llamada directa).
 
+## GPUSPLIT: partir el frame en luz, relleno y resto, en el propio teléfono
+
+La medida que este fichero lleva toda la vida necesitando y no tenía. `gpu=` es
+**un solo número para el frame entero**, así que "Chimera es iluminación por
+fragmento" y "Chimera es sobredibujado 3D" encajan los dos y ninguno se puede
+descartar desde él. Todo lo que hay a favor de las luces es indirecto: la
+pendiente de 90.8 ms/Mpx cae sobre el punto de 6 luces de la curva aislada, y
+el A/B de `luz=3` (33.5ms) contra `luz=4` (57-59ms) **está confundido con la
+cobertura de cámara** - ajustando con esos dos puntos sale un término
+independiente negativo, o sea imposible.
+
+El dispositivo lo puede contestar solo. `Viewport.debug_draw` redibuja la misma
+escena sin luz (`UNSHADED`) o con cada fragmento reducido a una mezcla aditiva
+trivial (`OVERDRAW`), y `viewport_get_measured_render_time_gpu()` no cuesta
+nada de leer:
+
+    base - sin_luz   = lo que cuesta la matemática de luz por fragmento
+    overdraw         = lo que cuesta rasterizar esa complejidad de
+                       profundidad, sin sombrear
+
+**Sin ninguna lectura GPU->CPU**, que es lo que hizo caro al viejo `sonda=`
+hasta borrarlo (6.5-8.8ms cada 8s). Esto sólo cambia un enum y lee un contador
+que ya se estaba recogiendo.
+
+    GPUSPLIT base=26.05ms sin_luz=9.81ms overdraw=6.12ms | luz=16.24ms(62%)
+             resto=9.81ms mpx3d=0.288 luz_por_mpx=56.4
+
+Cuatro cosas que hay que respetar si alguien lo toca:
+
+- **`viewport_get_measured_render_time_gpu()` va un frame atrás**, así que cada
+  paso lee el frame que preparó el paso anterior. Leer y escribir en el mismo
+  paso **sigue produciendo tres números creíbles**, todos del frame
+  equivocado - por eso el guard fija el orden y no sólo la presencia.
+- **`debug_draw` se restaura antes de cualquier `return` temprano.** Dejarlo
+  puesto deja el juego renderizando albedo plano.
+- **El ajuste sólo se consulta al empezar un ciclo**, nunca a mitad, así que
+  apagarlo mientras corre no puede dejar el viewport en modo depuración.
+- **Sólo con cámara 3D y algo visible**: en las dos canciones 2D y en los menús
+  las tres lecturas serían el canvas tres veces.
+
+Es **opt-in** (`Settings.lullaby_diagnostics_gpu_split`, apagado de fábrica),
+encendido con el código **`GPUSPLIT`** en la pestaña Hacks de la consola, porque
+las dos frames por muestra salen visiblemente mal y eso no se le hace a alguien
+jugando. Un código y no una fila de preferencias: se enciende para una pasada
+registrada y se apaga.
+
+### Y dos contadores más, gratis
+
+- **`no_opacas=N`** en `BLACKWATCH`, junto a `superficies=`. Cualquier modo que
+  no sea `OPAQUE` descarta, y un `discard` anula el rechazo temprano por
+  profundidad en una GPU de tiles: el shader de fragmento corre por cada píxel
+  cubierto lo escriba o no algo más cerca. La casa de Chimera tiene ocho
+  materiales así y este proyecto **nunca los había contado**, así que "luces o
+  sobredibujado" no tenía número por ninguno de los dos lados. Se cuenta **por
+  superficie, no por material**: lo que anula el early-Z es cuánta pantalla
+  descarta, y un `.tres` compartido puede estar en veinte paredes.
+- **`mpx3d=`**: los megapíxeles que el pase 3D dibuja de verdad, del viewport y
+  su escala. Impreso en vez de reconstruido a mano desde `vp=` y la línea de
+  ventana, que es aritmética que este fichero ya ha escrito mal más de una vez.
+
+`tools/test_gpu_split.gd` (19 comprobaciones, en CI) fija las cuatro reglas.
+Mutado invirtiendo el orden de lectura/escritura de un paso: falla una. Mutado
+moviendo el restore detrás de la salida por driver mudo: fallan dos.
+
 ## Forzar la intro forzaba SIEMPRE, y la fila ocupaba media pantalla
 
 Dos reportes del mismo sitio, y los dos son míos.

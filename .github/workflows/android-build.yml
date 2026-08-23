@@ -736,6 +736,14 @@ jobs:
           # are: 17.7s single frames inside its precache this session.
           guard_godot tools/test_dialogue_resume.gd
 
+          # === Verify the GPU split reads one frame behind, and always restores
+          # viewport_get_measured_render_time_gpu() lags a frame, so each step
+          # has to read the frame the previous step set up - reading and
+          # writing in the same step still produces three plausible numbers,
+          # all of the wrong frames. And debug_draw has to come back before any
+          # early return, or the game is left rendering flat albedo.
+          guard_godot tools/test_gpu_split.gd
+
           # === Verify a light at zero energy stops being evaluated
           # The renderer pairs a light with an object by RANGE, never by
           # energy, so a light switched on at light_energy = 0 is shaded per

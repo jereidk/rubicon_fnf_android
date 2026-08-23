@@ -271,6 +271,11 @@ var _session_start_ms: int = 0
 ## from. Zero until the first frame, where delta is the only thing available.
 var _last_frame_usec: int = 0
 
+## The wall-clock length of the previous frame, kept so timers added later feed
+## off the same clock as the rest of the file. Every gate in here that counted
+## `delta` instead went silent on exactly the frames it existed to catch.
+var _last_frame_wall_ms: float = 0.0
+
 var _scene_change_started_ms: int = 0
 
 ## The scene handed to change_scene_to_packed(), and when. Both only live for
@@ -337,6 +342,43 @@ var _peak_trees: int = 0
 ## frame - objs= is the engine's total for the whole frame including the
 ## SubViewports, not this scene's visible meshes.
 var _visual3d_watch: Array[VisualInstance3D] = []
+
+## Visible surfaces whose bound material is NOT opaque.
+##
+## Anything in ALPHA_SCISSOR discards, and a discard defeats early-Z on a tiled
+## GPU: the fragment shader runs for every covered pixel whether or not
+## something nearer already wrote it. Chimera's house has eight such materials
+## and this project has never counted them, so "is it lights or is it
+## overdraw" had no number on either side. GPUSPLIT below measures the second
+## half in milliseconds; this says how much surface can cause it.
+var _alpha_surface_count: int = 0
+
+## GPUSPLIT: the same shot timed three ways, one frame each.
+##
+## The one measurement this project has needed all along and never had. `gpu=`
+## is a single number for the whole frame, so "Chimera is per-fragment lighting"
+## and "Chimera is 3D overdraw" both fit it and neither could be ruled out. The
+## device can settle it itself: `Viewport.debug_draw` re-renders the same scene
+## with the lighting removed (UNSHADED) or with every fragment reduced to a
+## trivial additive blend (OVERDRAW), and
+## `viewport_get_measured_render_time_gpu()` costs nothing to read.
+##
+##     base - unshaded   = what the per-fragment lighting maths costs
+##     overdraw          = what rasterising that depth complexity costs at all
+##
+## No GPU->CPU readback anywhere, which is what made the old `sonda=` field
+## expensive enough to delete: this only swaps an enum and reads a counter that
+## is already being collected.
+##
+## Costs two visually wrong frames per sample, which is why it is opt-in
+## (`Settings.lullaby_diagnostics_gpu_split`, the GPUSPLIT code in the console's
+## Hacks tab) rather than on with the rest of the log.
+const GPU_SPLIT_SECONDS := 20.0
+
+var _gpu_split_state: int = 0
+var _time_since_gpu_split: float = 0.0
+var _gpu_split_base: float = 0.0
+var _gpu_split_unshaded: float = 0.0
 
 ## Physics ticks executed inside the last frame.
 ##
@@ -948,6 +990,8 @@ func _process(delta: float) -> void:
 	# from Time.get_ticks_msec() deltas - took=, the swap marks, the reveal -
 	# but every frame-shape statistic was reading a number Godot never
 	# promised.
+	_step_gpu_split()
+
 	var physics_now: int = Engine.get_physics_frames()
 	_physics_steps = physics_now - _last_physics_frames
 	_last_physics_frames = physics_now
@@ -955,6 +999,7 @@ func _process(delta: float) -> void:
 	var now_usec: int = Time.get_ticks_usec()
 	var frame_ms: float = float(now_usec - _last_frame_usec) / 1000.0 if _last_frame_usec > 0 else delta * 1000.0
 	_last_frame_usec = now_usec
+	_last_frame_wall_ms = frame_ms
 
 	# The frame that spans a resume is the suspension, not a stall, and it has
 	# to be caught here - before the median buffer, fps_low, the spike test or
@@ -1467,6 +1512,7 @@ func _collect_blackout_watch() -> void:
 	_skeleton_bones = 0
 	_skeleton_count = 0
 	_surface_count = 0
+	_alpha_surface_count = 0
 	_material_count = 0
 	_process_nodes = 0
 	var scene: Node = get_tree().current_scene if is_inside_tree() else null
@@ -1510,6 +1556,12 @@ func _collect_blackout_watch() -> void:
 					if mat != null and not materials_seen.has(mat.get_instance_id()):
 						materials_seen[mat.get_instance_id()] = true
 						_material_count += 1
+					# Counted per surface, not per material: what defeats
+					# early-Z is how much of the screen discards, and one
+					# shared material can be bound to twenty walls.
+					var base_mat := mat as BaseMaterial3D
+					if base_mat != null and base_mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+						_alpha_surface_count += 1
 		var mixer := node as AnimationMixer
 		if mixer != null:
 			_mixer_watch.append(mixer)
@@ -1522,13 +1574,88 @@ func _collect_blackout_watch() -> void:
 			continue
 		_blackout_watch.append(item)
 
-	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d visuales 3D, %d particulas, %d nodos con _process, %d con _physics_process en %s (seq=%s) | superficies=%d materiales_unicos=%d esqueletos=%d(huesos=%d)" % [
+	_entry("BLACKWATCH", "vigilando %d rects oscuros, %d mixers, %d visuales 3D, %d particulas, %d nodos con _process, %d con _physics_process en %s (seq=%s) | superficies=%d(no_opacas=%d) materiales_unicos=%d esqueletos=%d(huesos=%d)" % [
 		_blackout_watch.size(), _mixer_watch.size(), _visual3d_watch.size(),
 		_particles_watch.size(), _process_nodes, _physics_nodes,
 		_current_scene_name(),
 		_sequence_player.name if _sequence_player != null else "-",
-		_surface_count, _material_count, _skeleton_count, _skeleton_bones,
+		_surface_count, _alpha_surface_count, _material_count,
+		_skeleton_count, _skeleton_bones,
 	])
+
+## Times the same shot three ways and writes GPUSPLIT.
+##
+## `viewport_get_measured_render_time_gpu()` is **one frame behind**, so each
+## step reads the frame the previous step set up:
+##
+##   step 0   read = a normal frame      -> base        then draw UNSHADED
+##   step 1   read = the unshaded frame  -> unshaded    then draw OVERDRAW
+##   step 2   read = the overdraw frame  -> overdraw    then restore, emit
+##
+## Only in a scene that has a 3D camera and something visible in it - the two
+## 2D songs and every menu would report the 2D canvas three times over and say
+## nothing.
+func _step_gpu_split() -> void:
+	if not is_inside_tree():
+		return
+	if _gpu_split_state == 0:
+		if not Settings.lullaby_diagnostics_gpu_split:
+			return
+		_time_since_gpu_split += _last_frame_wall_ms
+		if _time_since_gpu_split < GPU_SPLIT_SECONDS * 1000.0:
+			return
+		var camera: Camera3D = get_viewport().get_camera_3d()
+		if camera == null or _visual3d_load() <= 0:
+			return
+		_time_since_gpu_split = 0.0
+		_gpu_split_base = _viewport_gpu_ms()
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
+		_gpu_split_state = 1
+		return
+
+	if _gpu_split_state == 1:
+		_gpu_split_unshaded = _viewport_gpu_ms()
+		get_viewport().debug_draw = Viewport.DEBUG_DRAW_OVERDRAW
+		_gpu_split_state = 2
+		return
+
+	var overdraw: float = _viewport_gpu_ms()
+	get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
+	_gpu_split_state = 0
+
+	# A driver that will not answer reports 0.00 for all three, and three
+	# zeroes are not a measurement - see the GPUTIMING note.
+	if _gpu_split_base <= 0.0:
+		return
+
+	var lighting: float = maxf(_gpu_split_base - _gpu_split_unshaded, 0.0)
+	var mpx: float = _mpx_3d()
+	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms overdraw=%.2fms | luz=%.2fms(%.0f%%) resto=%.2fms mpx3d=%.3f luz_por_mpx=%.1f" % [
+		_gpu_split_base, _gpu_split_unshaded, overdraw,
+		lighting, 100.0 * lighting / _gpu_split_base, _gpu_split_unshaded,
+		mpx, lighting / maxf(mpx, 0.0001),
+	])
+
+## The main viewport's last measured GPU frame, in milliseconds. Zero when the
+## driver does not answer - which the GPUTIMING latch elsewhere reports once
+## and which GPUSPLIT treats as "no measurement" rather than as three zeroes.
+func _viewport_gpu_ms() -> float:
+	if not is_inside_tree():
+		return 0.0
+	return RenderingServer.viewport_get_measured_render_time_gpu(
+		get_viewport().get_viewport_rid())
+
+## Megapixels the 3D pass actually renders: the viewport size times the render
+## scale, squared. Printed rather than left to be reconstructed by hand from
+## `vp=` and the window line, which is arithmetic this file has got wrong in
+## writing more than once.
+func _mpx_3d() -> float:
+	if not is_inside_tree():
+		return 0.0
+	var viewport: Viewport = get_viewport()
+	var size: Vector2i = viewport.get_visible_rect().size
+	var scale: float = viewport.scaling_3d_scale
+	return float(size.x) * float(size.y) * scale * scale / 1000000.0
 
 ## How good a candidate this player is for being the sequence driver: lower
 ## wins, and anything not on the list loses to everything on it.

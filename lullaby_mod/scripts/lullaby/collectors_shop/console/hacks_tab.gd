@@ -19,6 +19,15 @@ const CODES: Dictionary[String, StringName] = {
 ## many times as someone wants to keep hearing it. Checked before CODES so it
 ## never falls into the "Invalid code." path. GODMODE, not FART: the bit is
 ## typing the most mythical cheat code in gaming and getting this instead.
+## Toggles the diagnostics log's GPU split (Settings.lullaby_diagnostics_gpu_split).
+##
+## A code rather than a Settings row because it is not a preference: it makes
+## two frames per sample render wrong on purpose - flat albedo, then an
+## additive overdraw view - to time the same shot with and without lighting.
+## Someone turns it on for one logged run and off again, which is exactly what
+## a code is for. Checked before CODES so it never falls into "Invalid code."
+const GPU_SPLIT_CODE := "GPUSPLIT"
+
 const PRANK_CODE := "GODMODE"
 const PRANK_LINES: Array[String] = [
 	"GODMODE activated. You are now invincible to embarrassment. Wait, no.",
@@ -37,6 +46,16 @@ func _ready() -> void:
 func _on_code_submitted(text: String) -> void:
 	var code: String = text.strip_edges().to_upper()
 	code_input.text = ""
+
+	if code == GPU_SPLIT_CODE:
+		Settings.lullaby_diagnostics_gpu_split = not Settings.lullaby_diagnostics_gpu_split
+		Settings.save()
+		feedback_label.text = (tr("GPU split logging ON - two frames per sample render wrong.")
+			if Settings.lullaby_diagnostics_gpu_split
+			else tr("GPU split logging OFF."))
+		if console:
+			console.play_sound.emit("sfx_soulroom_select_alt")
+		return
 
 	if code == PRANK_CODE:
 		feedback_label.text = tr(PRANK_LINES.pick_random())

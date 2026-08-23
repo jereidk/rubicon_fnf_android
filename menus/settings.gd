@@ -322,6 +322,20 @@ var lullaby_debug_display: int = 1
 ## after the problem has already happened.
 var lullaby_diagnostics_log: bool = true
 
+## Let the diagnostics log split the GPU frame into lighting, fill and the
+## rest, by re-rendering two frames per sample through Viewport.debug_draw.
+##
+## Off by default and toggled by the GPUSPLIT code in the console's Hacks tab,
+## because those two frames are visibly wrong - flat albedo, then an additive
+## overdraw view - and that is not something to do to someone playing a rhythm
+## game. It costs no GPU->CPU readback, which is what made the old `sonda=`
+## field expensive enough to delete.
+##
+## It is the only instrument that can tell "Chimera is per-fragment lighting"
+## from "Chimera is 3D overdraw": both fit a single gpu= number and neither
+## could be ruled out from one.
+var lullaby_diagnostics_gpu_split: bool = false
+
 ## 0 = Classic (the layout the songs were authored with), 1 = VSlice.
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
 var lullaby_note_layout: int = 0
