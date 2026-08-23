@@ -682,6 +682,16 @@ jobs:
           # order, and that the mechanism stays at the RenderingServer.
           guard_godot tools/test_lit_precache.gd
 
+          # === Safety Lullaby's pendulum has to stay tappable when the HUD goes
+          # The hitbox followed DefaultHUD's modulate, which is right for a HUD
+          # element and wrong for the only input a touch device has. The song's
+          # own Timeline runs the pendulum from 160.04s to 194.37s with the HUD
+          # keyed to alpha 0 - thirty-four seconds where the mechanic kept
+          # taking -15 retention per missed half measure and Android had no way
+          # to answer. This recomputes that window from the scene and pins that
+          # the rule is the mechanic, not the HUD.
+          guard_godot tools/test_pendulum_hitbox_window.gd
+
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero

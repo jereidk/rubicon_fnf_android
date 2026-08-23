@@ -24,14 +24,41 @@ const SHOWCASE_TOUCH_INDEX: int = -2000
 @export var hitbox: Control
 @export var pendulum_server: LullabyPendulumServer
 
-## The score/health HUD (UILayer/GameUI/DefaultHUD) already fades itself
-## out via modulate:alpha tracks on cutscene animations, but nothing did
-## the same for this hitbox - it kept drawing over cutscenes, gameover,
-## and the pause menu (whose CanvasLayer draws below UILayer's default
-## layer, so it doesn't visually cover the hitbox either). Polling
-## default_hud's own modulate/visible each frame - rather than hooking
-## every individual cutscene animation - covers all of that generically,
-## same idea as the pause case below.
+## The score/health HUD (UILayer/GameUI/DefaultHUD). Kept wired, and
+## deliberately NOT part of the visibility rule any more.
+##
+## It used to be: `hitbox.visible = mechanic_active and hud_visible`, on the
+## reasoning that the HUD already fades itself out on cutscenes so following it
+## covers cutscenes, gameover and pause generically. That is true for a HUD
+## element. This is not a HUD element - it is the only way to play the
+## mechanic on a touch device, and coupling the two made the last third of the
+## song unplayable.
+##
+## The song's own Timeline says so. Reading the two tracks out of
+## `sng_safety_lullaby.tscn`'s `play` animation:
+##
+##     LullabyPendulumServer:started    0.00 off  33.73 ON  159.08 off  160.04 ON  194.37 off
+##     DefaultHUD:modulate.a            0.00 0    31.53 0   33.73 1     158.00 1   159.03 0
+##
+## and the HUD has no key after 159.03, so it stays at alpha 0 to the end. The
+## overlap of "pendulum running" and "HUD faded" is 159.03-159.08 and then
+## **160.04-194.37: thirty-four seconds** in which the pendulum keeps asking
+## for `lullaby_special` every half measure and keeps taking `retention_loss`
+## (-15 of 100) on every miss, so seven missed measures reach 0 and fire
+## `mechanic_failed`. On desktop that section is fine - the HUD is gone but the
+## key still works, and the pendulum itself is scene geometry, still swinging on
+## screen to keep time against. On Android the hitbox was the input, and hiding
+## it deleted the input while leaving the punishment. "Si el Hitbox desaparece,
+## como lo hago en primer lugar" - exactly.
+##
+## Nothing is lost by dropping the term. `started` is already false for every
+## cutscene (0-33.73 and 159.08-160.04), pause has its own check below and so
+## does gameover, so outside those two windows the rule never differed. It only
+## ever changed the answer where the mechanic was live.
+##
+## `song_touch_controls.gd` keeps the same coupling for the pause and restart
+## buttons, and should: those really are HUD, and nothing is lost when they fade
+## with it.
 @export var default_hud: CanvasItem
 
 ## Safety Lullaby's gameover is an in-scene cutscene (SafetyLullabyGameoverModule,
@@ -86,11 +113,10 @@ func _update_visibility() -> void:
 	# LullabyShowcase now - Chimera needs the same one.
 	var mechanic_active: bool = (pendulum_server.started
 		and LullabyShowcase.mechanic_controls_visible(pendulum_server.autoplay))
-	var hud_visible: bool = true
-	if default_hud:
-		hud_visible = default_hud.visible and default_hud.modulate.a > 0.01
 
-	hitbox.visible = mechanic_active and hud_visible
+	# The mechanic decides, and only the mechanic. See default_hud above for the
+	# thirty-four seconds this cost.
+	hitbox.visible = mechanic_active
 
 func _on_pendulum_hit() -> void:
 	LullabyShowcase.flash_control(hitbox, get_tree(), SHOWCASE_TOUCH_INDEX,
