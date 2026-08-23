@@ -993,6 +993,100 @@ func get_input_name(action: StringName) -> String:
 
 	return ""
 
+## Gamepad buttons for the four note lanes, kept in `input_game`.
+##
+## The D-pad rather than the face buttons, because the lanes ARE directions -
+## lane 0 is the left arrow on screen - and a 1:1 mapping needs no learning.
+## It overlaps `ui_left`/`ui_down`/`ui_up`/`ui_right`, which is harmless: those
+## only do anything while a Control has focus, and nothing does during a song.
+const GAMEPAD_LANE_BUTTONS: Dictionary[StringName, int] = {
+	&"mania_lane0": JOY_BUTTON_DPAD_LEFT,
+	&"mania_lane1": JOY_BUTTON_DPAD_DOWN,
+	&"mania_lane2": JOY_BUTTON_DPAD_UP,
+	&"mania_lane3": JOY_BUTTON_DPAD_RIGHT,
+}
+
+## Gamepad buttons for the rebindable project actions, kept in `input_map`.
+##
+## `lullaby_special` takes A, which is also `ui_accept` below - deliberately
+## the same overlap the keyboard already ships, where the mechanic key and
+## ui_accept are both Space.
+const GAMEPAD_ACTION_BUTTONS: Dictionary[StringName, int] = {
+	&"lullaby_special": JOY_BUTTON_A,
+	&"funkin_pause": JOY_BUTTON_START,
+	&"open_cartridge_bag": JOY_BUTTON_X,
+}
+
+## Gamepad buttons for Godot's own UI actions, added straight to the InputMap.
+##
+## Godot ships joypad bindings for `ui_left/right/up/down` and **none for
+## `ui_accept` or `ui_cancel`** - checked against the running binary, they are
+## Enter/Kp Enter/Space and Escape. So a pad could move through every menu in
+## the game and neither confirm nor go back.
+##
+## Added at runtime rather than written into project.godot's `[input]`, and
+## that is the safe half of the choice: overriding a built-in action in the
+## project file replaces its whole event list, so a joypad-only entry would
+## silently take Enter and Space off `ui_accept`. Appending cannot.
+##
+## `reset_input_map()` skips `ui_` actions, so these are never persisted and
+## are re-applied from here on every boot.
+const GAMEPAD_UI_BUTTONS: Dictionary[StringName, int] = {
+	&"ui_accept": JOY_BUTTON_A,
+	&"ui_cancel": JOY_BUTTON_B,
+}
+
+## Whether any of these events is a gamepad one.
+static func _has_gamepad_event(events: Array) -> bool:
+	for event: InputEvent in events:
+		if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+			return true
+	return false
+
+## `device = -1` is "any pad", which is what Godot's own `ui_left` ships and
+## what the note map needs - `InputEvent.is_match()` ignores the device, and
+## `InputMap` treats -1 as ALL_DEVICES.
+static func _gamepad_event(button: int) -> InputEventJoypadButton:
+	var event := InputEventJoypadButton.new()
+	event.device = -1
+	event.button_index = button
+	return event
+
+## Guarantees every action a pad needs has at least one gamepad binding.
+##
+## Never overrides one: an action that already carries any gamepad event is
+## left exactly as it is, so a player who rebinds a lane to a different button
+## does not get the default added back on the next boot. That is also what
+## makes it safe to run on every load rather than once behind a migration
+## flag.
+##
+## It has to run on load and not only on a fresh install. `load_from()` reads
+## `input_game` back wholesale and `input_map` per action, so a settings.ini
+## written before this existed would otherwise erase the defaults every boot -
+## the pad would work on a clean install and nowhere else.
+##
+## Sticks and triggers are out of scope on purpose: the console's rebind row
+## finishes on `event.is_pressed()`, and `InputEventJoypadMotion` never reports
+## pressed, so an axis cannot be bound there either. Buttons only, both ways.
+func ensure_gamepad_defaults() -> void:
+	for action: StringName in GAMEPAD_LANE_BUTTONS:
+		if not input_game.has(action):
+			input_game[action] = []
+		if not _has_gamepad_event(input_game[action]):
+			input_game[action].append(_gamepad_event(GAMEPAD_LANE_BUTTONS[action]))
+
+	for action: StringName in GAMEPAD_ACTION_BUTTONS:
+		if not input_map.has(action):
+			continue
+		if not _has_gamepad_event(input_map[action]):
+			input_map[action].append(_gamepad_event(GAMEPAD_ACTION_BUTTONS[action]))
+
+	for action: StringName in GAMEPAD_UI_BUTTONS:
+		if not InputMap.has_action(action):
+			continue
+		if not _has_gamepad_event(InputMap.action_get_events(action)):
+			InputMap.action_add_event(action, _gamepad_event(GAMEPAD_UI_BUTTONS[action]))
+
 func reset_input_map() -> void:
 	input_map.clear()
 	input_game.clear()
@@ -1013,6 +1107,8 @@ func reset_input_map() -> void:
 
 		var input_events: Array = InputMap.action_get_events(action_name)
 		input_map[action_name] = input_events
+
+	ensure_gamepad_defaults()
 
 func save(path: String = SAVE_PATH) -> void:
 	var config: ConfigFile = ConfigFile.new()
@@ -1057,5 +1153,11 @@ func load_from(path: String = SAVE_PATH) -> Error:
 
 			if property_name in self:
 				set(property_name, config.get_value(section, key))
+
+	# After the file, not before: load_from() replaces input_game wholesale and
+	# input_map per action, so defaults added earlier would be read straight
+	# back off disk. A settings.ini written before gamepad support existed gets
+	# the bindings here.
+	ensure_gamepad_defaults()
 
 	return OK

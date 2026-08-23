@@ -685,6 +685,17 @@ jobs:
           # nothing turns on) must not come on.
           guard_godot tools/test_precache_lights_reach.gd
 
+          # === Verify a connected gamepad works without visiting the console
+          # The lanes came from default_input_map.tres, which is D/F/J/K and
+          # nothing else, and project.godot's whole [input] block had zero
+          # InputEventJoypad. Godot covers ui_left/right/up/down with the D-pad
+          # but NOT ui_accept or ui_cancel - Enter/Kp Enter/Space and Escape -
+          # so a pad could move through every menu and neither confirm nor go
+          # back, and could not hit a note. The ui_ ones are added at runtime
+          # because overriding a built-in action in project.godot replaces its
+          # whole event list, which would take the keyboard off ui_accept.
+          guard_godot tools/test_gamepad_defaults.gd
+
           # === Verify the cached hit order matches the sorted one
           # update_performance() rebuilt and re-sorted every result hit so far
           # once per note that lands - O(n log n) per note. Monochrome's log
