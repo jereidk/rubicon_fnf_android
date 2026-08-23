@@ -3029,6 +3029,69 @@ vértice) y trasladan en dirección a cualquier GPU, pero **la magnitud en un
 Adreno no tiene por qué ser la misma** - un tiler puede estar limitado por
 ancho de banda y ahorrar menos. El log del teléfono es el que lo decide.
 
+### La tienda no es Chimera, y el pase de luces horneadas casi lo paga
+
+`hide_baked_lights` se diseñó leyendo Chimera y se aplica a las dos escenas con
+`LightmapGI`. La tienda no es el mismo caso, y el número que lo dice ya estaba
+en el log:
+
+    Chimera   lm=... users=58 vis=56/62     90% de lo visible esta en el bake
+    tienda    lm=... users=45 vis=44/101    44%
+
+Chimera es una habitación horneada con un par de personajes dinámicos dentro.
+La tienda es una habitación horneada con **la consola, el mostrador de
+cartuchos, el Collector y su mano encima** - 57 mallas visibles que el bake
+nunca vio. Esconderle sus nueve luces `BAKE_STATIC` las oscurecería todas.
+
+`BAKE_COVERAGE_FLOOR = 0.75` deja el pase corriendo donde el bake lleva la
+habitación y lo para donde no. El umbral cae **entre los dos números medidos**,
+no sobre una suposición de ninguno.
+
+**El arreglo estrictamente mejor es por objeto y no por luz**: poner las mallas
+horneadas en su propia capa de render y quitar esa capa del `light_cull_mask`
+de las luces horneadas, con lo que lo cubierto deja de iluminarse dos veces y
+lo demás conserva su luz. No está hecho porque `_cull_dark_lights` ya es dueño
+de `light_cull_mask`, y **dos pases escribiendo una misma propiedad** es
+exactamente la forma que este proyecto lleva años pagando. Pide su propio
+cambio, con un log de dispositivo delante. El API existe y es
+`LightmapGIData.get_user_count()/get_user_path(i)` contra
+`lightmap.get_path_to(malla)` - lo mismo que ya calcula `vis=n/m`.
+
+### El censo de la tienda, y lo que le queda
+
+57 latidos de `3d21ba99` (g53, `scale=0.70`):
+
+    gpu p50   27.51ms      proc p50  38.07ms   <- la CPU va 10ms POR DELANTE
+    script     2.94ms      phys       4.01ms
+    vis3d    122/140       mat3d     83/135    bones=586 (21 esqueletos)
+    sub       2/7..5/7     sub_gpu    2.61ms   = 9% del frame
+
+**La tienda no es Chimera invertida: aquí `proc` está por encima de `gpu`.** En
+Chimera `gpu ≈ proc` y la CPU se bloquea esperando; aquí la CPU va por delante
+y el frame (`median` 33ms) queda por encima de los dos. Hay coste de CPU real
+que no es `script`.
+
+Dos lecturas que **no** son palancas, comprobadas antes de escribirlas:
+
+- **`phys=4.01ms` no son 4ms por frame.** `TIME_PHYSICS_PROCESS` es un máximo
+  por segundo, igual que `proc`, así que es el peor tick de cada segundo con
+  `psteps=1` en 48 de 57 muestras. Y las formas son 23 cajas y 10 cápsulas -
+  cero mallas cóncavas - con `p3d_objs=0` en las 57. No hay 4ms que recuperar.
+- **Las 19 `Area3D` de `env_collector_shop.tscn` ya shipean
+  `monitoring = false` y `monitorable = false`.** Alguien ya hizo ese trabajo.
+  Las cinco que quedan monitorizando viven en escenas instanciadas
+  (`cardboardsign`, `briefcase_cart`, `cartridge_bag_cart`, `notepad`) y
+  explican los `p3d_pairs` de mediana 10.
+
+Lo que sí queda, por orden:
+
+| | |
+|---|---|
+| **la carga** | `took=17092ms` en la segunda visita de este log, y `~66s` hasta poder jugar en frío. Es el peor número de UX del proyecto y no lo ha tocado nada |
+| **el precache** | `9889ms` con `revelado_al_fin_anim=80/117` - la animación se acaba con 37 nodos sin revelar, o sea que el barrido de poses sigue sin cubrir el revelado entero |
+| **los SubViewports** | 2.61ms, el 9% del frame. Ya bajaron una vez de 1440x1080 a 720x540; `sub=5/7` en un tercio de las muestras |
+| **el hueco `proc` - `gpu`** | ~10ms sin atribuir, con `script` en 2.94. No es física ni GDScript; queda por nombrar |
+
 ### Y por qué 60fps no se alcanza sin bajar la escala
 
 La aritmética, con el modelo del propio teléfono (`gpu = 5.7 + 90.8 x Mpx3d`)

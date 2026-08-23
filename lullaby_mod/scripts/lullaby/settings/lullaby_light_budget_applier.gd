@@ -265,7 +265,7 @@ func _apply_baked_light_cull(scene: Node) -> void:
 		return
 	if not _hidden.is_empty():
 		return
-	if not _has_live_lightmap(scene):
+	if not _bake_carries_the_room(scene):
 		return
 
 	for light: Light3D in _lights_of(scene):
@@ -283,19 +283,76 @@ func _restore_hidden() -> void:
 			(light as Light3D).visible = true
 	_hidden.clear()
 
-## A LightmapGI that is in the tree and actually holds a bake. `light_data` is
-## the half that matters: the node loads and reports itself perfectly happily
-## with none, and then lights nothing.
-func _has_live_lightmap(root: Node) -> bool:
+## Whether hiding this scene's baked lights is safe, which is a stronger
+## question than whether it has a LightmapGI.
+##
+## Two things have to hold. First the bake must exist: `light_data` is the half
+## that matters, because the node loads and reports itself perfectly happily
+## with none and then lights nothing - hiding the baked lights of a bake that
+## did not load is the eleven-day black house.
+##
+## Second, and this is what the first version of this pass got wrong, **the
+## bake has to actually cover what is on screen.** A BAKE_STATIC light still
+## lights everything the lightmap does not, so hiding it takes light off those
+## meshes with nothing to put it back. The two scenes with a lightmap are not
+## alike:
+##
+##     Chimera   lm=... users=58 vis=56/62    90% covered
+##     shop      lm=... users=45 vis=44/101   44% covered
+##
+## Chimera is a baked room with a couple of dynamic characters in it. The shop
+## is a baked room with a console, a counter of cartridges, the Collector and
+## his hand on top - 57 visible meshes the bake never saw. Hiding its nine
+## BAKE_STATIC lights would darken every one of them.
+##
+## So the pass runs where the bake carries the room and stands down where it
+## does not. The threshold sits between those two numbers rather than on a
+## guess about either.
+##
+## The strictly better fix is per object rather than per light: put the
+## lightmapped meshes on their own render layer and clear that layer from the
+## baked lights' `light_cull_mask`, so the covered meshes stop being lit twice
+## while everything else keeps its light. It is not done here because
+## `_cull_dark_lights` already owns `light_cull_mask`, and two passes writing
+## one property is exactly the shape this project keeps getting burned by. It
+## wants its own change, with a device log in hand.
+const BAKE_COVERAGE_FLOOR := 0.75
+
+func _bake_carries_the_room(root: Node) -> bool:
 	var stack: Array[Node] = [root]
 	while not stack.is_empty():
 		var node: Node = stack.pop_back()
 		var lightmap := node as LightmapGI
 		if lightmap != null and lightmap.light_data != null:
-			return true
+			return _bake_coverage(lightmap) >= BAKE_COVERAGE_FLOOR
 		for child in node.get_children():
 			stack.append(child)
 	return false
+
+## The fraction of the meshes on screen right now that the bake registered.
+## Same reading the diagnostics log prints as `vis=n/m`, and deliberately over
+## *visible* meshes rather than the whole tree: a scene's hidden cutscene props
+## are not what the player is looking at.
+func _bake_coverage(lightmap: LightmapGI) -> float:
+	var data: LightmapGIData = lightmap.light_data
+	var users: Dictionary = {}
+	for i: int in data.get_user_count():
+		users[String(data.get_user_path(i))] = true
+
+	var covered: int = 0
+	var shown: int = 0
+	var stack: Array[Node] = [lightmap.get_tree().current_scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var geo := node as GeometryInstance3D
+		if geo == null or not geo.is_visible_in_tree():
+			continue
+		shown += 1
+		if users.has(String(lightmap.get_path_to(geo))):
+			covered += 1
+	return float(covered) / float(shown) if shown > 0 else 0.0
 
 func _is_under_character(light: Light3D) -> bool:
 	var node: Node = light

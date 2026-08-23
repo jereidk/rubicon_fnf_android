@@ -59,8 +59,12 @@ func _initialize() -> void:
 	# 1. Las tres condiciones, presentes como codigo y no como comentario.
 	_check(_has_statement(src, "light.light_bake_mode != Light3D.BAKE_STATIC"),
 		"solo actua sobre BAKE_STATIC")
-	_check(_has_statement(src, "_has_live_lightmap(scene)"),
+	_check(_has_statement(src, "_bake_carries_the_room(scene)"),
 		"exige un LightmapGI en la escena")
+	_check(_has_statement(src, "_bake_coverage(lightmap) >= BAKE_COVERAGE_FLOOR"),
+		"y que el bake cubra de verdad lo que se ve, no solo que exista")
+	_check(_has_statement(src, "const BAKE_COVERAGE_FLOOR := 0.75"),
+		"el umbral cae entre Chimera (56/62=90%) y la tienda (44/101=44%)")
 	_check(_has_statement(src, "lightmap.light_data != null"),
 		"y que ese LightmapGI traiga bake cargado, no solo que exista")
 	_check(_has_statement(src, "_is_under_character(light)"),
@@ -98,6 +102,11 @@ func _initialize() -> void:
 	_check(_read("res://lullaby_mod/rooms/env_collector_shop.tscn")
 			.contains('type="LightmapGI"'),
 		"la tienda sigue teniendo LightmapGI")
+	# Y sigue teniendo nueve luces horneadas, que es lo que la pondria en
+	# riesgo si el umbral de cobertura se quitara.
+	var shop_baked: int = (_read("res://lullaby_mod/rooms/env_collector_shop.tscn")
+		.count("light_bake_mode = 1"))
+	_check(shop_baked == 9, "la tienda sigue con 9 luces BAKE_STATIC (son %d)" % shop_baked)
 	_check(scene.contains('type="LightmapGI"'),
 		"Chimera sigue teniendo LightmapGI")
 
