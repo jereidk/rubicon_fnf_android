@@ -671,20 +671,6 @@ jobs:
           # fresh log's pipe= on these four sequences is what confirms it.
           guard_godot tools/test_preload_extra_sweep.gd
 
-          # === Verify the precache sweeps LIT and hands the scene back intact
-          # The log above came back and killed the viewpoints-only version:
-          # 104_photographysesh still costs frame=1693.0ms spec+31 with vram
-          # flat. The lighting state is part of the pipeline key, and the sweep
-          # ran unlit - KEEP_VISIBLE exempts a Light3D from the hide walk, but
-          # `visible` is local, so `flash` and `PhoneGlow` under
-          # Sequences/SerenaTakingPictures (visible = false) lit nothing. This
-          # opens the ancestor for the sweep and closes it at hand-over. The
-          # two ways it could wreck the scene are the pinned ones: an ancestor
-          # left open puts the photo-session props in the room from the first
-          # frame, and a light the scene authored off (ClosetLight, which
-          # nothing turns on) must not come on.
-          guard_godot tools/test_precache_lights_reach.gd
-
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero

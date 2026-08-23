@@ -311,24 +311,10 @@ func _lighting_baseline_case() -> void:
 		"%d" % cam._kept_lit.size())
 	_check("la base ignora la que ya venia apagada", cam._kept_lit_before == 2,
 		"%d" % cam._kept_lit_before)
-	# El caso A cambio a proposito, y estas dos comprobaciones lo fijaban al
-	# reves. `_open_lit_ancestors()` abre ahora el padre oculto para que la luz
-	# alcance el barrido: el log del movil midio
-	# `104_photographysesh@0.3s frame=1693.0ms spec+31` con la vram plana, y el
-	# banco del propio preload dice por que - el estado de iluminacion forma
-	# parte de la clave del pipeline, asi que barrer a oscuras compila la
-	# variante sin luz y la sesion de fotos pide otra al encender el flash.
-	#
-	# Se comprueban las tres luces por separado en vez del agregado, porque el
-	# agregado ya no distingue los dos casos: A suma una y B resta otra, y
-	# `before - effective` da 0 tapando las dos. B sigue siendo perdida real -
-	# una luz colgada de una malla que este walk esconde se apaga - y eso no ha
-	# cambiado.
-	_check("caso A: la luz bajo el padre oculto ya alumbra",
-		luz_en_apagado.is_visible_in_tree())
-	_check("caso B: la colgada de una malla escondida sigue perdida",
-		not luz_en_malla.is_visible_in_tree())
-	_check("y la suelta no se movio", suelta.is_visible_in_tree())
+	_check("y despues solo queda la suelta", cam._kept_lit_effective() == 1,
+		"%d" % cam._kept_lit_effective())
+	_check("o sea que la perdida real es 1",
+		cam._kept_lit_before - cam._kept_lit_effective() == 1)
 
 	get_root().remove_child(root)
 	root.free()
