@@ -3335,6 +3335,112 @@ cuatro cargas largas de este log son el gobernador.
   de Chimera - el tramo ciego que este fichero ya describe, ahora con su
   duración por visita.
 
+## Chimera a 59fps: el log que cierra la sesión, y la canción que ahora manda
+
+`80dc43f7`, build `10171-66c62edb`, moto g53, `preset=Very Low scale=0.50
+target_fps=-1`. Es la primera pasada con `hide_baked_lights` y `cheap_shading`
+de verdad ejecutándose (las dos builds anteriores no los llegaron a aplicar - el
+pase caía un frame tarde y la cobertura del bake se medía sobre la escena
+escondida del precache).
+
+| | histórico `10152` | **`80dc43f7`** |
+|---|---|---|
+| chimera `gpu` p50 | 31.85ms | **14.88ms** |
+| chimera `median` p50 | ~33ms | **16.95ms -> 59 fps** |
+
+Misma escala (0.50), mismo teléfono, misma ventana. **2.1x**, y sin haber
+tocado `render_scale` para conseguirlo.
+
+Y el control de gobernador: partiendo los 50 latidos por `bench`, la mitad
+rápida da `gpu` p50 15.20 y la lenta 20.44 - o sea que el reloj explica parte
+del reparto pero no el factor 2 contra el histórico.
+
+### La escalera de luces, medida DENTRO de la canción
+
+El A/B que este fichero llevaba media sesión pidiendo, y lo produjo la propia
+canción moviendo la cámara. Partiendo los latidos de Chimera por `luz=`:
+
+| `luz=` | n | `gpu` p50 |
+|---|---|---|
+| 1 | 6 | 13.89ms |
+| **2** | **32** | **15.34ms** |
+| 3 | 5 | 20.11ms |
+| 4 | 1 | 37.98ms |
+
+**~3.1ms por luz sobre 0.288 Mpx de pase 3D**, o sea ~10.8 ms/Mpx por luz. La
+curva aislada de este fichero (8 luces a pantalla completa, 1.152 Mpx) da ~15ms
+por luz, o sea ~13 ms/Mpx. **Dos medidas independientes, en dos entornos
+distintos, dentro de un 20%.** El techo de Chimera es iluminación por
+fragmento, y ya no hace falta seguir discutiéndolo.
+
+`bake=[luces=est0/...]` en **38 de 50** latidos (era `est5`/`est6` en todos los
+logs anteriores) y `luz=2alcanzan` en 32: `hide_baked_lights` dispara, y baja de
+4 luces a 2 exactamente donde la aritmética decía que valía 6ms.
+
+### El precache, resuelto - y nunca fueron los pipelines
+
+| precache | baseline `10159` | build mala `10166` | **`80dc43f7`** |
+|---|---|---|---|
+| tienda #1 | 9889ms | 34493ms | **6401ms** |
+| chimera | 3715ms | 27371ms | **7643ms** |
+| tienda #2 | 1144ms | 6419ms | **5857ms** |
+
+Los recuentos de pipelines son **los mismos** que en la build mala (+270/+185/
++201). O sea que aquellos 34 segundos no eran "más pipelines", era el driver
+compilando **los dos juegos de variantes** porque el pase de materiales llegaba
+un frame después del primer dibujo. La tienda queda ahora **por debajo** de su
+propio baseline histórico.
+
+### Y la canción más cara del proyecto ya no es Chimera
+
+| | `gpu` p50 | `rend=` | `script` p50 | `median` |
+|---|---|---|---|---|
+| chimera | 14.88ms | `3d=13/6439/13 2d=12/384/44` | 4.58ms | **59 fps** |
+| tienda | 15.50ms | `3d=38/14411/38 2d=35/426/155` | 2.86ms | 57 fps |
+| **safety_lullaby** | **32.48ms** | **`3d=0/0/0 2d=47/650/214`** | **10.01ms** | **30 fps** |
+
+**Safety Lullaby cuesta 2.2x lo que Chimera dibujando cero triángulos de 3D.**
+Y **ninguna** de las tres palancas de esta sesión la toca: `render_scale` sólo
+escala el pase 3D, `hide_baked_lights` necesita un `LightmapGI` (no lo tiene) y
+`cheap_shading` reescribe materiales 3D (no tiene). Es relleno 2D a pantalla
+completa más CPU:
+
+    anim2d  p50 = 76.91 ms/s   (max 126.0)   <- gdanimate, el mayor del proyecto
+    script  p50 = 10.01ms
+    proc    p50 = 50.36ms      contra gpu 32.48
+
+`proc` va 18ms por encima de `gpu`: **es una canción de CPU con un suelo de
+relleno 2D encima**, que es exactamente el perfil que este fichero ya describía
+para Monochrome y que nadie ha atacado nunca. Las cuatro reglas del relleno 2D
+(`blend_disabled`, esconder capas tapadas, `modulate` contra `color`) están
+medidas más arriba y sin aplicar a una sola escena.
+
+**El siguiente objetivo de optimización es Safety Lullaby, no Chimera.**
+
+### Térmico: +50%, y lo produce la canción 2D
+
+    frames=5462 mean=22.0ms (46 fps) vs_first= +0%    <- tienda
+    frames=6032 mean=19.9ms (50 fps) vs_first= -9%    <- chimera
+    frames=5258 mean=22.8ms (44 fps) vs_first= +4%
+    frames=4259 mean=28.2ms (35 fps) vs_first=+28%    <- safety
+    frames=3633 mean=33.0ms (30 fps) vs_first=+50%    <- safety
+
+Chimera ahora sale **por debajo** del primer tramo (−9%). Las dos ventanas que
+estrangulan el teléfono son las de Safety Lullaby - o sea que la canción que
+más calienta la sesión es también la que ninguna palanca toca.
+
+### Lo que sigue abierto en este log
+
+- **Los stalls de cutscene no se han movido**: `104_photographysesh@0.4s`
+  1661.6ms y `122_fall@7.2s` 1176.8ms. El `extra_sweep` del precache no los
+  cubre todavía (`revelado_al_fin_anim=16/72` en Chimera - la animación se acaba
+  con 56 de 72 nodos sin revelar).
+- **`GPUSPLIT` vuelve a shipear apagado** (`c4ac2e1`), así que el reparto
+  luz-contra-sobredibujado sigue sin dato de dispositivo. Con la escalera de
+  `luz=` de arriba ya no es urgente: la pendiente por luz cuadra con la curva
+  aislada, así que el sobredibujado 3D no puede ser el término dominante.
+- Los ocho materiales `ALPHA_SCISSOR` de la casa siguen sin tocar.
+
 ## Lo que hace caro un píxel de 3D son las luces, no la resolución
 
 Y esto reencuadra todo lo demás de este fichero, así que va antes.
