@@ -671,6 +671,17 @@ jobs:
           # fresh log's pipe= on these four sequences is what confirms it.
           guard_godot tools/test_preload_extra_sweep.gd
 
+          # === The other half of the same stall: the lights, and their order
+          # The viewpoints alone did not do it. The lighting state is part of
+          # the pipeline key, so a sweep run with the sequence's lights off
+          # compiles the wrong variant of every surface it points at, and
+          # 104_photographysesh pays 736ms + 1662ms for 37 pipelines on its
+          # first two frames. Switching those four lights on for the sweep is
+          # the fix; doing it BEFORE the hide is what took Chimera's precache
+          # from 15092ms to 38530ms in af85b29 and got reverted. This pins the
+          # order, and that the mechanism stays at the RenderingServer.
+          guard_godot tools/test_lit_precache.gd
+
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero

@@ -100,10 +100,7 @@ extends Camera3D
 ##
 ## So the viewpoints are necessary and not sufficient. Warming these shots
 ## needs the lights that will be on when they play to be on while they are
-## swept - `:visible`/light state during the precache, which the paragraph
-## above deliberately refuses to touch and which this project's history prices
-## at eleven days when it goes wrong. Next thing to try, on its own, with a
-## device log either side.
+## swept - see `_force_dark_lights_on()`, which does that half.
 @export var extra_sweep_animations: Array[StringName] = []
 
 ## Where `extra_sweep_animations` actually live. NOT the same node as
@@ -227,12 +224,74 @@ var _revealed_at_anim_end: int = -1
 var _kept_lit: Array[Node] = []
 var _kept_lit_before: int = 0
 
+## Lights switched on for the sweep that the scene ships dark, and the reason
+## the photo session stalls.
+##
+## The four in Chimera, read off the scene: `Cameralight` and an `OmniLight3D`
+## under `Environment/chimera_house/mdl_chimera_camera`, and `PhoneGlow` and
+## `flash` under `Sequences/SerenaTakingPictures`. All four are locally
+## `visible = true` and dark only because an ancestor is not - which is exactly
+## the set `_kept_lit` holds and `_kept_lit_effective()` does not count. The log
+## says the same thing from the device: `16 luces/bakes exentos, encendidos
+## 11 -> 11`.
+##
+## Why they matter: the lighting state is part of the pipeline key (the bench in
+## KEEP_VISIBLE below measures it - geometry with no lights compiles 3, the same
+## geometry with one omni compiles 6). The sweep therefore compiles the "without
+## the photo lights" variant of every surface it points at, and the first frame
+## of `104_photographysesh` needs the other one. Log d67addb8 prices that at 736ms
+## + 1662ms for 37 pipelines, with `122_fall` (1177ms) and `107_turnaround`
+## (513ms) the same shape.
+##
+## **Switched on at the RenderingServer, not by making the ancestor visible.**
+## That distinction is the whole commit. `af85b29` opened the ancestors, and did
+## it before `_hide_everything()`, so the lights came on over a scene that was
+## still fully visible: Chimera's precache went 15092ms -> 38530ms with one
+## 20295ms frame, the shop's went 24402ms -> 45264ms, and it was reverted whole
+## in `7dfa73a`. `RS.instance_set_visible()` writes the one flag that
+## `Node3D.visible` propagation writes anyway, reaches nothing else in the tree,
+## and fires no `visibility_changed` - so no AnimationTree condition, no
+## VisibleOnScreenNotifier3D and no particle emitter can see it happen.
+##
+## Ordered after the hide, which is the other half of what went wrong: with
+## every mesh already hidden the control in KEEP_VISIBLE says turning lights on
+## costs **0** pipelines, and the reveal that follows walks into an already-lit
+## scene and compiles six variants where it used to compile twelve. Coming on
+## before the hide is what cost 20 seconds on one frame.
+var _forced_lit: Array[VisualInstance3D] = []
+
 func _kept_lit_effective() -> int:
 	var n: int = 0
 	for node in _kept_lit:
-		if is_instance_valid(node) and (node as Node3D).is_visible_in_tree():
+		if is_instance_valid(node) and _lit_in_tree(node as Node3D):
 			n += 1
 	return n
+
+## Whether this Node3D actually renders, walking the ancestors by hand.
+##
+## `is_visible_in_tree()` does not answer this, which was measured rather than
+## assumed. Godot 4.7.1, headless, a light parented under a Node3D that is
+## `visible = false`:
+##
+##     branch.is_visible_in_tree() == false
+##     light.is_visible_in_tree()  == true      <- the light is not drawn
+##
+## and it stays true after the subtree is removed and re-added. Whatever that
+## flag caches, it is not "an ancestor is hidden", so anything asking the
+## question this way gets `encendidos 16 -> 16` on a scene where four of the
+## sixteen are dark - which is the whole set this file cares about.
+##
+## The walk stops at the first non-Node3D parent on purpose: 3D visibility
+## propagates through Node3D and nothing else, so a Node3D under a plain Node
+## under a hidden Node3D still renders, and pretending otherwise would report
+## lights as dark that are not.
+func _lit_in_tree(node: Node3D) -> bool:
+	var spatial: Node3D = node
+	while spatial != null:
+		if not spatial.visible:
+			return false
+		spatial = spatial.get_parent() as Node3D
+	return true
 
 ## Whether the baseline frame has been spent. See _process().
 var _measured_first_frame: bool = false
@@ -254,9 +313,12 @@ func _ready() -> void :
 
 	_hide_everything()
 
-	_mark("preload camera '%s' started on %s (%d nodos por revelar, %d luces/bakes exentos, encendidos %d -> %d)" % [
+	# After the hide, never before it. See _forced_lit.
+	_force_dark_lights_on()
+
+	_mark("preload camera '%s' started on %s (%d nodos por revelar, %d luces/bakes exentos, encendidos %d -> %d, %d forzadas)" % [
 		animation_name, get_parent().scene_file_path.get_file(), _hidden.size(),
-		_kept_lit.size(), _kept_lit_before, _kept_lit_effective(),
+		_kept_lit.size(), _kept_lit_before, _kept_lit_effective(), _forced_lit.size(),
 	])
 
 	_collect_sweep_poses()
@@ -450,6 +512,51 @@ func _hide_everything(from: Node = null) -> void:
 ## covers a whole branch: Light3D catches Omni, Spot, Directional and Area
 ## without naming four types, and a class this fork does not have simply never
 ## matches instead of failing to parse.
+## Switches on every light the scene ships dark, for the length of the sweep.
+##
+## Call order is load-bearing: this runs after `_hide_everything()`, so the
+## lights come on over a scene with nothing in it. See `_forced_lit` for what
+## happens when it does not.
+##
+## Only the ones dark because of an ancestor. A light the scene authored
+## `visible = false` on itself - Chimera's `ClosetLight` is the one - never
+## enters `_kept_lit` at all, because `_hide_everything()` only collects nodes
+## that are locally visible. That is the right line to draw: an ancestor-dark
+## light is one the sequence is about to switch on, and a self-dark light is one
+## the author turned off.
+func _force_dark_lights_on() -> void:
+	for node in _kept_lit:
+		var visual := node as VisualInstance3D
+		if visual == null or _lit_in_tree(visual):
+			continue
+		var rid: RID = visual.get_instance()
+		if not rid.is_valid():
+			continue
+		RenderingServer.instance_set_visible(rid, true)
+		_forced_lit.append(visual)
+
+## Puts them back before the scene is handed over, so the player never sees a
+## frame lit by this.
+##
+## Skips any whose ancestor has since become visible for real: `Node3D` pushed
+## `true` down to the same flag when that happened, and writing `false` over it
+## would leave a light the scene wants on switched off - which is the failure
+## mode this file already paid eleven days for, in the other direction.
+##
+## Returns how many it actually put back, because that skip is the half a test
+## cannot otherwise see: RS instance visibility is write-only from GDScript.
+func _restore_forced_lights() -> int:
+	var restored: int = 0
+	for visual in _forced_lit:
+		if not is_instance_valid(visual) or _lit_in_tree(visual):
+			continue
+		var rid: RID = visual.get_instance()
+		if rid.is_valid():
+			RenderingServer.instance_set_visible(rid, false)
+			restored += 1
+	_forced_lit.clear()
+	return restored
+
 func _keeps_lighting(node: Node) -> bool:
 	var cls: StringName = node.get_class()
 	for keep in KEEP_VISIBLE:
@@ -584,6 +691,11 @@ func finish_preload(_anim: StringName = &"") -> void :
 	# Anything still hidden gets its visibility back even on the paths that
 	# skip the reveal, or the scene hands over with holes in it.
 	_reveal(_hidden.size() - _revealed)
+
+	# After that reveal and before the handover: the last batch is still warmed
+	# with the photo lights on, and the frame the player is given is the scene's
+	# own lighting.
+	_restore_forced_lights()
 
 	# 0 when the manual-end branch above skipped straight here without ever
 	# starting an animation - worth distinguishing from an animation that
