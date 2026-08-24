@@ -47,6 +47,7 @@ func _initialize() -> void:
 
 	_wiring_checks(settings)
 	_bookkeeping_checks(settings)
+	_override_checks(settings)
 	_filesystem_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
@@ -142,6 +143,49 @@ func _bookkeeping_checks(settings: String) -> void:
 	# Hasta que cambia el driver, que es lo unico que puede haberlo arreglado.
 	var newdrv: Array = _step(fifth[0], fifth[1], threshold, true, true)
 	_check(not newdrv[1], "un driver nuevo lo desbloquea y le da otra oportunidad")
+
+
+## The row on the first-boot screen, and the thing it must not do.
+##
+## The override exists because the automatic path takes three launches to heal
+## a phone that dies on every one. What it must not do is quietly rearm the
+## automatic decision underneath the player: an override that kept counting
+## unsafe boots would flip a KEEP back to blocked after two more launches, and
+## the player would have no idea why the setting they chose stopped applying.
+func _override_checks(settings: String) -> void:
+	_check(settings.contains("enum PipelineCacheMode { AUTOMATIC = 0, KEEP = 1, DISCARD = 2 }"),
+		"los tres modos existen y AUTOMATIC es el 0, que es el que trae la escena")
+	_check(settings.contains("var lullaby_pipeline_cache_mode"),
+		"el modo se guarda (prefijo `lullaby_`)")
+
+	var guard: String = _func_body(settings, "_guard_pipeline_cache")
+	var override_at: int = guard.find("!= PipelineCacheMode.AUTOMATIC")
+	var auto_at: int = guard.find("shader_cache_cold")
+	_check(override_at >= 0 and auto_at > override_at,
+		"lo que eligio el jugador se mira ANTES que la decision automatica")
+	# Dentro de la rama del override y no en toda la funcion: la rama
+	# automatica tambien pone la cuenta a cero, asi que buscarlo en el cuerpo
+	# entero pasaba en verde con el reseteo del override borrado.
+	var branch: String = ""
+	if override_at >= 0 and auto_at > override_at:
+		branch = guard.substr(override_at, auto_at - override_at)
+	_check(branch.contains("lullaby_unsafe_boots = 0"),
+		"...y corta la cuenta, o el automatismo rearmaria por debajo")
+	_check(branch.contains("return"),
+		"...y se va, sin volver a caer en la decision automatica")
+
+	var setter: String = _func_body(settings, "set_pipeline_cache_mode")
+	_check(setter.contains("set_pipeline_cache_blocked("),
+		"elegir Discard bloquea la escritura YA, no en el arranque siguiente")
+	_check(setter.contains("RenderingServer.get_rendering_device() != null"),
+		"...salvo sin RenderingDevice, donde no hay nada que bloquear")
+	_check(setter.contains("save("), "y se persiste")
+
+	# Volver a Automatic tiene que soltar el pestillo, no solo el override.
+	var body_after_match: String = setter.substr(setter.find("match mode:"))
+	_check(body_after_match.contains("_:") \
+			and body_after_match.contains("lullaby_pipeline_cache_blocked = false"),
+		"volver a Automatic suelta el pestillo, no deja al jugador bloqueado por una decision que retiro")
 
 
 ## One boot: returns [unsafe_boots, blocked] after it.

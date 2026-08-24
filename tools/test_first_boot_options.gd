@@ -36,11 +36,43 @@ func _initialize() -> void:
 	_check_force(script)
 	_check_preset(scene, script)
 	_check_log_row(scene, script)
+	_check_gpu_cache_row(scene, script)
 
 	print("first boot options: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:
 		print("todo OK")
 	quit(1 if _failures > 0 else 0)
+
+## The GPU pipeline cache row.
+##
+## Here and not in the console's Misc tab with the rest of the graphics
+## settings, and that placement IS the feature: the console lives inside the
+## Collector's Shop, and the shop's load is exactly where the devices this
+## setting is for die. A setting only reachable past the crash is not
+## reachable, which is the same reason the diagnostics log moved here.
+func _check_gpu_cache_row(scene: String, script: String) -> void:
+	_check(scene.contains("gpu_cache_button = NodePath(\""), "la fila de cache GPU esta cableada")
+	_check(_node_paths(scene).has("gpu_cache_button"),
+		"...y declarada en node_paths, o el export llega en null")
+	_check(scene.contains('method="_on_gpu_cache_changed"'), "y su senal conectada")
+	_check(scene.contains("item_count = 3"),
+		"con tres opciones: automatico, conservar, descartar")
+
+	var body: String = _func_body(script, "_on_gpu_cache_changed")
+	_check(_has_statement(body, "Settings\\.set_pipeline_cache_mode\\(index\\)"),
+		"delega en Settings, que es donde esta descrito que significa cada modo")
+
+	# Y la parte que de verdad importa de esta fila: que diga que esta pasando.
+	# "Automatico" a secas se lee como "no pasa nada", y en un telefono
+	# bloqueado si pasa - compila pipelines en frio en cada arranque. Si el
+	# jugador esta mirando esta fila es porque el juego se le viene cerrando.
+	var show: String = _func_body(script, "_show_gpu_cache")
+	_check(show.contains("set_item_text(0,"),
+		"la opcion Automatico dice lo que ha decidido, no solo que es automatica")
+	_check(show.contains("lullaby_pipeline_cache_blocked"),
+		"...leyendo el estado real, no adivinandolo")
+	_check(_has_statement(_func_body(script, "_ready"), "_show_gpu_cache\\(\\)"),
+		"y la fila arranca mostrando lo guardado")
 
 ## An export left unset resolves to null and every handler here guards on
 ## null, so a broken NodePath would show up as a screen that silently does

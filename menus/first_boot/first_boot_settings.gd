@@ -50,6 +50,22 @@ const LANGUAGE_VALUES: Array[String] = ["en", "es", "pt_BR"]
 ## dark panel, so a box reads as a plain label until it is ticked.
 @export var log_button: OptionButton
 
+## The GPU pipeline cache, on the only screen a phone this breaks can reach.
+##
+## Godot writes a Vulkan pipeline cache on the first run and hands it back to
+## the driver on the next, and a weak mobile driver choking on the cache it
+## wrote itself is a real failure - reported as "the game opens the first time
+## and closes itself at the end of every load after that". Settings detects it
+## and blocks the cache on its own, but it needs two failed launches and only
+## takes effect on the one after that, so a phone it is happening to dies
+## three times before it heals.
+##
+## This is the row that lets someone skip the wait, and the reason it is HERE
+## and not in the console's Misc tab with everything else: the console lives
+## inside the Collector's Shop, and the shop's load is exactly where these
+## devices die. A setting only reachable past the crash is not reachable.
+@export var gpu_cache_button: OptionButton
+
 ## Whether the row is asking the never-seen question or the seen-it question.
 ## Decided once in _ready, not per frame: choosing "Skip it" writes the very
 ## flag this reads, and a live condition would relabel the row under the
@@ -81,7 +97,39 @@ func _ready() -> void:
 	if log_button != null:
 		log_button.selected = 1 if Settings.lullaby_diagnostics_log else 0
 
+	_show_gpu_cache()
 	_show_current_preset()
+
+## Points the GPU cache row at what is stored, and says what "Automatic" has
+## actually decided.
+##
+## The label matters more here than on the other rows. Automatic is a row that
+## reads as "nothing is happening", and on a phone that has been blocked
+## something very much is - it is running cold pipelines on every launch. If
+## the player is looking at this row at all it is because the game has been
+## crashing, and "Automatic" with no state is the least useful thing it could
+## say to them.
+func _show_gpu_cache() -> void:
+	if gpu_cache_button == null:
+		return
+
+	gpu_cache_button.selected = clampi(Settings.lullaby_pipeline_cache_mode, 0, 2)
+	if gpu_cache_button.item_count > 0:
+		# tr() by hand: built here rather than authored on the node, so the
+		# Control's auto-translation never sees it.
+		gpu_cache_button.set_item_text(0, "%s (%s)" % [
+			tr("Automatic"),
+			tr("off") if Settings.lullaby_pipeline_cache_blocked else tr("on"),
+		])
+
+## Index matches Settings.PipelineCacheMode: 0 automatic, 1 keep, 2 discard.
+##
+## Applied through Settings rather than written here, so what each mode means
+## is described in one place - and so choosing Discard blocks the write
+## immediately instead of at the next launch.
+func _on_gpu_cache_changed(index: int) -> void:
+	Settings.set_pipeline_cache_mode(index)
+	_show_gpu_cache()
 
 ## Index 1 is On, matching the row's own order.
 ##

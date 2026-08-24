@@ -556,6 +556,30 @@ var lullaby_unsafe_boots: int = 0
 ## and so is not allowed one any more.
 var lullaby_pipeline_cache_blocked: bool = false
 
+## What the player asked for, over the top of the automatic decision.
+##
+## AUTOMATIC is the mechanism above and is where everyone should stay. The two
+## overrides exist because that mechanism has a shape a player can be stuck
+## inside, and the row that offers them lives on the first-boot screen for the
+## same reason the diagnostics log does: a phone this is happening to cannot
+## reach the console, because the console is inside the shop and the shop's
+## load is where it dies.
+##
+##   KEEP    - undo a false positive. Closing the app twice during a two-minute
+##             load looks exactly like crashing twice, and this puts the cache
+##             back without waiting for a driver update to clear the latch.
+##   DISCARD - stop waiting. The automatic block needs two failed boots and
+##             then only takes effect on the boot AFTER the one that decides,
+##             so a phone that dies every launch still dies three times before
+##             it heals. Someone who already knows this is their problem
+##             should not have to sit through that.
+##
+## Neither override can rescue the boot it is chosen on - the driver read the
+## cache before any of this existed - but DISCARD blocks the write from that
+## moment, so the next launch is clean.
+enum PipelineCacheMode { AUTOMATIC = 0, KEEP = 1, DISCARD = 2 }
+var lullaby_pipeline_cache_mode: int = PipelineCacheMode.AUTOMATIC
+
 func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
@@ -631,6 +655,17 @@ func _guard_pipeline_cache() -> void:
 	if RenderingServer.get_rendering_device() == null:
 		return
 
+	# The player's choice wins outright, and stops the counting with it: an
+	# override that still accumulated unsafe boots would silently rearm the
+	# automatic decision underneath someone who has already made one.
+	if lullaby_pipeline_cache_mode != PipelineCacheMode.AUTOMATIC:
+		lullaby_pipeline_cache_blocked = \
+			lullaby_pipeline_cache_mode == PipelineCacheMode.DISCARD
+		lullaby_unsafe_boots = 0
+		set_pipeline_cache_blocked(lullaby_pipeline_cache_blocked)
+		save(SAVE_PATH)
+		return
+
 	if lullaby_pipeline_cache_blocked and shader_cache_cold:
 		lullaby_pipeline_cache_blocked = false
 		lullaby_unsafe_boots = 0
@@ -646,6 +681,31 @@ func _guard_pipeline_cache() -> void:
 	set_pipeline_cache_blocked(lullaby_pipeline_cache_blocked)
 
 	lullaby_unsafe_boots += 1
+	save(SAVE_PATH)
+
+## Applies a change to the row on the first-boot screen, now.
+##
+## The policy lives here rather than in the screen so there is one description
+## of what each mode means. Choosing DISCARD cannot rescue the boot it is
+## chosen on - the driver read the cache before any script ran - but it does
+## block the write from this moment, so the next launch starts clean.
+##
+## Going back to AUTOMATIC clears the latch as well as the override, because
+## the alternative is worse: someone who used DISCARD and then returned to
+## AUTOMATIC would otherwise stay blocked forever by a decision they had
+## already taken back.
+func set_pipeline_cache_mode(mode: int) -> void:
+	lullaby_pipeline_cache_mode = mode
+	lullaby_unsafe_boots = 0
+
+	match mode:
+		PipelineCacheMode.DISCARD:
+			lullaby_pipeline_cache_blocked = true
+		_:
+			lullaby_pipeline_cache_blocked = false
+
+	if RenderingServer.get_rendering_device() != null:
+		set_pipeline_cache_blocked(lullaby_pipeline_cache_blocked)
 	save(SAVE_PATH)
 
 ## Called once this boot has created its pipelines and survived it.

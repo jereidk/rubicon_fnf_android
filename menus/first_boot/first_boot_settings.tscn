@@ -25,7 +25,7 @@ gradient = SubResource("Gradient_vig")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
-[node name="FirstBoot" type="Control" node_paths=PackedStringArray("language_button", "intro_button", "preset_button", "log_button")]
+[node name="FirstBoot" type="Control" node_paths=PackedStringArray("language_button", "intro_button", "preset_button", "log_button", "gpu_cache_button")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -36,6 +36,7 @@ language_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Option
 intro_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/IntroRow/OptionButton")
 preset_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset/OptionButton")
 log_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LogRow/OptionButton")
+gpu_cache_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/GpuCacheRow/OptionButton")
 
 [node name="BG" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -152,6 +153,28 @@ popup/item_0/id = 0
 popup/item_1/text = "On"
 popup/item_1/id = 1
 
+[node name="GpuCacheRow" type="HBoxContainer" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/GpuCacheRow"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "GPU cache: "
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/GpuCacheRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+mouse_default_cursor_shape = 2
+selected = 0
+item_count = 3
+popup/item_0/text = "Automatic"
+popup/item_0/id = 0
+popup/item_1/text = "Keep"
+popup/item_1/id = 1
+popup/item_2/text = "Discard (fixes some crashes)"
+popup/item_2/id = 2
+
 [node name="GameSeparator" type="HSeparator" parent="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer"]
 layout_mode = 2
 
@@ -223,4 +246,5 @@ expand_mode = 1
 [connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow/OptionButton" to="." method="_on_language_changed"]
 [connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/IntroRow/OptionButton" to="." method="_on_intro_choice_changed"]
 [connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LogRow/OptionButton" to="." method="_on_log_changed"]
+[connection signal="item_selected" from="CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/GpuCacheRow/OptionButton" to="." method="_on_gpu_cache_changed"]
 [connection signal="pressed" from="CenterContainer/MarginContainer/VBoxContainer/Button" to="." method="apply_and_continue"]
