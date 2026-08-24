@@ -26,6 +26,7 @@ buses/default_bus_layout="uid://dg07spmwy57em"
 
 [autoload]
 
+ErrorLog="*res://lullaby_mod/scripts/lullaby/debug/lullaby_error_log.gd"
 RubiconTouchInput="*res://addons/rubicon_mobile_controls/touch_input_handler.gd"
 RubiconNativeBackButton="*res://addons/rubicon_mobile_controls/native_back_button_handler.gd"
 ErrorHandler="*res://lullaby_mod/scripts/lullaby/lullaby_error_handler.gd"

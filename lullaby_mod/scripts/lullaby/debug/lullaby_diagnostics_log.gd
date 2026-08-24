@@ -1052,6 +1052,19 @@ func _start_logging() -> void:
 	if ErrorHandler.has_signal("logged"):
 		ErrorHandler.logged.connect(_on_error_logged)
 
+	# And everything ErrorHandler never sees, which is almost everything: every
+	# push_error/push_warning and every red error the engine raises. ErrorLog
+	# catches those through OS.add_logger() and writes its own always-on file;
+	# this puts the same error on THIS timeline, which is the half its file
+	# cannot have - "at 60.8s, in the middle of the shop's precache" is what
+	# turns an error message into a diagnosis.
+	#
+	# Declared before this autoload, so it exists. Only first occurrences
+	# arrive - ErrorLog counts repeats rather than re-emitting them, so an
+	# error firing every frame cannot flood this log either.
+	if ErrorLog.has_signal("captured"):
+		ErrorLog.captured.connect(_on_error_captured)
+
 	if SceneChanger.has_signal("scene_change_started"):
 		SceneChanger.scene_change_started.connect(_on_scene_change_started)
 	if SceneChanger.has_signal("scene_change_finished"):
@@ -3286,6 +3299,12 @@ func rescan_scene() -> void:
 
 func _on_error_logged(kind: String, message: String, err: int) -> void:
 	_entry(kind.to_upper(), "%s (error %d)" % [message.replace("\n", " | "), err])
+
+## From ErrorLog: an engine error or a push_error/push_warning, first
+## occurrence only. `where` is the C++ file, line and function that raised it,
+## which is what separates "our bug" from "the driver's".
+func _on_error_captured(kind: String, where: String, message: String) -> void:
+	_entry(kind, "%s  [%s]" % [message.replace("\n", " | "), where])
 
 func _on_scene_change_started(path: String) -> void:
 	_scene_change_started_ms = Time.get_ticks_msec()

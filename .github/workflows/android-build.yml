@@ -990,6 +990,19 @@ jobs:
           # guardando nada.
           guard_godot tools/test_typing_lane_overlap.gd
 
+          # === Los errores llegan de verdad a un fichero
+          # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
+          # mano a ErrorHandler.show_error/show_warning, todas fallos fatales
+          # de carga. Cada push_error, cada push_warning y cada error rojo del
+          # motor iban a logcat y a ningun otro sitio - incluido el aviso de
+          # console_late_resources.gd para una ruta diferida que no resuelve,
+          # escrito justamente para reportar un fallo y que no leia nadie.
+          # OS.add_logger() los coge los tres. Esta guarda LO EJECUTA en vez de
+          # leerlo: dispara un error del motor de verdad y comprueba que llega,
+          # que las repeticiones se cuentan en vez de repetirse, y que el
+          # sumidero no toca FileAccess (llega desde el hilo del ResourceLoader).
+          guard_godot tools/test_error_log.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
