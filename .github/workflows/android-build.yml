@@ -941,6 +941,15 @@ jobs:
           # cada una y se confirma que su group_name coincide con la clave.
           guard_godot tools/test_voiceline_groups_deferred.gd
 
+          # === Todo lo que la tienda mete dentro de la consola, fijado
+          # console.tscn arrastra 116 de los 363 ficheros de la sala y diferirlo
+          # es la mayor palanca que queda sobre una entrada que los usuarios
+          # miden en minutos. Lo que lo hace peligroso no es el tamano: cinco
+          # exports, seis pistas de animacion sobre input_active/volume_db y
+          # VEINTE nodos que la tienda sobreescribe DENTRO de la consola, y
+          # ninguno de los tres avisa cuando su destino falta.
+          guard_godot tools/test_console_wiring.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
