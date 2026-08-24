@@ -437,6 +437,685 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
+      - name: Run the guard suite
+        run: |
+          # Every guard in this repo runs here, in one step.
+          #
+          # They were 37 separate steps, which made the workflow tedious to
+          # read and added a step's worth of runner overhead 37 times over.
+          # Consolidating them buys two things beyond the shorter list:
+          #
+          #   * ALL guards run even after one fails, so a red build names
+          #     every problem at once instead of one per push-and-wait cycle.
+          #   * Each guard's output is wrapped in a ::group::, so the log is
+          #     collapsed by default and still one click from the detail.
+          #
+          # Three shapes of guard, all handled below: a Godot script that
+          # prints "todo OK" on success, a Godot script that only sets an
+          # exit code, and a Python audit that just exits non-zero. The
+          # reason each one exists stays in the comment above its own line
+          # here, which is where it has always lived.
+          #
+          # Log files are named after the script rather than by hand - the
+          # old steps had test_preload_sweep and test_retained_sweep both
+          # writing /tmp/sweep.txt, which only worked because they were
+          # separate steps.
+          set +e
+          set -o pipefail
+
+          failed=()
+          ran=0
+
+          # Runs a Godot guard and returns its exit status, with the output
+          # both shown and kept for the caller to inspect.
+          run_godot() {     # <script> [--no-path] -> sets $LAST_LOG
+            local script="$1"; shift
+            LAST_LOG="/tmp/guard_$(basename "$script" .gd).txt"
+            if [ "${1:-}" = "--no-path" ]; then
+              $GODOT --headless --script "$script" 2>&1 | tee "$LAST_LOG"
+            else
+              $GODOT --headless --path . --script "$script" 2>&1 | tee "$LAST_LOG"
+            fi
+          }
+
+          verdict() {       # <script> <passed 0|1>
+            if [ "$2" -eq 0 ]; then
+              echo "PASS  $1"
+            else
+              echo "FAIL  $1"
+              failed+=("$1")
+            fi
+            echo "::endgroup::"
+          }
+
+          # A Godot guard of the "todo OK" shape. Requires BOTH the marker and
+          # a clean exit - the marker alone would pass a guard that printed it
+          # and then crashed on a later check.
+          guard_godot() {   # <script> [--no-path]
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            run_godot "$@"
+            local status=$?
+            if [ "$status" -eq 0 ] && grep -q "todo OK" "$LAST_LOG"; then
+              verdict "$script" 0
+            else
+              verdict "$script" 1
+            fi
+          }
+
+          # A Godot guard that reports by exit code and prints no marker.
+          #
+          # This shape was missed when the 37 steps were consolidated, and it
+          # cost a red build: verify_hardcoded_uids.gd prints "OK: every bare
+          # uid:// reference resolves." and quits 0, so a grep for "todo OK"
+          # called a passing guard failed. The consolidation was verified
+          # against fake guards of the two shapes it knew about, which is
+          # exactly why it could not find the third.
+          guard_godot_exit() {  # <script> [--no-path]
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            run_godot "$@"
+            verdict "$script" $?
+          }
+
+          guard_python() {  # <script>
+            local script="$1"
+            ran=$((ran + 1))
+            echo "::group::$script"
+            if python3 "$script" 2>&1; then
+              echo "PASS  $script"
+            else
+              echo "FAIL  $script"
+              failed+=("$script")
+            fi
+            echo "::endgroup::"
+          }
+
+          # === Verify the first-run notice only shows on a cold shader cache
+          # The first launch after installing is a different experience, not a
+          # slightly slower one: 52014ms of load plus 30089ms of precache on
+          # the same phone that does 5998 + 1270 on its second launch, with
+          # bench comparable and the SAME pipeline count. A minute and a half
+          # of loading screen with no explanation reads as a hang.
+          guard_godot tools/test_first_run_notice.gd
+
+          # === Verify Chimera's house is off the depth pre-pass
+          # transparency = 4 draws the surface twice and leaves it in the
+          # transparent queue, where nothing behind it can be depth-rejected.
+          # Measured on the device's renderer path at 3.86x ALPHA_SCISSOR with
+          # byte-identical draw/primitive/object counts - which is why no
+          # count-based reading of a device log could ever find it.
+          guard_python tools/audit_house_transparency.py
+
+          # === Verify the console's icon materials are off any alpha mode
+          # mat_console_inactive/select/idle drive the shop's Home tab icon
+          # models, inside the SubViewport already measured as the single
+          # most expensive one in the shop. All three shipped
+          # ALPHA_DEPTH_PRE_PASS over textures with no real transparency to
+          # draw (worst texel is compression noise at 254/255) - free money,
+          # no threshold to tune, unlike a scissor conversion.
+          guard_python tools/audit_console_icon_materials.py
+
+          # === Verify every precompiled sidecar describes its own source
+          # Godot reads a sidecar's source_md5 back to decide whether to
+          # reimport, so one that carries a different file's hash makes it
+          # skip a texture that really did change and ship the stale .res.
+          # Nothing fails; the symptom is a wrong texture on a phone.
+          #
+          # The harvester used to find its output by scanning for anything
+          # starting with "<basename>-" and taking the first hit, and nine
+          # file names in this project appear more than once across 26 files
+          # (spritemap1.png nine times, grass.png three). A run rewrote
+          # serena/Running/grass.png's sidecar with the hash of
+          # intro/opening_shot/grass.png.
+          #
+          # This runs after the harvest step on purpose: a harvest build is
+          # exactly when a sidecar can be written wrong, and this is the pass
+          # that would have caught it.
+          guard_python tools/audit_precompiled_sidecars.py
+
+          # === Verify the diagnostics log's format strings
+          # A GDScript format string with more placeholders than arguments
+          # does not raise and does not stop the game: `String % Array`
+          # returns the string unformatted. The log then writes
+          # "ram=%s gpu=%.2fms ..." for every line of the session and looks
+          # like a working file until someone parses it. One build and one
+          # play session were lost to exactly that.
+          guard_python tools/verify_log_format.py
+
+          # === Verify the memory trace survives a blocked main thread
+          # The trace exists to record what happens inside
+          # change_scene_to_packed(), which blocks the main thread for the
+          # whole of its work - so "does it write a file" is not the property
+          # worth checking. The test blocks its own thread with
+          # OS.delay_msec() and counts the samples that land during the
+          # freeze. If that ever stops holding, the next device log comes back
+          # empty at exactly the moment it was collected for.
+          guard_godot tools/test_memory_sampler.gd
+
+          # === Verify F only appears while navigating console sections
+          # F switches the cartridge, which means something only while moving
+          # between the console's sections - and that is the only place the F
+          # prompt is drawn. It was wired to nothing and showed always.
+          guard_godot tools/test_console_section_nav.gd
+
+          # === Verify the action column closes its gaps
+          # The four contextual buttons are pinned to absolute slots, so
+          # hiding one leaves a 190px hole and moves nothing. PowerButton
+          # already hides itself correctly through visible_source; the hole is
+          # what the player sees. Nothing may move while all four are shown.
+          guard_godot tools/test_action_column.gd
+
+          # === Verify Enter only shows while it confirms something
+          # One button, two jobs: a menu ui_accept, or an aim-and-click at the
+          # 3D world through MouseController's raycast. Only the second one can
+          # be pointed at nothing. Hiding it inside a menu would strand the
+          # player there, so "not casting means always available" is the line.
+          guard_godot tools/test_confirm_available.gd
+
+          # === Verify the D-pad hides the directions that do nothing
+          # Disabled arms used to be drawn at a quarter alpha, which reads as
+          # temporarily unavailable - they are not. The outline was a hardcoded
+          # twelve-point plus, so it would have gone on tracing four arms
+          # around two, which is worse than the dim arrow was.
+          guard_godot tools/test_dpad_zone_shape.gd
+
+          # === Verify both vertical-only slots
+          # The notepad reads ui_up/ui_down/ui_accept and nothing else, so its
+          # two horizontal arrows have never done anything. An empty slot has
+          # to mean "no opinion" rather than false, or the second one pins the
+          # pad open and the SHOP/TALK sign loses its own restriction.
+          guard_godot tools/test_vertical_only_slots.gd
+
+          # === Verify leaving an area drops its focus
+          # CollectorShop.current_area only changed when another area took
+          # focus, so the last one entered kept is_focused true for the rest
+          # of the visit. Power is gated on FocusAreaRight.is_focused and F on
+          # Console.focused, which FocusArea3D's setter is what drops - a
+          # device screenshot has both showing while the player walks the room.
+          guard_godot tools/test_focus_clears_on_free_look.gd
+
+          # === Verify the reveal pacer backs off on an expensive frame
+          # It steered on Performance.TIME_PROCESS, a maximum over the last
+          # second refreshed once a second - so it never saw a spike, never
+          # halved, climbed to MAX_BATCH and put 64 nodes on one frame.
+          # Entering the shop compiles 212 pipelines and the batch landing 47
+          # of them took 6981ms, past the five seconds Android calls
+          # unresponsive. The test blocks the main thread for real.
+          guard_godot tools/test_preload_batch_backoff.gd
+
+          # === Verify the precache sweep is driven by the reveal, not the clock
+          # An AnimationPlayer advances by delta, so the 0.8s sweep ends in four
+          # or five frames while the reveal it is meant to accompany takes 6737ms
+          # on Chimera. Everything revealed after that was drawn from one fixed
+          # pose - the file's own diagnosis, left half-fixed by 67c9fad. The
+          # poses are re-served per revealing frame now; this pins that they are
+          # collected, that they cycle, that a scene without a sweep still loads,
+          # and that nothing is served while the animation still owns the
+          # transform.
+          guard_godot tools/test_preload_sweep.gd
+
+          # === Verify the precache sweep also visits the stalling cutscenes
+          # 122_fall@6.8s still costs frame=1911.7ms for spec+8 with RAM/VRAM
+          # flat - a pipeline-compile stall, not loading. Three more sequences
+          # show the same shape. All four are shots the precache's own sweep
+          # never visited, because that sweep only cycles through the
+          # viewpoints its own animation authors - a mesh can be
+          # visible=true the whole loading screen and never get drawn if the
+          # camera never points at it, and an undrawn material never
+          # compiles. extra_sweep_animations folds each sequence's own camera
+          # track into the cycling sweep. Unverified on device - it changes
+          # which frame a pipeline first compiles on, not whether it does; a
+          # fresh log's pipe= on these four sequences is what confirms it.
+          guard_godot tools/test_preload_extra_sweep.gd
+
+          # === The other half of the same stall: the lights, and their order
+          # The viewpoints alone did not do it. The lighting state is part of
+          # the pipeline key, so a sweep run with the sequence's lights off
+          # compiles the wrong variant of every surface it points at, and
+          # 104_photographysesh pays 736ms + 1662ms for 37 pipelines on its
+          # first two frames. Switching those four lights on for the sweep is
+          # the fix; doing it BEFORE the hide is what took Chimera's precache
+          # from 15092ms to 38530ms in af85b29 and got reverted. This pins the
+          # order, and that the mechanism stays at the RenderingServer.
+          guard_godot tools/test_lit_precache.gd
+
+          # === Safety Lullaby's pendulum has to stay tappable when the HUD goes
+          # The hitbox followed DefaultHUD's modulate, which is right for a HUD
+          # element and wrong for the only input a touch device has. The song's
+          # own Timeline runs the pendulum from 160.04s to 194.37s with the HUD
+          # keyed to alpha 0 - thirty-four seconds where the mechanic kept
+          # taking -15 retention per missed half measure and Android had no way
+          # to answer. This recomputes that window from the scene and pins that
+          # the rule is the mechanic, not the HUD.
+          guard_godot tools/test_pendulum_hitbox_window.gd
+
+          # === El render scale tiene que llegar a los SubViewport en contenedor
+          # _scale_subviewport escalaba escribiendo viewport.size, y un
+          # SubViewportContainer con stretch lo reescribe en el acto - asi que
+          # el ajuste nunca llego a ninguno. Los dos de la consola son 720x540
+          # y el log los mide vivos a ese tamano mientras todo lo demas corre a
+          # 0.50: 0.78 de los 1.38 Mpx que cuestan los SubViewport de la tienda
+          # con la consola abierta, que es lo que la pasa de 16.90ms a 20.75ms
+          # y parte los frames entre 12-20ms y 28-40ms.
+          guard_godot tools/test_subviewport_container_scale.gd
+
+          # === Las luces 2D, que ningun contador de este log veia
+          # lights= es solo Light3D, asi que Safety Lullaby - con cinco
+          # PointLight2D en el decorado - reportaba lights=0 en todos sus
+          # censos. Y over= no puede cubrirlo: el renderizador de canvas dibuja
+          # cada item otra vez por cada luz, asi que una luz a pantalla completa
+          # duplica el relleno sin sumar un solo item. BG/BgLight es 1049x480
+          # con texture_scale 4.0, o sea 4196x1920 sobre un escenario de
+          # 1920x1080.
+          guard_godot tools/test_light2d_census.gd
+
+          # === Safety Lullaby: apagar las luces 2D opcionales en Very Low
+          # Ningun preset llegaba a esta cancion porque no tiene 3D. Las luces
+          # 2D multiplican el relleno (un item se redibuja por cada luz que lo
+          # toca) y el callejon tiene cuatro, una cubriendo el frame entero.
+          guard_godot tools/test_2d_light_budget.gd
+
+          # === Los botones RETRY/EXIT de las dos pantallas de muerte
+          # Instancia las dos escenas y recorre la cadena entera: el nodo, la
+          # propiedad que la abre, los botones, sus acciones, que la pantalla
+          # las maneja y que la capa no los entierra. Ninguno de esos fallos
+          # da error - dejan una pantalla de la que no se puede salir.
+          guard_godot tools/test_gameover_prompt_usable.gd
+
+          # === Los creditos se reproducen una vez, y se pueden saltar
+          # credits_scroll_seen solo se escribia al terminar la animacion del
+          # angel, asi que cerrar la app a medias los repetia tras el siguiente
+          # clear. Y el skip era ui_accept, que en un movil no existe.
+          guard_godot tools/test_credits_once.gd
+
+          # === Celebi tiene que irse cuando le ganas al tecleo
+          # _autoplay_process escribe desde dentro de _process, asi que la
+          # ultima letra lanzaba succeed() y el bloque de ticks pisaba la
+          # animacion de salida con `ExportCelebi tick` - que acaba en su
+          # ultimo frame y mantiene ../Darkness en alpha 0.652. Solo autoplay
+          # lo alcanza, o sea Showcase.
+          guard_godot tools/test_celebi_leaves.gd
+
+          # === Showcase tiene que mostrar Y jugar los controles de Chimera
+          # El D-pad de escape rechazaba autoplay a secas (quinta copia de la
+          # regla que LullabyShowcase existe para tener una sola vez) y no
+          # aparecia nunca. Y flash_control solo sabia de RubiconActionButton y
+          # RubiconMechanicHitbox, mientras la escena cablea Button pelados: no
+          # entraba por ninguna rama y no hacia nada, en silencio.
+          guard_godot tools/test_showcase_chimera_controls.gd
+
+          # === Verify a connected gamepad works without visiting the console
+          # The lanes came from default_input_map.tres, which is D/F/J/K and
+          # nothing else, and project.godot's whole [input] block had zero
+          # InputEventJoypad. Godot covers ui_left/right/up/down with the D-pad
+          # but NOT ui_accept or ui_cancel - Enter/Kp Enter/Space and Escape -
+          # so a pad could move through every menu and neither confirm nor go
+          # back, and could not hit a note. The ui_ ones are added at runtime
+          # because overriding a built-in action in project.godot replaces its
+          # whole event list, which would take the keyboard off ui_accept.
+          guard_godot tools/test_gamepad_defaults.gd
+
+          # === Verify the shop's aim field can name the reported bug
+          # "no puedo apuntar al sombrero del coleccionista, siempre es al
+          # medio", and three readings of the scene were wrong before this
+          # field existed. Ruled out with numbers: the hat is on the same
+          # collision layer as the Kollectadex and the board, both desk
+          # animations set its can_interact true, and through the desk camera
+          # pose its box is 7.5% of the screen, clear above the Collector. The
+          # same projection says the screen centre hits neither of them, so
+          # `centrada` with `obj=-` on a FOCUSED line is the signature to look
+          # for - the tap never reached _unhandled_input.
+          guard_godot tools/test_aim_field.gd
+
+          # === Verify no translation lost a placeholder or a tag
+          # A missing translation falls back to English and is harmless. One
+          # that dropped a %d does not: the score screen's format strings
+          # throw at runtime rather than falling back. Same for $SPECIAL,
+          # which LullabyInputBinds rewrites into the bound button, and for
+          # the lyrics, which are almost entirely BBCode.
+          guard_python tools/audit_translation_csv.py
+
+          # === Verify the cached hit order matches the sorted one
+          # update_performance() rebuilt and re-sorted every result hit so far
+          # once per note that lands - O(n log n) per note. Monochrome's log
+          # measured the lanes' _process growing 1.0ms -> 19.9ms across one
+          # run. The array is kept now, which is only safe because it holds
+          # order and never values, so this compares it against the old
+          # build-and-sort at every step of a run with misses, holds and a
+          # rewind in it.
+          guard_godot tools/test_perf_order_cache.gd
+
+          # === Verify one symbol's frame does not rebuild the whole atlas
+          # use_backbuffer_cache and backbuffer_cache used to live on the
+          # AnimateAtlas, which every symbol naming that folder shares. One
+          # symbol advancing a frame cleared the flag for all of them and sent
+          # the lot down the full rebuild path - Monochrome measured 480
+          # rebuilds in a second against 1665 cached draws, anim2d 371ms/s.
+          guard_godot tools/test_atlas_cache_per_symbol.gd
+
+          # === Verify settings do not re-send unchanged shadow state
+          # Every settings row calls apply_settings() on every change, and the
+          # device log has each one compiling 35 pipelines with an identical
+          # breakdown - surf+6 draw+13 spec+16 - so the same shaders are being
+          # rebuilt. The shadow writes are the only ones in that function
+          # Godot does not filter for you.
+          guard_godot tools/test_settings_shadow_reapply.gd
+
+          # === Verify the quality ladder actually gets cheaper each step
+          # qol_very_low shipped render_scale = 0.70 against Low's 0.65: the
+          # emergency preset rendered MORE 3D pixels than the one above it. On
+          # the user's g53 the measured model is gpu = 5.7ms + 90.8ms x Mpx3d,
+          # so that step was 57.0ms (17.6fps) where Low was 49.9ms. Fourth time
+          # a preset did not lower what it claimed to; the other three are in
+          # CLAUDE.md and were all found by reading code months late.
+          guard_godot tools/test_preset_ladder.gd
+
+          # === Verify the baked-light cull only ever hides what the bake carries
+          # Chimera's frame is 90% the 3D pass and 90.8 ms/Mpx is what six
+          # lights per fragment cost on this path. Its own log does the A/B:
+          # the closet shots have three lights reaching the camera and cost
+          # 33.5ms, the wide shots have four and cost 57-59ms, and the fourth is
+          # MoonSpotlight - BAKE_STATIC, so already inside chimera_base.lmbake.
+          # The pass refuses to act without a LightmapGI holding real light
+          # data, because hiding baked lights on a bake that failed to load is
+          # the eleven-day black house all over again.
+          guard_godot tools/test_baked_light_cull.gd
+
+          # === Verify over= counts layers the GPU draws, not nodes in the tree
+          # Godot skips a CanvasItem whose inherited modulate alpha is zero,
+          # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the
+          # phone's path. _screen_area() keyed only on is_visible_in_tree(),
+          # so a transparent full-rect counted as a whole layer: Training
+          # logged over=7.2x for a vignette at modulate.a = 0. It is also why
+          # over= never correlated with gpu=.
+          guard_godot tools/test_overdraw_modulate.gd
+
+          # === Verify an early resume_typing is banked, not dropped
+          # sequence_intro is a 78-key method track and the text and the
+          # animation advance off the same delta. On a long frame the
+          # AnimationPlayer fires every key inside it while _process types at
+          # most one pause - the loop breaks the instant typing_paused goes
+          # true - so a resume gets lost and the line freezes at its next
+          # [pause] with nothing to clear it. The shop is where the long frames
+          # are: 17.7s single frames inside its precache this session.
+          guard_godot tools/test_dialogue_resume.gd
+
+          # === Verify the GPU split reads one frame behind, and always restores
+          # viewport_get_measured_render_time_gpu() lags a frame, so each step
+          # has to read the frame the previous step set up - reading and
+          # writing in the same step still produces three plausible numbers,
+          # all of the wrong frames. And debug_draw has to come back before any
+          # early return, or the game is left rendering flat albedo.
+          guard_godot tools/test_gpu_split.gd
+
+          # === Verify the script split restores exactly what it paused
+          # Same method as the GPU split, for the CPU half: rest= is the whole
+          # of Chimera's script cost (p50 5.24ms, p90 24.18, max 30.60 against
+          # notes= at 1.24) and correlates with nothing the log counts, so it
+          # gets measured by running one frame with the animation mixers off.
+          # A mixer left inactive freezes what it drives for the rest of the
+          # scene, and one the scene had deliberately stopped must not come
+          # back on.
+          guard_godot tools/test_script_split.gd
+
+          # === Verify mpx3d measures the render target, not the base
+          # Under canvas_items stretch get_visible_rect() is a constant
+          # 1920x1080 - the space 2D is laid out in - while the GPU fills the
+          # letterboxed window, 1280x720 on the g53. mpx3d read the first, so
+          # it printed 0.518 on every GPUSPLIT line of every log regardless of
+          # scale or scene, and every ms/Mpx figure derived from it is 2.25x
+          # low - including the 90.8 slope two render-scale decisions were
+          # made from.
+          guard_godot tools/test_mpx_3d_is_the_render_target.gd
+
+          # === Verify a light at zero energy stops being evaluated
+          # The renderer pairs a light with an object by RANGE, never by
+          # energy, so a light switched on at light_energy = 0 is shaded per
+          # fragment for a result multiplied by zero. Chimera's TvLight is that
+          # light for the song's first ~78 seconds, with range 43.9 in a house
+          # ten units across - exactly the wide shots measured at 57-59ms. The
+          # log's own luz= counter skips zero-energy lights, so it was
+          # invisible to the field written to find expensive lights.
+          guard_godot tools/test_dark_light_cull.gd
+
+          # === Verify the Kollectadex only renders while it is open
+          # Its SubViewport is 620x464 - the same pixel count as the whole
+          # game at scale 0.50 - and the device log has it rendering in 62 of
+          # 78 shop samples for a book that is open almost none of that time.
+          # It has to survive the closing animation, and it has to paint one
+          # frame at startup or the prop's screen in the room is blank.
+          guard_godot tools/test_kollectadex_render_gate.gd
+
+          # === Verify the results screen idles transparent
+          # It sits on a CanvasLayer at 65 for the whole song, and its `show`
+          # animation starts both full-screen layers at alpha 0. Vingette had
+          # no modulate at all - so white, full alpha - and every song was
+          # played under a vignette darkening the edges by up to 58.8%.
+          guard_python tools/audit_results_screen_idle.py
+
+          # === Verify every lightmap bake finds its texture by path
+          # A .lmbake stores its texture as a UID plus a plain res:// path.
+          # Export-time UID resolution in this project fails broadly - 84d99d5
+          # counted ~1300 invalid-UID warnings across ~227 files in one export
+          # step - so on the APK that "fallback" path is the path that loads.
+          # e191f1e deleted both bakes' texture files as orphans; the shop's
+          # threw and was restored the same night, Chimera's did not throw
+          # (a LightmapGI with no texture is a legal LightmapGI) and the house
+          # rendered with no baked light for eleven days.
+          guard_python tools/audit_lightmap_fallback_paths.py
+
+          # === Verify no scene describes a node twice
+          # An override block for an instanced scene's child is added by name
+          # and parent, and adding a second instead of editing the first still
+          # loads: Godot applies both in order and the result is whichever
+          # properties the later one sets over what the earlier one left. This
+          # shipped once, and the diff for it reads as an ordinary addition
+          # thousands of lines from the block it duplicates.
+          guard_python tools/audit_duplicate_scene_nodes.py
+
+          # === Verify the log reports the real render scale
+          # Both places printing it read the setting, not the viewport.
+          # settings.gd applies it as window.scaling_3d_scale, so anything that
+          # resets that leaves the log printing 0.50 over a full-size render -
+          # and 1600x720 against 800x360 is four times the pixels.
+          guard_godot tools/test_render_scale_report.gd
+
+          # === Verify warming a voiceline does not cost a frame
+          # The shop warms one voiceline per frame from _process. It used to
+          # do that with a blocking load(), which moved 109 .ogg files off the
+          # cold load and into gameplay one stall at a time - the device log's
+          # two worst script frames in the shop are 111.47ms and 71.90ms, both
+          # with every note field and anim2d at zero.
+          guard_godot tools/test_voiceline_warm_async.gd
+
+          # === Verify the dependency cost breakdown groups and ranks
+          # The shop opens 397 files in 17.9s where Monochrome opens 197 in
+          # 4.2s with more megabytes, so the load cost is per file. console.tscn
+          # is 97 of the shop's 397 and the log shows the console not switching
+          # on until 3.5s after the scene is up - this is what would confirm
+          # that on the device before anyone refactors it out.
+          guard_godot tools/test_dep_breakdown.gd
+
+          # === Verify the loading bar advances when the engine's figure does not
+          # load_threaded_get_status' fraction sits between 48.6% and 50.0%
+          # for every one of the eight stalls in the last device log; Chimera
+          # reads 48.6% at three seconds and 49.9% at twenty-six. The bar is
+          # blended with a count of cached dependencies so it moves. The test
+          # holds the loaded references, because a discarded load leaves the
+          # cache immediately and would measure nothing.
+          guard_godot tools/test_load_progress.gd
+
+          # === Verify the console's boot flag always clears
+          # booting gates back_out, home_button, gallery_button and
+          # cartridges_enter_label, and its only clear used to require a frame
+          # landing between 13.34s and the end of the boot animation. A frame
+          # that steps over that window strands it true for the life of the
+          # scene and the whole console stops responding. This project has
+          # frames seconds long.
+          guard_godot tools/test_console_boot_flag.gd
+
+          # === Verify a blackout shorter than the census is still logged
+          # The census names a full-screen black rect when it sees one, but it
+          # samples every 30 seconds - and the reported Chimera bug is a black
+          # graphic that comes and goes during a song. A 40 second visit
+          # produced two censuses, both reading opaque=[], while the player
+          # was watching it happen. The instrument was asleep, not wrong.
+          guard_godot tools/test_blackout_watch.gd
+
+          # === Verify the frame timer measures the frame
+          # Godot's process delta is smoothed and clamped: measured against
+          # this build, a 5000ms frame arrives as 66.7ms. Every frame-shape
+          # number the log produces was shaped from it, which is how a device
+          # log came back reporting worst=166.7ms for a session containing a
+          # measured 11,489ms frame. The test blocks the thread, because delta
+          # is accurate at 60fps - exactly when nobody needs it to be.
+          guard_godot tools/test_frame_clock.gd
+
+          # === Verify gpu= admits when the driver does not answer
+          # viewport_get_measured_render_time_gpu returns 0.00 forever on some
+          # drivers - the moto g(60)s (Mali-G76, driver 1.1.131) does it for
+          # all 492 entries of one log, with cpu_render varying normally next
+          # to it. A zero reads as a free frame, which is the opposite of the
+          # truth, and every cross-device comparison in this project leans on
+          # gpu=. The discriminator is the pair, not the lone zero: across the
+          # project's 33 logs the longest run of (gpu == 0 and cpu_render > 0)
+          # is 492 on that device and 0 on the other five models.
+          guard_godot tools/test_gpu_timing_latch.gd
+
+          # === Verify the trance-shader gate cannot hide anything visible
+          # Safety Lullaby's WaterEffect and RadialEffect are full-screen
+          # ColorRects on hint_screen_texture, and both shaders have an
+          # identity branch that is their default state - the parameters all
+          # come from (100 - retention)/100, which is 0 while the player holds
+          # the pendulum. Measured on the phone's path (Vulkan, Forward
+          # Mobile): the identity pass costs 13.3ms of a 20ms frame, three
+          # times everything under it, and hiding the rect takes the engine's
+          # backbuffer copy with it (draws 2 -> 1). The gate cuts at
+          # NEUTRAL_EPSILON; this pins that constant under the half-a-step
+          # bound its own derivation gives (0.0071), which is the part that
+          # can drift in silence.
+          guard_godot tools/test_trance_gate.gd
+
+          # === Verify Reduce Visual Effects reaches a mesh-resource material
+          # The stripper read material_override and the surface overrides -
+          # both node-owned - and never the material set on the mesh resource.
+          # Chimera's Ray box is exactly that, carrying shd_godrays: unshaded,
+          # blend_add, cull_disabled, depth_test_disabled, so both faces are
+          # rasterised with no depth rejection and a depth-texture sample per
+          # fragment. Measured at 800x360 (the g53's 3D pass at scale=0.50):
+          # one extra draw call and twelve primitives take 3.88ms to 8.05ms.
+          # Inert on all four presets - only Custom with post=High reaches it -
+          # so this is a correctness gate, not a win.
+          guard_godot tools/test_effect_mesh_hide.gd
+
+          # === Verify the light-energy gate and its audit tool's default
+          # Forward Mobile evaluates every light that reaches a fragment, so a
+          # light at energy=0 still costs full price and only visible=false
+          # removes it. This gate is opt-in per node (attaching it needs a
+          # human to check tools/audit_light_cost.py first, not an automatic
+          # scene-wide pass) - what this pins is the gate's own behaviour and
+          # a real bug the audit tool had: it read a missing light_energy
+          # property line as 0.0, when Godot's own default is 1.0, and flagged
+          # an ordinary light (the shop's LightbulbLight) as dead cost.
+          guard_godot tools/test_light_energy_gate.gd
+
+          # === Verify the retained-resource sweep stays cheap
+          # The sweep runs on the main thread during a load, next to a loading
+          # screen this project spent real effort keeping animated. Its first
+          # version treated a directory listing as free inside a budgeted loop
+          # and blew 2ms to 358ms in one frame - destroying the thing it was
+          # added to explain. The bound is checked against the real project,
+          # not a fixture.
+          guard_godot tools/test_retained_sweep.gd
+
+          # === Verify the UI localization CSV resolves and falls back correctly
+          # Godot auto-translates a Control's text/tooltip against whatever
+          # TranslationServer.set_locale() is set to, keyed on the literal
+          # English string authored in the .tscn - so the CSV at
+          # lullaby_mod/resources/localization/ui_strings.csv never needed a
+          # single .tscn edited, only an "es" column. This pins that the
+          # generated ui_strings.es.translation actually loads (project.godot
+          # points at the .translation, not the source .csv - pointing at the
+          # .csv silently loads nothing), that known keys resolve under "es",
+          # and that locale "en" (or any locale with no translation) falls
+          # straight back to the authored English text rather than erroring.
+          guard_godot tools/test_localization.gd
+
+          # === Verify the Codes home icon still changes colour when selected
+          # The kind of bug a test normally misses: the button was wired
+          # correctly and did swap materials on focus - the two materials just
+          # looked the same. Every other icon swaps between two different
+          # gradient textures (grey-beige vs a white-to-red ramp); the keyboard
+          # icon is a flat quad with its own texture, and its "selected"
+          # material was that same texture at albedo_color 1.3 - a brightness
+          # bump with no hue shift, so the icon read as dead when focused.
+          # This pins that idle and select differ by a real shift toward red.
+          guard_godot tools/test_console_icon_select_tint.gd
+
+          # === Verify the three Training drills are actually playable
+          # Each mechanic is normally driven by its own song's scene animation
+          # and the Training host only replaced part of what that animation
+          # does, so all three built cleanly and none of them worked: the
+          # pendulum was never revealed (the song drives `dropped` as well as
+          # `started`), the heart sat at (0,0) with its ECG line off-screen,
+          # and the typing challenge kept its authored time_end = 0.0, which
+          # makes both of its entry points return on their own deadline guard
+          # - no word, no unowns, no timer. On top of that the test level's
+          # only touch node is a bare Control, so nothing on a phone produced
+          # the `lullaby_special` two of them read, and typing had no keyboard.
+          # None of that is visible to a parse check or to either scene sweep;
+          # every one of them is a value a script has to write at runtime.
+          guard_godot tools/test_training_setup.gd
+
+          # === Verify the per-fragment light counter tells the truth
+          # `luz=Nalcanzan` is what prices Chimera's frame: Forward Mobile
+          # evaluates every light reaching a fragment in that fragment's
+          # shader, measured here at ~15ms per light over a full 1600x720,
+          # and two device logs put Chimera's slope at 90.8 ms/Mpx of 3D -
+          # which is where that curve puts five or six lights. It was
+          # reading 6 against a real 4, both extras being lights the GPU
+          # never draws: an editor_only one, and one inside another
+          # viewport's world.
+          guard_godot tools/test_light_reach_counter.gd
+
+          # === Verify the first-boot screen's language and intro options
+          # Three rows the player meets before anything else: the UI
+          # language, "skip the Collector's introduction" (shown only while
+          # that welcome has never played) and "always play the Collector's
+          # introduction" (always shown). Every one of them is a runtime
+          # write to a Setting or a SaveData flag, so none of it is visible
+          # to a parse check or to either scene sweep. This also pins that
+          # forcing is a Setting rather than just clearing intro_seen -
+          # that flag doubles as EntryVoicelines' "are you a returning
+          # visitor", so clearing it would mute the entry voicelines.
+          guard_godot tools/test_first_boot_options.gd
+
+          # === Verify hardcoded uid:// references resolve
+          # Catches the collector-shop crash class before it ships: a bare
+          # "uid://..." string literal in .gd code (SceneChanger.change_to,
+          # preload, change_scene_to_file - no res:// path to fall back to,
+          # unlike a normal ext_resource) that doesn't resolve against
+          # .godot/uid_cache.bin. This has shipped silently before because
+          # nothing checked it - the Import step's own log stays clean even
+          # when this is broken, and it only surfaces as a runtime crash on
+          # whatever menu action actually triggers that specific reference.
+          # See tools/verify_hardcoded_uids.gd for what this doesn't catch
+          # (ext_resource uid mismatches - those degrade gracefully to a
+          # text-path fallback instead of crashing, so they're a quality
+          # issue, not a build-breaking one).
+          guard_godot_exit tools/verify_hardcoded_uids.gd --no-path
+          if [ ${#failed[@]} -ne 0 ]; then
+            echo
+            echo "::error::${#failed[@]} guard(s) failed:"
+            for f in "${failed[@]}"; do echo "::error::  $f"; done
+            exit 1
+          fi
+          echo
+          echo "all $ran guards passed"
+
       - name: Create builds directory
         run: |
           mkdir -p builds
