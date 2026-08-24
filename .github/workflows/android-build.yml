@@ -712,6 +712,25 @@ jobs:
           # 1920x1080.
           guard_godot tools/test_light2d_census.gd
 
+          # === Safety Lullaby: apagar las luces 2D opcionales en Very Low
+          # Ningun preset llegaba a esta cancion porque no tiene 3D. Las luces
+          # 2D multiplican el relleno (un item se redibuja por cada luz que lo
+          # toca) y el callejon tiene cuatro, una cubriendo el frame entero.
+          guard_godot tools/test_2d_light_budget.gd
+
+          # === Los botones RETRY/EXIT de las dos pantallas de muerte
+          # Instancia las dos escenas y recorre la cadena entera: el nodo, la
+          # propiedad que la abre, los botones, sus acciones, que la pantalla
+          # las maneja y que la capa no los entierra. Ninguno de esos fallos
+          # da error - dejan una pantalla de la que no se puede salir.
+          guard_godot tools/test_gameover_prompt_usable.gd
+
+          # === Los creditos se reproducen una vez, y se pueden saltar
+          # credits_scroll_seen solo se escribia al terminar la animacion del
+          # angel, asi que cerrar la app a medias los repetia tras el siguiente
+          # clear. Y el skip era ui_accept, que en un movil no existe.
+          guard_godot tools/test_credits_once.gd
+
           # === Verify a connected gamepad works without visiting the console
           # The lanes came from default_input_map.tres, which is D/F/J/K and
           # nothing else, and project.godot's whole [input] block had zero

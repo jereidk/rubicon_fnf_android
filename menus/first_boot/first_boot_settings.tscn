@@ -25,7 +25,7 @@ gradient = SubResource("Gradient_vig")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 
-[node name="FirstBoot" type="Control" node_paths=PackedStringArray("language_button", "intro_button")]
+[node name="FirstBoot" type="Control" node_paths=PackedStringArray("language_button", "intro_button", "preset_button")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -34,6 +34,7 @@ grow_vertical = 2
 script = ExtResource("1_fbs")
 language_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/LanguageRow/OptionButton")
 intro_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Game/IntroRow/OptionButton")
+preset_button = NodePath("CenterContainer/MarginContainer/VBoxContainer/Options/VBoxContainer/Graphics/Preset/OptionButton")
 
 [node name="BG" type="ColorRect" parent="."]
 anchors_preset = 15

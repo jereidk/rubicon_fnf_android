@@ -64,6 +64,21 @@ var flags: Dictionary[StringName, bool] = {
 	&"console_on": false, 
 
 	&"credits_scroll_seen": false, 
+
+	## Set the moment the scrolling credits appear, so they only ever play
+	## themselves once.
+	##
+	## Distinct from credits_scroll_seen, which means "watched to the end" and
+	## is what four other places already read - the Collector's entry
+	## voicelines, the shop's outro branch, the console's own credits button
+	## and the angel scene. Reusing it here would have made "the player left
+	## early" and "the player has seen everything" the same fact.
+	##
+	## The bug it fixes: credits_scroll_seen is only written when the `angel`
+	## animation finishes, so closing the app, backing out, or any exit that is
+	## not the very end left it false - and the results screen sent the player
+	## straight back into the credits after the next clear.
+	&"credits_shown": false,
 	&"outro_seen": false
 }
 

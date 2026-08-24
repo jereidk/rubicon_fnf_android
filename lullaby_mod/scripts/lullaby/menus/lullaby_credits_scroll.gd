@@ -39,11 +39,44 @@ func _on_animation_finished(anim_name: StringName) -> void :
 			_leave()
 
 
+## The same way out, as something a finger can hit.
+##
+## The skip existed and was unreachable on the port: `ui_accept` is Enter, Space
+## and the gamepad's A, and this screen ships no touch control at all - so on a
+## phone the credits could only be sat through, every single time the three
+## songs were cleared.
+##
+## Available from the moment the credits appear, on every viewing.
+##
+## It used to be gated - like the keyboard path still was - on
+## `credits_scroll_seen`, i.e. only from the second viewing onward. That rule
+## cannot survive the change next to it: the credits now play themselves exactly
+## once, so a skip offered only on the second viewing is a skip nobody is ever
+## offered.
+@export var skip_button: BaseButton
+
+## Marks the credits as having appeared, which is what stops them repeating.
+##
+## Written here rather than at the end, because every other exit is real: the
+## player backs out, closes the app, or skips. `credits_scroll_seen` keeps its
+## own meaning - watched all the way through the angel - and four other places
+## still read it for that.
+func _ready() -> void :
+	if not SaveData.get_flag(&"credits_shown"):
+		SaveData.set_flag(&"credits_shown", true)
+		SaveData.save()
+
+	if skip_button != null:
+		skip_button.text = tr("Skip")
+
+func _on_skip_pressed() -> void :
+	_leave()
+
 func _input(event: InputEvent) -> void :
 	if _leaving or not event.is_pressed() or event.is_echo():
 		return
 
-	if event.is_action(&"ui_accept") and SaveData.get_flag(&"credits_scroll_seen"):
+	if event.is_action(&"ui_accept"):
 		_leave()
 
 

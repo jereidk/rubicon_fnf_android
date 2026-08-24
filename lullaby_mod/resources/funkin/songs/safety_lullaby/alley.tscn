@@ -29,6 +29,7 @@ metadata/_edit_horizontal_guides_ = [825.0]
 [node name="BG" type="Node2D" parent="." unique_id=1558618601]
 
 [node name="BgLight" type="PointLight2D" parent="BG" unique_id=1096793967]
+groups = ["quality_optional_2d_light"]
 position = Vector2(801, 449)
 blend_mode = 2
 range_item_cull_mask = 257
@@ -66,6 +67,7 @@ z_index = -1
 scroll_scale = Vector2(0.8, 0.8)
 
 [node name="Mountain" type="Sprite2D" parent="BG/Parallax3" unique_id=1421018161]
+groups = ["quality_unlit_2d"]
 position = Vector2(1523, 126)
 scale = Vector2(2.25, 2.25)
 texture = ExtResource("3")
@@ -110,6 +112,7 @@ scale = Vector2(2.15141, 2.15141)
 texture = ExtResource("9")
 
 [node name="Pole" type="PointLight2D" parent="BG/Parallax2/Lamp1" unique_id=1004960145]
+groups = ["quality_optional_2d_light"]
 position = Vector2(5.7219, -210.095)
 scale = Vector2(0.464811, 0.464811)
 energy = 0.55
@@ -118,6 +121,7 @@ texture = ExtResource("10")
 texture_scale = 2.0
 
 [node name="PoleLight" type="PointLight2D" parent="BG/Parallax2/Lamp1" unique_id=686199969]
+groups = ["quality_optional_2d_light"]
 position = Vector2(134.00978, 105.51219)
 scale = Vector2(0.928031, 1.02259)
 color = Color(0.941802, 0.979471, 0.969674, 1)
@@ -126,6 +130,7 @@ range_item_cull_mask = 257
 texture = ExtResource("11")
 
 [node name="PoleLight2" type="PointLight2D" parent="BG/Parallax2/Lamp1" unique_id=1058150264]
+groups = ["quality_optional_2d_light"]
 position = Vector2(185.60388, 41.183647)
 scale = Vector2(1.3687, 1.02259)
 color = Color(0.803922, 0.960784, 0.913725, 1)

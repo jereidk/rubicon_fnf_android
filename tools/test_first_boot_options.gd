@@ -30,6 +30,7 @@ func _initialize() -> void:
 	_check_language(script)
 	_check_skip(script)
 	_check_force(script)
+	_check_preset(scene, script)
 
 	print("first boot options: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:
@@ -73,6 +74,35 @@ func _check_wiring(scene: String) -> void:
 		"first boot does not ship a key rebinder on a touch port")
 	_check(not scene.contains('[node name="Input"'),
 		"and the Input section is gone with it")
+
+## The quality row has to SHOW what is saved, not what the scene was authored
+## with.
+##
+## It never did: the scene ships `selected = 4` and _ready only ever touched
+## the language and intro rows, so this screen said "High" on every launch
+## whatever was stored - reported as "por cada sesion se ve High, cuando yo
+## habia puesto Optimized en una sesion anterior". The value underneath really
+## was Optimized; only the row was lying, which is worse than cosmetic because
+## this row is also how the player checks what they are running.
+func _check_preset(scene: String, script: String) -> void:
+	_check(scene.contains("preset_button = NodePath(\""),
+		"la fila de calidad esta cableada al script")
+	_check(script.contains("func _show_current_preset()"),
+		"y el script la pone a lo que hay guardado")
+	_check(_has_statement(_func_body(script, "_ready"), "_show_current_preset\\(\\)"),
+		"...desde _ready, o solo se corregiria al tocarla")
+	_check(script.contains("preset.matches(Settings)"),
+		"comparando con matches(), igual que la fila de la consola")
+	_check(script.contains("preset_button.selected = 0"),
+		"y cayendo en CUSTOM cuando lo guardado no es ningun preset")
+
+	# Y el arranque en fresco: Optimized, no la suma de los defaults sueltos.
+	var settings: String = FileAccess.get_file_as_string(SETTINGS)
+	_check(settings.contains("PRESET_VERY_LOW.apply(self)"),
+		"una instalacion nueva arranca en Optimized (PRESET_VERY_LOW)")
+	var ready_body: String = _func_body(settings, "_ready")
+	_check(ready_body.contains("ERR_FILE_NOT_FOUND") and ready_body.contains("PRESET_VERY_LOW"),
+		"...solo cuando no hay fichero, para no pisar lo que el jugador guardo")
 
 func _check_language(script: String) -> void:
 	_check(script.contains("LANGUAGE_VALUES"), "the language row has a value list")

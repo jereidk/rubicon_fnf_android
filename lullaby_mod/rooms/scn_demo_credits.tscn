@@ -799,7 +799,7 @@ _data = {
 &"scene": SubResource("Animation_dll6y")
 }
 
-[node name="DemoCredits" type="Control" unique_id=1962529292 node_paths=PackedStringArray("animation_player")]
+[node name="DemoCredits" type="Control" unique_id=1962529292 node_paths=PackedStringArray("animation_player", "skip_button")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -808,6 +808,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_484gl")
 animation_player = NodePath("AnimationPlayer")
+skip_button = NodePath("SkipLayer/SkipButton")
 
 [node name="BG" type="ColorRect" parent="." unique_id=1124313707]
 layout_mode = 1
@@ -4087,6 +4088,25 @@ horizontal_alignment = 1
 
 [node name="Voice" type="AudioStreamPlayer" parent="Scene_1" unique_id=757511183]
 
+[node name="SkipLayer" type="CanvasLayer" parent="."]
+layer = 64
+
+[node name="SkipButton" type="Button" parent="SkipLayer"]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -116.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+text = "Skip"
+
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=598762851]
 bus = &"Music"
 
@@ -4098,3 +4118,4 @@ autoplay = &"scene"
 [connection signal="pressed" from="Scene_0/ScrollContainer/Control/Logo/Button" to="Scene_0/ScrollContainer/Control/Logo/Hypno" method="set_visible" binds= [false]]
 [connection signal="pressed" from="Scene_0/ScrollContainer/Control/Logo/Button" to="Scene_0/ScrollContainer/Control/Logo/NotLegoleFart" method="play" binds= [0.0]]
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_finished"]
+[connection signal="pressed" from="SkipLayer/SkipButton" to="." method="_on_skip_pressed"]

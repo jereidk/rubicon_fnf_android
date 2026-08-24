@@ -141,6 +141,15 @@ var graphics_disable_shader_effects: bool = false
 ## unless the scene really has a LightmapGI with light data loaded.
 var graphics_hide_baked_lights: bool = false
 
+## Switch off the Light2D a scene put in OPTIONAL_2D_LIGHT_GROUP.
+##
+## The 2D counterpart of hide_baked_lights, and the only lever that reaches a
+## song with no 3D in it. See LullabyQualityPreset.disable_optional_2d_lights
+## for the measurements; the short version is that Godot's canvas renderer
+## redraws every affected CanvasItem once per light, so a light is a multiplier
+## on fill that no counter in the log could see until now.
+var graphics_disable_optional_2d_lights: bool = false
+
 ## Drop Burley diffuse and Schlick-GGX specular from 3D materials, which every
 ## one of them runs per light per fragment purely because they are Godot's
 ## defaults. Applied by MobileLightBudget; metallic materials keep their
@@ -316,11 +325,23 @@ var lullaby_speed_hack: float = 1.0
 ## automatically off the lullaby_ prefix.
 var lullaby_debug_display: int = 1
 
-## Writes a diagnostics log to user://logs (see
-## lullaby_diagnostics_log.gd). On by default: it is quiet, costs a few
-## flushed lines a minute, and is worthless if it has to be switched on
-## after the problem has already happened.
-var lullaby_diagnostics_log: bool = true
+## Writes a diagnostics log to user://logs (see lullaby_diagnostics_log.gd).
+##
+## **Off by default.** It shipped on for a defensible reason - an instrument
+## that has to be remembered is one that does not run, and a log switched on
+## after the problem has already happened is worth nothing - but that argument
+## was about a development build. Every line it writes costs a `store_line` and
+## a flush to external storage, it walks the whole scene tree every thirty
+## seconds for the census, and none of it is for the player.
+##
+## The row stays in the console's Misc tab, so a pass with a log is one toggle
+## away when one is wanted.
+##
+## Persisted, like every lullaby_ var, so this reaches a fresh install and not
+## a phone that already has `[lullaby] diagnostics_log=true` on disk - the same
+## thing that made the GPU split's default change a no-op. A device already
+## running with it on has to turn it off in the console once.
+var lullaby_diagnostics_log: bool = false
 
 ## Let the diagnostics log split the GPU frame into lighting, fill and the
 ## rest, by re-rendering two frames per sample through Viewport.debug_draw.
@@ -514,6 +535,16 @@ var shader_cache_cold: bool = false
 func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
+		# Optimized, not whatever the var declarations happen to add up to.
+		#
+		# Every graphics_ default in this file was written one at a time, and
+		# together they land on High - so a fresh install started on the
+		# heaviest preset in the project on a phone that needs the lightest.
+		# Nothing chose that; it is what a pile of independent defaults comes
+		# to. The first launch now applies the same preset the console calls
+		# "Optimized" (PRESET_VERY_LOW), which is the one every measurement in
+		# this project has been taken at.
+		PRESET_VERY_LOW.apply(self)
 		save(SAVE_PATH)
 
 	# Arm the forced intro for this launch. The shop disarms it the first time
@@ -663,6 +694,7 @@ func apply_settings() -> void:
 		TranslationServer.set_locale(lullaby_language)
 
 	_apply_shader_effects_setting()
+	_apply_2d_light_budget()
 
 	AudioServer.set_bus_volume_linear(MASTER_VOLUME_BUS, audio_master_volume)
 	AudioServer.set_bus_volume_linear(MUSIC_VOLUME_BUS, audio_music_volume)
@@ -846,6 +878,77 @@ func _scale_subviewport(viewport: SubViewport) -> void:
 	viewport.size = Vector2i(
 		maxi(1, int(round(float(authored.x) * graphics_render_scale))),
 		maxi(1, int(round(float(authored.y) * graphics_render_scale))))
+
+## Lights a scene has marked as optional rather than as its mood, by group.
+##
+## A group and not a walk heuristic, same reason SUBVIEWPORT_NATIVE_GROUP is a
+## group: which 2D lights carry the look and which are decoration is an
+## authoring decision. The alley's three lamp lights are in it; `BG/BgLight` -
+## the darkness gradient the whole song reads through, and the one that covers
+## the entire frame - is deliberately not.
+const OPTIONAL_2D_LIGHT_GROUP := &"quality_optional_2d_light"
+
+## The other half of the same lever, from the item's side.
+##
+## Dropping lights is capped by the one light that has to stay: `BG/BgLight` is
+## the darkness the alley reads through and it covers the whole frame, so on its
+## own it still redraws every lit item once. Excluding an item is the only way
+## to reach that, and the alley's own author already did it - `Parallax5/Sky`
+## ships `light_mask = 0` while `Parallax4/Clouds` and `Parallax3/Mountain`,
+## the two layers immediately in front of it, ship 3.
+##
+## Those two are 0.68 and 0.74 of a screen in the device log's `relleno=`, so
+## 1.42 screens that stop being drawn twice. Under the preset rather than edited
+## in the scene, because it IS a look change - the far layers stop being
+## darkened - and only Very Low is allowed to make those.
+const UNLIT_2D_GROUP := &"quality_unlit_2d"
+
+## Where the authored light_mask is stashed, so turning the preset back up
+## restores what the scene shipped rather than a hardcoded 1.
+const AUTHORED_LIGHT_MASK := &"lullaby_authored_light_mask"
+
+## Applies graphics_disable_optional_2d_lights to the running tree.
+##
+## `enabled` rather than `visible`: an animation track that writes `visible` on
+## a light or one of its parents would fight a walk that wrote the same
+## property, and Safety Lullaby animates plenty of visibility. Nothing in the
+## project animates `Light2D.enabled` - checked across every .tscn, .tres and
+## .gd - so this is the one property the walk can own outright.
+##
+## Restores rather than latching off, so turning the preset back up in the
+## console brings the lights back in the same visit instead of on the next
+## scene load. The node_added hook mirrors the shader stripper's: songs and
+## rooms instance lights well after boot.
+func _apply_2d_light_budget() -> void:
+	if graphics_disable_optional_2d_lights:
+		if not _watching_new_2d_lights:
+			get_tree().node_added.connect(_budget_2d_light)
+			_watching_new_2d_lights = true
+	elif _watching_new_2d_lights:
+		get_tree().node_added.disconnect(_budget_2d_light)
+		_watching_new_2d_lights = false
+
+	_budget_2d_lights_under(get_tree().root)
+
+func _budget_2d_lights_under(node: Node) -> void:
+	_budget_2d_light(node)
+	for child: Node in node.get_children():
+		_budget_2d_lights_under(child)
+
+func _budget_2d_light(node: Node) -> void:
+	var light := node as Light2D
+	if light != null and light.is_in_group(OPTIONAL_2D_LIGHT_GROUP):
+		light.enabled = not graphics_disable_optional_2d_lights
+		return
+
+	var item := node as CanvasItem
+	if item == null or not item.is_in_group(UNLIT_2D_GROUP):
+		return
+	var authored: int = int(item.get_meta(AUTHORED_LIGHT_MASK, item.light_mask))
+	item.set_meta(AUTHORED_LIGHT_MASK, authored)
+	item.light_mask = 0 if graphics_disable_optional_2d_lights else authored
+
+var _watching_new_2d_lights: bool = false
 
 ## Very Low toggles this on; every other preset off. Strips the current
 ## tree's effect ShaderMaterials (stashing originals to restore if the

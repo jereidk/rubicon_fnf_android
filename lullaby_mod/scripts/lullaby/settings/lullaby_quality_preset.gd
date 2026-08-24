@@ -125,6 +125,39 @@ var anisotropic_filtering: int = 2
 ## puts 60fps back on the table without lowering render scale.
 @export var cheap_shading: bool = false
 
+## Switch off the 2D lights a scene has marked optional.
+##
+## The 3D presets above never touched Safety Lullaby, because the song has no
+## 3D at all: `rend=[3d=0/0/0]`, 592 primitives, 38 draw calls - and 32.48ms of
+## GPU against Chimera's 15.27ms on 15645 primitives. The render scale does not
+## reach it either; `scaling_3d_scale` scales the 3D buffer and nothing else,
+## so every pixel of that song is drawn at the full 1600x720.
+##
+## What is left is 2D fill, and the multiplier on it is lights. Godot's canvas
+## renderer draws each affected CanvasItem **again, once per light**, so the
+## cost is roughly `items x (1 + lights touching them)` and `over=` - which
+## counts items once - cannot see any of it. The alley authors four
+## PointLight2D. Measured through the census's new helper, `BG/BgLight` covers
+## **1.000** of the frame (1049x480 texture at `texture_scale = 4.0`, i.e.
+## 4196x1920 over a 1920x1080 stage) and the two lamp lights about 0.29 and
+## 0.42 of it. Nine of the eleven parallax sprites carry `light_mask = 3`
+## against `range_item_cull_mask = 257`, so they share bit 1 and every one of
+## those nine is redrawn per overlapping light.
+##
+## It also explains the one number that never fitted: the two pure-2D scenes in
+## log d67addb8 are 2.5x apart in items (`over=` 2.0x against 5.0x) and 4.4x
+## apart in GPU (7.41ms against 32.48ms). Items alone do not do that.
+##
+## Marked per scene rather than guessed at, with the
+## `Settings.OPTIONAL_2D_LIGHT_GROUP` group - the same shape as
+## SUBVIEWPORT_NATIVE_GROUP, and for the same reason: which lights are mood and
+## which are decoration is an authoring decision, not something a walk can
+## infer. The alley's three lamp lights are in it; `BgLight`, which is the
+## darkness the whole song reads through, is not.
+##
+## Very Low only, alongside everything else that preset already drops.
+@export var disable_optional_2d_lights: bool = false
+
 ## How many atlas frames pass between gdanimate symbol updates. 1 is stock.
 ##
 ## The only lever on gdanimate's cost that does not require rewriting the
@@ -177,6 +210,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.display_target_fps == target_fps and
 		settings.graphics_disable_shader_effects == disable_shader_effects and
 		settings.graphics_hide_baked_lights == hide_baked_lights and
+		settings.graphics_disable_optional_2d_lights == disable_optional_2d_lights and
 		settings.graphics_cheap_shading == cheap_shading and
 		settings.graphics_atlas_frame_step == atlas_frame_step
 	)
@@ -199,5 +233,6 @@ func apply(settings: LullabySettings) -> void :
 	settings.display_target_fps = target_fps
 	settings.graphics_disable_shader_effects = disable_shader_effects
 	settings.graphics_hide_baked_lights = hide_baked_lights
+	settings.graphics_disable_optional_2d_lights = disable_optional_2d_lights
 	settings.graphics_cheap_shading = cheap_shading
 	settings.graphics_atlas_frame_step = atlas_frame_step

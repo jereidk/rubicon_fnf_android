@@ -126,7 +126,13 @@ func _on_animation_finished(anim_name: StringName) -> void :
 				if SaveData.get_flag(flag):
 					passed_songs += 1
 
-			if passed_songs >= 3 and not SaveData.get_flag(&"credits_scroll_seen"):
+			# credits_shown, not credits_scroll_seen. The second one is only
+			# written when the `angel` animation reaches its end, so closing
+			# the app, backing out, or any exit that is not the very last frame
+			# left it false - and this sent the player straight back into the
+			# credits after the next clear. Having appeared once is what "do
+			# not repeat them" means.
+			if passed_songs >= 3 and not SaveData.get_flag(&"credits_shown"):
 				SceneChanger.change_to("uid://c56x7ch1lypk3", &"hypno", false)
 			else:
 				SceneChanger.change_to("uid://bqkjiwokrcvo", &"hypno", true)

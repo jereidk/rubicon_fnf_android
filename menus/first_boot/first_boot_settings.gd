@@ -25,6 +25,16 @@ const LANGUAGE_VALUES: Array[String] = ["en", "es", "pt_BR"]
 ## row instead of two, and it labels its own state.
 @export var intro_button: OptionButton
 
+## The quality row, so _ready can point it at what is actually saved.
+##
+## It was never wired, and the scene ships `selected = 4`, so this screen said
+## "High" on every launch whatever was stored - which is exactly the report:
+## "por cada sesion se ve High, cuando yo habia puesto Optimized en una sesion
+## anterior". The saved values really were Optimized; only the row was lying.
+## That is worse than cosmetic: this row is also how the player checks what they
+## are running, and a wrong readout invites re-picking a preset already set.
+@export var preset_button: OptionButton
+
 ## Whether the row is asking the never-seen question or the seen-it question.
 ## Decided once in _ready, not per frame: choosing "Skip it" writes the very
 ## flag this reads, and a live condition would relabel the row under the
@@ -52,6 +62,34 @@ func _ready() -> void:
 			intro_button.add_item(tr(label))
 		intro_button.selected = 1 if (_intro_already_seen
 			and Settings.lullaby_force_shop_intro) else 0
+
+	_show_current_preset()
+
+## Points the quality row at whatever is actually saved.
+##
+## Matched with the preset's own `matches()`, the same comparison the console's
+## row uses, so index 0 - CUSTOM, which the scene ships disabled - appears
+## exactly when the saved values are nobody's preset, rather than being a fifth
+## thing this screen decides on its own.
+func _show_current_preset() -> void:
+	if preset_button == null:
+		return
+	for index in range(1, 5):
+		var preset: LullabyQualityPreset = _preset_for_index(index)
+		if preset != null and preset.matches(Settings):
+			preset_button.selected = index
+			return
+	preset_button.selected = 0
+
+## Shared by the row that reads the setting and the row that writes it, so the
+## two cannot drift.
+func _preset_for_index(index: int) -> LullabyQualityPreset:
+	match index:
+		1: return Settings.PRESET_VERY_LOW
+		2: return Settings.PRESET_LOW
+		3: return Settings.PRESET_MEDIUM
+		4: return Settings.PRESET_HIGH
+	return null
 
 func _on_language_changed(index: int) -> void:
 	if index < 0 or index >= LANGUAGE_VALUES.size():
@@ -92,13 +130,9 @@ func _on_intro_choice_changed(index: int) -> void:
 ## and was never saved, so picking a preset here didn't survive past this
 ## screen.
 func _on_preset_changed(index: int) -> void:
-	var preset: LullabyQualityPreset
-	match index:
-		1: preset = Settings.PRESET_VERY_LOW
-		2: preset = Settings.PRESET_LOW
-		3: preset = Settings.PRESET_MEDIUM
-		4: preset = Settings.PRESET_HIGH
-		_: return
+	var preset: LullabyQualityPreset = _preset_for_index(index)
+	if preset == null:
+		return
 
 	preset.apply(Settings)
 	Settings.apply_settings()
