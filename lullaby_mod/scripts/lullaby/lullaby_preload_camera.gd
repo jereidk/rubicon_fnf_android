@@ -178,6 +178,22 @@ const DEADLINE_SECONDS := 15.0
 
 var _started_msec: int = 0
 
+## When the deadline actually starts counting: the first _process, not the
+## hide.
+##
+## Measured from the hide, the budget was being spent before this node could
+## use any of it. The device log of 2026-08-24 has the shop hiding at 49.11s
+## and the first _process arriving at 60.80s - 11,695 ms of a 15,000 ms budget
+## gone to the rest of the _ready() cascade and the first draw, neither of
+## which this camera can do anything about. It got 3.3 seconds of sweeping and
+## revealed 2 of 116 nodes before the deadline fired and dumped the other 114
+## on a single frame, which is precisely the spike the gradual sweep exists to
+## avoid.
+##
+## _started_msec is kept, and still measures from the hide, because the gap
+## between the two IS the diagnostic that found this.
+var _budget_msec: int = 0
+
 ## Nodes hidden by this script, in reveal order, and how far through it is.
 ## Only nodes that were visible go in, so one the scene authored hidden is
 ## never switched on by the reveal.
@@ -614,6 +630,8 @@ func _process(_delta: float) -> void:
 	if not _measured_first_frame:
 		_measured_first_frame = true
 		_last_frame_usec = Time.get_ticks_usec()
+		# And this is where the budget starts. See _budget_msec.
+		_budget_msec = Time.get_ticks_msec()
 		_mark("preload camera primer _process a los %dms del escondite (%d ocultos, revelados=%d)" % [
 			Time.get_ticks_msec() - _started_msec, _hidden.size(), _revealed,
 		])
@@ -623,9 +641,12 @@ func _process(_delta: float) -> void:
 		_try_finish()
 		return
 
-	if Time.get_ticks_msec() - _started_msec >= int(DEADLINE_SECONDS * 1000.0):
-		_mark("preload camera '%s' agoto el plazo con %d/%d revelados" % [
+	if _budget_msec > 0 \
+			and Time.get_ticks_msec() - _budget_msec >= int(DEADLINE_SECONDS * 1000.0):
+		_mark("preload camera '%s' agoto el plazo con %d/%d revelados (%dms de barrido, %dms desde el escondite)" % [
 			animation_name, _revealed, _hidden.size(),
+			Time.get_ticks_msec() - _budget_msec,
+			Time.get_ticks_msec() - _started_msec,
 		])
 		_reveal(_hidden.size() - _revealed)
 		_try_finish()
