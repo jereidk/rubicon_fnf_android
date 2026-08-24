@@ -5,38 +5,6 @@
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/quality_gated_scene_loader.gd" id="303"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console_viewport_gate.gd" id="304"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/menu_touch_controls.tscn" id="202"]
-[ext_resource type="Resource" uid="uid://4l7ftjieh7in" path="res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres" id="2"]
-[ext_resource type="Resource" uid="uid://dcnjvtc5155m2" path="res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres" id="3"]
-[ext_resource type="Resource" uid="uid://ho1eww3mpi1b" path="res://lullaby_mod/resources/audio/vox/groups/vox_hatreturn_group.tres" id="4"]
-[ext_resource type="Resource" uid="uid://fo8kvmftnvcv" path="res://lullaby_mod/resources/audio/vox/groups/vox_joiningback_group.tres" id="5"]
-[ext_resource type="Resource" uid="uid://c5nia6dfbyuwu" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_failed_return_group.tres" id="6"]
-[ext_resource type="Resource" uid="uid://dj868mtg7ekay" path="res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_passed_return_group.tres" id="7"]
-[ext_resource type="Resource" uid="uid://bbpxyropagrj0" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_failed_return_group.tres" id="8"]
-[ext_resource type="Resource" uid="uid://b80ntxtt6ejpo" path="res://lullaby_mod/resources/audio/vox/groups/vox_safety_passed_return_group.tres" id="9"]
-[ext_resource type="Resource" uid="uid://fb2p1vdm16nv" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_failed_return_group.tres" id="10"]
-[ext_resource type="Resource" uid="uid://7dsx3uvgjy3" path="res://lullaby_mod/resources/audio/vox/groups/vox_chimera_passed_return_group.tres" id="11"]
-[ext_resource type="Resource" uid="uid://bjerni5qqagtg" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_failed_return_group.tres" id="12"]
-[ext_resource type="Resource" uid="uid://cuisi6alkas88" path="res://lullaby_mod/resources/audio/vox/groups/vox_generic_passed_return_group.tres" id="13"]
-[ext_resource type="Resource" uid="uid://bidrevxftbvtf" path="res://lullaby_mod/resources/audio/vox/groups/vox_idletoolong_group.tres" id="14"]
-[ext_resource type="Resource" uid="uid://euregt8jfibu" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_console_group.tres" id="15"]
-[ext_resource type="Resource" uid="uid://pyhmgf8th2mj" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_free_soultoken_group.tres" id="16"]
-[ext_resource type="Resource" uid="uid://dj5gfaq7j7fwv" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_getsoultoken_group.tres" id="17"]
-[ext_resource type="Resource" uid="uid://db56uwf283arq" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_what_group.tres" id="18"]
-[ext_resource type="Resource" uid="uid://36upp1o3hko1" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_group.tres" id="19"]
-[ext_resource type="Resource" uid="uid://ck4oksrlpxojo" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_2_group.tres" id="20"]
-[ext_resource type="Resource" uid="uid://0f645qw1g4kd" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_group.tres" id="21"]
-[ext_resource type="Resource" uid="uid://cvb7mnkt84pn3" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_2_group.tres" id="22"]
-[ext_resource type="Resource" uid="uid://2tdibeu3ku81" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_why_group.tres" id="23"]
-[ext_resource type="Resource" uid="uid://dodqq0sb1q37v" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_reask_group.tres" id="24"]
-[ext_resource type="Resource" uid="uid://dpm6gl6hrqm81" path="res://lullaby_mod/resources/audio/vox/groups/vox_baby_chim_group.tres" id="25"]
-[ext_resource type="Resource" uid="uid://bovifqb1ormnn" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_boughtall_group.tres" id="26"]
-[ext_resource type="Resource" uid="uid://c1vwpu4n0hy7b" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_enter_group.tres" id="27"]
-[ext_resource type="Resource" uid="uid://7dvf7crnrdcr" path="res://lullaby_mod/resources/audio/vox/groups/vox_byebye_group.tres" id="28"]
-[ext_resource type="Resource" uid="uid://b1ncr5hc86c00" path="res://lullaby_mod/resources/audio/vox/groups/vox_ask_interrupt_group.tres" id="29"]
-[ext_resource type="Resource" uid="uid://c5w63qdq2shou" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_picked_group.tres" id="30"]
-[ext_resource type="Resource" uid="uid://3rm4xb8j1qdi" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hovermono_group.tres" id="31"]
-[ext_resource type="Resource" uid="uid://cm3ur3w0q1311" path="res://lullaby_mod/resources/audio/vox/groups/vox_shop_hoverchim_group.tres" id="32"]
-[ext_resource type="Resource" uid="uid://bkm8dutnh3po" path="res://lullaby_mod/resources/audio/vox/groups/vox_babyon_group.tres" id="33"]
 [ext_resource type="Script" uid="uid://f854gqdvv8p6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/mouse_controller.gd" id="34"]
 [ext_resource type="Script" uid="uid://dr43kfmejrh85" path="res://lullaby_mod/scripts/lullaby/collectors_shop/Sequences.gd" id="35"]
 [ext_resource type="AudioStream" uid="uid://bf53t4q5ir6th" path="res://lullaby_mod/resources/audio/mus/mus_intro_shop.ogg" id="39"]
@@ -9704,7 +9672,8 @@ entry_voicelines = NodePath("EntryVoicelines")
 camera = NodePath("InterpolatedCamera")
 screen_transitions = NodePath("UI/BlackScreenThingy/Transitions")
 fake_candle_shadow = NodePath("Environment/LightmapGI/prp_candles_fake_shadow")
-voiceline_groups = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("15"), ExtResource("16"), ExtResource("17"), ExtResource("18"), ExtResource("19"), ExtResource("20"), ExtResource("21"), ExtResource("22"), ExtResource("23"), ExtResource("24"), ExtResource("25"), ExtResource("26"), ExtResource("27"), ExtResource("28"), ExtResource("29"), ExtResource("30"), ExtResource("31"), ExtResource("32"), ExtResource("33")]
+voiceline_groups = []
+voiceline_group_paths = Dictionary[String, String]({"himself": "res://lullaby_mod/resources/audio/vox/groups/vox_himself_group.tres", "hat": "res://lullaby_mod/resources/audio/vox/groups/vox_hat_group.tres", "hatreturn": "res://lullaby_mod/resources/audio/vox/groups/vox_hatreturn_group.tres", "joiningback": "res://lullaby_mod/resources/audio/vox/groups/vox_joiningback_group.tres", "monochrome_failed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_failed_return_group.tres", "monochrome_passed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_monochrome_passed_return_group.tres", "safety_failed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_safety_failed_return_group.tres", "safety_passed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_safety_passed_return_group.tres", "chimera_failed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_chimera_failed_return_group.tres", "chimera_passed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_chimera_passed_return_group.tres", "generic_failed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_generic_failed_return_group.tres", "generic_passed_return": "res://lullaby_mod/resources/audio/vox/groups/vox_generic_passed_return_group.tres", "idletoolong": "res://lullaby_mod/resources/audio/vox/groups/vox_idletoolong_group.tres", "ask_console": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_console_group.tres", "ask_free_soultoken": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_free_soultoken_group.tres", "ask_getsoultoken": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_getsoultoken_group.tres", "ask_what": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_what_group.tres", "ask_where": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_group.tres", "ask_where_2": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_where_2_group.tres", "ask_who": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_group.tres", "ask_who_2": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_who_2_group.tres", "ask_why": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_why_group.tres", "ask_reask": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_reask_group.tres", "baby_chim": "res://lullaby_mod/resources/audio/vox/groups/vox_baby_chim_group.tres", "shop_boughtall": "res://lullaby_mod/resources/audio/vox/groups/vox_shop_boughtall_group.tres", "shop_enter": "res://lullaby_mod/resources/audio/vox/groups/vox_shop_enter_group.tres", "byebye": "res://lullaby_mod/resources/audio/vox/groups/vox_byebye_group.tres", "ask_interrupt": "res://lullaby_mod/resources/audio/vox/groups/vox_ask_interrupt_group.tres", "shop_picked": "res://lullaby_mod/resources/audio/vox/groups/vox_shop_picked_group.tres", "shop_hovermono": "res://lullaby_mod/resources/audio/vox/groups/vox_shop_hovermono_group.tres", "shop_hoverchim": "res://lullaby_mod/resources/audio/vox/groups/vox_shop_hoverchim_group.tres", "babyon": "res://lullaby_mod/resources/audio/vox/groups/vox_babyon_group.tres"})
 idle_voiceline_time = 45.0
 skip_time = 2.0
 

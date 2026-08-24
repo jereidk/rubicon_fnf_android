@@ -931,6 +931,16 @@ jobs:
           # with every note field and anim2d at zero.
           guard_godot tools/test_voiceline_warm_async.gd
 
+          # === Los 32 grupos de voicelines se guardan por ruta, no por
+          # referencia. La carga en frio de la tienda va por coste POR FICHERO
+          # (~53ms cada uno) y los usuarios reportan dos minutos para entrar.
+          # VoicelineEntry ya saco los 109 .ogg del grafo; los 32 .tres que
+          # apuntaban a ellos se quedaron, y son las primeras ochenta
+          # dependencias en llegar en la traza de una carga lenta. Una ruta es
+          # una cadena: nada la comprueba al importar, asi que aqui se resuelve
+          # cada una y se confirma que su group_name coincide con la clave.
+          guard_godot tools/test_voiceline_groups_deferred.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn

@@ -79,7 +79,30 @@ static var current_area: FocusArea3D:
 @export var screen_transitions: AnimationPlayer
 @export var fake_candle_shadow: Node3D
 
+## Still honoured for any group wired as a direct reference; empty in this
+## scene since the migration below.
 @export var voiceline_groups: Array[VoicelineGroup] = []
+
+## group_name -> the group's `res://` path, so the room does not have to load
+## 32 files in order to appear.
+##
+## The same migration VoicelineEntry already did one level down, for the same
+## reason and against the same measurement: the shop's cold load is bound by
+## per-file cost rather than bandwidth, at roughly 53ms a file. Moving the audio
+## out took 109 files off it - the 32 group resources that pointed at them
+## stayed, and they are the first eighty dependencies to arrive in the device
+## trace of a slow load.
+##
+## They are metadata: a name and a list of paths. Nothing about them needs to be
+## resident before the Collector speaks. Keyed by name because that is what
+## every caller asks for through get_voiceline_group(), so the lookup stays O(1)
+## and no group has to be loaded just to find out whether it is the one being
+## asked for. All 32 names are unique - checked against the .tres files rather
+## than assumed.
+@export var voiceline_group_paths: Dictionary[String, String] = {}
+
+## Groups resolved so far, by name.
+var _loaded_groups: Dictionary[String, VoicelineGroup] = {}
 
 ## How far through voiceline_groups the background warm-up has got.
 ##
@@ -91,13 +114,37 @@ static var current_area: FocusArea3D:
 ## the Collector has anything to say.
 var _warm_group: int = 0
 
+## The same cursor for the deferred groups, over a fixed key order so the walk
+## cannot re-scan what it has already finished.
+var _warm_name: int = 0
+var _warm_names: Array[String] = []
+
 ## Loads at most one voiceline per frame, in order, and stops once done.
+##
+## A group's own file counts as that frame's work. It is a file read like any
+## other, and pulling it alongside a line would put two on one frame through
+## the first seconds in the room - which is the thing this pacing exists to
+## avoid.
 func _warm_one_voiceline() -> void:
 	while _warm_group < voiceline_groups.size():
 		var group: VoicelineGroup = voiceline_groups[_warm_group]
 		if group != null and group.warm_next():
 			return
 		_warm_group += 1
+
+	if _warm_names.is_empty() and not voiceline_group_paths.is_empty():
+		_warm_names.assign(voiceline_group_paths.keys())
+
+	while _warm_name < _warm_names.size():
+		var deferred_name: String = _warm_names[_warm_name]
+		if not _loaded_groups.has(deferred_name):
+			get_voiceline_group(deferred_name)
+			return
+
+		var deferred: VoicelineGroup = _loaded_groups[deferred_name]
+		if deferred != null and deferred.warm_next():
+			return
+		_warm_name += 1
 
 @export_group("Idle Voicelines")
 
@@ -485,12 +532,29 @@ func stop_voiceline():
 	voiceline_dial_end.stop()
 	voiceline_state_end.stop()
 
+## The group by name, loading it the first time it is asked for.
+##
+## Direct references first, so a .tres still wired the old way keeps working and
+## never pays a load. Then the cache, then the path map - which is where all 32
+## of this room's groups now live.
 func get_voiceline_group(group_name: String) -> VoicelineGroup:
 	for group in voiceline_groups:
 		if group != null and group.group_name == group_name:
 			return group
 
-	return null
+	if _loaded_groups.has(group_name):
+		return _loaded_groups[group_name]
+
+	if not voiceline_group_paths.has(group_name):
+		return null
+
+	# Cached even when it comes back null, so a bad path is one failed load and
+	# a warning, not one per call for the rest of the visit.
+	var loaded: VoicelineGroup = load(voiceline_group_paths[group_name]) as VoicelineGroup
+	_loaded_groups[group_name] = loaded
+	if loaded == null:
+		push_warning("Voiceline group failed to load: " + voiceline_group_paths[group_name])
+	return loaded
 
 var _next_line = null
 
