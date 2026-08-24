@@ -733,6 +733,19 @@ func finish_preload(_anim: StringName = &"") -> void :
 			_sweep_extra_frames,
 		])
 
+	# This is the moment the boot is provably survivable. The sweep exists to
+	# force every material in the scene through pipeline creation, so reaching
+	# here means the driver built them all and did not take the process with
+	# it. Settings counts the boots that never get this far, and a device that
+	# stacks up two of them stops being allowed a pipeline cache at all - see
+	# Settings._guard_pipeline_cache() for the crash that is about.
+	#
+	# Soft, like _mark() below: this camera is also used in scenes opened
+	# straight from the editor, where the autoload chain may not be running.
+	var settings: Node = get_node_or_null(^"/root/Settings")
+	if settings != null and settings.has_method("mark_boot_safe"):
+		settings.mark_boot_safe()
+
 	if camera_to_focus != null and !camera_to_focus.current:
 		camera_to_focus.make_current()
 

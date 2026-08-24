@@ -963,6 +963,20 @@ jobs:
           # comprueban contra la hoja que de verdad se carga.
           guard_godot tools/test_console_late_resources.gd
 
+          # === Un telefono que se cae por su propia cache de pipelines
+          # Reporte: el juego abre y se juega en una instalacion nueva, y desde
+          # el segundo arranque se cierra solo justo al terminar de cargar la
+          # tienda. Godot escribe una cache de pipelines de Vulkan en el primer
+          # arranque y se la da al driver en el siguiente, y el driver la
+          # consume al crear pipelines en bloque - que aqui es el barrido de
+          # precarga al final de esa misma carga. Tras dos arranques que no
+          # llegan a terminar una precarga, el juego deja un FICHERO donde va
+          # user://vulkan para que la cache no pueda volver a escribirse.
+          # Un fichero en el almacenamiento del jugador que el jugador nunca
+          # pidio: la vuelta atras tiene que funcionar tan bien como la ida, y
+          # las dos direcciones se ejercitan contra el disco de verdad.
+          guard_godot tools/test_pipeline_cache_block.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn

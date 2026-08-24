@@ -532,6 +532,30 @@ var _level_note_inputs: RubiconLevelNoteInputMap = RubiconLevelNoteInputMap.new(
 ## Read by the loading screen. See lullaby_shader_cache_uuid for the numbers.
 var shader_cache_cold: bool = false
 
+## Where Godot keeps the Vulkan pipeline cache. Taken from the engine binary
+## (`user://vulkan/pipelines.%s.%s`) rather than guessed, since the whole point
+## of this block is to be able to make that path unusable.
+const PIPELINE_CACHE_PATH := "user://vulkan"
+
+## Consecutive boots that never reached a finished preload before this stops
+## letting the driver keep a pipeline cache at all.
+##
+## Two, because the two errors are not symmetric. A false positive costs one
+## cold pipeline compile - exactly what a fresh install already pays, and that
+## demonstrably works. A false negative is a phone that cannot open the game.
+const UNSAFE_BOOTS_BEFORE_BLOCK := 2
+
+## Boots since the last one that got through a preload without dying.
+##
+## `lullaby_` prefixed so save() persists it, which is the entire mechanism:
+## a session that crashes never gets to clear it, so the count surviving on
+## disk IS the crash report.
+var lullaby_unsafe_boots: int = 0
+
+## Whether this device has been caught crashing with a pipeline cache present,
+## and so is not allowed one any more.
+var lullaby_pipeline_cache_blocked: bool = false
+
 func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
@@ -553,6 +577,7 @@ func _ready() -> void:
 	force_shop_intro_pending = lullaby_force_shop_intro
 
 	_check_shader_cache()
+	_guard_pipeline_cache()
 	apply_settings()
 
 ## Compares the driver's pipeline cache UUID against the one stored, latches
@@ -573,6 +598,97 @@ func _check_shader_cache() -> void:
 	if shader_cache_cold:
 		lullaby_shader_cache_uuid = uuid
 		save(SAVE_PATH)
+
+## Stops a device that crashes on its own pipeline cache from crashing forever.
+##
+## The report this exists for: the game opens and plays on a fresh install, and
+## from the second launch onward it closes itself the moment the shop finishes
+## loading. Same phone, same RAM, every time. Nothing in this project explains
+## that - but Godot writes a Vulkan pipeline cache to disk on the first run and
+## hands it to the driver on the next, and the point where the driver consumes
+## it is bulk pipeline creation, which in this project is the preload sweep at
+## the end of exactly that load. A weak mobile Vulkan driver choking on a cache
+## it wrote itself is a known failure, and the reporter's phone is a Galaxy A12
+## (PowerVR GE8320 or Mali-G52 MP1, on eMMC, so the incremental 3MB chunk saves
+## have plenty of room to be cut short).
+##
+## Why blocking the path and not just deleting the file: deleting is too late
+## to matter. The RenderingDevice is built before any script runs, so by the
+## time this function exists the driver has already read the cache into memory
+## - and the session would write a fresh one anyway, so the next boot would
+## crash again. Deleting alone turns "always broken" into "broken every other
+## launch", which is not a fix. Leaving a plain FILE where the directory goes
+## makes make_dir_recursive() fail, so the save is skipped and the device runs
+## permanently cold - the targeted version of switching pipeline_cache/enable
+## off, applied only to devices that earned it.
+##
+## Reversible on purpose: a driver update changes the cache UUID, which
+## _check_shader_cache() already latches, and that clears the block so the new
+## driver gets a fair chance.
+func _guard_pipeline_cache() -> void:
+	# No RenderingDevice, no pipeline cache: GL Compatibility and headless both
+	# land here, and CI is headless.
+	if RenderingServer.get_rendering_device() == null:
+		return
+
+	if lullaby_pipeline_cache_blocked and shader_cache_cold:
+		lullaby_pipeline_cache_blocked = false
+		lullaby_unsafe_boots = 0
+		set_pipeline_cache_blocked(false)
+
+	if not lullaby_pipeline_cache_blocked \
+			and lullaby_unsafe_boots >= UNSAFE_BOOTS_BEFORE_BLOCK:
+		lullaby_pipeline_cache_blocked = true
+
+	# Re-asserted every boot rather than only on the boot that decides it: the
+	# block is a file on the player's storage and anything could have removed
+	# it, and make_dir_recursive() would quietly put the directory back.
+	set_pipeline_cache_blocked(lullaby_pipeline_cache_blocked)
+
+	lullaby_unsafe_boots += 1
+	save(SAVE_PATH)
+
+## Called once this boot has created its pipelines and survived it.
+##
+## Cheap on purpose - it is a no-op on every boot after the first, so the
+## preload camera can call it unconditionally.
+func mark_boot_safe() -> void:
+	if lullaby_unsafe_boots == 0:
+		return
+	lullaby_unsafe_boots = 0
+	save(SAVE_PATH)
+
+## The filesystem half, split out so a headless gate can drive it. See
+## lullaby_loading_screen.build_notice() for the same split and the same
+## reason: every check in this project runs under `--script`, which has no
+## autoloads and no RenderingDevice.
+static func set_pipeline_cache_blocked(blocked: bool) -> void:
+	var exists_as_file: bool = FileAccess.file_exists(PIPELINE_CACHE_PATH)
+
+	if not blocked:
+		if exists_as_file:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(PIPELINE_CACHE_PATH))
+		return
+
+	if exists_as_file:
+		return
+
+	# Whatever is there now goes, directory and contents alike, before the file
+	# that replaces it can be created.
+	var dir := DirAccess.open(PIPELINE_CACHE_PATH)
+	if dir != null:
+		for name: String in dir.get_files():
+			dir.remove(name)
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PIPELINE_CACHE_PATH))
+
+	var blocker: FileAccess = FileAccess.open(PIPELINE_CACHE_PATH, FileAccess.WRITE)
+	if blocker == null:
+		push_warning("no pude bloquear %s" % PIPELINE_CACHE_PATH)
+		return
+	blocker.store_line("This device crashed twice with a Vulkan pipeline cache present.")
+	blocker.store_line("This file exists so Godot cannot recreate the directory and")
+	blocker.store_line("write one again. Deleting it restores the default behaviour.")
+	blocker.close()
 
 func _input(event: InputEvent) -> void:
 	if event.is_pressed() and event.is_action(&"fullscreen_toggle"):
