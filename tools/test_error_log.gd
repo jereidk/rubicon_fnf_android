@@ -16,10 +16,10 @@ extends SceneTree
 ## OS.add_logger() delivers, whether an engine-side error arrives and not only
 ## our own push_error, whether repeats collapse, whether the cap holds.
 ##
-## The one thing it deliberately does NOT do is let the capture write its file
-## into the checkout - _record is driven directly with the queue drained by
-## hand, so the test asserts on the recorded state instead of on a file it
-## would then have to clean up.
+## It drives the whole thing, file included: _pick_dir() lands on user://logs
+## off Android, so the file it writes is outside the checkout and rotates
+## itself to five. That matters here, because one of the claims below is about
+## what actually reaches the file rather than what reaches the signal.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_error_log.gd
@@ -123,6 +123,18 @@ func _capture_checks() -> void:
 		if String(key).contains("prueba error de guarda"):
 			repeated = seen[key]
 	_check(repeated == 21, "pero se cuentan (%d)" % repeated)
+
+	# Y el conteo se ANUNCIA segun escala, sin esperar al cierre.
+	#
+	# Los totales se escribian solo en _close(), y en Android _close() casi
+	# nunca corre - el sistema mata el proceso. El log del 2026-08-24 volvio con
+	# trance_shaders.gd fallando desde _process, potencialmente en cada frame de
+	# una cancion entera, y no habia forma de distinguirlo de un error suelto.
+	var written: String = FileAccess.get_file_as_string(log_node.get("_path"))
+	_check(written.contains("(x10)"),
+		"el fichero anuncia la repeticion al llegar a 10, sin depender de un cierre limpio")
+	_check(not written.contains("(x11)") and not written.contains("(x12)"),
+		"...una vez por decada, no una por repeticion")
 
 	# Y el tope existe, contra un build roto que escupa cien errores distintos.
 	_check(int(script.get("MAX_DISTINCT")) > 0

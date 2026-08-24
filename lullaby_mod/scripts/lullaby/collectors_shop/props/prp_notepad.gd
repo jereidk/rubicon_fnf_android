@@ -198,8 +198,20 @@ func _reload_page():
 			new_page_text.visible = false
 			hidden_count += 1
 
-	var shader_material: ShaderMaterial = selector.material
-	shader_material.set_shader_parameter("colors_to_mask", [seen_color, selectable_color])
+	# Same shape as trance_shaders.gd, same cause: the selector's material is a
+	# ShaderMaterial listed in EFFECT_SHADER_PATHS, so `disable_shader_effects`
+	# - which is on by default, it is part of Optimized - strips it and this
+	# reads null. The .error log of 2026-08-24 has it:
+	#
+	#     Cannot call method 'set_shader_parameter' on a null value.
+	#     prp_notepad.gd:202 _reload_page
+	#
+	# And it aborted _reload_page right here, before the add_child below, so
+	# the page was rebuilt without its selector at all - the highlight the
+	# player moves with the D-pad simply was not in the SubViewport.
+	var shader_material: ShaderMaterial = selector.material as ShaderMaterial
+	if shader_material != null:
+		shader_material.set_shader_parameter("colors_to_mask", [seen_color, selectable_color])
 
 	sub_viewport.add_child(selector)
 

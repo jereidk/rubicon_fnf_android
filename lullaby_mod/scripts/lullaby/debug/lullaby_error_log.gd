@@ -134,25 +134,50 @@ func _record(error_type: int, where: String, message: String) -> void:
 	var key: String = "%s|%s|%s" % [kind, where, message]
 
 	if _seen.has(key):
-		# Repeats are counted, not repeated. The count is written on the line
-		# that already exists only at shutdown - see _close() - so an error
-		# firing every frame costs one dictionary bump per frame and nothing
-		# else.
-		_seen[key] = _seen[key] + 1
+		# Repeats are counted, not repeated - one dictionary bump per frame and
+		# nothing else.
+		#
+		# But the count is also announced as it escalates, at 10, 100, 1000 and
+		# so on, and that is a fix for this file's first outing rather than a
+		# flourish. The totals used to be written only by _close(), and on
+		# Android _close() mostly never runs: the OS kills the process. The
+		# 2026-08-24 log came back with trance_shaders.gd erroring from
+		# _process - potentially every frame of a whole song - and no way to
+		# tell that from a single stray error, because the repeat section was
+		# never reached. An error that happens ten thousand times is a
+		# different bug from one that happens once, and the file has to say so
+		# without depending on a clean exit.
+		var count: int = _seen[key] + 1
+		_seen[key] = count
+		if count >= 10 and count == _next_power_of_ten(count):
+			_write("%s (x%d)" % [message.replace("\n", " | "), count],
+				"WARNING" if error_type == 1 else "ERROR", where)
 		return
 
 	if _seen.size() >= MAX_DISTINCT:
 		return
 	_seen[key] = 1
 
+	_write(message.replace("\n", " | "), kind, where)
+	captured.emit(kind, where, message)
+
+
+## One entry, two lines: what happened and where it came from.
+func _write(text: String, kind: String, where: String) -> void:
 	if not _open():
 		return
-
 	_file.store_line("[%8.2fs] %-7s %s" % [
-		float(Time.get_ticks_msec()) / 1000.0, kind, message.replace("\n", " | ")])
+		float(Time.get_ticks_msec()) / 1000.0, kind, text])
 	_file.store_line("          %s" % where)
 
-	captured.emit(kind, where, message)
+
+## The power of ten at or below `count`, so an escalating repeat is announced
+## once per decade rather than once per occurrence.
+func _next_power_of_ten(count: int) -> int:
+	var power: int = 10
+	while power * 10 <= count:
+		power *= 10
+	return power
 
 
 ## Opened on the first error and not before, so a clean session leaves no file

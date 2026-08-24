@@ -56,6 +56,24 @@ var _effects_strength: float = 0.0
 var _nullify_strength: bool = false
 
 func _ready() -> void :
+	# Sin materiales no hay nada que conducir, y hay que retirarse, no fallar.
+	#
+	# El comentario de `water_rect` de arriba ya lo decía - los dos shaders
+	# están en `EFFECT_SHADER_PATHS`, así que a Very Low se quitan enteros -
+	# pero el código no lo manejaba, y Very Low es el preset con el que sale el
+	# juego. El `.error` del 2026-08-24 lo tenía:
+	#
+	#     Cannot call method 'set_shader_parameter' on a null value.
+	#     trance_shaders.gd:77 _process
+	#
+	# En `_process`: **un error rojo por frame** de Safety Lullaby, con
+	# `_process` abortando en esa línea y sin ejecutar nada de lo que sigue.
+	# Formatear un error y recorrer su traza no sale gratis en la canción que
+	# ya va a 30fps.
+	if water == null or radial == null:
+		set_process(false)
+		return
+
 	# `_effects_strength` arranca a 0, así que sin esto los dos rects harían un
 	# frame de pase identidad antes del primer `_process`.
 	_update_rect_visibility()

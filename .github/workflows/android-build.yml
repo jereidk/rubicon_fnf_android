@@ -1003,6 +1003,18 @@ jobs:
           # sumidero no toca FileAccess (llega desde el hilo del ResourceLoader).
           guard_godot tools/test_error_log.gd
 
+          # === Los cuatro bugs que encontro el primer fichero .error
+          # El dispositivo llevaba lanzandolos desde siempre y nada podia
+          # verlos; en cuanto OS.add_logger() estuvo puesto, una sesion los
+          # nombro. Dos son el mismo error en dos sitios y el proyecto esta
+          # montado para seguir cometiendolo: disable_shader_effects quita el
+          # material de todo shader en EFFECT_SHADER_PATHS, ese ajuste es parte
+          # de Very Low, y Very Low es lo que corre una instalacion nueva - asi
+          # que cualquier script que lea %X.material sin comprobar esta roto en
+          # el preset por defecto. trance_shaders lo hacia en _process: un error
+          # rojo por frame de Safety Lullaby, la cancion que ya va a 30fps.
+          guard_godot tools/test_error_log_findings.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn

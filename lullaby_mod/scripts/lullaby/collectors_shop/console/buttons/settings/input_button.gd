@@ -10,10 +10,32 @@ var detecting_input: bool = false
 func _ready() -> void :
 	super ()
 
-	if is_input_game:
-		current_input = Settings.input_game[input][0]
-	else:
-		current_input = Settings.input_map[input][0]
+	# A row for an action nobody can rebind hides instead of erroring.
+	#
+	# The console ships three of them - Volume Up, Volume Down, Mute - and
+	# settings.gd deliberately keeps those OUT of input_map, with its reason
+	# written down next to INPUT_EXCLUSIONS: they are Android's hardware volume
+	# rocker (KEY_VOLUMEUP/DOWN/MUTE), and freezing them into a player's
+	# settings.ini would silently drop any future default binding. So these
+	# rows were asking for keys that are deliberately absent, and the device
+	# error log of 2026-08-24 has all three:
+	#
+	#     Invalid access to property or key 'volume_up' on a base object of
+	#     type 'Dictionary'.   input_button.gd:16 _ready
+	#
+	# The error aborts _ready right here, so the button never got its label
+	# suffix either - three rows in Keybinds reading "Volume Up: " with nothing
+	# after the colon and nothing to press. Hidden rather than cut from the
+	# scene, and hidden by the same rule that made them break, so a row for any
+	# excluded or missing action takes itself out without another edit.
+	var source: Dictionary = Settings.input_game if is_input_game else Settings.input_map
+	var events: Array = source.get(input, [])
+	if events.is_empty():
+		visible = false
+		focus_mode = Control.FOCUS_NONE
+		return
+
+	current_input = events[0]
 	initial_text = text
 	text = initial_text + current_input.as_text()
 
