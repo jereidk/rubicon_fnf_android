@@ -113,6 +113,12 @@ var _active_touches: Dictionary = {} # touch/mouse index -> zone
 var _flash_amount: float = 0.0
 var _flash_tween: Tween
 
+## The action the mechanic was last asking for, so a showcase can pulse the pad
+## on the frame that changes. Cleared whenever the pad is not showing an
+## autoplayed attempt, so re-entering one always pulses on its first input
+## instead of swallowing it as "same as last time".
+var _last_autoplay_input: StringName = &""
+
 func _ready() -> void:
 	var settings_enabled: bool = ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
 	var has_touch: bool = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
@@ -141,11 +147,40 @@ func _process(_delta: float) -> void:
 		if not should_show:
 			_release_all()
 
+	# And it has to look played, not just be on screen.
+	#
+	# The pad already lights `current_input` with required_color and no finger
+	# on it, so a showcase run reads the right arrow - but nothing ever pressed
+	# it, so it never pulsed the way a lane hitbox does under
+	# LullabyShowcaseNoteSync. `current_input` changing IS the automatic hit:
+	# mch_crawling.gd's _autoplay_process calls handle_input_pressed(
+	# current_input) and the controller then moves on to the next one.
+	#
+	# Watched rather than hooked to a signal because the controller has none for
+	# a single input - it emits attempt_success/attempt_failed and nothing per
+	# step - and it is carried over from the pck line for line, so adding one
+	# there would be a divergence for a cosmetic feature. Same reasoning, and
+	# the same shape, as chimera_heartbeat_touch_zone.gd watching has_beaten.
+	if visible and LullabyShowcase.is_active() and crawl_timing.autoplay:
+		var required: StringName = crawl_timing.current_input
+		if required != _last_autoplay_input and required != &"":
+			_flash()
+		_last_autoplay_input = required
+	else:
+		_last_autoplay_input = &""
+
 	if visible:
 		queue_redraw()
 
 func _mechanic_wants_input() -> bool:
-	if crawl_timing.autoplay:
+	# Showcase Mode keeps the pad up while the mechanic plays itself.
+	#
+	# This was a bare `if crawl_timing.autoplay: return false`, which is right
+	# for the debug "Autoplay?" toggle - nobody is watching the controls there -
+	# and wrong for a showcase, where watching them is the entire point. It is
+	# the fifth copy of the one-line rule LullabyShowcase exists to hold, and
+	# the one that was missed, so the pad simply never appeared in a showcase.
+	if not LullabyShowcase.mechanic_controls_visible(crawl_timing.autoplay):
 		return false
 	if not crawl_timing.attempt_active:
 		return false

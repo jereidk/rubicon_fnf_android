@@ -158,6 +158,33 @@ func _process(delta: float) -> void :
 	if autoplay and prompt_user:
 		_autoplay_process(delta, time_left)
 
+		# _autoplay_process can END the challenge, from inside this function.
+		#
+		# It calls input_letter(), and the last letter of the word runs
+		# succeed() -> celebi_animator.play(celebi_success_animation). Without
+		# this the rest of _process then carried straight on into the tick
+		# block below and, on any frame where the second boundary had moved,
+		# played `ExportCelebi tick` **over the leave animation that had just
+		# started**.
+		#
+		# Both reported symptoms are that one line. `tick` is 1.04s of frames
+		# 0..22 with no loop, so Celebi stops on its last frame and sits there -
+		# "se queda congelada, no hace animacion de irse". And `tick` holds
+		# `../Darkness:modulate` at alpha 0.652 for its whole length, where the
+		# leave animation would have taken it to 0 in 0.458s - so the
+		# full-screen black rect stays up too, which is the "grafico oscuro 50
+		# transparente" that comes with it. Neither clears until the song's
+		# timeline sets show_celebi = false seconds later, which is the
+		# "desaparece forzosamente".
+		#
+		# Only autoplay hits it, because only autoplay types from inside
+		# _process. A human types through _input, which Godot delivers before
+		# _process, so the guard at the top of this function had already
+		# returned by the time the tick block could run - which is why this
+		# survived on PC and shows up in Showcase Mode.
+		if challenge_over:
+			return
+
 	if time_left > 6:
 		celebi_tick_sprite.modulate.a = 0.4
 	else:
@@ -472,6 +499,19 @@ func succeed() -> void :
 	passed_challenge = true
 	challenge_over = true
 	challenge_success.emit()
+
+	# The same kill fail() has always done, and its absence here is the second
+	# half of the frozen Celebi.
+	#
+	# The tween runs for the challenge's FULL window and writes $Celebi.scale
+	# and $Celebi.modulate every frame. Beating the word early - which is the
+	# only way to succeed - leaves it running for whatever is left: the first
+	# challenge is keyed 75.26s to 82.0s, so clearing it in three seconds left
+	# four more of a Celebi still being scaled up and brightened while its
+	# leave animation had already finished. Failing never showed it because
+	# failing happens when the window runs out, with no time left to run.
+	if _celebi_tween and _celebi_tween.is_running():
+		_celebi_tween.kill()
 
 	celebi_sound_tick.stop()
 	celebi_sound_tick_danger.stop()
