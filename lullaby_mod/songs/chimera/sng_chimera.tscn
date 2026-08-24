@@ -15455,7 +15455,7 @@ script = ExtResource("132")
 animation_player = NodePath("AnimationPlayer")
 animation_name = &"precache"
 extra_sweep_player = NodePath("../Sequences/SequencePlayer")
-extra_sweep_animations = Array[StringName]([&"104_photographysesh", &"114_hexapproach", &"121_closetrunout", &"122_fall"])
+extra_sweep_animations = Array[StringName]([&"104_photographysesh", &"122_fall", &"107_turnaround", &"101_prelude", &"121_closetrunout", &"103_stroll", &"102_intro", &"114_hexapproach"])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera" unique_id=737729031]
 libraries/ = SubResource("AnimationLibrary_umtp6")

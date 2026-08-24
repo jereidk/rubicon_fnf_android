@@ -46,7 +46,8 @@ extends SceneTree
 const SCRIPT_PATH := "res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd"
 const CHIMERA_PATH := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
 const EXPECTED_SEQUENCES := [
-	&"104_photographysesh", &"114_hexapproach", &"121_closetrunout", &"122_fall",
+	&"104_photographysesh", &"122_fall", &"107_turnaround", &"101_prelude",
+	&"121_closetrunout", &"103_stroll", &"102_intro", &"114_hexapproach",
 ]
 
 var _failures: int = 0
@@ -242,6 +243,24 @@ func _scene_wiring_checks() -> void:
 		for seq in EXPECTED_SEQUENCES:
 			_check(lib_block.contains('&"%s"' % seq),
 				"%s existe de verdad en la biblioteca de secuencias" % seq)
+
+	# El barrido sirve las poses en orden, una por frame de revelado: con mas
+	# poses que frames, las del final pueden no llegar a servirse. Por eso la
+	# lista va ordenada por el peor frame medido de cada secuencia (el log de
+	# 2026-08-24: 104 2267ms, 122 1911ms historico, 107 1110ms, 101 771ms),
+	# y por eso el orden importa en el guard y no solo la pertenencia.
+	var list_at: int = block.find("extra_sweep_animations")
+	_check(list_at >= 0, "la lista de extra_sweep_animations existe")
+	if list_at >= 0:
+		var last: int = -1
+		var ordered := true
+		for seq in EXPECTED_SEQUENCES:
+			var at: int = block.find('&"%s"' % seq, list_at)
+			if at < 0 or at < last:
+				ordered = false
+				break
+			last = at
+		_check(ordered, "la lista esta ordenada por peor frame medido")
 
 
 func _check(ok: bool, what: String) -> void:

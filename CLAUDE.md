@@ -4235,14 +4235,46 @@ cut-down stage by hand would work but stops being the scene under test.
    MARK de entrega tiene que ser >0 (idealmente ~el número de frames de
    revelado), y los `spec+N` al entrar en 104/107/114/121/122 tienen que caer
    a ~0 con la subida correspondiente durante el precache.
-5. A **CI gate** running the `get_dependencies` sweep and failing when a
+
+   **Y el mismo log descubrió cuatro que faltaban en la lista.** El cuarteto
+   original salió del log viejo; éste muestra que `107_turnaround@0.5s`
+   (`spec+13`, 1110ms) y `101_prelude@0.0s` (`spec+12`, 771ms) pegan tan
+   fuerte como los cubiertos, y que `103_stroll@0.0s` y `102_intro@14.4s`
+   (`spec+4`, ~390ms cada una) también compilan en canción. Añadidas las
+   cuatro, y la lista va ahora **ordenada por el peor frame medido** (104,
+   122, 107, 101, 121, 103, 102, 114) porque el barrido sirve una pose por
+   frame y en orden: si los frames de revelado son menos que las poses (82
+   con las nuevas), las del final pueden no llegar a servirse. El guard fija
+   pertenencia **y orden**.
+5. **Abrir la consola compila pipelines en la cara del jugador.** En el log
+   `lullaby_2026-08-24_12-07-26.log`: 458ms (`spec+7`) a los 1.3s de
+   `console viewport on` (130.09s), **1819ms (`spec+13`)** a los 3.5s de la
+   siguiente apertura (139.22s), 602ms (`spec+4`) después. Cada apertura
+   compila lo que ese contenido nuevo dibuja por primera vez: los mundos
+   `own_world_3d` de los SubViewport de la consola están **fuera del alcance
+   del precache** - el barrido de cámaras calienta el mundo principal y nada
+   más. La mitad de cargas tardías ya no es el término principal (el trickle
+   de `ConsoleLateResources` corre desde el `_ready` de la escena).
+
+   El arreglo obvio -`render_target_update_mode = UPDATE_ONCE` una vez por
+   SubViewport durante el precache, sin tocar visibilidad- **no calienta
+   nada**, y conviene tenerlo escrito antes de intentarlo: el `TabContainer`
+   shippea `modulate.a = 0` (y un item con modulate 0 no dibuja ni compila,
+   medido), y `console_bg` shippea su `ColorRect` negro encima con un
+   `AnimationPlayer` sin autoplay - o sea que el primer render oculto de la
+   consola es un rectángulo negro. Calentarla de verdad exige replicar la
+   coreografía de arranque de `console.gd` con la consola oculta, que es
+   exactamente la clase de cambio que ya rompió la tienda dos veces (el foco
+   del teclado, el prewarm que la abrió sola). Pendiente de una medida de
+   dispositivo, no de un envío a ciegas.
+6. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.
-6. The **Mobile settings section** (Gameplay Control Hitbox/Touch, hitbox
+7. The **Mobile settings section** (Gameplay Control Hitbox/Touch, hitbox
    hint/gradient/opacity, mechanic hitbox direction, note layout, show pause
    button) - specified but not built. "Touch" is a whole new input mode, not
    a setting; scope it separately.
-7. VSlice **y-nudge per scroll direction** - the reference distinguishes
+8. VSlice **y-nudge per scroll direction** - the reference distinguishes
    upscroll from downscroll; ours has a single value.
 
 ---
