@@ -3417,6 +3417,69 @@ medidas más arriba y sin aplicar a una sola escena.
 
 **El siguiente objetivo de optimización es Safety Lullaby, no Chimera.**
 
+### El fondo del callejón, de 7 sprites a 1
+
+El primer ataque a esa canción es su escenario. `alley.tscn`'s `Parallax2`
+dibujaba **siete** sprites a escala completa sobre el mismo scroll factor
+(1.0), mismo `z_index`, ninguna animación, ningún track que los toque:
+Street, Trees, LongFence, Bench, Pokecenter, Lamp2, BrokenLamp. Siete binds
+de textura y las zonas solapadas rellenadas 2-3 veces - 10.6M de píxeles de
+mundo donde la unión son 7.5M.
+
+`tools/bake_alley_background.py` los hornea en **una** textura de 1824x864
+(`back_merged.png`), a escala 1/2.2 del mundo - la escala dominante de las
+capas, así que el sprite fusionado lleva `scale = 2.2` y el GPU hace el
+mismo muestreo bilineal que hacía con las capas sueltas. Las dos excepciones
+de escala (Street con Y a 2.38791, Bench a 2.11864) se remuestrean en el
+horneado. Posición del sprite: el centro del **lienzo** en unidades de
+mundo, no el centro de la unión - el primer cálculo usó la unión y
+descolocaba todo ~15px.
+
+**Verificado píxel a píxel, no razonado.** `tools/harness/verify_alley_final.gd`
+(proyecto aislado, Xvfb + opengl3) renderiza el `alley.tscn` ya editado y lo
+difiere contra los renders guardados del original: seis cultivos, incluidos
+el banco/valla, la unión con Lamp1 y el borde de BrokenLamp, a zoom 2.2
+(texel 1:1) - **peor error 0/255, 0 píxeles cambiados** en los seis. La
+regla de este fichero sobre renders de matemáticas queda cumplida: esto es
+el motor dibujando las dos versiones.
+
+Lo que se queda fuera de la fusión, y por qué:
+
+| capa | por qué no entra |
+|---|---|
+| **Lamp1** | lleva `lamp_flicker.gd` y las tres PointLight2D - la luz no se puede hornear |
+| Sky / Clouds / Mountain | scroll factors distintos (0.55, 0.55 con `autoscroll`, 0.8) - se mueven distinto |
+| Clouds | además animada (autoscroll -25) |
+| FrontTree | z=1 **delante** de los personajes y scroll 1.25; además la enciende una secuencia |
+| BgLight | es una luz, no un sprite |
+
+Las siete fuentes **no se borran** (regla de este fichero), así que el APK
+carga con ~530KB de ASTC muerto a cambio de la receta reproducible; si el
+peso aprieta, borrarlas es seguro - el barrido de referencias está hecho.
+VRAM en juego baja ~137KB (394KB el lienzo contra ~531KB las siete) y el
+fondo pasa de 8 draws a 2 (el lienzo + Lamp1).
+
+La escena de la canción referenciaba los nodos quitados con overrides que
+solo llevaban `metadata/_edit_lock_`: **un override huérfano no rompe la
+carga** (verificado - Godot lo descarta en silencio), pero se quitaron
+igual, y el `index="5"` de Lamp1 pasó a `1` tras el reorden.
+
+Guard: `tools/audit_alley_merged_background.py` (en CI, con `pip install
+Pillow` añadido al job de build - ningún otro guard lo necesita) re-hornea
+la textura y exige igualdad de bytes, fija la forma de la escena
+(Parallax2 = MergedBack + Lamp1, posición/escala del horneado), los
+ext_resource declarados == usados, el uid del sidecar contra el de la
+escena, y que la canción no referencia los nodos fusionados. Mutado
+moviendo la posición: falla.
+
+**La receta general, para el próximo escenario:** solo capas con el mismo
+scroll factor, mismo z y ninguna animación/track encima; las luces y lo que
+va delante de los personajes se queda fuera; hornear a la escala dominante
+para que el GPU repita su propio muestreo; y medir el resultado con un A/B
+renderizado, nunca de memoria. Monochrome no tiene candidato: su fondo es
+todo animado (UnownKing, Peepers) o personajes. Chimera es 3D - otro
+problema.
+
 ### Térmico: +50%, y lo produce la canción 2D
 
     frames=5462 mean=22.0ms (46 fps) vs_first= +0%    <- tienda

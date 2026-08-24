@@ -3605,22 +3605,7 @@ energy = 0.75
 [node name="Sky" parent="Environment/Alley/BG/Parallax5" parent_id_path=PackedInt32Array(1469939091, 1223249302) index="0" unique_id=119507162]
 metadata/_edit_lock_ = true
 
-[node name="Street" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="0" unique_id=528940946]
-metadata/_edit_lock_ = true
-
-[node name="Trees" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="1" unique_id=1878490685]
-metadata/_edit_lock_ = true
-
-[node name="LongFence" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="2" unique_id=1705362529]
-metadata/_edit_lock_ = true
-
-[node name="Bench" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="3" unique_id=1160575561]
-metadata/_edit_lock_ = true
-
-[node name="Pokecenter" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="4" unique_id=49214595]
-metadata/_edit_lock_ = true
-
-[node name="Lamp1" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="5" unique_id=287668768 node_paths=PackedStringArray("lanes", "lights", "health_module")]
+[node name="Lamp1" parent="Environment/Alley/BG/Parallax2" parent_id_path=PackedInt32Array(1469939091, 762001131) index="1" unique_id=287668768 node_paths=PackedStringArray("lanes", "lights", "health_module")]
 script = ExtResource("30")
 lanes = [NodePath("../../../../../UILayer/GameUI/Player/Lane"), NodePath("../../../../../UILayer/GameUI/Player/Lane2"), NodePath("../../../../../UILayer/GameUI/Player/Lane3"), NodePath("../../../../../UILayer/GameUI/Player/Lane4")]
 lights = [NodePath("Pole"), NodePath("PoleLight"), NodePath("PoleLight2")]

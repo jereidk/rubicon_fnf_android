@@ -3,17 +3,11 @@
 [ext_resource type="Texture2D" uid="uid://ppany8v5d180" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/darkness_gradient.png" id="1"]
 [ext_resource type="Texture2D" uid="uid://vrfm2rkaepg5" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/clouds.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://b6r4nn7sf8u5h" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/mountain.png" id="3"]
-[ext_resource type="Texture2D" uid="uid://bxcunyeruot7u" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/street.png" id="4"]
-[ext_resource type="Texture2D" uid="uid://dtrhg1brjlcx4" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/trees.png" id="5"]
-[ext_resource type="Texture2D" uid="uid://c3cblogvdqq1e" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/longfence.png" id="6"]
-[ext_resource type="Texture2D" uid="uid://dg6ugpp128ylt" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/bench.png" id="7"]
-[ext_resource type="Texture2D" uid="uid://bbd8w5ctr0rrj" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/pokecenter.png" id="8"]
 [ext_resource type="Texture2D" uid="uid://dc3ysmjan0lcd" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/lamp1.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://dqmvkoxxqpmd8" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/post_light_gradient.png" id="10"]
 [ext_resource type="Texture2D" uid="uid://co32fmips3bpr" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="11"]
-[ext_resource type="Texture2D" uid="uid://5wt3dkf0wn7f" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/lampoff.png" id="12"]
-[ext_resource type="Texture2D" uid="uid://cyxsvw0qn57sf" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/lampbroken.png" id="13"]
 [ext_resource type="Texture2D" uid="uid://bvfm0ym6nbihj" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/fronttree.png" id="14"]
+[ext_resource type="Texture2D" uid="uid://b65j8qfff1rl" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/back_merged.png" id="15"]
 
 [sub_resource type="Gradient" id="Gradient_uoj72"]
 colors = PackedColorArray(0.109804, 0.12549, 0.133333, 1, 0.0470588, 0.0470588, 0.0862745, 1)
@@ -75,35 +69,11 @@ texture = ExtResource("3")
 [node name="Parallax2" type="Parallax2D" parent="BG" unique_id=762001131]
 z_index = -1
 
-[node name="Street" type="Sprite2D" parent="BG/Parallax2" unique_id=528940946]
+[node name="MergedBack" type="Sprite2D" parent="BG/Parallax2" unique_id=991726354]
 light_mask = 3
-position = Vector2(936, 968)
-scale = Vector2(2.2, 2.38791)
-texture = ExtResource("4")
-
-[node name="Trees" type="Sprite2D" parent="BG/Parallax2" unique_id=1878490685]
-light_mask = 3
-position = Vector2(854, 155)
+position = Vector2(951.4, 508.1)
 scale = Vector2(2.2, 2.2)
-texture = ExtResource("5")
-
-[node name="LongFence" type="Sprite2D" parent="BG/Parallax2" unique_id=1705362529]
-light_mask = 3
-position = Vector2(1715, 532)
-scale = Vector2(2.2, 2.2)
-texture = ExtResource("6")
-
-[node name="Bench" type="Sprite2D" parent="BG/Parallax2" unique_id=1160575561]
-light_mask = 3
-position = Vector2(1518, 722)
-scale = Vector2(2.11864, 2.11864)
-texture = ExtResource("7")
-
-[node name="Pokecenter" type="Sprite2D" parent="BG/Parallax2" unique_id=49214595]
-light_mask = 3
-position = Vector2(414, 415)
-scale = Vector2(2.2, 2.2)
-texture = ExtResource("8")
+texture = ExtResource("15")
 
 [node name="Lamp1" type="Sprite2D" parent="BG/Parallax2" unique_id=287668768]
 light_mask = 256
@@ -136,18 +106,6 @@ scale = Vector2(1.3687, 1.02259)
 color = Color(0.803922, 0.960784, 0.913725, 1)
 energy = 0.8
 texture = ExtResource("11")
-
-[node name="Lamp2" type="Sprite2D" parent="BG/Parallax2" unique_id=118357697]
-light_mask = 3
-position = Vector2(1063, 253)
-scale = Vector2(2.2, 2.2)
-texture = ExtResource("12")
-
-[node name="BrokenLamp" type="Sprite2D" parent="BG/Parallax2" unique_id=1894086116]
-light_mask = 3
-position = Vector2(-231, 603)
-scale = Vector2(2.2, 2.2)
-texture = ExtResource("13")
 
 [node name="Parallax" type="Parallax2D" parent="BG" unique_id=246998024]
 z_index = 1

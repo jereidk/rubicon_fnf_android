@@ -437,6 +437,11 @@ jobs:
           See tools/verify_precompiled_astc.gd to check the pairs."
           git push origin HEAD:${{ github.ref_name }}
 
+      # audit_alley_merged_background.py re-runs the background bake, which
+      # resamples two layers - it needs Pillow; no other guard does.
+      - name: Install Pillow for the guards
+        run: pip install --quiet Pillow
+
       - name: Run the guard suite
         run: |
           # Every guard in this repo runs here, in one step.
@@ -548,6 +553,18 @@ jobs:
           # byte-identical draw/primitive/object counts - which is why no
           # count-based reading of a device log could ever find it.
           guard_python tools/audit_house_transparency.py
+
+          # === Verify the alley background stays merged and reproducible
+          # Safety Lullaby's Parallax2 drew seven full-size sprites on one
+          # scroll factor - seven texture binds and their overlaps filled
+          # 10.6M world pixels where the union is 7.5M. back_merged.png bakes
+          # them into one 1824x864 texture, verified pixel-identical (worst
+          # error 0/255 in six 1:1-texel crops on the real render path). The
+          # guard re-runs the bake and demands byte-equality, so a source PNG
+          # or scene position changing without a rebake fails here instead of
+          # silently desyncing the background. Lamp1 stays out of the merge:
+          # it carries lamp_flicker.gd and the three pole lights.
+          guard_python tools/audit_alley_merged_background.py
 
           # === Verify the console's icon materials are off any alpha mode
           # mat_console_inactive/select/idle drive the shop's Home tab icon
