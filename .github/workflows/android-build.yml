@@ -977,6 +977,19 @@ jobs:
           # las dos direcciones se ejercitan contra el disco de verdad.
           guard_godot tools/test_pipeline_cache_block.gd
 
+          # === Las flechas de Monochrome sobreviven a sus tandas de tipeo
+          # Se escondia el hitbox entero mientras hubiera teclado en pantalla,
+          # y el chart mete notas del jugador DENTRO de las tandas: cinco
+          # tandas, 59 notas, agrupadas al final de cada ventana - justo donde
+          # a quien todavia escribe le queda palabra. Reportado como "no me
+          # dejo tocar las flechas, perdiendo en el proceso", y es literal:
+          # esas notas no se fallaron, eran inalcanzables. Ahora el hitbox se
+          # encoge hasta arriba del teclado en vez de desaparecer. El solape
+          # se mide aqui contra el chart de verdad, asi que si alguien reedita
+          # la cancion y deja de haberlo, esto lo dice en vez de quedarse
+          # guardando nada.
+          guard_godot tools/test_typing_lane_overlap.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn

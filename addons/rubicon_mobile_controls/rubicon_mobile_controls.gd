@@ -140,6 +140,52 @@ const MOUSE_TOUCH_INDEX := -1000
 @export var hide_sources: Array[Node] = []
 @export var hide_properties: Array[StringName] = []
 
+## The same idea, but for something that covers PART of the screen instead of
+## demanding all of it: paired by index, occlusion_sources[i]'s
+## occlusion_properties[i] reads a float - how much of this control's height,
+## measured from the bottom, is currently under something else.
+##
+## Monochrome is why. Hiding the whole hitbox while a keyboard is up was the
+## first answer, and it is wrong, because the chart puts player notes INSIDE
+## the typing bouts. Counted from the chart rather than eyeballed: five bouts,
+## 59 player notes inside them, and in every one the notes are grouped at the
+## END of the window - exactly where a player who is still typing has not
+## finished. Reported as "no me dejo tocar las flechas, perdiendo en el
+## proceso", and that is accurate: those notes were not missed, they were
+## unreachable.
+##
+## Shrinking instead of hiding gives both back. The lanes are full-height
+## columns, so the strip above the keyboard is enough to play them, and the
+## hitbox no longer covers the drawn keyboard's keys either - which was the
+## real reason hiding was needed in the first place.
+##
+## Separate from hitbox_bottom_percent rather than written into it: that one
+## is the song's authored dead zone (the pendulum's Bottom direction), it is
+## saved in the scene, and a runtime writer would fight it. The two add up in
+## _effective_bottom_percent().
+@export var occlusion_sources: Array[Node] = []
+@export var occlusion_properties: Array[StringName] = []
+
+## The authored bottom dead zone plus whatever is currently covering the
+## screen, clamped so it can never swallow the whole control.
+##
+## Capped rather than allowed to reach 1.0 because a keyboard tall enough to
+## leave no lane at all should leave a thin one, not silently turn the hitbox
+## off - that would be the bug this exists to fix, arrived at from the other
+## side.
+func _effective_bottom_percent() -> float:
+	var occluded: float = 0.0
+	for i in mini(occlusion_sources.size(), occlusion_properties.size()):
+		var source: Node = occlusion_sources[i]
+		if source == null:
+			continue
+		var property: StringName = occlusion_properties[i]
+		if property.is_empty() or not property in source:
+			continue
+		occluded = maxf(occluded, float(source.get(property)))
+
+	return clampf(hitbox_bottom_percent + occluded, 0.0, 0.9)
+
 ## Set by lullaby_mobile_controls_applier.gd while the "Gameplay Control:
 ## Touch" mode is active: the lane hitbox goes fully inert (no input, no
 ## drawing, holds released) because the Touch overlay owns note input
@@ -160,6 +206,13 @@ var gameplay_touch_mode: bool = false:
 			set_process_input(true)
 
 var _touch_to_lane: Dictionary = {}
+
+## Where each held touch is, so an occluder that grows can tell which of them
+## it has covered. See _track_occlusion().
+var _touch_positions: Dictionary = {}
+
+## Last value _track_occlusion() acted on.
+var _last_bottom_percent: float = -1.0
 var _lane_active_count: Dictionary = {}
 
 func _ready() -> void:
@@ -190,9 +243,34 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	_track_occlusion()
 	if not default_hud and not gameover_source:
 		return
 	_update_visibility()
+
+## Watches the occluded fraction so the drawing and the held touches follow it.
+##
+## Polled rather than signalled because the thing being measured is a keyboard
+## sliding in: it is a different number on every frame of the animation, and
+## nothing emits for that. Only acted on when it actually moves, so a song
+## with no occlusion sources costs one float comparison a frame.
+func _track_occlusion() -> void:
+	var now: float = _effective_bottom_percent()
+	if is_equal_approx(now, _last_bottom_percent):
+		return
+	_last_bottom_percent = now
+	queue_redraw()
+
+	# Anything being held in the strip the keyboard just took has to be let go
+	# of. Not _release_all(): a hold in the part of the screen that is still
+	# playable is still a hold, and dropping it would be this bug again from
+	# the other side - the player losing a note they were legitimately on.
+	var bottom_y: float = size.y * (1.0 - now)
+	var top_y: float = size.y * hitbox_top_percent
+	for index: int in _touch_to_lane.keys():
+		var pos: Vector2 = _touch_positions.get(index, Vector2.ZERO)
+		if pos.y >= bottom_y or pos.y < top_y:
+			_end_touch(index)
 
 func _update_visibility() -> void:
 	if gameplay_touch_mode:
@@ -233,7 +311,7 @@ func _update_visibility() -> void:
 
 func _draw() -> void:
 	var top_y: float = size.y * hitbox_top_percent
-	var bottom_y: float = size.y * (1.0 - hitbox_bottom_percent)
+	var bottom_y: float = size.y * (1.0 - _effective_bottom_percent())
 	if bottom_y <= top_y or lane_count <= 0:
 		return
 
@@ -312,17 +390,29 @@ func _handle_touch(index: int, pos: Vector2, pressed: bool) -> void:
 		if lane < 0:
 			return
 		_touch_to_lane[index] = lane
+		# Kept alongside the lane so _track_occlusion() can tell which held
+		# fingers the keyboard has just covered and which are still on a
+		# playable part of the screen. The lane alone cannot answer that - a
+		# lane is a full-height column, and the question is about height.
+		_touch_positions[index] = pos
 		_press_lane(lane)
 	else:
-		if not _touch_to_lane.has(index):
-			return
-		var lane: int = _touch_to_lane[index]
-		_touch_to_lane.erase(index)
-		_release_lane(lane)
+		_end_touch(index)
+
+## Lets go of one held touch, wherever the decision came from.
+func _end_touch(index: int) -> void:
+	if not _touch_to_lane.has(index):
+		return
+	var lane: int = _touch_to_lane[index]
+	_touch_to_lane.erase(index)
+	_touch_positions.erase(index)
+	_release_lane(lane)
 
 func _handle_drag(index: int, pos: Vector2) -> void:
 	if not _touch_to_lane.has(index):
 		return
+
+	_touch_positions[index] = pos
 
 	var new_lane: int = _get_lane_for_position(pos)
 	var old_lane: int = _touch_to_lane[index]
@@ -360,11 +450,12 @@ func _release_all() -> void:
 		lane_released.emit(lane)
 	_lane_active_count.clear()
 	_touch_to_lane.clear()
+	_touch_positions.clear()
 	queue_redraw()
 
 func _get_lane_for_position(pos: Vector2) -> int:
 	var top_y: float = size.y * hitbox_top_percent
-	var bottom_y: float = size.y * (1.0 - hitbox_bottom_percent)
+	var bottom_y: float = size.y * (1.0 - _effective_bottom_percent())
 	if pos.y < top_y or pos.y >= bottom_y:
 		return -1
 	if pos.x < 0.0 or pos.x >= size.x:

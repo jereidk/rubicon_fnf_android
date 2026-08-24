@@ -40,6 +40,24 @@ class_name MonochromeTypingTouchControls
 ## keyboard itself.
 var keyboard_showing: bool = false
 
+## How much of the screen the keyboard covers, from the bottom, as a fraction
+## of viewport height. 0 when no keyboard is up.
+##
+## This is what the note hitbox reads now, and it replaces keyboard_showing in
+## that role for a reason the chart makes plain: Monochrome puts player notes
+## INSIDE its typing bouts - five of them, 59 notes in total, grouped at the
+## END of each window, which is exactly where a player who is still typing has
+## not finished. Hiding the whole hitbox made those notes unreachable rather
+## than merely hard, and the report was "no me dejo tocar las flechas,
+## perdiendo en el proceso".
+##
+## keyboard_showing stays and is still maintained, but nothing reads it any
+## more - it was the lanes' condition and that is now this. Kept rather than
+## deleted because it is the honest answer to "is a keyboard on screen", which
+## is a different question from "how much of the screen does it cover", and
+## because the comment above it is the record of the bug before this one.
+var keyboard_occlusion: float = 0.0
+
 @export var typing_challenge: TypingChallenge
 @export var text_input: LineEdit
 
@@ -344,6 +362,19 @@ func _apply_raise(wants_input: bool, drawn_height: float = 0.0) -> void:
 		# mutually exclusive by construction (wants_input is false whenever the
 		# drawn keyboard is up) but the branch keeps them from ever stacking.
 		overlap_source = viewport_height - drawn_height
+
+	# Published for RubiconMobileControls, which shrinks the note hitbox up to
+	# this line instead of hiding it outright. It is the same measurement the
+	# unowns are lifted by, taken in the same frame, so the lanes stop exactly
+	# where the letters start being moved clear - one number, one source of
+	# truth, and no second way for them to disagree.
+	#
+	# `overlap_source` is the y where the keyboard starts, so what is covered
+	# is everything below it.
+	keyboard_occlusion = 0.0
+	if overlap_source > 0.0 and viewport_height > 0.0:
+		keyboard_occlusion = clampf(
+			(viewport_height - overlap_source) / viewport_height, 0.0, 1.0)
 
 	for i in raise_targets.size():
 		var target: Node2D = raise_targets[i]
