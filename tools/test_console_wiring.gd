@@ -130,12 +130,19 @@ func _split_checks(shop: String, console: String) -> void:
 	_check(overrides == 20,
 		"la tienda sigue sobreescribiendo %d nodos dentro de la consola" % overrides)
 
-	var crossing: int = 0
+	# BELOW it, which is what would block the split - not merely "mentions it".
+	# The earlier test was `!= "TabContainer"`, and it went red on a correct
+	# scene the moment LateResources was given `../TabContainer`: a sibling
+	# pointing AT the container crosses nothing. What matters is whether
+	# anything names a node INSIDE it.
+	var crossing: PackedStringArray = []
 	for m in RegEx.create_from_string('NodePath\\("([^"]*TabContainer[^"]*)"\\)').search_all(console):
-		if m.get_string(1) != "TabContainer":
-			crossing += 1
-	_check(crossing == 0,
-		"dentro de la consola nadie apunta por debajo del TabContainer (%d cruces)" % crossing)
+		var target: String = m.get_string(1)
+		if target.contains("TabContainer/"):
+			crossing.append(target)
+	_check(crossing.is_empty(),
+		"dentro de la consola nadie apunta por debajo del TabContainer (%d cruces%s)"
+			% [crossing.size(), "" if crossing.is_empty() else ": " + ", ".join(crossing.slice(0, 3))])
 
 	var under: int = 0
 	for m in RegEx.create_from_string('(?m)^\\[node name="[^"]*"[^\\]]*parent="TabContainer').search_all(console):

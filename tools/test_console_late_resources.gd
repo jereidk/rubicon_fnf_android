@@ -232,9 +232,27 @@ func _wiring_checks() -> void:
 	var node: String = _node_block("LateResources")
 	_check(node.contains("console_late_resources.gd") or node.contains("script = ExtResource"),
 		"el nodo LateResources lleva su script")
-	_check(node.contains('node_paths=PackedStringArray("tab_root")')
-			and node.contains('tab_root = NodePath("TabContainer")'),
-		"y apunta al TabContainer, que es a lo que son relativas las claves")
+	_check(node.contains('node_paths=PackedStringArray("tab_root")'),
+		"tab_root esta en node_paths, o el export llega en null")
+
+	# Derivada del arbol, no escrita aqui.
+	#
+	# La version anterior comprobaba literalmente `tab_root =
+	# NodePath("TabContainer")` y pasaba en verde mientras el juego no aplicaba
+	# NI UNA de las 37 entradas. Un NodePath de un export node_paths resuelve
+	# relativo al nodo que lo declara, y LateResources es HERMANO del
+	# TabContainer - los dos cuelgan de Console - asi que "TabContainer"
+	# buscaba LateResources/TabContainer, que no existe. tab_root llegaba null
+	# y cada _apply() avisaba "nothing at ...". El fichero .error del
+	# 2026-08-24 lo dijo 37 veces seguidas.
+	#
+	# Peor: la ruta correcta ya la habia escrito en el proyecto de prueba con
+	# el que valide la serializacion (`../TabContainer`, para que resolviera) y
+	# no la lleve de vuelta. Por eso esto se calcula ahora de los `parent=` de
+	# los dos nodos en vez de recordarse.
+	var expected: String = _relative_path("LateResources", "TabContainer")
+	_check(node.contains('tab_root = NodePath("%s")' % expected),
+		"y apunta al TabContainer desde donde esta: `%s`" % expected)
 
 	var container: String = _node_block("TabContainer")
 	_check(container.contains('"late_resources"'),
@@ -363,6 +381,39 @@ func _behaviour_checks() -> void:
 	root2.queue_free()
 	drip.queue_free()
 	_behaviour_done = true
+
+
+
+## The path from `from_name` to `to_name`, as Godot resolves a node_paths
+## export: relative to the NODE, not to its parent. Reaching a sibling
+## therefore needs one `../`, which is the whole reason this exists.
+func _relative_path(from_name: String, to_name: String) -> String:
+	var from_parts: PackedStringArray = _absolute(from_name)
+	var to_parts: PackedStringArray = _absolute(to_name)
+
+	var shared: int = 0
+	while shared < from_parts.size() and shared < to_parts.size() \
+			and from_parts[shared] == to_parts[shared]:
+		shared += 1
+
+	# One `..` per component of our own path below the shared ancestor - our
+	# own name included, because a NodePath starts at us.
+	var out: String = "../".repeat(from_parts.size() - shared)
+	return out + "/".join(Array(to_parts.slice(shared)))
+
+
+## A node's path from the scene root, out of the scene text.
+func _absolute(name: String) -> PackedStringArray:
+	var m: RegExMatch = RegEx.create_from_string(
+		'(?m)^\\[node name="%s"[^\\]]*parent="([^"]*)"' % name).search(_scene)
+	if m == null:
+		_check(false, "el nodo %s existe" % name)
+		return PackedStringArray([name])
+	var parent: String = m.get_string(1)
+	var parts: PackedStringArray = PackedStringArray() if parent == "." or parent.is_empty() \
+		else parent.split("/")
+	parts.append(name)
+	return parts
 
 
 ## The `[node ...]` header plus its properties, for the node at `path`.
