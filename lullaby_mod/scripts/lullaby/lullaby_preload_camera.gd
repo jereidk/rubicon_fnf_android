@@ -153,7 +153,28 @@ const PANIC_FACTOR := 10.0
 ## Hard stop. If the pacing never converges - a scene over budget no matter how
 ## small the batch - the rest is revealed at once and the screen hands over. A
 ## long freeze is bad; a loading screen that never ends is worse.
-const DEADLINE_SECONDS := 45.0
+##
+## **Fifteen, and it was forty-five.** Forty-five was picked as "surely more
+## than enough", and on a good run it is: the shop's precache finishes in
+## 5.5-6.4s (logs 95306f21 and d67addb8) and never comes near it. But it is not
+## a safety net, it is a **wait the player actually serves** - the loading
+## screen is still up for every second of it - and on the run where the pacing
+## does not converge the whole forty-five get spent:
+##
+##     [157.53s] precache 'agoto el plazo' con 48/117 revelados
+##     [157.53s] precache finished (45264ms, 117 nodos)
+##
+## That is the two-minute shop entry users are reporting, and this is the
+## largest single term in it: ~33s of load, ~11s of ready, and then 45s of
+## deadline. Fifteen cuts thirty seconds off the worst case and cannot touch a
+## good one, which finishes in under half of it.
+##
+## What the shorter deadline costs is real and worth naming: whatever is still
+## hidden is revealed on one frame, so a run that would have paced 69 nodes over
+## the next thirty seconds now draws them together. That frame is expensive.
+## It is also the frame that was going to happen at 45s anyway - the deadline
+## has always ended this way - so the change is when it lands, not whether.
+const DEADLINE_SECONDS := 15.0
 
 var _started_msec: int = 0
 

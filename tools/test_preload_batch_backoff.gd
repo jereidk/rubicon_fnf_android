@@ -123,9 +123,28 @@ func _run() -> void:
 	camera.queue_free()
 	await process_frame
 
+	# El plazo tope, que es tiempo que el jugador SIRVE con la pantalla de
+	# carga puesta, no una red de seguridad barata.
+	#
+	# Estaba en 45s "por si acaso". En una corrida buena el precache de la
+	# tienda termina en 5.5-6.4s y nunca se acerca; en la corrida donde el
+	# ritmo no converge se gastan los 45 enteros - "agoto el plazo con 48/117
+	# revelados", 45264ms - y ese es el termino mas grande de los dos minutos
+	# que reportaron los usuarios para entrar a la tienda.
+	var source: String = FileAccess.get_file_as_string(CAMERA)
+	var re := RegEx.create_from_string("const DEADLINE_SECONDS := ([0-9.]+)")
+	var m: RegExMatch = re.search(source)
+	var deadline: float = m.get_string(1).to_float() if m != null else -1.0
+	_check("el plazo tope no vuelve a pasar de 20s",
+		deadline > 0.0 and deadline <= 20.0, "son %.1fs" % deadline)
+	# Y por encima de lo que tarda una corrida buena, o cortaria precaches
+	# que iban a terminar solos.
+	_check("...ni baja de 10s, que es mas de lo que tarda una corrida buena",
+		deadline >= 10.0, "son %.1fs" % deadline)
+
 	print("")
 	if _checks < 9:
-		print("FALLO: solo %d de 7 comprobaciones" % _checks)
+		print("FALLO: solo %d de 9 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
