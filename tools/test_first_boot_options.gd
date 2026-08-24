@@ -17,6 +17,10 @@ const SHOP := "res://lullaby_mod/scripts/lullaby/collectors_shop/env_collector_s
 const SETTINGS := "res://menus/settings.gd"
 const CONSOLE := "res://lullaby_mod/resources/console/console.tscn"
 
+## The preset a fresh install lands on, loaded rather than described, so the
+## quality row is checked against the real resource's API.
+const VERY_LOW := "res://lullaby_mod/resources/quality_presets/qol_very_low.tres"
+
 var _failures: int = 0
 var _checks: int = 0
 
@@ -92,8 +96,34 @@ func _check_preset(scene: String, script: String) -> void:
 		"y el script la pone a lo que hay guardado")
 	_check(_has_statement(_func_body(script, "_ready"), "_show_current_preset\\(\\)"),
 		"...desde _ready, o solo se corregiria al tocarla")
-	_check(script.contains("preset.matches(Settings)"),
-		"comparando con matches(), igual que la fila de la consola")
+	# Contra el recurso real, no contra un nombre escrito aqui.
+	#
+	# Esta comprobacion existia y decia `script.contains("preset.matches(...)")`.
+	# Pasaba. El metodo se llama is_matching() y matches() no existe en ninguna
+	# parte del proyecto: la guarda fijo el nombre equivocado y confirmo un
+	# error en vez de encontrarlo, que es el unico modo de fallo que una guarda
+	# textual tiene y no puede ver desde dentro. Asi que ahora se cargan los
+	# presets de verdad y se pregunta si el metodo que el script llama existe.
+	var preset: Resource = ResourceLoader.load(VERY_LOW)
+	_check(preset != null, "el preset Optimized carga")
+
+	var called: PackedStringArray = []
+	for m in RegEx.create_from_string("preset\\.([a-z_]+)\\(").search_all(script):
+		if not called.has(m.get_string(1)):
+			called.append(m.get_string(1))
+	_check(not called.is_empty(), "la fila llama a algun metodo del preset")
+
+	var ghosts: PackedStringArray = []
+	if preset != null:
+		for name: String in called:
+			if not preset.has_method(name):
+				ghosts.append("%s()" % name)
+	_check(ghosts.is_empty(), "y cada metodo que llama existe en el recurso%s"
+		% ["" if ghosts.is_empty() else ": " + ", ".join(ghosts)])
+
+	_check(called.has("is_matching"),
+		"compara con is_matching(), la misma que usa get_quality_preset()")
+
 	_check(script.contains("preset_button.selected = 0"),
 		"y cayendo en CUSTOM cuando lo guardado no es ningun preset")
 

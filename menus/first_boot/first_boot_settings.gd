@@ -104,7 +104,7 @@ func _show_current_preset() -> void:
 		return
 	for index in range(1, 5):
 		var preset: LullabyQualityPreset = _preset_for_index(index)
-		if preset != null and preset.matches(Settings):
+		if preset != null and preset.is_matching(Settings):
 			preset_button.selected = index
 			return
 	preset_button.selected = 0
