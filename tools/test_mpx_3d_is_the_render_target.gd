@@ -64,7 +64,15 @@ func _run() -> void:
 
 	# The bug's own signature: a value that does not move when the render scale
 	# does is not measuring the render.
-	root.scaling_3d_scale = 0.5
+	#
+	# Half of whatever is already applied, not a hardcoded 0.50. This used to
+	# set 0.5 flat, which silently assumed the runner would never already BE at
+	# 0.5 - and then it was: a fresh install now applies PRESET_VERY_LOW, whose
+	# render_scale is exactly 0.50, so CI came up at 0.50, the "changed" case
+	# changed nothing and the check failed on a project that was working. The
+	# assertion was right and its fixture was wrong.
+	var moved: float = maxf(scale * 0.5, 0.05)
+	root.scaling_3d_scale = moved
 	await process_frame
 	var half: float = log_node.call("_mpx_3d")
 	root.scaling_3d_scale = scale
@@ -72,7 +80,7 @@ func _run() -> void:
 
 	_check("y se mueve con la escala de render",
 		half < reported * 0.9,
-		"a escala 0.50 informa %.4f contra %.4f" % [half, reported])
+		"a escala %.2f informa %.4f, contra %.4f a %.2f" % [moved, half, reported, scale])
 
 	print("")
 	if _checks < 4:
