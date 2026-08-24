@@ -36,8 +36,8 @@ const CONTAINER := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/co
 
 ## What the table held when this was written. Pinned so that shrinking it back
 ## - the easy way to "fix" a failure here - has to be deliberate.
-const EXPECTED_ENTRIES := 43
-const EXPECTED_RESOURCES := 30
+const EXPECTED_ENTRIES := 37
+const EXPECTED_RESOURCES := 28
 
 var _failures: int = 0
 var _checks: int = 0
@@ -67,6 +67,7 @@ func _run() -> void:
 	_autoplay = _parse_array("sprite_autoplay = Array[String]([")
 
 	_table_checks()
+	_property_kind_checks()
 	_scene_checks()
 	_animation_checks()
 	_wiring_checks()
@@ -106,6 +107,54 @@ func _table_checks() -> void:
 	_check(missing.is_empty(), "las %d rutas existen%s"
 		% [resources.size(), "" if missing.is_empty() else ": " + ", ".join(missing)])
 
+
+
+## Only pure art slots may be deferred, and materials may not.
+##
+## This rule is written in the blood of two bugs that shipped, both mine, both
+## visible in one screenshot of the console's Home tab:
+##
+##   * the Chimera cartridge showed the wrong art. `surface_material_override/0`
+##     on the cartridge mesh was in the table, and cartridge_icon.gd plays
+##     `materials/<cartridge>` out of the glTF's own library in _ready() to swap
+##     that exact material. The scene no longer set it, the animation set it
+##     right, and the drip overwrote it with the generic cartridge_body a few
+##     frames later.
+##
+##   * the focused icon went black. home_button.gd does
+##     `icon_mesh.mesh.surface_set_material(0, material_select)` on
+##     focus_entered, and a focus that lands before the drip does writes null -
+##     which is not "no change", it is the default lit material, in a
+##     SubViewport with no lights.
+##
+## The shape both share: a property somebody ELSE writes or reads. A texture on
+## a Sprite2D is set once by the scene and read by the renderer; a material is
+## a slot that scripts and animations swap at runtime, and a font override is
+## the same kind of leaf as a texture. So the allow-list is the test - not a
+## list of banned things, which would only ever grow one bug at a time.
+const DEFERRABLE_PROPERTIES := [
+	"texture", "sprite_frames", "icon",
+	"theme_override_fonts/font", "theme_override_fonts/normal_font",
+]
+
+func _property_kind_checks() -> void:
+	var offenders: PackedStringArray = []
+	for key: String in _deferred:
+		var property: String = String(NodePath(key).get_concatenated_subnames())
+		if not DEFERRABLE_PROPERTIES.has(property):
+			offenders.append("%s (%s)" % [property, String(NodePath(key).get_concatenated_names()).get_file()])
+	_check(offenders.is_empty(),
+		"solo se difieren ranuras de arte puras%s"
+			% ["" if offenders.is_empty() else ": " + ", ".join(offenders.slice(0, 4))])
+
+	# Y en concreto ninguna de las dos que rompieron.
+	var materials: PackedStringArray = []
+	for key: String in _deferred:
+		if String(NodePath(key).get_concatenated_subnames()).contains("material"):
+			materials.append(key)
+	_check(materials.is_empty(),
+		"ningun material: los cambia el script o la animacion en _ready%s"
+			% ["" if materials.is_empty() else ": " + ", ".join(materials.slice(0, 3))])
 
 func _scene_checks() -> void:
 	# Lo que da el ahorro: la escena ya no las declara como dependencia.
