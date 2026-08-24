@@ -35,6 +35,21 @@ const LANGUAGE_VALUES: Array[String] = ["en", "es", "pt_BR"]
 ## are running, and a wrong readout invites re-picking a preset already set.
 @export var preset_button: OptionButton
 
+## The diagnostics log, on the one screen every launch passes through.
+##
+## It lives in the console's Misc tab too, and that was the only way to reach
+## it - which is fine for a setting nobody needs and wrong for this one. The
+## log now ships OFF, so the moment it is actually wanted is the moment someone
+## is about to reproduce a bug, and making them enter the shop, walk to the
+## console, switch it on and then restart to catch the boot is the wrong shape
+## for that. Here it is two taps before anything has happened, which is also
+## the only place it can be turned on in time to record a load.
+##
+## An OptionButton and not a CheckBox, for the reason the Intro row above
+## records: Godot's `unchecked` icon is a near-black square at half alpha on a
+## dark panel, so a box reads as a plain label until it is ticked.
+@export var log_button: OptionButton
+
 ## Whether the row is asking the never-seen question or the seen-it question.
 ## Decided once in _ready, not per frame: choosing "Skip it" writes the very
 ## flag this reads, and a live condition would relabel the row under the
@@ -63,7 +78,20 @@ func _ready() -> void:
 		intro_button.selected = 1 if (_intro_already_seen
 			and Settings.lullaby_force_shop_intro) else 0
 
+	if log_button != null:
+		log_button.selected = 1 if Settings.lullaby_diagnostics_log else 0
+
 	_show_current_preset()
+
+## Index 1 is On, matching the row's own order.
+##
+## apply_settings() rather than only writing the var, for the same reason the
+## language row calls it: the log reads the setting when it decides whether to
+## open its file, and nothing re-reads it on its own.
+func _on_log_changed(index: int) -> void:
+	Settings.lullaby_diagnostics_log = index == 1
+	Settings.apply_settings()
+	Settings.save()
 
 ## Points the quality row at whatever is actually saved.
 ##

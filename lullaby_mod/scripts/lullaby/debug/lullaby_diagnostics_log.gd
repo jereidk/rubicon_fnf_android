@@ -955,17 +955,59 @@ var _hist_aligned: int = 0
 var _refresh_hz: float = 60.0
 var _refresh_ms: float = 1000.0 / 60.0
 
+## Whether the log is actually running, as opposed to merely existing.
+##
+## An autoload is ready before the first scene, so the old shape - read the
+## setting once and return - meant a log switched on afterwards could never
+## start. That is exactly the case the first-boot row creates.
+var _running: bool = false
+
+## Whether the one-time wiring has been done. See _start_logging.
+var _wired: bool = false
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_priority = PROCESS_FIRST
+
+	# Before the gate, not after it. This connection used to sit at the end of
+	# _ready, past the early return, so an autoload that started with the log
+	# off never heard about the setting changing and could not be woken by
+	# anything short of a relaunch. The whole point of the row on the boot
+	# screen is that it takes effect on this launch.
+	if Settings.has_signal("applied"):
+		Settings.applied.connect(_on_settings_applied)
 
 	if not Settings.lullaby_diagnostics_log:
 		set_process(false)
 		return
 
+	_start_logging()
+
+## Opens the file and wires everything that only makes sense while logging.
+##
+## Split out of _ready so it can also run later, when the setting is turned on
+## mid-session. Everything in here is idempotent-guarded by _running.
+func _start_logging() -> void:
+	if _running:
+		return
+
 	if not _open_log():
 		set_process(false)
 		return
+
+	_running = true
+	set_process(true)
+
+	# Everything below wires the node up, and only the first start may do it:
+	# off -> on -> off -> on is reachable from two rows now, and running it
+	# twice would add a second _ScriptTail (two brackets around every frame's
+	# script timing) and connect ErrorHandler and SceneChanger again, so one
+	# error would be logged twice. The file itself is reopened every time,
+	# which is the part that has to repeat.
+	if _wired:
+		_write_header()
+		return
+	_wired = true
 
 	# Opt-in and cheap (a couple of GPU timestamp queries the driver already
 	# supports), but off by default in Godot - without it gpu=/cpu_render=
@@ -1019,10 +1061,9 @@ func _ready() -> void:
 	# first_boot_settings runs and before the player can touch anything. A log
 	# whose header says "High" while the session actually ran on something
 	# else is worse than no record at all: it was read as ground truth and
-	# sent a whole investigation down the wrong path. Log them again whenever
-	# they change, so every entry can be attributed to the settings in force.
-	if Settings.has_signal("applied"):
-		Settings.applied.connect(_on_settings_applied)
+	# sent a whole investigation down the wrong path. Every change is logged
+	# again through _on_settings_applied, which is connected in _ready now
+	# rather than here, so it is heard even when the log starts switched off.
 
 func _process(delta: float) -> void:
 	# Opens the bracket _ScriptTail closes. First statement on purpose: this
@@ -3178,11 +3219,54 @@ func _graphics_summary() -> String:
 ## rate-limits to actual changes - otherwise scrolling the console would
 ## bury the log in identical lines.
 func _on_settings_applied() -> void:
+	# The row on the boot screen, and the one in the console's Misc tab, both
+	# land here. Turning the log on has to start it on this launch or the row
+	# is a lie: an autoload is ready before the first scene, so by the time
+	# anyone can touch a setting this node has long since decided.
+	#
+	# What it cannot do is recover what already happened. A log started here
+	# opens with its header and this SETTINGS line and nothing before them, so
+	# the boot it missed stays missing. The row is still the only place the log
+	# can be armed in time to record a shop load, and the gap is visible in the
+	# file rather than implied.
+	if Settings.lullaby_diagnostics_log:
+		_start_logging()
+	elif _running:
+		_stop_logging()
+		return
+
+	if not _running:
+		return
+
 	var summary: String = _graphics_summary()
 	if summary == _last_graphics_summary:
 		return
 	_last_graphics_summary = summary
 	_entry("SETTINGS", summary)
+
+## Closes the file and stops the per-frame work, leaving the node able to start
+## again if the setting comes back on.
+func _stop_logging() -> void:
+	if not _running:
+		return
+
+	_entry("SHUTDOWN", "log apagado desde los ajustes")
+	_running = false
+	set_process(false)
+
+	# Same order as the teardown in _notification, and for the same reason:
+	# stop() joins the sampler thread, so it has to finish writing before the
+	# file it writes beside is closed. It also has to happen at all - _open_log
+	# makes a new sampler every time, so leaving this one running would have
+	# each on/off cycle stack another thread writing another .mem trace.
+	if _sampler != null:
+		_sampler.stop()
+		_sampler = null
+
+	if _file != null:
+		_file.flush()
+		_file.close()
+		_file = null
 
 ## Public so anything can drop a marker into the log - e.g. a mechanic
 ## starting, or a cutscene the player says "it breaks here".

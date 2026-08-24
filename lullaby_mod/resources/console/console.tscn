@@ -5486,7 +5486,7 @@ focus_neighbor_bottom = NodePath("../GpuSplitLog")
 text = "Diagnostics Log"
 property = &"lullaby_diagnostics_log"
 console = NodePath("../../../../../..")
-tooltip = "Writes a performance and error log to storage, which is what a bug report needs attached. Takes effect the next time the game starts. The path below is where this session's went."
+tooltip = "Writes a performance and error log to storage, which is what a bug report needs attached. Starts and stops right away, but it cannot record what already happened - to catch a load, switch it on at the first-boot screen. The path below is where this session's went."
 
 [node name="GpuSplitLog" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console") instance=ExtResource("52")]
 layout_mode = 2

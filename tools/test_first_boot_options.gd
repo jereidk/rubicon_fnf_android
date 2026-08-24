@@ -31,6 +31,7 @@ func _initialize() -> void:
 	_check_skip(script)
 	_check_force(script)
 	_check_preset(scene, script)
+	_check_log_row(scene, script)
 
 	print("first boot options: %d/%d checks passed" % [_checks - _failures, _checks])
 	if _failures == 0:
@@ -103,6 +104,62 @@ func _check_preset(scene: String, script: String) -> void:
 	var ready_body: String = _func_body(settings, "_ready")
 	_check(ready_body.contains("ERR_FILE_NOT_FOUND") and ready_body.contains("PRESET_VERY_LOW"),
 		"...solo cuando no hay fichero, para no pisar lo que el jugador guardo")
+
+## The diagnostics log, switchable from the one screen every launch passes
+## through.
+##
+## It used to live only in the console's Misc tab, which is fine for a setting
+## nobody needs and wrong for this one: the log now ships OFF, so the moment it
+## is wanted is the moment somebody is about to reproduce a bug - and reaching
+## the console means entering the shop first, which is the load they were
+## trying to record.
+##
+## The half that matters is not the row, it is that turning it on WORKS. An
+## autoload is ready before the first scene, so the log had already read the
+## setting and returned; its `applied` connection sat past that early return,
+## which meant a log that started off could never be woken by anything short of
+## a relaunch. A row that says "On" and produces no file is worse than no row.
+func _check_log_row(scene: String, script: String) -> void:
+	# Las dos mitades: la asignacion, y el nombre dentro de `node_paths`. Sin lo
+	# segundo Godot no convierte el NodePath en nodo y el export queda en null -
+	# la fila se dibuja, se pulsa, y no hay a quien preguntarle que hay guardado.
+	_check(scene.contains("log_button = NodePath(\""), "la fila del log esta cableada")
+	_check(_node_paths(scene).has("log_button"),
+		"...y declarada en node_paths, o el export llega en null")
+	_check(scene.contains('method="_on_log_changed"'), "y su señal conectada")
+	_check(not scene.contains('[node name="LogRow" type="CheckBox"'),
+		"es una fila como las demas, no un CheckBox")
+
+	var body: String = _func_body(script, "_on_log_changed")
+	_check(_has_statement(body, "Settings\\.lullaby_diagnostics_log = index == 1"),
+		"elegir On enciende el ajuste")
+	_check(_has_statement(body, "Settings\\.apply_settings\\(\\)"), "...lo aplica")
+	_check(_has_statement(body, "Settings\\.save\\(\\)"), "...y lo persiste")
+	_check(_has_statement(_func_body(script, "_ready"), "log_button\\.selected"),
+		"y la fila arranca mostrando lo que hay guardado")
+
+	# Y el lado del log: tiene que poder arrancar tarde.
+	var log_src: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/scripts/lullaby/debug/lullaby_diagnostics_log.gd")
+	var ready_body: String = _func_body(log_src, "_ready")
+	var connect_at: int = ready_body.find("Settings.applied.connect")
+	var gate_at: int = ready_body.find("if not Settings.lullaby_diagnostics_log:")
+	_check(connect_at >= 0 and gate_at > connect_at,
+		"el log se conecta a `applied` ANTES de rendirse por estar apagado")
+	_check(log_src.contains("func _start_logging()") and log_src.contains("func _stop_logging()"),
+		"y sabe arrancar y parar en caliente")
+	_check(_func_body(log_src, "_on_settings_applied").contains("_start_logging()"),
+		"encender el ajuste arranca el log en esta misma sesion")
+	_check(log_src.contains("if _wired:"),
+		"y un segundo arranque no duplica el _ScriptTail ni las conexiones")
+
+	# _open_log() construye un MemorySampler nuevo en cada arranque, asi que
+	# apagar sin pararlo dejaria un hilo por ciclo escribiendo su propio .mem.
+	var stop_body: String = _func_body(log_src, "_stop_logging")
+	_check(stop_body.contains("_sampler.stop()") and stop_body.contains("_sampler = null"),
+		"apagar tambien para el muestreador, no solo cierra el fichero")
+	_check(stop_body.find("_sampler.stop()") < stop_body.find("_file.close()"),
+		"...y antes de cerrar el fichero, que stop() une el hilo que escribe")
 
 func _check_language(script: String) -> void:
 	_check(script.contains("LANGUAGE_VALUES"), "the language row has a value list")
@@ -229,10 +286,41 @@ func _list_after(text: String, prefix: String, must_contain: String) -> String:
 		from = head + prefix.length()
 	return ""
 
-func _func_body(text: String, name: String) -> String:
-	var head: int = text.find("func %s(" % name)
+## The names inside the root node's `node_paths=PackedStringArray(...)`.
+func _node_paths(scene: String) -> PackedStringArray:
+	var head: int = scene.find("node_paths=PackedStringArray(")
 	if head < 0:
-		_check(false, "%s() exists" % name)
+		return PackedStringArray()
+	var tail: int = scene.find(")", head)
+	var out: PackedStringArray = []
+	for m in RegEx.create_from_string('"([^"]+)"').search_all(
+			scene.substr(head, tail - head)):
+		out.append(m.get_string(1))
+	return out
+
+## The body of the TOP-LEVEL function `name`, from its `func` line to the next
+## one at column 0.
+##
+## Anchored on the line start rather than found as a substring, because a
+## substring match takes the first `func _ready(` in the file and one of the
+## files read here - lullaby_diagnostics_log.gd - defines `_ready` inside its
+## `_ScriptTail` inner class 428 lines before the autoload's own. This function
+## returned that four-line stub, and the check reading it reported a failure
+## that was not in the code.
+func _func_body(text: String, name: String) -> String:
+	var head: int = -1
+	var from: int = 0
+	while true:
+		var at: int = text.find("func %s(" % name, from)
+		if at < 0:
+			break
+		if at == 0 or text[at - 1] == "\n":
+			head = at
+			break
+		from = at + 1
+
+	if head < 0:
+		_check(false, "%s() exists at the top level" % name)
 		return ""
 	var tail: int = text.find("\nfunc ", head + 1)
 	return text.substr(head, tail - head if tail > head else -1)
