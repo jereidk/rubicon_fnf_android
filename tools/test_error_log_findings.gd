@@ -123,6 +123,17 @@ func _stripped_material_checks() -> void:
 	_check(ready_at >= 0 and process_at > ready_at,
 		"...y lo decide antes de que _process pueda correr una vez")
 
+	# Y esconde los rects al retirarse. La escena los trae VISIBLES con alpha 0
+	# y quien los escondia era _update_rect_visibility(); un return antes de esa
+	# llamada deja dos ColorRect a pantalla completa mezclandose cada frame en
+	# la cancion que ya esta limitada por relleno. La primera version de este
+	# arreglo hacia justo eso.
+	var stand_down: String = ready_body.substr(ready_body.find("water == null"))
+	stand_down = stand_down.substr(0, stand_down.find("set_process(false)"))
+	_check(stand_down.contains("water_rect.visible = false")
+			and stand_down.contains("radial_rect.visible = false"),
+		"...y esconde los dos rects al retirarse, no los deja dibujando")
+
 	var notepad: String = _read(NOTEPAD)
 	_check(notepad.contains("if shader_material != null:"),
 		"prp_notepad comprueba el material antes de escribirle")

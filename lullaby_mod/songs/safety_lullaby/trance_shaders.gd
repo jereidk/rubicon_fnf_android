@@ -71,6 +71,18 @@ func _ready() -> void :
 	# Formatear un error y recorrer su traza no sale gratis en la canción que
 	# ya va a 30fps.
 	if water == null or radial == null:
+		# Guardar los rects antes de irse, no solo dejar de conducirlos.
+		#
+		# La escena los trae visibles con `color = Color(0,0,0,0)`; quien los
+		# escondía era `_update_rect_visibility()`, aquí abajo. Un `return`
+		# antes de esa llamada los deja dibujándose para siempre: dos ColorRect
+		# a pantalla completa, invisibles pero mezclados cada frame, en la
+		# canción que ya está limitada por relleno. La primera versión de este
+		# arreglo hacía exactamente eso.
+		if water_rect != null:
+			water_rect.visible = false
+		if radial_rect != null:
+			radial_rect.visible = false
 		set_process(false)
 		return
 
