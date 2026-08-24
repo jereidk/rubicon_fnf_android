@@ -81,12 +81,77 @@ func _initialize() -> void:
 		"no hay dos claves apuntando al mismo fichero (%d rutas para %d claves)"
 			% [unique_paths.size(), map.size()])
 
+	_completeness_checks(map)
 	_code_checks(code)
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
 		print("todo OK")
 	quit(1 if _failures > 0 else 0)
+
+
+## Y que el mapa este COMPLETO, no solo que sea consistente.
+##
+## Todo lo de arriba comprueba el mapa contra si mismo: que las 32 rutas
+## existan, carguen y se llamen como su clave. Nada de eso ve el fallo que de
+## verdad importa - que el juego pida un grupo que el mapa no tiene. Antes las
+## referencias directas lo hacian imposible: si el .tres estaba en el array,
+## estaba. Con rutas, migrar 31 de 32 compila, importa y arranca igual, y lo
+## unico que pasa es que el Collector se queda callado en una situacion.
+##
+## El disparador de esta comprobacion fue un reporte de un jugador cuyo juego
+## se cerraba al terminar de cargar la tienda a partir del segundo arranque -
+## y `play_entry_voiceline()` (que solo corre si `intro_seen`, o sea nunca en
+## el primero) termina en `play_voiceline_group("joiningback")`. Resulto no
+## ser eso, pero la pregunta "¿esta joiningback en el mapa?" no la contestaba
+## ninguna guarda, y hubo que hacerla a mano.
+func _completeness_checks(map: Dictionary) -> void:
+	var asked: Dictionary = {}
+	_collect_asked("res://", asked)
+
+	_check(not asked.is_empty(), "se encuentran los nombres que el juego pide (%d)" % asked.size())
+
+	var missing: PackedStringArray = []
+	for name: String in asked:
+		if not map.has(name):
+			missing.append("%s (%s)" % [name, asked[name]])
+	_check(missing.is_empty(), "y el mapa tiene todos%s"
+		% ["" if missing.is_empty() else ": " + ", ".join(missing.slice(0, 4))])
+
+
+## Cada nombre literal que llega a play_voiceline_group/play_full_voiceline_group/
+## get_voiceline_group, mas los @export ...group que los alimentan por defecto y
+## los que la escena sobreescribe. Los que se piden por variable no se ven desde
+## aqui y no se puede fingir que si.
+func _collect_asked(dir_path: String, out: Dictionary) -> void:
+	var calls := RegEx.create_from_string(
+		'(?:play_voiceline_group|play_full_voiceline_group|get_voiceline_group)\\(\\s*"([^"]+)"')
+	var exports := RegEx.create_from_string(
+		'@export var \\w*group\\w*\\s*:\\s*String\\s*=\\s*"([^"]+)"')
+	var overrides := RegEx.create_from_string('(?m)^\\w*group\\w*\\s*=\\s*"([^"]+)"$')
+
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	for name: String in dir.get_directories():
+		if name.begins_with(".") or name == "tools" or name == "addons":
+			continue
+		_collect_asked(dir_path.path_join(name), out)
+	for name: String in dir.get_files():
+		var lower: String = name.to_lower()
+		if not (lower.ends_with(".gd") or lower.ends_with(".tscn")):
+			continue
+		var text: String = FileAccess.get_file_as_string(dir_path.path_join(name))
+		if text.is_empty():
+			continue
+		for re: RegEx in [calls, exports, overrides]:
+			if re == overrides and not lower.ends_with(".tscn"):
+				continue
+			if re == exports and not lower.ends_with(".gd"):
+				continue
+			for m in re.search_all(text):
+				if not out.has(m.get_string(1)):
+					out[m.get_string(1)] = name
 
 
 func _code_checks(code: String) -> void:
