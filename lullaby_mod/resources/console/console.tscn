@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://cp2ukr27w0y8l" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/time.gd" id="11"]
 [ext_resource type="Script" uid="uid://wsghge7e7101" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tab_container.gd" id="12"]
 [ext_resource type="Script" uid="uid://dep3vfm25ktgv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/home.gd" id="13"]
-[ext_resource type="Texture2D" uid="uid://x3l14f5p7kp4" path="res://lullaby_mod/assets/menus/console/SelectBubble.png" id="14"]
 [ext_resource type="PackedScene" uid="uid://cllqbl0dakk5q" path="res://lullaby_mod/assets/menus/console/icons/models/ui_credits.gltf" id="15"]
 [ext_resource type="Animation" uid="uid://dpdsbbhb47an4" path="res://lullaby_mod/assets/menus/console/icons/animations/idle.tres" id="16"]
 [ext_resource type="Animation" uid="uid://de8vohlqkbk0y" path="res://lullaby_mod/assets/menus/console/icons/animations/select.tres" id="17"]
@@ -23,30 +22,21 @@
 [ext_resource type="PackedScene" uid="uid://coee4j0rkvtjx" path="res://lullaby_mod/assets/menus/console/icons/models/ui_cartridge.gltf" id="21"]
 [ext_resource type="PackedScene" uid="uid://d1r7aa5nov1mc" path="res://lullaby_mod/assets/collector/shop/models/prp_cartridge.gltf" id="22"]
 [ext_resource type="Script" uid="uid://0o5dlmalbsjq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridge_icon.gd" id="23"]
-[ext_resource type="Material" uid="uid://dxvaeobgeuuck" path="res://lullaby_mod/assets/collector/shop/models/materials/cartridge_body.tres" id="24"]
 [ext_resource type="Texture2D" uid="uid://ds7fujbpkpaby" path="res://lullaby_mod/assets/collector/shop/models/textures/hypno_cartridge.png" id="25"]
 [ext_resource type="Texture2D" uid="uid://bwg67dkx7dgcy" path="res://lullaby_mod/assets/collector/shop/models/textures/chimera_cartridge.png" id="26"]
 [ext_resource type="Texture2D" uid="uid://cjpjqfr8canbe" path="res://lullaby_mod/assets/collector/shop/models/textures/monochrome_cartridge.png" id="27"]
 [ext_resource type="Script" uid="uid://cceu0sr4b00xm" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home_button.gd" id="28"]
 [ext_resource type="Material" uid="uid://bp602wx487gdq" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_idle.tres" id="29"]
-[ext_resource type="Material" uid="uid://d10k0u0qfnykw" path="res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres" id="30"]
 [ext_resource type="Script" uid="uid://heu72nbs4klv" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/gallery_button.gd" id="31"]
 [ext_resource type="Script" uid="uid://6ehgghqnnrfg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/home/cartridges_button.gd" id="32"]
 [ext_resource type="Script" uid="uid://bpqsia4nl31kq" path="res://lullaby_mod/scripts/lullaby/collectors_shop/shop_bind_ui.gd" id="33"]
 [ext_resource type="Script" uid="uid://dl7qb0b82xisj" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_tabs.gd" id="34"]
-[ext_resource type="Texture2D" uid="uid://co32fmips3bpr" path="res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png" id="35"]
 [ext_resource type="PackedScene" uid="uid://pyrxbn5l37ss" path="res://lullaby_mod/assets/menus/console/icons/models/ui_arrow.gltf" id="36"]
-[ext_resource type="FontFile" uid="uid://gk0tkvl4wnv2" path="res://lullaby_mod/resources/fonts/fnt_funkin.ttf" id="37"]
 [ext_resource type="Script" uid="uid://71o7bsk0g7av" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/role_scroller.gd" id="38"]
-[ext_resource type="FontFile" uid="uid://ilqa3kmi8s03" path="res://lullaby_mod/resources/fonts/fnt_funkin2.ttf" id="39"]
 [ext_resource type="Script" uid="uid://bt1rv1ok0bduo" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd" id="40"]
 [ext_resource type="Script" uid="uid://c3kvjgv8wyyjg" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/lullaby_credits_entry.gd" id="41"]
-[ext_resource type="FontFile" uid="uid://ccukgoph618vn" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="43"]
-[ext_resource type="Texture2D" uid="uid://cjsypkv02kfvp" path="res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg" id="44"]
 [ext_resource type="Script" uid="uid://dha6qny43jfir" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd" id="45"]
-[ext_resource type="SpriteFrames" uid="uid://3s5so0t7ksfx" path="res://lullaby_mod/assets/menus/console/options/portrait/OptionsBox.res" id="46"]
 [ext_resource type="Script" uid="uid://njf81bju8os3" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/portrait_box.gd" id="47"]
-[ext_resource type="SpriteFrames" uid="uid://crjc0ctw7n3ux" path="res://lullaby_mod/assets/menus/console/options/portrait/settings_icons.res" id="48"]
 [ext_resource type="Script" uid="uid://bgeylojmyab8u" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/volume_button.gd" id="49"]
 [ext_resource type="Script" uid="uid://c1gbq7uaqw3ku" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/incremental_button.gd" id="50"]
 [ext_resource type="Script" uid="uid://o4qe8fss82cc" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/categories_button.gd" id="51"]
@@ -56,38 +46,18 @@
 [ext_resource type="Script" uid="uid://cy3cjlx4hitno" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/quality_preset_button.gd" id="55"]
 [ext_resource type="Script" uid="uid://clw02pwxq4tqd" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/input_button.gd" id="56"]
 [ext_resource type="Script" uid="uid://dvabg635gsp35" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/delete_save_data.gd" id="57"]
-[ext_resource type="SpriteFrames" uid="uid://bhhdt4d11ad4p" path="res://lullaby_mod/assets/menus/console/training/lil_ector.res" id="58"]
-[ext_resource type="Texture2D" uid="uid://cgg4jowrlujfp" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay.png" id="59"]
-[ext_resource type="Texture2D" uid="uid://cadnw3b5vo85o" path="res://lullaby_mod/assets/menus/console/options/gameplay/gameplay_icon.png" id="60"]
-[ext_resource type="Texture2D" uid="uid://d07uxh7mdhmfl" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals.png" id="61"]
-[ext_resource type="Texture2D" uid="uid://ckhxeswokdxg0" path="res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png" id="62"]
-[ext_resource type="Texture2D" uid="uid://ecxvo8jf1mjg" path="res://lullaby_mod/assets/menus/console/options/misc/misc.png" id="63"]
-[ext_resource type="Texture2D" uid="uid://d1pa7o5lokrtv" path="res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png" id="64"]
-[ext_resource type="Texture2D" uid="uid://c8xtwvjjfnl0x" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics.png" id="203"]
-[ext_resource type="Texture2D" uid="uid://tu6ap7esthlkb" path="res://lullaby_mod/assets/menus/console/options/audio/audio.png" id="204"]
-[ext_resource type="Texture2D" uid="uid://bgmebrpx2ig1e" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile.png" id="205"]
-[ext_resource type="Texture2D" uid="uid://crvds4andx3ck" path="res://lullaby_mod/assets/menus/console/options/mobile/mobile_icon.png" id="206"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/audio/audio_icon.png" id="208"]
-[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/console/options/graphics/graphics_icon.png" id="209"]
 [ext_resource type="Script" uid="uid://ibfakic30xh6" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/mobile_section_visibility.gd" id="207"]
 [ext_resource type="Script" uid="uid://cm4y7xk2vnq8t" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/midscroll_lock.gd" id="210"]
-[ext_resource type="FontFile" uid="uid://phuj680l07p0" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="65"]
 [ext_resource type="Texture2D" uid="uid://bdiyolw4uxqgs" path="res://lullaby_mod/assets/funkin/monochrome/pause/tex_mono_bf_pause_0.png" id="66"]
 [ext_resource type="Texture2D" uid="uid://0dvswwi28w2g" path="res://lullaby_mod/assets/funkin/safety_lullaby/pause/tex_girlfriend_pause.png" id="67"]
 [ext_resource type="Texture2D" uid="uid://s7bn5f6v8jfp" path="res://lullaby_mod/assets/funkin/chimera/pause/tex_chimera_pause_serena.png" id="68"]
-[ext_resource type="Texture2D" uid="uid://bvd7ls668ig7d" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNoteBox.png" id="69"]
-[ext_resource type="Texture2D" uid="uid://brxtcktfyu144" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorsNoteTitle.png" id="70"]
 [ext_resource type="FontFile" uid="uid://7umymrh6l0lh" path="res://lullaby_mod/resources/fonts/fnt_times.ttf" id="71"]
 [ext_resource type="Texture2D" uid="uid://cq6dv55o0ld60" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote3.png" id="72"]
 [ext_resource type="Texture2D" uid="uid://c5fa3icr7e2gu" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote1.png" id="73"]
 [ext_resource type="Texture2D" uid="uid://b0jpros81c8ik" path="res://lullaby_mod/assets/menus/console/cartridge/CollectorNote2.png" id="74"]
-[ext_resource type="FontFile" uid="uid://bskj0bv8cf310" path="res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf" id="75"]
 [ext_resource type="Script" uid="uid://by4bc0vahgypx" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gd" id="76"]
 [ext_resource type="Script" uid="uid://onbmyr64dkbk" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/cartridges_enter_label.gd" id="77"]
-[ext_resource type="SpriteFrames" uid="uid://bc7j5in7nkdys" path="res://lullaby_mod/assets/menus/console/cartridge/spr_cartridge_name.tres" id="78"]
 [ext_resource type="Script" uid="uid://6kvofwu5i2h5" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/training_button.gd" id="79"]
-[ext_resource type="Texture2D" uid="uid://dy3bopt1xtjwi" path="res://lullaby_mod/assets/menus/console/training/Box.png" id="80"]
-[ext_resource type="SpriteFrames" uid="uid://cx5sint0bwj8w" path="res://lullaby_mod/assets/menus/console/training/training_icons.res" id="81"]
 [ext_resource type="Texture2D" uid="uid://dj8w1ch8bf1q3" path="res://lullaby_mod/assets/menus/console/menuheader.png" id="82"]
 [ext_resource type="SpriteFrames" uid="uid://b1hd642ip03vp" path="res://lullaby_mod/assets/menus/console/intro/ConsoleStartup.res" id="83"]
 [ext_resource type="AnimationLibrary" uid="uid://bamwqihnv0kbe" path="res://lullaby_mod/resources/animations/shop/console_intro.tres" id="84"]
@@ -98,6 +68,7 @@
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/hacks_tab.gd" id="201"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/settings/hide_if_locked.gd" id="202"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/diagnostics_path_label.gd" id="diagpath"]
+[ext_resource type="Script" uid="uid://dk3dso6vwuqmw" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console/console_late_resources.gd" id="211"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hlefr"]
 render_priority = 0
@@ -4280,7 +4251,7 @@ timer = NodePath("Timer")
 wait_time = 10.0
 ignore_time_scale = true
 
-[node name="TabContainer" type="TabContainer" parent="." unique_id=598360180 node_paths=PackedStringArray("console_root", "header_label", "animplayer")]
+[node name="TabContainer" type="TabContainer" parent="." unique_id=598360180 node_paths=PackedStringArray("console_root", "header_label", "animplayer", "late_resources")]
 modulate = Color(1, 1, 1, 0)
 self_modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -4298,6 +4269,7 @@ script = ExtResource("12")
 console_root = NodePath("..")
 header_label = NodePath("../Header/texture/Label")
 animplayer = NodePath("../AnimationPlayer")
+late_resources = NodePath("../LateResources")
 
 [node name="Home" type="Control" parent="TabContainer" unique_id=900037686 node_paths=PackedStringArray("select_bubble", "tab_container", "default_focus")]
 visible = false
@@ -4311,7 +4283,6 @@ metadata/_tab_index = 0
 
 [node name="SelectBubble" type="Sprite2D" parent="TabContainer/Home" unique_id=434186938]
 position = Vector2(736, 530)
-texture = ExtResource("14")
 
 [node name="IconSubViewport" type="SubViewportContainer" parent="TabContainer/Home" unique_id=324113169]
 layout_mode = 0
@@ -4474,7 +4445,6 @@ cartridge_materials = NodePath("CartridgeMaterials")
 
 [node name="Cartridge" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone/prp_cartridge" index="0" unique_id=418026459]
 transform = Transform3D(0.355, 0, 0, 0, 0.355, 0, 0, 0, 0.355, 0, 0.16, 0)
-surface_material_override/0 = ExtResource("24")
 
 [node name="CartridgeMaterials" type="AnimationPlayer" parent="TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone/prp_cartridge" unique_id=62464712]
 libraries/materials = SubResource("AnimationLibrary_wyhsc")
@@ -4518,7 +4488,6 @@ idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
 material_idle = ExtResource("29")
-material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Settings" unique_id=1306506377]
 layout_mode = 1
@@ -4562,7 +4531,6 @@ idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
 material_idle = ExtResource("29")
-material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Credits" unique_id=1327187529]
 layout_mode = 1
@@ -4607,7 +4575,6 @@ idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
 material_idle = ExtResource("29")
-material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Training" unique_id=626961837]
 layout_mode = 1
@@ -4650,7 +4617,6 @@ idle_animation = &"Idle_192f"
 select_animation = &"Select_48f"
 console = NodePath("../../../..")
 material_idle = ExtResource("29")
-material_select = ExtResource("30")
 
 [node name="Label" type="Label" parent="TabContainer/Home/FakeButtons/Gallery" unique_id=1181545106]
 layout_mode = 1
@@ -4799,7 +4765,6 @@ color = Color(0.9019608, 1, 1, 1)
 energy = 4.0
 blend_mode = 2
 range_z_max = 2
-texture = ExtResource("35")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/Awesomeahhlight" unique_id=1569068782]
 libraries/ = SubResource("AnimationLibrary_aipkm")
@@ -4858,7 +4823,6 @@ offset_right = 243.8533
 offset_bottom = 198.0
 grow_horizontal = 0
 theme = ExtResource("9")
-theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 40
 text = "A"
 horizontal_alignment = 2
@@ -4873,7 +4837,6 @@ offset_top = 140.0
 offset_right = 2043.8533
 offset_bottom = 198.0
 theme = ExtResource("9")
-theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 40
 text = "B"
 vertical_alignment = 1
@@ -4898,7 +4861,6 @@ alignment = 1
 z_index = 1
 layout_mode = 2
 theme = ExtResource("9")
-theme_override_fonts/font = ExtResource("37")
 theme_override_font_sizes/font_size = 50
 text = "Test bro"
 horizontal_alignment = 1
@@ -4929,7 +4891,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme = ExtResource("9")
-theme_override_fonts/font = ExtResource("39")
 theme_override_font_sizes/font_size = 46
 text = "Role"
 horizontal_alignment = 1
@@ -4945,7 +4906,6 @@ offset_right = 39.5
 offset_bottom = 36.0
 grow_horizontal = 2
 theme = ExtResource("9")
-theme_override_fonts/font = ExtResource("39")
 theme_override_font_sizes/font_size = 46
 text = "Role"
 horizontal_alignment = 1
@@ -4974,7 +4934,6 @@ right_arrow_anim = NodePath("../CurrentlySelected/SubViewportContainer/SubViewpo
 left_arrow_mesh = NodePath("../CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow/HatArrow/Skeleton3D/HatArrowMesh")
 right_arrow_mesh = NodePath("../CurrentlySelected/SubViewportContainer/SubViewport/ui_arrow2/HatArrow/Skeleton3D/HatArrowMesh")
 material_idle = ExtResource("29")
-material_select = ExtResource("30")
 credits_entries = [SubResource("Resource_3wbki"), SubResource("Resource_1pg6q"), SubResource("Resource_s8oc3"), SubResource("Resource_c1dk4"), SubResource("Resource_bpx2w"), SubResource("Resource_krns4"), SubResource("Resource_53u57"), SubResource("Resource_6xqcv"), SubResource("Resource_aipkm"), SubResource("Resource_xqvk1"), SubResource("Resource_7bcxd"), SubResource("Resource_515yq"), SubResource("Resource_g013n"), SubResource("Resource_t7fim"), SubResource("Resource_jmxba"), SubResource("Resource_yuu1f"), SubResource("Resource_6cqfn"), SubResource("Resource_ojefv"), SubResource("Resource_v76o6"), SubResource("Resource_4e3fp"), SubResource("Resource_n3hid"), SubResource("Resource_n0yyd"), SubResource("Resource_5uc5c"), SubResource("Resource_0ludl"), SubResource("Resource_8ygb7"), SubResource("Resource_xuxmh"), SubResource("Resource_bjefn"), SubResource("Resource_h2l5q"), SubResource("Resource_5vqgg"), SubResource("Resource_ffyfa"), SubResource("Resource_v8fp5"), SubResource("Resource_s2ih7"), SubResource("Resource_26fpe"), SubResource("Resource_jbm3l"), SubResource("Resource_hlefr"), SubResource("Resource_r8cv6"), SubResource("Resource_7sig0"), SubResource("Resource_vogi3"), SubResource("Resource_51d5e"), SubResource("Resource_136d4"), SubResource("Resource_5gx8c"), SubResource("Resource_v8rxn")]
 
 [node name="CreditsPortraitSecondary" type="AnimatedSprite2D" parent="TabContainer/Credits/CreditsContainer" unique_id=2132617242]
@@ -5007,7 +4966,6 @@ custom_minimum_size = Vector2(720, 600)
 layout_mode = 2
 theme = ExtResource("9")
 theme_override_constants/line_separation = 2
-theme_override_fonts/normal_font = ExtResource("43")
 theme_override_font_sizes/normal_font_size = 36
 bbcode_enabled = true
 text = "Description bro"
@@ -5032,7 +4990,6 @@ offset_right = -14.678833
 offset_bottom = 80.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2
-icon = ExtResource("44")
 expand_icon = true
 script = ExtResource("45")
 
@@ -5069,9 +5026,6 @@ texture = SubResource("GradientTexture2D_gqufi")
 
 [node name="PortraitBox" type="AnimatedSprite2D" parent="TabContainer/Settings" unique_id=467561537 node_paths=PackedStringArray("console", "portrait", "settings_container")]
 position = Vector2(1000, 584)
-sprite_frames = ExtResource("46")
-animation = &"Options Box instance "
-autoplay = "Options Box instance "
 frame_progress = 0.86153674
 script = ExtResource("47")
 console = NodePath("../../..")
@@ -5081,8 +5035,6 @@ settings_container = NodePath("SettingsSubmenu")
 [node name="SettingsPortraits" type="AnimatedSprite2D" parent="TabContainer/Settings/PortraitBox" unique_id=164571436]
 visible = false
 position = Vector2(4, 0)
-sprite_frames = ExtResource("48")
-animation = &"gf"
 
 [node name="SettingsSubmenu" type="TabContainer" parent="TabContainer/Settings/PortraitBox" unique_id=2018747834]
 self_modulate = Color(1, 1, 1, 0)
@@ -5523,9 +5475,6 @@ tooltip = "Deletes all save data for FNF Lullaby. Start from the beginning."
 
 [node name="LilEctor" type="AnimatedSprite2D" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" unique_id=1339668073]
 position = Vector2(352.29382, 664)
-sprite_frames = ExtResource("58")
-animation = &"Lil Ector"
-autoplay = "Lil Ector"
 frame_progress = 0.8696289
 
 [node name="Keybinds" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1746763479 node_paths=PackedStringArray("tab_container", "default_focus")]
@@ -6227,12 +6176,10 @@ console = NodePath("../../../../..")
 
 [node name="Gameplay" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GameplayButton" unique_id=1655435567]
 position = Vector2(169, 55)
-texture = ExtResource("59")
 
 [node name="GameplayIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GameplayButton/Gameplay" unique_id=1204631900]
 position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
-texture = ExtResource("60")
 
 [node name="AudioButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6252,12 +6199,10 @@ console = NodePath("../../../../..")
 
 [node name="Audio" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/AudioButton"]
 position = Vector2(169, 55)
-texture = ExtResource("204")
 
 [node name="AudioIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/AudioButton/Audio"]
 position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
-texture = ExtResource("208")
 
 [node name="VisualsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2131229385 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6277,12 +6222,10 @@ console = NodePath("../../../../..")
 
 [node name="Visuals" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/VisualsButton" unique_id=451549991]
 position = Vector2(169, 55)
-texture = ExtResource("61")
 
 [node name="VisualsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/VisualsButton/Visuals" unique_id=1547676887]
 position = Vector2(-238, -4)
 scale = Vector2(1.0428572, 1.0428572)
-texture = ExtResource("62")
 
 [node name="GraphicsButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1900773422 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6302,12 +6245,10 @@ console = NodePath("../../../../..")
 
 [node name="Graphics" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GraphicsButton" unique_id=1900773423]
 position = Vector2(169, 55)
-texture = ExtResource("203")
 
 [node name="GraphicsIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/GraphicsButton/Graphics" unique_id=1900773424]
 position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
-texture = ExtResource("209")
 
 [node name="MobileButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=2146300013 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6327,12 +6268,10 @@ console = NodePath("../../../../..")
 
 [node name="Mobile" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MobileButton" unique_id=2146300014]
 position = Vector2(169, 55)
-texture = ExtResource("205")
 
 [node name="MobileIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MobileButton/Mobile" unique_id=2146300015]
 position = Vector2(-238, -4)
 scale = Vector2(1.3518519, 1.3518519)
-texture = ExtResource("206")
 
 [node name="MiscButton" type="Button" parent="TabContainer/Settings/OptionsSections/VBoxContainer" unique_id=1581115239 node_paths=PackedStringArray("settings_portraits", "submenu", "backout_node", "console")]
 self_modulate = Color(1, 1, 1, 0)
@@ -6352,12 +6291,10 @@ console = NodePath("../../../../..")
 
 [node name="Misc" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton" unique_id=1947891812]
 position = Vector2(169, 55)
-texture = ExtResource("63")
 
 [node name="MiscIcon" type="Sprite2D" parent="TabContainer/Settings/OptionsSections/VBoxContainer/MiscButton/Misc" unique_id=1872034145]
 position = Vector2(-238, -4)
 scale = Vector2(1.364486, 1.364486)
-texture = ExtResource("64")
 
 [node name="Tooltip" type="Label" parent="TabContainer/Settings" unique_id=16871969]
 unique_name_in_owner = true
@@ -6367,7 +6304,6 @@ offset_left = 0.73399353
 offset_top = 1012.0
 offset_right = 1440.734
 offset_bottom = 1082.0
-theme_override_fonts/font = ExtResource("65")
 text = "test test test test test test test test test test test test test test test test test test test test"
 autowrap_mode = 3
 horizontal_alignment = 1
@@ -6408,7 +6344,6 @@ offset_right = -33.999756
 offset_bottom = 319.0
 grow_horizontal = 0
 grow_vertical = 2
-texture = ExtResource("69")
 
 [node name="CollectorsNoteTitle" type="TextureRect" parent="TabContainer/Cartridges/Box" unique_id=371839487]
 layout_mode = 1
@@ -6420,7 +6355,6 @@ offset_top = 61.75
 offset_right = 369.49994
 offset_bottom = 130.75
 grow_horizontal = 2
-texture = ExtResource("70")
 
 [node name="CollectorsNoteLabel" type="Label" parent="TabContainer/Cartridges/Box/CollectorsNoteTitle" unique_id=1094829342]
 layout_mode = 1
@@ -6454,7 +6388,6 @@ offset_right = 403.6056
 offset_bottom = -27.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_fonts/normal_font = ExtResource("75")
 theme_override_font_sizes/normal_font_size = 30
 bbcode_enabled = true
 text = "[color=red]Type[/color] the corresponding letters to the Unowns as they appear"
@@ -6479,7 +6412,6 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_outline_size = 0
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 4
-theme_override_fonts/normal_font = ExtResource("75")
 theme_override_font_sizes/normal_font_size = 40
 theme_override_styles/focus = SubResource("StyleBoxFlat_4e3fp")
 bbcode_enabled = true
@@ -6492,8 +6424,6 @@ console = NodePath("../../..")
 
 [node name="Name" type="AnimatedSprite2D" parent="TabContainer/Cartridges" unique_id=1968344442]
 position = Vector2(229.17436, 962)
-sprite_frames = ExtResource("78")
-animation = &"girlfriend"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Cartridges" unique_id=1611202666]
 libraries/ = SubResource("AnimationLibrary_n0yyd")
@@ -6534,14 +6464,10 @@ box = NodePath("PendulumBox")
 
 [node name="PendulumBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton" unique_id=1353416492]
 position = Vector2(264, 201)
-texture = ExtResource("80")
 
 [node name="Pendulum" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox" unique_id=73468746]
 position = Vector2(44.117996, -27)
 scale = Vector2(1.0793918, 1.0793918)
-sprite_frames = ExtResource("81")
-animation = &"TrainPendulum"
-autoplay = "TrainPendulum"
 frame_progress = 0.6962325
 
 [node name="PendulumLabel" type="Label" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox" unique_id=1307181491]
@@ -6567,14 +6493,10 @@ box = NodePath("PulseBox")
 
 [node name="PulseBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton" unique_id=1389474769]
 position = Vector2(264, 201)
-texture = ExtResource("80")
 
 [node name="Pulse" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox" unique_id=896849387]
 position = Vector2(2.000061, -23.999985)
 scale = Vector2(1.0439562, 1.043956)
-sprite_frames = ExtResource("81")
-animation = &"TrainPulse"
-autoplay = "TrainPulse"
 frame_progress = 0.7997416
 
 [node name="PulseLabel" type="Label" parent="TabContainer/Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox" unique_id=1885156222]
@@ -6600,14 +6522,10 @@ box = NodePath("TypingBox")
 
 [node name="TypingBox" type="Sprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/TypingButton" unique_id=852125666]
 position = Vector2(264, 201)
-texture = ExtResource("80")
 
 [node name="Typing" type="AnimatedSprite2D" parent="TabContainer/Training/MarginContainer/VBoxContainer/TypingButton/TypingBox" unique_id=596683121]
 position = Vector2(3.0517578e-05, -26.999954)
 scale = Vector2(1.0301306, 1.0301305)
-sprite_frames = ExtResource("81")
-animation = &"TrainType"
-autoplay = "TrainType"
 frame_progress = 0.17084701
 
 [node name="TypingLabel" type="Label" parent="TabContainer/Training/MarginContainer/VBoxContainer/TypingButton/TypingBox" unique_id=587024280]
@@ -6622,9 +6540,6 @@ text = "T y p i n g"
 
 [node name="LilEctor" type="AnimatedSprite2D" parent="TabContainer/Training" unique_id=353276087]
 position = Vector2(144, 904)
-sprite_frames = ExtResource("58")
-animation = &"Lil Ector"
-autoplay = "Lil Ector"
 frame_progress = 0.55702555
 
 [node name="Header" type="CenterContainer" parent="." unique_id=1480834762]
@@ -6850,6 +6765,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 metadata/_edit_lock_ = true
+
+[node name="LateResources" type="Node" parent="." node_paths=PackedStringArray("tab_root")]
+script = ExtResource("211")
+deferred = Dictionary[String, String]({"Home/FakeButtons/Credits:material_select": "res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres", "Home/FakeButtons/Gallery:material_select": "res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres", "Home/FakeButtons/Settings:material_select": "res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres", "Home/FakeButtons/Training:material_select": "res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres", "Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D/Bone/prp_cartridge/Cartridge:surface_material_override/0": "res://lullaby_mod/assets/collector/shop/models/materials/cartridge_body.tres", "Home/SelectBubble:texture": "res://lullaby_mod/assets/menus/console/SelectBubble.png", "Credits/Awesomeahhlight:texture": "res://lullaby_mod/assets/funkin/safety_lullaby/maps/alley/awesomeahhlight.png", "Credits/CreditsContainer:material_select": "res://lullaby_mod/assets/menus/console/icons/materials/mat_console_select.tres", "Credits/CreditsContainer/MarginContainer/Description:theme_override_fonts/normal_font": "res://lullaby_mod/resources/fonts/fnt_balthazar.ttf", "Credits/CurrentlySelected/NextName:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_funkin.ttf", "Credits/CurrentlySelected/PreviousName:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_funkin.ttf", "Credits/CurrentlySelected/VBoxContainer/Name:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_funkin.ttf", "Credits/CurrentlySelected/VBoxContainer/Role/RoleLabel:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_funkin2.ttf", "Credits/CurrentlySelected/VBoxContainer/Role/ScrollContainer/HBoxContainer/RoleLabel:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_funkin2.ttf", "Credits/OpenScroll:icon": "res://lullaby_mod/assets/menus/console/credits/open_scroll_icon.svg", "Settings/OptionsSections/VBoxContainer/AudioButton/Audio:texture": "res://lullaby_mod/assets/menus/console/options/audio/audio.png", "Settings/OptionsSections/VBoxContainer/AudioButton/Audio/AudioIcon:texture": "res://lullaby_mod/assets/menus/console/options/audio/audio_icon.png", "Settings/OptionsSections/VBoxContainer/GameplayButton/Gameplay:texture": "res://lullaby_mod/assets/menus/console/options/gameplay/gameplay.png", "Settings/OptionsSections/VBoxContainer/GameplayButton/Gameplay/GameplayIcon:texture": "res://lullaby_mod/assets/menus/console/options/gameplay/gameplay_icon.png", "Settings/OptionsSections/VBoxContainer/GraphicsButton/Graphics:texture": "res://lullaby_mod/assets/menus/console/options/graphics/graphics.png", "Settings/OptionsSections/VBoxContainer/GraphicsButton/Graphics/GraphicsIcon:texture": "res://lullaby_mod/assets/menus/console/options/graphics/graphics_icon.png", "Settings/OptionsSections/VBoxContainer/MiscButton/Misc:texture": "res://lullaby_mod/assets/menus/console/options/misc/misc.png", "Settings/OptionsSections/VBoxContainer/MiscButton/Misc/MiscIcon:texture": "res://lullaby_mod/assets/menus/console/options/misc/misc_icon.png", "Settings/OptionsSections/VBoxContainer/MobileButton/Mobile:texture": "res://lullaby_mod/assets/menus/console/options/mobile/mobile.png", "Settings/OptionsSections/VBoxContainer/MobileButton/Mobile/MobileIcon:texture": "res://lullaby_mod/assets/menus/console/options/mobile/mobile_icon.png", "Settings/OptionsSections/VBoxContainer/VisualsButton/Visuals:texture": "res://lullaby_mod/assets/menus/console/options/visuals/visuals.png", "Settings/OptionsSections/VBoxContainer/VisualsButton/Visuals/VisualsIcon:texture": "res://lullaby_mod/assets/menus/console/options/visuals/visuals_icon.png", "Settings/PortraitBox:sprite_frames": "res://lullaby_mod/assets/menus/console/options/portrait/OptionsBox.res", "Settings/PortraitBox/SettingsPortraits:sprite_frames": "res://lullaby_mod/assets/menus/console/options/portrait/settings_icons.res", "Settings/PortraitBox/SettingsSubmenu/Misc/LilEctor:sprite_frames": "res://lullaby_mod/assets/menus/console/training/lil_ector.res", "Settings/Tooltip:theme_override_fonts/font": "res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf", "Cartridges/Box:texture": "res://lullaby_mod/assets/menus/console/cartridge/CollectorNoteBox.png", "Cartridges/Box/CollectorsNoteLabel:theme_override_fonts/normal_font": "res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf", "Cartridges/Box/CollectorsNoteTitle:texture": "res://lullaby_mod/assets/menus/console/cartridge/CollectorsNoteTitle.png", "Cartridges/EnterLabel:theme_override_fonts/normal_font": "res://lullaby_mod/resources/fonts/fnt_pokemon_gb.ttf", "Cartridges/Name:sprite_frames": "res://lullaby_mod/assets/menus/console/cartridge/spr_cartridge_name.tres", "Training/LilEctor:sprite_frames": "res://lullaby_mod/assets/menus/console/training/lil_ector.res", "Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox:texture": "res://lullaby_mod/assets/menus/console/training/Box.png", "Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox/Pendulum:sprite_frames": "res://lullaby_mod/assets/menus/console/training/training_icons.res", "Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox:texture": "res://lullaby_mod/assets/menus/console/training/Box.png", "Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox/Pulse:sprite_frames": "res://lullaby_mod/assets/menus/console/training/training_icons.res", "Training/MarginContainer/VBoxContainer/TypingButton/TypingBox:texture": "res://lullaby_mod/assets/menus/console/training/Box.png", "Training/MarginContainer/VBoxContainer/TypingButton/TypingBox/Typing:sprite_frames": "res://lullaby_mod/assets/menus/console/training/training_icons.res"})
+sprite_animations = Dictionary[String, StringName]({"Cartridges/Name": &"girlfriend", "Settings/PortraitBox": &"Options Box instance ", "Settings/PortraitBox/SettingsPortraits": &"gf", "Settings/PortraitBox/SettingsSubmenu/Misc/LilEctor": &"Lil Ector", "Training/LilEctor": &"Lil Ector", "Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox/Pendulum": &"TrainPendulum", "Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox/Pulse": &"TrainPulse", "Training/MarginContainer/VBoxContainer/TypingButton/TypingBox/Typing": &"TrainType"})
+sprite_autoplay = Array[String](["Settings/PortraitBox", "Settings/PortraitBox/SettingsSubmenu/Misc/LilEctor", "Training/LilEctor", "Training/MarginContainer/VBoxContainer/HBoxContainer/PendulumButton/PendulumBox/Pendulum", "Training/MarginContainer/VBoxContainer/HBoxContainer/PulseButton/PulseBox/Pulse", "Training/MarginContainer/VBoxContainer/TypingButton/TypingBox/Typing"])
+tab_root = NodePath("TabContainer")
 
 [connection signal="play_sound" from="." to="DebugSFX" method="_on_console_play_sound"]
 [connection signal="timeout" from="BackgroundElements/PlayerProfileMargin/VBoxContainer/Time/Timer" to="BackgroundElements/PlayerProfileMargin/VBoxContainer/Time" method="update_time"]

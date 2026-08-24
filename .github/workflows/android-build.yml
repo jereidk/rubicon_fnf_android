@@ -950,6 +950,19 @@ jobs:
           # ninguno de los tres avisa cuando su destino falta.
           guard_godot tools/test_console_wiring.gd
 
+          # === Los recursos de las pestanas de la consola, sostenidos por ruta
+          # Treinta ext_resources de console.tscn solo se alcanzan desde dentro
+          # de una pestana, y una pestana no se ve hasta que el jugador navega:
+          # el TabContainer esta autorado a modulate.a = 0 y lo unico que lo
+          # sube es change_tab(). Sacarlos del grafo baja la sala de 363 a 332
+          # ficheros. Todos los modos de fallo son silenciosos - una clave a un
+          # nodo que no esta no aplica nada, una ruta con un typo no la valida
+          # nadie al importar - y hay uno que no es evidente: asignar
+          # `animation` a un AnimatedSprite2D con sprite_frames a null NO
+          # conserva el valor, asi que los nombres viajan en la tabla y se
+          # comprueban contra la hoja que de verdad se carga.
+          guard_godot tools/test_console_late_resources.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
