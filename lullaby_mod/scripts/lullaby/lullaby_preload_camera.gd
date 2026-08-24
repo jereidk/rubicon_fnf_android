@@ -203,7 +203,9 @@ var _batch: int = FIRST_BATCH
 var _anim_done: bool = false
 var _finished: bool = false
 
-## The sweep's own keyframes, lifted out of the animation at _ready.
+## The sweep's own keyframes, lifted out of the animation at _ready and served
+## by _process instead - one per revealing frame, cycling, from the first
+## revealing frame on.
 ##
 ## The animation cannot drive the sweep on its own and the header above says
 ## why: an AnimationPlayer advances by delta, so on a scene whose frames cost
@@ -222,17 +224,22 @@ var _finished: bool = false
 ## frames), 121_closetrunout (5), 114_hexapproach (4) and 122_fall, whose worst
 ## frame is 1911.7ms for `spec+8`.
 ##
-## So the poses are read once and re-served from _process, one per revealing
-## frame, cycling. Every batch of newly revealed nodes is then drawn from a
-## different viewpoint instead of all of them from the last one.
+## Serving used to wait for the animation to finish first, so the two would
+## never write the transform on the same frame. The 2026-08-24 device log
+## killed that arrangement: a starved 0.8s animation never finishes before the
+## reveal does, the wait never ended, and the sweep served zero extra frames
+## (`extra=0 frames`) while 104_photographysesh still paid spec+31 in one
+## 2267ms frame in-song. The tracks are now disabled as they are lifted (see
+## _collect_sweep_poses), which removes the second writer instead of waiting
+## it out.
 var _sweep_poses: Array[Transform3D] = []
 var _sweep_cursor: int = 0
 
-## How many extra sweep frames this served after the animation ran out, and
-## what the reveal had managed by then. Reported at handover, because the
-## second number is the one that says whether any of this was needed: if the
-## animation finishes with the reveal already done, the sweep was never the
-## problem and this whole mechanism is dead weight.
+## How many revealing frames this has served a sweep pose on. Reported at
+## handover: zero means the mechanism never ran, which is the failure the
+## 2026-08-24 device log caught (`extra=0 frames` on the run whose four extra
+## sequences were the point of collecting them - the serve used to wait for
+## the starved sweep animation to finish, and it never did in time).
 var _sweep_extra_frames: int = 0
 var _revealed_at_anim_end: int = -1
 
@@ -408,6 +415,17 @@ func _collect_sweep_poses() -> void:
 			basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
 		_sweep_poses.append(Transform3D(basis, origin))
 
+	# The camera is served from _process from the first revealing frame, so the
+	# animation must stop driving it - a value track writes its property every
+	# frame while playing, keys or no keys, and two writers on one transform is
+	# a jitter, not a sweep. Disabled rather than removed: the PackedScene is
+	# shared across visits, so the keys have to stay readable for the next
+	# scene change to collect them again. The other tracks - the RESET replays
+	# and the :visible reveals - keep playing untouched.
+	anim.track_set_enabled(pos_track, false)
+	if rot_track >= 0:
+		anim.track_set_enabled(rot_track, false)
+
 	_collect_extra_sweep_poses()
 
 ## Folds `extra_sweep_animations` into `_sweep_poses` - see the export's own
@@ -461,9 +479,10 @@ func _collect_extra_sweep_poses() -> void:
 ## Puts the camera at the next sweep pose, for the frame that is about to draw
 ## whatever the reveal just switched on.
 ##
-## Only ever called once the animation is done, so the two never fight over the
-## transform - while the animation is playing it owns this node's position and
-## rotation, and it is authored to.
+## Called on every revealing frame, from the first one: the animation no longer
+## owns this transform, because _collect_sweep_poses() disables its two camera
+## tracks as it lifts them. Cycling matters - there are always more revealing
+## frames than poses, and stopping at the end would leave the tail parked.
 func _serve_sweep_pose() -> void:
 	if _sweep_poses.is_empty():
 		return
@@ -699,11 +718,14 @@ func _process(_delta: float) -> void:
 	_reveal(_batch)
 
 	# After the reveal, so this frame draws the nodes it just switched on from
-	# the pose it is about to move to rather than from the previous one. Only
-	# once the animation has run out; before that the animation owns the
-	# transform.
-	if _anim_done:
-		_serve_sweep_pose()
+	# the pose it is about to move to rather than from the previous one. Not
+	# gated on _anim_done: _collect_sweep_poses() already took the camera tracks
+	# out of the animation, so there is no second writer to wait out - and the
+	# device log of 2026-08-24 shows what waiting cost. The 0.8s sweep
+	# animation, starved on multi-second frames, never finished before the
+	# reveal did, the gate never opened, and the log line says `extra=0 frames`
+	# - zero extra poses served on the run the mechanism was built for.
+	_serve_sweep_pose()
 
 func _reveal(count: int) -> void:
 	var target: int = mini(_revealed + count, _hidden.size())

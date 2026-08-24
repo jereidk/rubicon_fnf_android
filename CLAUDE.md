@@ -4172,6 +4172,34 @@ cut-down stage by hand would work but stops being the scene under test.
    (58.95s de ese log) con `pipe+0`, `vram_delta=+0.0MB`, RAM plana, `in=0` y
    nada en el censo. No compila ni reserva nada. Sin teoría.
 
+   **El log `lullaby_2026-08-24_12-07-26.log` trae dos más de la misma clase,
+   y por fin con patrón.** `worst=29674.3ms` en el precache de la tienda
+   (93.78s, `pipe+46`) y **`worst=23198.6ms` en el precache de Chimera**
+   (287.88s, `pipe+3 spec+3`). Los dos: RAM/VRAM planas, `bench` rápido,
+   `script` ~0, `phys` ~0, `gpu`/`proc` marcando el número del frame anterior
+   (o sea: nada que el monitor pueda ver ocurrió). Y los dos caen
+   **justo después de una creación masiva de pipelines** (98 `surf` seis
+   segundos antes en Chimera; 86 `surf` en la tienda), en el frame que dibuja
+   geometría nueva. La lectura más probable: el contador `pipe=` cuenta
+   *creaciones*, no el trabajo diferido del driver - la compilación real del
+   lote anterior se paga en el primer draw que la necesita, en el hilo de
+   render, y ningún contador lo ve. Pendiente de medida, no de arreglo a
+   ciegas. Ojo: ese frame de 23.2s además retrasó el chequeo del deadline del
+   precache, que se disparó a los 31.2s de presupuesto en vez de a los 15s -
+   el deadline se comprueba en `_process` y un frame así lo retrasa entero.
+
+   **Y ese mismo log tiene picos de script sin nombre en canción**, clase
+   nueva: `rest=` (GDScript que no es notas ni carriles ni el propio log) de
+   22-43ms en `101_prelude@0.0s`, `103_stroll@0.9s`, `104_photographysesh@0.1/
+   1.4/2.9s`, `111_disorient@1.1s`, y **95ms en `107_turnaround@1.1s`**
+   (`script=98.89ms`, `bench=201us` - reloj rápido, no es el gobernador).
+   Candidatos descartados leyendo código: los setters de `RubiconCharacter`
+   son bools, y `mch_picturetaking.gd` son tweens. El patrón "uno por entrada
+   de secuencia, ~1s dentro" apunta al dispatch del reloj o a la primera
+   reproducción de una animación grande de personaje (hex tiene 2122 pistas en
+   18 animaciones), pero `rest=` no nombra - hace falta un instrumento que lo
+   parta antes de tocar nada.
+
 4. **The multi-second stall at cutscene starts, and the first thing tried
    against it since the "untried fix" note was written.** `122_fall@6.8s`
    logged **`frame=1911.7ms`** with `pipe+8` the last time this was measured -
@@ -4182,32 +4210,31 @@ cut-down stage by hand would work but stops being the scene under test.
    `107_turnaround@0.1s` 350ms. Texture upload, resource loading and the
    AnimationMixer track cache are all ruled out (see the `122_fall` section).
 
-   **Shipped, unverified on device:** `extra_sweep_player`/
-   `extra_sweep_animations` on `lullaby_preload_camera.gd`, wired on
-   Chimera's `PreloadCamera` to all four stalling sequences. Each sequence's
-   own `Camera3D:position`/`:rotation` keys get folded into the cycling sweep
-   (`tools/test_preload_extra_sweep.gd`, in CI), so the loading-screen camera
-   also passes through the viewpoints those cutscenes use, not only the ones
-   the precache's own animation authors. This is deliberately the narrowest
-   version of "put the cast in front of a camera": it adds viewpoints to the
-   reveal loop that already exists and touches nothing else - not
-   `KEEP_VISIBLE`, not `_hide_everything()`, no `:visible` or light state, the
-   one class of change this file has the most reason to be careful with (the
-   eleven-day black house was exactly a precache `:visible` change). Caught
-   during design, not after shipping: the first draft pointed
-   `extra_sweep_player` at this node's own `animation_player`
-   (`PreloadCamera/AnimationPlayer`, whose library holds only `precache`)
-   instead of `Sequences/SequencePlayer`, where `122_fall` etc. actually live
-   - would have silently collected nothing forever. The mutation-tested test
-   pins that.
+   **Verificado en el dispositivo, y no servía nada.** El log
+   `lullaby_2026-08-24_12-07-26.log` (build 10177) responde la pregunta de
+   arriba: `104_photographysesh@0.0s` pagó **`spec+31` en un frame de 2267ms**,
+   `107_turnaround@0.5s` `spec+13` en 1110ms, `101_prelude@0.0s` `spec+12` en
+   771ms - todo sigue compilando en canción. Y la línea de entrega del
+   precache dice por qué:
 
-   **What it should move, and what would say it worked:** the total pipeline
-   count and the precache's own cost should be about the same either way -
-   this does not create or destroy work, it moves *when* each pipeline first
-   compiles. A `pipe+N` on one of the four sequences during play, dropping to
-   near zero with a corresponding rise during the precache line, is the
-   result that confirms it. A device log is what settles this, not this
-   note.
+       finished (36806ms, 72 nodos) barrido=43 poses revelado_al_fin_anim=72/72 extra=0 frames
+
+   Las 43 poses se recogieron (15 autoradas + 28 de las cuatro secuencias), y
+   **no se sirvió ni una**: `_serve_sweep_pose()` estaba bajo `if _anim_done`,
+   y la animación del barrido -0.8s autorados- jamás termina antes que el
+   revelado cuando los frames duran segundos (el delta viene clampado). La
+   espera era para que dos escritores no pelearan el `transform`; el arreglo
+   quita al segundo escritor en vez de esperarlo: `_collect_sweep_poses()`
+   **deshabilita** las dos pistas de cámara de la animación al levantarlas
+   (`track_set_enabled`, no `remove_track` - la PackedScene se comparte entre
+   visitas y las claves hacen falta para recogerlas otra vez), y `_process`
+   sirve una pose por frame de revelado desde el primero. Las animaciones de
+   gameplay del `extra_sweep_player` no se tocan - el guard fija las dos mitades.
+
+   **Lo que decide si funcionó:** en el próximo log el `extra=N frames` del
+   MARK de entrega tiene que ser >0 (idealmente ~el número de frames de
+   revelado), y los `spec+N` al entrar en 104/107/114/121/122 tienen que caer
+   a ~0 con la subida correspondiente durante el precache.
 5. A **CI gate** running the `get_dependencies` sweep and failing when a
    dependency resolves by neither path nor UID. It would have caught both
    Chimera-breaking bugs before they reached an APK.

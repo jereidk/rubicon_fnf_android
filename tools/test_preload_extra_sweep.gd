@@ -30,6 +30,16 @@ extends SceneTree
 ##   `../Camera3D:position` while this node's own animation uses
 ##   `.:position` - two different relative conventions for the same camera.
 ##
+## And one thing it pins because it was wrong on DEVICE, in the 2026-08-24
+## log: collection worked (barrido=43 poses, 15 authored + 28 extra) and the
+## serve still never ran - it was gated on the starved 0.8s sweep animation
+## finishing, and the handover printed `extra=0 frames` while
+## 104_photographysesh paid spec+31 in one 2267ms frame in-song. So the extras
+## must be served with the sweep animation still playing, and the disable that
+## makes that safe must NOT leak into the gameplay animations - a sequence's
+## own camera track has to survive collection or the cutscene loses its
+## camera.
+##
 ## Run with:
 ##   godot --headless --path . --script tools/test_preload_extra_sweep.gd
 
@@ -46,6 +56,7 @@ var _checks: int = 0
 func _initialize() -> void:
 	_static_checks()
 	_behavioural_checks()
+	_serving_case()
 	_scene_wiring_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
@@ -133,6 +144,76 @@ func _behavioural_checks() -> void:
 	cam2.free()
 
 	player.free()
+
+
+## The two halves the device log caught missing on 2026-08-24: the extras have
+## to be served while the sweep animation is still playing, and disabling the
+## precache's own camera tracks must not leak into the gameplay animations the
+## extras are lifted from - a sequence whose camera track got disabled would
+## lose its cutscene camera.
+func _serving_case() -> void:
+	var script: GDScript = load(SCRIPT_PATH)
+	if script == null:
+		_check(false, "el script carga")
+		return
+
+	var cam := Camera3D.new()
+	cam.set_script(script)
+
+	# The precache's own animation: one camera pose.
+	var own_player := AnimationPlayer.new()
+	var own_lib := AnimationLibrary.new()
+	var own_anim := Animation.new()
+	var own_pos: int = own_anim.add_track(Animation.TYPE_VALUE)
+	own_anim.track_set_path(own_pos, NodePath(".:position"))
+	own_anim.track_insert_key(own_pos, 0.0, Vector3(0, 0, 0))
+	var own_rot: int = own_anim.add_track(Animation.TYPE_VALUE)
+	own_anim.track_set_path(own_rot, NodePath(".:rotation"))
+	own_anim.track_insert_key(own_rot, 0.0, Vector3.ZERO)
+	own_lib.add_animation(&"precache", own_anim)
+	own_player.add_animation_library(&"", own_lib)
+
+	# The gameplay player's sequence: one extra pose.
+	var seq_player := AnimationPlayer.new()
+	var seq_lib := AnimationLibrary.new()
+	var seq_anim := Animation.new()
+	var seq_pos: int = seq_anim.add_track(Animation.TYPE_VALUE)
+	seq_anim.track_set_path(seq_pos, NodePath("../Camera3D:position"))
+	seq_anim.track_insert_key(seq_pos, 0.0, Vector3(7, 7, 7))
+	var seq_rot: int = seq_anim.add_track(Animation.TYPE_VALUE)
+	seq_anim.track_set_path(seq_rot, NodePath("../Camera3D:rotation"))
+	seq_anim.track_insert_key(seq_rot, 0.0, Vector3.ZERO)
+	seq_lib.add_animation(&"122_fall", seq_anim)
+	seq_player.add_animation_library(&"", seq_lib)
+
+	cam.animation_player = own_player
+	cam.animation_name = &"precache"
+	cam.extra_sweep_player = seq_player
+	cam.extra_sweep_animations = ([&"122_fall"] as Array[StringName])
+
+	cam.call("_collect_sweep_poses")
+
+	var poses: Array = cam.get("_sweep_poses")
+	_check(poses.size() == 2, "la pose propia y la extra se juntan (encontradas: %d)" % poses.size())
+
+	var own_track: int = own_anim.find_track(^".:position", Animation.TYPE_VALUE)
+	_check(own_track >= 0 and not own_anim.track_is_enabled(own_track),
+		"la pista propia queda deshabilitada: ya no hay segundo escritor")
+	var seq_track: int = seq_anim.find_track(^"../Camera3D:position", Animation.TYPE_VALUE)
+	_check(seq_track >= 0 and seq_anim.track_is_enabled(seq_track),
+		"la pista de la secuencia de gameplay NO se deshabilita")
+
+	# Servido sin que la animacion haya terminado - _anim_done nunca se pone.
+	cam.call("_serve_sweep_pose")
+	cam.call("_serve_sweep_pose")
+	_check(cam.transform.origin.is_equal_approx(Vector3(7, 7, 7)),
+		"la pose extra se sirve con la animacion viva (camara en %s)" % str(cam.transform.origin))
+	_check(cam.get("_sweep_extra_frames") == 2,
+		"y el contador lo registra (extra=%d)" % cam.get("_sweep_extra_frames"))
+
+	cam.free()
+	own_player.free()
+	seq_player.free()
 
 
 func _scene_wiring_checks() -> void:

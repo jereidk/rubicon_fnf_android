@@ -18,9 +18,19 @@ extends SceneTree
 ##   poses never collected      - the sweep silently keeps the old behaviour and
 ##                                nothing moves, which looks exactly like a pass
 ##   the sweep fights the       - both write the transform on the same frame and
-##     animation                  the camera jitters between two sources
+##     animation                  the camera jitters between two sources. The
+##                                tracks are disabled as they are lifted, so
+##                                there is no second writer - but a value track
+##                                left enabled writes every frame, keys or no
+##                                keys, which is why the collect case checks the
+##                                disable and not just the lift
 ##   a scene with no sweep       - the shop and Chimera both author .:position,
 ##     breaks                     but a scene that does not must still load
+##
+## And the way it WAS wrong, caught by the 2026-08-24 device log: serving
+## waited for the starved 0.8s animation to finish, it never did before the
+## reveal ended, and the handover printed `extra=0 frames`. The serve is no
+## longer gated on _anim_done.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_preload_sweep.gd
@@ -43,7 +53,7 @@ func _run() -> void:
 	_no_sweep_case()
 	_lighting_stays_on_case()
 	_lighting_baseline_case()
-	await _serves_only_after_animation_case()
+	await _serves_from_the_first_reveal_frame_case()
 
 	print("")
 	if _checks < 24:
@@ -79,8 +89,33 @@ func _collect_case() -> void:
 	_check("la rotacion entra en la base",
 		cam._sweep_poses.size() == 3 and not cam._sweep_poses[2].basis.is_equal_approx(Basis.IDENTITY))
 
+	# La camara la sirve _process desde el primer frame de revelado, asi que la
+	# animacion tiene que haber soltado position/rotation al recogerlas.
+	# Deshabilitadas, no borradas: la PackedScene se comparte entre visitas y
+	# las claves hacen falta para recogerlas otra vez.
+	var anim: Animation = lib.get_animation(&"precache")
+	var pos_track: int = anim.find_track(^".:position", Animation.TYPE_VALUE)
+	var rot_track: int = anim.find_track(^".:rotation", Animation.TYPE_VALUE)
+	_check("la pista de posicion sigue ahi", pos_track >= 0)
+	_check("pero deshabilitada al recogerla",
+		pos_track >= 0 and not anim.track_is_enabled(pos_track))
+	_check("y la de rotacion igual",
+		rot_track >= 0 and not anim.track_is_enabled(rot_track))
+	_check("las claves sobreviven para la segunda visita",
+		pos_track >= 0 and anim.track_get_key_count(pos_track) == 3)
+	_check("y recogerlas otra vez las recoge otra vez",
+		_cam_second_pass(cam))
+
 	player.free()
 	cam.free()
+
+
+## What the second visit to a scene sees: the tracks arrive already disabled
+## (the resource is shared) and the collect must still lift the poses.
+func _cam_second_pass(cam: Camera3D) -> bool:
+	cam._sweep_poses.clear()
+	cam._collect_sweep_poses()
+	return cam._sweep_poses.size() == 3
 
 
 ## Cycling matters because there are always more revealing frames than poses:
@@ -145,14 +180,22 @@ func _no_sweep_case() -> void:
 	cam.free()
 
 
-## While the animation plays it owns position and rotation - it is authored to.
-## Serving a pose underneath it would put two writers on one transform, so the
-## reveal loop only takes over once animation_finished has fired.
+## The serve must NOT wait for the animation to finish - on device it never
+## does in time. The 2026-08-24 log: a 0.8s sweep animation starved on
+## multi-second frames outlived the whole reveal, the gate stayed shut and the
+## handover line printed `extra=0 frames` - zero poses served on the run the
+## mechanism was built for, while 104_photographysesh still paid spec+31 in
+## one 2267ms frame in-song.
 ##
-## Driven through _process() rather than by calling _serve_sweep_pose() directly,
-## because the claim is about what _process does with _anim_done false; a test
-## that reached past it would pass with the guard deleted.
-func _serves_only_after_animation_case() -> void:
+## The second writer is gone by construction instead: _collect_sweep_poses
+## disables the animation's camera tracks as it lifts them. What this case pins
+## is the observable half - _process serves a pose on every revealing frame
+## with _anim_done still false.
+##
+## Driven through _process() rather than by calling _serve_sweep_pose()
+## directly, because the claim is about what _process does with _anim_done
+## false; a test that reached past it would pass with the gate put back.
+func _serves_from_the_first_reveal_frame_case() -> void:
 	var scene := Node3D.new()
 	for i in 40:
 		scene.add_child(MeshInstance3D.new())
@@ -160,27 +203,40 @@ func _serves_only_after_animation_case() -> void:
 	await process_frame
 
 	var cam := _camera()
+	var player := AnimationPlayer.new()
+	var lib := AnimationLibrary.new()
+	lib.add_animation(&"precache", _sweep_animation([Vector3(9, 9, 9), Vector3(1, 1, 1)]))
+	player.add_animation_library(&"", lib)
+	cam.animation_player = player
+	cam.animation_name = &"precache"
+
 	cam._hide_everything(scene)
+	cam._collect_sweep_poses()
 	cam._started_msec = Time.get_ticks_msec()
-	var one_pose: Array[Transform3D] = [Transform3D(Basis.IDENTITY, Vector3(9, 9, 9))]
-	cam._sweep_poses = one_pose
 	# Spend the baseline frame the pacing needs before it will reveal anything.
 	cam._process(0.016)
+	_check("el frame de base no sirve poses", cam._sweep_extra_frames == 0,
+		"%d" % cam._sweep_extra_frames)
 
+	# The flag is never set here, so the animation is "alive" as far as _process
+	# can tell - which is exactly the device situation this now has to serve in.
 	cam._anim_done = false
 	cam._process(0.016)
-	_check("con la animacion viva no sirve poses", cam._sweep_extra_frames == 0,
+	_check("sirve con la animacion viva", cam._sweep_extra_frames == 1,
 		"%d" % cam._sweep_extra_frames)
-	_check("pero el revelado si avanza", cam._revealed > 0, "%d" % cam._revealed)
+	_check("y mueve la camara a la primera pose",
+		cam.transform.origin.is_equal_approx(Vector3(9, 9, 9)),
+		str(cam.transform.origin))
+	_check("el revelado tambien avanza", cam._revealed > 0, "%d" % cam._revealed)
 
-	cam._anim_done = true
 	cam._process(0.016)
-	_check("terminada la animacion, toma el relevo", cam._sweep_extra_frames >= 1,
-		"%d" % cam._sweep_extra_frames)
-	_check("y mueve la camara a la pose", cam.transform.origin.is_equal_approx(Vector3(9, 9, 9)),
+	_check("y cicla a la segunda pose",
+		cam._sweep_extra_frames == 2
+			and cam.transform.origin.is_equal_approx(Vector3(1, 1, 1)),
 		str(cam.transform.origin))
 
 	cam.free()
+	player.free()
 	scene.queue_free()
 	await process_frame
 
