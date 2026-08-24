@@ -38,6 +38,7 @@ func _initialize() -> void:
 	_order_checks()
 	_confinement_checks()
 	_behavioural_checks()
+	_handover_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
@@ -196,6 +197,63 @@ func _behavioural_checks() -> void:
 
 	cam.free()
 	scene.queue_free()
+
+
+## La entrega, y de que ha dejado de depender.
+##
+## Del log del 2026-08-24, en la tienda: el plazo vence a los 64.11s, revela
+## los 116 nodos que faltaban y llama a _try_finish()... que se niega. La
+## entrega llega a los 99.12s, cuando termina una animacion autorada en 1.0
+## segundos que no hace bucle. Treinta y cinco segundos esperando algo que ya
+## no podia cambiar nada: la animacion existe para pasear la camara y que cada
+## material se dibuje, y con los 116 revelados no le queda a quien revelarselos.
+## `revelado_al_fin_anim=116/116` es lo que prueba el orden.
+func _handover_checks() -> void:
+	var code: String = _strip_comments(_read(SCRIPT_PATH))
+
+	var try_body: String = _func_body(code, "_try_finish")
+	_check(not try_body.contains("_anim_done"),
+		"_try_finish ya no espera a la animacion")
+	_check(try_body.contains("_revealed >= _hidden.size()"),
+		"...pero sigue exigiendo que todo este revelado, que es la parte que protege")
+
+	# El plazo, medido desde que la camara puede trabajar y no desde el
+	# escondite: en ese mismo log, 11695ms de un presupuesto de 15000 se fueron
+	# antes del primer _process, y el barrido revelo 2 de 116.
+	var proc_body: String = _func_body(code, "_process")
+	_check(proc_body.contains("_budget_msec = Time.get_ticks_msec()"),
+		"el presupuesto arranca en el primer _process")
+	_check(proc_body.contains("Time.get_ticks_msec() - _budget_msec >= int(DEADLINE_SECONDS"),
+		"...y el plazo se mide contra el, no contra el escondite")
+	_check(not proc_body.contains("Time.get_ticks_msec() - _started_msec >= int(DEADLINE_SECONDS"),
+		"...ya no contra _started_msec, que incluye el arbol bloqueado")
+
+	# Y la instrumentacion que contesta por que una animacion de 1s no terminaba.
+	var progress: String = _func_body(code, "_animation_progress")
+	for what: String in ["current_animation_position", "is_playing()", "_anim_done"]:
+		_check(progress.contains(what), "el log dice %s de la animacion" % what)
+	_check(code.count("_animation_progress()") >= 3,
+		"y se imprime al vencer el plazo Y al entregar (%d usos)"
+			% code.count("_animation_progress()"))
+
+
+## The body of a top-level function, anchored at column 0.
+func _func_body(text: String, name: String) -> String:
+	var head: int = -1
+	var from: int = 0
+	while true:
+		var at: int = text.find("func %s(" % name, from)
+		if at < 0:
+			break
+		if at == 0 or text[at - 1] == "\n":
+			head = at
+			break
+		from = at + 1
+	if head < 0:
+		_check(false, "%s() existe al nivel superior" % name)
+		return ""
+	var tail: int = text.find("\nfunc ", head + 1)
+	return text.substr(head, tail - head if tail > head else -1)
 
 
 func _check(ok: bool, what: String) -> void:

@@ -643,10 +643,11 @@ func _process(_delta: float) -> void:
 
 	if _budget_msec > 0 \
 			and Time.get_ticks_msec() - _budget_msec >= int(DEADLINE_SECONDS * 1000.0):
-		_mark("preload camera '%s' agoto el plazo con %d/%d revelados (%dms de barrido, %dms desde el escondite)" % [
+		_mark("preload camera '%s' agoto el plazo con %d/%d revelados (%dms de barrido, %dms desde el escondite) anim=%s" % [
 			animation_name, _revealed, _hidden.size(),
 			Time.get_ticks_msec() - _budget_msec,
 			Time.get_ticks_msec() - _started_msec,
+			_animation_progress(),
 		])
 		_reveal(_hidden.size() - _revealed)
 		_try_finish()
@@ -723,11 +724,62 @@ func _on_animation_finished(_anim: StringName = &"") -> void:
 	_revealed_at_anim_end = _revealed
 	_try_finish()
 
-## Hands over only once the sweep has finished AND everything has been shown,
-## so a sweep that runs out early cannot deliver a scene whose pipelines are
-## still uncompiled.
+## Where the sweep animation actually is, for the log.
+##
+## The open question this exists to answer: in the shop's trace the animation
+## is authored at 1.0 seconds, does not loop, and had still not reported
+## finished fifteen seconds after play() - so it was either not advancing, or
+## advancing far more slowly than wall time. Those are very different problems
+## and nothing in the log could tell them apart.
+##
+## Printed as position/length plus whether the player still considers itself
+## playing, because that is the pair that separates them: a position stuck near
+## 0 with playing=true is a starved player, a position at the end with
+## playing=true is a finished signal that never arrived, and playing=false with
+## _anim_done still unset means the signal fired and we missed it.
+func _animation_progress() -> String:
+	if animation_player == null:
+		return "sin reproductor"
+	if not animation_player.has_animation(animation_name):
+		return "sin animacion '%s'" % animation_name
+	return "%.2f/%.2fs playing=%s anim_done=%s" % [
+		animation_player.current_animation_position,
+		animation_player.get_animation(animation_name).length,
+		animation_player.is_playing(),
+		_anim_done,
+	]
+
+## Hands over once everything has been shown.
+##
+## It used to require the sweep animation to have finished as well, and that
+## cost more than the whole thing it was protecting. From the device log of
+## 2026-08-24, in the Collector's Shop:
+##
+##     [64.11s] agoto el plazo con 2/116 revelados   -> reveals all 116, calls
+##                                                      this, and it refuses
+##     [99.12s] finished (50016ms) revelado_al_fin_anim=116/116
+##
+## Thirty-five seconds waiting for `_anim_done` on an animation authored at
+## 1.0 seconds, which does not loop. (Chimera: 5.3 seconds on one of 0.8s.)
+## `revelado_al_fin_anim=116/116` is what proves the order - the animation
+## ended after the reveal, not before it.
+##
+## Why a one-second animation takes fifty seconds to report finished is still
+## open, and _mark_animation_progress() below is there to answer it. But the
+## wait buys nothing either way: this animation exists to move the camera
+## through viewpoints so every material gets drawn at least once, and once all
+## 116 nodes are revealed and drawn there is nothing left for it to reveal
+## them to. The scene is as warm as this pass is ever going to make it.
+##
+## What it costs is real and worth naming: if the sweep had not reached its
+## later poses, those materials were only ever drawn from the earlier ones, and
+## whatever is unique to a late viewpoint compiles its pipeline in-game. That
+## was already true whenever the deadline fired - the code has always been able
+## to hand over mid-sweep - so this changes how often, not whether. And it is
+## the symmetric case to _serve_sweep_pose(), which exists precisely because
+## the animation can run out before the reveal does.
 func _try_finish() -> void:
-	if _anim_done and _revealed >= _hidden.size():
+	if _revealed >= _hidden.size():
 		finish_preload()
 
 func finish_preload(_anim: StringName = &"") -> void :
@@ -748,10 +800,10 @@ func finish_preload(_anim: StringName = &"") -> void :
 	# starting an animation - worth distinguishing from an animation that
 	# genuinely finished in under a millisecond.
 	if _started_msec > 0:
-		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses revelado_al_fin_anim=%d/%d extra=%d frames" % [
+		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses revelado_al_fin_anim=%d/%d extra=%d frames anim=%s" % [
 			animation_name, Time.get_ticks_msec() - _started_msec, _hidden.size(),
 			_sweep_poses.size(), _revealed_at_anim_end, _hidden.size(),
-			_sweep_extra_frames,
+			_sweep_extra_frames, _animation_progress(),
 		])
 
 	# This is the moment the boot is provably survivable. The sweep exists to
