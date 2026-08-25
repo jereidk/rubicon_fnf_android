@@ -14860,19 +14860,6 @@ position = Vector2(960.5, 496.5)
 scale = Vector2(0.945, 0.945)
 texture = ExtResource("98")
 
-[node name="PreludeCaption" type="RichTextLabel" parent="UILayer" unique_id=785039700 groups=["cutscene_live_overlay"]]
-modulate = Color(1, 1, 1, 0.057971)
-offset_left = 320.0
-offset_top = 973.0
-offset_right = 1598.0
-offset_bottom = 1073.0
-theme_override_fonts/normal_font = SubResource("FontVariation_tslk7")
-theme_override_font_sizes/normal_font_size = 42
-text = "Serena Yvonne Gabena, 20 years old. Photos recovered on-site.
-On the back's written: \"Hey hayyy\""
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="SerenaCamera" type="Node2D" parent="." unique_id=2104763171]
 visible = false
 
@@ -14953,6 +14940,19 @@ texture = ExtResource("104")
 metadata/_edit_use_anchors_ = true
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1128267898]
+
+[node name="PreludeCaption" type="RichTextLabel" parent="UILayer" unique_id=785039700 groups=["cutscene_live_overlay"]]
+modulate = Color(1, 1, 1, 0.057971)
+offset_left = 320.0
+offset_top = 973.0
+offset_right = 1598.0
+offset_bottom = 1073.0
+theme_override_fonts/normal_font = SubResource("FontVariation_tslk7")
+theme_override_font_sizes/normal_font_size = 42
+text = "Serena Yvonne Gabena, 20 years old. Photos recovered on-site.
+On the back's written: \"Hey hayyy\""
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="UIBlack" type="ColorRect" parent="UILayer" unique_id=1486931997]
 visible = false

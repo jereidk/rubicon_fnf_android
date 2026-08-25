@@ -1140,6 +1140,15 @@ jobs:
           # opt-out.
           guard_godot tools/test_no_mechanics.gd
 
+          # === Verify no .tscn declares a node before its parent
+          # Chimera's PreludeCaption did: parent="UILayer" at line 14863, with
+          # UILayer declared at 14955. Godot resolves a parent against nodes it
+          # has already built, so the caption was dropped from the tree and the
+          # song's story cards silently stopped appearing. The only trace was
+          # two "couldn't resolve track" warnings in a render log, and the
+          # missing text read as the video's overlay exclusion working.
+          guard_godot tools/test_scene_node_order.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
