@@ -204,11 +204,22 @@ func _process(_delta: float) -> void:
 ##
 ## Restaura el `process_mode` que la escena traía en vez de fijar INHERIT: si
 ## alguien authorea la cutscene con un modo propio, sobrevive.
+##
+## `is_instance_valid` y no `!= null`, y la diferencia no es teórica. Una
+## cutscene puede liberarse a sí misma antes de que el vídeo termine: en
+## Chimera la pista de método de `103_stroll` llama a `Intro.queue_free()` en
+## el segundo 34.583, y el vídeo devuelve el mando en 34.708 - 125
+## milisegundos después. Un `Node` liberado NO deja la variable a null, deja
+## una referencia colgante que pasa el `!= null` y revienta al tocarle una
+## propiedad con "Attempt to call function on previously freed instance".
+##
+## Que la cutscene desaparezca sola es un final legítimo, no un error: si ya no
+## está, no hay `process_mode` que restaurar y no hay nada que hacer.
 func _hand_back() -> void:
 	_handed_back = true
 	set_process(false)
 
-	if live_cutscene != null:
+	if is_instance_valid(live_cutscene):
 		live_cutscene.process_mode = _live_mode
 
 	if _player != null:

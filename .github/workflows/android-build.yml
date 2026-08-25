@@ -49,6 +49,19 @@ on:
           Costs 52% more bytes.
         required: false
         default: '60'
+      cutscene_msaa:
+        description: >-
+          MSAA for the capture, appended as msaa=... unless render_cutscene
+          already says so. Defaults to off, and that is a speed decision with
+          the quality cost already accounted for: the capture renders at the
+          project's native 1366 and ships scaled to 960, and that rescale
+          averages ~1.4 source pixels per delivered pixel, which is itself
+          antialiasing. Meanwhile CI rasterises in software, where MSAA 2
+          multiplies real fragment work - and fragment work is what makes a
+          Chimera render take three hours. Set it to an empty value to use
+          whatever the preset asks for.
+        required: false
+        default: 'off'
       cutscene_quality:
         description: >-
           libtheora -q:v, 0-10. Measured on the engine's own decoder at
@@ -1344,6 +1357,28 @@ jobs:
           # queda fuera de builds/ para no acabar en el artefacto.
           raw=/tmp/cutscene_raw.avi
 
+          # El msaa por defecto se anade aqui, no en el harness.
+          #
+          # render_cutscene.gd deja `_msaa` vacio a proposito y su docstring
+          # explica por que: apagar el MSAA a espaldas de quien pide una
+          # captura es justo lo que `preset=High` existe para evitar. Ese
+          # argumento sigue en pie para el harness. Pero en CI el rasterizador
+          # es por software y el video se entrega escalado a 960 desde 1366, y
+          # ahi el MSAA es coste puro - asi que el valor va en un input, con su
+          # razon escrita, visible en la interfaz y sobreescribible. Explicito,
+          # no silencioso.
+          #
+          # Y solo si quien lanza no lo dijo ya: el harness deja ganar al
+          # ultimo `msaa=` que lee, asi que anadirlo siempre le quitaria el
+          # mando al argumento escrito a mano.
+          args='${{ inputs.render_cutscene }}'
+          msaa='${{ inputs.cutscene_msaa }}'
+          case " $args " in
+            *" msaa="*) : ;;
+            *) [ -n "$msaa" ] && args="$args msaa=$msaa" ;;
+          esac
+          echo "harness: $args"
+
           # Sin `set -e` alrededor de xvfb-run: interesa el log completo aunque
           # el harness salga con error, porque sus mensajes OUT/printerr son el
           # diagnostico. El fallo se comprueba abajo, sobre el fichero.
@@ -1352,7 +1387,7 @@ jobs:
             --path . --rendering-driver opengl3 --rendering-method gl_compatibility \
             --write-movie "$raw" --fixed-fps "${{ inputs.cutscene_fps }}" --disable-vsync \
             res://tools/harness/render_cutscene.tscn \
-            -- ${{ inputs.render_cutscene }} 2>&1 | tee /tmp/render.log
+            -- $args 2>&1 | tee /tmp/render.log
           set -e
 
           # Un recurso que no cargo deja la captura sin valor: la escena
@@ -1418,7 +1453,7 @@ jobs:
           # `hasta=` se lee del mismo argumento que se le paso al harness, no de
           # una constante, para que no pueda haber dos verdades que diverjan. Si
           # no viene, el default del harness es 5.0 (`var _until: float = 5.0`).
-          pedido=$(printf '%s\n' ${{ inputs.render_cutscene }} | sed -n 's/^hasta=//p' | tail -1)
+          pedido=$(printf '%s\n' $args | sed -n 's/^hasta=//p' | tail -1)
           pedido=${pedido:-5.0}
           duracion=$(ffprobe -v error -show_entries format=duration \
             -of default=nw=1:nk=1 "$out")

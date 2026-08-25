@@ -120,6 +120,10 @@ var _frames: int = 0
 var _started: int = 0
 var _last_report: int = 0
 
+## Frames ya contados en el latido anterior, para medir el coste del tramo en
+## vez del promedio desde el arranque.
+var _last_frames: int = 0
+
 
 func _ready() -> void:
 	var argv: PackedStringArray = OS.get_cmdline_user_args()
@@ -334,15 +338,60 @@ func _process(delta: float) -> void:
 	var ahora: int = Time.get_ticks_msec()
 	if ahora - _last_report >= 5000:
 		var por_hacer: float = maxf(_until, 0.001)
-		var ritmo: float = _elapsed / (maxf(float(ahora - _started), 1.0) / 1000.0)
-		print("OUT progreso %.1f%%  %d frames  %.1fs de %.1fs  %.0f%% del tiempo real" % [
-			100.0 * _elapsed / por_hacer, _frames, _elapsed, _until, 100.0 * ritmo])
+
+		# Coste por frame de ESTE tramo, no del total, y el que queda.
+		#
+		# Anadido despues de estimar mal una corrida por un factor que resulto
+		# no serlo: extrapolar los primeros 40 frames de Chimera daba 3.0h y la
+		# corrida tardo 3h08m, o sea que acerto - pero acerto por suerte, con
+		# una regla de tres hecha a mano sobre un porcentaje. La otra vez que
+		# se hizo lo mismo el resultado fue "87 minutos" para un render que se
+		# cancelo sin llegar a saberse. El paso puede calcular esto solo, y
+		# quien mira el log no deberia tener que hacer aritmetica para saber si
+		# le da tiempo a cenar.
+		#
+		# Por tramo y no acumulado porque los primeros frames pagan costes que
+		# no se repiten - compilar pipelines, subir texturas - y un promedio
+		# desde el arranque los reparte sobre todo el render y miente hacia
+		# arriba justo cuando mas se mira, al principio.
+		# `delta` es exacto aqui y no una medida: con --fixed-fps Godot entrega
+		# siempre 1/fps pase lo que pase con el reloj de pared, que es la misma
+		# propiedad por la que Movie Maker puede grabar a 60fps en una maquina
+		# que va a 0.2. Asi que los frames que faltan son una division, no una
+		# estimacion.
+		var ms_frame: float = float(ahora - _last_report) / maxf(float(_frames - _last_frames), 1.0)
+		var faltan_frames: float = maxf(_until - _elapsed, 0.0) / maxf(delta, 0.0001)
+		var quedan: float = faltan_frames * ms_frame / 1000.0
+
+		# Donde se va el tiempo, para no volver a adivinarlo. Bajo un
+		# rasterizador por software el coste es de fragmento, asi que el tamano
+		# del bufer 3D y la cantidad de geometria son las dos palancas, y hasta
+		# ahora ninguna de las dos salia en el log.
+		var draws: int = RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+		var prims: int = RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
+
+		print("OUT progreso %.1f%%  %d frames  %.1fs de %.1fs  %.0f ms/frame  faltan ~%s  draw=%d prims=%d" % [
+			100.0 * _elapsed / por_hacer, _frames, _elapsed, _until,
+			ms_frame, _reloj(quedan), draws, prims])
 		_last_report = ahora
+		_last_frames = _frames
 
 	if _elapsed >= _until:
 		print("OUT listo: %.2fs de escena en %d frames, anim en %.2fs" % [
 			_elapsed, _frames, _clock.current_animation_position])
 		get_tree().quit()
+
+
+## Segundos como "1h23m" / "12m40s" / "45s", que es como se lee una espera.
+func _reloj(segundos: float) -> String:
+	var total: int = int(round(maxf(segundos, 0.0)))
+	if total >= 3600:
+		return "%dh%02dm" % [total / 3600, (total % 3600) / 60]
+	if total >= 60:
+		return "%dm%02ds" % [total / 60, total % 60]
+	return "%ds" % total
 
 
 func _find_player(root: Node, anim: StringName) -> AnimationPlayer:
