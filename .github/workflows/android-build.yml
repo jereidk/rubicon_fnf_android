@@ -1380,6 +1380,44 @@ jobs:
             -show_entries format=duration,size -of default=nw=1 "$out"
           ls -lh builds/cutscene/
 
+          # Que dure lo que se pidio.
+          #
+          # Esto faltaba y ya dejo pasar un render malo en verde: la corrida
+          # #188 pidio Chimera y entrego 2.03 segundos - `hasta=2`, cuando el
+          # prelude termina en 15.9333 segun DOS pistas independientes
+          # (`../Prelude:visible` a false en 15.9333 y
+          # `../UILayer/PreludeCaption:modulate` a alfa 0 en 15.9334). El paso
+          # salio success, subio el artefacto, y nadie se entero hasta abrir el
+          # fichero.
+          #
+          # El guard de fotogramas en blanco de abajo no lo pilla, y no es un
+          # descuido suyo: muestrea a fps=1/4, asi que un clip de 2 segundos da
+          # UNA muestra, y `minimo = max(1, ceil(1/3))` es 1. Un solo fotograma
+          # con imagen aprueba el video entero. Ese guard responde "se dibujo
+          # algo?"; este responde "se dibujo todo?", y hacen falta los dos.
+          #
+          # `hasta=` se lee del mismo argumento que se le paso al harness, no de
+          # una constante, para que no pueda haber dos verdades que diverjan. Si
+          # no viene, el default del harness es 5.0 (`var _until: float = 5.0`).
+          pedido=$(printf '%s\n' ${{ inputs.render_cutscene }} | sed -n 's/^hasta=//p' | tail -1)
+          pedido=${pedido:-5.0}
+          duracion=$(ffprobe -v error -show_entries format=duration \
+            -of default=nw=1:nk=1 "$out")
+          python3 - "$pedido" "$duracion" <<'PY'
+          import sys
+          pedido, duracion = float(sys.argv[1]), float(sys.argv[2])
+          # Un frame de margen y un poco mas: el harness corta en el primer
+          # frame cuyo _elapsed pasa de _until, asi que sobra hasta 1/fps. Con
+          # hasta=2 a 60fps salieron 122 frames = 2.0333s.
+          margen = 0.5
+          print(f"pedido {pedido:.3f}s  entregado {duracion:.3f}s  margen {margen}s")
+          if abs(duracion - pedido) > margen:
+              print(f"::error::el video dura {duracion:.2f}s y se pidieron "
+                    f"{pedido:.2f}s - render truncado, no se sube como bueno")
+              sys.exit(1)
+          print("ok - la duracion cuadra con hasta=")
+          PY
+
           # Que los numeros cuadren no prueba que se vea nada: 32.7 segundos de
           # negro perfecto tienen la misma duracion, el mismo tamano de cuadro y
           # pesan menos. Asi que se muestrean fotogramas y se mide si tienen
