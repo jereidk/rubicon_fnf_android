@@ -92,6 +92,28 @@ var _msaa: String = ""
 ## y 0.5 lo deja en 683, por debajo, o sea visiblemente blando.
 var _scale: float = 0.0
 
+## Grupo de lo que NO se hornea: la escena viva lo sigue dibujando.
+##
+## jereidk lo cazo antes de que llegase a una entrega: los subtitulos cambian de
+## idioma en vivo, y un video pre-renderizado los congela. La sonda de Chimera
+## lo demuestra - trae "Serena Yvonne Gabena, 20 years old. Photos recovered
+## on-site." horneado en ingles, y esa cadena exacta esta en ui_strings.csv con
+## su traduccion al español y al portugues. Un jugador en español habria visto
+## ingles pegado al video para siempre.
+##
+## Lo que lo hace arreglable es la geometria de capas que ya teniamos: `UILayer`
+## es un CanvasLayer en capa 1 y el video se dibuja en la 0, o sea que el texto
+## VIVO ya queda por encima del video. Solo sobra la copia horneada. Marcando el
+## nodo en este grupo, la captura lo esconde y la reproduccion lo deja en paz,
+## asi que sale traducido y encima.
+##
+## Cuidado con el caso que esto NO resuelve: un texto que viva por DEBAJO del
+## video (en el lienzo por defecto, dentro del subarbol de la cutscene) queda
+## tapado en reproduccion, asi que esconderlo en la captura lo hace invisible en
+## los dos lados. Ese hay que subirlo de capa antes, o esa cutscene no puede ir
+## a video.
+const LIVE_OVERLAY_GROUP := &"cutscene_live_overlay"
+
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
 var _frames: int = 0
@@ -215,6 +237,7 @@ func _swap() -> void:
 	tree.current_scene = current
 
 	_hide_overlays(current)
+	_hide_live_overlays(current)
 
 	# Un par de frames para que todos los _ready() y los mixers se asienten.
 	await tree.process_frame
@@ -260,6 +283,24 @@ func _hide_overlays(keep: Node) -> void:
 		_hide_canvas_under(child, hidden)
 	print("OUT overlays apagados: %s" % [
 		", ".join(hidden) if not hidden.is_empty() else "ninguno"])
+
+
+## Esconde lo que la escena viva va a seguir dibujando encima del video.
+func _hide_live_overlays(scene: Node) -> void:
+	var hidden: PackedStringArray = []
+	for node: Node in get_tree().get_nodes_in_group(LIVE_OVERLAY_GROUP):
+		var item := node as CanvasItem
+		if item != null:
+			item.visible = false
+			hidden.append(scene.get_path_to(node))
+			continue
+		var layer := node as CanvasLayer
+		if layer != null:
+			layer.visible = false
+			hidden.append(scene.get_path_to(node))
+	print("OUT fuera del horneado (%s): %s" % [
+		LIVE_OVERLAY_GROUP,
+		", ".join(hidden) if not hidden.is_empty() else "nada marcado"])
 
 
 func _hide_canvas_under(node: Node, hidden: PackedStringArray) -> void:

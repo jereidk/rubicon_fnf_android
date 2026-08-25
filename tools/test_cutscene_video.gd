@@ -178,6 +178,30 @@ func _song_wiring_checks() -> void:
 	_check(absf(float(props.get("ends_at", 0.0)) - 31.5) < 0.01,
 		"corta en 31.5, donde Environment:visible pasa a true (31.533333)")
 
+	# Y por que el video ya entregado no tiene texto congelado: Lyrics cuelga de
+	# Environment, y Environment esta oculto durante toda la ventana.
+	#
+	# Sobre la animacion `play`, no sobre la primera coincidencia del fichero:
+	# varias animaciones escriben `../Environment:visible`, y la primera que
+	# aparece es un RESET de una sola llave. La primera version de este check
+	# leia esa y acertaba por casualidad.
+	var play_ini: int = texto.find('resource_name = "play"')
+	var play_fin: int = texto.find("[sub_resource", play_ini)
+	var play: String = texto.substr(play_ini, play_fin - play_ini)
+	var env := RegEx.create_from_string(
+		r'NodePath\("\.\./Environment:visible"\)(?:.|\n)*?"times": PackedFloat32Array\(([^)]*)\)(?:.|\n)*?"values": \[([^\]]*)\]'
+		).search(play)
+	_check(env != null, "la animacion play tiene la pista Environment:visible")
+	if env != null:
+		var valores: String = env.get_string(2).strip_edges()
+		_check(valores.begins_with("false"),
+			"Environment arranca OCULTO en play (%s), que deja a Lyrics fuera del video"
+				% valores)
+		_check(env.get_string(1).contains("31.5"),
+			"...y se enciende en 31.5, donde corta el video (%s)" % env.get_string(1))
+	_check(texto.contains('[node name="Lyrics" parent="Environment"'),
+		"...y Lyrics sigue colgando de Environment, no de otro sitio")
+
 	# Y que algun preset lo encienda: el componente puede estar perfecto y no
 	# hacer nada nunca si ningun .tres pide video.
 	var encendido: PackedStringArray = []
@@ -268,6 +292,19 @@ func _harness_survives_checks() -> void:
 	toy_root.add_child(player)
 	player.owner = toy_root
 
+	# Dentro de la escena, no colgado de root: ahi el barrido de autoloads no
+	# llega, asi que si se esconde solo puede haberlo hecho el del grupo. La
+	# primera version lo puso de hermano de la escena y pasaba por el barrido
+	# equivocado - la mutacion que quitaba _hide_live_overlays sobrevivia.
+	var subtitulo := Label.new()
+	subtitulo.name = "SubtituloFalso"
+	# El `true` es obligatorio: add_to_group() sin el, el grupo NO se guarda en
+	# el PackedScene y el nodo llega al arbol sin el. La escena real lo trae
+	# authoreado (`groups = [...]`), que es lo mismo que persistente.
+	subtitulo.add_to_group(&"cutscene_live_overlay", true)
+	toy_root.add_child(subtitulo)
+	subtitulo.owner = toy_root
+
 	var packed := PackedScene.new()
 	packed.pack(toy_root)
 	var toy_path: String = "user://toy_cutscene.tscn"
@@ -289,6 +326,13 @@ func _harness_survives_checks() -> void:
 	pelado.add_child(etiqueta)
 	root.add_child(pelado)
 
+	# Y lo que la escena viva va a seguir dibujando: subtitulos.
+	#
+	# Un video pre-renderizado congela el idioma. La sonda de Chimera trae
+	# "Serena Yvonne Gabena, 20 years old..." horneado en ingles, y esa cadena
+	# esta en ui_strings.csv traducida a es y pt_BR - un jugador en español
+	# habria visto ingles pegado al video. Se arregla porque UILayer es capa 1 y
+	# el video capa 0: el texto vivo ya va encima, solo sobra la copia.
 	var node: Node = script.new()
 	node.set("_scene_path", toy_path)
 	node.set("_anim", &"play")
@@ -302,6 +346,9 @@ func _harness_survives_checks() -> void:
 		"apaga el autoload que ES un CanvasLayer (como VolumeSlider)")
 	_check(not etiqueta.visible,
 		"...y el que solo TIENE hijos que pintan (como Debugger)")
+	var montado_sub: Node = root.get_node_or_null(^"Juguete/SubtituloFalso")
+	_check(montado_sub != null and not (montado_sub as CanvasItem).visible,
+		"y saca del horneado lo marcado como cutscene_live_overlay (subtitulos)")
 	capa.queue_free()
 	pelado.queue_free()
 
