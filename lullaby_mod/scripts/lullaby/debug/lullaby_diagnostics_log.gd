@@ -1069,8 +1069,6 @@ func _start_logging() -> void:
 		SceneChanger.scene_change_started.connect(_on_scene_change_started)
 	if SceneChanger.has_signal("scene_change_finished"):
 		SceneChanger.scene_change_finished.connect(_on_scene_change_finished)
-	if SceneChanger.has_signal("scene_swap_measured"):
-		SceneChanger.scene_swap_measured.connect(_on_scene_swap_measured)
 
 	# The header records the graphics settings once, at boot - which is before
 	# first_boot_settings runs and before the player can touch anything. A log
@@ -3394,26 +3392,6 @@ func _on_scene_change_started(path: String) -> void:
 		" (capped)" if _incoming_deps.size() >= INCOMING_MAX_PATHS
 			or _incoming_walk_usec > PROBE_BUDGET_USEC else "",
 	])
-
-## The two halves of the swap, which SCENE_IN could only ever report as a sum.
-##
-## SCENE_IN's `took=` stops at the moment the PackedScene is ready, so the swap
-## itself was never in it - it landed in the next frame and surfaced only as a
-## SPIKE, which says how long a frame was and nothing about what it did. On the
-## shop that SPIKE is 10523.4ms, and the three jobs hiding inside it want three
-## unrelated fixes: fewer nodes in the scene file, cheaper `_ready()` scripts,
-## or smaller textures.
-##
-## `inst=` is PackedScene.instantiate() alone - allocation, no tree, no script
-## entry point. `enter=` is current_scene + add_child(), which is where every
-## `_ready()` in the room runs. Whatever is left of the SPIKE after these two
-## is the first draw, and that is the VRAM upload - so the subtraction names
-## the third without needing a third timer.
-func _on_scene_swap_measured(path: String, instantiate_ms: float, enter_tree_ms: float) -> void:
-	_entry("SCENESWAP", "%s inst=%.1fms enter=%.1fms suma=%.1fms" % [
-		path.get_file(), instantiate_ms, enter_tree_ms, instantiate_ms + enter_tree_ms,
-	])
-
 
 func _on_scene_change_finished(path: String) -> void:
 	# Before _loading_path is cleared, so a load that stalled and then simply

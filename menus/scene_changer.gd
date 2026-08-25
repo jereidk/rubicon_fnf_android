@@ -6,22 +6,6 @@ extends CanvasLayer
 signal scene_change_started(path: String)
 signal scene_change_finished(path: String)
 
-## Emitted once the swap is over, with the two costs it is made of, in ms.
-##
-## `change_scene_to_packed()` is one call from the outside and three completely
-## different jobs inside, and until now the log could only see their sum. On
-## the Collector's Shop that sum is the worst single frame in the project:
-##
-##     SPIKE frame=10523.4ms (633.9x) vram_delta=+42.0MB  pipe=145 (+0 ...)
-##
-## Ten and a half seconds, frozen, with the loading animation stopped dead.
-## Which of the three it is decides the fix, and they have nothing in common:
-## instantiate() is 835 nodes of allocation and no API in 4.7 can split it -
-## only taking nodes out of the scene makes it smaller; add_child() is every
-## `_ready()` in the room running at once, which is fixable in script; and the
-## 42MB of VRAM is upload bandwidth, fixable only by shrinking textures. The
-## same 10.5 seconds points at three different files depending on the answer.
-signal scene_swap_measured(path: String, instantiate_ms: float, enter_tree_ms: float)
 
 ## Real port of Lullaby's LullabySceneChanger
 ## (lullaby_mod/scripts/lullaby/loading/lullaby_scene_changer.gd), using the
@@ -180,74 +164,57 @@ func change_to(path: String, loading_screen: StringName = &"hypno", end_manually
 	_is_loading = true
 	awaiting_manual_end = end_manually
 
+## Cambia de escena con el motor, y NO con un montaje a mano.
+##
+## Hubo una version que instanciaba, asignaba `current_scene` y llamaba a
+## `add_child()` por separado, para poder cronometrar las dos mitades del
+## SPIKE de 10523ms de la tienda. Se envio, y la tienda salio NEGRA en el
+## dispositivo. El log lo dijo en una linea:
+##
+##     ERROR Condition "p_scene && p_scene->get_parent() != root" is true.
+##           scene_tree.cpp:1665 set_current_scene
+##
+## De `scene/main/scene_tree.cpp` del tag 4.7.1-stable:
+##
+##     void SceneTree::set_current_scene(Node *p_scene) {
+##         ERR_FAIL_COND_MSG(!Thread::is_main_thread(), ...);
+##         ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
+##         current_scene = p_scene;
+##     }
+##
+## `ERR_FAIL_COND` SALE SIN ASIGNAR. Escribir `current_scene` antes de que la
+## escena cuelgue de root no da error de script ni excepcion: rechaza la
+## asignacion en silencio y deja `current_scene` a null para siempre, con lo
+## que todo lo que espera por el -el aplicador de luces, el de layout de notas,
+## el de controles moviles- se rinde y no aplica nada.
+##
+## Y lo peor del asunto es que el orden era el correcto. `_flush_scene_change()`
+## hace exactamente eso:
+##
+##     // Ensure correct state before `add_child` (might enqueue subsequent scene change).
+##     current_scene = pending_new_scene;
+##     root->add_child(pending_new_scene);
+##
+## pero asigna el MIEMBRO, saltandose el setter y su guarda. Desde GDScript solo
+## existe el setter. Asi que un swap manual no puede comportarse como el del
+## motor: o asigna antes y se lo rechazan, o asigna despues y entonces los
+## `_ready()` de la escena nueva ven `current_scene` a null, que es una
+## diferencia de comportamiento en CADA cambio de escena del juego.
+##
+## Por eso las dos mitades del SPIKE se quedan sin medir. Vale mas que medirlas.
 func _complete() -> void:
 	_is_loading = false
 
 	get_window().gui_disable_input = false
 
 	var packed_scene: PackedScene = ResourceLoader.load_threaded_get(_watching_path)
-	var path: String = _watching_path
 
 	scene_change_finished.emit(_watching_path)
 	_watching_path = ""
-	_swap_to(packed_scene, path)
+	get_tree().change_scene_to_packed(packed_scene)
 
 	if not awaiting_manual_end:
 		finish_loading_screen()
-
-## Puts the loaded scene in the tree, timing the two halves separately.
-##
-## Why not change_scene_to_packed(). That call does instantiate(), the
-## `current_scene` bookkeeping and add_child() back to back inside one deferred
-## block, so both costs land on one frame and the log can only ever report
-## their sum. On the Collector's Shop that sum is 10523.4ms in a single frozen
-## frame, and the two halves want opposite fixes - fewer nodes in the scene
-## file, or cheaper `_ready()` scripts. Timing them apart is the whole point.
-##
-## Doing the swap by hand is not novel here: tools/harness/render_cutscene.gd
-## already mounts a song this way, for the unrelated reason that
-## change_scene_to_file() frees the caller.
-##
-## NO `await` BETWEEN THE TWO HALVES, and that is a correctness constraint, not
-## a style choice. The first version of this put a `process_frame` in the
-## middle so the loading screen could draw once mid-swap. That is cosmetic -
-## the timers make the split, not the frame boundary - and it delays the
-## `current_scene` assignment by a frame, which this project has already paid
-## for once. lullaby_light_budget_applier waits for `current_scene` to go
-## non-null and then rewrites every material's shading flags; it MUST land
-## before the scene's first draw, because a frame late means the driver
-## compiles both variant sets. Its own docstring records the bill: `surf`
-## pipelines 209 -> 491, the shop's precache 9889ms -> 34493ms, Chimera's
-## 3715ms -> 27371ms. Nothing about the delay looked dangerous then either.
-##
-## Run contiguously, the swap happens during `_process` on the frame the load
-## completes, where change_scene_to_packed() would have deferred it to that
-## same frame's end. Every waiter on `current_scene != null` therefore sees it
-## at the same time or sooner than before, never later - and sooner is the safe
-## direction, since the regression above was caused by applying *later*, after
-## a draw. `process_frame` is emitted before rendering, so a one-frame waiter
-## still resumes with the scene present and not yet drawn.
-##
-## `current_scene` is assigned before add_child() because add_child() is what
-## runs every `_ready()` in the new tree, and a `_ready()` that reads
-## `get_tree().current_scene` should find the scene it belongs to rather than
-## null. The harness gets away with the reverse because a toy scene reads
-## nothing.
-##
-## unload_current_scene() already ran back in change_to(), before the threaded
-## request, so there is nothing to take down here.
-func _swap_to(packed_scene: PackedScene, path: String) -> void:
-	var tree: SceneTree = get_tree()
-
-	var t0: int = Time.get_ticks_usec()
-	var instance: Node = packed_scene.instantiate()
-	var t1: int = Time.get_ticks_usec()
-
-	tree.current_scene = instance
-	tree.root.add_child(instance)
-	var t2: int = Time.get_ticks_usec()
-
-	scene_swap_measured.emit(path, (t1 - t0) / 1000.0, (t2 - t1) / 1000.0)
 
 func finish_loading_screen() -> void:
 	get_tree().paused = false
