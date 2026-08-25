@@ -27,19 +27,30 @@ extends Node
 ## así que el AnimationPlayer avanza solo y el vídeo sale con el tiempo de la
 ## escena, no con el de la máquina. Lo único que hace este script es cortar.
 ##
+## De qué tamaño sale el vídeo
+## ---------------------------
+## No de aquí. Movie Maker fija el tamaño al arrancar, antes de que este script
+## exista, y lo toma de `window/size/window_width_override` del proyecto - 1366
+## x768, que con `stretch/aspect=keep` es justo el área de contenido 16:9 que ve
+## el jugador. `--resolution` NO lo cambia: probado, pide la ventana y el vídeo
+## sale igual. Tampoco lo cambia redimensionar la ventana desde `_ready()`.
+##
+## Así que se renderiza al nativo y se escala con ffmpeg después, que además da
+## mejor resultado que renderizar pequeño. La resolución de entrega es una
+## decisión de coste de decode, no de captura: `ms = 1.32 + 3.49 x Mpx` sobre el
+## decodificador del motor, o sea ~3.1ms/frame a 960x540.
+##
 ## Uso:
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . \
 ##     --rendering-driver opengl3 --rendering-method gl_compatibility \
 ##     --write-movie /ruta/out.avi --fixed-fps 30 --disable-vsync \
 ##     res://tools/harness/render_cutscene.tscn \
 ##     -- res://lullaby_mod/songs/safety_lullaby/sng_safety_lullaby.tscn \
-##        anim=play hasta=31.5 w=1600 h=720
+##        anim=play hasta=31.5
 
 var _scene_path: String = ""
 var _anim: StringName = &"play"
 var _until: float = 5.0
-var _w: int = 1600
-var _h: int = 720
 
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
@@ -56,20 +67,15 @@ func _ready() -> void:
 			_anim = StringName(a.substr(5))
 		elif a.begins_with("hasta="):
 			_until = float(a.substr(6))
-		elif a.begins_with("w="):
-			_w = int(a.substr(2))
-		elif a.begins_with("h="):
-			_h = int(a.substr(2))
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
 		get_tree().quit(1)
 		return
 
-	var win: Window = get_window()
-	win.size = Vector2i(_w, _h)
+	# Solo se informa; el tamaño del vídeo lo fijó Movie Maker al arrancar.
 	print("OUT ventana=%s escena=%s anim=%s hasta=%.2fs" % [
-		win.size, _scene_path, _anim, _until])
+		get_window().size, _scene_path, _anim, _until])
 
 	_swap.call_deferred()
 

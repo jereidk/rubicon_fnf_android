@@ -22,6 +22,22 @@ on:
           *_packed_*.png  or  loading.png nte_default.png
         required: false
         default: ''
+      render_cutscene:
+        description: >-
+          Leave empty for a normal build. Set to the arguments for
+          tools/harness/render_cutscene.gd to also render a cutscene to .ogv
+          and upload it as an artifact, e.g.
+          res://lullaby_mod/songs/safety_lullaby/sng_safety_lullaby.tscn anim=play hasta=31.5
+        required: false
+        default: ''
+      cutscene_scale:
+        description: >-
+          Delivery width for the rendered .ogv. The source is always the
+          project's native 1366x768; this only picks what gets shipped, and it
+          is a decode-cost decision - ms = 1.32 + 3.49 x Mpx on the engine's
+          own decoder, so 960 is ~3.1ms/frame and 1366 is ~5.9ms.
+        required: false
+        default: '960'
 
 permissions:
   contents: read
@@ -1249,6 +1265,89 @@ jobs:
           fi
           echo
           echo "all $ran guards passed"
+
+      # Renderiza una cutscene real a .ogv, para que LullabyCutsceneVideo tenga
+      # con qué sustituirla en los presets bajos.
+      #
+      # Vive aqui dentro y no en un job aparte porque lo caro ya esta pago en
+      # este job: el checkout con LFS, el binario de Godot y sobre todo el
+      # import. Un job propio tendria que repetir esos ~150 lineas de setup, y
+      # el import en frio es exactamente lo que hace inviable renderizar esto a
+      # mano - se atasca mas de cuatro minutos en chimera_base.exr solo, antes
+      # de llegar a las ~124 texturas ASTC que tardan mas de una hora. Mismo
+      # patron que precompile_match, que tambien es un paso opcional de este
+      # job en vez de un workflow suelto.
+      #
+      # El resultado sube como artefacto y NO se commitea: un .ogv de la intro
+      # entera son un par de megas, y meterlo en el repo es una decision del
+      # operador, no un efecto secundario de haber pulsado el boton.
+      - name: Render a cutscene to video
+        if: inputs.render_cutscene != ''
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg xvfb
+          mkdir -p builds/cutscene
+
+          # El .avi de Movie Maker es enorme (crudo): ~46MB por cada 20s. Se
+          # queda fuera de builds/ para no acabar en el artefacto.
+          raw=/tmp/cutscene_raw.avi
+
+          # Sin `set -e` alrededor de xvfb-run: interesa el log completo aunque
+          # el harness salga con error, porque sus mensajes OUT/printerr son el
+          # diagnostico. El fallo se comprueba abajo, sobre el fichero.
+          set +e
+          xvfb-run -a -s "-screen 0 1920x1080x24" "$GODOT" \
+            --path . --rendering-driver opengl3 --rendering-method gl_compatibility \
+            --write-movie "$raw" --fixed-fps 30 --disable-vsync \
+            res://tools/harness/render_cutscene.tscn \
+            -- ${{ inputs.render_cutscene }} 2>&1 | tee /tmp/render.log
+          set -e
+
+          # Un recurso que no cargo deja la captura sin valor: la escena
+          # renderiza igual, con huecos. Es el mismo criterio que scene_shot.gd
+          # ya documenta - "if anything failed to load, the capture is not
+          # evidence" - y por eso esto falla en vez de subir un video malo.
+          if grep -qE "referenced non-existent resource|Failed loading resource" /tmp/render.log; then
+            echo "::error::faltan recursos en el import; la captura no vale"
+            grep -E "referenced non-existent resource|Failed loading resource" /tmp/render.log | head -20
+            exit 1
+          fi
+          if grep -q "couldn't resolve track" /tmp/render.log; then
+            echo "::warning::hay pistas sin resolver - revisa que el montaje sea el del juego"
+            grep "couldn't resolve track" /tmp/render.log | head -10
+          fi
+          if [ ! -s "$raw" ]; then
+            echo "::error::Movie Maker no escribio nada"
+            exit 1
+          fi
+
+          width='${{ inputs.cutscene_scale }}'
+          out=builds/cutscene/cutscene.ogv
+          # -2 en la altura: par, que es lo que yuv420p necesita.
+          ffmpeg -y -loglevel error -i "$raw" \
+            -vf "scale=${width}:-2" -c:v libtheora -q:v 7 -an "$out"
+
+          # Movie Maker escribe el audio a un .wav hermano cuando la escena
+          # suena. Va aparte a proposito: el video no lleva pista de audio
+          # (-an), porque la cancion la reproduce el juego y meter una segunda
+          # copia dentro del .ogv seria una fuente de desincronizacion.
+          if [ -f "${raw%.avi}.wav" ]; then
+            cp "${raw%.avi}.wav" builds/cutscene/cutscene_reference.wav
+          fi
+
+          echo "=== resultado ==="
+          ffprobe -v error -show_entries stream=width,height,nb_frames \
+            -show_entries format=duration,size -of default=nw=1 "$out"
+          ls -lh builds/cutscene/
+
+      - name: Upload rendered cutscene
+        if: inputs.render_cutscene != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutscene-ogv
+          path: builds/cutscene/
+          if-no-files-found: error
 
       - name: Create builds directory
         run: |
