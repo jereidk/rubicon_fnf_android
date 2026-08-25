@@ -76,15 +76,19 @@ var _until: float = 5.0
 ## el caso aqui, asi que no esconde nada- y no es el `Prelude/Black`, que ship
 ## `visible = false` igual que su padre.
 ##
-## Asi que para una captura de entrega hay que grabar **desde 0** y recortar
-## despues con ffmpeg. Y para sondear el coste de un tramo del medio, esto
-## tampoco vale: mide el coste de dibujar una pantalla negra.
+## **Y la causa resulto no ser ninguna de las dos que se apuntaron aqui.** El
+## fuente de Godot 4.7.1 la da exacta y esta transcrita en `_dispatch_clips_at()`
+## mas abajo: en un seek externo con el sub-reproductor parado, el mixer asigna
+## el clip y lo posa una vez pero **no lo reproduce**, y despues solo mira las
+## llaves recien cruzadas, asi que la capa de secuencias se congela. No eran las
+## pistas de metodo, ni la falta de luz, ni el precache.
 ##
-## Lo que lo arreglaria es adelantar el reloj con `advance()` en pasos en vez de
-## saltar con `seek()`, que si despacha los clips por el camino. No esta hecho y
-## no esta verificado - se apunta aqui porque es tambien lo que desbloquearia
-## renderizar tramos en paralelo, que es la unica forma de que un video del
-## medio de Chimera entre en el limite de 6 horas de un job.
+## `_dispatch_clips_at()` hace a mano lo que el mixer se salta, y con eso este
+## parametro pasa a servir para sondear de verdad. Lo que NO arregla, y hay que
+## tenerlo presente en una entrega: los efectos permanentes de los clips
+## anteriores siguen sin ocurrir - `103_stroll` llama a `Intro.queue_free()` y
+## saltando a 54 ese nodo sigue vivo. Para una captura de entrega eso hay que
+## comprobarlo mirando el resultado, no asumirlo.
 var _from: float = 0.0
 var _preset: String = "High"
 
@@ -283,10 +287,76 @@ func _swap() -> void:
 	_clock.play(_anim)
 	if _from > 0.0:
 		_clock.seek(_from, true)
+		_dispatch_clips_at(_from)
 		_elapsed = _from
 		print("OUT SONDA: arrancando en %.2fs - las pistas de metodo anteriores"
 			% _from + " no se dispararon, esto no vale como entrega")
 	set_process(true)
+
+
+## Pone a reproducir el clip que toca en cada pista de tipo animacion.
+##
+## Godot no lo hace en un seek externo, y esto no es una sospecha: en
+## `scene/animation/animation_mixer.cpp` del tag 4.7.1-stable, la rama
+## TYPE_ANIMATION de `_blend_process` decide asi (linea 1865):
+##
+##     if (player2->is_playing() || !is_external_seeking) {
+##         player2->seek(at_anim_pos, false, p_update_only);
+##         player2->play(anim_name);
+##     } else {
+##         player2->set_assigned_animation(anim_name);
+##         player2->seek(at_anim_pos, true, p_update_only);
+##     }
+##
+## Un seek() pedido desde fuera con el sub-reproductor parado cae en el `else`:
+## asigna el clip y lo posa UNA vez, y no lo reproduce. Y en los frames
+## siguientes la rama no-seeked solo mira las llaves recien cruzadas
+## (`track_get_key_indices_in_range`), asi que hasta la siguiente llave no
+## dispara nada. La capa de secuencias se queda congelada.
+##
+## Eso es lo que entrego la corrida #191: el HUD -que la animacion maestra
+## anima directamente- sobre un mundo 3D parado en la primera pose del clip.
+## No era falta de luz, ni el precache, ni el Prelude negro; era esta rama.
+##
+## Asi que aqui se hace a mano lo que hace la rama buena. Y la limitacion que
+## queda, dicha para que nadie la descubra en una entrega: los efectos
+## PERMANENTES de los clips anteriores siguen sin ocurrir - `103_stroll` llama
+## a `Intro.queue_free()`, y saltando a 54 ese nodo sigue ahi. Esto arregla la
+## capa de secuencias, no reescribe la historia.
+func _dispatch_clips_at(t: float) -> void:
+	var anim: Animation = _clock.get_animation(_anim)
+	if anim == null:
+		return
+
+	var root: Node = _clock.get_node_or_null(_clock.root_node)
+	if root == null:
+		return
+
+	var puestos: PackedStringArray = []
+	for i: int in anim.get_track_count():
+		if anim.track_get_type(i) != Animation.TYPE_ANIMATION:
+			continue
+
+		var sub := root.get_node_or_null(anim.track_get_path(i)) as AnimationPlayer
+		if sub == null:
+			continue
+
+		# limit=true: la llave EN o ANTES de t, que es el clip vigente.
+		var idx: int = anim.track_find_key(i, t, Animation.FIND_MODE_NEAREST, true)
+		if idx < 0:
+			continue
+
+		var nombre: StringName = anim.animation_track_get_key_animation(i, idx)
+		if nombre == &"[stop]" or not sub.has_animation(nombre):
+			continue
+
+		var arranco: float = anim.track_get_key_time(i, idx)
+		sub.play(nombre)
+		sub.seek(t - arranco, true)
+		puestos.append("%s@%s+%.2fs" % [sub.name, nombre, t - arranco])
+
+	print("OUT clips despachados a mano: %s" % [
+		", ".join(puestos) if not puestos.is_empty() else "ninguno"])
 
 
 ## Apaga todo lo que dibujan los autoloads, que no es parte de la cutscene.
