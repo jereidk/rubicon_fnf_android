@@ -220,10 +220,30 @@ var anisotropic_filtering: int = 2
 ## ni está vendorizada), así que el teléfono corre ese mismo código y la
 ## diferencia es solo de microarquitectura.
 ##
-## Va en los presets bajos y no en los altos porque en un dispositivo que
-## aguanta la escena viva, la escena viva es mejor: se puede seguir editando sin
-## re-renderizar, y no cuesta los megas del .ogv.
-@export var prefer_cutscene_video: bool = false
+## Va en TODOS los presets. Antes solo en los bajos, con este argumento: "en un
+## dispositivo que aguanta la escena viva, la escena viva es mejor". Se retira a
+## propósito, y conviene separar qué parte de aquello era cierta.
+##
+## Lo que NO era cierto: que la escena viva se viese mejor por definición. El
+## arte de las cutscenes está authoreado a 1280x720 - medido sobre los propios
+## PNG, `beginning_fence`, `closeup`, `ending_bg` y el resto son todos
+## 1280x720 - así que ese es el techo de detalle real, no la resolución de la
+## pantalla. Un vídeo entregado a esa anchura no pierde nada contra la escena
+## viva; a 960 pierde un 25% lineal, y de ahí venía la impresión de que el vídeo
+## era el camino pobre. La respuesta era subir la anchura de entrega, no
+## reservar el vídeo para los teléfonos malos.
+##
+## Lo que SÍ era cierto, y ahora es el precio: la escena viva se puede editar
+## sin re-renderizar. Con esto encendido en todas partes, cambiar un fotograma
+## de una cutscene obliga a pasar por CI y por un render que hoy cuesta horas.
+## Es una decisión de producto tomada a sabiendas.
+##
+## El interruptor NO desaparece aunque los cuatro presets lo pidan. Sigue siendo
+## lo que `render_cutscene.gd` apaga para poder grabar la escena viva - sin él
+## no habría forma de generar un vídeo nuevo - y sigue siendo la vía por la que
+## un checkout sin `.ogv` cae de vuelta a la escena viva en vez de no dibujar
+## nada.
+@export var prefer_cutscene_video: bool = true
 
 func is_matching(settings: LullabySettings) -> bool:
 	return (settings.graphics_scaling_mode == scaling_3d_mode and

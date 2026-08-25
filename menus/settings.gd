@@ -161,7 +161,7 @@ var graphics_disable_optional_2d_lights: bool = false
 ## short version: the intro of Safety Lullaby is not fill-bound and not
 ## renderer-bound, it is animation-CPU-bound, and a video replaces 50-86ms
 ## spikes with a flat ~3ms per decoded frame.
-var graphics_prefer_cutscene_video: bool = false
+var graphics_prefer_cutscene_video: bool = true
 
 ## Drop Burley diffuse and Schlick-GGX specular from 3D materials, which every
 ## one of them runs per light per fragment purely because they are Godot's

@@ -33,11 +33,17 @@ on:
       cutscene_scale:
         description: >-
           Delivery width for the rendered .ogv. The source is always the
-          project's native 1366x768; this only picks what gets shipped, and it
-          is a decode-cost decision - ms = 1.32 + 3.49 x Mpx on the engine's
-          own decoder, so 960 is ~3.1ms/frame and 1366 is ~5.9ms.
+          project's native 1366x768; this only picks what gets shipped.
+          Defaults to 1280 because that is what the cutscene art is authored
+          at - beginning_fence, closeup, ending_bg and the rest are all
+          1280x720 - so 1280 is the width at which the video stops losing
+          anything against the live scene, and 960 was giving up 25% linear
+          for no reason anyone had measured. It costs decode time on the
+          phone: ms = 1.32 + 3.49 x Mpx on the engine's own decoder, so 960 is
+          ~3.1ms/frame and 1280 is ~4.5ms. Still flat, and still against the
+          50-86ms animation spikes the video exists to remove.
         required: false
-        default: '960'
+        default: '1280'
       cutscene_fps:
         description: >-
           Recording frame rate. 60 by default, and measured rather than

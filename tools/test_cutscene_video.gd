@@ -210,10 +210,17 @@ func _song_wiring_checks() -> void:
 			"res://lullaby_mod/resources/quality_presets/%s.tres" % nombre)
 		if tres.contains("prefer_cutscene_video = true"):
 			encendido.append(nombre)
-	_check(encendido.has("qol_very_low") and encendido.has("qol_low"),
-		"Very Low y Low piden video (%s)" % ", ".join(encendido))
-	_check(not encendido.has("qol_high"),
-		"...y High no: donde la escena viva corre, la escena viva es mejor")
+	_check(encendido.size() == 4,
+		"los cuatro presets piden video (%s)" % ", ".join(encendido))
+	# Invertida a proposito. Esto exigia `not encendido.has("qol_high")`, con la
+	# razon "donde la escena viva corre, la escena viva es mejor". Medido
+	# despues: el arte de las cutscenes esta authoreado a 1280x720 - los PNG lo
+	# dicen, todos - asi que el techo de detalle es ese y no la pantalla. El
+	# video deja de perder contra la escena viva en cuanto se entrega a esa
+	# anchura, y lo que fallaba era entregarlo a 960. Sustituir la cutscene en
+	# todos los presets es ahora la intencion, no una degradacion aceptada.
+	_check(encendido.has("qol_high"),
+		"...High incluido: a 1280 el video no pierde contra la escena viva")
 
 
 ## El render tiene que grabar con el preset MÁS ALTO.

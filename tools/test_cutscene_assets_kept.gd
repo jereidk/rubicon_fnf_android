@@ -3,19 +3,25 @@ extends SceneTree
 ## The art a pre-rendered cutscene video replaces must stay in the project.
 ##
 ## The question this answers, written down because it will be asked again: now
-## that Safety Lullaby's intro and Chimera's prelude are .ogv files, can the
-## sprites and backgrounds they were made from be deleted?
+## that Safety Lullaby's intro and Chimera's prelude are .ogv files - and now
+## that ALL FOUR presets ask for video, so no player sees the live scene in
+## normal play - can the sprites and backgrounds they were made from be
+## deleted?
 ##
-## No. Only two presets ask for video:
+## Still no, and the reason changed, which is why this is written out rather
+## than left as an assertion. It used to be "Medium and up run the live
+## cutscene". That stopped being true the day every preset switched to video.
+## What remains:
 ##
-##     qol_low.tres       prefer_cutscene_video = true
-##     qol_very_low.tres  prefer_cutscene_video = true
-##
-## Medium, High and Ultra run the LIVE cutscene, and LullabyCutsceneVideo
-## retires silently when the preset does not want it or the .ogv is missing.
-## The art is not the old path; it is the path most players are on. Deleting it
-## would leave the majority of the game blank, and nothing would raise an error
-## - the video node simply would not engage and the scene would draw nothing.
+##   * THE ART IS THE ONLY SOURCE THE VIDEO CAN BE RE-RENDERED FROM. The .ogv
+##     is output, not a master. Delete the sprites and the cutscene is frozen
+##     forever at whatever was last encoded - no resolution change, no fix to
+##     a frame, no re-cut. render_cutscene.gd works by switching
+##     prefer_cutscene_video OFF and filming the live scene; with no live
+##     scene there is nothing to film.
+##   * It is still the fallback. LullabyCutsceneVideo retires silently when the
+##     .ogv is missing, which is what a development checkout looks like, and
+##     the live scene carries it. Without the art that path draws nothing.
 ##
 ## Measured, so the trade is on the record rather than argued from memory:
 ##
@@ -24,7 +30,7 @@ extends SceneTree
 ##
 ## The videos are smaller than the art they stand in for - 6.7 MB against 17.6
 ## - which is exactly what makes deleting the art look like a free win. It is
-## not free; it is the Medium-and-above rendering path.
+## not free; it is the negative of the film.
 ##
 ## What IS wasted, and is left alone on purpose: on Low the scene still loads
 ## the art it will not draw, because the cutscene is a dependency of the song
@@ -66,9 +72,16 @@ func _initialize() -> void:
 	quit(1 if _failures > 0 else 0)
 
 
-## The premise the whole file rests on: that some preset still runs the live
-## cutscene. If every preset ever switched to video, the art really would be
-## dead and this guard would be arguing from a fact that stopped being true.
+## The switch the whole arrangement rests on, in both directions.
+##
+## This used to assert that some preset still ran the live cutscene, and that
+## assertion is now gone because it stopped being true - all four ask for
+## video. What is checked instead is that the SWITCH still exists and is still
+## honoured, because that is what keeps the art reachable: render_cutscene.gd
+## turns prefer_cutscene_video off to film the live scene, and a checkout with
+## no .ogv falls back through the same path. Lose the switch and the art
+## becomes genuinely unreachable - at which point deleting it would be correct,
+## and the video could never be re-rendered again.
 func _preset_checks() -> void:
 	var dir: DirAccess = DirAccess.open("res://lullaby_mod/resources/quality_presets")
 	_check("se lee la carpeta de presets", dir != null)
@@ -87,9 +100,18 @@ func _preset_checks() -> void:
 		else:
 			live.append(file)
 
-	_check("algun preset pide video", not video.is_empty(), ", ".join(video))
-	_check("y alguno sigue corriendo la cutscene viva", not live.is_empty(),
-		", ".join(live))
+	_check("todos los presets piden video", live.is_empty(),
+		"sin video: %s" % ", ".join(live) if not live.is_empty() else ", ".join(video))
+
+	# Y la salida de emergencia, que es lo que mantiene el arte alcanzable.
+	var harness: String = FileAccess.get_file_as_string(
+		"res://tools/harness/render_cutscene.gd")
+	_check("el harness sigue pudiendo apagar el video para filmar la escena viva",
+		harness.contains('set("graphics_prefer_cutscene_video", false)'))
+
+	var component: String = FileAccess.get_file_as_string(VIDEO_SCRIPT)
+	_check("y el componente sigue retirandose si falta el .ogv",
+		component.contains("ResourceLoader.exists(video_path)"))
 
 
 func _song_checks(label: String, path: String) -> void:
