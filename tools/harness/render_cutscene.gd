@@ -80,6 +80,18 @@ var _preset: String = "High"
 ## `preset=High` existe para evitar.
 var _msaa: String = ""
 
+## Escala del bufer 3D para la captura. <= 0 = lo que diga el preset.
+##
+## Es LA palanca en una escena 3D y no sirve para nada en una 2D, porque
+## `scaling_3d_scale` escala solo el bufer 3D - el 2D siempre se dibuja a la
+## resolucion completa de la ventana. Safety Lullaby es 2D pura
+## (`rend=[3d=0/0/0]`) y esto no la habria tocado; Chimera es lo contrario.
+##
+## Se entrega escalado a 960 de ancho desde un nativo de 1366, asi que 0.75
+## deja el bufer 3D en 1024 - por encima de la entrega, perdida despreciable -
+## y 0.5 lo deja en 683, por debajo, o sea visiblemente blando.
+var _scale: float = 0.0
+
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
 var _frames: int = 0
@@ -103,6 +115,8 @@ func _ready() -> void:
 			_msaa = a.substr(5)
 		elif a.begins_with("desde="):
 			_from = float(a.substr(6))
+		elif a.begins_with("escala="):
+			_scale = float(a.substr(7))
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
@@ -156,6 +170,8 @@ func _force_preset() -> void:
 	settings.set("graphics_prefer_cutscene_video", false)
 	if _msaa == "off":
 		settings.set("graphics_msaa_3d_quality", Viewport.MSAA_DISABLED)
+	if _scale > 0.0:
+		settings.set("graphics_render_scale", _scale)
 	settings.call("apply_settings")
 	print("OUT preset forzado=%s escala=%s msaa=%s" % [
 		chosen.get("name"), str(settings.get("graphics_render_scale")),
