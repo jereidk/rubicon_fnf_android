@@ -1357,6 +1357,53 @@ jobs:
             -show_entries format=duration,size -of default=nw=1 "$out"
           ls -lh builds/cutscene/
 
+          # Que los numeros cuadren no prueba que se vea nada: 32.7 segundos de
+          # negro perfecto tienen la misma duracion, el mismo tamano de cuadro y
+          # pesan menos. Asi que se muestrean fotogramas y se mide si tienen
+          # contenido, y ademas se suben como PNG para poder mirarlos de un
+          # vistazo sin descargar y reproducir un video.
+          #
+          # El umbral es deliberadamente flojo: la intro ARRANCA en negro a
+          # proposito - UILayer/Fade tapa la pantalla el primer segundo y
+          # BlackFadeIn otros cinco - asi que exigir contenido en todos los
+          # fotogramas darian rojos falsos. Lo que se exige es que ALGUNOS
+          # tengan imagen de verdad, que es lo que distingue "renderizo" de
+          # "no renderizo".
+          ffmpeg -y -loglevel error -i "$out" \
+            -vf "fps=1/4,scale=320:-2" builds/cutscene/muestra_%02d.png
+          python3 - <<'PY'
+          import glob, sys
+          import numpy as np
+          from PIL import Image
+
+          shots = sorted(glob.glob("builds/cutscene/muestra_*.png"))
+          if not shots:
+              print("::error::no se pudo muestrear ni un fotograma")
+              sys.exit(1)
+
+          vivos = 0
+          for p in shots:
+              a = np.asarray(Image.open(p).convert("L"), dtype=np.float32)
+              media, desv = a.mean(), a.std()
+              marca = ""
+              if desv > 8.0:
+                  vivos += 1
+                  marca = "  <- con imagen"
+              print(f"  {p.split('/')[-1]}  luma={media:6.2f}  desv={desv:6.2f}{marca}")
+
+          # Un tercio de las muestras, con suelo de 1: proporcional en vez de un
+          # numero fijo, porque a fps=1/4 un clip corto da una sola muestra y un
+          # minimo absoluto de 3 lo suspenderia por ser corto, no por estar en
+          # blanco. Comprobado sobre dos videos reales: negro puro da desviacion
+          # 0.0 en las ocho muestras, el render de verdad da 26.6.
+          minimo = max(1, -(-len(shots) // 3))
+          print(f"{vivos} de {len(shots)} fotogramas con imagen (hacen falta {minimo})")
+          if vivos < minimo:
+              print("::error::el video esta practicamente en blanco - "
+                    "la escena no se dibujo")
+              sys.exit(1)
+          PY
+
       - name: Upload rendered cutscene
         if: inputs.render_cutscene != ''
         uses: actions/upload-artifact@v4

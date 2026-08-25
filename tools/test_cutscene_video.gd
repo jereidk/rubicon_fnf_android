@@ -194,6 +194,21 @@ func _harness_survives_checks() -> void:
 	_check(ResourceSaver.save(packed, toy_path) == OK, "se guarda la escena de juguete")
 	toy_root.queue_free()
 
+	# Dos autoloads de mentira, uno de cada forma que el juego tiene de verdad:
+	# `VolumeSlider` es él mismo un CanvasLayer, y `Debugger` es un Node pelado
+	# cuyos HIJOS pintan. Apagar por nombre habría cogido uno solo; la primera
+	# captura salió con el "FPS: 30 · Memory: 124.43 MB" horneado en cada
+	# fotograma por exactamente eso.
+	var capa := CanvasLayer.new()
+	capa.name = "VolumenFalso"
+	root.add_child(capa)
+	var pelado := Node.new()
+	pelado.name = "DebuggerFalso"
+	var etiqueta := Label.new()
+	etiqueta.name = "EtiquetaFPS"
+	pelado.add_child(etiqueta)
+	root.add_child(pelado)
+
 	var node: Node = script.new()
 	node.set("_scene_path", toy_path)
 	node.set("_anim", &"play")
@@ -202,6 +217,13 @@ func _harness_survives_checks() -> void:
 
 	await node.call("_swap")
 	await process_frame
+
+	_check(not capa.visible,
+		"apaga el autoload que ES un CanvasLayer (como VolumeSlider)")
+	_check(not etiqueta.visible,
+		"...y el que solo TIENE hijos que pintan (como Debugger)")
+	capa.queue_free()
+	pelado.queue_free()
 
 	_check(is_instance_valid(node), "el harness sigue VIVO después de montar la escena")
 	if is_instance_valid(node):

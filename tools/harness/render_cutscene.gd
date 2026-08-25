@@ -162,6 +162,8 @@ func _swap() -> void:
 	# Para cualquier código de la canción que pregunte por la escena actual.
 	tree.current_scene = current
 
+	_hide_overlays(current)
+
 	# Un par de frames para que todos los _ready() y los mixers se asienten.
 	await tree.process_frame
 	await tree.process_frame
@@ -177,6 +179,43 @@ func _swap() -> void:
 		current.get_path_to(_clock), _clock.get_animation(_anim).length])
 	_clock.play(_anim)
 	set_process(true)
+
+
+## Apaga todo lo que dibujan los autoloads, que no es parte de la cutscene.
+##
+## La primera captura salió con "FPS: 30 · Memory: 124.43 MB" horneado en cada
+## fotograma y con el círculo del control de volumen en la esquina. Los dos son
+## autoloads - `Debugger` (atl_debug.tscn) y `VolumeSlider` - o sea hijos
+## directos de `root`, hermanos de la canción y por tanto fuera de cualquier
+## barrido que empiece en la escena.
+##
+## El barrido es recursivo y por tipo, no por nombre: `Debugger` es un `Node`
+## pelado y lo que pinta son sus hijos, mientras que `VolumeSlider` es él mismo
+## un `CanvasLayer`. Apagar por nombre habría cogido uno y no el otro, y no
+## cubriría el autoload con interfaz que se añada mañana.
+func _hide_overlays(keep: Node) -> void:
+	var hidden: PackedStringArray = []
+	for child: Node in get_tree().root.get_children():
+		if child == keep or child == self:
+			continue
+		_hide_canvas_under(child, hidden)
+	print("OUT overlays apagados: %s" % [
+		", ".join(hidden) if not hidden.is_empty() else "ninguno"])
+
+
+func _hide_canvas_under(node: Node, hidden: PackedStringArray) -> void:
+	var layer := node as CanvasLayer
+	if layer != null and layer.visible:
+		layer.visible = false
+		hidden.append(node.name)
+		return
+	var item := node as CanvasItem
+	if item != null and item.visible:
+		item.visible = false
+		hidden.append(node.name)
+		return
+	for child: Node in node.get_children():
+		_hide_canvas_under(child, hidden)
 
 
 func _process(delta: float) -> void:
