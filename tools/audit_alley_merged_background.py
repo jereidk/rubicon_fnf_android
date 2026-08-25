@@ -80,16 +80,23 @@ def main() -> int:
 
     mb = re.search(r'\[node name="MergedBack"[^\]]*\]\n((?:[^\[\n].*\n)*)', scene)
     check(mb is not None, "MergedBack existe")
-    if mb and m2:
+    if mb:
         props = mb.group(1)
-        check("light_mask = 3" in props, "MergedBack conserva light_mask = 3")
-        pos = re.search(r"position = Vector2\(([\d.-]+), ([\d.-]+)\)", props)
-        check(pos is not None
-              and abs(float(pos.group(1)) - float(m2.group(1))) < 0.01
-              and abs(float(pos.group(2)) - float(m2.group(2))) < 0.01,
-              "MergedBack tiene la posicion del horneado")
-        check("scale = Vector2(%s, %s)" % (m2.group(3), m2.group(3)) in props,
-              "MergedBack tiene la escala del horneado")
+        check("light_mask = 0" in props,
+              "MergedBack va fuera de la mascara del BgLight (esta horneado)")
+        if m2:
+            pos = re.search(r"position = Vector2\(([\d.-]+), ([\d.-]+)\)", props)
+            check(pos is not None
+                  and abs(float(pos.group(1)) - float(m2.group(1))) < 0.01
+                  and abs(float(pos.group(2)) - float(m2.group(2))) < 0.01,
+                  "MergedBack tiene la posicion del horneado")
+            check("scale = Vector2(%s, %s)" % (m2.group(3), m2.group(3)) in props,
+                  "MergedBack tiene la escala del horneado")
+    # 2b. El override de la cancion sigue poniendo la energia que se horneo.
+    sng_text_check = open(SNG).read()
+    bg = re.search(r'\[node name="BgLight"[^\]]*\]\n((?:[^\[\n].*\n)*)', sng_text_check)
+    check(bg is not None and re.search(r"energy = 0.75\b", bg.group(1)),
+          "la cancion sigue reescribiendo BgLight a la energia horneada (0.75)")
 
     # 3. ext_resource declarados == usados.
     declared = set(re.findall(r'\[ext_resource [^\]]* id="([^"]+)"\]', scene))

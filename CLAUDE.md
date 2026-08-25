@@ -3480,6 +3480,39 @@ renderizado, nunca de memoria. Monochrome no tiene candidato: su fondo es
 todo animado (UnownKing, Peepers) o personajes. Chimera es 3D - otro
 problema.
 
+### Y la luz que quedaba: el BgLight horneado en la textura
+
+Después del merge, el censo seguía mostrando un `PointLight2D` cubriendo el
+frame entero: `BG/BgLight` (1049x480 a escala 4 = 4196x1920), que sacaba
+cada item encendido una segunda vez por frame. La luz a pantalla completa
+cuesta 31-44ms en llvmpipe (medido en `tools/harness/bench_safety_fill.gd`).
+
+La canción la anima con dos pistas (`play`: energy 0.75 constante, modulate
+vacío; `RESET`: lo mismo), o sea que es **estática** y su efecto sobre el
+fondo se puede hornear. La fórmula se midió, no se supuso: renderizando
+ColorRect de grises conocidos bajo un clon de la luz
+(`tools/harness/calib_light2d_maps.gd`),
+
+    salida = base * [(1 - alfa_grad) + alfa_grad * rgb_grad * energy]
+
+texel a texel con error <= 1/255. El horneado la aplica por texel con
+muestreo bilineal (`_bake_bglight` en el baker), y `MergedBack` sale de la
+máscara de la luz (`light_mask = 0`). La luz se queda viva para Lamp1 y los
+personajes, que es lo único que se mueve. La energía horneada es la de la
+**canción** (0.75), no la del alley suelto (1.0) - la única instancia real
+es la de la canción, y el guard fija el override.
+
+Verificado con el mismo A/B de dos estados (`tools/harness/verify_bglight_bake.gd`
+en el sandbox: la referencia es la textura no-horneada más la luz viva,
+situada solo ahí): **p99=0, peor=0** en cuatro cultivos, incluido el centro
+de la luz y el borde de mundo. El fondo deja de rasterizarse dos veces por
+frame en todos los presets.
+
+**La lección reutilizable:** cuando una luz 2D es estática, su efecto sobre
+lo estático se puede hornear exactamente, y el guard se queda midiendo el
+override que cambiaría la receta. El siguiente escenario candidato se
+evalúa igual: pistas constantes -> hornear, pistas vivas -> fuera.
+
 ### Térmico: +50%, y lo produce la canción 2D
 
     frames=5462 mean=22.0ms (46 fps) vs_first= +0%    <- tienda

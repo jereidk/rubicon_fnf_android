@@ -70,7 +70,7 @@ texture = ExtResource("3")
 z_index = -1
 
 [node name="MergedBack" type="Sprite2D" parent="BG/Parallax2" unique_id=991726354]
-light_mask = 3
+light_mask = 0
 position = Vector2(951.4, 508.1)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("15")

@@ -438,9 +438,10 @@ jobs:
           git push origin HEAD:${{ github.ref_name }}
 
       # audit_alley_merged_background.py re-runs the background bake, which
-      # resamples two layers - it needs Pillow; no other guard does.
-      - name: Install Pillow for the guards
-        run: pip install --quiet Pillow
+      # resamples the layers and applies the measured PointLight2D bake -
+      # Pillow + numpy; no other guard does.
+      - name: Install Pillow and numpy for the guards
+        run: pip install --quiet Pillow numpy
 
       - name: Run the guard suite
         run: |

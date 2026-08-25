@@ -66,7 +66,6 @@ def main() -> int:
         canvas.alpha_composite(im, (px, py))
         print(f"  {name:11s} -> ({px:4d},{py:4d}) {tw}x{th}")
 
-    canvas.save(OUT)
     # El borde izquierdo del lienzo esta 1px (el margen) a la izquierda de minx;
     # el relleno a multiplo de 8 queda a la derecha. La posicion del sprite es
     # el centro del LIENZO en unidades de mundo, no el centro de la union.
@@ -74,9 +73,88 @@ def main() -> int:
     oy = miny - S
     cx = ox + cw * S / 2
     cy = oy + ch * S / 2
+
+    _bake_bglight(canvas, ox, oy)
+
+    canvas.save(OUT)
     print(f"lienzo {cw}x{ch} centro_mundo=({cx:.3f}, {cy:.3f})")
     print(f"sprite: position = Vector2({cx:.3f}, {cy:.3f}) scale = Vector2({S}, {S})")
     return 0
+
+
+## El BgLight del callejon (PointLight2D, blend MIX) es estatico durante toda
+## la cancion: la pista de `play` solo reafirma energy=0.75 y la de modulate
+## esta vacia; RESET dice lo mismo. Su efecto sobre el fondo se puede hornear
+## en la textura y sacar al fondo de su mascara - la luz se queda para Lamp1 y
+## los personajes, que es lo unico que se mueve.
+##
+## La formula esta MEDIDA, no supuesta: renderizando ColorRect de grises
+## conocidos bajo un clon de la luz (tools/harness/calib_light2d_maps.gd) el
+## resultado es, texel a texel,
+##
+##     salida = base * [(1 - alfa) + alfa * rgb_gradiente * energy]
+##
+## con error <= 1/255 en los cinco puntos probados, incluidos los de alfa < 1.
+##
+## La energia es la de la CANCION (0.75), no la del alley suelto (1.0 por
+## defecto): la unica instancia real del escenario es la de
+## sng_safety_lullaby.tscn, y es la que manda. Si alguien cambia ese override
+## hay que rehornear - el guard compara los dos numeros.
+LIGHT_POS = (801.0, 449.0)
+LIGHT_TEX = (1049.0, 480.0)
+LIGHT_SCALE = 4.0
+LIGHT_ENERGY = 0.75
+
+
+def _bake_bglight(canvas: Image.Image, ox: float, oy: float) -> None:
+    import numpy as np
+
+    grad = np.array(Image.open(BASE + "darkness_gradient.png").convert("RGBA")).astype(np.float64) / 255.0
+    a = np.array(canvas).astype(np.float64) / 255.0
+
+    h, w = a.shape[:2]
+    # Posicion de mundo del centro de cada texel del lienzo
+    ys = oy + (np.arange(h) + 0.5) * S
+    xs = ox + (np.arange(w) + 0.5) * S
+    # uv en la textura de la luz, con la misma cuenta que PointLight2D
+    us = (xs - LIGHT_POS[0]) / (LIGHT_TEX[0] * LIGHT_SCALE) + 0.5
+    vs = (ys - LIGHT_POS[1]) / (LIGHT_TEX[1] * LIGHT_SCALE) + 0.5
+
+    # Muestreo bilineal del gradiente (el mismo filtro que aplica el motor)
+    gx = np.clip(us * LIGHT_TEX[0] - 0.5, -1, LIGHT_TEX[0])
+    gy = np.clip(vs * LIGHT_TEX[1] - 0.5, -1, LIGHT_TEX[1])
+
+    def bilinear(channel: np.ndarray, gy2d: np.ndarray, gx2d: np.ndarray) -> np.ndarray:
+        x0 = np.floor(gx2d).astype(int)
+        y0 = np.floor(gy2d).astype(int)
+        x1 = x0 + 1
+        y1 = y0 + 1
+        fx = gx2d - x0
+        fy = gy2d - y0
+        h2, w2 = channel.shape
+        x0c = np.clip(x0, 0, w2 - 1)
+        x1c = np.clip(x1, 0, w2 - 1)
+        y0c = np.clip(y0, 0, h2 - 1)
+        y1c = np.clip(y1, 0, h2 - 1)
+        c00 = channel[y0c, x0c]
+        c10 = channel[y0c, x1c]
+        c01 = channel[y1c, x0c]
+        c11 = channel[y1c, x1c]
+        return (c00 * (1 - fx) * (1 - fy) + c10 * fx * (1 - fy)
+                + c01 * (1 - fx) * fy + c11 * fx * fy)
+
+    gxs, gys = np.meshgrid(gx, gy)
+    alpha = bilinear(grad[..., 3], gys, gxs)
+    inside = ((gxs >= 0) & (gxs <= LIGHT_TEX[0] - 1)
+              & (gys >= 0) & (gys <= LIGHT_TEX[1] - 1))
+
+    for ch in range(3):
+        gch = bilinear(grad[..., ch], gys, gxs)
+        m = (1.0 - alpha) + alpha * gch * LIGHT_ENERGY
+        a[..., ch] = np.where(inside, a[..., ch] * m, a[..., ch])
+
+    out = np.clip(a * 255.0 + 0.5, 0, 255).astype(np.uint8)
+    canvas.paste(Image.fromarray(out, "RGBA"))
 
 
 if __name__ == "__main__":
