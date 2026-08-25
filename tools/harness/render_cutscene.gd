@@ -56,6 +56,8 @@ var _preset: String = "High"
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
 var _frames: int = 0
+var _started: int = 0
+var _last_report: int = 0
 
 
 func _ready() -> void:
@@ -177,6 +179,8 @@ func _swap() -> void:
 
 	print("OUT reloj=%s duración=%.2fs" % [
 		current.get_path_to(_clock), _clock.get_animation(_anim).length])
+	_started = Time.get_ticks_msec()
+	_last_report = _started
 	_clock.play(_anim)
 	set_process(true)
 
@@ -223,6 +227,22 @@ func _process(delta: float) -> void:
 		return
 	_elapsed += delta
 	_frames += 1
+
+	# Un latido cada cinco segundos de reloj de pared.
+	#
+	# Sin esto el paso no imprime nada entre "reloj=" y "listo", y un render 3D
+	# bajo GL por software tarda minutos: no hay forma de distinguir lento de
+	# colgado. Ya paso dos veces - una era un cuelgue de verdad (el harness se
+	# libero a si mismo, corrida #179) y la otra no lo era, y desde fuera se
+	# veian igual. Ese es el problema que esto resuelve, no la impaciencia.
+	var ahora: int = Time.get_ticks_msec()
+	if ahora - _last_report >= 5000:
+		var por_hacer: float = maxf(_until, 0.001)
+		var ritmo: float = _elapsed / (maxf(float(ahora - _started), 1.0) / 1000.0)
+		print("OUT progreso %.1f%%  %d frames  %.1fs de %.1fs  %.0f%% del tiempo real" % [
+			100.0 * _elapsed / por_hacer, _frames, _elapsed, _until, 100.0 * ritmo])
+		_last_report = ahora
+
 	if _elapsed >= _until:
 		print("OUT listo: %.2fs de escena en %d frames, anim en %.2fs" % [
 			_elapsed, _frames, _clock.current_animation_position])
