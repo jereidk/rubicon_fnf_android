@@ -53,6 +53,20 @@ var _anim: StringName = &"play"
 var _until: float = 5.0
 var _preset: String = "High"
 
+## MSAA para la captura. Vacio = lo que diga el preset.
+##
+## `msaa=off` existe porque en esta ruta el MSAA es casi todo desperdicio: se
+## renderiza al nativo del proyecto (1366x768) y se entrega escalado a 960, y
+## ese reescalado de ffmpeg ya promedia ~1.4 pixeles por pixel de salida, que
+## es antialiasing. Encima el rasterizador de CI es por software, donde MSAA 2
+## multiplica el trabajo de fragmento de verdad.
+##
+## Lo que cuesta: los bordes de geometria salen algo mas duros ANTES del
+## reescalado. Por eso es una opcion explicita y no un apagado silencioso -
+## degradar la captura a espaldas de quien la pide es justo lo que
+## `preset=High` existe para evitar.
+var _msaa: String = ""
+
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
 var _frames: int = 0
@@ -72,6 +86,8 @@ func _ready() -> void:
 			_until = float(a.substr(6))
 		elif a.begins_with("preset="):
 			_preset = a.substr(7)
+		elif a.begins_with("msaa="):
+			_msaa = a.substr(5)
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
@@ -123,9 +139,12 @@ func _force_preset() -> void:
 
 	chosen.call("apply", settings)
 	settings.set("graphics_prefer_cutscene_video", false)
+	if _msaa == "off":
+		settings.set("graphics_msaa_3d_quality", Viewport.MSAA_DISABLED)
 	settings.call("apply_settings")
-	print("OUT preset forzado=%s escala=%s" % [
-		chosen.get("name"), str(settings.get("graphics_render_scale"))])
+	print("OUT preset forzado=%s escala=%s msaa=%s" % [
+		chosen.get("name"), str(settings.get("graphics_render_scale")),
+		str(settings.get("graphics_msaa_3d_quality"))])
 
 
 ## La canción se cuelga DIRECTAMENTE de `root`, como hija suya y hermana de
