@@ -224,14 +224,25 @@ var anisotropic_filtering: int = 2
 ## dispositivo que aguanta la escena viva, la escena viva es mejor". Se retira a
 ## propósito, y conviene separar qué parte de aquello era cierta.
 ##
-## Lo que NO era cierto: que la escena viva se viese mejor por definición. El
+## Lo que NO era cierto: que la escena viva se viese mejor *por definición*. El
 ## arte de las cutscenes está authoreado a 1280x720 - medido sobre los propios
 ## PNG, `beginning_fence`, `closeup`, `ending_bg` y el resto son todos
-## 1280x720 - así que ese es el techo de detalle real, no la resolución de la
-## pantalla. Un vídeo entregado a esa anchura no pierde nada contra la escena
-## viva; a 960 pierde un 25% lineal, y de ahí venía la impresión de que el vídeo
-## era el camino pobre. La respuesta era subir la anchura de entrega, no
-## reservar el vídeo para los teléfonos malos.
+## 1280x720 - así que el techo de detalle real es ese, no la resolución de la
+## pantalla. Un vídeo entregado a 1280 no perdería nada contra la escena viva.
+##
+## Pero se entrega a 960, y eso NO es un descuido: es el presupuesto de frame
+## del dispositivo más débil. Theora decodifica en el hilo principal, y la
+## tabla de arriba extrapola 960x432 a ~3ms en el g53 y ~8.5ms en un A12 - un
+## factor de 3. Arrastrando ese factor, 1280x720 se pone cerca de 14ms de los
+## 16.7ms que hay a 60fps. La cifra de escritorio para 1280 es ~4.5ms y parece
+## segurísima; esa es justo la trampa, y ya se cayó en ella una vez subiendo
+## este valor por un argumento de resolución sin volver a mirar la decodificación.
+##
+## Así que el compromiso real, dicho sin adornos: un solo vídeo sirve a los
+## cuatro presets, su anchura la fija el teléfono más lento, y el más rápido
+## paga un 25% lineal por ello. Si algún día molesta, la salida limpia no es
+## subir la anchura para todos - es entregar dos ficheros y dejar que el preset
+## elija, que es precisamente para lo que este interruptor ya existe.
 ##
 ## Lo que SÍ era cierto, y ahora es el precio: la escena viva se puede editar
 ## sin re-renderizar. Con esto encendido en todas partes, cambiar un fotograma

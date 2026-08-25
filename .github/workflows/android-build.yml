@@ -33,17 +33,19 @@ on:
       cutscene_scale:
         description: >-
           Delivery width for the rendered .ogv. The source is always the
-          project's native 1366x768; this only picks what gets shipped.
-          Defaults to 1280 because that is what the cutscene art is authored
-          at - beginning_fence, closeup, ending_bg and the rest are all
-          1280x720 - so 1280 is the width at which the video stops losing
-          anything against the live scene, and 960 was giving up 25% linear
-          for no reason anyone had measured. It costs decode time on the
-          phone: ms = 1.32 + 3.49 x Mpx on the engine's own decoder, so 960 is
-          ~3.1ms/frame and 1280 is ~4.5ms. Still flat, and still against the
-          50-86ms animation spikes the video exists to remove.
+          project's native 1366x768; this only picks what gets shipped, and it
+          is a DECODE-COST decision made on the weakest target, not a quality
+          one. Theora decodes on the main thread, so every millisecond comes
+          straight out of the frame budget. Measured on the engine's own
+          decoder: ms = 1.32 + 3.49 x Mpx, and 960x432 extrapolates to ~3ms on
+          the g53 but ~8.5ms on an A12 - roughly 3x. Carry that factor and
+          1280x720 lands near 14ms of a 16.7ms budget at 60fps on that device,
+          which is not "a bit more expensive", it is the whole frame.
+          Raising this is a real option, but it needs a device measurement
+          first, not the desktop figure - the desktop number for 1280 is
+          ~4.5ms and looks perfectly safe, which is exactly the trap.
         required: false
-        default: '1280'
+        default: '960'
       cutscene_fps:
         description: >-
           Recording frame rate. 60 by default, and measured rather than

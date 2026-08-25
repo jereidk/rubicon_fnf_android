@@ -213,14 +213,18 @@ func _song_wiring_checks() -> void:
 	_check(encendido.size() == 4,
 		"los cuatro presets piden video (%s)" % ", ".join(encendido))
 	# Invertida a proposito. Esto exigia `not encendido.has("qol_high")`, con la
-	# razon "donde la escena viva corre, la escena viva es mejor". Medido
-	# despues: el arte de las cutscenes esta authoreado a 1280x720 - los PNG lo
-	# dicen, todos - asi que el techo de detalle es ese y no la pantalla. El
-	# video deja de perder contra la escena viva en cuanto se entrega a esa
-	# anchura, y lo que fallaba era entregarlo a 960. Sustituir la cutscene en
-	# todos los presets es ahora la intencion, no una degradacion aceptada.
+	# razon "donde la escena viva corre, la escena viva es mejor". Sustituir la
+	# cutscene entera en todos los presets es ahora la intencion del proyecto.
+	#
+	# Sin fingir que sale gratis: el video se entrega a 960 y el arte esta
+	# authoreado a 1280x720, asi que en High se deja un 25% lineal. La anchura
+	# no la elige la calidad, la elige el presupuesto de frame del telefono mas
+	# lento - Theora decodifica en el hilo principal y 1280x720 se acerca a
+	# 14ms de los 16.7 que hay a 60fps en un A12. Subir la anchura "porque el
+	# arte da para mas" ya se intento una vez y era mirar solo la mitad de la
+	# ecuacion.
 	_check(encendido.has("qol_high"),
-		"...High incluido: a 1280 el video no pierde contra la escena viva")
+		"...High incluido: es la intencion, con el 25% lineal como precio")
 
 
 ## El render tiene que grabar con el preset MÁS ALTO.
