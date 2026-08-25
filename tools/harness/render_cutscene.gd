@@ -51,6 +51,7 @@ extends Node
 var _scene_path: String = ""
 var _anim: StringName = &"play"
 var _until: float = 5.0
+var _preset: String = "High"
 
 var _clock: AnimationPlayer = null
 var _elapsed: float = 0.0
@@ -67,17 +68,62 @@ func _ready() -> void:
 			_anim = StringName(a.substr(5))
 		elif a.begins_with("hasta="):
 			_until = float(a.substr(6))
+		elif a.begins_with("preset="):
+			_preset = a.substr(7)
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
 		get_tree().quit(1)
 		return
 
+	_force_preset()
+
 	# Solo se informa; el tamaño del vídeo lo fijó Movie Maker al arrancar.
 	print("OUT ventana=%s escena=%s anim=%s hasta=%.2fs" % [
 		get_window().size, _scene_path, _anim, _until])
 
 	_swap.call_deferred()
+
+
+## Graba con el preset MÁS ALTO, no con el que traiga la instalación.
+##
+## Esto es lo que hace que el vídeo valga la pena y es fácil de olvidar: el
+## coste de decodificar no depende de lo bonito que sea el contenido, así que un
+## teléfono que corre Very Low puede ver la cutscene en High sin pagar nada.
+## Grabar con el preset por defecto sería lo contrario de lo que se busca -
+## Very Low es lo que arranca una instalación nueva, y trae `render_scale = 0.5`,
+## `disable_shader_effects = true`, `disable_optional_2d_lights = true` y
+## `atlas_frame_step = 2` (gdanimate a 12fps en vez de 24). Se habría horneado
+## la versión fea, para siempre, en un fichero.
+##
+## `prefer_cutscene_video` se fuerza a false aparte del preset: si el nodo de
+## sustitución ya está puesto en la escena y se graba con un preset que lo
+## enciende, el render capturaría el vídeo anterior reproduciéndose dentro del
+## nuevo. High no lo enciende, pero eso es una propiedad del .tres de hoy y no
+## una garantía, así que se apaga explícitamente.
+func _force_preset() -> void:
+	var settings: Node = get_node_or_null(^"/root/Settings")
+	if settings == null:
+		printerr("OUT sin autoload Settings: se graba con lo que haya")
+		return
+
+	# Del mapa de constantes del propio Settings, no de rutas repetidas aquí:
+	# PRESET_HIGH y compañía son `const`, o sea que `settings.get(...)` no los
+	# ve - no son propiedades.
+	var key: String = "PRESET_%s" % _preset.to_upper().replace(" ", "_")
+	var consts: Dictionary = settings.get_script().get_script_constant_map()
+	var chosen: Resource = consts.get(key) as Resource
+	if chosen == null:
+		printerr("OUT preset '%s' (%s) desconocido; hay: %s" % [
+			_preset, key, ", ".join(consts.keys().filter(
+				func(k: String) -> bool: return k.begins_with("PRESET_")))])
+		return
+
+	chosen.call("apply", settings)
+	settings.set("graphics_prefer_cutscene_video", false)
+	settings.call("apply_settings")
+	print("OUT preset forzado=%s escala=%s" % [
+		chosen.get("name"), str(settings.get("graphics_render_scale"))])
 
 
 ## La escena pasa a ser la escena actual, no un hijo de este nodo: es lo que

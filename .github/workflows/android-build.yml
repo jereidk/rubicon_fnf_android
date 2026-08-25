@@ -38,6 +38,15 @@ on:
           own decoder, so 960 is ~3.1ms/frame and 1366 is ~5.9ms.
         required: false
         default: '960'
+      cutscene_quality:
+        description: >-
+          libtheora -q:v, 0-10. Measured on the engine's own decoder at
+          1600x720: q5/q7/q9 cost 22.62/23.46/22.60 CPU-seconds over the same
+          2400 decodes, which is noise - compression quality costs bytes and
+          not a single millisecond of playback. So this runs high on purpose.
+          Resolution is the knob that costs frame time; this one does not.
+        required: false
+        default: '8'
 
 permissions:
   contents: read
@@ -1323,10 +1332,17 @@ jobs:
           fi
 
           width='${{ inputs.cutscene_scale }}'
+          quality='${{ inputs.cutscene_quality }}'
           out=builds/cutscene/cutscene.ogv
           # -2 en la altura: par, que es lo que yuv420p necesita.
+          #
+          # La calidad va alta a proposito. Medido sobre el decodificador del
+          # motor a 1600x720, q5/q7/q9 cuestan 22.62/23.46/22.60 CPU-segundos
+          # sobre los mismos 2400 decodes: ruido. Comprimir mejor cuesta bytes
+          # y cero milisegundos de reproduccion, asi que no hay razon para
+          # escatimar. El ancho es el que cuesta frame time, no esto.
           ffmpeg -y -loglevel error -i "$raw" \
-            -vf "scale=${width}:-2" -c:v libtheora -q:v 7 -an "$out"
+            -vf "scale=${width}:-2" -c:v libtheora -q:v "$quality" -an "$out"
 
           # Movie Maker escribe el audio a un .wav hermano cuando la escena
           # suena. Va aparte a proposito: el video no lleva pista de audio

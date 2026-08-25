@@ -41,6 +41,7 @@ const COMPONENT := "res://lullaby_mod/scripts/lullaby/cutscene/lullaby_cutscene_
 const PRESET := "res://lullaby_mod/scripts/lullaby/settings/lullaby_quality_preset.gd"
 const SETTINGS := "res://menus/settings.gd"
 const FIXTURE := "res://tools/fixtures/tiny_cutscene.ogv"
+const HARNESS := "res://tools/harness/render_cutscene.gd"
 
 var _failures: int = 0
 var _checks: int = 0
@@ -106,6 +107,40 @@ func _wiring_checks() -> void:
 		"el componente NO escribe visible en la cutscene (pelearía con la pista)")
 	_check(code.contains("live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED"),
 		"...apaga el process_mode, que es donde está el coste medido")
+
+	_capture_preset_checks()
+
+
+## El render tiene que grabar con el preset MÁS ALTO.
+##
+## Es lo que hace que el cambio valga la pena: decodificar cuesta lo mismo sea
+## el contenido bonito o feo, así que un teléfono en Very Low ve la cutscene en
+## High gratis. La primera versión de render_cutscene.gd no forzaba nada, y el
+## preset de una instalación nueva es Very Low - se habría horneado
+## `render_scale = 0.5`, sin efectos de shader, sin luces 2D opcionales y
+## gdanimate a 12fps, para siempre, en un fichero de dos megas. Que el fallo
+## fuese invisible (el vídeo saldría, solo que feo) es lo que lo hace peligroso
+## y lo que justifica fijarlo aquí.
+func _capture_preset_checks() -> void:
+	var harness: String = FileAccess.get_file_as_string(HARNESS)
+	_check(not harness.is_empty(), "render_cutscene.gd se lee")
+	_check(harness.contains('var _preset: String = "High"'),
+		"el render graba con High por defecto, no con lo que traiga la instalación")
+
+	var body: String = _func_body(harness, "_force_preset")
+	_check(body.contains("get_script_constant_map()"),
+		"...saca el preset del mapa de constantes de Settings (son const, no propiedades)")
+	_check(body.contains('call("apply", settings)') and body.contains('call("apply_settings")'),
+		"...lo aplica de verdad, no solo lo carga")
+	_check(body.contains('set("graphics_prefer_cutscene_video", false)'),
+		"...y apaga la sustitución, para no grabar el vídeo anterior dentro del nuevo")
+
+	# Y que se llame ANTES de montar la escena: aplicarlo después dejaría la
+	# escena construida con los ajustes viejos.
+	var force_at: int = harness.find("_force_preset()")
+	var swap_at: int = harness.find("_swap.call_deferred()")
+	_check(force_at >= 0 and swap_at > force_at,
+		"...antes de montar la escena, no después")
 
 
 func _behaviour_checks() -> void:
@@ -230,6 +265,24 @@ func _video_players(node: Node) -> int:
 		for child in n.get_children():
 			stack.append(child)
 	return found
+
+
+func _func_body(text: String, name: String) -> String:
+	var head: int = -1
+	var from: int = 0
+	while true:
+		var at: int = text.find("func %s(" % name, from)
+		if at < 0:
+			break
+		if at == 0 or text[at - 1] == "\n":
+			head = at
+			break
+		from = at + 1
+	if head < 0:
+		_check(false, "%s() existe al nivel superior" % name)
+		return ""
+	var tail: int = text.find("\nfunc ", head + 1)
+	return text.substr(head, tail - head if tail > head else -1)
 
 
 func _check(ok: bool, what: String) -> void:
