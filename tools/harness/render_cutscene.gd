@@ -247,6 +247,29 @@ func _force_preset() -> void:
 
 	chosen.call("apply", settings)
 	settings.set("graphics_prefer_cutscene_video", false)
+
+	# Showcase, o el render se muere a mitad de canción.
+	#
+	# En una captura no hay nadie pulsando nada, así que el jugador falla TODAS
+	# sus notas. En Chimera empiezan en el segundo 35.80, y a los 54 lleva
+	# dieciocho segundos perdiendo vida: la corrida #192 quedó grabada así -
+	#
+	#     GDScript backtrace:
+	#         [0] switch_to_gameover (chimera_gameover_module.gd:36)
+	#
+	# El gameover dispara, la escena se desmonta y lo que se graba es el HUD
+	# sobre negro. Eso, y no el seek, era el fallo que estuvo dos sondas sin
+	# explicación.
+	#
+	# La intro de Safety Lullaby y el prelude de Chimera nunca lo vieron porque
+	# ambos terminan antes de la primera nota, así que el harness llevaba
+	# funcionando por el margen y no por diseño.
+	#
+	# `lullaby_showcase_mode` fuerza autoplay (lullaby_song_settings.gd): el
+	# juego se juega solo y acierta todo. Va incondicional a propósito - una
+	# captura no puede depender de "esta parte no tiene notas", que es
+	# exactamente la suposición que ya falló.
+	settings.set("lullaby_showcase_mode", true)
 	if _msaa == "off":
 		settings.set("graphics_msaa_3d_quality", Viewport.MSAA_DISABLED)
 	if _scale > 0.0:

@@ -14940,7 +14940,7 @@ size_flags_vertical = 4
 texture = ExtResource("104")
 metadata/_edit_use_anchors_ = true
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=1128267898]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1128267898 groups=["cutscene_live_overlay"]]
 
 [node name="PreludeCaption" type="RichTextLabel" parent="UILayer" unique_id=785039700 groups=["cutscene_live_overlay"]]
 modulate = Color(1, 1, 1, 0.057971)
