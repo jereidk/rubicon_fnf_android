@@ -3503,17 +3503,56 @@ func _dep_owner(path: String) -> String:
 		return "."
 	return "/".join(parts.slice(0, mini(3, parts.size() - 1)))
 
-## Where a load's wall time went, by subsystem, worst first.
+## Where a load's wall time went, by subsystem, worst first, plus the tail as
+## one number.
+##
+## The cap used to be a flat top 6, and that turned a truncation into a wrong
+## conclusion. The Collector's Shop load of 2026-08-25 took 36.9s and printed:
+##
+##     assets/collector=5.9s/186 scripts/lullaby=2.2s/73 resources/audio=1.8s/44
+##     resources/animations=1.1s/28 assets/menus=0.8s/38 resources/shaders=0.5s/11
+##
+## Six rows adding up to 12.3 seconds against a 36.9 second load, which reads
+## as "24.6 seconds unaccounted for" - it was the first thing I concluded from
+## it - when most or all of that was simply rows 7 and beyond, never printed.
+## That is the difference between "something invisible is eating two thirds of
+## the load" and "the cost is spread across a long tail", and those two want
+## opposite fixes: hunt a culprit, or merge files.
+##
+## So: every bucket worth at least 1% of the load gets a row, everything below
+## that collapses into `resto=`, and `suma=` closes the question the top 6
+## left open - bounded output that reconciles against `took=` by itself.
+##
+## `suma=` is not decoration. _incoming_progress() charges each poll interval
+## to whatever arrived in it and charges an interval where NOTHING arrived to
+## nobody, so the sum is a lower bound on the load, not an identity. If
+## `suma=` comes back well under `took=`, the gap is time the loader thread
+## spent producing nothing - a stall to explain, not a bucket to merge - and
+## until now there was no way to tell that apart from truncation.
 func _dep_breakdown() -> String:
 	if _dep_ms.is_empty():
 		return "-"
 	var rows: Array = []
+	var total: float = 0.0
 	for owner in _dep_ms:
-		rows.append([float(_dep_ms[owner]), owner, int(_dep_count.get(owner, 0))])
+		var ms: float = float(_dep_ms[owner])
+		total += ms
+		rows.append([ms, owner, int(_dep_count.get(owner, 0))])
 	rows.sort_custom(func(a, b): return a[0] > b[0])
+
+	var floor_ms: float = total * 0.01
 	var parts: PackedStringArray = PackedStringArray()
-	for i in mini(6, rows.size()):
-		parts.append("%s=%.1fs/%d" % [rows[i][1], rows[i][0] / 1000.0, rows[i][2]])
+	var tail_ms: float = 0.0
+	var tail_n: int = 0
+	for row in rows:
+		if float(row[0]) >= floor_ms:
+			parts.append("%s=%.1fs/%d" % [row[1], float(row[0]) / 1000.0, int(row[2])])
+		else:
+			tail_ms += float(row[0])
+			tail_n += int(row[2])
+	if tail_n > 0:
+		parts.append("resto=%.1fs/%d en %d" % [tail_ms / 1000.0, tail_n, rows.size() - parts.size()])
+	parts.append("suma=%.1fs" % [total / 1000.0])
 	return " ".join(parts)
 
 ## The render scale the viewport is actually using, and the setting beside it
