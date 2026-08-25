@@ -84,6 +84,25 @@ extends Node
 
 ## En qué capa se dibuja el vídeo. Tiene que quedar por encima de la cutscene y
 ## por debajo del HUD.
+##
+## Que la capa 0 baste está MEDIDO, no supuesto - fue el único riesgo que quedó
+## abierto al cablear esto. Un ColorRect rojo en el lienzo por defecto con
+## `z_index = 1`, contra otro verde dentro de un CanvasLayer(0), leyendo el
+## píxel del medio:
+##
+##     CanvasLayer(0) vs Node2D z_index=1  ->  gana el CanvasLayer
+##
+## O sea que un CanvasLayer gana al lienzo por defecto aunque el z_index del
+## otro sea mayor, porque el z_index solo ordena DENTRO de un lienzo. Por eso el
+## vídeo en capa 0 tapa la cutscene, y por eso `UILayer` en capa 1 sigue por
+## encima del vídeo.
+##
+## La otra cara: cualquier cosa del lienzo por defecto queda tapada, tenga el
+## z_index que tenga. En Chimera, `Prelude` es un Node2D con `z_index = 1` que
+## lleva el texto traducible de la tarjeta de fotos - el vídeo lo taparía, y
+## marcarlo en `cutscene_live_overlay` lo dejaría invisible en los dos lados.
+## Ese texto tiene que subir a un CanvasLayer antes de que Chimera pueda ir a
+## vídeo.
 @export var canvas_layer: int = 0
 
 var _player: VideoStreamPlayer = null
