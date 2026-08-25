@@ -121,8 +121,21 @@ func _ready() -> void:
 	_player = VideoStreamPlayer.new()
 	_player.stream = stream
 	_player.expand = true
-	_player.anchors_preset = Control.PRESET_FULL_RECT
 	_layer.add_child(_player)
+
+	# El preset DESPUÉS de entrar al árbol, y con
+	# set_anchors_and_offsets_preset() en vez de escribir `anchors_preset`.
+	#
+	# Medido, porque la primera versión lo hacía al revés y el resultado fue una
+	# pantalla gris en el teléfono: escribir `anchors_preset` sobre un Control
+	# que todavía no tiene padre deja `size = (0, 0)` - fija las anclas pero no
+	# tiene contra qué resolver los offsets. El reproductor existía, reproducía
+	# y no dibujaba un solo píxel, y lo único que se veía era la cutscene
+	# congelada detrás, porque a esa ya se le había apagado el process_mode.
+	#
+	#     anclas antes de add_child   -> size=(0, 0)
+	#     preset dentro del árbol     -> size=(1920, 1080)
+	_player.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	_live_mode = live_cutscene.process_mode
 	live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED

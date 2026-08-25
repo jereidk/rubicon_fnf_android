@@ -305,5 +305,11 @@ func to_memory_format(mem: int) -> String:
 		return "%s MB" % snappedf(mem / 1024.0 / 1024.0, 0.01)
 	elif mem >= 1024:
 		return "%s KB" % snappedf(mem / 1024.0, 0.01)
+	elif mem > 0:
+		return "%d B" % mem
 	else:
-		return "%s B"
+		# Sin substitucion, esta rama devolvia el literal "%s B" y el jugador
+		# leia `Memory: %s B` en pantalla - visto en el moto g60s, donde
+		# OS.get_static_memory_usage() devuelve 0. El log de diagnostico ya
+		# escribe `ram=n/a` para ese mismo caso; esto dice lo mismo.
+		return "n/a"

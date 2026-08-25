@@ -367,6 +367,23 @@ func _behaviour_checks() -> void:
 		"...y la cutscene deja de procesar")
 	_check(on.live.visible, "...pero sigue visible: el nodo no le toca esa propiedad")
 
+	# Y que el reproductor OCUPE la pantalla. Un Control al que se le escriben
+	# las anclas antes de tener padre se queda en (0,0): existe, reproduce y no
+	# dibuja nada. Eso llego al telefono como una pantalla gris - el video
+	# invisible y detras la cutscene congelada, porque a esa ya se le habia
+	# apagado el process_mode. Un check de tamano cuesta una linea.
+	await process_frame
+	var reproductor: Control = null
+	var pila: Array[Node] = [on.node]
+	while not pila.is_empty():
+		var n: Node = pila.pop_back()
+		if n is VideoStreamPlayer:
+			reproductor = n
+		for c in n.get_children():
+			pila.append(c)
+	_check(reproductor != null and reproductor.size.x > 0.0 and reproductor.size.y > 0.0,
+		"el reproductor ocupa la pantalla (%s)" % [reproductor.size if reproductor else "sin reproductor"])
+
 	# --- 4. Devuelve el mando al pasar el final, restaurando lo authoreado.
 	on.clock.play(&"linea")
 	on.clock.seek(9.0, true)

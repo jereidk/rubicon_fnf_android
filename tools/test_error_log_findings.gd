@@ -26,6 +26,7 @@ const CONSOLE := "res://lullaby_mod/resources/console/console.tscn"
 const KOLLECTADEX := "res://lullaby_mod/resources/kollectadex/kollectadex.tscn"
 const NOTE_LABEL := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gd"
 const SCROLLING_CREDITS := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd"
+const FPS_DISPLAY := "res://lullaby_mod/scripts/lullaby/debug/lullaby_fps_display.gd"
 const CREDITS := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd"
 
 var _failures: int = 0
@@ -37,6 +38,7 @@ func _initialize() -> void:
 	_input_row_checks()
 	_stripped_material_checks()
 	_segunda_tanda()
+	_memoria_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
@@ -281,3 +283,32 @@ func _segunda_tanda() -> void:
 	for sitio: String in ["next_index", "previous_index", "_on_animation_player_animation_finished"]:
 		_check(not _func_body(creditos, sitio).contains("portrait_animation.play("),
 			"%s tampoco reproduce directo" % sitio)
+
+
+## `Memory: %s B` en pantalla: un format sin substitucion.
+##
+## Visto en una captura del moto g60s. `to_memory_format()` devolvia el literal
+## "%s B" en su rama de menos de 1024 bytes, y esa rama se alcanza de verdad
+## porque OS.get_static_memory_usage() devuelve 0 en ese dispositivo - el log de
+## diagnostico ya escribia `ram=n/a` por lo mismo.
+##
+## Manejado, no leido: las seis ramas de la funcion se piden y se comprueban.
+func _memoria_checks() -> void:
+	var script: GDScript = load(FPS_DISPLAY)
+	_check(script != null, "lullaby_fps_display.gd carga")
+	if script == null:
+		return
+	var display: Node = script.new()
+
+	for caso: Array in [[0, "n/a"], [1, "1 B"], [512, "512 B"]]:
+		var salida: String = display.call("to_memory_format", caso[0])
+		_check(salida == caso[1],
+			"to_memory_format(%d) da %s (dio %s)" % [caso[0], caso[1], salida])
+
+	for grande: Array in [[1024, "KB"], [1048576, "MB"], [1073741824, "GB"]]:
+		var salida2: String = display.call("to_memory_format", grande[0])
+		_check(salida2.ends_with(grande[1]) and not salida2.contains("%"),
+			"to_memory_format(%d) termina en %s y no lleva un %% suelto (dio %s)"
+				% [grande[0], grande[1], salida2])
+
+	display.free()
