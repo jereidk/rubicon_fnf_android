@@ -51,6 +51,19 @@ extends Node
 var _scene_path: String = ""
 var _anim: StringName = &"play"
 var _until: float = 5.0
+
+## Posicion del reloj desde la que empezar. 0 = desde el principio.
+##
+## SOLO PARA SONDEAR, y la razon importa: adelantar el reloj con seek() aplica
+## las pistas de valor hasta ese punto, pero NO vuelve a disparar las pistas de
+## metodo que ya pasaron. En Chimera la pista `../Sequences/SequencePlayer`
+## tiene llaves en 0.0, 3.0, 19.9167 y 34.5833 - saltar a 19.9 aplica el estado
+## visible pero no ejecuta las dos llamadas anteriores, asi que lo que sale
+## puede no ser lo que el jugador ve.
+##
+## Para una captura de entrega hay que grabar desde 0. Esto existe para
+## responder "¿esta parte sale iluminada?" en dos minutos en vez de treinta.
+var _from: float = 0.0
 var _preset: String = "High"
 
 ## MSAA para la captura. Vacio = lo que diga el preset.
@@ -88,6 +101,8 @@ func _ready() -> void:
 			_preset = a.substr(7)
 		elif a.begins_with("msaa="):
 			_msaa = a.substr(5)
+		elif a.begins_with("desde="):
+			_from = float(a.substr(6))
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
@@ -201,6 +216,11 @@ func _swap() -> void:
 	_started = Time.get_ticks_msec()
 	_last_report = _started
 	_clock.play(_anim)
+	if _from > 0.0:
+		_clock.seek(_from, true)
+		_elapsed = _from
+		print("OUT SONDA: arrancando en %.2fs - las pistas de metodo anteriores"
+			% _from + " no se dispararon, esto no vale como entrega")
 	set_process(true)
 
 
