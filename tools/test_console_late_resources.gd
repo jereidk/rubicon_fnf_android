@@ -36,8 +36,19 @@ const CONTAINER := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/co
 
 ## What the table held when this was written. Pinned so that shrinking it back
 ## - the easy way to "fix" a failure here - has to be deliberate.
-const EXPECTED_ENTRIES := 37
-const EXPECTED_RESOURCES := 28
+##
+## Bajo de 37/28 a 36/27 el 2026-08-25, y deliberadamente: `Cartridges/Name`
+## salio de la tabla porque una PISTA de animacion de la consola escribe
+## `Name:animation`, y una pista no se puede ordenar contra una carga perezosa.
+## Cada llave caia sobre un AnimatedSprite2D sin frames y soltaba un error
+## rojo - `serena` x11 y `girlfriend` x11 en el .error del dispositivo del
+## 2026-08-24, 22 de sus 24 errores de animacion. La hoja son 848 bytes; la
+## correccion vale mas que ese margen de carga.
+##
+## La regla general la vigila test_error_log_findings.gd: ningun sprite_frames
+## diferido puede tener una pista que lo conduzca.
+const EXPECTED_ENTRIES := 36
+const EXPECTED_RESOURCES := 27
 
 var _failures: int = 0
 var _checks: int = 0

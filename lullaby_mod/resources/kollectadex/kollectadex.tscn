@@ -27,11 +27,29 @@
 script/source = "@tool
 extends VBoxContainer
 
+## `EditorInterface` es un identificador que SOLO existe en el binario del
+## editor. Nombrarlo hace que el script entero falle al parsear en un build
+## exportado - no la funcion, el script - asi que ni change_child_index ni
+## _enter_tree llegan a existir siquiera. El .error del dispositivo lo traia
+## dos veces por arranque:
+##
+##     Parse Error: Identifier \"EditorInterface\" not declared in the current scope.
+##     kollectadex.tscn::GDScript_ygxh2:8 y :21
+##
+## Engine.get_singleton() lo pide por cadena, que no se resuelve al parsear.
+
 @export var pokedex_base:Control
+
+func _editor_interface() -> Object:
+	if not Engine.has_singleton(&\"EditorInterface\"):
+		return null
+	return Engine.get_singleton(&\"EditorInterface\")
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
-		EditorInterface.get_selection().connect(\"selection_changed\", _entry_selected_in_editor)
+		var editor: Object = _editor_interface()
+		if editor != null:
+			editor.get_selection().connect(\"selection_changed\", _entry_selected_in_editor)
 	connect(\"child_order_changed\", change_child_index)
 
 func _enter_tree() -> void:
@@ -44,7 +62,10 @@ func change_child_index() -> void:
 			#child.index = child.get_index() + 1
 
 func _entry_selected_in_editor():
-	var selected_nodes:Array[Node] = EditorInterface.get_selection().get_selected_nodes()
+	var editor: Object = _editor_interface()
+	if editor == null:
+		return
+	var selected_nodes:Array[Node] = editor.get_selection().get_selected_nodes()
 	if selected_nodes.size() != 1 or selected_nodes.is_empty():
 		return
 

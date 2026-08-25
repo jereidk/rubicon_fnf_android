@@ -36,6 +36,11 @@ extends HBoxContainer
 
 var _portraits_loaded: bool = false
 
+## Lo ultimo que se pidio reproducir, para poder aplicarlo cuando lleguen los
+## frames. Conducir las pistas antes de eso es lo que llenaba el .error.
+var _wanted_primary: StringName = &""
+var _wanted_secondary: StringName = &""
+
 var current_portrait_index: int = 0
 
 var enter_cooldown: float = 0.0
@@ -48,12 +53,20 @@ func _ready() -> void :
 	# click handling swallowing them.
 	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Both AnimationPlayers drive the `animation` property of a sprite that has
-	# no frames yet. That is harmless - the name is stored and applies as soon
-	# as the sheet arrives, and _ensure_portraits() replays them anyway - and
-	# it keeps this order identical to what it was before the sheet went lazy.
-	primary_portrait_animation.play(credits_entries[0].name)
-	secondary_portrait_animation.play(credits_entries[1].name)
+	# Se recuerdan, no se tocan. El comentario que habia aqui decia que
+	# conducir `animation` sobre un sprite sin frames era inofensivo porque el
+	# nombre se guarda y se aplica cuando llega la hoja. El .error del
+	# dispositivo del 2026-08-24 dice que no:
+	#
+	#     There is no animation with name 'serena'.        (x11)
+	#     There is no animation with name 'Anniebuue'.
+	#     There is no animation with name 'BeefStarchJello'.
+	#     animated_sprite_2d.cpp:585 set_animation
+	#
+	# Cada llave de esas pistas escribe `:animation` sobre el sprite vacio y
+	# suelta un error rojo. Formatear un error y recorrer su traza no sale
+	# gratis, y son veintitantos por visita a la tienda.
+	_want_portraits(credits_entries[0].name, credits_entries[1].name)
 
 	# Covers the case where the credits are the tab already on screen.
 	visibility_changed.connect(_ensure_portraits)
@@ -164,18 +177,18 @@ func _get_next_credit_entry() -> LullabyCreditsEntry:
 	return credits_entries[wrap(current_portrait_index + 1, 0, credits_entries.size() - 1)]
 
 func next_index():
-	primary_portrait_animation.play(_get_next_credit_entry().name)
-	secondary_portrait_animation.play(credits_entries[current_portrait_index].name)
+	_want_portraits(_get_next_credit_entry().name,
+		credits_entries[current_portrait_index].name)
 
 
 func previous_index():
-	primary_portrait_animation.play(credits_entries[current_portrait_index].name)
-	secondary_portrait_animation.play(_get_next_credit_entry().name)
+	_want_portraits(credits_entries[current_portrait_index].name,
+		_get_next_credit_entry().name)
 
 
 func _on_animation_player_animation_finished(_anim_name: StringName) -> void :
-	primary_portrait_animation.play(credits_entries[current_portrait_index].name)
-	secondary_portrait_animation.play(_get_next_credit_entry().name)
+	_want_portraits(credits_entries[current_portrait_index].name,
+		_get_next_credit_entry().name)
 
 
 func turn_spotlight_on():
@@ -221,8 +234,27 @@ func _ensure_portraits() -> void:
 		if sprite == null:
 			continue
 		sprite.sprite_frames = frames
-		# Assigning frames resets which animation is selected, so put the
-		# player's own choice back rather than leaving the sheet's first one.
-		var playing: StringName = player.current_animation
-		if not playing.is_empty():
-			player.play(playing)
+
+	# Ahora que hay hoja, se reproduce lo que se pidio mientras no la habia.
+	_apply_portraits()
+
+
+## Pide un par de retratos, y los reproduce solo si ya hay hoja.
+##
+## Las animaciones de estos dos AnimationPlayer llevan pistas que escriben
+## `CreditsPortrait*:animation`, o sea que reproducirlas sin `sprite_frames`
+## suelta un error rojo por llave. Se guarda lo pedido y `_ensure_portraits()`
+## lo aplica en cuanto la hoja llega; el orden que ve el jugador no cambia
+## porque la hoja se carga en la primera visita a la pestana.
+func _want_portraits(primary: StringName, secondary: StringName) -> void:
+	_wanted_primary = primary
+	_wanted_secondary = secondary
+	if _portraits_loaded:
+		_apply_portraits()
+
+
+func _apply_portraits() -> void:
+	if primary_portrait_animation != null and not _wanted_primary.is_empty():
+		primary_portrait_animation.play(_wanted_primary)
+	if secondary_portrait_animation != null and not _wanted_secondary.is_empty():
+		secondary_portrait_animation.play(_wanted_secondary)

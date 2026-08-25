@@ -23,6 +23,10 @@ const TRANCE := "res://lullaby_mod/songs/safety_lullaby/trance_shaders.gd"
 const NOTEPAD := "res://lullaby_mod/scripts/lullaby/collectors_shop/props/prp_notepad.gd"
 const SETTINGS := "res://menus/settings.gd"
 const CONSOLE := "res://lullaby_mod/resources/console/console.tscn"
+const KOLLECTADEX := "res://lullaby_mod/resources/kollectadex/kollectadex.tscn"
+const NOTE_LABEL := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/collectors_note_label.gd"
+const SCROLLING_CREDITS := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/buttons/credits/open_scrolling_credits.gd"
+const CREDITS := "res://lullaby_mod/scripts/lullaby/collectors_shop/console/credits_container.gd"
 
 var _failures: int = 0
 var _checks: int = 0
@@ -32,6 +36,7 @@ func _initialize() -> void:
 	_sound_checks()
 	_input_row_checks()
 	_stripped_material_checks()
+	_segunda_tanda()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
@@ -213,3 +218,66 @@ func _read(path: String) -> String:
 	var text: String = FileAccess.get_file_as_string(path)
 	_check(not text.is_empty(), "%s se lee" % path.get_file())
 	return text
+
+
+## Segunda tanda: lo que el .error del 2026-08-24 (moto g60s) encontro.
+##
+## Cuatro de los cinco tipos de error de esa sesion, y los tres que se pueden
+## fijar aqui. El cuarto - "Parameter \"material\" is null" x4 al montar la
+## cancion - y el quinto - la cascada de framebuffer de la pantalla de
+## resultados - siguen abiertos: no hay ni un nodo 3D en sng_safety_lullaby y
+## la cascada empieza dentro del RenderingDevice, asi que ninguno se resuelve
+## leyendo la escena.
+func _segunda_tanda() -> void:
+	# --- EditorInterface tumbaba el script entero, no solo su funcion.
+	var kdex: String = _read(KOLLECTADEX)
+	var fuente_ini: int = kdex.find('script/source = "')
+	var fuente: String = kdex.substr(fuente_ini, kdex.find('\n"', fuente_ini) - fuente_ini)
+	_check(not RegEx.create_from_string(r'(^|[^."\w])EditorInterface\s*\.').search(fuente),
+		"kollectadex no nombra EditorInterface como identificador")
+	_check(fuente.contains('Engine.has_singleton') and fuente.contains('Engine.get_singleton'),
+		"...lo pide por cadena, que no se resuelve al parsear")
+
+	# --- keyboard_get_keycode_from_physical no existe en Android.
+	for ruta: String in [NOTE_LABEL, SCROLLING_CREDITS]:
+		var codigo: String = _read(ruta)
+		var llamada: int = codigo.find("keyboard_get_keycode_from_physical")
+		var antes: String = codigo.substr(maxi(0, llamada - 300), 300)
+		_check(llamada >= 0 and antes.contains('OS.has_feature("mobile")'),
+			"%s consulta el teclado solo fuera de movil" % ruta.get_file())
+
+	# --- Un sprite_frames diferido que una PISTA conduce por nombre.
+	#
+	# La regla general, no el nodo. Diferir `sprite_frames` esta bien salvo que
+	# algo escriba `:animation` de ese mismo nodo desde una pista, porque una
+	# pista no se puede ordenar contra una carga perezosa: cada llave cae sobre
+	# un sprite vacio y suelta un error rojo. En el log fueron 22 de los 24
+	# errores de animacion - serena x11 y girlfriend x11, las dos del cartucho.
+	var consola: String = _read(CONSOLE)
+	var lista: int = consola.find("deferred = ")
+	var bloque: String = consola.substr(lista, consola.find("\n", lista) - lista)
+	var diferidos: PackedStringArray = []
+	for m in RegEx.create_from_string('"([^"]+):sprite_frames"').search_all(bloque):
+		diferidos.append(m.get_string(1))
+	var pistas: PackedStringArray = []
+	for m in RegEx.create_from_string(r'tracks/\d+/path = NodePath\("([^"]*):animation"\)').search_all(consola):
+		pistas.append(m.get_string(1))
+	var choques: PackedStringArray = []
+	for d: String in diferidos:
+		var hoja: String = d.get_file() if d.contains("/") else d
+		for t: String in pistas:
+			if t.get_file() == hoja or t == hoja:
+				choques.append("%s <- %s" % [d, t])
+	_check(choques.is_empty(),
+		"ningun sprite_frames diferido lo conduce una pista%s"
+			% ["" if choques.is_empty() else ": " + ", ".join(choques)])
+
+	# --- Los retratos de creditos no se conducen antes de tener hoja.
+	var creditos: String = _read(CREDITS)
+	_check(not _func_body(creditos, "_ready").contains("portrait_animation.play("),
+		"_ready no reproduce los retratos directamente")
+	_check(creditos.contains("func _want_portraits(") and creditos.contains("func _apply_portraits("),
+		"...pasa por el guardian que espera a los frames")
+	for sitio: String in ["next_index", "previous_index", "_on_animation_player_animation_finished"]:
+		_check(not _func_body(creditos, sitio).contains("portrait_animation.play("),
+			"%s tampoco reproduce directo" % sitio)
