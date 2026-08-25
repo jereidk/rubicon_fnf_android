@@ -5193,7 +5193,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ShowcaseMode")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath(".")
+focus_neighbor_bottom = NodePath("../NoMechanics")
 theme = ExtResource("1")
 text = "Song Speed: "
 alignment = 0
@@ -5207,6 +5207,22 @@ tooltip = "Plays the whole song, music included, faster or slower. The hit windo
 [node name="LullabyHideIfLocked" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay/SpeedHack" unique_id=3057231954]
 script = ExtResource("202")
 unlock_flag = &"speed_hack_unlocked"
+
+[node name="NoMechanics" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" unique_id=3057231955 node_paths=PackedStringArray("console") instance=ExtResource("52")]
+visible = false
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../SpeedHack")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+text = "No Mechanics"
+property = &"lullaby_no_mechanics"
+console = NodePath("../../../../../..")
+tooltip = "Leaves every song's special mechanic switched off - the pendulum, the typing challenge and the heartbeat. The chart plays exactly as it is."
+
+[node name="LullabyHideIfLocked" type="Node" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay/NoMechanics" unique_id=3057231956]
+script = ExtResource("202")
+unlock_flag = &"no_mechanics_unlocked"
 
 
 [node name="Visuals" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu" unique_id=1649986475 node_paths=PackedStringArray("tab_container", "default_focus")]

@@ -1130,6 +1130,16 @@ jobs:
           # cache immediately and would measure nothing.
           guard_godot tools/test_load_progress.gd
 
+          # === Verify SKILLISSUE really switches the mechanics off
+          # Six pieces in six files and every joint fails silently. The one
+          # that matters: a mechanic can simply never consult the setting, and
+          # then the code works, the checkbox appears, it saves, it loads, and
+          # the mechanic starts anyway with nothing reporting a problem. Each
+          # of the three is checked at the exact entry point its song's
+          # timeline drives, and named so a red line says which song lost its
+          # opt-out.
+          guard_godot tools/test_no_mechanics.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame

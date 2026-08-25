@@ -447,6 +447,7 @@ Shadows,Sombras,Sombras
 Shop Benchmark (No Precache),Banco de pruebas de la tienda (sin precarga),Benchmark da Loja (Sem Precache)
 Shop Benchmark (Precache),Banco de pruebas de la tienda (con precarga),Benchmark da Loja (Com Precache)
 Show Pause Button,Mostrar botón de pausa,Mostrar Botão de Pausa
+No Mechanics,Sin mecánicas,Sem Mecânicas
 Showcase Mode,Modo Demostración,Modo Showcase
 Shows the round pause button in the corner during songs. Off hides it entirely.,Muestra el botón redondo de pausa en la esquina durante las canciones. Apagado lo oculta por completo.,Mostra o botão redondo de pausa no canto durante as músicas. Off esconde ele por completo.
 "Size of the shadow map every light shares. Lower means blockier edges but real GPU and VRAM savings, one of the better knobs on a weak phone. Does nothing while Shadows is off.","Tamaño del mapa de sombras que comparten todas las luces. Menos significa bordes más toscos pero ahorro real de GPU y VRAM, uno de los mejores ajustes en un móvil modesto. No hace nada mientras las Sombras están apagadas.","Tamanho do mapa de sombras que todas as luzes compartilham. Menor significa bordas mais quadradas, mas economia real de GPU e VRAM, um dos melhores ajustes num celular fraco. Não faz nada com as Sombras desligadas."
@@ -575,6 +576,7 @@ WHICH YOU CAN ALSO FIND ON MY WEBSITE AND TWITTER.,QUE TAMBIÉN PUEDES ENCONTRAR
 "WHILE YOU WERE PLAYING, SOME OF THE UNOWNS FROM THAT MEATSACK OVER THERE CAME OUT! LITTLE BUGGERS WERE FLYING AROUND THE STORE AND GOT DISTRACTED WHEN YOU WON! TOOK THAT CHANCE TO PUT 'EM IN THE JAR, SO THANK YOU!","¡MIENTRAS JUGABAS, SALIERON ALGUNOS UNOWN DE ESE SACO DE CARNE DE AHÍ! LOS BICHITOS ESTABAN VOLANDO POR LA TIENDA Y SE DISTRAJERON CUANDO GANASTE. APROVECHÉ PARA METERLOS EN EL FRASCO, ¡ASÍ QUE GRACIAS!","ENQUANTO VOCÊ JOGAVA, ALGUNS DOS UNOWNS DAQUELE SACO DE CARNE ALI SAÍRAM! OS DESGRAÇADINHOS ESTAVAM VOANDO PELA LOJA E SE DISTRAÍRAM QUANDO VOCÊ GANHOU! APROVEITEI A CHANCE PRA COLOCAR ELES NO POTE, ENTÃO OBRIGADO!"
 "WOW, YOU PUT UP A DAMN GOOD FIGHT OUT THERE!","¡VAYA, VAYA PELEA QUE DISTE AHÍ FUERA!","UAU, VOCÊ DEU UMA BAITA DE UMA BRIGA LÁ FORA!"
 Warning Screen,Pantalla de advertencia,Tela de Aviso
+"Leaves every song's special mechanic switched off - the pendulum, the typing challenge and the heartbeat. The chart plays exactly as it is.","Deja apagada la mecánica especial de cada canción: el péndulo, el reto de escritura y el latido. El chart se juega tal cual.","Deixa desligada a mecânica especial de cada música: o pêndulo, o desafio de digitação e o batimento. O chart toca exatamente como é."
 "Watch the game play itself perfectly, hitting every note on its own.","Observa cómo el juego se juega solo a la perfección, acertando cada nota por su cuenta.","Assista ao jogo se jogando sozinho, acertando cada nota perfeitamente."
 Whatever you want.,Lo que tú quieras.,O que você quiser.
 What’d you think of it? D’you love it???,¿Qué te pareció? ¿Te encantó???,O que você achou? Você amou???

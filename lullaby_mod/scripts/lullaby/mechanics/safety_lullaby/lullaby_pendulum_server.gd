@@ -23,6 +23,17 @@ const META_NAME: StringName = &"lullaby_special"
 	get:
 		return started
 	set(val):
+		# "No mechanics": the pendulum never starts swinging.
+		#
+		# Same shape as the typing challenge - the request is rewritten to
+		# false rather than returned from, so `started` never leaves false and
+		# the switch-off Safety Lullaby's timeline performs later sees no
+		# change either. `changed` is computed after the rewrite so the
+		# start_changed listeners are not told about a start that did not
+		# happen.
+		if val and LullabyNoMechanics.wanted():
+			val = false
+
 		var changed: bool = val != started
 		started = val
 

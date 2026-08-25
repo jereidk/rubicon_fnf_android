@@ -58,6 +58,7 @@ var flags: Dictionary[StringName, bool] = {
 
 	&"showcase_mode_unlocked": false,
 	&"speed_hack_unlocked": false,
+	&"no_mechanics_unlocked": false,
 
 	&"console_area_seen": false, 
 	&"console_boot_seen": false, 

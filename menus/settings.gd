@@ -312,6 +312,27 @@ var lullaby_shader_cache_uuid: String = ""
 var lullaby_baby_mode: bool = false
 var lullaby_showcase_mode: bool = false
 
+## Leaves every song's special mechanic switched off, so what is left is the
+## chart and nothing else.
+##
+## What it turns off, one per song: Safety Lullaby's pendulum, Monochrome's
+## typing challenge, and Chimera's heartbeat. Each of those is switched on and
+## off BY THE SONG'S OWN TIMELINE at fixed times, not by the player reaching
+## something, so refusing to switch on is safe on its own - the timeline still
+## runs, still switches the mechanic off later, and the song carries on. That
+## is what lets this be a single early-out at each mechanic's entry point
+## instead of a mode the rest of the game has to know about, and it is worth
+## writing down because the opposite arrangement would deadlock: a mechanic
+## that gates progress would have to be auto-COMPLETED rather than skipped.
+## These do not gate anything, and that was checked before relying on it.
+##
+## Nothing here touches the chart, the judgment windows or the scoring. It is
+## not an easy mode for the notes; it removes the parts that are not notes.
+##
+## Locked behind SKILLISSUE in the console's Hacks tab, same as Showcase Mode
+## and the speed hack.
+var lullaby_no_mechanics: bool = false
+
 ## Plays the whole song faster or slower. Not the same as
 ## game_speed_multiplier above, which only changes how fast the notes travel
 ## toward you: here the chart, the music and everything keyed to the song

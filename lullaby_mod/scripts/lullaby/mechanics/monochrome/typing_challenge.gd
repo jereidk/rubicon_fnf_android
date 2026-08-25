@@ -27,6 +27,17 @@ class_name TypingChallenge extends Node
 	get:
 		return _active
 	set(val):
+		# "No mechanics": the challenge never switches on.
+		#
+		# Folded into `val` instead of returning early on purpose. Rewriting
+		# the request to false makes the switch-off that Monochrome's timeline
+		# performs later a no-op too, because `_active` never left false and
+		# the `_active != val` guard below sees no change - so end_challenge()
+		# is not called on a challenge that never began. An early `return` here
+		# would leave `_active` stale and do exactly that.
+		if val and LullabyNoMechanics.wanted():
+			val = false
+
 		if _active != val:
 			if val:
 				initiate_challenge()

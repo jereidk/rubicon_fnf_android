@@ -88,6 +88,19 @@ signal beat_hit
 signal beat_missed
 
 func initialize() -> void :
+	# "No mechanics": never switch on.
+	#
+	# Safe as a plain early-out, and stop() rather than a bare return so the
+	# state is the same one stop() leaves - Chimera's timeline calls stop() at
+	# a fixed time regardless, so nothing is waiting on a heartbeat that is
+	# not coming, and a cycle that never starts can never reach
+	# mechanic_failed.
+	if LullabyNoMechanics.wanted():
+		if verbose:
+			print("Heartbeat skipped: no mechanics.")
+		stop()
+		return
+
 	if verbose:
 		print("Started heartbeat.")
 

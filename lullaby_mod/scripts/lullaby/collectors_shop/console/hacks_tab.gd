@@ -13,6 +13,7 @@ const CODES: Dictionary[String, StringName] = {
 	"SERENAHEX": &"chimera",
 	"SHOWCASE": &"showcase_mode",
 	"SPEEDHACK": &"speed_hack",
+	"SKILLISSUE": &"no_mechanics",
 }
 
 ## Not a real code - unlocks nothing, sets no flag, so it can be entered as

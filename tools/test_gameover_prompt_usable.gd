@@ -128,6 +128,7 @@ func _scene_checks(key: String, path: String) -> void:
 		_check(button.custom_minimum_size.x >= 100.0 and button.custom_minimum_size.y >= 44.0,
 			"[%s] el boton %s es de un tamaño tocable (%s)"
 				% [key, button.name, button.custom_minimum_size])
+		_legible_checks(key, button as Control)
 
 	for action: StringName in WANTED:
 		_check(actions.has(String(action)),
@@ -155,6 +156,62 @@ func _scene_checks(key: String, path: String) -> void:
 				% [key, property, blocker])
 
 	screen.queue_free()
+
+
+## That the text on the button can actually be SEEN, not merely that it exists.
+##
+## The seventh link in the chain, and the one that broke. Every check above
+## passed on both screens while the buttons were invisible on the device: they
+## were present, enabled, tappable, correctly sized, dispatching handled
+## actions, on a layer nothing covered - and drawn as BLACK 8-PIXEL text on a
+## StyleBoxEmpty over unlit death art. `thm_kanto.tres` and `thm_johto.tres`
+## are pause-menu themes, correct inside the pause menu's light Panel and
+## catastrophic without it.
+##
+## Checked where the pixels are, which is not where it looks like it should
+## be. RubiconActionButton clears the Button's own `text` when `verb` is set
+## and builds a child Label to hold it, so the colour and size that decide
+## legibility are resolved against `Label/...`, not `Button/...`. Reading the
+## Button's own theme entries would have reported healthy numbers for text
+## nobody can see - so this walks down to the Label and asks IT.
+##
+## get_theme_color/font_size on the node resolve the same way the renderer
+## does: node overrides, then ancestor themes, then the default theme. That is
+## the number that ends up on screen.
+func _legible_checks(key: String, button: Control) -> void:
+	var verb: Label = null
+	var stack: Array[Node] = [button]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node.name == &"Verb" and node is Label:
+			verb = node
+			break
+		stack.append_array(node.get_children())
+
+	_check(verb != null, "[%s] el boton %s tiene su Label de texto" % [key, button.name])
+	if verb == null:
+		return
+
+	var color: Color = verb.get_theme_color(&"font_color")
+	var size: int = verb.get_theme_font_size(&"font_size")
+	var outline: int = verb.get_theme_constant(&"outline_size")
+	var outline_color: Color = verb.get_theme_color(&"font_outline_color")
+
+	# Luma, not "is it black": grey on grey fails the same way and a threshold
+	# on one channel would miss it.
+	var luma: float = 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
+	_check(luma > 0.5 and color.a > 0.9,
+		"[%s] %s: el texto es claro (luma %.2f alfa %.2f)" % [key, button.name, luma, color.a])
+	_check(size >= 24,
+		"[%s] %s: el texto es legible de tamaño (%dpx)" % [key, button.name, size])
+
+	# The outline is what lets light text survive on light art, so it is not
+	# optional - without it this check just moves the failure to a pale scene.
+	var outline_luma: float = 0.2126 * outline_color.r + 0.7152 * outline_color.g \
+		+ 0.0722 * outline_color.b
+	_check(outline >= 4 and outline_color.a > 0.9 and outline_luma < 0.35,
+		"[%s] %s: lleva contorno oscuro (%dpx luma %.2f alfa %.2f)"
+			% [key, button.name, outline, outline_luma, outline_color.a])
 
 
 func _check(ok: bool, what: String) -> void:
