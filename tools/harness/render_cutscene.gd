@@ -106,6 +106,30 @@ var _preset: String = "High"
 ## `preset=High` existe para evitar.
 var _msaa: String = ""
 
+## Tamaño del atlas de sombras posicionales para la captura. <0 = lo del preset.
+## 0 = sombras apagadas.
+##
+## Es LA palanca sospechosa de las tres horas, y el numero es absurdo escrito al
+## lado del otro: `qol_high.tres` pide `positional_shadow_atlas_size = 4096`, o
+## sea **16.8 megapixeles de atlas**, contra un viewport de 1.05 Mpx. El atlas
+## es dieciseis veces el frame que se esta grabando, y bajo un rasterizador por
+## software hay que rasterizar profundidad ahi dentro en cada frame.
+##
+## Encaja con lo unico que sabemos con certeza de este coste: es PLANO. Los 2078
+## latidos de la corrida #189 dan 5154 ms/frame sobre pantalla negra y 5165 en
+## la intro - 0.2% de dispersion. Un atlas de sombras se rasteriza igual pase lo
+## que pase por delante, que es exactamente esa forma. Lo que se dibuja encima
+## no mueve la aguja porque el grueso se paga antes de llegar ahi.
+##
+## En 4096 esto tiene sentido en un telefono a resolucion nativa. Para un video
+## que se entrega a 960 de ancho, no: 1024 sigue dando mas resolucion de sombra
+## por pixel entregado de la que el jugador puede ver.
+##
+## Sin medir todavia. Por eso es un parametro y no un cambio: `sombras=1024`
+## contra el mismo tramo dice cuanto de los 1910 ms/frame se va aqui, y solo
+## entonces se decide.
+var _sombras: int = -1
+
 ## Escala del bufer 3D para la captura. <= 0 = lo que diga el preset.
 ##
 ## Es LA palanca en una escena 3D y no sirve para nada en una 2D, porque
@@ -169,6 +193,9 @@ func _ready() -> void:
 			_from = float(a.substr(6))
 		elif a.begins_with("escala="):
 			_scale = float(a.substr(7))
+		elif a.begins_with("sombras="):
+			var v: String = a.substr(8)
+			_sombras = 0 if v == "off" else int(v)
 
 	if _scene_path.is_empty():
 		printerr("OUT falta la escena")
@@ -224,10 +251,18 @@ func _force_preset() -> void:
 		settings.set("graphics_msaa_3d_quality", Viewport.MSAA_DISABLED)
 	if _scale > 0.0:
 		settings.set("graphics_render_scale", _scale)
+	if _sombras >= 0:
+		if _sombras == 0:
+			settings.set("graphics_shadows_enabled", false)
+		else:
+			settings.set("graphics_shadows_enabled", true)
+			settings.set("graphics_positional_shadow_atlas_size", _sombras)
 	settings.call("apply_settings")
-	print("OUT preset forzado=%s escala=%s msaa=%s" % [
+	print("OUT preset forzado=%s escala=%s msaa=%s sombras=%s@%s" % [
 		chosen.get("name"), str(settings.get("graphics_render_scale")),
-		str(settings.get("graphics_msaa_3d_quality"))])
+		str(settings.get("graphics_msaa_3d_quality")),
+		str(settings.get("graphics_shadows_enabled")),
+		str(settings.get("graphics_positional_shadow_atlas_size"))])
 
 
 ## La canción se cuelga DIRECTAMENTE de `root`, como hija suya y hermana de
