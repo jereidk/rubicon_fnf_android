@@ -1233,8 +1233,8 @@ func _process(delta: float) -> void:
 		# Before the entry is written, so bench= describes the same moment the
 		# rest of the line does. Counted in self=, like everything else here.
 		_run_bench()
-		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms %s" % [
-			fps, _lowest_fps, median, _take_frame_shape(),
+		_entry("HEARTBEAT", "fps_now=%d fps_low=%d median=%.1fms %s %s" % [
+			fps, _lowest_fps, median, _take_frame_shape(), _light2d_summary(),
 		])
 		_lowest_fps = -1
 
@@ -1591,6 +1591,41 @@ func _light2d_rank_text(rank: Array) -> String:
 		parts.append(String(rank[i][1]))
 	return ", ".join(parts)
 
+## `luz2d=` for the heartbeat: how many 2D lights are live and how much screen
+## they add up to.
+##
+## The sum is the number that matters and it is not the count. Godot's canvas
+## renderer draws each affected CanvasItem AGAIN, once per light touching it,
+## so what multiplies the fill is total coverage, not how many lights exist -
+## one PointLight2D at texture_scale 4.0 across the whole frame costs more
+## than three small ones. `over=` counts items once and cannot see any of it.
+##
+## Reported every heartbeat, off the per-scene cache, because the census that
+## used to be the only source of this missed the whole of Safety Lullaby. See
+## _light2d_watch.
+func _light2d_summary() -> String:
+	var live: int = 0
+	var total_cover: float = 0.0
+	var top_cover: float = 0.0
+	var top_name: String = "-"
+
+	for light: Light2D in _light2d_watch:
+		if not is_instance_valid(light):
+			continue
+		var share: float = _light2d_coverage(light)
+		if share <= 0.0:
+			continue
+		live += 1
+		total_cover += share
+		if share > top_cover:
+			top_cover = share
+			top_name = _scene_relative_path(light)
+
+	return "luz2d=%d/%d suma=%.2fx top=%s@%.2fx" % [
+		live, _light2d_watch.size(), total_cover, top_name, top_cover,
+	]
+
+
 ## How much of the frame this 2D light reaches, as a fraction of one screen.
 ##
 ## Zero for a light that cannot cost anything: switched off, hidden, no energy,
@@ -1730,6 +1765,23 @@ var _blackout_on: Dictionary = {}
 ## 79.81ms" into a per-frame read of about a hundred is_playing() calls.
 var _mixer_watch: Array[AnimationMixer] = []
 
+## Las Light2D de la escena, recogidas una vez por escena en el mismo barrido
+## que las demas listas.
+##
+## Existe porque el censo se perdio la unica ventana que importaba. En el log
+## del 2026-08-24 Safety Lullaby corre de 198s a 265s con `gpu` clavado en
+## 32ms, y los cuatro censos cayeron a 198.76, 199.60 (intro), 225.03 (intro
+## otra vez) y 255.04 (gameover) - ninguno durante la cancion. `luz2d=` y
+## `luces2d=` solo salen en el censo, asi que el numero que decide si el
+## presupuesto de luces 2D se esta aplicando no se midio.
+##
+## Subir la frecuencia del censo no era la respuesta: `self=` dice que uno
+## cuesta 4.6-15.4ms en esa escena, o sea que medir mas seguido habria metido
+## justo el tipo de hipo que estamos persiguiendo. Cachear la lista lo deja en
+## un bucle de trece elementos con aritmetica de rectangulos, que sale en cada
+## heartbeat sin que se note.
+var _light2d_watch: Array[Light2D] = []
+
 ## The AnimationPlayer that drives the song's sequences, if the running scene
 ## has one, so seq= can name the moment every line was written at.
 ##
@@ -1772,6 +1824,7 @@ func _collect_blackout_watch() -> void:
 	_blackout_watch.clear()
 	_blackout_on.clear()
 	_mixer_watch.clear()
+	_light2d_watch.clear()
 	_visual3d_watch.clear()
 	_particles_watch.clear()
 
@@ -1812,6 +1865,9 @@ func _collect_blackout_watch() -> void:
 			_skeleton_bones += skeleton.get_bone_count()
 		if _aim_controller == null and node is MouseController:
 			_aim_controller = node
+		var light2d := node as Light2D
+		if light2d != null:
+			_light2d_watch.append(light2d)
 		var visual := node as VisualInstance3D
 		if visual != null:
 			_visual3d_watch.append(visual)

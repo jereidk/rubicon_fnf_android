@@ -1033,6 +1033,19 @@ jobs:
           # rojo por frame de Safety Lullaby, la cancion que ya va a 30fps.
           guard_godot tools/test_error_log_findings.gd
 
+          # === luz2d= en el heartbeat, no solo en el censo
+          # El log del 2026-08-24 tiene Safety Lullaby de 198s a 265s con gpu
+          # clavado en 32ms y CERO 3D: la cancion esta limitada por relleno, y
+          # lo unico que multiplica el relleno 2D es la cobertura de Light2D -
+          # el renderizador de canvas redibuja cada CanvasItem una vez por luz
+          # que lo toca. Ese numero solo salia en el CENSUS, y los cuatro
+          # censos de esa sesion cayeron en la intro y en el gameover: sesenta
+          # y seis segundos del problema exacto, sin medir. Subir la frecuencia
+          # del censo era la respuesta obvia y la equivocada - self= dice que
+          # uno cuesta 4.6-15.4ms ahi, o sea que habria inyectado el hipo que
+          # investigamos. La lista se cachea por escena y el latido la reduce.
+          guard_godot tools/test_heartbeat_light2d.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
