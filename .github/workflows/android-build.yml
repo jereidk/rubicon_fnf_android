@@ -38,6 +38,17 @@ on:
           own decoder, so 960 is ~3.1ms/frame and 1366 is ~5.9ms.
         required: false
         default: '960'
+      cutscene_fps:
+        description: >-
+          Recording frame rate. 60 by default, and measured rather than
+          assumed: the same content at 960x540 costs 6.82 CPU-seconds at 30fps
+          and 8.23 at 60 over the same 20s, so twice the frames is only 21%
+          more CPU - each frame carries less change and decodes cheaper (2.84
+          ms/decode at 30, 1.71 at 60). It also paces better in a 60fps game: a
+          small cost every frame instead of a bigger one every other frame.
+          Costs 52% more bytes.
+        required: false
+        default: '60'
       cutscene_quality:
         description: >-
           libtheora -q:v, 0-10. Measured on the engine's own decoder at
@@ -1308,7 +1319,7 @@ jobs:
           set +e
           xvfb-run -a -s "-screen 0 1920x1080x24" "$GODOT" \
             --path . --rendering-driver opengl3 --rendering-method gl_compatibility \
-            --write-movie "$raw" --fixed-fps 30 --disable-vsync \
+            --write-movie "$raw" --fixed-fps "${{ inputs.cutscene_fps }}" --disable-vsync \
             res://tools/harness/render_cutscene.tscn \
             -- ${{ inputs.render_cutscene }} 2>&1 | tee /tmp/render.log
           set -e
