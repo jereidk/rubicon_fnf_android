@@ -126,25 +126,45 @@ func _force_preset() -> void:
 		chosen.get("name"), str(settings.get("graphics_render_scale"))])
 
 
-## La escena pasa a ser la escena actual, no un hijo de este nodo: es lo que
-## hace que las rutas `../` de las pistas resuelvan igual que en el juego.
+## La canción se cuelga DIRECTAMENTE de `root`, como hija suya y hermana de
+## este nodo.
+##
+## Que sea hija de `root` y no de este nodo es el punto entero: las pistas de
+## animación de la escena usan rutas relativas que suben un nivel
+## (`../IntroCutscene:visible`), y un nodo de más en medio las manda fuera del
+## árbol. `scene_shot.gd` hace `add_child(scene)` y por eso el motor le dice
+## "couldn't resolve track: '../IntroCutscene:visible'" - avisos que el log del
+## dispositivo NO tiene, o sea artefactos del harness.
+##
+## Lo que NO se puede usar es `change_scene_to_file()`, aunque sea lo obvio y
+## sea lo que hacía la primera versión: libera la escena actual, y la escena
+## actual es ESTE nodo. Se mataba a sí mismo, `get_tree()` pasaba a devolver
+## null en el `await` siguiente y el render moría con
+##
+##     ERROR: Parameter "data.tree" is null.  at: get_tree()
+##     SCRIPT ERROR: Invalid access to property 'process_frame' on a null instance
+##
+## sin que nadie llamase nunca a `quit()`: Movie Maker seguía grabando la
+## escena para siempre, escribiendo AVI crudo a ~46MB cada 20s hasta que se
+## cancelase el job. El montaje en sí estaba bien - en ese log no hay un solo
+## aviso de `../IntroCutscene` sin resolver - lo único roto era el harness
+## sobreviviéndose.
 func _swap() -> void:
-	var err: int = get_tree().change_scene_to_file(_scene_path)
-	if err != OK:
-		printerr("OUT no se pudo cambiar de escena: %d" % err)
+	var packed: PackedScene = load(_scene_path) as PackedScene
+	if packed == null:
+		printerr("OUT no se pudo cargar la escena: %s" % _scene_path)
 		get_tree().quit(1)
 		return
 
-	# change_scene_to_file() es diferido: el árbol nuevo existe en el frame
-	# siguiente.
-	await get_tree().process_frame
-	await get_tree().process_frame
+	var current: Node = packed.instantiate()
+	var tree: SceneTree = get_tree()
+	tree.root.add_child(current)
+	# Para cualquier código de la canción que pregunte por la escena actual.
+	tree.current_scene = current
 
-	var current: Node = get_tree().current_scene
-	if current == null:
-		printerr("OUT la escena no montó")
-		get_tree().quit(1)
-		return
+	# Un par de frames para que todos los _ready() y los mixers se asienten.
+	await tree.process_frame
+	await tree.process_frame
 
 	_clock = _find_player(current, _anim)
 	if _clock == null:

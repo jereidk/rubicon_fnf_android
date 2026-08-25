@@ -74,6 +74,7 @@ func _run() -> void:
 	await process_frame
 
 	_wiring_checks()
+	await _harness_survives_checks()
 	await _behaviour_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
@@ -141,6 +142,83 @@ func _capture_preset_checks() -> void:
 	var swap_at: int = harness.find("_swap.call_deferred()")
 	_check(force_at >= 0 and swap_at > force_at,
 		"...antes de montar la escena, no después")
+
+	# El bug que costó la corrida #179: change_scene_to_file() libera la escena
+	# actual, y la escena actual es el propio harness.
+	#
+	# Sobre el CÓDIGO, no sobre el fichero: el docstring del harness nombra
+	# `change_scene_to_file()` justo para explicar por qué no se usa, y la
+	# primera versión de este check se lo comió y dio rojo sobre el arreglo
+	# correcto. Es el mismo tropiezo que test_console_wiring.gd tuvo con
+	# "TabContainer".
+	_check(not _code_only(harness).contains("change_scene_to_file"),
+		"el harness NO usa change_scene_to_file (se liberaría a sí mismo)")
+	_check(_func_body(harness, "_swap").contains("tree.root.add_child(current)"),
+		"...cuelga la canción de root directamente, sin un nodo en medio")
+
+
+## Y ahora ejecutándolo, porque los dos checks de texto de arriba son la lección
+## de ayer y no protegen de la de mañana.
+##
+## En la corrida #179 el harness llamó a `change_scene_to_file()`, que liberó la
+## escena actual - o sea el harness - y el `await get_tree().process_frame` de
+## la línea siguiente reventó contra un `null`. Nadie llamó nunca a `quit()`, así
+## que Movie Maker se quedó grabando la canción indefinidamente. Lo que hace que
+## eso sea caro no es el fallo, es que el fallo NO PARA el render.
+##
+## Así que esto monta el harness contra una escena de juguete y comprueba lo
+## único que importa: que después de montar siga vivo y con árbol.
+func _harness_survives_checks() -> void:
+	var script: GDScript = load(HARNESS)
+	_check(script != null, "render_cutscene.gd carga como script")
+	if script == null:
+		return
+
+	# Una escena mínima con un AnimationPlayer y una animación conocida, para no
+	# acoplar la prueba a contenido del juego.
+	var toy_root := Node2D.new()
+	toy_root.name = "Juguete"
+	var player := AnimationPlayer.new()
+	player.name = "Timeline"
+	var anim := Animation.new()
+	anim.length = 12.0
+	var lib := AnimationLibrary.new()
+	lib.add_animation(&"play", anim)
+	player.add_animation_library(&"", lib)
+	toy_root.add_child(player)
+	player.owner = toy_root
+
+	var packed := PackedScene.new()
+	packed.pack(toy_root)
+	var toy_path: String = "user://toy_cutscene.tscn"
+	_check(ResourceSaver.save(packed, toy_path) == OK, "se guarda la escena de juguete")
+	toy_root.queue_free()
+
+	var node: Node = script.new()
+	node.set("_scene_path", toy_path)
+	node.set("_anim", &"play")
+	node.set("_until", 999.0)  # que no corte durante la prueba
+	root.add_child(node)
+
+	await node.call("_swap")
+	await process_frame
+
+	_check(is_instance_valid(node), "el harness sigue VIVO después de montar la escena")
+	if is_instance_valid(node):
+		_check(node.get_tree() != null,
+			"...y sigue en el árbol, que es lo que reventó en la corrida #179")
+		_check(node.get("_clock") != null,
+			"...y encontró el reloj de la escena montada")
+
+	var mounted: Node = root.get_node_or_null(^"Juguete")
+	_check(mounted != null, "la canción quedó colgada de root")
+	if mounted != null:
+		_check(mounted.get_parent() == root,
+			"...directamente de root, sin un nodo en medio que rompa las rutas ../")
+		mounted.queue_free()
+	if is_instance_valid(node):
+		node.queue_free()
+	await process_frame
 
 
 func _behaviour_checks() -> void:
@@ -265,6 +343,17 @@ func _video_players(node: Node) -> int:
 		for child in n.get_children():
 			stack.append(child)
 	return found
+
+
+## El fichero sin sus comentarios, para que un check mire lo que se ejecuta.
+func _code_only(text: String) -> String:
+	var out: PackedStringArray = []
+	for line: String in text.split("\n"):
+		var stripped: String = line.strip_edges()
+		if stripped.begins_with("#"):
+			continue
+		out.append(line)
+	return "\n".join(out)
 
 
 func _func_body(text: String, name: String) -> String:
