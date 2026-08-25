@@ -287,9 +287,10 @@ func _segunda_tanda() -> void:
 
 ## `Memory: %s B` en pantalla: un format sin substitucion.
 ##
-## Visto en una captura del moto g60s. `to_memory_format()` devolvia el literal
-## "%s B" en su rama de menos de 1024 bytes, y esa rama se alcanza de verdad
-## porque OS.get_static_memory_usage() devuelve 0 en ese dispositivo - el log de
+## Visto en una captura de una build de release. `to_memory_format()` devolvia
+## el literal "%s B" en su rama de menos de 1024 bytes, y esa rama se alcanza
+## SIEMPRE en release: OS.get_static_memory_usage() devuelve 0 ahi, asi que
+## toda build enviada mostraba el literal, no solo un dispositivo. El log de
 ## diagnostico ya escribia `ram=n/a` por lo mismo.
 ##
 ## Manejado, no leido: las seis ramas de la funcion se piden y se comprueban.

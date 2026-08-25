@@ -309,7 +309,10 @@ func to_memory_format(mem: int) -> String:
 		return "%d B" % mem
 	else:
 		# Sin substitucion, esta rama devolvia el literal "%s B" y el jugador
-		# leia `Memory: %s B` en pantalla - visto en el moto g60s, donde
-		# OS.get_static_memory_usage() devuelve 0. El log de diagnostico ya
-		# escribe `ram=n/a` para ese mismo caso; esto dice lo mismo.
+		# leia `Memory: %s B` en pantalla.
+		#
+		# Y la rama se alcanza siempre en release, no en un dispositivo
+		# concreto: OS.get_static_memory_usage() devuelve 0 en una build de
+		# release pura, asi que TODA build enviada mostraba el literal. El log
+		# de diagnostico ya escribe `ram=n/a` por lo mismo; esto dice igual.
 		return "n/a"
