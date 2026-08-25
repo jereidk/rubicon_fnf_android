@@ -1501,8 +1501,30 @@ jobs:
           # fotogramas darian rojos falsos. Lo que se exige es que ALGUNOS
           # tengan imagen de verdad, que es lo que distingue "renderizo" de
           # "no renderizo".
+          # El ritmo de muestreo sale de la duracion, no es fijo.
+          #
+          # Era `fps=1/4` -una muestra cada cuatro segundos- y eso hacia el
+          # guard INCAPAZ de comprobar cualquier video de menos de 4s: sobre el
+          # clip de 2.017s de la corrida #190 saco cero muestras y el paso
+          # murio con "no se pudo muestrear ni un fotograma", que suena a video
+          # roto cuando lo roto era el muestreador. Y los videos cortos son
+          # justo los que se usan para sondear el coste de un render antes de
+          # gastar horas en el largo.
+          #
+          # Ocho muestras repartidas, dure lo que dure: 8/duracion frames por
+          # segundo. Un clip de 2s se muestrea a ~4fps y uno de 35s a ~0.23fps,
+          # y los dos dan ocho imagenes.
+          #
+          # Sin suelo, y el primer intento lo llevaba: `max(0.5, 8/duracion)`
+          # parece prudente y hace justo lo contrario de lo que dice el parrafo
+          # de arriba - sobre 35 segundos el suelo gana y saca diecisiete
+          # muestras en vez de ocho. Un ritmo bajo no es un problema para
+          # ffmpeg; el unico caso raro es una duracion diminuta, y para eso
+          # basta con no dividir por cero.
+          ritmo=$(python3 -c "print(8.0/max(float('$duracion'), 0.1))")
+          echo "muestreando a ${ritmo} fps sobre ${duracion}s"
           ffmpeg -y -loglevel error -i "$out" \
-            -vf "fps=1/4,scale=320:-2" builds/cutscene/muestra_%02d.png
+            -vf "fps=${ritmo},scale=320:-2" builds/cutscene/muestra_%02d.png
           python3 - <<'PY'
           import glob, sys
           import numpy as np
@@ -1524,10 +1546,13 @@ jobs:
               print(f"  {p.split('/')[-1]}  luma={media:6.2f}  desv={desv:6.2f}{marca}")
 
           # Un tercio de las muestras, con suelo de 1: proporcional en vez de un
-          # numero fijo, porque a fps=1/4 un clip corto da una sola muestra y un
-          # minimo absoluto de 3 lo suspenderia por ser corto, no por estar en
-          # blanco. Comprobado sobre dos videos reales: negro puro da desviacion
-          # 0.0 en las ocho muestras, el render de verdad da 26.6.
+          # numero fijo, porque un minimo absoluto de 3 suspenderia un clip por
+          # ser corto y no por estar en blanco. Ahora el muestreador siempre
+          # saca ocho, asi que el minimo es 3 en la practica - la
+          # proporcionalidad se queda porque sigue siendo lo correcto si algun
+          # dia el ritmo vuelve a depender de la duracion.
+          # Comprobado sobre dos videos reales: negro puro da desviacion 0.0 en
+          # las ocho muestras, el render de verdad da 26.6.
           minimo = max(1, -(-len(shots) // 3))
           print(f"{vivos} de {len(shots)} fotogramas con imagen (hacen falta {minimo})")
           if vivos < minimo:
