@@ -54,15 +54,37 @@ var _until: float = 5.0
 
 ## Posicion del reloj desde la que empezar. 0 = desde el principio.
 ##
-## SOLO PARA SONDEAR, y la razon importa: adelantar el reloj con seek() aplica
-## las pistas de valor hasta ese punto, pero NO vuelve a disparar las pistas de
-## metodo que ya pasaron. En Chimera la pista `../Sequences/SequencePlayer`
-## tiene llaves en 0.0, 3.0, 19.9167 y 34.5833 - saltar a 19.9 aplica el estado
-## visible pero no ejecuta las dos llamadas anteriores, asi que lo que sale
-## puede no ser lo que el jugador ve.
+## **NO SIRVE EN CHIMERA, y decia que si.** Este bloque prometia responder
+## "¿esta parte sale iluminada?" en dos minutos. Probado en la corrida #191 con
+## `desde=54 hasta=57`, sobre la sesion de fotos: el video salio con el HUD, las
+## notas y el marcador sobre **negro absoluto**, sin casa, sin luces y sin
+## Serena.
 ##
-## Para una captura de entrega hay que grabar desde 0. Esto existe para
-## responder "¿esta parte sale iluminada?" en dos minutos en vez de treinta.
+## La razon es mas honda que la que estaba escrita aqui. Decia que seek() aplica
+## las pistas de valor y no dispara las de metodo, lo cual es cierto y era la
+## mitad del problema. La otra mitad: en Chimera casi todo el estado visible no
+## vive en la animacion maestra, vive en los **clips** que ella despacha a
+## `Sequences/SequencePlayer`. Saltar el reloj maestro a 54 no hace que
+## `104_photographysesh` se haya reproducido nunca, asi que **ninguna** de sus
+## pistas se aplica - ni las de metodo ni las de valor. La camara se queda en su
+## pose authorada, las luces en su estado authorado, y lo unico que se dibuja es
+## lo que la animacion maestra controla directamente: el HUD.
+##
+## Descartado antes de concluir esto, para no repetir el error de culpar a lo
+## primero que suena razonable: no es `PreloadCamera` -su `_ready()` sale por
+## `finish_preload()` cuando `SceneChanger.awaiting_manual_end` es false, que es
+## el caso aqui, asi que no esconde nada- y no es el `Prelude/Black`, que ship
+## `visible = false` igual que su padre.
+##
+## Asi que para una captura de entrega hay que grabar **desde 0** y recortar
+## despues con ffmpeg. Y para sondear el coste de un tramo del medio, esto
+## tampoco vale: mide el coste de dibujar una pantalla negra.
+##
+## Lo que lo arreglaria es adelantar el reloj con `advance()` en pasos en vez de
+## saltar con `seek()`, que si despacha los clips por el camino. No esta hecho y
+## no esta verificado - se apunta aqui porque es tambien lo que desbloquearia
+## renderizar tramos en paralelo, que es la unica forma de que un video del
+## medio de Chimera entre en el limite de 6 horas de un job.
 var _from: float = 0.0
 var _preset: String = "High"
 
