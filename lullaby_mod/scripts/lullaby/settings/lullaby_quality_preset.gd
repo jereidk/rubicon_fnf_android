@@ -200,6 +200,31 @@ var anisotropic_filtering: int = 2
 ## means to look right and keeps 1.
 @export_range(1, 4, 1) var atlas_frame_step: int = 1
 
+## Cambiar una cutscene viva por su vídeo pre-renderizado, donde lo haya.
+##
+## Es el único lever de esta lista que no degrada nada de lo que el jugador ve:
+## el vídeo se renderiza desde la escena real, así que la imagen es la misma
+## salvo por la compresión. Lo que cambia es de dónde sale.
+##
+## La intro de Safety Lullaby, medida en el dispositivo el 2026-08-24: 31.5
+## segundos con `draw=3-7`, `prims=68-76`, `over=0.6x` y `cpu_render=0.6-1.7ms`
+## - o sea que no es relleno ni es el renderizador - y aun así un tercio de sus
+## frames pasan de 28ms, con picos de 50-86ms en cada transición de plano. El
+## gasto es CPU de animación: la escena entera de la canción corre detrás de una
+## cutscene de 22 nodos, con `trees=15(active=15)` y hasta 105 pistas.
+##
+## El vídeo lo cambia por un coste plano y conocido. Sobre el decodificador real
+## del motor, `ms = 1.32 + 3.49 x Mpx`, o sea ~2.8ms/frame a 960x432 en el Xeon
+## de referencia; libtheora va en C genérico en todas las plataformas (el
+## SConstruct de Godot fija `x86_libtheora_opt_gcc` a False y la carpeta `arm/`
+## ni está vendorizada), así que el teléfono corre ese mismo código y la
+## diferencia es solo de microarquitectura.
+##
+## Va en los presets bajos y no en los altos porque en un dispositivo que
+## aguanta la escena viva, la escena viva es mejor: se puede seguir editando sin
+## re-renderizar, y no cuesta los megas del .ogv.
+@export var prefer_cutscene_video: bool = false
+
 func is_matching(settings: LullabySettings) -> bool:
 	return (settings.graphics_scaling_mode == scaling_3d_mode and
 		settings.graphics_render_scale == render_scale and
@@ -220,6 +245,7 @@ func is_matching(settings: LullabySettings) -> bool:
 		settings.graphics_hide_baked_lights == hide_baked_lights and
 		settings.graphics_disable_optional_2d_lights == disable_optional_2d_lights and
 		settings.graphics_cheap_shading == cheap_shading and
+		settings.graphics_prefer_cutscene_video == prefer_cutscene_video and
 		settings.graphics_atlas_frame_step == atlas_frame_step
 	)
 
@@ -243,4 +269,5 @@ func apply(settings: LullabySettings) -> void :
 	settings.graphics_hide_baked_lights = hide_baked_lights
 	settings.graphics_disable_optional_2d_lights = disable_optional_2d_lights
 	settings.graphics_cheap_shading = cheap_shading
+	settings.graphics_prefer_cutscene_video = prefer_cutscene_video
 	settings.graphics_atlas_frame_step = atlas_frame_step

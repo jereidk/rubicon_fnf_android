@@ -150,6 +150,19 @@ var graphics_hide_baked_lights: bool = false
 ## on fill that no counter in the log could see until now.
 var graphics_disable_optional_2d_lights: bool = false
 
+## Let a cutscene hand over to its pre-rendered video, where one exists.
+##
+## Read by LullabyCutsceneVideo, which is a node in the scene rather than a walk
+## from here: swapping a cutscene is a per-scene authoring decision (which node,
+## which file, which clock position), not something a tree walk can infer - the
+## same reason OPTIONAL_2D_LIGHT_GROUP is a group.
+##
+## See LullabyQualityPreset.prefer_cutscene_video for the measurements. The
+## short version: the intro of Safety Lullaby is not fill-bound and not
+## renderer-bound, it is animation-CPU-bound, and a video replaces 50-86ms
+## spikes with a flat ~3ms per decoded frame.
+var graphics_prefer_cutscene_video: bool = false
+
 ## Drop Burley diffuse and Schlick-GGX specular from 3D materials, which every
 ## one of them runs per light per fragment purely because they are Godot's
 ## defaults. Applied by MobileLightBudget; metallic materials keep their

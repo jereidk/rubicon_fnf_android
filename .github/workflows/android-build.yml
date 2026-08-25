@@ -1046,6 +1046,25 @@ jobs:
           # investigamos. La lista se cachea por escena y el latido la reduce.
           guard_godot tools/test_heartbeat_light2d.gd
 
+          # === Sustitucion de una cutscene viva por su video pre-renderizado
+          # La intro de Safety Lullaby dura 31.5s en el dispositivo y un tercio
+          # de sus frames pasa de 28ms, con picos de 50-86ms. No es relleno
+          # (draw=3-7 prims=68-76 over=0.6x) ni es el renderizador
+          # (cpu_render=0.6-1.7ms): es CPU de animacion, porque la cancion
+          # entera corre detras de una cutscene de 22 nodos - trees=15(active=15)
+          # y hasta 105 pistas.
+          #
+          # Lo delicado del componente son tres cosas que una prueba floja no
+          # ve. Que apague el process_mode y NO el visible: el Timeline anima
+          # ../IntroCutscene:visible y escribir esa propiedad desde fuera
+          # pelearia con la pista, que es la trampa que settings.gd ya
+          # documenta para las Light2D. Que se retire EN SILENCIO cuando no hay
+          # .ogv - el caso normal, porque el video lo produce CI y ningun
+          # checkout lo trae - sin el error rojo que suelta load(). Y que la
+          # deriva se corrija con umbral, porque un seek de Theora recorre el
+          # fichero hacia atras en bloques de 512 KB buscando el keyframe.
+          guard_godot tools/test_cutscene_video.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn
