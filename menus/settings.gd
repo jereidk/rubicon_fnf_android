@@ -1059,24 +1059,38 @@ func _scale_subviewport(viewport: SubViewport) -> void:
 ##
 ## A group and not a walk heuristic, same reason SUBVIEWPORT_NATIVE_GROUP is a
 ## group: which 2D lights carry the look and which are decoration is an
-## authoring decision. The alley's three lamp lights are in it; `BG/BgLight` -
-## the darkness gradient the whole song reads through, and the one that covers
-## the entire frame - is deliberately not.
+## authoring decision. The alley's three lamp lights are in it, and so is
+## `BG/BgLight`.
+##
+## BgLight used to be the one exception - the darkness gradient the whole song
+## reads through, covering the entire frame, and therefore the one light that
+## could not be dropped without dropping the look. That stopped being true when
+## its effect on the static background was baked into `back_merged.png`
+## (df7a353): `MergedBack` now ships `light_mask = 0`, so the gradient the
+## player reads is in the texture and survives the light being switched off.
+## What the live light still does is redraw the characters and `FrontTree`, and
+## that is decoration by the same standard as the lamps.
 const OPTIONAL_2D_LIGHT_GROUP := &"quality_optional_2d_light"
 
 ## The other half of the same lever, from the item's side.
 ##
-## Dropping lights is capped by the one light that has to stay: `BG/BgLight` is
-## the darkness the alley reads through and it covers the whole frame, so on its
-## own it still redraws every lit item once. Excluding an item is the only way
-## to reach that, and the alley's own author already did it - `Parallax5/Sky`
-## ships `light_mask = 0` while `Parallax4/Clouds` and `Parallax3/Mountain`,
-## the two layers immediately in front of it, ship 3.
+## Dropping lights used to be capped by the one light that had to stay:
+## `BG/BgLight` covers the whole frame, so on its own it still redrew every lit
+## item once, and excluding the item was the only way to reach that. The alley's
+## own author had already done it for the two farthest layers: `Parallax5/Sky`
+## and `Parallax4/Clouds` both ship `light_mask = 0`.
 ##
-## Those two are 0.68 and 0.74 of a screen in the device log's `relleno=`, so
-## 1.42 screens that stop being drawn twice. Under the preset rather than edited
-## in the scene, because it IS a look change - the far layers stop being
-## darkened - and only Very Low is allowed to make those.
+## The cap itself is gone in the alley specifically, because the seven Parallax2
+## layers were merged into one sprite that ships `light_mask = 0` too, with the
+## light baked into the texture (8a27dc1, df7a353). What that leaves lit by
+## BgLight is `Parallax3/Mountain` - the one far layer whose author left it at
+## the default - and that is what this group covers here: 0.74 of a screen in
+## the device log's `relleno=` that stops being drawn twice. Under the preset
+## rather than edited in the scene, because it IS a look change - the far layer
+## stops being darkened - and only Very Low is allowed to make those.
+##
+## The group keeps earning its place beyond the alley: no other scene has had
+## the merge-and-bake treatment.
 const UNLIT_2D_GROUP := &"quality_unlit_2d"
 
 ## Where the authored light_mask is stashed, so turning the preset back up

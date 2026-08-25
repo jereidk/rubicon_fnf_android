@@ -140,9 +140,13 @@ var anisotropic_filtering: int = 2
 ## PointLight2D. Measured through the census's new helper, `BG/BgLight` covers
 ## **1.000** of the frame (1049x480 texture at `texture_scale = 4.0`, i.e.
 ## 4196x1920 over a 1920x1080 stage) and the two lamp lights about 0.29 and
-## 0.42 of it. Nine of the eleven parallax sprites carry `light_mask = 3`
-## against `range_item_cull_mask = 257`, so they share bit 1 and every one of
-## those nine is redrawn per overlapping light.
+## 0.42 of it. Nine of the eleven parallax sprites carried `light_mask = 3`
+## against `range_item_cull_mask = 257`, so they shared bit 1 and every one of
+## those nine was redrawn per overlapping light.
+##
+## Seven of those nine are one sprite now (8a27dc1) and it ships
+## `light_mask = 0` with BgLight baked in (df7a353), so what is left sharing
+## bit 1 with that light is `Parallax3/Mountain` and `Parallax/FrontTree`.
 ##
 ## It also explains the one number that never fitted: the two pure-2D scenes in
 ## log d67addb8 are 2.5x apart in items (`over=` 2.0x against 5.0x) and 4.4x
@@ -152,8 +156,12 @@ var anisotropic_filtering: int = 2
 ## `Settings.OPTIONAL_2D_LIGHT_GROUP` group - the same shape as
 ## SUBVIEWPORT_NATIVE_GROUP, and for the same reason: which lights are mood and
 ## which are decoration is an authoring decision, not something a walk can
-## infer. The alley's three lamp lights are in it; `BgLight`, which is the
-## darkness the whole song reads through, is not.
+## infer. The alley's three lamp lights are in it, and since df7a353 so is
+## `BgLight`: its effect on the static background is baked into
+## `back_merged.png` and `MergedBack` ships `light_mask = 0`, so the darkness
+## the song reads through is in the texture now and switching the light off no
+## longer takes it away. The live light only redraws the characters and
+## `FrontTree`.
 ##
 ## Very Low only, alongside everything else that preset already drops.
 @export var disable_optional_2d_lights: bool = false
