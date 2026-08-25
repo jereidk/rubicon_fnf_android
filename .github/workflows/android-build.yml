@@ -447,6 +447,22 @@ jobs:
           $GODOT --headless --import 2>&1
           $GODOT --headless --import 2>&1
 
+          # Los modelos importados mas pesados, porque son los que deciden lo
+          # que tarda una escena en abrirse y hasta ahora nadie los miraba.
+          #
+          # El log del dispositivo del 2026-08-25 puso nombres a los huecos de
+          # la carga de la tienda: 46.0s de carga con solo 14.5s repartidos
+          # entre dependencias, y las pausas caen exactamente sobre estos
+          # ficheros - doce segundos sin que llegue nada y despues
+          # `+mdl_shop_base.gltf`, seis mas y despues `+cardboardsign.tscn`.
+          # A ~2.5 MB/s de lectura y parseo en el telefono, treinta megas son
+          # doce segundos. No es una cola larga de ficheros pequenos; son
+          # cuatro modelos.
+          echo "=== modelos importados mas pesados ==="
+          find .godot/imported -name "*.scn" -size +1M -printf "%s\t%f\n" 2>/dev/null \
+            | sort -rn | head -12 \
+            | awk -F'\t' '{printf "%8.1f MB  %s\n", $1/1048576, $2}'
+
       - name: Harvest precompiled imports and commit them
         if: ${{ inputs.precompile_match != '' }}
         run: |
