@@ -1101,6 +1101,18 @@ jobs:
           # fichero hacia atras en bloques de 512 KB buscando el keyframe.
           guard_godot tools/test_cutscene_video.gd
 
+          # === "Sombras: off" tiene que apagar tambien shadow_enabled
+          # Apagar sombras pone el atlas direccional a cero -global, no del
+          # viewport- y la pantalla de resultados tiene un DirectionalLight3D
+          # con shadow_enabled dentro de un SubViewport con own_world_3d. Ese
+          # SubViewport vive en UPDATE_DISABLED hasta que los resultados lo
+          # ponen en UPDATE_ALWAYS, y ahi el motor abre un draw list contra un
+          # atlas que no existe: miles de "Parameter framebuffer is null" en el
+          # log del 2026-08-24, uno por draw y por frame desde el segundo
+          # 354.59. Se arregla por el lado de la luz, no subiendo el atlas: una
+          # luz que no pide sombra tampoco la paga.
+          guard_godot tools/test_3d_shadow_budget.gd
+
           # === Verify the dependency cost breakdown groups and ranks
           # The shop opens 397 files in 17.9s where Monochrome opens 197 in
           # 4.2s with more megabytes, so the load cost is per file. console.tscn

@@ -884,6 +884,7 @@ func apply_settings() -> void:
 
 	_apply_shader_effects_setting()
 	_apply_2d_light_budget()
+	_apply_3d_shadow_budget()
 
 	AudioServer.set_bus_volume_linear(MASTER_VOLUME_BUS, audio_master_volume)
 	AudioServer.set_bus_volume_linear(MUSIC_VOLUME_BUS, audio_music_volume)
@@ -1122,6 +1123,63 @@ const AUTHORED_LIGHT_MASK := &"lullaby_authored_light_mask"
 ## console brings the lights back in the same visit instead of on the next
 ## scene load. The node_added hook mirrors the shader stripper's: songs and
 ## rooms instance lights well after boot.
+## Where a light's authored shadow_enabled is stashed, so turning shadows back
+## on restores what the scene shipped rather than a hardcoded true.
+const AUTHORED_SHADOW_ENABLED := &"lullaby_authored_shadow_enabled"
+
+## Stops lights asking for shadows the renderer has no atlas for.
+##
+## The other half of the "Shadows: off" row, and the one that was missing. Off
+## sets the directional atlas to zero:
+##
+##     RenderingServer.directional_shadow_atlas_set_size(shadow_size, true)
+##
+## which is right for the main viewport and fatal for a light that still has
+## shadow_enabled = true in a viewport with its own World3D. The results
+## screen has exactly that: a DirectionalLight3D with shadows, inside a
+## SubViewport with own_world_3d, kept at render_target_update_mode = DISABLED
+## until lullaby_results_screen.gd flips it to UPDATE_ALWAYS. The moment it
+## does, the renderer begins a draw list against a shadow atlas that does not
+## exist, and the device log of 2026-08-24 shows what that costs:
+##
+##     [354.59s] Parameter "framebuffer" is null.   draw_list_begin
+##     [357.13s] ... (x10)   [357.65s] ... (x100)   [362.80s] ... (x1000)
+##
+## Thousands of errors, one per draw per frame, from the moment the results
+## screen appears until the scene changes.
+##
+## `shadow_enabled` and not the atlas size, because a light that is not asking
+## for a shadow is also not paying for one - raising the atlas off zero would
+## have hidden the errors and kept the work. Nothing in the project animates
+## this property (checked across every .tscn, .tres and .gd, same check made
+## for Light2D.enabled), so the walk can own it outright.
+func _apply_3d_shadow_budget() -> void:
+	if not graphics_shadows_enabled:
+		if not _watching_new_3d_lights:
+			get_tree().node_added.connect(_budget_3d_shadow)
+			_watching_new_3d_lights = true
+	elif _watching_new_3d_lights:
+		get_tree().node_added.disconnect(_budget_3d_shadow)
+		_watching_new_3d_lights = false
+
+	_budget_3d_shadows_under(get_tree().root)
+
+func _budget_3d_shadows_under(node: Node) -> void:
+	_budget_3d_shadow(node)
+	for child: Node in node.get_children():
+		_budget_3d_shadows_under(child)
+
+func _budget_3d_shadow(node: Node) -> void:
+	var light := node as Light3D
+	if light == null:
+		return
+	var authored: bool = bool(light.get_meta(AUTHORED_SHADOW_ENABLED, light.shadow_enabled))
+	light.set_meta(AUTHORED_SHADOW_ENABLED, authored)
+	light.shadow_enabled = authored and graphics_shadows_enabled
+
+var _watching_new_3d_lights: bool = false
+
+
 func _apply_2d_light_budget() -> void:
 	if graphics_disable_optional_2d_lights:
 		if not _watching_new_2d_lights:
