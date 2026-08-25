@@ -42,6 +42,7 @@ const PRESET := "res://lullaby_mod/scripts/lullaby/settings/lullaby_quality_pres
 const SETTINGS := "res://menus/settings.gd"
 const FIXTURE := "res://tools/fixtures/tiny_cutscene.ogv"
 const HARNESS := "res://tools/harness/render_cutscene.gd"
+const SONG := "res://lullaby_mod/songs/safety_lullaby/sng_safety_lullaby.tscn"
 
 var _failures: int = 0
 var _checks: int = 0
@@ -110,6 +111,85 @@ func _wiring_checks() -> void:
 		"...apaga el process_mode, que es donde está el coste medido")
 
 	_capture_preset_checks()
+	_song_wiring_checks()
+
+
+## El nodo puesto en Safety Lullaby apunta a nodos que EXISTEN.
+##
+## Escrito no es lo mismo que resuelto, y este proyecto ya pago esa diferencia:
+## las 37 entradas diferidas de console.tscn tenian su NodePath authoreado y
+## fallaban todas en silencio porque decia `TabContainer` donde tenia que decir
+## `../TabContainer` - un NodePath de un export con node_paths resuelve relativo
+## al NODO que lo declara, no a su padre, asi que un hermano necesita `../`.
+##
+## Se comprueba contra el SceneState y no instanciando la cancion: la escena
+## trae 750 nodos y no hace falta ninguno para responder "existe ese hermano".
+func _song_wiring_checks() -> void:
+	var packed: PackedScene = load(SONG) as PackedScene
+	_check(packed != null, "sng_safety_lullaby.tscn carga")
+	if packed == null:
+		return
+
+	var st: SceneState = packed.get_state()
+
+	# Ruta de cada nodo, sin el `./` con el que SceneState las devuelve. Sin
+	# normalizar eso, la primera version de esto buscaba `IntroCutscene` contra
+	# un conjunto que dice `./IntroCutscene` y suspendia un cableado correcto.
+	var rutas: Dictionary = {}
+	for i in st.get_node_count():
+		var ruta_i: String = String(st.get_node_path(i))
+		if ruta_i.begins_with("./"):
+			ruta_i = ruta_i.substr(2)
+		rutas[ruta_i] = true
+
+	var idx: int = -1
+	for i in st.get_node_count():
+		if st.get_node_name(i) == "IntroVideo":
+			idx = i
+	_check(idx >= 0, "IntroVideo esta en la cancion")
+	if idx < 0:
+		return
+
+	var props: Dictionary = {}
+	for j in st.get_node_property_count(idx):
+		props[st.get_node_property_name(idx, j)] = st.get_node_property_value(idx, j)
+
+	# node_paths= en la linea del nodo, sin lo cual los dos exports llegan nulos.
+	var texto: String = FileAccess.get_file_as_string(SONG)
+	var linea: int = texto.find('[node name="IntroVideo"')
+	var fin: int = texto.find("]", linea)
+	_check(linea >= 0 and texto.substr(linea, fin - linea).contains(
+			'node_paths=PackedStringArray("live_cutscene", "clock")'),
+		"...con node_paths= declarado, sin lo cual los exports llegan nulos")
+
+	# Y que las dos rutas lleguen a algun sitio. IntroVideo cuelga de la raiz,
+	# asi que `../X` desde el es el hijo X de la raiz.
+	for campo: String in ["live_cutscene", "clock"]:
+		var ruta: String = String(props.get(campo, ""))
+		_check(ruta.begins_with("../"),
+			"%s sube un nivel (%s) - un hermano no se alcanza sin ../" % [campo, ruta])
+		var destino: String = ruta.substr(3)
+		_check(rutas.has(destino),
+			"...y %s existe en la cancion (%s)" % [destino, campo])
+
+	_check(String(props.get("video_path", "")).ends_with(".ogv")
+			and ResourceLoader.exists(String(props.get("video_path", ""))),
+		"el .ogv al que apunta existe (%s)" % props.get("video_path", "-"))
+	_check(absf(float(props.get("ends_at", 0.0)) - 31.5) < 0.01,
+		"corta en 31.5, donde Environment:visible pasa a true (31.533333)")
+
+	# Y que algun preset lo encienda: el componente puede estar perfecto y no
+	# hacer nada nunca si ningun .tres pide video.
+	var encendido: PackedStringArray = []
+	for nombre: String in ["qol_very_low", "qol_low", "qol_medium", "qol_high"]:
+		var tres: String = FileAccess.get_file_as_string(
+			"res://lullaby_mod/resources/quality_presets/%s.tres" % nombre)
+		if tres.contains("prefer_cutscene_video = true"):
+			encendido.append(nombre)
+	_check(encendido.has("qol_very_low") and encendido.has("qol_low"),
+		"Very Low y Low piden video (%s)" % ", ".join(encendido))
+	_check(not encendido.has("qol_high"),
+		"...y High no: donde la escena viva corre, la escena viva es mejor")
 
 
 ## El render tiene que grabar con el preset MÁS ALTO.

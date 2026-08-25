@@ -22,3 +22,4 @@ atlas_frame_step = 1
 cheap_shading = true
 hide_baked_lights = true
 metadata/_custom_type_script = "uid://dvyolplt7oov0"
+prefer_cutscene_video = true

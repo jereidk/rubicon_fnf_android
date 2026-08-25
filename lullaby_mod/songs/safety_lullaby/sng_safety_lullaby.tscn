@@ -68,6 +68,7 @@
 [ext_resource type="PackedScene" uid="uid://dvfvkuer308wg" path="res://lullaby_mod/songs/sng_debugger.tscn" id="60"]
 [ext_resource type="PackedScene" uid="uid://ch41dde1qdtxn" path="res://lullaby_mod/resources/funkin/ui/results/lullaby_results_screen.tscn" id="61"]
 [ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="62"]
+[ext_resource type="Script" uid="uid://b4cieotvpmp57" path="res://lullaby_mod/scripts/lullaby/cutscene/lullaby_cutscene_video.gd" id="63"]
 
 [sub_resource type="Animation" id="Animation_l4lak"]
 length = 0.001
@@ -3736,6 +3737,15 @@ scale = Vector2(0.8, 0.8)
 [node name="IntroCutscene" parent="." unique_id=2077829061 instance=ExtResource("38")]
 visible = true
 position = Vector2(1283, 245)
+
+[node name="IntroVideo" type="Node" parent="." unique_id=1734829105 node_paths=PackedStringArray("live_cutscene", "clock")]
+script = ExtResource("63")
+live_cutscene = NodePath("../IntroCutscene")
+video_path = "res://lullaby_mod/songs/safety_lullaby/video/intro.ogv"
+clock = NodePath("../Clock/AnimationPlayer")
+starts_at = 0.0
+ends_at = 31.5
+canvas_layer = 0
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1890832143]
 
