@@ -1472,11 +1472,22 @@ jobs:
           # no viene, el default del harness es 5.0 (`var _until: float = 5.0`).
           pedido=$(printf '%s\n' $args | sed -n 's/^hasta=//p' | tail -1)
           pedido=${pedido:-5.0}
+          # `desde=` corre el punto de partida, asi que lo entregado es
+          # hasta-desde y no hasta. Sin esto el guard suspende toda sonda: el
+          # harness para cuando `_elapsed` -que arranca EN `desde`- alcanza
+          # `hasta`, o sea que `desde=54 hasta=56` da dos segundos de video
+          # contra un `pedido` de 56.
+          desde=$(printf '%s\n' $args | sed -n 's/^desde=//p' | tail -1)
+          desde=${desde:-0}
           duracion=$(ffprobe -v error -show_entries format=duration \
             -of default=nw=1:nk=1 "$out")
-          python3 - "$pedido" "$duracion" <<'PY'
+          python3 - "$pedido" "$duracion" "$desde" <<'PY'
           import sys
           pedido, duracion = float(sys.argv[1]), float(sys.argv[2])
+          desde = float(sys.argv[3])
+          if desde > 0.0:
+              pedido = max(pedido - desde, 0.0)
+              print(f"sonda desde {desde:.3f}s: se esperan {pedido:.3f}s de video")
           # Un frame de margen y un poco mas: el harness corta en el primer
           # frame cuyo _elapsed pasa de _until, asi que sobra hasta 1/fps. Con
           # hasta=2 a 60fps salieron 122 frames = 2.0333s.
