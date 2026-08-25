@@ -3885,7 +3885,7 @@ tracks/16/keys = {
 tracks/17/type = "value"
 tracks/17/imported = false
 tracks/17/enabled = true
-tracks/17/path = NodePath("../Prelude/RichTextLabel:text")
+tracks/17/path = NodePath("../UILayer/PreludeCaption:text")
 tracks/17/interp = 0
 tracks/17/loop_wrap = true
 tracks/17/keys = {
@@ -3898,11 +3898,11 @@ On the back's written: \"Hey hayyy\"", "\"Weird new bug type. Shiny shell :O\"",
 tracks/18/type = "value"
 tracks/18/imported = false
 tracks/18/enabled = true
-tracks/18/path = NodePath("../Prelude/RichTextLabel:modulate")
+tracks/18/path = NodePath("../UILayer/PreludeCaption:modulate")
 tracks/18/interp = 1
 tracks/18/loop_wrap = true
 tracks/18/keys = {
-"times": PackedFloat32Array(-0.033333335, 0.54166675, 8.541667, 8.933333, 9.2, 12.916667, 13.1, 13.333333, 16.458334, 16.541666),
+"times": PackedFloat32Array(-0.033333335, 0.54166675, 8.541667, 8.933333, 9.2, 12.916667, 13.1, 13.333333, 15.933300, 15.933400),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 0),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0)]
@@ -14860,7 +14860,7 @@ position = Vector2(960.5, 496.5)
 scale = Vector2(0.945, 0.945)
 texture = ExtResource("98")
 
-[node name="RichTextLabel" type="RichTextLabel" parent="Prelude" unique_id=785039700]
+[node name="PreludeCaption" type="RichTextLabel" parent="UILayer" unique_id=785039700 groups=["cutscene_live_overlay"]]
 modulate = Color(1, 1, 1, 0.057971)
 offset_left = 320.0
 offset_top = 973.0

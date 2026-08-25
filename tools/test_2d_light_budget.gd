@@ -49,11 +49,25 @@ func _initialize() -> void:
 	_scene_checks()
 
 
+var _alley_node: Node = null
+
+
 func _process(_delta: float) -> bool:
 	_frames += 1
 	if _frames < 2:
 		return false
 
+	# La escena se monta un frame antes de mirarla: los grupos authoreados se
+	# registran al entrar al arbol, no al instanciar.
+	if _frames == 2:
+		var packed: PackedScene = load(ALLEY) as PackedScene
+		_check(packed != null, "alley.tscn carga como escena")
+		if packed != null:
+			_alley_node = packed.instantiate()
+			root.add_child(_alley_node)
+		return false
+
+	_authored_group_checks()
 	_behavioural_checks()
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
@@ -132,6 +146,48 @@ func _scene_checks() -> void:
 	var mountain: int = alley.find('[node name="Mountain"')
 	_check(mountain >= 0 and alley.find(UNLIT_GROUP, mountain) - mountain < 200,
 		"Mountain esta en el grupo de no iluminados")
+
+
+## Y ahora INSTANCIANDO la escena, que es lo unico que prueba que las marcas
+## sirvan de algo.
+##
+## Todo lo de arriba cuenta cadenas en el fichero, y todo lo de abajo crea nodos
+## y les hace add_to_group() en codigo. Ninguna de las dos cosas ve el unico
+## fallo que importa: que la marca este ESCRITA EN EL SITIO EQUIVOCADO.
+##
+## Godot escribe los grupos DENTRO de la cabecera del nodo:
+##
+##     [node name="Luz" type="PointLight2D" parent="." groups=["mi_grupo"]]
+##
+## y no como una linea de propiedad `groups = [...]` debajo. Las seis marcas de
+## este proyecto estaban en la forma de abajo, o sea que `get_nodes_in_group()`
+## devolvia cero y las dos palancas -disable_optional_2d_lights y UNLIT_2D_GROUP-
+## nunca hicieron nada en el telefono. Este fichero paso con 32 checks en verde
+## todo ese tiempo, y su propio docstring ya advertia del riesgo: "a preset that
+## reaches an empty group is exactly how hide_baked_lights shipped broken once".
+##
+## El log del dispositivo del 2026-08-24 lo confirmaba a la vista: `luz2d=7/13
+## suma=3.37x` con preset Very Low, que es el preset que supuestamente las apaga.
+func _authored_group_checks() -> void:
+	if _alley_node == null:
+		return
+
+	var luces: Array = get_nodes_in_group(LIGHT_GROUP)
+	var no_iluminados: Array = get_nodes_in_group(UNLIT_GROUP)
+	_check(luces.size() >= 4,
+		"las marcas del callejon REGISTRAN de verdad: %d luces en el grupo" % luces.size())
+	_check(no_iluminados.size() >= 1,
+		"...y %d item no iluminado" % no_iluminados.size())
+
+	# Y que sean las del callejon, no restos de otra prueba.
+	var nombres: PackedStringArray = []
+	for n: Node in luces:
+		nombres.append(n.name)
+	for esperado: String in ["BgLight", "Pole", "PoleLight", "PoleLight2"]:
+		_check(nombres.has(esperado), "  %s registrado (%s)" % [esperado, ", ".join(nombres)])
+
+	_alley_node.queue_free()
+	_alley_node = null
 
 
 func _behavioural_checks() -> void:
