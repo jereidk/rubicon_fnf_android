@@ -55,6 +55,28 @@ func _run() -> void:
 	else:
 		print("ok    un intervalo de 1000ms se reparte, no se duplica (%.0fms)" % total)
 
+	# The tail and the total. The cap used to be a flat top 6, which turned a
+	# truncation into a wrong conclusion: the shop's 36.9s load printed six
+	# rows adding to 12.3s and read as "24.6 seconds unaccounted for" when it
+	# was rows 7 and beyond, never printed. suma= is the part that settles it,
+	# because an interval where nothing arrived is charged to nobody - so the
+	# buckets are a lower bound on the load, not an identity, and a suma= well
+	# under took= means a stalled loader thread rather than a long tail.
+	n._dep_ms = {}; n._dep_count = {}
+	for i in 40:
+		n._dep_ms["sub/%d" % i] = 10.0
+		n._dep_count["sub/%d" % i] = 1
+	n._dep_ms["big/one"] = 6000.0
+	n._dep_count["big/one"] = 60
+	var tail: String = n._dep_breakdown()
+	print("cola: %s" % tail)
+	if not tail.begins_with("big/one=6.0s/60"): print("FALLO no ordena con cola"); bad += 1
+	else: print("ok    el peor sigue primero con 41 cubos")
+	if not tail.contains("resto=0.4s/40 en 40"): print("FALLO no agrupa la cola"); bad += 1
+	else: print("ok    los 40 cubos por debajo del 1% caen en resto=")
+	if not tail.ends_with("suma=6.4s"): print("FALLO no cierra con suma"); bad += 1
+	else: print("ok    suma= reconcilia filas + cola (6.4s)")
+
 	n._dep_ms = {}; n._dep_count = {}
 	if n._dep_breakdown() != "-": print("FALLO vacio"); bad += 1
 	else: print("ok    vacio da '-'")

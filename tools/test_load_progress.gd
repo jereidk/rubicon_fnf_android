@@ -18,7 +18,16 @@ extends SceneTree
 ## Run with:
 ##   godot --headless --path . --script tools/test_load_progress.gd
 
-const CHANGER := "res://lullaby_mod/scripts/lullaby/loading/lullaby_scene_changer.gd"
+## The autoload, per project.godot - NOT the reference port under
+## lullaby_mod/scripts/lullaby/loading/, which this const used to name.
+##
+## Pointing a guard at the file that does not run is worse than having no
+## guard: `_blended_progress()` existed, was documented against device logs,
+## and passed every check below for as long as this line named the reference
+## port, while the shipping autoload went on handing the raw engine fraction
+## straight to the bar. The 2026-08-25 log still shows 50.0% held for 19.6
+## seconds. The feature was never broken; it was never connected.
+const CHANGER := "res://menus/scene_changer.gd"
 
 var _failures: int = 0
 var _checks: int = 0
@@ -125,9 +134,12 @@ func _run() -> void:
 
 	changer.free()
 
+	_autoload_checks()
+	_swap_checks()
+
 	print("")
-	if _checks < 10:
-		print("FALLO: solo %d de 10 comprobaciones" % _checks)
+	if _checks < 16:
+		print("FALLO: solo %d de 16 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -135,6 +147,62 @@ func _run() -> void:
 	else:
 		print("%d fallo(s)" % _failures)
 	quit(0 if _failures == 0 else 1)
+
+## That CHANGER is the file the game actually autoloads.
+##
+## The whole reason this test was worth nothing before: it checked a real
+## implementation that nothing ran. Read from project.godot rather than
+## trusted, so moving the autoload turns this red instead of quietly
+## re-creating the same gap.
+func _autoload_checks() -> void:
+	var project: String = FileAccess.get_file_as_string("res://project.godot")
+	_check("project.godot se lee", not project.is_empty())
+	var wired: bool = false
+	for line in project.split("\n"):
+		if line.begins_with("SceneChanger="):
+			wired = line.contains(CHANGER)
+	_check("SceneChanger autocarga el fichero que este test comprueba", wired, CHANGER)
+
+
+## The swap split, and the one constraint that makes it safe.
+##
+## `_swap_to()` must not await between instantiate() and add_child(). An await
+## there is invisible in review and costs a frame on the `current_scene`
+## assignment, and lullaby_light_budget_applier waits on exactly that before
+## rewriting every material's shading flags. Its docstring records what a frame
+## of delay bought last time: `surf` pipelines 209 -> 491, the shop's precache
+## 9889ms -> 34493ms, Chimera's 3715ms -> 27371ms, because the scene draws once
+## with the authored flags first and the driver compiles both variant sets.
+##
+## Checked as text because the failure is a timing one that no headless
+## assertion can reproduce - there is no scene swap to run here, and the thing
+## that goes wrong happens on a phone, three files away, as a number in a log.
+func _swap_checks() -> void:
+	var source: String = FileAccess.get_file_as_string(CHANGER)
+	_check("%s se lee" % CHANGER.get_file(), not source.is_empty())
+	_check("emite scene_swap_measured", source.contains("signal scene_swap_measured"))
+
+	var start: int = source.find("func _swap_to(")
+	_check("existe _swap_to()", start >= 0)
+	if start < 0:
+		return
+	var end: int = source.find("\nfunc ", start + 1)
+	var body: String = source.substr(start, (end - start) if end > start else -1)
+
+	# Comments stripped: the docstring above _swap_to explains the ban by
+	# naming `await`, and an earlier guard in this project went red against
+	# correct code for exactly that reason.
+	var code: String = ""
+	for line in body.split("\n"):
+		if not line.strip_edges().begins_with("#"):
+			code += line + "\n"
+
+	_check("_swap_to instancia y monta sin await en medio", not code.contains("await"),
+		"await en el cuerpo" if code.contains("await") else "sin await")
+	_check("asigna current_scene antes de add_child",
+		code.find("current_scene") >= 0
+			and code.find("current_scene") < code.find("add_child"))
+
 
 func _check(label: String, ok: bool, detail: String = "") -> void:
 	_checks += 1
