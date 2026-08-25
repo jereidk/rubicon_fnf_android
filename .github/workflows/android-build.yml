@@ -57,6 +57,20 @@ on:
           Costs 52% more bytes.
         required: false
         default: '60'
+      cutscene_trim:
+        description: >-
+          Seconds to drop from the START of the render before encoding. This is
+          how a video of the MIDDLE of a song gets made: desde= cannot do it,
+          because seek() never dispatches the clips that carry the visible
+          state - run #191 proved that by delivering the HUD over absolute
+          black. So the render runs from 0 and the head is thrown away here.
+          Rendering seconds you are going to discard is affordable because the
+          per-frame cost is flat: run #189's 2078 heartbeats measured 5154
+          ms/frame on a black screen against 5165 in the intro, 0.2% apart,
+          since the 3D house draws from second zero either way. Leave empty or
+          0 to keep the whole render.
+        required: false
+        default: ''
       cutscene_msaa:
         description: >-
           MSAA for the capture, appended as msaa=... unless render_cutscene
@@ -1428,6 +1442,33 @@ jobs:
           width='${{ inputs.cutscene_scale }}'
           quality='${{ inputs.cutscene_quality }}'
           out=builds/cutscene/cutscene.ogv
+          # El recorte de cabecera, que es lo que hace posible un video del
+          # MEDIO de una cancion.
+          #
+          # desde= no sirve para una entrega: seek() no despacha los clips que
+          # llevan el estado visible, y la corrida #191 lo demostro entregando
+          # el HUD sobre negro absoluto (ver el docstring de `_from` en
+          # render_cutscene.gd). Asi que la unica via es renderizar desde 0 y
+          # tirar la cabecera aqui.
+          #
+          # Que eso sea asumible se midio antes de construirlo, sobre los 2078
+          # latidos de la corrida #189: el coste por frame es PLANO - 5154
+          # ms/frame sobre pantalla negra contra 5165 en la intro, un 0.2% de
+          # dispersion - porque la casa 3D se dibuja desde el segundo cero y el
+          # prelude son overlays encima. Renderizar 53 segundos que se van a
+          # tirar cuesta exactamente lo que cuesta cualquier otro tramo, y eso
+          # es lo que hace que la cuenta salga en vez de ser un desperdicio
+          # imposible de estimar.
+          #
+          # -ss ANTES de -i para que ffmpeg salte por indice en vez de
+          # decodificar y descartar.
+          recorte='${{ inputs.cutscene_trim }}'
+          corte=""
+          if [ -n "$recorte" ] && [ "$recorte" != "0" ]; then
+            corte="-ss $recorte"
+            echo "recortando los primeros ${recorte}s del render"
+          fi
+
           # -2 en la altura: par, que es lo que yuv420p necesita.
           #
           # La calidad va alta a proposito. Medido sobre el decodificador del
@@ -1435,7 +1476,7 @@ jobs:
           # sobre los mismos 2400 decodes: ruido. Comprimir mejor cuesta bytes
           # y cero milisegundos de reproduccion, asi que no hay razon para
           # escatimar. El ancho es el que cuesta frame time, no esto.
-          ffmpeg -y -loglevel error -i "$raw" \
+          ffmpeg -y -loglevel error $corte -i "$raw" \
             -vf "scale=${width}:-2" -c:v libtheora -q:v "$quality" -an "$out"
 
           # Movie Maker escribe el audio a un .wav hermano cuando la escena
@@ -1479,6 +1520,9 @@ jobs:
           # contra un `pedido` de 56.
           desde=$(printf '%s\n' $args | sed -n 's/^desde=//p' | tail -1)
           desde=${desde:-0}
+          # El recorte se resta igual que `desde=`: los dos mueven el principio
+          # de lo entregado, uno en el harness y el otro en ffmpeg.
+          desde=$(python3 -c "print(float('${desde}') + float('${recorte:-0}' or 0))")
           duracion=$(ffprobe -v error -show_entries format=duration \
             -of default=nw=1:nk=1 "$out")
           python3 - "$pedido" "$duracion" "$desde" <<'PY'
