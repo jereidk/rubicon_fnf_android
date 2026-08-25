@@ -1162,6 +1162,15 @@ jobs:
           # missing text read as the video's overlay exclusion working.
           guard_godot tools/test_scene_node_order.gd
 
+          # === Verify the art the cutscene videos replaced is still here
+          # Only qol_low and qol_very_low ask for video; Medium and up run the
+          # live cutscene, so those sprites are the path most players are on,
+          # not the old one. Deleting them raises nothing - the video node just
+          # does not engage and the scene draws nothing. The videos being
+          # SMALLER than the art they stand in for (6.7 MB against 17.6) is
+          # exactly what makes deleting it look like a free win.
+          guard_godot tools/test_cutscene_assets_kept.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
