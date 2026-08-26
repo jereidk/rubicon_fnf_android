@@ -174,17 +174,39 @@ func _authored_group_checks() -> void:
 
 	var luces: Array = get_nodes_in_group(LIGHT_GROUP)
 	var no_iluminados: Array = get_nodes_in_group(UNLIT_GROUP)
-	_check(luces.size() >= 4,
-		"las marcas del callejon REGISTRAN de verdad: %d luces en el grupo" % luces.size())
-	_check(no_iluminados.size() >= 1,
-		"...y %d item no iluminado" % no_iluminados.size())
 
-	# Y que sean las del callejon, no restos de otra prueba.
+	# Que el grupo REGISTRE de verdad se sigue comprobando - es lo que arreglo
+	# mover las marcas a la cabecera del nodo, y sin esta linea volveriamos a
+	# una palanca que no hace nada sin que nadie se entere. Ahora lo sostiene
+	# `Mountain`, que es el que queda marcado.
+	_check(no_iluminados.size() >= 1,
+		"las marcas del callejon REGISTRAN de verdad: %d item no iluminado"
+			% no_iluminados.size())
+
+	# Y las CUATRO LUCES YA NO ESTAN EN EL GRUPO, a proposito.
+	#
+	# Quien authoreo la escena las marco como opcionales, pero esa intencion
+	# nunca llego a ejecutarse: las marcas estaban escritas donde Godot no las
+	# lee, el grupo devolvia cero, y las luces se quedaban encendidas pasara lo
+	# que pasara. El arte que todo el mundo ha visto siempre las tuvo.
+	#
+	# Arreglar el grupo hizo que Very Low por fin las apagase, y ahi se vio que
+	# no son opcionales. `BgLight` es `blend_mode = 2` - BLEND_MODE_MIX, leido
+	# en scene/2d/light_2d.h del 4.7.1 - con `texture_scale = 4.0` y
+	# `range_item_cull_mask = 257`: no ilumina, OSCURECE, y alcanza a los
+	# personajes. Sin ella Hypno sale entero a plena luz cuando el original lo
+	# tiene tapado de sombra. Las otras tres son el halo de las farolas junto a
+	# GF, y sin ellas ese rincon queda plano.
+	#
+	# O sea que el mecanismo no estaba mal: su lista de miembros nunca se pudo
+	# validar porque nunca funciono. Un grupo roto no solo deja de ahorrar,
+	# tambien esconde que lo que hay dentro estaba mal elegido.
 	var nombres: PackedStringArray = []
 	for n: Node in luces:
 		nombres.append(n.name)
-	for esperado: String in ["BgLight", "Pole", "PoleLight", "PoleLight2"]:
-		_check(nombres.has(esperado), "  %s registrado (%s)" % [esperado, ", ".join(nombres)])
+	for critica: String in ["BgLight", "Pole", "PoleLight", "PoleLight2"]:
+		_check(not nombres.has(critica),
+			"  %s NO es opcional: es arte, no adorno" % critica)
 
 	_alley_node.queue_free()
 	_alley_node = null
