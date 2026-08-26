@@ -80,17 +80,60 @@ const UPDATE_ALWAYS := 4
 ## work - see the note above - so the container's visibility is the lever.
 @export var nested_containers: Array[Control] = []
 
+## Cuanto tiene que llevar el TV fuera de pantalla antes de apagar nada.
+##
+## El FLAPPING que este mismo fichero predijo, confirmado por el log del
+## 2026-08-25 con las MARK que se anadieron justo para verlo:
+##
+##     [438.98s] console viewport on   (switch #1)
+##     [439.01s] console viewport off  (switch #2, 30ms since last)
+##     [641.36s] console viewport on   (switch #1)
+##     [641.43s] console viewport off  (switch #2, 73ms since last)
+##
+## Treinta y setenta y tres milisegundos. El AABB del notificador tiene 0.002
+## unidades de grosor, asi que un movimiento pequeno de camara basta para que el
+## TV cruce el borde del frustum varias veces seguidas.
+##
+## Lo que costaba son los dos sintomas que el jugador reporto juntos, y salen
+## del mismo sitio: cada `off` apaga los SubViewport de los iconos y estos se
+## quedan NEGROS, y cada `on` fuerza un re-render entero de 1440x1080 mas
+## 720x540 de 3D, que es el CONGELON al mover la seleccion.
+##
+## Medio segundo sobra para un cruce accidental y se queda muy corto frente a lo
+## que tarda alguien en apartar la vista de verdad. El coste de pasarse por este
+## lado son unos frames de viewport encendido de mas; por el otro era la
+## interfaz en negro.
+const OFF_DELAY_MSEC := 500
+
 var _switches: int = 0
 var _last_switch_msec: int = 0
+var _off_timer: SceneTreeTimer = null
 
 func _ready() -> void:
 	screen_entered.connect(_on_screen_entered)
 	screen_exited.connect(_on_screen_exited)
 
+## Encender va SIN retraso, y la asimetria es el punto: llegar tarde a encender
+## se ve -es la interfaz en negro que el jugador esta mirando- y llegar tarde a
+## apagar solo cuesta unos frames de GPU que nadie percibe.
 func _on_screen_entered() -> void:
+	_off_timer = null
 	_set_mode(UPDATE_ALWAYS, "on")
 
 func _on_screen_exited() -> void:
+	var timer: SceneTreeTimer = get_tree().create_timer(OFF_DELAY_MSEC / 1000.0)
+	_off_timer = timer
+	timer.timeout.connect(_apagar_si_sigue_fuera.bind(timer))
+
+## Solo apaga si este sigue siendo el ultimo temporizador pedido y el TV sigue
+## fuera. Un `screen_entered` por el medio pone `_off_timer` a null y este
+## disparo se queda en nada, que es exactamente lo que corta el parpadeo.
+func _apagar_si_sigue_fuera(timer: SceneTreeTimer) -> void:
+	if _off_timer != timer:
+		return
+	_off_timer = null
+	if is_on_screen():
+		return
 	_set_mode(UPDATE_DISABLED, "off")
 
 func _set_mode(mode: int, label: String) -> void:
