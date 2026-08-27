@@ -3525,6 +3525,79 @@ Chimera ahora sale **por debajo** del primer tramo (−9%). Las dos ventanas que
 estrangulan el teléfono son las de Safety Lullaby - o sea que la canción que
 más calienta la sesión es también la que ninguna palanca toca.
 
+### El congelado de la sesión de fotos: era el pase de luces oscuras
+
+El usuario lo reportó como *"cuando serena toma foto, el juego se peta por unos
+segundos"*. Los dos frames están en `80dc43f7`, y lo importante es lo que **no**
+cambia entre ellos:
+
+    148.21s  frame= 735.9ms  spec+31  luz=3 [PhoneGlow,flash,OmniLight3D]
+    150.16s  frame=1661.6ms  spec+ 6  luz=2 [PhoneGlow,OmniLight3D]
+    151.03s                  spec+ 1  luz=1 [OmniLight3D]
+
+`vram_delta=+0.0MB` en los dos, `ram` plana, y `rend=[3d=44/25198/44]`
+**idéntico** entre el primero y el segundo. No aparece geometría y no se sube
+nada: las mismas veintiséis mallas recién reveladas se vuelven a especializar
+dos veces porque **el número de luces cambia debajo de ellas**.
+
+Y quien lo cambiaba era nuestro propio `_cull_dark_lights`, que escribe
+`light_cull_mask = 0` en cuanto `light_energy` llega a cero. `flash` y
+`PhoneGlow` son el flash de la cámara y **cruzan el cero siete veces cada una**
+en los 8.5s de `104_photographysesh`. El banco aislado de este mismo fichero ya
+decía el precio: quitar una luz cuesta un juego entero de pipelines igual que
+ponerla (`+3` en las dos direcciones).
+
+**Es un holdoff, no una exención**, y la diferencia la decide un dato que hay
+que mirar antes de tocar esto - cuánto tiempo pasa cada luz a cero, por clip:
+
+| luz | clip | huecos a cero |
+|---|---|---|
+| **TvLight** | `101_prelude` | **hasta el final del clip** (~78s) |
+| TvLight | `115_runningaway` | 2.67s |
+| TvLight | `107_turnaround` | 0.54s |
+| TvLight | `114_hexapproach` | 0.04s x4 (estroboscopia) |
+| **flash** | `104_photographysesh` | 2.17s, 1.04s, 0.75s, hasta el final |
+| **PhoneGlow** | `104_photographysesh` | 2.08s, 1.08s, 1.04s, hasta el final |
+| OmniLight3D | `114` / `118` | hasta el final del clip |
+
+El transitorio más largo son 2.67s y todo lo que el pase existe para cazar es
+abierto, así que **`DARK_HOLD_SECONDS = 3.0`** separa los dos grupos con margen
+y ningún caso cae cerca de la línea. `TvLight` sigue culleada los 78 segundos de
+`prelude` -que es el ahorro por el que se escribió el pase, con `omni_range =
+43.9` sobre una casa de diez unidades- y el flash ya no lo está nunca.
+
+Tres detalles que hay que respetar si alguien lo toca:
+
+- **El holdoff es de un solo lado.** Restaurar es inmediato: una luz que vuelve
+  tarde es un parpadeo visible en una tele que estroboscopia cada dos frames,
+  y una que vuelve pronto no cuesta nada.
+- **El reloj se olvida al volver la luz.** Sin ese `erase`, una luz que
+  parpadea acumularía tiempo entre destellos y acabaría culleada igual.
+- **Timestamps, no `delta` acumulado.** Godot recorta `delta`, así que un frame
+  de 1.6s llega como ~80ms - un acumulador cuenta de menos justo durante los
+  parones que este holdoff existe para evitar. Es la misma regla que el log
+  aprendió con `frame_ms`, por el mismo motivo.
+
+La primera versión de este arreglo recorría los `AnimationMixer` de la escena
+para exentar toda luz con `light_energy` animado. Funciona -la sonda lo
+verificó- y **es peor**: `TvLight` tiene 11 pistas de energía, así que la
+exención se llevaba por delante el único ahorro grande que el pase tenía. El
+dato de la tabla es lo que lo convirtió en un temporizador de cuatro líneas sin
+recorrido de árbol ni resolución de NodePath.
+
+Verificado sobre el applier real con los autoloads reales
+(`tools/harness/baked_light_probe.tscn`):
+
+    primer_paso parked=4294967295 blinking=4294967295   <- ninguna, acaban de apagarse
+    tras_hold   parked=0          blinking=4294967295   <- solo la aparcada
+    al_volver   parked=4294967295 exacta=true
+
+`tools/test_dark_light_cull_holdoff.gd` (17 comprobaciones, en CI) lee la
+constante **del applier** y vuelve a derivar los huecos **de la escena**, así
+que fija la relación entre las dos y no dos copias del mismo número. Mutado
+quitando el holdoff, quitando el `erase` y bajando la constante a 1s: fallan
+2, 2 y 2.
+
 ### Lo que sigue abierto en este log
 
 - **Los stalls de cutscene no se han movido**: `104_photographysesh@0.4s`

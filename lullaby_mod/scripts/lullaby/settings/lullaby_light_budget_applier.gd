@@ -69,6 +69,33 @@ var _watched: Array[Light3D] = []
 ## is what makes the restore exact instead of a guess at the default 0xFFFFF.
 var _dark_masks: Dictionary = {}
 
+## instance_id -> Time.get_ticks_msec() when this light was first seen at zero
+## energy and still unculled. Absent means it is lit right now.
+##
+## Timestamps rather than an accumulated delta on purpose: Godot clamps delta,
+## so a 1.6s frame arrives as ~80ms and an accumulator would under-count time
+## across exactly the stalls this holdoff exists to prevent.
+var _dark_since: Dictionary = {}
+
+## How long a light has to sit at zero before this pass takes it out of the
+## render set. See `_cull_dark_lights` for why a holdoff exists at all; this is
+## where the number comes from, read off Chimera's own tracks - every gap a
+## light spends at zero, per clip:
+##
+##   TvLight    101_prelude          to the end of the clip   (~78 seconds)
+##   TvLight    115_runningaway      2.67s
+##   TvLight    107_turnaround       0.54s
+##   TvLight    122_fall             0.25s
+##   TvLight    114_hexapproach      0.04s x4                 (it strobes)
+##   flash      104_photographysesh  2.17s, 1.04s, 0.75s, to the end
+##   PhoneGlow  104_photographysesh  2.08s, 1.08s, 1.04s, to the end
+##   OmniLight3D 114 / 118           to the end of the clip
+##
+## The longest transient is 2.67s and everything the pass was written for is
+## open-ended, so three seconds separates them with margin and no case lands
+## near the line.
+const DARK_HOLD_SECONDS := 3.0
+
 ## Materials this pass simplified, keyed by instance id, holding their authored
 ## diffuse/specular modes.
 var _shading: Dictionary = {}
@@ -115,6 +142,7 @@ func _on_scene_changed(_path: String) -> void:
 	_hidden.clear()
 	_watched.clear()
 	_dark_masks.clear()
+	_dark_since.clear()
 	set_process(false)
 	_shading.clear()
 	_applied_multiplier = DISABLED
@@ -230,23 +258,74 @@ func _apply_to_current_scene() -> void:
 ##
 ## The authored mask is stashed per light instead of restored to a constant,
 ## because three of Chimera's lights and two of the shop's ship a custom one.
+## And the holdoff this pass needs, which cost a two-second freeze to find.
+##
+## A mask of 0 does not merely skip some shading: it takes the light out of the
+## set the renderer pairs with each instance, and in Forward Mobile the number
+## of lights reaching a surface is part of that surface's specialization key.
+## This file's own isolated bench measures it - geometry with no lights compiles
+## 3 pipelines, adding an omni compiles 3 more, adding a spot 3 more, and
+## *removing* the omni again 3 more. It saturates by count, not by state, so
+## every combination of "these surfaces at this light count" is paid once.
+##
+## Chimera's photo session walks three light counts in half a second while
+## twenty-six meshes are being revealed for the first time. Log 80dc43f7:
+##
+##   148.21s  frame= 735.9ms  spec+31  luz=3 [PhoneGlow,flash,OmniLight3D]
+##   150.16s  frame=1661.6ms  spec+ 6  luz=2 [PhoneGlow,OmniLight3D]
+##   151.03s                  spec+ 1  luz=1 [OmniLight3D]
+##
+## with `vram_delta=+0.0MB` on both stall frames and `rend=[3d=44/25198/44]`
+## byte-identical between them. No geometry appeared and nothing was uploaded:
+## the same surfaces were re-specialized twice because this pass pulled the
+## camera flash out of the set as its energy touched zero, and `flash` and
+## `PhoneGlow` each cross zero seven times in that one clip.
+##
+## Hence the holdoff rather than an exemption. A light parked at zero is still
+## culled - that is the case worth having, and Chimera's TvLight is at zero for
+## the whole of `prelude` with `omni_range = 43.9` over a house ten units
+## across, which is the stretch the device measures at 57-59ms. A light merely
+## passing through zero between two flashes is left alone, because this file
+## also measured what leaving it costs: eight lights at energy 0.35 and eight at
+## 0.0 came out at 135.8ms and 135.1ms.
+##
+## Restoring is immediate and deliberately not held. The holdoff is one-sided
+## because a light coming back late is a visible flicker on a TV that strobes
+## every two frames, and a light coming back early costs nothing.
+##
+## `light_cull_mask` rather than `visible`, and the difference matters. Six of
+## Chimera's sequences animate `visible` on its lights, and a pass that writes
+## the same property an animation writes ends up fighting it - that hazard is
+## documented on the baked pass below, which avoids it by only touching lights
+## no track targets. Nothing in this project animates a cull mask: it appears
+## as a static node property in five places and in no track anywhere, checked
+## across every .tscn, .tres and .gd. A mask of 0 pairs with no instance, so
+## the light is dropped before shading rather than shaded to black.
+##
+## The authored mask is stashed per light instead of restored to a constant,
+## because three of Chimera's lights and two of the shop's ship a custom one.
 func _cull_dark_lights() -> void:
+	var now: int = Time.get_ticks_msec()
 	for light: Light3D in _watched:
 		if not is_instance_valid(light):
 			continue
 		var id: int = light.get_instance_id()
 		if light.light_energy > 0.0:
+			_dark_since.erase(id)
 			if _dark_masks.has(id):
 				light.light_cull_mask = _dark_masks[id]
 				_dark_masks.erase(id)
 			continue
 		if _dark_masks.has(id):
 			continue
+		if not _dark_since.has(id):
+			_dark_since[id] = now
+			continue
+		if now - int(_dark_since[id]) < int(DARK_HOLD_SECONDS * 1000.0):
+			continue
 		_dark_masks[id] = light.light_cull_mask
 		light.light_cull_mask = 0
 
-## Counts the geometry actually on screen, which is what makes the coverage
-## reading meaningful - and what the precache temporarily takes away.
 func _visible_geometry_count(root: Node) -> int:
 	var shown: int = 0
 	var stack: Array[Node] = [root]

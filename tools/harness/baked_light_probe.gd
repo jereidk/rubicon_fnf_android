@@ -87,9 +87,72 @@ func _ready() -> void:
 	Settings.graphics_hide_baked_lights = before
 
 	_check_cheap_shading(applier)
+	_check_dark_cull(applier)
 
 	applier.free()
 	get_tree().quit()
+
+
+## Y el tercer pase, `_cull_dark_lights`, con su holdoff.
+##
+## Cada configuracion de "estas superficies a este numero de luces" cuesta un
+## juego de pipelines de especializacion, asi que una luz que cruza el cero
+## mientras se revela geometria nueva la hace compilar dos veces. Es el
+## congelado de dos segundos de la sesion de fotos de Chimera: `flash` y
+## `PhoneGlow` cruzan el cero siete veces cada una en 8.5s.
+##
+## Lo que el arreglo NO puede hacer es dejar de cullear una luz aparcada a
+## cero: `TvLight` lo esta los 78 segundos de `prelude` con radio 43.9 sobre
+## una casa de diez unidades. Por eso es un holdoff y no una exencion, y por
+## eso la sonda comprueba los dos lados.
+func _check_dark_cull(applier: Node) -> void:
+	var scene := Node3D.new()
+	scene.name = "DarkCullScene"
+
+	var parked := OmniLight3D.new()      # el caso TvLight-en-prelude
+	parked.name = "parked"
+	parked.light_energy = 0.0
+	scene.add_child(parked)
+
+	var blinking := OmniLight3D.new()    # el caso flash
+	blinking.name = "blinking"
+	blinking.light_energy = 0.0
+	scene.add_child(blinking)
+
+	add_child(scene)
+
+	var authored: int = parked.light_cull_mask
+	applier._watched = applier._lights_of(scene)
+	applier._dark_masks.clear()
+	applier._dark_since.clear()
+
+	# Primer paso: las dos acaban de ponerse a cero, asi que ninguna se toca.
+	applier._cull_dark_lights()
+	print("OUT primer_paso parked=%d blinking=%d (autorada=%d)" % [
+		parked.light_cull_mask, blinking.light_cull_mask, authored])
+
+	# La que parpadea vuelve antes del holdoff: se le olvida el reloj, que es
+	# lo que impide que el siguiente cero la cullee por acumulacion.
+	blinking.light_energy = 4.858
+	applier._cull_dark_lights()
+	blinking.light_energy = 0.0
+	applier._cull_dark_lights()
+
+	# Y ahora se adelanta el reloj de la aparcada mas alla del holdoff. La que
+	# parpadeo lleva a cero solo desde su ultimo cruce, asi que sigue intacta.
+	var hold_ms: int = int(applier.DARK_HOLD_SECONDS * 1000.0)
+	applier._dark_since[parked.get_instance_id()] = Time.get_ticks_msec() - hold_ms - 1
+	applier._cull_dark_lights()
+	print("OUT tras_hold  parked=%d blinking=%d" % [
+		parked.light_cull_mask, blinking.light_cull_mask])
+
+	# Y al volver, la mascara autorada vuelve exacta y de inmediato.
+	parked.light_energy = 1.0
+	applier._cull_dark_lights()
+	print("OUT al_volver  parked=%d exacta=%s" % [
+		parked.light_cull_mask, parked.light_cull_mask == authored])
+
+	scene.queue_free()
 
 
 ## Y el segundo pase, contra los materiales REALES de la casa de Chimera, que

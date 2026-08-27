@@ -929,6 +929,20 @@ jobs:
           # the eleven-day black house all over again.
           guard_godot tools/test_baked_light_cull.gd
 
+          # === Verify the dark-light cull waits before pulling a light
+          # A cull mask of 0 takes the light out of the set the renderer pairs
+          # with each instance, and in Forward Mobile the light count is part
+          # of every covered surface's specialization key - the isolated bench
+          # measures three fresh pipelines for adding a light and three more
+          # for removing it again. Chimera's camera flash crosses zero seven
+          # times in one 8.5s clip, so the pass re-specialized twenty-six
+          # freshly revealed meshes twice: spec+31, +6, +1 with vram flat and
+          # the geometry counters byte-identical. Two seconds of freeze when
+          # Serena takes the photo. A holdoff and not an exemption, because a
+          # light parked at zero is still worth culling - TvLight sits there
+          # for the whole 78s of prelude with omni_range 43.9.
+          guard_godot tools/test_dark_light_cull_holdoff.gd
+
           # === Verify over= counts layers the GPU draws, not nodes in the tree
           # Godot skips a CanvasItem whose inherited modulate alpha is zero,
           # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the
