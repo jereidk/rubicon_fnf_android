@@ -126,26 +126,51 @@ func _preset_checks() -> void:
 	_check(on == 1, "y solo un preset lo enciende (son %d)" % on)
 
 
-## The group has to have members, or the whole thing is a preset that reaches
-## nothing - which is exactly how hide_baked_lights shipped broken once.
+## Membership, in both directions, and the direction that matters here is
+## "not in it". `b797b00` took BgLight, Pole, PoleLight and PoleLight2 out of
+## the optional group after a side-by-side showed Hypno lit where he should be
+## shadowed: BgLight is BLEND_MODE_MIX with texture_scale 4.0, so it DARKENS
+## rather than lights, and the other three are the lamp halo beside GF. They
+## are art, not decoration.
+##
+## What still has to hold is that the mechanism reaches something at all - a
+## preset row wired to an empty group is exactly how hide_baked_lights shipped
+## broken once - and after that commit the thing it reaches is the unlit group,
+## whose member is Mountain.
 func _scene_checks() -> void:
 	var alley: String = _read(ALLEY)
-	var lights: int = alley.count('"%s"' % LIGHT_GROUP)
 	var unlit: int = alley.count('"%s"' % UNLIT_GROUP)
-	_check(lights >= 4, "el callejon marca sus luces 2D (%d)" % lights)
-	_check(unlit >= 1, "y al menos una capa lejana como no iluminada (%d)" % unlit)
+	_check(unlit >= 1, "el callejon marca al menos una capa lejana como no iluminada (%d)" % unlit)
 
-	# Y las marcas van en las luces, no en cualquier nodo.
+	# Las cuatro que salieron del grupo. Escrito como "no esta" y no como
+	# "esta", que es lo que este guard fijaba antes de que se midiera.
 	for name: String in ["BgLight", "Pole", "PoleLight", "PoleLight2"]:
-		var at: int = alley.find('[node name="%s" type="PointLight2D"' % name)
-		_check(at >= 0 and alley.find(LIGHT_GROUP, at) - at < 200,
-			"%s esta en el grupo" % name)
+		_check(not _in_group(alley, '[node name="%s" type="PointLight2D"' % name, LIGHT_GROUP),
+			"%s NO esta en el grupo opcional: es arte, no adorno" % name)
 
-	# Mountain es la unica capa lejana que segula iluminada: Sky y Clouds ya
+	# Mountain es la unica capa lejana que seguia iluminada: Sky y Clouds ya
 	# traian light_mask = 0 del autor, y marcarlas no aportaria nada.
-	var mountain: int = alley.find('[node name="Mountain"')
-	_check(mountain >= 0 and alley.find(UNLIT_GROUP, mountain) - mountain < 200,
+	_check(_in_group(alley, '[node name="Mountain"', UNLIT_GROUP),
 		"Mountain esta en el grupo de no iluminados")
+
+
+## Si el nodo existe y su cabecera declara el grupo.
+##
+## Escrito aparte porque la version en linea que habia era imposible de
+## suspender: hacia `texto.find(GRUPO, at) - at < 200`, y cuando el grupo no
+## aparece en ningun sitio `find` devuelve -1, con lo que `-1 - at` es un
+## numero enorme y negativo y la comparacion se cumple siempre. Las cuatro
+## comprobaciones que colgaban de ella pasaban sobre una escena que ya no
+## contenia ni una vez la cadena que buscaban.
+func _in_group(text: String, header: String, group: String) -> bool:
+	var at: int = text.find(header)
+	if at == -1:
+		return false
+	var end_of_line: int = text.find("\n", at)
+	if end_of_line == -1:
+		end_of_line = text.length()
+	return text.substr(at, end_of_line - at).contains('"%s"' % group)
+
 
 
 ## Y ahora INSTANCIANDO la escena, que es lo unico que prueba que las marcas
