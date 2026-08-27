@@ -5425,11 +5425,34 @@ una opción inventada falla como *configuration error* antes de escribir nada
 
 Tres decisiones que conviene no rehacer:
 
-- **`binary_format/embed_pck=false`**, así que el juego son el ejecutable
-  **y** el `.pck`. El paso `Check the exports are real` comprueba los dos por
-  separado: un binario sin su `.pck` arranca y no encuentra proyecto, y
-  Godot devuelve 0 en algunos fallos de plantilla, así que un artefacto vacío
-  solo lo descubriría quien lo descargue.
+- **`binary_format/embed_pck=true`**, o sea un solo fichero por plataforma.
+  Empezó en `false` y se midió antes de decidir, en el proyecto aislado con
+  las plantillas reales:
+
+      separado : 73 470 264 (exe) + 2 060 (pck) = 73 472 324
+      embebido : 73 472 328
+      diferencia: +4 bytes
+
+  **Cuesta cuatro bytes.** Los dos binarios de Linux se ejecutaron aquí y los
+  dos arrancan, y el embebido arranca **sin** un `.pck` al lado -busca
+  `<nombre>.pck`, que no existe- así que usó de verdad el embebido. Windows
+  exporta limpio con `application/modify_resources=true` puesto, que era lo
+  único que podía chocar con añadir datos al final del PE.
+
+  El argumento a favor de separarlos es poder enviar solo el `.pck` en una
+  actualización de contenido, y **aquí no aplica**: el motor son 73MB y los
+  datos ~400MB, así que el `.pck` *es* la descarga. Contra eso, un solo
+  fichero quita el modo de fallo más común de un juego de Godot en un zip -
+  alguien extrae solo el `.exe`, lo mueve al escritorio, y no arranca.
+
+  Lo que cambia en el workflow: ya no hay `.pck` que comprobar al lado, así
+  que `Check the exports are real` pasa a un **suelo de tamaño** (200MB). Un
+  ejecutable exportado sin sus datos es la plantilla pelada -73MB en Linux,
+  103MB en Windows- y una build real ronda los 470MB, así que el suelo cae
+  cómodamente entre los dos.
+
+  Sin verificar: no se puede ejecutar el `.exe` de Windows aquí, solo
+  comprobar que exporta.
 - **`texture_format/s3tc_bptc` y `etc2_astc` los dos a true.** El 94% de este
   proyecto son texturas ASTC 8x8 del importador propio; una GPU de escritorio
   que no soporte ASTC las descomprime al cargar. Funciona, pero cuesta VRAM -

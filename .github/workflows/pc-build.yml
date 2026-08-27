@@ -287,25 +287,36 @@ jobs:
           # An export that "succeeded" and wrote nothing is the failure mode
           # worth catching here: Godot returns 0 on some template problems,
           # and a 0-byte artifact only gets noticed by whoever downloads it.
-          # The .pck is checked separately from the executable because
-          # binary_format/embed_pck is false - the game is the pair, and a
-          # missing .pck is a binary that starts and finds no project.
+          #
+          # binary_format/embed_pck is true, so each build is ONE file and
+          # there is no .pck to check beside it. The size floor is what
+          # replaces that check: an executable exported without its project
+          # data is just the engine template, and this project's data is
+          # ~400MB, so anything near the template's own size (73MB Linux,
+          # 103MB Windows) means the pck did not go in.
           fail=0
           check() {
             if [ ! -s "$1" ]; then
               echo "::error::$1 falta o esta vacio"
               fail=1
+              return
+            fi
+            bytes=$(stat -c%s "$1")
+            if [ "$bytes" -lt "$2" ]; then
+              echo "::error::$1 son $(du -h "$1" | cut -f1) - demasiado pequeno, el pck no esta dentro"
+              fail=1
             else
-              echo "OK  $(du -h "$1" | cut -f1)\t$1"
+              echo "OK  $(du -h "$1" | cut -f1)  $1"
             fi
           }
+          # 200MB: comfortably above either bare template and comfortably
+          # below the ~470MB a real build lands at.
+          FLOOR=209715200
           if [ -d builds/pc/linux ] && [ -n "$(ls -A builds/pc/linux 2>/dev/null)" ]; then
-            check builds/pc/linux/lullaby.x86_64
-            check builds/pc/linux/lullaby.pck
+            check builds/pc/linux/lullaby.x86_64 $FLOOR
           fi
           if [ -d builds/pc/windows ] && [ -n "$(ls -A builds/pc/windows 2>/dev/null)" ]; then
-            check builds/pc/windows/lullaby.exe
-            check builds/pc/windows/lullaby.pck
+            check builds/pc/windows/lullaby.exe $FLOOR
           fi
           exit $fail
 
