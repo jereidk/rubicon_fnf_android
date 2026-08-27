@@ -1442,6 +1442,16 @@ dependencies hang a fresh project - so that check is structural.
 
 ## Reemplazar el 74.6% de Chimera por vídeo: investigado y descartado
 
+> **AVISO: esta sección quedó SUPERADA y su veredicto ya no describe el
+> proyecto.** Desde `69f8541` hay vídeo pre-renderizado shipeando en las dos
+> canciones, con su componente, su harness y su job de CI. Lo que sigue se
+> queda porque la pregunta que contesta -"¿reemplazamos *la canción entera*
+> por vídeo?"- sigue teniendo la misma respuesta, y varios de sus datos
+> (coste de decodificar, peso por minuto, que libtheora va en C genérico) son
+> los que después decidieron la anchura de entrega. Lo que cambió es el
+> alcance: **cutscenes sí, gameplay no.** La receta viva está en "Cutscenes
+> pre-renderizadas" más abajo.
+
 El usuario propuso reemplazar los tramos de Chimera sin Serena en pantalla por
 vídeo pre-renderizado sin HUD. La idea pasó por tres rondas y vale la pena
 dejarlas todas, porque cada una cambió el veredicto.
@@ -1522,6 +1532,136 @@ renderiza Chimera con su iluminación correcta, así que "se ve prácticamente
 igual" no se pudo comprobar. Si algún día se quiere cerrar la duda del todo,
 el experimento que falta es en el teléfono real: un `.ogv` de 10-15s grabado
 de Chimera, reproducido solo, leyendo `gpu=`/`proc=` del log.
+
+## Cutscenes pre-renderizadas: cómo se hace la siguiente
+
+Dos ya shipean - la intro de Safety Lullaby y el prelude de Chimera - y el
+sistema está pensado para que la tercera sea barata. Esto es lo que hay que
+saber antes de tocarla, porque casi todo lo caro ya se pagó una vez.
+
+### Por qué, con el número delante
+
+No es "queda más cinemático": es que **la cutscene viva cuesta CPU de
+animación y el vídeo no**. Log del 2026-08-24, la intro de Safety Lullaby,
+31.5 segundos con un tercio de los frames por encima de 28ms y picos de 50-86ms
+en cada cambio de plano:
+
+    draw=3-7  prims=68-76  rend=[3d=0/0/0]  over=0.6x  cpu_render=0.6-1.7ms
+
+Cinco draw calls y menos de una pantalla de relleno. `intro.tscn` son 22 nodos
+**sin un solo script**, pero el censo cuenta `anim_players=57
+trees=15(active=15)` porque la escena entera de la canción corre por detrás.
+Descartados con el mismo log: pipelines (`pipe=347(+0)`), subida de texturas
+(`vram_delta=+0.0MB`), gdanimate (`anim2d=0.00`) y cachés de mixer.
+
+El vídeo cambia eso por un coste **plano y conocido**, medido sobre el
+decodificador real del motor:
+
+    ms = 1.32 + 3.49 x Mpx     ->  960x432 = 2.78 ms/frame en el Xeon
+
+Y esa extrapolación al teléfono es legítima porque **libtheora va en C
+genérico en todas las plataformas**: `x86_libtheora_opt_gcc` y `_vc` están
+fijos a False en el SConstruct de Godot y la carpeta `arm/` ni está
+vendorizada. Mismo código, solo cambia la microarquitectura.
+
+### Las cinco cosas que hay que comprobar ANTES de renderizar
+
+Cada una costó una corrida de CI o una build.
+
+1. **¿Hay texto traducible en la cutscene?** Un vídeo congela lo que cambia en
+   tiempo de ejecución, y los subtítulos cambian con el idioma del jugador. La
+   sonda de Chimera trae *"Serena Yvonne Gabena, 20 years old"* horneado en
+   inglés, y esa cadena está en `ui_strings.csv` con sus dos traducciones. La
+   salida es el grupo `cutscene_live_overlay`: se esconde para la captura y se
+   deja en paz al reproducir, así que sale traducido y encima.
+2. **¿Ese texto está POR ENCIMA del vídeo?** Es la mitad que el grupo **no**
+   puede resolver. `UILayer` es `CanvasLayer` en capa 1 y el vídeo dibuja en
+   capa 0, así que lo que viva en `UILayer` ya está a salvo. Lo que viva en el
+   lienzo por defecto o dentro del subárbol de la cutscene queda **tapado** al
+   reproducir, y esconderlo para la captura lo deja invisible en los dos lados.
+   El `Prelude` de Chimera es exactamente ese caso -un `Node2D` con
+   `z_index = 1`- y hubo que subirlo a un CanvasLayer antes de poder capturar.
+3. **`z_index` no salva a nadie de un CanvasLayer.** Medido: un ColorRect rojo
+   en el lienzo por defecto con `z_index = 1` contra uno verde en un
+   `CanvasLayer(0)` -gana el CanvasLayer-, porque el `z_index` solo ordena
+   *dentro* de un lienzo.
+4. **¿La canción se puede jugar sola durante la captura?** Nadie pulsa nada
+   durante un render, así que el jugador falla **todas** las notas. En Chimera
+   eso disparó el gameover a mitad de captura y lo grabado fue el HUD sobre
+   nada. El harness fuerza Showcase; si una canción nueva tiene otra vía de
+   muerte, hay que taparla igual.
+5. **¿La cutscene se libera a sí misma?** En Chimera la pista de método de
+   `103_stroll` llama a `Intro.queue_free()` en el segundo 34.583 y el vídeo
+   devuelve el mando en 34.708. Un `Node` liberado **no** deja la variable a
+   `null`, deja una referencia colgante - por eso el componente usa
+   `is_instance_valid` y no `!= null`.
+
+### Cómo se renderiza
+
+Desde el workflow de Android, `render_cutscene` con los argumentos del harness:
+
+    res://lullaby_mod/songs/<cancion>/sng_<cancion>.tscn anim=play hasta=31.5
+
+y las cuatro filas de al lado (`cutscene_scale`, `cutscene_fps`,
+`cutscene_trim`, `cutscene_msaa`, `cutscene_quality`) con sus defaults ya
+medidos. Sube como artefacto y **no se commitea solo**.
+
+Cuatro cosas del harness que no son obvias:
+
+- **La escena se monta con `change_scene_to_file()`, no con `add_child()`.**
+  Un nodo de más en medio rompe las rutas `../IntroCutscene:visible`, y una
+  captura donde la visibilidad y la cámara no están conducidas no es evidencia
+  de nada.
+- **`desde=` NO sirve para capturar mitad de canción.** `seek()` con el
+  sub-player parado toma la rama `else` de `_blend_process`
+  (`animation_mixer.cpp:1865`): el clip se asigna y se posa una vez y **nunca
+  se reproduce**. La corrida #191 entregó el HUD sobre negro absoluto por eso.
+  Para el medio de una canción se renderiza desde 0 y se tira la cabeza con
+  `cutscene_trim`, que es asumible porque el coste por frame es plano (5154
+  ms/frame en negro contra 5165 en la intro, 0.2%).
+- **60fps sale más barato por frame que 30**, medido: 6.82 CPU-s a 30 contra
+  8.23 a 60 sobre los mismos 20s, o sea el doble de frames por un 21% más.
+  Cuesta un 52% más de bytes.
+- **La anchura de entrega es una decisión de coste de decode, no de calidad.**
+  El arte está autorado a 1280x720, así que 960 pierde un 25% lineal - y aun
+  así 960 es lo que shipea. `15a88d5` lo subió a 1280 con el argumento de la
+  calidad y `c3a1992` lo revirtió: Theora decodifica en el hilo principal, y
+  el factor teléfono/escritorio es ~3x, así que 1280x720 aterriza cerca de
+  14ms de los 16.7 disponibles. **El número de escritorio para 1280 son
+  ~4.5ms y parece perfectamente seguro; ésa es la trampa.** Subirlo sigue
+  disponible y lo que necesita es una medida en el dispositivo. La salida
+  limpia, si algún día importa, son dos ficheros y que el preset elija - que
+  es justo para lo que `prefer_cutscene_video` existe.
+
+### Lo que NO hay que hacer
+
+- **No borres el arte que el vídeo sustituye.** Se preguntó y está contestado
+  en `938a0f5`: `LullabyCutsceneVideo` se retira en silencio si no hay fichero
+  o si el preset no lo pide, y `render_cutscene.gd` apaga el interruptor
+  precisamente para poder filmar la escena viva - sin escena viva no hay nada
+  que filmar. Los números, para que la tentación tenga precio:
+
+      Safety Lullaby  intro.tscn     29 ficheros  8.3 MB -> intro.ogv    3.2 MB
+      Chimera         Intro+Prelude  13 ficheros  9.3 MB -> prelude.ogv  3.5 MB
+
+  Los vídeos son **más pequeños** que el arte que sustituyen, que es
+  exactamente lo que hace que borrarlo parezca gratis.
+- **No escribas `visible` sobre la cutscene.** El Timeline de la canción anima
+  `../IntroCutscene:visible` con una pista y pelearía. El componente la tapa
+  con su propio CanvasLayer y le apaga el `process_mode`, que es donde está el
+  gasto de verdad.
+- **No corrijas la deriva por frame.** Un `seek()` de Theora retrocede por el
+  fichero en bloques de 512 KB buscando el keyframe anterior. `max_drift` está
+  en 0.25s y en la práctica no debería dispararse: el reproductor avanza con el
+  mismo delta de reloj de pared que el audio.
+
+### El precio, dicho sin adornos
+
+Los cuatro presets piden vídeo, así que **una cutscene ya no se puede editar
+sin pasar por CI** y por un render que hoy cuesta horas (el de Chimera, 87
+minutos; el 93% es rasterización por software, y el atlas de sombras de
+`qol_high` son 16.8 Mpx contra 1.05 del frame que se graba - de ahí `sombras=`).
+Es una decisión de producto tomada a sabiendas.
 
 ## El barrido de escala de render de Chimera, por fin hecho - y el 3D es el frame
 
