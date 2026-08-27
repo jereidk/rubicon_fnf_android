@@ -23,6 +23,12 @@ extends SceneTree
 ##   3. a lit light is never touched at all
 ##   4. the pass reports its own count, so a device log can tell "fired" from
 ##      "found nothing"
+##   5. and the holdoff: a light does NOT get culled the instant it reaches
+##      zero, because pulling a light out of the render set costs a whole set
+##      of specialization pipelines and Chimera's camera flash crosses zero
+##      seven times in one 8.5s clip. See _cull_dark_lights' own docstring for
+##      the measurement. The wait is skipped by backdating the pass's own
+##      clock rather than by sleeping three seconds in CI.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_dark_light_cull.gd
@@ -66,13 +72,25 @@ func _run() -> void:
 	for _i in 4:
 		await process_frame
 
-	_check("una luz a energia 0 deja de emparejarse",
-		dark.light_cull_mask == 0,
+	# Primero el holdoff: recien puesta a cero, la luz sigue intacta. Sin esta
+	# comprobacion el resto pasaria igual y el flash de la sesion de fotos
+	# volveria a costar dos segundos de congelado.
+	_check("recien a cero, la luz NO se cullea todavia",
+		dark.light_cull_mask == 4293918733,
 		"mascara=%d" % dark.light_cull_mask)
 
 	_check("una luz encendida no se toca",
 		lit.light_cull_mask == 0xFFFFF,
 		"mascara=%d" % lit.light_cull_mask)
+
+	# Y ahora se adelanta el reloj del propio pase en vez de dormir tres
+	# segundos en CI. Se lee la constante del applier, no se repite aqui.
+	_expire(budget, dark)
+	await process_frame
+
+	_check("pasado el holdoff, deja de emparejarse",
+		dark.light_cull_mask == 0,
+		"mascara=%d" % dark.light_cull_mask)
 
 	_check("el pase cuenta lo que tiene apagado",
 		budget.call("dark_culled_count") == 1,
@@ -95,7 +113,9 @@ func _run() -> void:
 	# instead of only on the transition would stash 0 the second time and
 	# restore 0 forever after.
 	dark.light_energy = 0.0
-	for _i in 3:
+	await process_frame
+	_expire(budget, dark)
+	for _i in 2:
 		await process_frame
 	dark.light_energy = 1.0
 	for _i in 2:
@@ -106,8 +126,8 @@ func _run() -> void:
 		"mascara=%d" % dark.light_cull_mask)
 
 	print("")
-	if _checks < 6:
-		print("FALLO: solo %d de 6 comprobaciones" % _checks)
+	if _checks < 7:
+		print("FALLO: solo %d de 7 comprobaciones" % _checks)
 		quit(1)
 		return
 	if _failures == 0:
@@ -115,6 +135,14 @@ func _run() -> void:
 	else:
 		print("%d fallo(s)" % _failures)
 	quit(0 if _failures == 0 else 1)
+
+## Envejece el reloj interno del pase para esa luz mas alla de DARK_HOLD_SECONDS,
+## leyendo la constante del propio applier para que bajarla o subirla mueva esta
+## prueba con ella en vez de dejar dos copias del numero.
+func _expire(budget: Node, light: Light3D) -> void:
+	var hold: float = budget.get_script().get_script_constant_map().get("DARK_HOLD_SECONDS", 3.0)
+	var since: Dictionary = budget.get("_dark_since")
+	since[light.get_instance_id()] = Time.get_ticks_msec() - int(hold * 1000.0) - 1
 
 func _check(label: String, ok: bool, detail: String = "") -> void:
 	_checks += 1
