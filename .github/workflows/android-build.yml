@@ -965,6 +965,17 @@ jobs:
           # retry left no SCENE_IN in the log. Only the first was reported.
           guard_godot tools/test_retry_announces_scene_change.gd
 
+          # === Verify the Pad control mode, asked for by name
+          # "the arrow d-pad, literally, and in the position it already has,
+          # usable as gameplay to hit notes". The guard checks the arm->lane
+          # map against ChimeraEscapeDPad.ZONE_ACTIONS and mania_directions
+          # rather than a table copied into it - an inverted map throws no
+          # error, it just plays wrong - that the pad extends the touch
+          # overlay instead of reimplementing the four things that overlay
+          # already got wrong once, and that neither overlay mode switches on
+          # without a touchscreen, so a PC build keeps its lane hitboxes.
+          guard_godot tools/test_pad_control_mode.gd
+
           # === Verify over= counts layers the GPU draws, not nodes in the tree
           # Godot skips a CanvasItem whose inherited modulate alpha is zero,
           # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the

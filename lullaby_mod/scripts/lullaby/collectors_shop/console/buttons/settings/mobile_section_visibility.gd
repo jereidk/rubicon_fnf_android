@@ -26,8 +26,13 @@ func _ready() -> void:
 	Settings.applied.connect(_refresh)
 	_refresh()
 
+## Pad shares the Touch group rather than getting one of its own: the two
+## rows in it - the tap-target size and the haptics - are exactly the two
+## things a pad also has, and the size row already scales the round red
+## mechanic button that both modes use. A third group holding the same two
+## settings under different names would be more UI describing less.
 func _refresh() -> void:
-	var touch: bool = Settings.lullaby_mobile_control_mode == Settings.MobileControlMode.TOUCH
+	var touch: bool = Settings.is_overlay_control_mode()
 	hitbox_options.visible = not touch
 	touch_options.visible = touch
 

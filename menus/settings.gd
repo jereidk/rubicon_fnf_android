@@ -474,9 +474,22 @@ func is_midscroll_active() -> bool:
 ## automatically and the quality presets keep matching on graphics_ only.
 
 ## 0 = Hitbox (the full-height lane zones), 1 = Touch (tap the falling
-## notes directly). The Touch input mode itself ships separately; the
-## setting and its UI exist from the start so the menu is complete.
-enum MobileControlMode { HITBOX = 0, TOUCH = 1 }
+## notes directly), 2 = Pad (a four-arrow d-pad at the bottom of the
+## screen, driving the same four lanes).
+##
+## Pad was asked for by name - "the arrow d-pad, literally, and in the
+## position it already has" - and it is Chimera's escape pad's look and
+## placement rather than a new design. All three modes end up in the same
+## place: RubiconTouchInput.handle_touch_input(lane, pressed).
+enum MobileControlMode { HITBOX = 0, TOUCH = 1, PAD = 2 }
+
+## True for every mode where note input comes from an overlay this project
+## creates rather than from the lane hitboxes the songs author. Both of
+## those modes want the lane hitboxes inert and the pendulum played through
+## the round red button, so they are asked about together far more often
+## than they are told apart.
+func is_overlay_control_mode() -> bool:
+	return lullaby_mobile_control_mode in [MobileControlMode.TOUCH, MobileControlMode.PAD]
 
 ## Where the pendulum mechanic's own hitbox sits: 0 = top strip (the
 ## original layout), 1 = bottom strip, 2 = centre band between the lanes.

@@ -25,6 +25,9 @@ const PENDULUM_SERVER_SCRIPT := "res://lullaby_mod/scripts/lullaby/mechanics/saf
 ## hit a note at the same time.
 const ESCAPE_DPAD_SCRIPT := "res://lullaby_mod/songs/chimera/scripts/chimera_escape_dpad.gd"
 const TOUCH_OVERLAY_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_touch_note_input.gd"
+## Pad mode's overlay. Extends the touch one, joins the same group, and is
+## removed by the same sweep - only its tap zones and its drawing differ.
+const PAD_OVERLAY_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_pad_note_input.gd"
 const MECHANIC_BUTTON_SCRIPT := "res://lullaby_mod/scripts/lullaby/settings/lullaby_mechanic_action_button.gd"
 const CONTROLLER_PATH := "UILayer/GameUI/Player"
 ## The songs' CanvasLayer. The overlay has to live under it: a Control
@@ -92,6 +95,12 @@ func _ready() -> void:
 	# runs and no scene-change signal fires for it.
 	_apply_when_scene_ready()
 
+## The same test RubiconMobileControls and the ten other touch scripts use.
+## A touchscreen laptop answers true and gets the touch modes, which is the
+## right answer for it.
+func _has_touchscreen() -> bool:
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
+
 func _on_scene_changed(_path: String) -> void:
 	_apply_when_scene_ready()
 
@@ -108,7 +117,19 @@ func _apply_to_current_scene() -> void:
 	if scene == null:
 		return
 
-	var touch_mode: bool = Settings.lullaby_mobile_control_mode == Settings.MobileControlMode.TOUCH
+	# Touch and Pad differ only in where the taps come from: both take note
+	# input away from the lane hitboxes and play the pendulum through the
+	# round red button, so everything below asks the shared question and
+	# only the overlay script is chosen by the exact mode.
+	#
+	# And neither mode exists on a machine with no touchscreen. Every touch
+	# control in this project already gates on this exact pair - eleven
+	# scripts, from the lane hitbox to Chimera's escape pad - so a desktop
+	# build hides them all and plays on the keyboard. These two overlays are
+	# created by this script rather than by their own _ready(), so the gate
+	# has to be here or a saved Touch/Pad setting would draw a d-pad on a
+	# monitor and take the lane hitboxes away from a player who has neither.
+	var touch_mode: bool = Settings.is_overlay_control_mode() and _has_touchscreen()
 
 	# Idempotent: re-applying settings (or switching modes mid-session) must
 	# never leave a stale overlay behind.
@@ -293,12 +314,14 @@ func _restore_mechanic_hitbox(mechanic: Control) -> void:
 		controller.set_process(true)
 
 func _create_touch_overlay(scene: Node, controller: Node, found: Dictionary) -> void:
-	var overlay_script: Script = load(TOUCH_OVERLAY_SCRIPT)
+	var pad_mode: bool = Settings.lullaby_mobile_control_mode == Settings.MobileControlMode.PAD
+	var script_path: String = PAD_OVERLAY_SCRIPT if pad_mode else TOUCH_OVERLAY_SCRIPT
+	var overlay_script: Script = load(script_path)
 	if overlay_script == null:
-		push_error("MobileControlsApplier: failed to load touch overlay script %s" % TOUCH_OVERLAY_SCRIPT)
+		push_error("MobileControlsApplier: failed to load overlay script %s" % script_path)
 		return
 	var overlay: Control = overlay_script.new()
-	overlay.name = "LullabyTouchNoteInput"
+	overlay.name = "LullabyPadNoteInput" if pad_mode else "LullabyTouchNoteInput"
 	# Full-rect so the overlay (and its right-centre special button, which
 	# is anchored against the overlay's rect) covers the whole screen. Under
 	# a CanvasLayer the anchorable rect is the viewport - the same rule the
@@ -326,6 +349,11 @@ func _create_touch_overlay(scene: Node, controller: Node, found: Dictionary) -> 
 	var escape_dpad = found.get("escape_dpad")
 	if escape_dpad is Control:
 		overlay.reserved_controls.append(escape_dpad)
+		# And in Pad mode it is more than a reserved zone: Chimera's crawl
+		# pad sits at exactly the same place on screen, so the note pad has
+		# to be gone for that stretch rather than drawn underneath it.
+		if pad_mode:
+			overlay.escape_pad = escape_dpad
 
 	overlay.mechanic_source = found.get("pendulum")
 

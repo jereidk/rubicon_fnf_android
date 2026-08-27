@@ -6005,10 +6005,10 @@ text = "Gameplay Control: "
 alignment = 0
 script = ExtResource("54")
 property = &"lullaby_mobile_control_mode"
-display_list = ["Hitbox", "Touch"]
-values_list = [0, 1]
+display_list = ["Hitbox", "Touch", "Pad"]
+values_list = [0, 1, 2]
 console = NodePath("../../../../../..")
-tooltip = "How notes are played. Hitbox uses the full height lane zones. Touch lets you tap the falling notes themselves, up to four fingers at once for chords."
+tooltip = "How notes are played. Hitbox uses the full height lane zones. Touch lets you tap the falling notes themselves, up to four fingers at once for chords. Pad puts a four arrow d-pad at the bottom of the screen, the same one Chimera's crawl uses."
 
 [node name="HitboxOptions" type="VBoxContainer" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Mobile" unique_id=2146300003]
 layout_mode = 2

@@ -1,0 +1,326 @@
+name: PC Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: >-
+          release uses Godot's release engine template; debug uses the debug
+          one, which keeps asserts and the remote debugger and is what the
+          diagnostics log's `template :` header line reports.
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      targets:
+        description: Which desktop builds to produce.
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - linux
+          - windows
+
+# The Android workflow is the gate: it runs the guard suite, and everything
+# this one builds from is the same tree. Duplicating 75 guards here would
+# double every CI run to re-answer a question already answered.
+permissions:
+  contents: read
+  packages: none
+  security-events: none
+  attestations: none
+  statuses: none
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: '4.7.1-stable'
+  GODOT_VERSION_FOLDER: '4.7.1.stable'
+  DEBIAN_FRONTEND: 'noninteractive'
+
+jobs:
+  build:
+    name: Build PC
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        env:
+          GIT_LFS_SKIP_SMUDGE: 1
+        with:
+          lfs: false
+          sparse-checkout: |
+            /*
+            !/lullaby_mod/original_pck/
+          sparse-checkout-cone-mode: false
+
+      - name: Cache Git LFS objects
+        id: cache-lfs
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          # A skipped smudge leaves each file as its pointer, and a pointer is
+          # literally the object's oid, so hashing them keys the cache on the
+          # LFS content itself and on nothing else. Editing a .gd or a .tscn
+          # does not move this key; adding a precompiled import does.
+          key: lfs-${{ runner.os }}-${{ hashFiles('precompiled_astc_imports/*.res', '**/*.lmbake', '**/*.ctex') }}
+
+      - name: Materialise Git LFS files
+        run: |
+          # Nothing in LFS is required any more. The only game assets that were
+          # behind it - two lightmap bakes, 510KB together - are plain git
+          # objects now; everything left is precompiled import output, which is
+          # a build accelerator. So an LFS outage has to degrade this job, not
+          # end it, and `git lfs pull` failing is not fatal.
+          #
+          # checkout, not pull, when the objects are already local: it smudges
+          # out of .git/lfs/objects and never contacts the server, so a warm
+          # cache costs zero bandwidth. Only a miss pays for a fetch.
+          if [ "${{ steps.cache-lfs.outputs.cache-hit }}" = "true" ]; then
+            echo "LFS cache hit - materialising from local objects"
+            git lfs checkout || echo "::warning::git lfs checkout fallo"
+          else
+            echo "LFS cache miss - fetching from the server"
+            git lfs pull || echo "::warning::git lfs pull fallo (presupuesto agotado?)"
+          fi
+
+          # Whatever is still a pointer is unusable, and has to be named rather
+          # than fed to Godot: the restore step below would otherwise copy 130
+          # bytes of text into .godot/imported/ as though it were a compressed
+          # texture. Counted here, skipped there.
+          pointers=0
+          for f in $(git lfs ls-files -n); do
+            [ -f "$f" ] || continue
+            if head -c 64 "$f" | grep -q "git-lfs.github.com/spec"; then
+              pointers=$((pointers + 1))
+            fi
+          done
+
+          total=$(git lfs ls-files -n | wc -l)
+          echo "LFS: $((total - pointers))/$total materializados, $pointers sin resolver"
+          if [ "$pointers" -gt 0 ]; then
+            echo "::warning::$pointers objetos LFS sin resolver - se importara desde las fuentes"
+            echo "### LFS degradado" >> "$GITHUB_STEP_SUMMARY"
+            echo "$pointers de $total objetos no se pudieron descargar." >> "$GITHUB_STEP_SUMMARY"
+            echo "El build continua reimportando desde las fuentes: mas lento, mismo resultado." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Restore precompiled ASTC imports
+        run: |
+          # These are pre-run outputs of the two custom ASTC import plugins
+          # (astc_sprite_import, astc_normal_map), committed to the repo
+          # instead of relying solely on the GitHub Actions cache above -
+          # EXHAUSTIVE-quality ASTC compression across ~124 large textures
+          # takes over an hour, and the Actions cache key changes (forcing a
+          # cache miss) any time any tracked png/tscn/etc anywhere in the
+          # project changes. Godot decides whether to skip reimporting a
+          # file by comparing content MD5s (source PNG vs the .md5 sidecar's
+          # source_md5, and the .res output vs its dest_md5) rather than
+          # file timestamps, so this works correctly even on a fresh
+          # checkout where every file's mtime is "now". See
+          # precompiled_astc_imports/README.md for how to regenerate these.
+          #
+          # Each .res is only copied when it is real content. An unresolved LFS
+          # pointer here is 130 bytes of text, and handing that to Godot as a
+          # compressed texture is worse than not having it: skipping lets the
+          # importer notice the output is missing and rebuild it from the PNG,
+          # which is slow but correct. The .md5 sidecar only travels with a
+          # .res that was actually copied - on its own it would tell Godot the
+          # import is already done and there is nothing to rebuild.
+          mkdir -p .godot/imported
+          copied=0
+          skipped=0
+          for res in precompiled_astc_imports/*.res; do
+            [ -f "$res" ] || continue
+            if head -c 64 "$res" | grep -q "git-lfs.github.com/spec"; then
+              skipped=$((skipped + 1))
+              continue
+            fi
+            cp "$res" .godot/imported/
+            md5="${res%.res}.md5"
+            [ -f "$md5" ] && cp "$md5" .godot/imported/
+            copied=$((copied + 1))
+          done
+          echo "Restored $copied precompiled ASTC imports ($skipped sin resolver)"
+          if [ "$skipped" -gt 0 ]; then
+            echo "::warning::$skipped imports precompilados no disponibles - Godot los rehara"
+          fi
+
+      - name: Restore precompiled lightmap imports
+        run: |
+          # Same idea as the ASTC step above, for the project's 3 baked
+          # LightmapGI .exr files - Godot's own stock 2d_array_texture
+          # importer, not the custom ASTC plugins, but disproportionately
+          # slow on its own (one of them, chimera_base.exr, is ~11% of the
+          # whole Import step by itself: an uncompressed HDR source
+          # compressed twice, once for BPTC and once for ASTC). See
+          # precompiled_lightmap_imports/README.md for how to regenerate.
+          mkdir -p .godot/imported
+          cp precompiled_lightmap_imports/*.ctexarray precompiled_lightmap_imports/*.md5 .godot/imported/
+          echo "Restored $(ls precompiled_lightmap_imports/*.md5 | wc -l) precompiled lightmap imports"
+
+      - name: Restore precompiled texture imports
+        run: |
+          # Same idea as the two steps above, for individually slow plain PNGs
+          # on Godot's stock texture importer (not either custom ASTC plugin).
+          #
+          # This directory can legitimately be empty: moving a texture onto the
+          # ASTC importer makes its .ctex here stale - the .import now expects a
+          # .res - so the pair has to be deleted, and everything it used to hold
+          # has been. The glob must not be allowed to fail the build when that
+          # happens, which is what an unguarded `cp *.ctex` does.
+          mkdir -p .godot/imported
+          shopt -s nullglob
+          files=(precompiled_texture_imports/*.ctex precompiled_texture_imports/*.md5)
+          if [ ${#files[@]} -gt 0 ]; then
+            cp "${files[@]}" .godot/imported/
+          fi
+          echo "Restored $(ls precompiled_texture_imports/*.md5 2>/dev/null | wc -l) precompiled texture imports"
+
+      - name: Build ASTC normal map compressor
+        run: |
+          cd tools/astc_compress
+          g++ -O2 -std=c++17 -pthread -I thirdparty/astcenc astc_compress.cpp thirdparty/astcenc/astcenc_*.cpp -o astc_compress
+          chmod +x astc_compress
+          cd ../..
+          ls -la tools/astc_compress/astc_compress
+
+      - name: Cache Godot export templates
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz -O /tmp/templates.tpz
+          unzip -q /tmp/templates.tpz -d ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}
+          mv ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/
+          rm -rf ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION_FOLDER }}/templates
+
+      - name: Cache Godot editor binary
+        id: cache-godot-bin
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/godot
+          key: godot-bin-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot editor
+        if: steps.cache-godot-bin.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /opt/godot
+          wget -q https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /opt/godot
+          chmod +x /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64
+          rm /tmp/godot.zip
+          ln -sf /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 /opt/godot/godot
+
+      - name: Expose Godot on PATH
+        run: |
+          chmod +x /opt/godot/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64 || true
+          echo "GODOT=/opt/godot/godot" >> $GITHUB_ENV
+
+      - name: Cache Godot import cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .godot/imported
+            .godot/uid_cache.bin
+            .godot/global_script_class_cache.cfg
+          # Same key shape as the Android workflow, and deliberately its own
+          # namespace: the two jobs import the same tree, but a partial cache
+          # written by whichever finished first is worse than a clean miss.
+          key: godot-import-pc-v1-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
+          restore-keys: |
+            godot-import-pc-v1-${{ runner.os }}-${{ env.GODOT_VERSION }}-
+
+      - name: Import Godot project
+        run: |
+          # Twice, for the same reason the Android workflow does it: a single
+          # pass can leave GLTF-embedded sub-resources on disk but not yet in
+          # the UID cache, and a scene that references them by UID then fails
+          # to resolve during export.
+          $GODOT --headless --import 2>&1 | tail -5
+          $GODOT --headless --import 2>&1 | tail -5
+
+      - name: Export
+        run: |
+          set -e
+          if [ "${{ inputs.build_type }}" = "debug" ]; then
+            FLAG="--export-debug"
+          else
+            FLAG="--export-release"
+          fi
+
+          mkdir -p builds/pc/linux builds/pc/windows
+
+          want() {
+            [ "${{ inputs.targets }}" = "both" ] || [ "${{ inputs.targets }}" = "$1" ]
+          }
+
+          if want linux; then
+            echo "::group::Linux"
+            $GODOT --headless --path . $FLAG "Linux" builds/pc/linux/lullaby.x86_64
+            chmod +x builds/pc/linux/lullaby.x86_64
+            echo "::endgroup::"
+          fi
+
+          if want windows; then
+            echo "::group::Windows"
+            $GODOT --headless --path . $FLAG "Windows Desktop" builds/pc/windows/lullaby.exe
+            echo "::endgroup::"
+          fi
+
+      - name: Check the exports are real
+        run: |
+          # An export that "succeeded" and wrote nothing is the failure mode
+          # worth catching here: Godot returns 0 on some template problems,
+          # and a 0-byte artifact only gets noticed by whoever downloads it.
+          # The .pck is checked separately from the executable because
+          # binary_format/embed_pck is false - the game is the pair, and a
+          # missing .pck is a binary that starts and finds no project.
+          fail=0
+          check() {
+            if [ ! -s "$1" ]; then
+              echo "::error::$1 falta o esta vacio"
+              fail=1
+            else
+              echo "OK  $(du -h "$1" | cut -f1)\t$1"
+            fi
+          }
+          if [ -d builds/pc/linux ] && [ -n "$(ls -A builds/pc/linux 2>/dev/null)" ]; then
+            check builds/pc/linux/lullaby.x86_64
+            check builds/pc/linux/lullaby.pck
+          fi
+          if [ -d builds/pc/windows ] && [ -n "$(ls -A builds/pc/windows 2>/dev/null)" ]; then
+            check builds/pc/windows/lullaby.exe
+            check builds/pc/windows/lullaby.pck
+          fi
+          exit $fail
+
+      - name: Upload Linux build
+        if: ${{ inputs.targets != 'windows' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lullaby-linux-${{ inputs.build_type }}
+          path: builds/pc/linux/
+          if-no-files-found: error
+
+      - name: Upload Windows build
+        if: ${{ inputs.targets != 'linux' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lullaby-windows-${{ inputs.build_type }}
+          path: builds/pc/windows/
+          if-no-files-found: error

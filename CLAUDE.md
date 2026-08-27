@@ -5330,6 +5330,119 @@ de meter dos PNG nuevos por un cuadrado de dieciséis píxeles.
 filas y, sobre todo, que la condición de la tienda siga siendo la que estas
 casillas creen que es. Mutado con cuatro cambios y los cuatro fallan.
 
+## El modo Pad: la cruceta de flechas, jugando notas
+
+Pedido por su nombre - *"el dpad de flechas literal y de esa posición que
+tiene, que se pueda usar como gameplay para acertar notas"*. Así que no es un
+diseño nuevo: es el aspecto y la posición del pad de escape de Chimera
+(`UILayer/EscapeDPad`, 300x300 anclado abajo al centro, 20px del borde,
+radio 130) conduciendo los cuatro carriles.
+
+`Settings.MobileControlMode` pasa a `{ HITBOX = 0, TOUCH = 1, PAD = 2 }`.
+
+### Extiende el overlay táctil, no lo reimplementa
+
+Y eso es lo que hace que el cambio sea pequeño. Todo lo que hace *correcto* a
+un modo táctil ya está resuelto en `LullabyTouchNoteInput`, y **nada de ello
+va de dónde están las zonas**: el recuento de multitáctil, arrastrar un hold
+de una zona a otra, el despacho por `RubiconTouchInput` -que es lo que hace
+que ventanas de juicio, puntuación, splashes, animaciones de personaje y
+`lane_state` se comporten igual que un teclado-, el barrido de botones
+reservados, esconderse en pausa/gameover/HUD desvanecido, el botón rojo del
+péndulo y su destello de Showcase.
+
+`LullabyPadNoteInput extends LullabyTouchNoteInput` sobreescribe **dos**
+métodos: `_lane_at()` y `_draw()`. El guard fija que no aparezca ninguno de
+los otros cuatro, porque cada uno es un bug que ya se pagó una vez.
+
+### El mapa de brazos, comprobado contra lo que ya lo sabía
+
+`RubiconCharacter.mania_directions` es `[left, down, up, right]`, o sea carril
+0 = izquierda, 2 = arriba. Un mapa invertido **no da error**: da un juego en
+el que las flechas no corresponden, indistinguible de "el port está roto".
+
+El guard no lleva una tabla copiada: la contrasta contra
+`ChimeraEscapeDPad.ZONE_ACTIONS`, que ya resolvió esto una vez, cargando los
+dos scripts y comparando `get_script_constant_map()`. Verificado además en
+vivo sobre el nodo real a 1920x1080:
+
+    origen=(960, 910) radio=130
+    arriba -> carril 2    derecha -> carril 3
+    abajo  -> carril 1    izquierda -> carril 0
+    centro (hub muerto) -> -1     lejos -> -1
+
+**El hub va muerto a propósito**: el péndulo se juega con el botón rojo en los
+dos modos de overlay, así que un centro activo sería un segundo control para
+una sola acción.
+
+### Y las dos exclusiones que hacían falta
+
+- **El pad de escape de Chimera se dibuja en el mismo sitio.** Durante el
+  gateo es dueño de la pantalla, así que el pad de notas se esconde y suelta
+  sus carriles mientras `mechanic_active`. No basta con que esté en
+  `reserved_controls` -eso impide el toque, no el dibujo.
+- **Ningún modo de overlay se enciende sin pantalla táctil.** Los once
+  scripts táctiles de este proyecto ya se esconden solos con
+  `DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")`,
+  pero estos dos overlays los crea el applier y no su propio `_ready()`, así
+  que la puerta tiene que estar ahí. Sin ella una build de PC con el ajuste
+  guardado en Touch dibujaría una cruceta en un monitor **y** dejaría al
+  jugador sin los hitboxes de carril.
+
+`Settings.is_overlay_control_mode()` existe porque Touch y Pad quieren
+exactamente lo mismo del resto del sistema, y preguntarlo por separado en
+cada sitio es como se desincronizan.
+
+`tools/test_pad_control_mode.gd` (37 comprobaciones, en CI). Mutado
+invirtiendo arriba/abajo en el mapa (fallan 2), quitando la exclusión del pad
+de escape (1) y devolviendo el applier a preguntar solo por TOUCH (1).
+
+## Build de PC: dos presets y un workflow
+
+`Linux` (`preset.3`) y `Windows Desktop` (`preset.4`), más
+`.github/workflows/pc-build.yml`, `workflow_dispatch` con `build_type`
+(release/debug) y `targets` (both/linux/windows). Artefactos, no releases.
+
+**El port no necesitó ni una línea de código para esto**, igual que iOS: no
+hay GDExtension, no hay plugin nativo, y los once controles táctiles ya se
+esconden solos en una máquina sin pantalla táctil. Lo único que hubo que
+añadir es la misma puerta en el applier de los dos overlays nuevos, que se
+crean por ajuste y no por `_ready()`.
+
+Cumpliendo la regla que dejó el trabajo de iOS -**no escribir un preset de
+memoria**-, las claves salen del binario:
+
+```bash
+strings -n 3 godot | grep -E "^(binary_format|texture_format|debug|ssh_remote_deploy|codesign)/" | sort -u
+```
+
+Y verificado de verdad, no razonado: los dos presets exportan en un proyecto
+aislado con las plantillas reales de 4.7.1, **cero errores**, produciendo
+`lullaby.x86_64` (73MB), `lullaby.exe` (103MB), el `lullaby.console.exe` que
+pide `debug/export_console_wrapper` y un `.pck` con contenido. Un preset con
+una opción inventada falla como *configuration error* antes de escribir nada
+- que es exactamente cómo se cazó esto en iOS.
+
+Tres decisiones que conviene no rehacer:
+
+- **`binary_format/embed_pck=false`**, así que el juego son el ejecutable
+  **y** el `.pck`. El paso `Check the exports are real` comprueba los dos por
+  separado: un binario sin su `.pck` arranca y no encuentra proyecto, y
+  Godot devuelve 0 en algunos fallos de plantilla, así que un artefacto vacío
+  solo lo descubriría quien lo descargue.
+- **`texture_format/s3tc_bptc` y `etc2_astc` los dos a true.** El 94% de este
+  proyecto son texturas ASTC 8x8 del importador propio; una GPU de escritorio
+  que no soporte ASTC las descomprime al cargar. Funciona, pero cuesta VRAM -
+  medirlo en un PC real es trabajo pendiente, no un bloqueo.
+- **El workflow no corre la suite de guards.** El de Android es la puerta y
+  construye del mismo árbol; duplicar 77 guards doblaría cada CI para volver
+  a contestar lo mismo. Sus pasos de imports precompilados **sí** se copiaron
+  verbatim, porque sin ellos CI paga una hora de ASTC EXHAUSTIVE.
+
+Lo que **no** cubre y hay que decirlo: nadie ha ejecutado el binario. Que
+exporte y que arranque son dos cosas, y la segunda pide una máquina con
+pantalla.
+
 ## Un reinicio no era un cambio de escena, y cuatro sistemas se lo perdían
 
 Reportado como *"al reiniciar, la hitbox de mecánica que debería estar por
