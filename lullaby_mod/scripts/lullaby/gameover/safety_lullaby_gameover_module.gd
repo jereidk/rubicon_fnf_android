@@ -107,7 +107,11 @@ func _input(event: InputEvent) -> void :
 		music.stop()
 	await animation_player.animation_finished
 	if is_inside_tree():
-		get_tree().reload_current_scene()
+		# Through SceneChanger, not get_tree() directly: the reload itself is
+		# identical, but the raw call is invisible to the five autoloads that
+		# listen for a scene change - which is why the pendulum hitbox came
+		# back on the top strip after a retry however the Mobile row was set.
+		SceneChanger.reload_current()
 
 
 func activate_gameover() -> void :

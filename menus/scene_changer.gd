@@ -216,6 +216,36 @@ func _complete() -> void:
 	if not awaiting_manual_end:
 		finish_loading_screen()
 
+## Reload the running scene the way change_to() loads a new one - announced.
+##
+## `get_tree().reload_current_scene()` is the right mechanism for a retry: it
+## keeps statics, it does not go through the loading screen, and it cannot
+## race a second load. What it is not is *visible*. Five autoloads listen to
+## `scene_change_finished` and none of them ever heard a retry, because that
+## call bypasses this node entirely:
+##
+##   lullaby_mobile_controls_applier   the pendulum hitbox went back to the
+##                                     top strip its scene authors, whatever
+##                                     the Mechanic Hitbox Direction row said
+##   lullaby_note_layout_applier       VSlice reverted to Classic
+##   lullaby_light_budget_applier      no baked-light cull, no cheap shading,
+##                                     and its caches still held the freed
+##                                     scene's lights
+##   lullaby_diagnostics_log           no SCENE_OUT/SCENE_IN for the retry
+##
+## Only the first was reported ("al reiniciar la hitbox de mecánica siempre
+## va arriba"); the other three were the same bug going unnoticed. So the
+## reload stays exactly as it was and only gains the announcement, in the
+## same order `_complete()` uses - emit, then swap - because the appliers
+## wait a frame afterwards to land on the new scene before it has drawn.
+func reload_current() -> void:
+	var scene: Node = get_tree().current_scene
+	if scene == null:
+		return
+
+	scene_change_finished.emit(scene.scene_file_path)
+	get_tree().reload_current_scene()
+
 func finish_loading_screen() -> void:
 	get_tree().paused = false
 	awaiting_manual_end = false

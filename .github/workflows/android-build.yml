@@ -954,6 +954,17 @@ jobs:
           # row's 2.0 ceiling still cannot make two lanes overlap.
           guard_godot tools/test_note_size_option.gd
 
+          # === Verify a retry announces itself like any other scene change
+          # get_tree().reload_current_scene() is the right mechanism for a
+          # retry and is invisible: it bypasses SceneChanger, so
+          # scene_change_finished never fires and the five autoloads that
+          # listen never hear it. The reloaded scene keeps whatever it
+          # authors - which is why the pendulum hitbox came back on the top
+          # strip however the Mobile row was set, and also why VSlice
+          # reverted to Classic, the light budget never re-applied, and the
+          # retry left no SCENE_IN in the log. Only the first was reported.
+          guard_godot tools/test_retry_announces_scene_change.gd
+
           # === Verify over= counts layers the GPU draws, not nodes in the tree
           # Godot skips a CanvasItem whose inherited modulate alpha is zero,
           # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the

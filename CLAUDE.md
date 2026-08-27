@@ -5330,6 +5330,49 @@ de meter dos PNG nuevos por un cuadrado de dieciséis píxeles.
 filas y, sobre todo, que la condición de la tienda siga siendo la que estas
 casillas creen que es. Mutado con cuatro cambios y los cuatro fallan.
 
+## Un reinicio no era un cambio de escena, y cuatro sistemas se lo perdían
+
+Reportado como *"al reiniciar, la hitbox de mecánica que debería estar por
+abajo no lo está y siempre va arriba, es como si se sobreescribiera"*. No se
+sobreescribe: **nadie la vuelve a colocar.**
+
+`safety_lullaby_gameover_module.gd` reintentaba con
+`get_tree().reload_current_scene()`. Es el mecanismo correcto para un retry
+-conserva estáticos, no pasa por la pantalla de carga, no puede competir con
+una segunda carga- y es **invisible**: no pasa por `SceneChanger`, así que
+`scene_change_finished` nunca se emite. La escena recargada se queda
+exactamente con lo que autora.
+
+**Cinco autoloads escuchan esa señal y ninguno se enteraba nunca de un
+reinicio.** El jugador solo notó uno de los cuatro efectos:
+
+| autoload | qué se perdía al reiniciar |
+|---|---|
+| `lullaby_mobile_controls_applier` | la banda del péndulo vuelve a la tira de arriba que autora la escena, diga lo que diga la fila Mechanic Hitbox Direction ← **lo reportado** |
+| `lullaby_note_layout_applier` | VSlice vuelve a Classic |
+| `lullaby_light_budget_applier` | ni luces horneadas ni `cheap_shading`, y sus cachés siguen apuntando a las luces liberadas de la escena anterior |
+| `lullaby_diagnostics_log` | el retry no deja `SCENE_OUT`/`SCENE_IN`, o sea que **ningún log de este proyecto ha medido nunca una partida reiniciada** |
+
+Arreglado con `SceneChanger.reload_current()`: la recarga es idéntica -sigue
+siendo `reload_current_scene()` por debajo- y solo gana el anuncio, **emitido
+antes del swap**, que es el orden que ya usa `_complete()`. Ese orden es
+load-bearing: los appliers esperan un frame después de la señal para caer
+sobre la escena nueva *antes de que dibuje*, y el applier de luces documenta
+que llegar un frame tarde cuesta el juego entero de pipelines otra vez.
+
+`tools/test_retry_announces_scene_change.gd` (12 comprobaciones, en CI) fija
+las dos mitades: que el reload viva en `SceneChanger` y emita antes, y que
+**nadie más** llame al crudo - barriendo todos los `.gd` del proyecto, porque
+el sitio que lo hacía parecía perfectamente razonable. Además comprueba que
+los cuatro oyentes siguen conectados, así que la tabla de arriba describe un
+coste real y no uno recordado. Mutado devolviendo la llamada cruda (falla 2),
+emitiendo después de recargar (1) y quitando la emisión (2).
+
+**La regla:** en este proyecto, cualquier forma de reemplazar la escena viva
+tiene que pasar por `SceneChanger`. Un cambio de escena que no se anuncia no
+es medio cambio de escena - es uno del que cuatro sistemas no se enteran, y
+se nota meses después como "algo se sobreescribe al reiniciar".
+
 ## Las flechas de VSlice sí son pequeñas, y el número lo dice
 
 Reportado por un jugador ("le piensas hacer más grandes las flechas v-slices?
