@@ -943,6 +943,17 @@ jobs:
           # for the whole 78s of prelude with omni_range 43.9.
           guard_godot tools/test_dark_light_cull_holdoff.gd
 
+          # === Verify the Note Size row, and the geometry that justifies it
+          # Reported as "the VSlice arrows are small", and it is measurable
+          # rather than taste: a note is a 52x84 atlas region at the lane's
+          # authored 1.25 scale, about 65px, on a 160px lane pitch - 41% of
+          # its own lane. VSlice spreads the lanes 1.73x while growing the
+          # notes only 1.25x, so there it is 29%. The guard re-derives both
+          # from the song scene and the atlas, so respacing the lanes or
+          # swapping the note skin moves the numbers with it, and checks the
+          # row's 2.0 ceiling still cannot make two lanes overlap.
+          guard_godot tools/test_note_size_option.gd
+
           # === Verify over= counts layers the GPU draws, not nodes in the tree
           # Godot skips a CanvasItem whose inherited modulate alpha is zero,
           # subtree and all - 0.79ms and draws=0 against 28.8ms opaque on the

@@ -62,11 +62,18 @@ func _apply_to_current_scene() -> void:
 	var layout: LullabyNoteLayout = get_layout()
 	var amplification: float = _aspect_amplification()
 
+	# The player's own size preference multiplies the layout's choice rather
+	# than replacing it, so VSlice keeps its deliberately small opponent
+	# strumline and its proportions survive the knob. Everything here is
+	# already a multiplier on the authored value and _authored is captured
+	# before anything is written, so this composes without compounding.
+	var size: float = maxf(0.1, Settings.lullaby_note_size)
+
 	_apply_to(scene.get_node_or_null(PLAYER_PATH), layout.player_anchor,
-		layout.player_spacing_scale, layout.player_note_scale, layout.player_y_nudge,
+		layout.player_spacing_scale, layout.player_note_scale * size, layout.player_y_nudge,
 		layout.player_split_gap * amplification)
 	_apply_to(scene.get_node_or_null(OPPONENT_PATH), layout.opponent_anchor,
-		layout.opponent_spacing_scale, layout.opponent_note_scale, layout.opponent_y_nudge,
+		layout.opponent_spacing_scale, layout.opponent_note_scale * size, layout.opponent_y_nudge,
 		layout.opponent_split_gap * amplification)
 
 ## The centre channel is not a fixed pixel width in the reference. VSlice

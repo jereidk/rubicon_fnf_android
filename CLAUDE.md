@@ -5330,6 +5330,40 @@ de meter dos PNG nuevos por un cuadrado de dieciséis píxeles.
 filas y, sobre todo, que la condición de la tienda siga siendo la que estas
 casillas creen que es. Mutado con cuatro cambios y los cuatro fallan.
 
+## Las flechas de VSlice sí son pequeñas, y el número lo dice
+
+Reportado por un jugador ("le piensas hacer más grandes las flechas v-slices?
+esque son pequeñas") y prometida una opción en público. La primera reacción es
+que ya existe `player_note_scale` en cada `LullabyNoteLayout` y que VSlice lo
+tiene a 1.25, o sea que ya crece. Midiendo:
+
+    nota = región 52x84 del atlas x la escala 1.25 que autora la lane  = 65px
+    paso entre carriles = -240/-80/+80/+240 en sng_chimera.tscn        = 160px
+
+| | nota | paso | llena |
+|---|---|---|---|
+| Classic | 65px | 160px | **41%** |
+| VSlice | 81px | 277px | **29%** |
+
+O sea que **VSlice separa los carriles x1.73 y agranda las notas solo x1.25**,
+así que la disposición es lo que las hace parecer más pequeñas - no es gusto,
+es la razón entre las dos escalas. Y sobra sitio: al tope de x2.0 VSlice llega
+al 59% de su carril y Classic al 81%, sin solapar en ninguna de las dos.
+
+`Settings.lullaby_note_size` (fila Note Size en Mobile, 0.75-2.00 en pasos de
+0.25) **multiplica** lo que pida la disposición en vez de sustituirlo, que es
+lo que conserva el strumline deliberadamente pequeño del oponente de VSlice
+(0.62) en vez de aplanar los dos al mismo número. Con suelo en 0.1: un 0
+guardado dejaría las notas invisibles y la consola no es sitio desde donde
+recuperarlas.
+
+`tools/test_note_size_option.gd` (29 comprobaciones, en CI) **vuelve a derivar
+las dos cifras** del `.tscn` de la canción y del `.tres` del atlas, así que
+reespaciar los carriles o cambiar la piel de notas mueve el número con ellos en
+vez de dejar un comentario mintiendo. Mutado sustituyendo en vez de
+multiplicar, quitando el suelo y dejando el vecino de foco sin recablear:
+falla una cada vez.
+
 ## The Hacks tab has a joke code
 
 `hacks_tab.gd`'s `CODES` dictionary is real cheat codes (unlock a song,

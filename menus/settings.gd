@@ -440,6 +440,19 @@ var diagnostics_gpu_split: bool = false
 ## See LullabyNoteLayout / lullaby_note_layout_applier.gd.
 var lullaby_note_layout: int = 0
 
+## Multiplier on whatever note size the selected layout asks for, so it
+## composes with a layout instead of replacing its choice.
+##
+## It exists because players reported VSlice's arrows as small, and the
+## geometry agrees rather than it being taste. A note sprite is a 52x84
+## region drawn at the lane's authored scale 1.25, so about 65x105 on the
+## 1920x1080 canvas, and the lanes sit on a 160px pitch - the arrow fills
+## 41% of its own lane. VSlice then spreads the lanes by 1.73 and grows the
+## notes by only 1.25, so its pitch is 277px and the same arrow fills 29%.
+## The layout is what made them look smaller, and there is a lot of room:
+## even 2.0 leaves VSlice at 58% of pitch and Classic at 81%.
+var lullaby_note_size: float = 1.0
+
 ## Whether the player's strumline should be centred, which is midscroll's
 ## "centered" AnimationTree state.
 ##
