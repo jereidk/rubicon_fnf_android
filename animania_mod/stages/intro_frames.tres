@@ -1,0 +1,38 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/intro.png" id="1_tla6t"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oagvi"]
+atlas = ExtResource("1_tla6t")
+region = Rect2(3, 756, 984, 746)
+margin = Rect2(0, 1, 5, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vxweh"]
+atlas = ExtResource("1_tla6t")
+region = Rect2(990, 756, 971, 743)
+margin = Rect2(10, 2, 18, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5sfmw"]
+atlas = ExtResource("1_tla6t")
+region = Rect2(3, 3, 985, 750)
+margin = Rect2(4, 0, 4, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_oagvi")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_vxweh")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_5sfmw")
+}],
+"loop": 1,
+"name": &"intro text",
+"speed": 24.0
+}]

@@ -58,3 +58,163 @@ Measured from the files, not assumed:
 
 Animania is somebody else's work and its source is not published. This slice
 exists to port it, and the port needs the mod team's blessing to be shared.
+
+## The port so far: stage and characters
+
+Built by the four scripts in `tools/animania/`, all of them re-runnable, and
+pinned by `tools/animania/test_phone_call_port.gd`. Nothing here was authored by
+hand: the scenes are packed from the mod's own JSON and XML, so re-exporting the
+mod and re-running the tools moves the port with it instead of leaving hand-typed
+numbers to drift.
+
+    animania_mod/characters/chr_komi.tscn      sparrow, 8 root animations
+    animania_mod/characters/chr_tadano.tscn    Adobe Animate, 22
+    animania_mod/stages/stg_phone_call_street.tscn
+    animania_mod/scripts/phone_call_leaves.gd
+
+### Four conversions, and why each one is what it is
+
+**Coordinates stay in Funkin's 1280x720 space.** This project is 1920x1080, so
+the same framing needs 1.5x - and that 1.5x lives on the level camera, not on the
+scenes. Baking it into the art would resample every sprite and make every number
+in the scene un-diffable against `phoneCallStreet.json`, which is the property
+that lets the guard re-derive its expectations from the source instead of
+carrying a copy. The stage's own `cameraZoom` (0.65) rides on the root as
+metadata; the camera's zoom is `1.5 x cameraZoom`.
+
+**A character is anchored by its feet, not its corner.** `Stage.addCharacter`
+places a character at `stagePosition - characterOrigin + offsets`, and
+`characterOrigin` is `(width / 2, height)` - horizontal centre, vertical
+**bottom**. That anchor is baked into each character scene's sprite `position`,
+so placing one is just `marker.position + the character JSON's offsets` and
+nothing downstream has to know the rule. The first render of this port skipped
+it and put komi three quarters of her own height below the pavement, which is
+what the render caught and no amount of reading would have.
+
+komi's size is the sparrow frame of `idle0000` (307x776 in `komi.xml`). tadano is
+an Animate atlas with no authored size at all - gdanimate draws it out of a
+symbol tree - so its bounds were **measured by rendering it** and counting opaque
+pixels (`tools/animania/harness/measure_character.gd`). Re-measure if the art
+changes; do not nudge it by eye.
+
+**Funkin negates a per-animation offset** (`offset.set(-x, -y)`), so komi's seven
+authored offsets are negated in the root animation library. The sign is invisible
+on `idle`, which is (0, 0), and doubles the error on everything else. tadano
+authors no per-animation offsets, so every one of its root animations keys the
+offset back to zero.
+
+**`zoomFactor` has no Godot equivalent, and only its extreme is ported.** Two
+props are authored at 0 - `overlay-all` and `introText` - which means "the camera
+zoom does not reach this", i.e. screen space, i.e. a `CanvasLayer`. That is
+ported exactly. `bushes right` at 0.9 is a partial exemption with no clean
+equivalent; it is built at 1.0 and called out rather than faked.
+
+### Where the .hx overrides the .json, and the script wins
+
+`phoneCallStreet.json` is the layout and `phoneCallStreet.hx` is what
+`buildStage()` does to it. They disagree in four places:
+
+| | |
+|---|---|
+| `lightShade` | scroll becomes (0, 1), not the JSON's (0, 0.5); blend NORMAL, alpha 0.1, `scale.x = 1882.6 * 3`, height doubled. `light.png` is **1x1741** - a one-pixel vertical gradient column - so those scales *are* the prop |
+| `overlay-all` | ships with `shouldDraw` off and the script turns it on. `"blend": "add"` at alpha 0.01 over the whole screen: a ~2.5/255 lift, and the first thing to measure if this song is ever fill-rate bound on a phone |
+| the six `stand-` props | hidden by name in `buildStage()`. Built here as authored and shipped `visible = false` rather than dropped, so the scene stays diffable against the JSON |
+| the sky | not a prop at all - an `FlxBackdrop` added in code, repeating on X (`FlxAxes` `0x01`), drifting at 20 px/s, at scroll 0.1 and scale 1.2. A `Parallax2D` with `repeat_size.x` set and `autoscroll.x = 20` |
+
+The sky texture is not seamless, so its tile edge is visible if you zoom far
+enough out. It is not reachable in game: one tile is 4243 world px and the song's
+camera never shows more than ~1970, so the seam is always off screen. The same is
+true of the original's `FlxBackdrop`.
+
+### The one place the port deviates on purpose
+
+`introText` ships **hidden**, against its authored `alpha: 1`. Nothing in the
+data Animania ships ever turns it off - no chart event names it, and
+`phoneCallStreet.hx` does not touch it - so the mod's own PlayState must, and a
+989x750 title card looping over the whole song is clearly not what plays.
+Shipping it on would be a visible bug. Whatever level scene is built for this
+song switches it on for as long as the intro lasts.
+
+### Characters
+
+Both are `rubicon_character.gd` with the same shape as `bf.tscn`: a root
+`AnimationPlayer` whose animations dispatch a clip on the sprite's own player and
+key the sprite offset.
+
+| | komi | tadano |
+|---|---|---|
+| art | sparrow, 7 animations x 15 frames | Adobe Animate, 21 symbols |
+| `danceEvery` 1 | `dancing_measure_step = 0.25` (4 / (4 x 4)) | same |
+| `singTime` | `singing_sing_to_dance_interval = 8` | 6 |
+| `loopHoldFrame` 2 | `singing_repeat_loop_point = 2/24` | same |
+| miss animations | **none**, so `miss_*` map onto `sing_*` - which is what Funkin does anyway when `<anim>miss` is absent | its own, plus a full `-alt` set |
+| `flipX` | no | yes, as `scale.x = -1` on the node rather than on the art |
+
+**komi has no miss art and that is not an omission.** She is the opponent, and
+`SetProperty boyfriend.idleSuffix = "-alt"` at 65.5s is what pulls tadano's whole
+`-alt` set into play for the second half of the song.
+
+The `-chart.json` also asks for `endAnimation` on the player and `endConv` on the
+opponent at 132.2s, and **neither exists on these two characters**. They are on
+`tadano-stand` / `komi-stand`, the standing variants whose atlases carry `end`,
+`endkun` and `komigameover`. The song swaps characters near the end; that swap is
+not ported yet.
+
+**Frame durations are the trap in the sparrow path.** The importer dedups
+identical consecutive regions and carries the time in `frame_duration` - komi's
+15-frame `idle` becomes 4 frames held for [2, 2, 2, 9]. The
+`spriteframes_keyframer` addon ignores that: it lengths the animation by the
+*deduped* count and drops a key every `1/fps`, so `idle` would come out 0.167s
+long and play four times too fast. The addon's own source says as much
+("temporary until frame duration usage is fixed") with the correct version
+commented out beside it. `build_sparrow_character.gd` keys off the running
+duration total instead, and every komi animation comes out at exactly 0.625s.
+
+Every tadano symbol's length matches the frame-label duration on the main
+timeline of `Animation.json` exactly (idle 15, miss 30, intro 178, deathStart 99,
+deathLoop 101), which is the independent check that the symbol mapping is right -
+gdanimate falls back to the *stage* symbol for a name it cannot find, so a typo
+draws the wrong character rather than nothing. The guard pins every name against
+the symbol dictionary for that reason.
+
+`animation_cache.res` beside the atlas is gdanimate's parsed symbol tree, 47KB
+against 106KB of JSON re-parsed on every load. It is generated by the build tool
+and committed on purpose.
+
+### The leaves
+
+`phone_call_leaves.gd` is a direct port of `createLeaf`/`onBeatHit`/`onUpdate`:
+three leaves from the moment the stage builds, a 10% roll per beat while there
+are nine or fewer, and a leaf past y = 1550 re-randomised and put back at the top
+rather than freed - so the pool never exceeds ten and nothing is instantiated
+mid-song. Each leaf gets its own horizontal scroll factor (0.9 .. 1.1), which is
+why each one lives under its own `Parallax2D` instead of the group sharing one.
+
+`Preferences.lowQuality` skips the whole system in the mod. Here that is a plain
+exported `low_quality` bool, because this branch has no quality ladder yet; wire
+it to one when it lands rather than reading a settings autoload that does not
+exist.
+
+`beat_hit()` has to be called by whatever drives the song clock. Nothing calls it
+yet - there is no level scene for this song.
+
+### What is verified, and what is not
+
+Verified: the scenes load, every animation track resolves, every alias the note
+controller can ask for maps to a real animation, every symbol name exists in the
+atlas, and the whole stage plus both characters **renders** - under Xvfb with the
+GL driver, which for a 2D-only scene has none of the caveats the Lullaby branch's
+3D renders carry. `tools/animania/harness/stage_shot.gd` takes the shots.
+
+Not verified, and not guessable from here: camera framing. The song's 103 events
+drive `FocusCamera` / `ZoomCamera` / `SetCameraBop` / `CinematicBars`, none of
+which is ported, so the shots aim the camera at a character's midpoint plus its
+`cameraOffsets` and nothing else. The stage has no ground art below the back wall
+(y = 1403) - in the original the camera never looks down there either, but which
+frame is correct is a question for the level scene, not the stage.
+
+Also not ported: the `amtake-base` note style, the character swap at 132.2s, the
+health icons (komi's is an animated icon with `toLosing`/`fromLosing` states
+driven by `komi.hx`, and tadano's comes from a module this slice does not have),
+and tadano's death sequence (`tadano.hx` tweens the HUD off screen and adds a
+`tadano-phone-death-text` atlas that this slice does carry).
