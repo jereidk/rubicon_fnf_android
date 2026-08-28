@@ -1,0 +1,49 @@
+{
+	"version": "2.2.3",
+	"songName": "Phone Call",
+	"artist": "d4rkwinged",
+	"charter": "PurSnake",
+	"divisions": 96,
+	"looped": false,
+	"freeplayLayer": "komi",
+	"playerSkin": "none",
+	"girlfriendSkin": "none",
+	"weekName": "TITLE:1",
+	"offsets": {
+		"instrumental": 0,
+		"altInstrumentals": {},
+		"vocals": {}
+	},
+	"diskName": "phone call",
+	"playData": {
+		"songVariations": ["legacy"],
+		"difficulties": ["standart"],
+		"characters": {
+			"player": "tadano",
+			"girlfriend": "komi",
+			"opponent": "komi",
+			"instrumental": "",
+			"altInstrumentals": []
+		},
+		"stage": "phoneCallStreet",
+		"noteStyle": "amtake-base",
+		"ratings": {
+			"standart": 4
+		},
+		"album": "animania05",
+		"previewStart": 0,
+		"previewEnd": 0
+	},
+	"generatedBy": "Friday Night Funkin': Animania! - v0.5(r)",
+	"timeFormat": "ms",
+	"timeChanges": [
+		{
+			"t": 0,
+			"b": 0,
+			"bpm": 152,
+			"n": 4,
+			"d": 4,
+			"bt": [4, 4, 4, 4]
+		}
+	]
+}

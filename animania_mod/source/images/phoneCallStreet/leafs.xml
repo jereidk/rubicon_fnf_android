@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="leaf.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="leaf0000" x="1" y="1" width="71" height="91" frameX="0" frameY="-53" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0001" x="1" y="1" width="71" height="91" frameX="0" frameY="-53" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0002" x="1" y="1" width="71" height="91" frameX="0" frameY="-53" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0003" x="73" y="1" width="79" height="87" frameX="-1" frameY="-28" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0004" x="73" y="1" width="79" height="87" frameX="-1" frameY="-28" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0005" x="73" y="1" width="79" height="87" frameX="-1" frameY="-28" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0006" x="153" y="1" width="84" height="84" frameX="-17" frameY="-9" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0007" x="153" y="1" width="84" height="84" frameX="-17" frameY="-9" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0008" x="153" y="1" width="84" height="84" frameX="-17" frameY="-9" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0009" x="238" y="1" width="98" height="65" frameX="-38" frameY="-5" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0010" x="238" y="1" width="98" height="65" frameX="-38" frameY="-5" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0011" x="238" y="1" width="98" height="65" frameX="-38" frameY="-5" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0012" x="1" y="93" width="92" height="74" frameX="-60" frameY="0" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0013" x="1" y="93" width="92" height="74" frameX="-60" frameY="0" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0014" x="1" y="93" width="92" height="74" frameX="-60" frameY="0" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0015" x="94" y="93" width="72" height="103" frameX="-86" frameY="-19" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0016" x="94" y="93" width="72" height="103" frameX="-86" frameY="-19" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0017" x="94" y="93" width="72" height="103" frameX="-86" frameY="-19" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0018" x="167" y="93" width="63" height="107" frameX="-88" frameY="-41" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0019" x="167" y="93" width="63" height="107" frameX="-88" frameY="-41" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0020" x="167" y="93" width="63" height="107" frameX="-88" frameY="-41" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0021" x="231" y="93" width="88" height="66" frameX="-56" frameY="-92" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0022" x="231" y="93" width="88" height="66" frameX="-56" frameY="-92" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0023" x="231" y="93" width="88" height="66" frameX="-56" frameY="-92" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0024" x="1" y="201" width="93" height="55" frameX="-24" frameY="-102" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0025" x="1" y="201" width="93" height="55" frameX="-24" frameY="-102" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0026" x="1" y="201" width="93" height="55" frameX="-24" frameY="-102" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0027" x="95" y="201" width="83" height="62" frameX="-7" frameY="-91" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0028" x="95" y="201" width="83" height="62" frameX="-7" frameY="-91" frameWidth="158" frameHeight="158" rotated="false"/>
+	<SubTexture name="leaf0029" x="95" y="201" width="83" height="62" frameX="-7" frameY="-91" frameWidth="158" frameHeight="158" rotated="false"/>
+</TextureAtlas>

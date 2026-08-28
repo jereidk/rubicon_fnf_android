@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="intro.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="intro text0000" x="3" y="756" width="984" height="746" frameX="0" frameY="-1" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0001" x="3" y="756" width="984" height="746" frameX="0" frameY="-1" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0002" x="3" y="756" width="984" height="746" frameX="0" frameY="-1" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0003" x="3" y="756" width="984" height="746" frameX="0" frameY="-1" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0004" x="990" y="756" width="971" height="743" frameX="-10" frameY="-2" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0005" x="990" y="756" width="971" height="743" frameX="-10" frameY="-2" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0006" x="990" y="756" width="971" height="743" frameX="-10" frameY="-2" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0007" x="990" y="756" width="971" height="743" frameX="-10" frameY="-2" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0008" x="3" y="3" width="985" height="750" frameX="-4" frameY="0" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0009" x="3" y="3" width="985" height="750" frameX="-4" frameY="0" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0010" x="3" y="3" width="985" height="750" frameX="-4" frameY="0" frameWidth="989" frameHeight="750"/>
+	<SubTexture name="intro text0011" x="3" y="3" width="985" height="750" frameX="-4" frameY="0" frameWidth="989" frameHeight="750"/>
+</TextureAtlas>

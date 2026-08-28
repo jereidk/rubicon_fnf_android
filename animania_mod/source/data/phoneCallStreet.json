@@ -1,0 +1,226 @@
+{
+	"version": "1.0.0",
+	"name": "Phone Call Street",
+	"cameraZoom": 0.65,
+	"cameraSpeed": 2,
+	"props": [
+		{
+			"name": "far building",
+			"assetPath": "stages/phoneCallStreet/far building",
+			"position": [1268.55, 348.7],
+			"scale": 1,
+			"scroll": [0.6, 0.8],
+			"zoomFactor": 1,
+			"zIndex": 7,
+			"animations": []
+		},
+		{
+			"name": "far city",
+			"assetPath": "stages/phoneCallStreet/far city",
+			"position": [190.3, 111.9],
+			"scale": 1,
+			"scroll": [0.8, 0.9],
+			"lowQuality": true,
+			"zoomFactor": 1,
+			"zIndex": 8,
+			"animations": []
+		},
+		{
+			"name": "far wall",
+			"assetPath": "stages/phoneCallStreet/far-wall",
+			"position": [1203.45, 724.6],
+			"scale": 1,
+			"scroll": [0.8, 0.9],
+			"zoomFactor": 1,
+			"zIndex": 9,
+			"animations": []
+		},
+		{
+			"name": "house",
+			"assetPath": "stages/phoneCallStreet/house",
+			"position": [-1552.5, -97.6],
+			"scale": 1,
+			"scroll": [0.77, 0.9],
+			"zoomFactor": 1,
+			"zIndex": 19,
+			"animations": []
+		},
+		{
+			"name": "bg trees",
+			"assetPath": "stages/phoneCallStreet/bg trees",
+			"position": [-1467.8, -32.6],
+			"scale": 1,
+			"scroll": [0.8, 0.9],
+			"zoomFactor": 1,
+			"zIndex": 20,
+			"lowQuality": true,
+			"animations": []
+		},
+		{
+			"name": "back",
+			"assetPath": "stages/phoneCallStreet/back",
+			"position": [-2000, 325],
+			"scale": 1,
+			"scroll": [0.9, 0.95],
+			"zoomFactor": 1,
+			"zIndex": 200,
+			"animations": []
+		},
+		{
+			"name": "backPillar",
+			"assetPath": "stages/phoneCallStreet/pillar",
+			"position": [50, -125],
+			"scale": 1,
+			"scroll": [1.0, 0.75],
+			"zoomFactor": 1,
+			"zIndex": 205,
+			"animations": []
+		},
+		{
+			"name": "road",
+			"assetPath": "stages/phoneCallStreet/road mirror",
+			"position": [898.65, 335],
+			"scale": 1,
+			"scroll": [0.9, 0.95],
+			"zoomFactor": 1,
+			"zIndex": 220,
+			"animations": []
+		},
+		{
+			"name": "bushes right",
+			"assetPath": "stages/phoneCallStreet/bushes right",
+			"position": [1251.95, 450.75],
+			"scale": 1,
+			"scroll": [0.7, 0.9],
+			"zoomFactor": 0.9,
+			"zIndex": 1000,
+			"animations": []
+		},
+		{
+			"name": "lightShade",
+			"assetPath": "stages/phoneCallStreet/light",
+			"position": [-1695.65, -622.85],
+			"scale": 1,
+			"scroll": [0.0, 0.5],
+			"zoomFactor": 1,
+			"zIndex": 1500,
+			"animations": []
+		},
+		{
+			"name": "introText",
+			"assetPath": "stages/phoneCallStreet/intro",
+			"position": [0, 0],
+			"scale": 1,
+			"scroll": [0, 0],
+			"zoomFactor": 0,
+			"alpha": 1,
+			"zIndex": 6000,
+			"animations": [
+				{
+					"name": "loop",
+					"prefix": "intro text",
+					"frameRate": 24,
+					"looped": true,
+					"flipX": false,
+					"flipY": false
+				}
+			]
+		},
+
+		{
+			"name": "stand-housesFAR",
+			"assetPath": "stages/phoneCallStreet/standUP/houses far",
+			"position": [450, -75],
+			"scale": 1.25,
+			"scroll": [0.8, 0.8],
+			"lowQuality": true,
+			"zoomFactor": 1,
+			"zIndex": 480,
+			"animations": []
+		},
+
+		{
+			"name": "stand-houseBACK",
+			"assetPath": "stages/phoneCallStreet/house",
+			"position": [-750, -75],
+			"scale": 0.55,
+			"scroll": [0.85, 0.85],
+			"zoomFactor": 1,
+			"zIndex": 482,
+			"animations": []
+		},
+		{
+			"name": "stand-houseBushesBACK",
+			"assetPath": "stages/phoneCallStreet/bg trees",
+			"position": [-750, -50],
+			"scale": 0.55,
+			"scroll": [0.9, 0.9],
+			"zoomFactor": 1,
+			"zIndex": 483,
+			"animations": []
+		},
+
+		{
+			"name": "stand-back",
+			"assetPath": "stages/phoneCallStreet/standUP/backwall",
+			"position": [-800, -265],
+			"scale": 0.81,
+			"scroll": [0.95, 0.95],
+			"zoomFactor": 1,
+			"zIndex": 490,
+			"animations": []
+		},
+		{
+			"name": "stand-lamp",
+			"assetPath": "stages/phoneCallStreet/standUP/road_mirror_2",
+			"position": [50, 95],
+			"scale": 0.81,
+			"scroll": [0.945, 0.945],
+			"zoomFactor": 1,
+			"zIndex": 791,
+			"animations": []
+		},
+
+		{
+			"name": "stand-bushesR",
+			"assetPath": "stages/phoneCallStreet/bushes right",
+			"position": [600, 175],
+			"scale": 1.1,
+			"scroll": [1.05, 1.05],
+			"zoomFactor": 1,
+			"zIndex": 795,
+			"animations": []
+		},
+
+		{
+			"name": "overlay-all",
+			"assetPath": "stages/phoneCallStreet/light",
+			"position": [0, 0],
+			"scale": [1280, 1],
+			"scroll": [0, 0],
+			"zoomFactor": 0,
+			"alpha": 0.01,
+			"blend": "add",
+			"zIndex": 5000,
+			"animations": []
+		}
+	],
+	"characters": {
+		"bf": {
+			"zIndex": 210,
+			"position": [-200, 1235],
+			"cameraOffsets": [-80, -150]
+		},
+		"dad": {
+			"zIndex": 210,
+			"position": [1000, 1315],
+			"cameraOffsets": [-300, -150]
+		},
+		"gf": {
+			"zIndex": -1,
+			"position": [335, 1235],
+			"cameraOffsets": [425, -150]
+		}
+	},
+	"ratingsOffset": [180, 500]
+}

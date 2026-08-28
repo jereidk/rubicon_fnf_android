@@ -1,0 +1,273 @@
+
+import flixel.text.FlxTextBorderStyle;
+import funkin.Highscore;
+import funkin.FunkinMemory;
+import funkin.util.Constants;
+import funkin.play.character.CharacterType;
+import funkin.data.character.CharacterRegistry;
+
+
+function onCreate()
+{
+	skipCountDown = true;
+}
+
+function onGameOver()
+{
+	playerStrumline.useRenderTexture = true;
+}
+
+var blackScreenSpr = null;
+var POSITION_OFFSET:Int = 26;
+
+var barTop:FlxSprite = null;
+var barBottom:FlxSprite = null;
+function onCreatePost()
+{
+	if (subtitles != null)
+	{
+		subtitles.subtitleText.font = Paths.font('MP Manga.ttf');
+		subtitles.subtitleText.size = 26;
+	}
+
+	if (isMinimalMode)
+		return;
+
+	FunkinMemory.cacheTexture(Paths.imageStr("characters/phonecall/tadano-stand", "shared"));
+	FunkinMemory.cacheTexture(Paths.imageStr("characters/phonecall/komi-stand", "shared"));
+
+	for (c in [iconP1, iconP2])
+		c.bopEvery = 4 * 4;
+
+	camHUD.alpha = 0;
+	healthBar.flipped = true;
+	disableKeys = true;
+
+	blackScreenSpr = new FunkinSprite().makeSolidColor(FlxG.width, FlxG.height, FlxColor.BLACK);
+	blackScreenSpr.zoomFactor = 0;
+	blackScreenSpr.scrollFactor.set();
+	blackScreenSpr.zIndex = 5999;
+	add(blackScreenSpr);
+
+	currentStage.getGirlfriend().visible = false;
+
+	opponentStrumline.useRenderTexture = true;
+	playerStrumline.changeMode(false, 1.05);
+	opponentStrumline.changeMode(false, 0.95);
+	opponentStrumline.alpha = 0;
+	opponentStrumline.angle = 360;
+
+	opponentStrumline.x += FlxG.width;
+	playerStrumline.x -= FlxG.width / 2;
+	playerStrumline.alpha = 0;
+	//
+
+	playerStrumline.snapshotReceptorBases();
+	Modchart.set("tanWave", -.15, "player");
+
+	var barHeight = 100;
+	barTop = new FunkinSprite().makeSolidColor(FlxG.width * 1.5, barHeight + 20, 0xFF000000);
+	barTop.zIndex = 4999;
+	barTop.scrollFactor.set();
+	barTop.y = -20;
+	barTop.screenCenter(0x01);
+	barTop.zoomFactor = 0;
+	add(barTop);
+
+	barBottom = new FunkinSprite().makeSolidColor(FlxG.width * 1.5, barHeight + 20, 0xFF000000);
+	barBottom.zIndex = 4999;
+	barBottom.scrollFactor.set();
+	barBottom.y = FlxG.height - barBottom.height + 20;
+	barBottom.zoomFactor = 0;
+	barBottom.screenCenter(0x01);
+	add(barBottom);
+}
+
+function onStartSong() {
+	// we do it here, cuz updatePosition updated from main animania's module before
+	for (icon in [iconP1, iconP2])
+	{
+		icon.flipX = !icon.flipX;
+		icon.updatePosition = () ->
+		{
+			if (icon.autoUpdate)
+			{
+				switch (icon.playerId)
+				{
+					case 1: // Boyfriend
+						icon.updateHealthIcon(2 - health);
+						icon.x = healthBar.centerPoint.x - POSITION_OFFSET;
+						if (healthLerp > 1.75) icon.angle = 50 * (healthLerp - 1.75);
+					case 0: // Dad
+						icon.updateHealthIcon(health);
+						icon.x = healthBar.centerPoint.x - (icon.width - POSITION_OFFSET);
+						if (healthLerp < .25) icon.angle = -30 * (.25 - healthLerp);
+				}
+				if (Preferences.downscroll)
+				{
+					icon.y = healthBar.centerPoint.y - (icon.height / 2) + 30 - (Math.cos((health - 1) * 2) * 15);
+				}
+				else
+				{
+					icon.y = healthBar.centerPoint.y - (icon.height / 2) - 30 + (Math.cos((health - 1) * 2) * 15);
+				}
+			}
+		}
+	};
+}
+
+function onUpdatePost(elapsed)
+{
+	//if (currentStage != null && currentStage.getBoyfriend() != null)
+	//	currentStage.getBoyfriend().angle += elapsed * 10;
+}
+
+
+function onBeatHit(beat)
+{
+	if (isPlayerDying)
+		return;
+
+	trace(beat);
+	switch (beat)
+	{
+		case 0:
+			camHUD.alpha = 0;
+
+		case 1:
+			var introText = currentStage.getNamedProp("introText");
+			introText.camera = camOther;
+			introText.scale.set(.8, .8);
+			introText.updateHitbox();
+			introText.screenCenter();
+			introText.animation.play("loop", true);
+			introText.alpha = 0;
+			FlxTween.tween(introText, {alpha: 1}, 2.5, {ease: FlxEase.backOut});
+
+		case 11:
+			var introText = currentStage.getNamedProp("introText");
+			FlxTween.tween(introText, {alpha: 0}, 2.5, {ease: FlxEase.backOut});
+
+		case 13:
+			FlxTween.tween(blackScreenSpr, {alpha: 0}, 2.5, {ease: FlxEase.backOut});
+
+			var tad = currentStage.getBoyfriend();
+			tad.x += 380;
+			FlxTween.tween(tad, {x: tad.x - 350}, 1.45).then(FlxTween.tween(tad, {x: tad.x - 380}, .5, {ease: FlxEase.cubeOut}));
+			tad.playAnimation("intro", true, true);
+
+		case 16:
+			camGame.shake(.0005, .8);
+			camHUD.shake(.001, .8);
+
+		case 19:
+			camGame.shake(.0005, .8);
+			camHUD.shake(.001, .8);
+
+		case 23:
+			camGame.shake(.0005, .8);
+			camHUD.shake(.001, .8);
+
+		case 31:
+			camHUD.zoom = 1.1;
+			FlxTween.tween(camHUD, {alpha: 1, zoom: 1}, .35);
+			FlxTween.tween(playerStrumline, {alpha: 1}, .35);
+
+		case 33:
+			barTop.visible = false;
+			barBottom.visible = false;
+			barTop.kill();
+			barBottom.kill();
+			remove(barTop);
+			remove(barBottom);
+			disableKeys = false; // huh
+
+		case 166:
+			FlxTween.tween(opponentStrumline, {angle: 0, alpha: 0.5, x: FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET}, 1.35, {startDelay: 2, ease: FlxEase.cubeOut, onComplete: _ -> {
+				opponentStrumline.snapshotReceptorBases();
+				//Modchart.set("shake", 0.15, "opponent");
+				Modchart.ease("shake", 0.05, Conductor.instance.songPosition, Conductor.instance.beatLengthMs * 4, FlxEase.sineOut, "opponent");
+				Modchart.set("tanWave", .15, "opponent");
+			}});
+
+		case 168:
+			var tad = currentStage.getBoyfriend();
+			FlxTween.tween(tad, {x: tad.x + 800}, 1.35, {ease: FlxEase.cubeOut});
+			tad.idleSuffix = "-alt";
+
+		case 232:
+			FlxTween.tween(opponentStrumline, {alpha: 1}, 1.35, {ease: FlxEase.cubeOut});
+			standUP();
+			Modchart.set("shake", 0, "opponent");
+
+		case 332:
+			disableKeys = true; // yuh
+			var goUP = Preferences.downscroll;
+			playerStrumline.useRenderTexture = true;
+			for (obj in [healthBar, iconP1, iconP2])
+				FlxTween.tween(obj, {y: obj.y - 250 * (goUP ? 1 : -1), alpha: 0}, 1.75, {ease: FlxEase.smootherStepIn, startDelay: .25});
+
+			for (obj in [playerStrumline, opponentStrumline])
+				FlxTween.tween(obj, {y: obj.y + 250 * (goUP ? 1 : -1), alpha: 0}, 1.75, {ease: FlxEase.smootherStepIn, startDelay: .5});
+
+		case 348:
+			camGame.fade(FlxColor.BLACK, 3, false, () -> camGame.color = FlxColor.BLACK, true);
+	}
+
+	if (beat > 232 && beat % 2 == 0)
+	{
+		Modchart.set("scale", 1.05, "opponent");
+		Modchart.ease("scale", 1, Conductor.instance.songPosition, Conductor.instance.beatLengthMs, FlxEase.sineOut, "opponent");
+
+		Modchart.set("scale", 1.05, "player");
+		Modchart.ease("scale", 0.95, Conductor.instance.songPosition, Conductor.instance.beatLengthMs, FlxEase.sineOut, "player");
+	}
+}
+
+function standUP():Void
+{
+	if (currentStage == null || isMinimalMode)
+		return;
+
+	var oldZIndex = 999;
+
+	var oldBF = currentStage.getBoyfriend(true);
+	oldZIndex = oldBF.zIndex;
+	oldBF.visible = false;
+	oldBF.destroy();
+
+	var boyfriend = CharacterRegistry.fetchCharacter("tadano-stand");
+	if (boyfriend != null)
+	{
+		boyfriend.characterType = CharacterType.BF;
+		boyfriend.initHealthIcon(false);
+		currentStage.addCharacter(boyfriend, CharacterType.BF);
+		boyfriend.zIndex = oldZIndex + 500;
+	}
+
+	var oldDAD = currentStage.getDad(true);
+	oldZIndex = oldDAD.zIndex;
+	oldDAD.destroy();
+
+	var dad = CharacterRegistry.fetchCharacter("komi-stand");
+	if (dad != null)
+	{
+		dad.characterType = CharacterType.DAD;
+		dad.initHealthIcon(true);
+		currentStage.addCharacter(dad, CharacterType.DAD);
+		dad.zIndex = oldZIndex + 500;
+	}
+
+	for (prop in currentStage.namedProps)
+		prop.visible = prop.name.indexOf("stand-") != -1;
+
+	currentStage.refresh();
+
+	currentStage.getBoyfriend().setPosition(-175, 325);
+	currentStage.getDad().setPosition(300, 325);
+
+	camGame.flash(FlxColor.WHITE, 1.5);
+
+	tweenCameraZoom(0.8, 0, false);
+	neededZoom = 0.8 * stageZoom;
+}
