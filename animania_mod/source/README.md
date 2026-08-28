@@ -872,13 +872,41 @@ it is the whole TV, not a wordmark, so the compiled `TitleScreen` must scale it 
 the prompt is stage-sized and only wants the project's 1.5x. Both are placed by their
 **drawn bounds** rather than their node origin, which is what the measured corner is for.
 
+### The props, and what a disassembly actually yields
+
+`updateProps` is compiled, so the props started out unported rather than invented. The
+mod's **Linux build ships unstripped** — 270,967 symbols with demangled C++ names and
+addresses — which makes `objdump` enough on its own, no decompiler required.
+
+What came out of that function, exactly:
+
+- **The constants.** `0.5`, `50`, `110`, `1.6`, `-300` out of `.rodata`, and `-10`, `-200`,
+  `-550`, `400` out of the packed `Null<int>` immediates the `FlxRandom` calls are handed
+  (hxcpp passes a `Null<int>` as a struct in one register, value in the high half).
+- **The shape.** One `FlxTypedGroup` of `TitleProp`, six integer randoms and exactly one
+  float random per pass, and props that are **recycled rather than respawned** —
+  `TitleProp`'s only method is `reloadProp`.
+
+What did *not* come out of it: **which number lands in which field**. That needs the struct
+offsets resolved against `TitleProp`'s layout, which is another pass entirely. So
+`title_props.gd` carries the mod's real numbers with this port's reading of where they go,
+and says so constant by constant.
+
+That is the honest shape of the method: exact numbers, exact structure, inferred mapping.
+It cost about an hour for one small function. `create()` is 12.5 KB of code.
+
 ### What is not ported
 
-The falling props and the falling bf/gf are built (`props_frames.tres`, 9 of them, and
-`fallguys_frames.tres`) but nothing drops them yet: `updateProps` is compiled, so speed,
-spawn and spread would be invented. Same for `doJingle` and `cheatCodeShit`. The font is the
-project default — `titleText` belongs to the compiled state, so its font is not recoverable,
-the same gap as the subtitles.
+The falling bf/gf are built (`fallguys_frames.tres`) but nothing drops them.
+`doJingle` and `cheatCodeShit` are untouched. The `boilShader` — a real effect, with
+`BOIL_INTERVAL` and `boilTimer` beside it in the field list and `boil_texture.png` in the
+assets — is not ported either, nor `swagShader`, `txtVersion`, `seenIntro` (the intro is
+skipped on a second visit; this port always plays it) or the `lerpOutroFactor`/`outroAngle`
+rotation on the way out.
+
+The font is the project default. The real one is named in the binary's literal pool —
+`assets/fonts/vcr.ttf`, which is VCR OSD Mono — but it is embedded in the executable rather
+than shipped in `assets/`.
 
 ## Tadano's death sequence
 

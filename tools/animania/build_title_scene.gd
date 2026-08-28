@@ -65,6 +65,16 @@ func _init() -> void:
 	_symbol(title, "PressEnter", "press_enter", &"press_enter_loop", "main",
 		FUNKIN_TO_RUBICON, press_at - PRESS_CORNER * FUNKIN_TO_RUBICON)
 
+	# The falling props, behind the title and in front of the gradient. Read out of the
+	# Linux build's disassembly of updateProps() rather than transcribed - see the script.
+	var props := Node2D.new()
+	props.name = "Props"
+	props.set_script(load("res://animania_mod/menus/title/title_props.gd"))
+	props.set(&"frames", load("%s/props_frames.tres" % DIR))
+	_root.add_child(props)
+	props.owner = _root
+	_root.move_child(props, 2)
+
 	# The intro text is screen-space: the camera zooms on beats 28-31 and the line must not
 	# zoom with it, the same way Funkin puts it on a camera of its own.
 	var layer := CanvasLayer.new()
