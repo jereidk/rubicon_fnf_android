@@ -327,6 +327,8 @@ func _check_level() -> void:
 	_check(health_bar.anchor_right > health_bar.anchor_left,
 		"la barra de vida perdio sus anclas: %s" % health_bar.get_rect())
 
+	_check_icons(level)
+
 	level.queue_free()
 
 
@@ -664,3 +666,59 @@ func _average_colour(texture: Texture2D) -> Color:
 	total /= float(count)
 	return Color(total.x, total.y, total.z)
 
+
+
+# The animated health icons. Rubicon ships a two-frame icon and no code that switches it,
+# so all of this is new behaviour rather than a rename, and every number comes from
+# komi.hx's initHealthIcon.
+func _check_icons(level: Node) -> void:
+	var expected: Dictionary = {
+		"IconL": {"frames": "komi_icon", "inverted": true, "alt": true, "flip": true},
+		"IconR": {"frames": "tadano_icon", "inverted": false, "alt": false, "flip": false},
+	}
+
+	for icon_name: String in expected:
+		var entry: Dictionary = expected[icon_name]
+		var icon: AnimatedSprite2D = level.find_child(icon_name, true, false)
+		_check(icon != null, "falta %s" % icon_name)
+		if icon == null:
+			continue
+
+		_check(icon.get_script() != null
+				and icon.get_script().resource_path.get_file() == "animated_health_icon.gd",
+			"%s no lleva el script de icono animado" % icon_name)
+		_check(icon.sprite_frames.resource_path.get_file() == "%s.tres" % entry["frames"],
+			"%s usa %s" % [icon_name, icon.sprite_frames.resource_path.get_file()])
+		_check(icon.inverted == entry["inverted"],
+			"%s: invertido tendria que ser %s" % [icon_name, entry["inverted"]])
+		_check(icon.has_alt_poses == entry["alt"],
+			"%s: poses alt tendrian que ser %s" % [icon_name, entry["alt"]])
+		_check((icon.scale.x < 0.0) == entry["flip"],
+			"%s: el volteo tendria que ser %s" % [icon_name, entry["flip"]])
+
+		for state: String in ["idle", "losing", "to_losing", "from_losing"]:
+			_check(icon.sprite_frames.has_animation(state),
+				"%s no tiene %s" % [icon_name, state])
+		if entry["alt"]:
+			for direction: String in ["left", "down", "up", "right"]:
+				for suffix: String in ["", "_alt"]:
+					_check(icon.sprite_frames.has_animation("sing_%s%s" % [direction, suffix]),
+						"%s no tiene sing_%s%s" % [icon_name, direction, suffix])
+
+		# Rubicon centres its icons on the bar and lays that out for bf's 150px frame; an
+		# unscaled 171px icon runs 30px off the top of the screen.
+		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
+		_check(is_equal_approx(absf(icon.scale.y) * frame.get_height(), 150.0),
+			"%s mide %.0fpx de alto y la barra espera 150" % [
+				icon_name, absf(icon.scale.y) * frame.get_height()])
+		_check(is_equal_approx(icon.offset.x, -frame.get_width() * 0.5),
+			"%s tiene offset.x %.1f y esperaba %.1f" % [
+				icon_name, icon.offset.x, -frame.get_width() * 0.5])
+
+	# komi.hx: LOSING_THRESHOLD = 0.25 * 2 on a 0..2 bar, and iconTimer runs to 4 at 6x.
+	var constants: Dictionary = load(
+		"res://animania_mod/scripts/animated_health_icon.gd").get_script_constant_map()
+	_check(is_equal_approx(float(constants["LOSING_THRESHOLD"]), 0.25),
+		"el umbral de derrota no es el de komi.hx")
+	_check(is_equal_approx(float(constants["SING_HOLD"]), 4.0 / 6.0),
+		"el aguante de la pose de canto no es el de komi.hx")

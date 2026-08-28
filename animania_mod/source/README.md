@@ -548,3 +548,59 @@ gameplay screenshot, and a gameplay screenshot cannot tell *"the port is wrong"*
 Not ported: `noteSplashes` and `strum-holds` (the hit splashes and hold covers, 2.2MB of
 art between them). Rubicon's `Note.tscn` has no slot for either, so they need new nodes
 rather than a rename.
+
+## The health icons
+
+Rubicon has nothing like these. `RubiconHealthBar` moves a `PathFollow2D` and never touches
+the two `AnimatedSprite2D`s hanging off it; `bf_icon.tres` carries a `neutral` and a `lose`
+animation that no code ever switches between. Animania's icons animate **into and out of**
+the losing state and komi's **sings along with her**, so this is new behaviour
+(`animania_mod/scripts/animated_health_icon.gd`), not a rename.
+
+Everything in it is `komi.hx`'s `initHealthIcon` and `onUpdate`, transcribed:
+
+- the threshold is `LOSING_THRESHOLD = 0.25 * 2` on a bar that runs 0..2 — a quarter;
+- a sing pose holds for `iconTimer` counting 0→4 at 6× elapsed, i.e. **two thirds of a
+  second**, and any new note restarts it;
+- below the threshold every sing pose takes the `-alt` set (`iconAnimPostfix`);
+- an opponent's icon reads the **inverse** of the player's health, the way Funkin calls
+  `iconP2.updateHealthIcon(100 - healthPercent)`;
+- the icon is drawn flipped, which is why the atlas's `right` art is this port's
+  `sing_left`.
+
+Measured on a live level, the state machine runs exactly as written:
+
+```
+t= 0.13  idle
+t= 0.31  to_losing          <- la vida del jugador sube al 95%
+t= 0.64  losing
+t= 2.01  sing_right_alt     <- nota estando por detras
+t= 2.68  losing             <- 0.67s exactos de aguante
+t= 3.51  from_losing        <- la vida vuelve al 50%
+t= 3.84  idle
+```
+
+Two placement decisions, both to fit Rubicon's layout rather than move it. The bar authors
+`offset.x = -73` for bf's 138px icon — half its width — so komi's 167px frame keeps `-73`
+and slides out of place, overlapping the other icon in the middle of the bar; the offset is
+now half of each icon's own width. And Rubicon **centres** its icons on the bar, which
+already runs bf's 150px icon 19px off the top of the screen, so tadano's 171px one is
+scaled to bf's height instead of the layout being moved to suit it. Both character JSONs
+carry `healthIcon.scale: 0.9`, so the mod scales them down too.
+
+### The sparrow importer crashes on these
+
+`sparrow.gd` carries `last_frame` **across animation boundaries**, so when an animation's
+first frame has the same region as the previous animation's last frame it evaluates
+`frame_list[anim][find(last_frame)]` with `find()` returning −1 on a still-empty array.
+Both icon atlases are full of duplicate frames and both hit it. Turning frame durations off
+takes the other branch, and for these animations it loses nothing — they are authored at a
+flat 24fps, unlike the character sheets where held frames carry real timing.
+
+### tadano's icon is only half ported
+
+Its atlas carries `basic`, `lose`, **`win`** and **`predeath`** with all six transitions
+between them, and what drives them is `AnimaniaStuff.makeAmTakeAnimatedIcon` — a module
+this slice does not have. The frames are built anyway (they are in the atlas, and dropping
+them means re-deriving this later) but only `idle`/`losing` and their two transitions are
+wired up. tadano's icon also does not sing: only komi's atlas has sing poses.

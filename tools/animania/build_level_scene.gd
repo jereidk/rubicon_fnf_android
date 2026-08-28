@@ -50,6 +50,9 @@ const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
+const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
+## bf_icon.tres's frame height, which is what health_bar.tscn's icon placement assumes.
+const BF_ICON_HEIGHT := 150.0
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 # Funkin is 1280x720 and this project is 1920x1080, so the stage's own cameraZoom is
@@ -138,6 +141,7 @@ func _init() -> void:
 	health.note_controller = ui["Player"]
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
+	_dress_icons(ui, health)
 
 	var controls: Node = load(MOBILE_CONTROLS).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	controls.name = "MobileControls"
@@ -246,6 +250,10 @@ func _build_ui() -> Dictionary:
 	var health_bar: Control = load(HEALTH_BAR).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	health_bar.name = "HealthBar"
 	_add_control(ui, health_bar)
+	# The two icons live INSIDE this instance, and _dress_icons rewrites them. Overrides on
+	# an instance's children are only stored when the instance is editable - the same rule
+	# that dropped komi out of the stage - so without this the bar keeps shipping bf's face.
+	_root.set_editable_instance(health_bar, true)
 	built["HealthBar"] = health_bar
 
 	for side: String in ["Opponent", "Player"]:
@@ -281,6 +289,57 @@ func _build_ui() -> Dictionary:
 
 	judgment.level_note_controller = built["Player"]
 	return built
+
+
+## The health bar ships with bf's two-frame icon and no code that ever changes it. These
+## are Animania's: state machines with transition animations, and komi's sings along with
+## her. IconL is the opponent's and IconR the player's, which is the order the bar's own
+## fill runs in.
+func _dress_icons(ui: Dictionary, health: Node) -> void:
+	var bar: Control = ui["HealthBar"]
+	var icons: Dictionary = {
+		"IconL": {
+			"frames": "res://animania_mod/characters/komi_icon.tres",
+			"controller": ui["Opponent"], "inverted": true, "alt": true,
+			# komi.hx sets icon.flipX, and the atlas's poses are authored for it - which is
+			# why its "right" art is this port's sing_left.
+			"flip": true,
+		},
+		"IconR": {
+			"frames": "res://animania_mod/characters/tadano_icon.tres",
+			"controller": ui["Player"], "inverted": false, "alt": false, "flip": false,
+		},
+	}
+
+	for icon_name: String in icons:
+		var entry: Dictionary = icons[icon_name]
+		var icon: AnimatedSprite2D = bar.find_child(icon_name, true, false)
+		if icon == null:
+			push_error("la barra de vida no tiene %s" % icon_name)
+			quit(1)
+			return
+
+		icon.set_script(load(ICON_SCRIPT))
+		icon.sprite_frames = load(entry["frames"])
+		icon.animation = &"idle"
+		icon.health_module = health
+		icon.note_controller = entry["controller"]
+		icon.inverted = entry["inverted"]
+		icon.has_alt_poses = entry["alt"]
+		# Fitted to the height the bar was laid out for rather than left at native size.
+		# Rubicon centres its icons on the bar, so bf's 150px icon already runs 19px off the
+		# top of the screen; tadano's is 171 and would run 30px off. Matching bf's height
+		# keeps Animania's icons in exactly the space Rubicon's layout expects instead of
+		# moving the layout to suit them - and both character JSONs carry
+		# healthIcon.scale 0.9, so the mod scales them down too.
+		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
+		var fit: float = BF_ICON_HEIGHT / float(frame.get_height())
+		icon.scale = Vector2(-fit if entry["flip"] else fit, fit)
+
+		# offset is in the sprite's own space, and the bar authors -73 for bf's 138px icon:
+		# half its width. Keeping -73 for a 167px icon slides it out of place and overlaps
+		# it with the other one in the middle of the bar.
+		icon.offset = Vector2(-frame.get_width() * 0.5, icon.offset.y)
 
 
 ## An instanced Control loses its authored anchors unless layout_mode says to keep them.
