@@ -231,12 +231,11 @@ func _add_screen_space(root: Node2D, props: Array) -> void:
 				intro.centered = false
 				intro.position = _vec(prop["position"])
 				intro.autoplay = &"intro text"
-				# The one prop shipped against its authored state, and the reason is that
-				# nothing in the data Animania ships ever turns it off: no chart event
-				# names it and phoneCallStreet.hx does not touch it. A 989x750 title card
-				# looping over the whole song is clearly not what plays, so the mod's own
-				# PlayState must hide it. Shipping it on would be a visible bug; the level
-				# scene switches it on for as long as the intro should last.
+				# The one prop shipped against its authored state. No chart event names
+				# it and phoneCallStreet.hx does not touch it, so it looked like the mod's
+				# PlayState had to be hiding it - and phone-call.script turned out to be
+				# what does: beat 1 centres it and fades it up over 2.5s, beat 11 fades it
+				# out. The level scene owns that, so this ships it off.
 				intro.visible = false
 				layer.add_child(intro)
 

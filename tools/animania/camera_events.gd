@@ -64,11 +64,26 @@ const CAMERA := ^"../RubiconInterpolatedCamera2D"
 ## modcharts. Beat 232 is standUP(): both characters swap to their standing versions and
 ## every prop on the stage inverts its visibility.
 const SCRIPT_BEATS := [
+	# onCreatePost, and case 0: black screen, no HUD, and the two strumlines swapped over
+	# with the opponent's parked off the right edge.
+	[0, "opening", []],
+	# The title card fades up, and out again ten beats later.
+	[1, "intro_show_text", []],
+	[11, "intro_hide_text", []],
+	# The cover comes off and tadano walks in.
+	[13, "intro_reveal", []],
 	# camGame.shake(.0005, .8) - a rumble on three beat accents.
 	[16, "shake", [0.0005, 0.8]],
 	[19, "shake", [0.0005, 0.8]],
 	[23, "shake", [0.0005, 0.8]],
-	# Both characters swap to their standing versions and the stage inverts.
+	# The HUD arrives, twenty milliseconds before the first player note.
+	[31, "hud_in", []],
+	# The opponent's lanes fly in from off-screen; tadano slides into the offset the
+	# chart's FocusCamera on the same beat already carries.
+	[166, "opponent_lanes_in", []],
+	[168, "boyfriend_slide", []],
+	# Both characters swap to their standing versions and the stage inverts. The opponent's
+	# lanes finish arriving in the same call: two method keys at one time collapse into one.
 	[232, "stand_up", []],
 	# The HUD leaves, and then the screen does.
 	[332, "hud_out", []],

@@ -560,7 +560,120 @@ func _check_camera_events() -> void:
 	await _check_idle_suffix()
 	await _check_stand_up()
 	await _check_script_beats()
+	await _check_opening()
 	await _check_death()
+
+
+## phone-call.script's opening: onCreatePost plus cases 0, 1, 11, 13, 31, 166 and 168.
+##
+## All of it fails silently in the same way. The song still plays with its HUD already up,
+## its title card never shown and both strumlines on the wrong sides - which is exactly what
+## this port did until the script was read.
+##
+## Tweens run on real time, not on the clock, so each phase winds the clock to just before a
+## beat and then lets frames actually pass. That also means the clock keeps playing through
+## the settle, which is the point: the keys fire the way they do in a playthrough.
+func _check_opening() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	_autoplay(level)
+	await process_frame
+
+	var clock: AnimationPlayer = level.get_node("RubiconLevelClock").animation_player
+	var cover: ColorRect = level.get_node("Stage/ScreenSpace/IntroCover")
+	var intro: AnimatedSprite2D = level.get_node("Stage/ScreenSpace/IntroText")
+	var hud: Control = level.get_node("UILayer/UI")
+	var player_lanes: Control = level.get_node("UILayer/UI/Player")
+	var opponent_lanes: Control = level.get_node("UILayer/UI/Opponent")
+	var tadano: Node2D = level.find_child("Tadano", true, false)
+	var home_x: float = tadano.position.x
+
+	# Where each side of the HUD was authored, read off the anchors rather than written
+	# down: moving a Control's position moves its offsets, so the anchors still say where
+	# it started.
+	var opponent_home: float = opponent_lanes.anchor_left * 1920.0
+	var player_home: float = player_lanes.anchor_left * 1920.0
+
+	# onCreatePost, and case 0.
+	_check(is_equal_approx(cover.color.a, 1.0),
+		"la pantalla no empieza en negro (alpha %.2f)" % cover.color.a)
+	_check(is_zero_approx(hud.modulate.a), "el HUD no empieza invisible")
+	_check(is_equal_approx(player_lanes.position.x, opponent_home),
+		"las notas del jugador tendrian que empezar en la casa del oponente (%.0f, no %.0f)"
+			% [opponent_home, player_lanes.position.x])
+	_check(is_equal_approx(opponent_lanes.position.x, opponent_home + 1920.0),
+		"las notas del oponente tendrian que empezar fuera de pantalla (%.0f)"
+			% opponent_lanes.position.x)
+	_check(is_zero_approx(opponent_lanes.modulate.a) and
+		is_equal_approx(opponent_lanes.rotation_degrees, 360.0),
+		"las notas del oponente tendrian que empezar invisibles y giradas")
+
+	# case 1: the title card.
+	await _wind_to(clock, 2.0)
+	await _settle(0.4)
+	_check(intro.visible and intro.modulate.a > 0.05,
+		"el cartel del intro no aparece en el beat 1 (visible=%s alpha=%.2f)"
+			% [intro.visible, intro.modulate.a])
+
+	# case 13: the cover comes off and tadano walks in. Two and a half seconds of fade and
+	# 1.95s of walk, so this is the phase that needs real time.
+	await _wind_to(clock, 5.0)
+	await _settle(2.8)
+	_check(cover.color.a < 0.05,
+		"el negro tendria que haberse ido en el beat 13 (alpha %.2f)" % cover.color.a)
+	_check(intro.modulate.a < 0.05,
+		"el cartel tendria que haberse ido en el beat 11 (alpha %.2f)" % intro.modulate.a)
+	_check(absf(tadano.position.x - home_x) < 2.0,
+		"tadano tendria que acabar su entrada en su sitio (%.0f, no %.0f)"
+			% [home_x, tadano.position.x])
+
+	# case 31: the HUD arrives with the player's lanes, and only theirs.
+	await _wind_to(clock, 12.0)
+	await _settle(0.9)
+	_check(absf(hud.modulate.a - 1.0) < 0.01,
+		"el HUD tendria que entrar en el beat 31 (alpha %.3f)" % hud.modulate.a)
+	_check(absf(player_lanes.modulate.a - 1.0) < 0.01,
+		"las notas del jugador tendrian que entrar con el HUD (alpha %.3f)"
+			% player_lanes.modulate.a)
+	_check(is_zero_approx(opponent_lanes.modulate.a),
+		"las del oponente no, que faltan 135 beats (alpha %.2f)"
+			% opponent_lanes.modulate.a)
+
+	# cases 166 and 168: the opponent's lanes fly in - two seconds of delay and 1.35s of
+	# tween - and tadano slides 800 right on the way.
+	# Two seconds of delay plus 1.35s of tween, and the key itself does not fire until the
+	# clock plays past 65.526 - so 3.35s of settle is a hair short and lands on a cubic
+	# ease-out at 99%, which reads as 0.0 rotation in a printout and is not zero.
+	await _wind_to(clock, 65.0)
+	await _settle(4.6)
+	_check(absf(opponent_lanes.position.x - player_home) < 2.0,
+		"las notas del oponente tendrian que aterrizar en la casa del jugador (%.0f, no %.0f)"
+			% [player_home, opponent_lanes.position.x])
+	_check(absf(opponent_lanes.rotation_degrees) < 0.01,
+		"tendrian que acabar sin girar (%.3f)" % opponent_lanes.rotation_degrees)
+	_check(absf(opponent_lanes.modulate.a - 0.5) < 0.01,
+		"tendrian que aterrizar a medio alpha (%.3f)" % opponent_lanes.modulate.a)
+	_check(tadano.position.x - home_x > 700.0,
+		"tadano tendria que deslizarse 800 en el beat 168 (%.0f)"
+			% (tadano.position.x - home_x))
+
+	# case 232 finishes them off, riding on stand_up so the two keys do not collapse.
+	await _wind_to(clock, 91.0)
+	await _settle(2.4)
+	_check(absf(opponent_lanes.modulate.a - 1.0) < 0.01,
+		"el beat 232 tendria que acabar de traer las notas del oponente (%.3f)"
+			% opponent_lanes.modulate.a)
+
+	_drop(level)
+	await process_frame
+
+
+## Lets real time pass, which is what every tween in the opening and the death runs on.
+func _settle(seconds: float) -> void:
+	var elapsed: float = 0.0
+	while elapsed < seconds:
+		elapsed += root.get_process_delta_time()
+		await process_frame
 
 
 ## Tadano's death sequence. Rubicon emits health_depleted and nothing in the engine listens,

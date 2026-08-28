@@ -148,11 +148,23 @@ tracks/7/path = NodePath("../PhoneCallEvents")
 tracks/7/interp = 1
 tracks/7/loop_wrap = true
 tracks/7/keys = {
-"times": PackedFloat32Array(4.6710525, 6.3157897, 6.513158, 7.5, 9.078947, 12.532895, 21.217106, 24.917763, 27.631578, 28.026316, 33.799343, 37.5, 40.263157, 40.657894, 43.717106, 43.81579, 44.210526, 65.476974, 66.414474, 80.13158, 86.447365, 91.57895, 130.75658, 131.05263, 132.21217, 132.23685, 137.36842),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"times": PackedFloat32Array(0, 0.39473686, 4.3421054, 4.6710525, 5.131579, 6.3157897, 6.513158, 7.5, 9.078947, 12.236842, 12.532895, 21.217106, 24.917763, 27.631578, 28.026316, 33.799343, 37.5, 40.263157, 40.657894, 43.717106, 43.81579, 44.210526, 65.476974, 65.52631, 66.31579, 66.414474, 80.13158, 86.447365, 91.57895, 130.75658, 131.05263, 132.21217, 132.23685, 137.36842),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "values": [{
+"args": [],
+"method": &"opening"
+}, {
+"args": [],
+"method": &"intro_show_text"
+}, {
+"args": [],
+"method": &"intro_hide_text"
+}, {
 "args": [4, 0.0],
 "method": &"set_bop"
+}, {
+"args": [],
+"method": &"intro_reveal"
 }, {
 "args": [0.0005, 0.8],
 "method": &"shake"
@@ -165,6 +177,9 @@ tracks/7/keys = {
 }, {
 "args": [0.0005, 0.8],
 "method": &"shake"
+}, {
+"args": [],
+"method": &"hud_in"
 }, {
 "args": [4, 0.75],
 "method": &"set_bop"
@@ -205,6 +220,12 @@ tracks/7/keys = {
 "args": [&"boyfriend", "-alt"],
 "method": &"set_idle_suffix"
 }, {
+"args": [],
+"method": &"opponent_lanes_in"
+}, {
+"args": [],
+"method": &"boyfriend_slide"
+}, {
 "args": [&"dad", &"reaction", true],
 "method": &"play_character_animation"
 }, {
@@ -240,32 +261,32 @@ _data = {
 &"scene": SubResource("Animation_gdfam")
 }
 
-[node name="PhoneCall" type="Node2D" unique_id=1892727177]
+[node name="PhoneCall" type="Node2D" unique_id=355408424]
 script = ExtResource("1_c8hcn")
 metadata = ExtResource("2_g0nvh")
 
-[node name="RubiconLevelClock" type="Node" parent="." unique_id=972835227]
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=813419388]
 script = ExtResource("3_401pc")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=1573216902]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=548263909]
 callback_mode_discrete = 2
 libraries/ = SubResource("AnimationLibrary_e7tcl")
 autoplay = &"scene"
 
-[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=2005384582 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=724226626 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
 script = ExtResource("4_wxwi8")
 audio_players = [NodePath("Instrumental"), NodePath("VocalsTadano"), NodePath("VocalsKomi")]
 sync_reference_player = NodePath("Instrumental")
 
-[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=555253271]
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1521581794]
 stream = ExtResource("5_cgly0")
 bus = &"Music"
 
-[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=989837359]
+[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1364540518]
 stream = ExtResource("6_cysce")
 bus = &"Music"
 
-[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1059497758]
+[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1492333528]
 stream = ExtResource("7_18ffo")
 bus = &"Music"
 
@@ -276,12 +297,18 @@ z_index = 210
 position = Vector2(1200, 1365)
 level_note_controller = NodePath("../../../UILayer/UI/Opponent")
 
+[node name="IntroCover" type="ColorRect" parent="Stage/ScreenSpace" parent_id_path=PackedInt32Array(1091887610, 1923786217) index="1" unique_id=319253617]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
 [node name="Tadano" parent="Stage" unique_id=2134334352 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("10_dl8kc")]
 z_index = 210
 position = Vector2(50, 1415)
 level_note_controller = NodePath("../../UILayer/UI/Player")
 
-[node name="KomiGirlfriend" parent="Stage" unique_id=630939645 instance=ExtResource("9_72nuh")]
+[node name="KomiGirlfriend" parent="Stage" unique_id=284836969 instance=ExtResource("9_72nuh")]
 visible = false
 z_index = -1
 position = Vector2(535, 1285)
@@ -296,16 +323,16 @@ visible = false
 z_index = 710
 position = Vector2(434.5, 995)
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=728293952]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=72578219]
 layer = 2
 
-[node name="UI" type="Control" parent="UILayer" unique_id=568607425]
+[node name="UI" type="Control" parent="UILayer" unique_id=1590977297]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Judgment" parent="UILayer/UI" unique_id=2066932706 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_nktxk")]
+[node name="Judgment" parent="UILayer/UI" unique_id=1725179113 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_nktxk")]
 layout_mode = 1
 level_note_controller = NodePath("../Player")
 
@@ -333,7 +360,7 @@ inverted = true
 health_module = NodePath("../../../../../../RubiconHealthModule")
 note_controller = NodePath("../../../../Player")
 
-[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=1144307266]
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=582502711]
 anchors_preset = 0
 anchor_left = 0.25
 anchor_top = 1.0
@@ -353,25 +380,25 @@ layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=1499069885 instance=ExtResource("21_m0ign")]
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=1737702035 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1224824508 instance=ExtResource("21_m0ign")]
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1667333451 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1480157603 instance=ExtResource("21_m0ign")]
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=372727928 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="Player" type="Control" parent="UILayer/UI" unique_id=963968643]
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=1899158080]
 anchors_preset = 0
 anchor_left = 0.75
 anchor_top = 1.0
@@ -386,39 +413,39 @@ chart = ExtResource("22_fu7kd")
 note_overrides = ExtResource("20_3pn0j")
 inputs = ExtResource("23_m15pg")
 
-[node name="Lane" parent="UILayer/UI/Player" unique_id=158680775 instance=ExtResource("21_m0ign")]
+[node name="Lane" parent="UILayer/UI/Player" unique_id=1667999553 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Player" unique_id=1722192275 instance=ExtResource("21_m0ign")]
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=833127165 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Player" unique_id=2076594821 instance=ExtResource("21_m0ign")]
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=1662411212 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Player" unique_id=1159200089 instance=ExtResource("21_m0ign")]
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=1256462588 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=827547612]
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1402547026]
 position = Vector2(-200, 1098.5)
 
-[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=682647027]
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=2037211272]
 position = Vector2(975, 1027)
 
-[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1892133739]
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=660792409]
 position = Vector2(960, 747)
 
-[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=823679156]
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=1324467644]
 position = Vector2(975, 1027)
 zoom = Vector2(0.975, 0.975)
 script = ExtResource("24_17ya6")
@@ -426,13 +453,13 @@ position_interpolate_target = Vector2(975, 1027)
 position_interpolate_speed = 2.0
 zoom_interpolate_target = Vector2(0.975, 0.975)
 
-[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=718445927]
+[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=1951942856]
 script = ExtResource("25_fxylr")
 bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=1161457759 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade", "hud_up", "hud_down")]
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=1163553055 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade", "hud_up", "hud_down", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes")]
 script = ExtResource("26_rc3f3")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
@@ -452,70 +479,75 @@ flash = NodePath("../Overlays/White")
 fade = NodePath("../Overlays/Black")
 hud_up = [NodePath("../UILayer/UI/HealthBar")]
 hud_down = [NodePath("../UILayer/UI/Opponent"), NodePath("../UILayer/UI/Player")]
+cover = NodePath("../Stage/ScreenSpace/IntroCover")
+intro_text = NodePath("../Stage/ScreenSpace/IntroText")
+hud_root = NodePath("../UILayer/UI")
+player_lanes = NodePath("../UILayer/UI/Player")
+opponent_lanes = NodePath("../UILayer/UI/Opponent")
 
-[node name="Overlays" type="CanvasLayer" parent="." unique_id=1263762870]
+[node name="Overlays" type="CanvasLayer" parent="." unique_id=137513955]
 
-[node name="White" type="ColorRect" parent="Overlays" unique_id=1139739430]
+[node name="White" type="ColorRect" parent="Overlays" unique_id=1347319269]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="Black" type="ColorRect" parent="Overlays" unique_id=1170124531]
+[node name="Black" type="ColorRect" parent="Overlays" unique_id=517803345]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
-[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1004777781]
+[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1466744739]
 
-[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=98413015]
+[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=477183435]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=1226882393]
+[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=1038441629]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RubiconHealthModule" type="Node" parent="." unique_id=1843758960 node_paths=PackedStringArray("note_controller")]
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=1455582378 node_paths=PackedStringArray("note_controller")]
 script = ExtResource("27_n26ha")
 note_controller = NodePath("../UILayer/UI/Player")
 starting_health = 50.0
 starting_health = 50.0
 
-[node name="Death" type="CanvasLayer" parent="." unique_id=2107894562]
+[node name="Death" type="CanvasLayer" parent="." unique_id=257781092]
 
-[node name="Dark" type="ColorRect" parent="Death" unique_id=2029475630]
+[node name="Dark" type="ColorRect" parent="Death" unique_id=734096293]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
-[node name="LeftPanel" type="ColorRect" parent="Death" unique_id=1151742482]
+[node name="LeftPanel" type="ColorRect" parent="Death" unique_id=1797292400]
 visible = false
 offset_right = 600.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RightPanel" type="ColorRect" parent="Death" unique_id=1787621202]
+[node name="RightPanel" type="ColorRect" parent="Death" unique_id=345962851]
 visible = false
 offset_right = 600.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RetryText" type="Node2D" parent="Death" unique_id=1148249443]
+[node name="RetryText" type="Node2D" parent="Death" unique_id=659235971]
 modulate = Color(1, 1, 1, 0)
 script = ExtResource("28_hkubo")
 centered = false
 atlases = Array[ExtResource("29_mhfsn")]([ExtResource("30_dpvpa"), ExtResource("31_snhhd")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Death/RetryText" unique_id=1462997666]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Death/RetryText" unique_id=175524399]
 
-[node name="DeathSequence" type="Node" parent="." unique_id=1561096578 node_paths=PackedStringArray("health_module", "song", "clock", "camera", "events", "dark", "left_panel", "right_panel", "retry_text", "retry_player", "music", "loss_sound", "confirm_music", "phone_player", "phone_opponent", "stand_player", "stand_opponent")]
+[node name="DeathSequence" type="Node" parent="." unique_id=569858251 node_paths=PackedStringArray("health_module", "song", "clock", "camera", "events", "dark", "left_panel", "right_panel", "retry_text", "retry_player", "music", "loss_sound", "confirm_music", "phone_player", "phone_opponent", "stand_player", "stand_opponent")]
 script = ExtResource("32_b0uto")
 health_module = NodePath("../RubiconHealthModule")
 song = NodePath("../RubiconLevelSongModule")
@@ -537,19 +569,19 @@ stand_opponent = NodePath("../Stage/KomiStand")
 phone_text = ExtResource("33_o8niu")
 stand_text = ExtResource("34_3xs1m")
 
-[node name="Music" type="AudioStreamPlayer" parent="DeathSequence" unique_id=942449553]
+[node name="Music" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1611127341]
 stream = ExtResource("35_xr3i4")
 bus = &"Music"
 
-[node name="LossSound" type="AudioStreamPlayer" parent="DeathSequence" unique_id=99803091]
+[node name="LossSound" type="AudioStreamPlayer" parent="DeathSequence" unique_id=867996631]
 stream = ExtResource("36_ewmcl")
 bus = &"Music"
 
-[node name="ConfirmMusic" type="AudioStreamPlayer" parent="DeathSequence" unique_id=403330039]
+[node name="ConfirmMusic" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1585213451]
 stream = ExtResource("37_loyuv")
 bus = &"Music"
 
-[node name="MobileControls" parent="." unique_id=1101588159 instance=ExtResource("38_w4y0v")]
+[node name="MobileControls" parent="." unique_id=1561705041 instance=ExtResource("38_w4y0v")]
 
 [editable path="Stage"]
 [editable path="UILayer/UI/HealthBar"]

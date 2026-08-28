@@ -313,13 +313,6 @@ target's local position", which is correct as long as **every camera marker is a
 child of the level root**. Parent one anywhere else and its parent's offset is dropped in
 silence. Both markers here are root children for that reason.
 
-### Still the placeholder
-
-The camera currently alternates between the two singers on the measure, the way
-`test.tscn` does. The chart's **103 camera events** — `FocusCamera`, `ZoomCamera`,
-`AddCameraZoom`, `SetCameraBop`, `CinematicBars` — replace that track wholesale and are
-the next pass.
-
 ## The camera events
 
 All 97 of the chart's camera events, baked into the level clock's `scene` animation by
@@ -597,13 +590,11 @@ Both icon atlases are full of duplicate frames and both hit it. Turning frame du
 takes the other branch, and for these animations it loses nothing — they are authored at a
 flat 24fps, unlike the character sheets where held frames carry real timing.
 
-### tadano's icon is only half ported
+### tadano's icon does not sing
 
-Its atlas carries `basic`, `lose`, **`win`** and **`predeath`** with all six transitions
-between them, and what drives them is `AnimaniaStuff.makeAmTakeAnimatedIcon` — a module
-this slice does not have. The frames are built anyway (they are in the atlas, and dropping
-them means re-deriving this later) but only `idle`/`losing` and their two transitions are
-wired up. tadano's icon also does not sing: only komi's atlas has sing poses.
+Its atlas carries `basic`, `lose`, `win` and `predeath` with all six transitions between
+them, and all four rungs are wired up — see the ladder above. What it has no frames for is
+singing: only komi's atlas carries sing poses.
 
 ## The hit splashes and the hold covers
 
@@ -710,12 +701,88 @@ the song actually does.
 
 ### Still not ported from the script
 
-The camera and HUD shakes (beats 16, 19, 23), the strumline entrances and modchart effects
-(beats 31, 166, 232 onward), the script's own 100px letterbox bars killed at beat 33 — the
-chart's `CinematicBars` events are separate and *are* ported — the HUD tween-off at beat 332,
-and the fade to black at beat 348. `standUP()`'s `tweenCameraZoom(0.8, ...)` is also left
-out on purpose: the chart's baked `ZoomCamera` track owns the camera continuously and has
-events either side of the swap, so a competing zoom would fight it.
+**The modchart.** `Modchart.set("tanWave", ...)`, `"shake"` and the `scale` pulse every
+other beat from 232 on are a whole subsystem this engine does not have, and the strumline
+scales that go with them (`changeMode(false, 1.05)` / `(false, 0.95)`) are left out with
+them: the second argument of a two-argument `changeMode` is a guess, and guessing wrong
+moves the lanes.
+
+**The script's own letterbox bars**, and this one is not a gap — it is arithmetic. They are
+100px, and the chart's first `CinematicBars` event puts the ported bars at exactly 100px
+0.39s in. The only window where the two differ is those first 0.39 seconds, and the black
+cover is over the whole screen for the first thirteen beats. A node that can never be seen
+is not a port.
+
+**`iconP1.bopEvery = 4 * 4`**: Funkin's icons bop on the beat and these do not bop at all —
+they bob against the health value, which is `makeAmTakeAnimatedIcon`'s own behaviour and
+the one the ladder was built around.
+
+**`standUP()`'s `tweenCameraZoom(0.8, ...)`**, on purpose: the chart's baked `ZoomCamera`
+track owns the camera continuously and has events either side of the swap, so a competing
+zoom would fight it.
+
+## The opening
+
+`onCreatePost` plus cases 0, 1, 11, 13, 31, 166 and 168 — the thirty-three beats before the
+song is a song, and the reason the port looked finished while it was missing them.
+
+| beat | | |
+|---|---|---|
+| — | onCreatePost | black cover up, HUD alpha 0, title card off, strumlines swapped, opponent's lanes parked a screen right at alpha 0 and a full turn of rotation |
+| 1 | title card | centred, scaled to 0.8, fades up over 2.5s |
+| 11 | | and back out over 2.5s |
+| 13 | the reveal | the cover fades off over 2.5s and tadano walks in playing `intro` |
+| 31 | the HUD | alpha 0 → 1 and zoom 1.1 → 1 over 0.35s, the player's lanes with it |
+| 166 | the opponent | after 2s, 1.35s of cube-out onto the player's home, unwinding 360° to half alpha |
+| 168 | tadano | slides 800 right over 1.35s |
+| 232 | | the opponent's lanes reach full alpha, riding on `standUP()` |
+
+### The strumlines exchange sides
+
+`onCreatePost` moves the player's lanes half a screen left and **nothing ever moves them
+back**. That reads like a bug until you follow it: if their home were `STRUMLINE_X_OFFSET`,
+half a screen left of it is off the edge, and 195 player notes would spend the whole song
+outside the screen. So their home is `width / 2 + OFFSET`, half a screen left of that is
+`OFFSET` — the opponent's home — and beat 166 flies the opponent's lanes to
+`width / 2 + OFFSET`, which is the player's. They swap. The conclusion holds whatever
+`Constants.STRUMLINE_X_OFFSET` turns out to be, which matters because this repo does not
+have Funkin's `Constants`.
+
+And it is the song: komi is a voice on a phone for 67 seconds. Her lanes are off-screen
+from the first frame — her notes start at 18.9s and are simply not shown — they arrive at
+half alpha at beat 166, and they only reach full alpha at beat 232, when she is standing
+there in person. Which is also why she gets no strumline entrance of her own at beat 31.
+
+### The cover is not the fade
+
+`blackScreenSpr` is zIndex 5999. `overlay-all` is 5000 and `introText` is 6000, so the
+title card reads *over* the black and everything else reads under it. Put the cover in the
+level's overlays — where `camGame.fade` correctly lives — and it covers the title card too,
+and the opening is five seconds of nothing. So it is built into the stage's screen-space
+layer instead, between the two, which is what `parent_id_path` in the packed scene is.
+
+### Beat 168 and the camera that does not follow
+
+Funkin's `FocusCamera` takes a **snapshot** of the character's midpoint when the event
+fires and tweens the follow point to it. It does not track a moving character — which is
+the whole reason this port could bake twenty camera moves into a value track. So tadano's
+entrance walk and his 800px slide are character moves against a camera that stays where it
+was aimed, and they need nothing from the bake.
+
+The slide is also not arbitrary: the chart's `FocusCamera` on the same beat carries an x
+offset of 700, and the two were clearly written together.
+
+### Two keys at one beat collapse into one
+
+Beat 232 wants `standUP()` and the opponent's last alpha step. Given a key each they become
+**one key**: `Animation::_insert` compares times with `Math::is_equal_approx`, whose
+tolerance is relative (`CMP_EPSILON * |t|`), so at 91.6s two keys have to be a full
+millisecond apart to survive as two. The alpha step therefore rides inside `stand_up()`.
+
+The same rule, read the other way, is why beat 168 lands where it does: it is 98ms from the
+chart's `PlayAnimation` at 66.414s, which is far enough apart to be two keys but close
+enough that a **wound** clock fires only the nearer of them. The guard lets real frames run
+through that window rather than seeking across it.
 
 ## Tadano's death sequence
 
@@ -805,7 +872,8 @@ know what makes it. Every phase that walks the clock now autoplays, and the one 
 The guard also frees each level immediately rather than with `queue_free()`: it builds six
 of them, and a deferred free plus a single awaited frame leaves the old one alive alongside
 the new, each still processing a stage, four characters and eight lanes of `AnimationTree`.
-The whole thing runs in **31 seconds**.
+The whole thing runs in **44 seconds**, most of the growth being the opening and the death,
+which are tween-driven and need real frames rather than seeks.
 
 And it has to run `--headless`, the way its header says. Under a real renderer the frame
 deltas change where the walk lands inside each tween, and six camera readings come out a

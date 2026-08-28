@@ -9,17 +9,21 @@
 extends Node2D
 
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
-# Moments the chart's camera events make interesting: the opening letterbox at 100px, the
-# widest bars of the song, the tightest, and the ending - plus a plain mid-song frame.
-const MOMENTS := [6.0, 45.0, 66.5, 88.4, 92.5, 95.0, 133.0]
-
-## How long the clock is left to PLAY before a shot, rather than wound to it.
-##
-## Winding fires a method key only when the seek lands close after it, and when two keys sit
-## close together it fires only the nearest - the chart's endAnimation and endConv are 24.6ms
-## apart at 132.2s, and a wound clock plays the second and skips the first. Letting the last
-## stretch play normally is what makes a shot show what the song actually does.
-const PLAY_IN := 1.6
+# Moments the song makes interesting, each with how long the clock is left to PLAY into it
+# rather than wound: the title card over the black cover, tadano's walk in, the HUD arriving
+# with the player's lanes, a plain mid-song frame, the tightest zoom, the opponent's lanes
+# landing, the two of them standing, and the ending.
+#
+# The play-in is not decoration. Winding fires a method key only when the seek lands close
+# after it, and when two keys sit close together it fires only the nearest - the chart's
+# endAnimation and endConv are 24.6ms apart at 132.2s, and a wound clock plays the second
+# and skips the first. It is also the only real time the shot gets: every tween in the
+# opening runs on frames, not on the clock, so a moment that waits on one needs a play-in
+# longer than the tween. Beat 166's lanes take two seconds of delay and 1.35s of flight.
+const MOMENTS := [
+	[3.0, 1.6], [6.5, 1.6], [13.0, 1.6], [45.0, 1.6],
+	[66.5, 1.6], [69.5, 4.2], [92.5, 1.6], [133.0, 1.6],
+]
 
 var _level: Node
 var _clock: Node
@@ -40,12 +44,18 @@ func _ready() -> void:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
 
-func _wind_to(target: float) -> void:
+## One step per FRAME, not a loop inside one. Run as a loop, the whole wind happens between
+## two frames: the animation player fires its method keys through a deferred call queue, and
+## the intro's title card came out pinned at alpha 1 for the whole song because the beat-11
+## key that fades it never landed. The guard's own _wind_to awaits a frame per step for the
+## same reason. It is also the only real time a tween-driven opening ever gets.
+func _wind_step(target: float) -> bool:
 	var player: AnimationPlayer = _clock.animation_player
 	var at: float = player.current_animation_position
-	while at < target:
-		at = minf(at + WIND_STEP, target)
-		player.seek(at, true)
+	if at >= target:
+		return true
+	player.seek(minf(at + WIND_STEP, target), true)
+	return player.current_animation_position >= target
 
 
 enum Step { WIND, PLAY, SETTLE, SHOOT }
@@ -63,13 +73,14 @@ func _process(_delta: float) -> void:
 		get_tree().quit()
 		return
 
-	var moment: float = MOMENTS[_index]
+	var moment: float = (MOMENTS[_index] as Array)[0]
+	var play_in: float = (MOMENTS[_index] as Array)[1]
 	var clock: AnimationPlayer = _clock.animation_player
 
 	match _step:
 		Step.WIND:
-			_wind_to(moment - PLAY_IN)
-			_step = Step.PLAY
+			if _wind_step(moment - play_in):
+				_step = Step.PLAY
 
 		Step.PLAY:
 			# Played, not wound. Winding fires a method key only when the seek lands close
@@ -104,9 +115,17 @@ func _process(_delta: float) -> void:
 
 			var stood_up: bool = _level.get_node("PhoneCallEvents")._stood_up
 			var bars: ColorRect = _level.get_node("CinematicBars/Top")
-			print("OUT t=%5.1fs  barras=%3.0fpx  de pie=%-3s zoom=%.3f -> %s" % [
+			# The opening's state, which is all tween-driven and therefore the part a
+			# harness that seeks rather than plays is most likely to catch half-done.
+			var cover: ColorRect = _level.get_node("Stage/ScreenSpace/IntroCover")
+			var intro: AnimatedSprite2D = _level.get_node("Stage/ScreenSpace/IntroText")
+			var hud: Control = _level.get_node("UILayer/UI")
+			var opponent: Control = _level.get_node("UILayer/UI/Opponent")
+			print("OUT t=%5.1fs barras=%3.0fpx de pie=%-3s zoom=%.3f negro=%.2f cartel=%.2f hud=%.2f opp=%.2f@%.0f -> %s" % [
 				moment, bars.size.y, "si" if stood_up else "no",
 				(get_viewport().get_camera_2d() as Camera2D).zoom.x,
+				cover.color.a, intro.modulate.a, hud.modulate.a,
+				opponent.modulate.a, opponent.position.x,
 				ProjectSettings.globalize_path(path)])
 
 			_index += 1

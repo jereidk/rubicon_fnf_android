@@ -628,12 +628,39 @@ func _build_camera() -> void:
 	events.flash = overlays["flash"]
 	events.fade = overlays["fade"]
 
+	# The opening. The cover goes INSIDE the stage's screen-space layer rather than in the
+	# level's overlays, because Funkin gives blackScreenSpr zIndex 5999 - above overlay-all
+	# at 5000 and below introText at 6000. Anywhere else and the title card, which is the
+	# only thing meant to read during those first five seconds, is under the black.
+	events.cover = _build_intro_cover()
+	events.intro_text = _root.find_child("IntroText", true, false)
+	events.hud_root = _root.get_node("UILayer/UI")
+	events.player_lanes = _root.get_node("UILayer/UI/Player")
+	events.opponent_lanes = _root.get_node("UILayer/UI/Opponent")
+
 	# onBeatHit case 332: the bar and its icons go one way, the strumlines the other.
 	var up: Array[Node] = [_root.get_node("UILayer/UI/HealthBar")]
 	var down: Array[Node] = [
 		_root.get_node("UILayer/UI/Opponent"), _root.get_node("UILayer/UI/Player")]
 	events.hud_up = up
 	events.hud_down = down
+
+
+## onCreatePost's blackScreenSpr: a full-screen black rect at zoomFactor 0, which is to say
+## in the stage's screen-space layer, between the light overlay and the title card.
+func _build_intro_cover() -> ColorRect:
+	var screen_space: Node = _root.get_node("Stage/ScreenSpace")
+	var cover := ColorRect.new()
+	cover.name = "IntroCover"
+	cover.color = Color(0.0, 0.0, 0.0, 1.0)
+	cover.size = Vector2(1920.0, 1080.0)
+	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen_space.add_child(cover)
+	# Ascending zIndex is tree order inside a CanvasLayer, and the stage put overlay-all
+	# first and introText second.
+	screen_space.move_child(cover, 1)
+	cover.owner = _root
+	return cover
 
 
 func _own(node: Node, owner: Node) -> void:
