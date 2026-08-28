@@ -48,7 +48,7 @@ const HEALTH_BAR := "res://resources/levels/ui/funkin/health_bar.tscn"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
-const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_camera_events.gd"
+const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 # Funkin is 1280x720 and this project is 1920x1080, so the stage's own cameraZoom is
@@ -383,10 +383,18 @@ func _build_camera() -> void:
 	bumper.bump_interval = 4
 	bumper.bump_amount = 0.0  # the chart's first SetCameraBop turns the bop off
 
-	var events: Node = _add(_root, Node.new(), "PhoneCallCameraEvents", EVENTS_SCRIPT)
+	var events: Node = _add(_root, Node.new(), "PhoneCallEvents", EVENTS_SCRIPT)
 	events.camera = camera
 	events.bumper = bumper
 	events.hud = _root.get_node("UILayer")
+	# The chart names characters the way Funkin does, and uses both "boyfriend" and "bf".
+	var cast_map: Dictionary[StringName, Node] = {
+		&"boyfriend": _root.find_child("Tadano", true, false),
+		&"bf": _root.find_child("Tadano", true, false),
+		&"dad": _root.find_child("Komi", true, false),
+		&"gf": _root.find_child("KomiGirlfriend", true, false),
+	}
+	events.cast = cast_map
 
 
 func _own(node: Node, owner: Node) -> void:

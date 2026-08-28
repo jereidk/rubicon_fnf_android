@@ -356,6 +356,51 @@ func _check_camera_events() -> void:
 	_check(level.get_node("CinematicBars").layer < level.get_node("UILayer").layer,
 		"las barras tapan el HUD")
 
+	# The chart's two character events, checked before the seeking starts: PlayAnimation
+	# names an animation on a named character, and a name that does not exist is a warning
+	# at runtime and nothing on screen.
+	var events: Node = level.get_node("PhoneCallEvents")
+	for name: StringName in [&"boyfriend", &"bf", &"dad", &"gf"]:
+		_check(events.cast.has(name) and events.cast[name] != null,
+			"el reparto de eventos no tiene %s" % name)
+
+	# endAnimation and endConv live on the tadano-stand / komi-stand characters the song
+	# swaps in at 132.2s, and that swap is not ported. Every OTHER PlayAnimation has to
+	# resolve.
+	const UNPORTED: Array = ["endAnimation", "endConv"]
+	for event: Dictionary in chart["events"]:
+		if String(event["e"]) != "PlayAnimation":
+			continue
+		var animation: String = str(event["v"].get("anim", ""))
+		if animation in UNPORTED:
+			continue
+		var character: Node = events.cast.get(StringName(str(event["v"].get("target", ""))))
+		_check(character != null
+				and character.animation_player.has_animation(StringName(animation)),
+			"PlayAnimation pide %s en %s y no existe" % [animation, event["v"].get("target")])
+
+	# SetProperty <char>.idleSuffix remaps every animation by appending the suffix, so each
+	# one the rule will reach has to exist under its suffixed name.
+	for event: Dictionary in chart["events"]:
+		if String(event["e"]) != "SetProperty":
+			continue
+		var property: String = str(event["v"].get("target", ""))
+		_check(property.ends_with(".idleSuffix"),
+			"SetProperty sin traducir: %s" % property)
+		var suffix: String = str(event["v"].get("value", "")).replace("-", "_")
+		var character: Node = events.cast.get(StringName(property.get_slice(".", 0)))
+		_check(character != null, "SetProperty nombra a %s" % property.get_slice(".", 0))
+		if character == null:
+			continue
+		for alias: StringName in character.animations:
+			var suffixed := StringName("%s%s" % [character.animations[alias], suffix])
+			_check(character.animation_player.has_animation(suffixed),
+				"a %s le falta %s" % [property.get_slice(".", 0), suffixed])
+		for dancing: StringName in character.dancing_animations:
+			_check(character.animation_player.has_animation(
+					StringName("%s%s" % [dancing, suffix])),
+				"a %s le falta %s%s" % [property.get_slice(".", 0), dancing, suffix])
+
 	var handled: Dictionary = {
 		"FocusCamera": 0, "ZoomCamera": 0, "AddCameraZoom": 0,
 		"SetCameraBop": 0, "CinematicBars": 0,
@@ -449,5 +494,51 @@ func _check_camera_events() -> void:
 			"%s: comprobados %d de %d" % [kind, handled[kind], totals.get(kind, 0)])
 	print("eventos de camara: %d recorridos, %d con el tween cortado por el siguiente"
 		% [chart_events.size(), truncated])
+
+	level.queue_free()
+
+	# The idleSuffix switch, checked where it lands rather than only that it could - on a
+	# FRESH level. Method-track keys fire for the range a seek crosses going forward, and
+	# the loop above has already walked to the end of the song; seeking back to 60 and
+	# forward again does not re-fire what it passed on the way back.
+	await _check_idle_suffix()
+
+
+## Winds an AnimationPlayer forward in small hops instead of one seek.
+##
+## Method-track keys are NOT reliably fired by seeking: a seek only runs a key if it lands
+## close after it. Measured on this scene, with the SetProperty key at 65.477s and the seek
+## starting at 65.0 - a 1.0s jump fires it, a 2.0s jump does not, and neither does 4, 5, 6,
+## 8 or 10. So anything that jumps around the song and expects the events to have happened
+## has to walk there. Gameplay never does this (a song plays start to finish and a retry
+## rebuilds the scene), but every harness here does.
+const WIND_STEP := 0.5
+
+
+func _wind_to(player: AnimationPlayer, target: float) -> void:
+	var at: float = player.current_animation_position
+	while at < target:
+		at = minf(at + WIND_STEP, target)
+		player.seek(at, true)
+		await process_frame
+
+
+func _check_idle_suffix() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	await process_frame
+
+	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
+	var tadano: Node = level.find_child("Tadano", true, false)
+
+	await _wind_to(player, 60.0)
+	_check(tadano.animations[&"sing_left"] == &"sing_left",
+		"tadano ya esta en alt antes del SetProperty")
+
+	await _wind_to(player, 70.0)
+	_check(tadano.animations[&"sing_left"] == &"sing_left_alt",
+		"el SetProperty no cambio a tadano al set alt")
+	_check(tadano.dancing_animations == ([&"dance_idle_alt"] as Array[StringName]),
+		"el baile de tadano no cambio al alt: %s" % [tadano.dancing_animations])
 
 	level.queue_free()

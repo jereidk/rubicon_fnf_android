@@ -1,6 +1,6 @@
 @tool
 extends RefCounted
-## Turns the chart's camera events into animation tracks on the level clock's player.
+## Turns the chart's events into animation tracks on the level clock's player.
 ##
 ## Funkin drives its camera in two stages, and reproducing both is what makes this look
 ## like the original rather than approximately like it:
@@ -89,7 +89,7 @@ func build(events: Array, length: float) -> Animation:
 	var bottom_y_track: int = _value_track(animation, ^"../CinematicBars/Bottom:position")
 
 	var punch_track: int = animation.add_track(Animation.TYPE_METHOD)
-	animation.track_set_path(punch_track, ^"../PhoneCallCameraEvents")
+	animation.track_set_path(punch_track, ^"../PhoneCallEvents")
 
 	# Every track here is LINEAR, so a value has to be PINNED at the end of its tween or it
 	# slides straight on toward the next event's first key. That is not a rounding error:
@@ -192,6 +192,27 @@ func build(events: Array, length: float) -> Animation:
 				animation.track_insert_key(punch_track, time, {
 					"method": &"set_bop",
 					"args": [int(value.get("rate", 4)), float(value.get("intensity", 1.0))],
+				})
+
+			"PlayAnimation":
+				animation.track_insert_key(punch_track, time, {
+					"method": &"play_character_animation",
+					"args": [StringName(str(value.get("target", "dad"))),
+						StringName(str(value.get("anim", "idle"))),
+						bool(value.get("force", false))],
+				})
+
+			"SetProperty":
+				# The only one this chart uses is boyfriend.idleSuffix, and it is what pulls
+				# tadano's whole alt pose set into play for the back half of the song.
+				var property: String = str(value.get("target", ""))
+				if not property.ends_with(".idleSuffix"):
+					push_warning("SetProperty sin traducir: %s" % property)
+					continue
+				animation.track_insert_key(punch_track, time, {
+					"method": &"set_idle_suffix",
+					"args": [StringName(property.get_slice(".", 0)),
+						str(value.get("value", ""))],
 				})
 
 			"CinematicBars":

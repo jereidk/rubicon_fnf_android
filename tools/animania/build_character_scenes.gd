@@ -110,8 +110,11 @@ func _build_komi() -> void:
 # flipX true. Its animation list carries no per-animation offsets at all - unlike komi -
 # so every root animation keys the sprite offset back to zero and nothing else.
 func _build_tadano() -> void:
+	# dance_idle_alt rather than idle_alt: the chart's SetProperty boyfriend.idleSuffix
+	# switch remaps every animation by appending the suffix, so the alt of dance_idle has
+	# to be named that way for the same rule to reach it.
 	var names: PackedStringArray = [
-		"dance_idle", "idle_alt",
+		"dance_idle", "dance_idle_alt",
 		"sing_left", "sing_down", "sing_up", "sing_right",
 		"sing_left_alt", "sing_down_alt", "sing_up_alt", "sing_right_alt",
 		"miss_left", "miss_down", "miss_up", "miss_right",
@@ -123,7 +126,8 @@ func _build_tadano() -> void:
 	for anim_name: String in names:
 		# dance_idle is what Rubicon dances; the clip behind it is tadano_idle.
 		var clip: String = "tadano_idle" if anim_name == "dance_idle" \
-			else "tadano_%s" % anim_name
+			else ("tadano_idle_alt" if anim_name == "dance_idle_alt"
+				else "tadano_%s" % anim_name)
 		clips[StringName(anim_name)] = StringName(clip)
 		offsets[StringName(anim_name)] = Vector2.ZERO
 

@@ -427,3 +427,60 @@ players in the same frame can catch them a buffer or two apart. Drift that was r
 climb; this does not, it snaps back to zero. That retires the split-vocal risk this port
 opened with, and the number to re-check on device is the same one — a *trace*, not a
 maximum.
+
+## The character events
+
+The last six of the chart's 103, which finishes the event track.
+
+**`SetProperty boyfriend.idleSuffix = "-alt"` at 65.5s** is the big one: it puts tadano
+onto his whole alt pose set for the back half of the song, which is what all those `-alt`
+symbols in his atlas are for. Rubicon has no `idleSuffix` — a character picks its animation
+from `animations`, which maps a lane alias to an animation name, and dances whatever is in
+`dancing_animations` — so a suffix switch is a remap of both. `rubicon_character.gd`'s
+`_refresh_last_sing_anim()` already exists to handle exactly this landing in the middle of
+a hold note. tadano's alt idle is named `dance_idle_alt`, not `idle_alt`, so the same
+append-the-suffix rule reaches it.
+
+**`PlayAnimation` ×5**: komi's `reaction` at 66.4s and her two `breath`s at 80.1s and
+86.4s, plus `endAnimation` and `endConv` at 132.2s that belong to the `tadano-stand` /
+`komi-stand` characters the song swaps in near the end — that swap is not ported, and those
+two warn and skip rather than fail.
+
+Two things about `PlayAnimation` were worth getting right:
+
+- **`force` is `restart`, not a condition.** Funkin passes the event's `force` straight into
+  `playAnimation(name, restart, ...)`. Reading it as "only play if the character is idle"
+  would have thrown away both `breath` events, since komi is mid-note when they fire.
+- **The animation is held in `STATE_OVERRIDE` until the clip ends**, and this is the one
+  place the port does not simply mirror Funkin. Rubicon re-dances a resting character on
+  the next dance step — 0.4s at 152bpm — while `breath` and `reaction` are 0.625s. Played
+  and released, the event was visible for **seven milliseconds** before `dance_idle` took it
+  back. An event the chart spends a key on and nobody can see is the same as not porting it.
+  The cost is that a note arriving inside the window does not animate; for the two `breath`
+  events that costs nothing (there is not a single opponent note in either window), and for
+  `reaction`, which the chart marks `force: true`, komi skips one sing — which is what
+  forcing it means.
+
+### Method-track keys are not fired by seeking
+
+Worth knowing because it silently invalidates any harness that jumps around the song.
+A seek only runs a method key if it lands **close after** it. Measured on this scene, with
+the `SetProperty` key at 65.477s and the seek starting at 65.0:
+
+```
+salto de  1.0s desde 65.0 -> sing_left_alt     (dispara)
+salto de  2.0s desde 65.0 -> sing_left         (no dispara)
+salto de  4.0s / 5.0s / 6.0s / 8.0s / 10.0s    (no dispara)
+```
+
+Gameplay never does this — a song plays start to finish and a retry rebuilds the scene —
+but every harness here does, so they **wind** the clock forward in 0.5s hops instead of
+seeking. The first version of the guard reported the idleSuffix switch as broken purely
+because it jumped 60s → 70s in one seek.
+
+Winding has its own tail: it fires every camera bop and `AddCameraZoom` punch on the way
+with no real time passing for them to decay in, so they stack — the screenshots came out at
+**zoom 2.03** against a base of 0.975. `level_shot.gd` settles the camera onto its
+interpolate target before capturing, which is where a real playthrough sits between bops,
+and it has to do that on the frame *before* the capture: `get_texture()` returns what was
+last rendered, so settling on the capture frame is a frame too late.
