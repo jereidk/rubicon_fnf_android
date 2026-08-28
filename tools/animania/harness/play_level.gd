@@ -83,7 +83,10 @@ func _tick() -> void:
 	# the OTHER vocal while both stay near the instrumental is invisible to the engine.
 	# The first second is skipped - a seek and a stream start both read as a large drift
 	# for a frame or two, and that transient is not what this is looking for.
-	if _elapsed > 1.0:
+	# Skipped once the instrumental has stopped: at the very last frame it reports 0 while
+	# the vocals still report 142.1s, which reads as a 142-second desync and is nothing of
+	# the kind.
+	if _elapsed > 1.0 and _song.sync_reference_player.playing:
 		var reference: float = _song.sync_reference_player.get_playback_position()
 		var vocals: Array[float] = []
 		for player: AudioStreamPlayer in _song.audio_players:

@@ -881,9 +881,12 @@ func _average_colour(texture: Texture2D) -> Color:
 # so all of this is new behaviour rather than a rename, and every number comes from
 # komi.hx's initHealthIcon.
 func _check_icons(level: Node) -> void:
+	# phone-call.script's onStartSong: playerId 0 (Dad) gets updateHealthIcon(health) and
+	# playerId 1 (Boyfriend) gets updateHealthIcon(2 - health). So the PLAYER's icon reads
+	# the inverse in this song, not the opponent's - the reverse of stock Funkin.
 	var expected: Dictionary = {
-		"IconL": {"frames": "komi_icon", "inverted": true, "alt": true, "flip": true},
-		"IconR": {"frames": "tadano_icon", "inverted": false, "alt": false, "flip": false},
+		"IconL": {"frames": "komi_icon", "inverted": false, "alt": true, "flip": true},
+		"IconR": {"frames": "tadano_icon", "inverted": true, "alt": false, "flip": false},
 	}
 
 	for icon_name: String in expected:
@@ -924,10 +927,29 @@ func _check_icons(level: Node) -> void:
 			"%s tiene offset.x %.1f y esperaba %.1f" % [
 				icon_name, icon.offset.x, -frame.get_width() * 0.5])
 
+	# tadano's icon is a four-rung ladder, and every adjacent pair needs its transition or a
+	# state change plays nothing. Non-adjacent pairs deliberately have none: the walk goes
+	# one rung at a time.
+	var tadano_icon: SpriteFrames = load("res://animania_mod/characters/tadano_icon.tres")
+	for state: String in ["predeath", "losing", "idle", "winning"]:
+		_check(tadano_icon.has_animation(state), "al icono de tadano le falta %s" % state)
+	for transition: String in ["to_losing", "from_losing", "to_winning", "from_winning",
+			"to_predeath", "from_predeath"]:
+		_check(tadano_icon.has_animation(transition),
+			"al icono de tadano le falta %s" % transition)
+
 	# komi.hx: LOSING_THRESHOLD = 0.25 * 2 on a 0..2 bar, and iconTimer runs to 4 at 6x.
+	# The other two come from phone-call.script's tilt thresholds - healthLerp 1.75 and 0.25
+	# on the same 0..2 bar - which are the only marks in this slice for "winning hard" and
+	# "about to die". AnimaniaStuff.makeAmTakeAnimatedIcon, which actually drives tadano's
+	# four states, is not in this slice.
 	var constants: Dictionary = load(
 		"res://animania_mod/scripts/animated_health_icon.gd").get_script_constant_map()
 	_check(is_equal_approx(float(constants["LOSING_THRESHOLD"]), 0.25),
 		"el umbral de derrota no es el de komi.hx")
 	_check(is_equal_approx(float(constants["SING_HOLD"]), 4.0 / 6.0),
 		"el aguante de la pose de canto no es el de komi.hx")
+	_check(is_equal_approx(float(constants["WINNING_THRESHOLD"]), 0.875),
+		"el umbral de victoria no es el 1.75 del script")
+	_check(is_equal_approx(float(constants["PREDEATH_THRESHOLD"]), 0.125),
+		"el umbral de premuerte no es el 0.25 del script")

@@ -333,14 +333,19 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 	var icons: Dictionary = {
 		"IconL": {
 			"frames": "res://animania_mod/characters/komi_icon.tres",
-			"controller": ui["Opponent"], "inverted": true, "alt": true,
+			# phone-call.script's onStartSong: playerId 0 (Dad) gets updateHealthIcon(health)
+			# and playerId 1 (Boyfriend) gets updateHealthIcon(2 - health). So it is the
+			# PLAYER's icon that reads the inverse in this song, not the opponent's - the
+			# reverse of stock Funkin, and of the first version of this port. The song also
+			# sets healthBar.flipped, which is the other half of the same mirroring.
+			"controller": ui["Opponent"], "inverted": false, "alt": true,
 			# komi.hx sets icon.flipX, and the atlas's poses are authored for it - which is
 			# why its "right" art is this port's sing_left.
 			"flip": true,
 		},
 		"IconR": {
 			"frames": "res://animania_mod/characters/tadano_icon.tres",
-			"controller": ui["Player"], "inverted": false, "alt": false, "flip": false,
+			"controller": ui["Player"], "inverted": true, "alt": false, "flip": false,
 		},
 	}
 
