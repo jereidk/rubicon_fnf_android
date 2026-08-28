@@ -17,6 +17,12 @@ extends Node
 const DARK_ALPHA := 0.75
 const DARK_SECONDS := 1.25
 const DARK_DELAY := 0.5
+## setupDeath darkens the other way round: it opens at 0.9, dips to 0.5 over a second and
+## comes back to 0.75 from a second in - the two tweens overlap and the later one wins.
+const PHONE_DARK_FROM := 0.9
+const PHONE_DARK_DIP := 0.5
+const PHONE_DIP_SECONDS := 1.0
+const PHONE_DARK_DELAY := 1.0
 
 ## The two black panels, only in the standing form. 400 wide, sliding in over six seconds.
 const PANEL_WIDTH := 400.0
@@ -27,13 +33,19 @@ const PANEL_SECONDS := 6.0
 const PANEL_CONFIRM := -300.0
 const CONFIRM_SECONDS := 3.5
 
-## The HUD leaves the same way beat 332 sends it, with the strumlines a beat and a half
-## behind instead of a quarter second.
+## The HUD leaves the same way beat 332 sends it, with the strumlines behind the bar. Both
+## forms send the same things the same distance; setupDeath just waits longer to start.
 const HUD_DISTANCE := 250.0
 const HUD_SECONDS := 1.75
+const HUD_DELAY_BAR := 0.0
 const HUD_DELAY_STRUMLINES := 0.15
+const PHONE_HUD_DELAY_BAR := 0.25
+const PHONE_HUD_DELAY_STRUMLINES := 0.5
 
-## The retry text appears a quarter second in, and the death music fades up over twelve.
+## createDeathSprites shows the retry text on a quarter-second timer and starts the death
+## music itself, faded up from nothing over twelve seconds. setupDeath does neither: its
+## text waits for deathLoop, and its music is GameOverSubState's, which opens at full
+## volume the moment the substate does.
 const RETRY_DELAY := 0.25
 const MUSIC_FADE_SECONDS := 12.0
 
@@ -52,8 +64,13 @@ const DEATH_CAMERA := {
 	"standing": {"offsets": Vector2(190.0, -40.0), "zoom": 1.1},
 }
 
-## deathLoop: the camera slides 450 left over 3.5s, which is what brings the retry text -
-## placed 850 left of the character - into frame at all.
+## deathLoop, in the PHONE form only: the camera slides 450 left over 3.5s, which is what
+## brings the retry text - placed 850 left of the character - into frame at all. The
+## standing form has no deathLoop branch and no slide: tadano-stand.hx returns on that
+## animation without touching the camera, and its text sits beside the character anyway.
+##
+## And it does not start at death. GameOverSubState only plays deathLoop when firstDeath
+## ends, which is four seconds of dying later.
 const LOOP_CAMERA_SLIDE := -450.0
 const LOOP_SECONDS := 3.5
 ## deathConfirm: the camera pulls up 350 over 3.5s.
@@ -137,28 +154,33 @@ func die() -> void:
 	var player: Node2D = stand_player if standing else phone_player
 	var opponent: Node2D = stand_opponent if standing else phone_opponent
 
-	_play_death(player, &"first_death")
+	# The phone form has a deathLoop and hangs its camera slide and its retry text off it;
+	# the standing form has neither the animation nor the branch, so nothing waits.
+	_play_death(player, &"first_death", Callable() if standing else _on_death_loop)
 	# createDeathSprites: komi stops dancing and plays gameOver. Only the standing komi has
 	# the animation - the phone one was never drawn dying.
 	if standing:
 		_play_death(opponent, &"game_over")
 
 	_aim_camera(player, standing)
-
-	# deathLoop's camera slide, which is what brings the retry text into frame.
-	if camera != null:
-		create_tween().tween_property(camera, "position_interpolate_target:x",
-			camera.position_interpolate_target.x + LOOP_CAMERA_SLIDE * FUNKIN_TO_RUBICON,
-			LOOP_SECONDS).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-
-	_fade_dark()
+	_fade_dark(standing)
 	if standing:
 		_slide_panels()
-	_send_hud_away()
-	_show_retry(standing, player)
+	_send_hud_away(standing)
+	_prepare_retry(standing, player)
+
+	if standing:
+		# createDeathSprites: the text and the music both wait out a quarter second.
+		get_tree().create_timer(RETRY_DELAY).timeout.connect(func() -> void:
+			_begin_retry()
+			_start_music(true))
+	else:
+		# GameOverSubState starts the death music as it opens, at full volume.
+		_start_music(false)
 
 
-func _play_death(character: Node2D, animation: StringName) -> void:
+func _play_death(character: Node2D, animation: StringName,
+		on_loop: Callable = Callable()) -> void:
 	if character == null or not character.animation_player.has_animation(animation):
 		return
 	# STATE_OVERRIDE, and nothing releases it: the character is dead.
@@ -175,18 +197,41 @@ func _play_death(character: Node2D, animation: StringName) -> void:
 		return
 	character.animation_player.animation_finished.connect(
 		func(finished: StringName) -> void:
-			if finished == animation:
-				character.play(loop, true),
+			if finished != animation:
+				return
+			character.play(loop, true)
+			if on_loop.is_valid():
+				on_loop.call(),
 		CONNECT_ONE_SHOT)
 
 
-func _fade_dark() -> void:
+## deathLoop, in the phone form. Both of these wait out firstDeath's four seconds, because
+## that is when Funkin plays the animation they hang off.
+func _on_death_loop() -> void:
+	if camera != null:
+		create_tween().tween_property(camera, "position_interpolate_target:x",
+			camera.position_interpolate_target.x + LOOP_CAMERA_SLIDE * FUNKIN_TO_RUBICON,
+			LOOP_SECONDS).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_begin_retry()
+
+
+func _fade_dark(standing: bool) -> void:
 	if dark == null:
 		return
-	dark.color = Color(0.0, 0.0, 0.0, 0.0)
-	var tween: Tween = create_tween()
-	tween.tween_property(dark, "color:a", DARK_ALPHA, DARK_SECONDS) \
-		.set_delay(DARK_DELAY).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	if standing:
+		dark.color = Color(0.0, 0.0, 0.0, 0.0)
+		create_tween().tween_property(dark, "color:a", DARK_ALPHA, DARK_SECONDS) \
+			.set_delay(DARK_DELAY).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		return
+
+	# setupDeath opens dark and lightens before it settles. The second tween reads its start
+	# value when its delay runs out, so it picks the dip up wherever the first one left it.
+	dark.color = Color(0.0, 0.0, 0.0, PHONE_DARK_FROM)
+	create_tween().tween_property(dark, "color:a", PHONE_DARK_DIP, PHONE_DIP_SECONDS) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	create_tween().tween_property(dark, "color:a", DARK_ALPHA, DARK_SECONDS) \
+		.set_delay(PHONE_DARK_DELAY).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _slide_panels() -> void:
@@ -203,12 +248,14 @@ func _slide_panels() -> void:
 
 
 ## Downscroll here, so the bar and its icons go up and the strumlines go down.
-func _send_hud_away() -> void:
+func _send_hud_away(standing: bool) -> void:
 	if events == null:
 		return
 	var distance: float = HUD_DISTANCE * FUNKIN_TO_RUBICON
-	_tween_away(events.get(&"hud_up"), -distance, 0.0)
-	_tween_away(events.get(&"hud_down"), distance, HUD_DELAY_STRUMLINES)
+	_tween_away(events.get(&"hud_up"), -distance,
+		HUD_DELAY_BAR if standing else PHONE_HUD_DELAY_BAR)
+	_tween_away(events.get(&"hud_down"), distance,
+		HUD_DELAY_STRUMLINES if standing else PHONE_HUD_DELAY_STRUMLINES)
 
 
 func _tween_away(nodes: Variant, distance: float, delay: float) -> void:
@@ -223,7 +270,7 @@ func _tween_away(nodes: Variant, distance: float, delay: float) -> void:
 		tween.tween_property(node, "modulate:a", 0.0, HUD_SECONDS).set_delay(delay)
 
 
-func _show_retry(standing: bool, player: Node2D) -> void:
+func _prepare_retry(standing: bool, player: Node2D) -> void:
 	if retry_text == null or retry_player == null:
 		return
 
@@ -248,15 +295,28 @@ func _show_retry(standing: bool, player: Node2D) -> void:
 			else Vector2(-850.0, 450.0)) * FUNKIN_TO_RUBICON
 	_follow_camera()
 
+	# alpha 0.0001 in both scripts, so it is added and laid out but not read yet.
 	retry_text.modulate.a = 0.0
-	var timer: SceneTreeTimer = get_tree().create_timer(RETRY_DELAY)
-	timer.timeout.connect(func() -> void:
-		retry_text.modulate.a = 1.0
-		retry_player.play(&"start")
-		if music != null:
-			music.volume_db = -60.0
-			music.play()
-			create_tween().tween_property(music, "volume_db", 0.0, MUSIC_FADE_SECONDS))
+
+
+## The text is shown and started - on a timer in the standing form, on deathLoop in the
+## phone one.
+func _begin_retry() -> void:
+	if retry_text == null or retry_player == null:
+		return
+	retry_text.modulate.a = 1.0
+	retry_player.play(&"start")
+
+
+## startDeathMusic(0, false) then fadeIn(12, 0, 1) in the standing form; the phone form
+## takes GameOverSubState's own, which is already at volume.
+func _start_music(fade: bool) -> void:
+	if music == null:
+		return
+	music.volume_db = -60.0 if fade else 0.0
+	music.play()
+	if fade:
+		create_tween().tween_property(music, "volume_db", 0.0, MUSIC_FADE_SECONDS)
 
 
 func _on_retry_finished(animation: StringName) -> void:

@@ -9,8 +9,12 @@
 extends Node2D
 
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
-## Long enough for the dark wash (1.25s after half a second) and the retry text's loop.
-const SETTLE := 3.0
+## Long enough for the dark wash (1.25s after half a second), the panels' six-second slide
+## and the retry text's loop. The phone form needs longer still: its text and its camera
+## slide wait for deathLoop, which is firstDeath's four seconds away, and the slide itself
+## runs another 3.5.
+const SETTLE := 6.5
+const PHONE_SETTLE := 8.5
 
 var _level: Node
 var _standing: bool = false
@@ -55,7 +59,7 @@ func _process(delta: float) -> void:
 		return
 
 	_elapsed += delta
-	if _elapsed < SETTLE:
+	if _elapsed < (SETTLE if _standing else PHONE_SETTLE):
 		return
 
 	_shot = true

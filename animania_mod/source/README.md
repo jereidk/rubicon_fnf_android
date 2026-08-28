@@ -727,16 +727,29 @@ shape.
 
 | | phone form | standing form |
 |---|---|---|
-| dark wash | 0.75 over 1.25s, back-out, half a second in | same |
+| dark wash | opens at 0.9, dips to 0.5 over a second, settles to 0.75 from a second in | fades from nothing to 0.75 over 1.25s, half a second in |
 | black side panels | — | two 400px panels sliding in over six seconds |
 | komi | — (the phone komi was never drawn dying) | plays `gameOver` and stops dancing |
-| retry text | `tadano-phone-death-text`, 850 left and 450 down of the character | `tadano-phone-stand-death-text`, 240 to the right |
-| camera | aims at the character, `death` offsets `(-350, 50)`, zoom ×1.05 | offsets `(190, -40)`, zoom ×1.1 |
+| retry text | `tadano-phone-death-text`, 850 left and 450 down of the character, shown **when `deathLoop` begins** | `tadano-phone-stand-death-text`, 240 to the right, shown on a quarter-second timer |
+| camera | aims at the character, `death` offsets `(-350, 50)`, zoom ×1.05, then slides 450 left over 3.5s on `deathLoop` | offsets `(190, -40)`, zoom ×1.1, and **no slide at all** |
+| HUD leaves | bar at 0.25s, strumlines at 0.5s | bar immediately, strumlines at 0.15s |
+| death music | `GameOverSubState`'s own, at full volume from the moment it opens | started by the sequence at 0.25s, faded up over twelve |
 
-Then a shared spine: the HUD leaves the way beat 332 sends it, the camera slides 450 left
-over 3.5s — which is the only reason a retry text placed 850 to the left is ever in frame —
-the death music fades up over twelve seconds at a forced 112 BPM, and every other beat of
-that adds 0.0075 to the camera zoom.
+Then what really is shared: the HUD leaves the way beat 332 sends it, the tempo is a forced
+112 BPM, and every other beat of that adds 0.0075 to the camera zoom.
+
+**The two forms are not the same sequence at different levels of detail** — reading them
+that way is what the first version did, and it got both halves wrong. The camera slide and
+the retry text hang off `deathLoop`, which `GameOverSubState` only plays when `firstDeath`
+ends: four seconds of dying later, not at death. And the slide is `tadano.hx`'s alone —
+`tadano-stand.hx` returns on `deathLoop` without touching the camera, because its text sits
+beside the character and needs no bringing into frame. Sliding both forms at death put the
+standing tadano hard against the right edge with his retry text off screen entirely, which
+is what the render showed.
+
+The phone form ends with tadano just off the right edge, and that is faithful: the camera
+lands 637 Funkin px left of his corner against a 610px half-screen at zoom 1.05. The slide
+is a move *away* from him and onto the text.
 
 ### Three things it needed that Funkin gets for free
 
@@ -760,7 +773,12 @@ Also: `firstDeath` hands over to `deathLoop`, which is where the character waits
 does that by calling `playAnimation` twice from the substate; here the first animation
 ending is the cue. tadano's phone form got its animations renamed to `first_death` /
 `death_loop` to match the standing form's, so the sequence asks for one name and reaches
-either.
+either — and that handover is also what the phone form's camera slide and retry text wait
+on, so it carries a callback rather than only swapping animations.
+
+Only the phone form *has* a `death_loop` (4.208s, against `first_death`'s 4.125s). The
+standing form has none, and neither does komi-stand's `game_over`: both hold their last
+frame, which is precisely what `tadano-stand.hx` does by returning on `deathLoop`.
 
 ### What it does not do
 
@@ -787,4 +805,9 @@ know what makes it. Every phase that walks the clock now autoplays, and the one 
 The guard also frees each level immediately rather than with `queue_free()`: it builds six
 of them, and a deferred free plus a single awaited frame leaves the old one alive alongside
 the new, each still processing a stage, four characters and eight lanes of `AnimationTree`.
-The whole thing runs in **29 seconds**.
+The whole thing runs in **31 seconds**.
+
+And it has to run `--headless`, the way its header says. Under a real renderer the frame
+deltas change where the walk lands inside each tween, and six camera readings come out a
+few hundredths off — 1.0614 against 1.0530, 169px of letterbox against 180 — which looks
+exactly like a broken bake and is not one.

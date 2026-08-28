@@ -567,7 +567,13 @@ func _check_camera_events() -> void:
 ## so every piece of this is new - and it cannot be reached by seeking, only by dropping the
 ## health and letting the tweens run.
 func _check_death() -> void:
+	# The standing form settles inside a couple of seconds. The phone one cannot: its retry
+	# text and its camera slide both hang off deathLoop, which Funkin only plays when
+	# firstDeath ends - four seconds of dying later, plus the quarter second `start` runs.
 	const DEATH_SETTLE := 2.5
+	const PHONE_DEATH_SETTLE := 5.0
+	## Comfortably inside firstDeath, so deathLoop demonstrably has not happened yet.
+	const MID_DEATH := 1.5
 
 	for standing: bool in [false, true]:
 		var level: Node = load(LEVEL).instantiate()
@@ -583,10 +589,43 @@ func _check_death() -> void:
 			level.get_node("PhoneCallEvents").stand_up()
 		level.get_node("RubiconHealthModule").health = 0.0
 
+		# health_depleted is emitted from the setter, so the camera is aimed and the wash is
+		# at its opening value by the time the assignment returns. Anything that moves after
+		# this is deathLoop's, not the aim's.
+		var aimed_x: float = camera.position_interpolate_target.x
+		var dark: ColorRect = level.get_node("Death/Dark")
+		var retry_text: Node2D = level.find_child("RetryText", true, false)
+		# setupDeath opens dark and lightens; createDeathSprites fades one up from nothing.
+		_check(dark.color.a > 0.8 if not standing else dark.color.a < 0.1,
+			"%s: el oscurecido empieza en %.2f" % [form, dark.color.a])
+
 		var elapsed: float = 0.0
-		while elapsed < DEATH_SETTLE:
+		while elapsed < MID_DEATH:
 			elapsed += root.get_process_delta_time()
 			await process_frame
+
+		# Mid-firstDeath: the phone form's text is still unread and its camera has not
+		# moved off the aim. This is the whole difference between the two forms.
+		if not standing:
+			_check(is_zero_approx(retry_text.modulate.a),
+				"por telefono: el cartel no tendria que verse antes de deathLoop")
+			_check(is_equal_approx(camera.position_interpolate_target.x, aimed_x),
+				"por telefono: la camara no tendria que deslizarse antes de deathLoop")
+
+		var settle: float = DEATH_SETTLE if standing else PHONE_DEATH_SETTLE
+		while elapsed < settle:
+			elapsed += root.get_process_delta_time()
+			await process_frame
+
+		# deathLoop slides the camera 450 left, and only in the phone form - tadano-stand.hx
+		# returns on that animation without touching the camera.
+		if standing:
+			_check(is_equal_approx(camera.position_interpolate_target.x, aimed_x),
+				"de pie: la camara no tendria que deslizarse")
+		else:
+			_check(aimed_x - camera.position_interpolate_target.x > 100.0,
+				"por telefono: la camara no se deslizo (%.1f -> %.1f)" % [
+					aimed_x, camera.position_interpolate_target.x])
 
 		# The clock has to stop, and not as a nicety: its baked animation writes
 		# position_interpolate_target every frame, so a death camera aimed at the dying
@@ -594,7 +633,6 @@ func _check_death() -> void:
 		_check(not clock.animation_player.is_playing(),
 			"%s: el reloj tendria que pararse al morir" % form)
 
-		var dark: ColorRect = level.get_node("Death/Dark")
 		_check(is_equal_approx(dark.color.a, 0.75),
 			"%s: el oscurecido acabo en %.2f" % [form, dark.color.a])
 
