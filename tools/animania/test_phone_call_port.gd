@@ -17,6 +17,7 @@ const STAGE_JSON := "res://animania_mod/source/data/phoneCallStreet.json"
 const TADANO_ANIMATION := "res://animania_mod/source/images/phonecall/tadano/Animation.json"
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
+const SUBTITLES := "res://animania_mod/source/songs/phone-call/subtitles/song-lyrics.srt"
 
 var _failures: int = 0
 
@@ -562,6 +563,7 @@ func _check_camera_events() -> void:
 	await _check_script_beats()
 	await _check_opening()
 	await _check_pulse()
+	await _check_subtitles()
 	await _check_death()
 
 
@@ -664,6 +666,67 @@ func _check_opening() -> void:
 	_check(absf(opponent_lanes.modulate.a - 1.0) < 0.01,
 		"el beat 232 tendria que acabar de traer las notas del oponente (%.3f)"
 			% opponent_lanes.modulate.a)
+
+	_drop(level)
+	await process_frame
+
+
+## The subtitles: the parser against the file, and then the display against the parser.
+##
+## Nothing here writes a timing down - the expectations come out of the same .srt the game
+## reads, so re-cutting the subtitles moves the guard with them.
+func _check_subtitles() -> void:
+	var source: String = FileAccess.get_file_as_string(SUBTITLES)
+	var subtitles: GDScript = load("res://animania_mod/scripts/song_subtitles.gd")
+	var cues: Array = subtitles.parse(source)
+
+	# One cue per `-->` in the file, and not one more: a BOM or a stray blank line eating a
+	# block is exactly the kind of thing that fails quietly.
+	var arrows: int = 0
+	for line: String in source.split("\n"):
+		if line.contains("-->"):
+			arrows += 1
+	_check(cues.size() == arrows,
+		"se parsearon %d subtitulos de %d" % [cues.size(), arrows])
+	if cues.is_empty():
+		return
+
+	var ordered: bool = true
+	for i: int in cues.size():
+		var cue: Dictionary = cues[i]
+		if float(cue["from"]) >= float(cue["to"]):
+			ordered = false
+		if i > 0 and float(cue["from"]) < float((cues[i - 1] as Dictionary)["from"]):
+			ordered = false
+		if String(cue["text"]).is_empty() or String(cue["text"]).contains("{font"):
+			_check(false, "el subtitulo %d no se convirtio a BBCode" % i)
+	_check(ordered, "los subtitulos no van en orden")
+
+	# And the display, driven off the clock like the rest of the song.
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	_autoplay(level)
+	await process_frame
+
+	var clock: AnimationPlayer = level.get_node("RubiconLevelClock").animation_player
+	var line: RichTextLabel = level.get_node("Subtitles/Line")
+
+	_check(line.text.is_empty(), "el primer frame no tendria que tener subtitulo")
+
+	# Halfway into the first cue, and then into the gap that follows it.
+	var first: Dictionary = cues[0]
+	await _wind_to(clock, (float(first["from"]) + float(first["to"])) * 0.5)
+	_check(not line.text.is_empty(),
+		"tendria que haber subtitulo en %.2fs" % clock.current_animation_position)
+
+	var gap: float = float(first["to"])
+	for cue: Dictionary in cues:
+		if float(cue["from"]) > gap + 2.0:
+			gap = (gap + float(cue["from"])) * 0.5
+			break
+	await _wind_to(clock, gap)
+	_check(line.text.is_empty(),
+		"no tendria que haber subtitulo en %.2fs: %s" % [gap, line.text])
 
 	_drop(level)
 	await process_frame

@@ -632,6 +632,7 @@ func _build_camera() -> void:
 	# level's overlays, because Funkin gives blackScreenSpr zIndex 5999 - above overlay-all
 	# at 5000 and below introText at 6000. Anywhere else and the title card, which is the
 	# only thing meant to read during those first five seconds, is under the black.
+	_build_subtitles()
 	events.clock = _root.get_node("RubiconLevelClock")
 	events.cover = _build_intro_cover()
 	events.intro_text = _root.find_child("IntroText", true, false)
@@ -645,6 +646,39 @@ func _build_camera() -> void:
 		_root.get_node("UILayer/UI/Opponent"), _root.get_node("UILayer/UI/Player")]
 	events.hud_up = up
 	events.hud_down = down
+
+
+## The subtitle display, on its own layer ABOVE the HUD - and that is forced, not a
+## preference. camHUD's alpha is 0 until beat 31 and the first three cues are at 8.7s, under
+## the black cover; anything parented to the HUD would never show them. The title card is
+## moved to camOther for exactly the same reason, and camOther draws over both.
+func _build_subtitles() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "Subtitles"
+	layer.layer = 3
+	_root.add_child(layer)
+
+	var label := RichTextLabel.new()
+	label.name = "Line"
+	label.set_script(load("res://animania_mod/scripts/song_subtitles.gd"))
+	label.bbcode_enabled = true
+	label.scroll_active = false
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.anchor_left = 0.0
+	label.anchor_top = 1.0
+	label.anchor_right = 1.0
+	label.anchor_bottom = 1.0
+	# Two lines of room, sitting above both the letterbox bar at its widest and the
+	# receptors - this song is downscroll, so the bottom of the screen is busy.
+	label.offset_top = -300.0
+	label.offset_bottom = -180.0
+	label.add_theme_font_size_override("normal_font_size", 39)
+	label.add_theme_constant_override("outline_size", 12)
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	layer.add_child(label)
+	label.owner = _root
+	layer.owner = _root
+	label.clock = _root.get_node("RubiconLevelClock")
 
 
 ## onCreatePost's blackScreenSpr: a full-screen black rect at zoomFactor 0, which is to say

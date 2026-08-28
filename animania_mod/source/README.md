@@ -715,6 +715,31 @@ rather than of a receptor, and a strumline here is one Control with four lanes u
 cover is over the whole screen for the first thirteen beats. A node that can never be seen
 is not a port.
 
+## The subtitles
+
+`phone-call.script` does not create these — the engine has a subtitle display and the script
+only restyles it (`subtitles.subtitleText.font = Paths.font('MP Manga.ttf')`, size 26). So
+the cues, their timings and their colours are the mod's, in
+`songs/phone-call/subtitles/song-lyrics.srt`, and `animania_mod/scripts/song_subtitles.gd`
+is a SubRip parser plus a display driven off the clock.
+
+Seven cues, and they land on the three moments the song is built around: three during the
+black intro, one at beat 166 as komi's lanes fly in, three over the ending after the HUD
+has left. `{font color="#..."}` is Flixel's markup for what BBCode spells `[color=...]`, so
+the cue text converts rather than being stripped.
+
+**On its own layer above the HUD**, and that is forced rather than chosen: camHUD's alpha
+is 0 until beat 31 and the first cue is at 8.7s, under the black cover. Anything parented
+to the HUD would never show it. The title card is moved to `camOther` for exactly the same
+reason, and `camOther` draws over both.
+
+Two things are not derivable and are therefore choices. **The font**: `MP Manga.ttf` is not
+in this repo, so the line renders in the project default. **The placement**: the engine owns
+it, so the line sits centred in a two-line band above both the letterbox bar at its widest
+and the receptors — this song is downscroll, so the bottom of the screen is busy. The one
+piece of styling evidence the script does leave is its `import
+flixel.text.FlxTextBorderStyle`, so the text is outlined.
+
 **`iconP1.bopEvery = 4 * 4`**: Funkin's icons bop on the beat and these do not bop at all —
 they bob against the health value, which is `makeAmTakeAnimatedIcon`'s own behaviour and
 the one the ladder was built around.
@@ -893,7 +918,7 @@ know what makes it. Every phase that walks the clock now autoplays, and the one 
 The guard also frees each level immediately rather than with `queue_free()`: it builds six
 of them, and a deferred free plus a single awaited frame leaves the old one alive alongside
 the new, each still processing a stage, four characters and eight lanes of `AnimationTree`.
-The whole thing runs in **52 seconds**, most of the growth being the opening, the pulse and
+The whole thing runs in **53 seconds**, most of the growth being the opening, the pulse and
 the death, which are tween-driven and need real frames rather than seeks.
 
 And it has to run `--headless`, the way its header says. Under a real renderer the frame

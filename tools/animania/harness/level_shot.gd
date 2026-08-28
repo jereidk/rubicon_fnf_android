@@ -21,8 +21,8 @@ const LEVEL := "res://songs/phone-call/phone_call.tscn"
 # opening runs on frames, not on the clock, so a moment that waits on one needs a play-in
 # longer than the tween. Beat 166's lanes take two seconds of delay and 1.35s of flight.
 const MOMENTS := [
-	[3.0, 1.6], [6.5, 1.6], [13.0, 1.6], [45.0, 1.6],
-	[66.5, 1.6], [69.5, 4.2], [92.5, 1.6], [133.0, 1.6],
+	[3.0, 1.6], [6.5, 1.6], [9.2, 1.6], [13.0, 1.6], [45.0, 1.6],
+	[65.5, 1.6], [69.5, 4.2], [92.5, 1.6], [133.0, 1.6],
 ]
 
 var _level: Node
