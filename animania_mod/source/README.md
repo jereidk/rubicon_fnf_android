@@ -764,21 +764,29 @@ song is a song, and the reason the port looked finished while it was missing the
 | 168 | tadano | slides 800 right over 1.35s |
 | 232 | | the opponent's lanes reach full alpha, riding on `standUP()` |
 
-### The strumlines exchange sides
+### The strumlines do not exchange sides — a derivation the device overturned
+
+Worth keeping as a worked example of a reading that was internally consistent and wrong.
 
 `onCreatePost` moves the player's lanes half a screen left and **nothing ever moves them
-back**. That reads like a bug until you follow it: if their home were `STRUMLINE_X_OFFSET`,
-half a screen left of it is off the edge, and 195 player notes would spend the whole song
-outside the screen. So their home is `width / 2 + OFFSET`, half a screen left of that is
-`OFFSET` — the opponent's home — and beat 166 flies the opponent's lanes to
-`width / 2 + OFFSET`, which is the player's. They swap. The conclusion holds whatever
-`Constants.STRUMLINE_X_OFFSET` turns out to be, which matters because this repo does not
-have Funkin's `Constants`.
+back**. The arithmetic seemed to force one conclusion: if their home were
+`STRUMLINE_X_OFFSET`, half a screen left of it is off the edge, and 195 player notes would
+spend the whole song outside the screen — so their home had to be `width / 2 + OFFSET`, half
+a screen left of that is `OFFSET`, the opponent's home, and beat 166 flies the opponent's
+lanes to what would then be the player's. They swap. It even held whatever
+`Constants.STRUMLINE_X_OFFSET` turned out to be, which mattered because this repo does not
+carry Funkin's `Constants`.
 
-And it is the song: komi is a voice on a phone for 67 seconds. Her lanes are off-screen
-from the first frame — her notes start at 18.9s and are simply not shown — they arrive at
-half alpha at beat 166, and they only reach full alpha at beat 232, when she is standing
-there in person. Which is also why she gets no strumline entrance of her own at beat 31.
+On a phone it was plainly wrong: you control tadano and your lanes sit on komi's side.
+Something compensates that line — `changeMode`'s second argument is the obvious suspect,
+and its meaning is still a guess — and **the observed result wins over the derivation**. The
+swap is reverted; both strumlines keep their authored sides.
+
+What survives, and is not in dispute, is the opponent's entrance: komi is a voice on a phone
+for 67 seconds, so her lanes are off-screen from the first frame — her notes start at 18.9s
+and are simply not shown — they fly in at half alpha at beat 166 and only reach full alpha
+at beat 232, when she is standing there in person. Which is also why she gets no strumline
+entrance of her own at beat 31.
 
 ### The cover is not the fade
 

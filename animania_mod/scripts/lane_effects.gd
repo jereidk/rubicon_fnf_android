@@ -17,19 +17,17 @@ const COVER_SCALE := 0.7
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## noteSplash.rotationVariance, in degrees, applied either way from centre.
 const ROTATION_VARIANCE := 180.0
-## holdNoteCover.offsets, taking amtake-base.hx's downscroll branch.
+## holdNoteCover.offsets is NOT applied, and that is the source's decision rather than an
+## omission here. `amtake-base.hx` overrides `getHoldCoverOffsets()` to negate y under
+## downscroll, but the line in `buildNoteHoldCoverSprite` that would push the sprite by it -
+## `target.frameOffset.set(...)` - is **commented out** in the mod. So the cover sits on the
+## receptor.
 ##
-## getHoldCoverOffsets() returns [x, -y] and buildNoteHoldCoverSprite sets flipY, both when
-## Preferences.downscroll is on - and Rubicon's notes fall toward receptors at the BOTTOM of
-## the screen, which is downscroll. So the authored [0, -60] becomes [0, 60] and the sprite
-## is flipped.
-##
-## Rendered the other way round too, with the cover above the receptor where the tail is,
-## on the theory that Funkin anchors this somewhere other than the receptor's centre. It
-## looked worse: the cover lands on top of the receptor and swallows it. What the offset is
-## anchored to in Funkin is not recoverable from this slice, so this follows the source
-## rather than a guess about it.
-const COVER_OFFSET := Vector2(0.0, 60.0)
+## The first version of this port applied the offset anyway, from reading the override and
+## assuming something used it. On a device the covers hung 90px below the receptors,
+## detached from the notes they belong to. `flipY = Preferences.downscroll` on line 30 does
+## still apply, so the sprite is flipped and not offset.
+const COVER_OFFSET := Vector2.ZERO
 ## amtake-base.json declares two splash variants per lane and Funkin picks between them.
 const SPLASH_VARIANTS := 2
 
@@ -57,6 +55,31 @@ func _ready() -> void:
 	handler.just_released.connect(_on_released)
 	_splash.animation_finished.connect(func() -> void: _splash.visible = false)
 	_cover.animation_finished.connect(_on_cover_finished)
+	set_process(true)
+
+
+## The cover has to end on the HOLD's state, not on a release signal, and that is not a
+## refinement - it is the difference between working and leaving textures on the screen.
+##
+## A sustain that runs to its natural end never emits `just_released`: the handler completes
+## it inside `_press` when the note falls past the window, and under autoplay there is no
+## release at all - `_autoplay_process` marks the hold HIT_INCOMPLETE and breaks. Driven off
+## the signal, every autoplayed hold and every held-to-the-end note left its cover looping
+## on screen forever, which is exactly what a device run showed.
+##
+## While a hold is live the handler parks on it: `note_hit_index` does not advance and the
+## result at that index stays HIT_INCOMPLETE. So that is the state to watch.
+func _process(_delta: float) -> void:
+	if _holding and not _is_note_held():
+		_end_cover()
+
+
+func _is_note_held() -> bool:
+	var index: int = int(handler.note_hit_index)
+	var results: Array = handler.results
+	if index < 0 or index >= results.size() or results[index] == null:
+		return false
+	return results[index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE
 
 
 func _make_sprite(sprite_scale: float, offset: Vector2) -> AnimatedSprite2D:
@@ -110,6 +133,10 @@ func _on_pressed() -> void:
 
 
 func _on_released() -> void:
+	_end_cover()
+
+
+func _end_cover() -> void:
 	if not _holding:
 		return
 	_holding = false
@@ -122,6 +149,7 @@ func _on_released() -> void:
 
 
 func _on_cover_finished() -> void:
-	# The body loops, so only the end animation ever finishes.
-	if not _holding:
-		_cover.visible = false
+	# The body loops, so only the end animation ever finishes - and when it does the sprite
+	# goes away unconditionally. Guarding this on `_holding` was how a cover that was ended
+	# and then immediately re-held could leave its last frame up.
+	_cover.visible = false

@@ -75,16 +75,19 @@ const PULSE_FROM := 1.05
 const PULSE_TO_OPPONENT := 1.0
 const PULSE_TO_PLAYER := 0.95
 
-## The two strumlines EXCHANGE sides, and the arithmetic forces that reading whatever
-## `Constants.STRUMLINE_X_OFFSET` happens to be. onCreatePost moves the player's lanes half
-## a screen left and nothing ever moves them back, so their home must be
-## `width / 2 + OFFSET` - otherwise 195 player notes would fall off the left edge for the
-## whole song. That leaves them on `OFFSET`, which is the opponent's home. And beat 166
-## flies the opponent's lanes to `width / 2 + OFFSET`, which is the player's.
+## The opponent's lanes start a full screen right of their home, at alpha 0 and a full turn
+## of rotation, and arrive at half alpha; beat 232 takes them the rest of the way. Which is
+## the song: komi is a voice on a phone until she is standing there.
 ##
-## The opponent starts a full screen right of its own home, at alpha 0 and a full turn of
-## rotation, and arrives at half alpha; beat 232 takes it the rest of the way. Which is the
-## song: komi is a voice on a phone until she is standing there.
+## An earlier version of this ALSO moved the player's lanes to the opponent's side, reading
+## `playerStrumline.x -= FlxG.width / 2` in onCreatePost as the two strumlines exchanging
+## places - the arithmetic seemed to force it, since nothing ever moves them back and their
+## home therefore had to be `width / 2 + OFFSET`.
+##
+## On a device that read as plainly wrong: you control tadano and your lanes sit on komi's
+## side. So it is reverted. Whatever compensates that line in the mod - `changeMode`'s
+## second argument is the obvious suspect, and its meaning is still a guess - the observed
+## result is what counts, and the sides do not swap.
 const LANES_SPIN := 360.0
 const LANES_IN_DELAY := 2.0
 const LANES_IN_SECONDS := 1.35
@@ -397,8 +400,7 @@ func opening() -> void:
 	if hud_root != null:
 		hud_root.modulate.a = 0.0
 
-	if player_lanes != null and _lane_homes.has(&"opponent"):
-		player_lanes.position.x = _lane_homes[&"opponent"].x
+	if player_lanes != null:
 		player_lanes.modulate.a = 0.0
 
 	if opponent_lanes != null and _lane_homes.has(&"opponent"):
@@ -518,12 +520,12 @@ func _on_beat() -> void:
 ## case 166: two seconds later the opponent's lanes fly in from off the right edge, unwind a
 ## full turn and settle at half alpha on what was the player's side.
 func opponent_lanes_in() -> void:
-	if opponent_lanes == null or not _lane_homes.has(&"player"):
+	if opponent_lanes == null or not _lane_homes.has(&"opponent"):
 		return
 
 	var tween: Tween = create_tween().set_parallel(true)
 	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(opponent_lanes, "position:x", _lane_homes[&"player"].x,
+	tween.tween_property(opponent_lanes, "position:x", _lane_homes[&"opponent"].x,
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
 	tween.tween_property(opponent_lanes, "rotation_degrees", 0.0,
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
