@@ -1,262 +1,572 @@
 @tool
-@icon('animate_symbol.svg')
-class_name AnimateSymbol extends Node2D
-## Node that lets you play Adobe Animate Texture Atlases
-## in Godot.
+@icon("symbol.svg")
+extends Node2D
+class_name AnimateSymbol
 
 
-## The folder path to the atlas that is loaded.
-## [br][br][b]Note[/b]: This automatically reloads the atlas when
-## changed.
-@export_dir var atlas: String:
-	set(v):
-		atlas = v
-		load_atlas(atlas)
+@export_placeholder("Name or Prefix") var symbol: String = "":
+	set(value):
+		if symbol != value:
+			frame_dirty = true
+			queue_redraw()
 
+		symbol = value
 
-## The current frame of the animation.
-## [br][br][b]Note[/b]: This automatically redraws the entire
-## atlas when changed.
 @export var frame: int = 0:
-	set(v):
-		frame = v
+	set(value):
+		if atlases.is_empty():
+			frame = value
+			queue_redraw()
+			return
+
+		var length: int = get_animation_length()
+		value = validate_frame(value, length)
+
+		if frame != value:
+			frame_dirty = true
+			queue_redraw()
+
+		frame = value
+
+		if not internal_setting_frame:
+			frame_timer = 0.0
+
+@export_range(0.0, 10.0, 0.01, "or_greater") var speed_scale: float = 1.0
+
+@export var autoplay: bool = false
+@export var playing: bool = false
+@export var loop: bool = false
+
+@export_group("Offset")
+
+
+
+
+@export var centered: bool = true:
+	set(value):
+		if centered != value:
+			frame_dirty = true
+			queue_redraw()
+
+		centered = value
+
+@export var offset: Vector2 = Vector2.ZERO:
+	set(value):
+		if offset != value:
+			frame_dirty = true
+			queue_redraw()
+
+		offset = value
+
+@export_group("Atlas")
+@export var atlases: Array[AnimateAtlas] = []
+@export var atlas_index: int = 0:
+	set(value):
+		if value< 0:
+			value = absi(value)
+		if not atlases.is_empty():
+			value %= atlases.size()
+
+		if atlas_index != value:
+			notify_property_list_changed()
+
+			frame_dirty = true
+			queue_redraw()
+
+		atlas_index = value
+
+@export_tool_button("Cache Current", "Save") var atlas_cache: Callable = cache_current
+@export_tool_button("Reparse Current", "Reload") var atlas_reload: Callable = reparse_current
+@export_tool_button("Make AnimationLibrary", "AnimationLibrary") var atlas_make_player: Callable = make_player_from_current
+
+## How many atlas frames pass between updates. 1 is the stock behaviour.
+##
+## The one lever on this addon's cost that does not require rewriting it.
+## Measured with Gold's real atlas, four symbols, in an isolated project: the
+## rebuild-per-frame-advance ratio is **0.99**. One full rebuild per advance,
+## always - which frees every canvas item RID the symbol owns and recreates
+## the whole symbol tree from the parsed JSON. So halving the advances halves
+## the rebuilds, exactly.
+##
+## And rebuilding is what this addon costs. Two device logs of Monochrome, two
+## different Mali GPUs on 10154-8d1ee1ac:
+##
+##     A17   / Mali-G57   anim2d p50  56.80 ms/s   max 153.40
+##     Redmi / Mali-G52   anim2d p50 112.80 ms/s   max 241.95
+##
+## with `rebuild` at 87% of it, and both devices sitting at 42-49fps with the
+## GPU at 13-15ms. Monochrome is CPU-bound and this is its biggest single item.
+## (Chimera reads anim2d=0.00, which is why this went unnoticed: every earlier
+## measurement in CLAUDE.md was taken on the one song that uses no Adobe atlas
+## on stage.)
+##
+## What it costs is how the animation reads: at 2 the atlas plays at 12fps
+## instead of 24, same duration, half the distinct drawings. That is a look
+## change, so it is driven off the quality preset rather than applied
+## everywhere, and only Very Low sets it - the preset that already drops
+## shadows, post-processing, LOD and render scale to make the game run at all.
+##
+## Static rather than an @export because these nodes are built at runtime by
+## the mod and there is nothing to wire per-node; and the addon stays free of
+## the mod's singletons, so Settings writes it rather than this reading it.
+static var frame_step: int = 1:
+	set(value):
+		frame_step = maxi(1, value)
+
+var frame_timer: float = 0.0
+var internal_canvas_items: Array[RID] = []
+var last_atlases_size: int = 0
+var adobe_atlas_material: ShaderMaterial = null
+var adobe_additive_material: ShaderMaterial = null
+var last_screen_transform: Transform2D = Transform2D()
+var internal_setting_frame: bool = false
+var frame_dirty: bool = false
+
+## This symbol's backbuffer cache, and whether the next draw may take the
+## cheap path instead of rebuilding.
+##
+## Both used to be fields on the AnimateAtlas, which is one shared resource
+## per atlas folder - Monochrome's device log measured 480 rebuilds in a
+## second against 1665 cached draws, with anim2d reaching 371ms/s and rebuild
+## 95-100% of it. That is what a shared flag does: any one symbol advancing a
+## frame set it false, and every other symbol on the same atlas then took the
+## full rebuild path that frame with nothing of its own having changed.
+##
+## The cache being shared was the worse half. It holds the canvas item RIDs of
+## whichever symbol rebuilt last, so a symbol on the cheap path was reaching
+## into another symbol's RIDs and moving their backbuffer copy rects to its
+## own transform.
+var _backbuffer_cache: Array[Dictionary] = []
+var _use_backbuffer_cache: bool = false
+var last_light_mask: int = 0
+var last_visibilty_layer: int = 0
+
+
+func _enter_tree() -> void:
+	if autoplay and not Engine.is_editor_hint():
+		playing = true
+
+	last_screen_transform = get_backbuffer_transform()
+
+	set_notify_local_transform(true)
+	set_notify_transform(true)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED or what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
+		var atlas:= get_atlas()
+		if not atlas:
+			return
+
+		last_screen_transform = get_backbuffer_transform()
+
+		if atlas is AdobeAtlas:
+			_use_backbuffer_cache = true
+
 		queue_redraw()
 
-## The current symbol used by the animation. Empty uses the timeline symbol.
-## [br][br][b]Note[/b]: This automatically sets [member frame] to 0 when
-## changed. (Resetting the current animation)
-@export var symbol: String = '':
-	set(v):
-		symbol = v
-		symbol_changed.emit(v)
-		frame = 0
-		_timer = 0.0
 
-## Keeps track of whether or not the sprite is being animated automatically.
-@export var playing: bool = false
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "symbol":
+		property.hint = PROPERTY_HINT_PLACEHOLDER_TEXT
+		property.hint_string = "Name or Prefix"
 
-## Defines what happens when the end of the animation is reached.
-## [br][br]Loop loops the animation forever and Play Once just stops.
-@export_enum('Loop', 'Play Once') var loop_mode: String = 'Loop'
+		if atlases.is_empty():
+			return
+		var atlas: AnimateAtlas = atlases[atlas_index]
+		if not is_instance_valid(atlas):
+			return
+		if atlas is AdobeAtlas:
+			property.hint = PROPERTY_HINT_ENUM
+			property.hint_string = atlas.get_symbols()
+		elif atlas is SparrowAtlas:
+			if atlas.symbols.is_empty():
+				return
 
-@export_tool_button('Cache Atlas', 'Save') var cache_atlas := _cache_atlas
-@export_tool_button('Reload Atlas', 'Reload') var reload_atlas := _reload_atlas
+			property.hint = PROPERTY_HINT_ENUM
+			property.hint_string = atlas.get_symbols()
 
-var _timeline:
-	get:
-		if not is_instance_valid(_animation):
-			return null
-		return _animation.symbol_dictionary.get(symbol, _animation.timeline)
+	if property.name == "atlas_index":
+		property.hint = PROPERTY_HINT_ENUM
+		property.hint_string = ""
 
-var _collections: Array[SpriteCollection]
-var _animation: AtlasAnimation
-var _timer: float = 0.0
-var _current_transform: Transform2D = Transform2D.IDENTITY
-var _canvas_items: Array[RID] = []
-var _filters: Array[Filter] = []
+		for i: int in atlases.size():
+			var atlas: AnimateAtlas = atlases[i]
+			if not is_instance_valid(atlas):
+				property.hint_string += "#%d - null"%[i]
+				continue
 
-signal finished
-signal symbol_changed(symbol: String)
+			property.hint_string += "#%d - %s"%[i, atlas.get_filename()]
+
+			if i != atlases.size()- 1:
+				property.hint_string += ","
 
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(_animation):
-		if frame > 0:
-			frame = 0
-		return
-	
-	if not playing:
-		return
-	
-	_timer += delta
-	if _timer >= 1.0 / _animation.framerate:
-		var frame_diff := _timer / (1.0 / _animation.framerate)
-		frame += floori(frame_diff)
-		_timer -= (1.0 / _animation.framerate) * frame_diff
-		if frame > _timeline.length - 1:
-			match loop_mode:
-				'Loop':
-					frame = 0
-				_:
-					if playing:
-						playing = false
-						finished.emit()
-					frame = _timeline.length - 1
-
-
-func _cache_atlas() -> void:
-	var parsed := ParsedAtlas.new()
-	parsed.collections = _collections
-	parsed.animation = _animation
-	
-	var atlas_directory := atlas
-	if not atlas_directory.get_extension().is_empty():
-		atlas_directory = atlas_directory.get_base_dir()
-	
-	var err := ResourceSaver.save(parsed, \
-			'%s/Animation.res' % [atlas_directory], ResourceSaver.FLAG_COMPRESS)
-	if err != OK:
-		printerr(err)
-
-
-func _reload_atlas() -> void:
-	var atlas_directory := atlas
-	if not atlas_directory.get_extension().is_empty():
-		atlas_directory = atlas_directory.get_base_dir()
-	load_atlas(atlas_directory, false)
-
-
-## Loads a new atlas from the specified [param path].
-func load_atlas(path: String, use_cache: bool = true) -> void:
-	_collections.clear()
-	_animation = null
-	
-	var atlas_directory := path
-	if not atlas_directory.get_extension().is_empty():
-		atlas_directory = atlas_directory.get_base_dir()
-	
-	var parsed_path := '%s/Animation.res' % atlas_directory
-	if ResourceLoader.exists(parsed_path) and use_cache:
-		var parsed: ParsedAtlas = load(parsed_path)
-		_animation = parsed.animation
-		_collections = parsed.collections
-		_clear_items()
+	if atlases.size() != last_atlases_size:
+		last_atlases_size = atlases.size()
+		notify_property_list_changed()
+	if atlases.is_empty():
 		frame = 0
 		return
-	
-	var files := ResourceLoader.list_directory(atlas_directory)
-	for file in files:
-		if file.begins_with('spritemap') and file.ends_with('.json'):
-			var spritemap_string := FileAccess.get_file_as_string('%s/%s' % [atlas_directory, file])
-			var spritemap_json: Variant = JSON.parse_string(spritemap_string)
-			if spritemap_json == null:
-				printerr('Failed to parse %s' % file)
-				return
-			var sprite_collection := SpriteCollection.load_from_json(
-				spritemap_json,
-				load('%s/%s.png' % [atlas_directory, file.get_basename()])
-			)
-			_collections.push_back(sprite_collection)
-	
-	var animation_string := FileAccess.get_file_as_string('%s/Animation.json' % [atlas_directory])
-	if animation_string.is_empty():
+
+	var atlas: AnimateAtlas = get_atlas()
+	if not is_instance_valid(atlas):
 		return
-	
-	var animation_json: Variant = JSON.parse_string(animation_string)
-	if animation_json == null:
+
+	if last_light_mask != light_mask:
+		last_light_mask = light_mask
+		queue_redraw()
+	if last_visibilty_layer != visibility_layer:
+		last_visibilty_layer = visibility_layer
+		queue_redraw()
+
+	if atlas.wants_redraw():
+		queue_redraw()
+	elif last_screen_transform != get_backbuffer_transform()and not frame_dirty:
+		last_screen_transform = get_backbuffer_transform()
+
+		if atlas is AdobeAtlas:
+			_use_backbuffer_cache = true
+
+		queue_redraw()
+
+	if atlas.wants_reload_list():
+		notify_property_list_changed()
+
+	if not playing:
 		return
-	_animation = AtlasAnimation.load_from_json(animation_json)
-	frame = 0
+
+	internal_setting_frame = true
+
+	var fps: float = atlas.get_framerate()
+	frame_timer += delta* speed_scale
+	# Gated on frame_step atlas-frames' worth of time rather than one, so a
+	# step of 2 updates half as often and advances two frames when it does.
+	# The remainder still wraps on 1/fps because `amount` is in atlas frames,
+	# so playback speed is identical at any step - only how often the symbol
+	# is rebuilt changes. See frame_step.
+	if frame_timer >= float(frame_step)/ fps:
+		var amount: int = floori(frame_timer* fps)
+		if frame == get_animation_length()- 1 and (not loop)and amount> 0:
+			internal_setting_frame = false
+			playing = false
+			return
+
+		frame += amount
+		frame_timer = wrapf(frame_timer, 0.0, 1.0/ fps)
+
+	internal_setting_frame = false
 
 
-func _draw_symbol(element: Element) -> void:
-	if not _animation.symbol_dictionary.has(element.name):
-		printerr('Tried to draw invalid symbol "%s"' % [element.name])
-		return
-	
-	_filters = element.filters
-	_draw_timeline(_animation.symbol_dictionary.get(element.name), element.frame)
+## Total time inside every AnimateSymbol._draw() since the last read, and
+## the worst single call, split by which path it took.
+##
+## The two paths cost wildly different amounts. When nothing changed, _draw()
+## re-runs the cached backbuffer path and returns. When the animation frame
+## advanced, frame_dirty forces a full rebuild: every canvas item RID this
+## symbol owns is freed and the whole symbol tree is walked and recreated
+## from the parsed JSON. Gold's atlas is 154 symbols, 401 layers and 4266
+## elements, and the busiest symbol under _EXPORT is 1431 elements across 47
+## layers - rebuilt at the atlas framerate, 24 times a second.
+##
+## Monochrome's device log names AnimationPlayer/goldp1_atlas_LIBRARY/_EXPORT
+## in three of its nine spikes, one of them at script=78.91ms on a frame
+## whose GPU was 10.12ms. That is the shape of this rebuild, but "is the
+## shape of" is not a measurement, and the last two times something here was
+## optimised on a shape it moved nothing on device.
+##
+## Kept as plain statics with no autoload dependency, same as
+## RubiconLevelNoteHandler's churn counters - this addon stays free of the
+## mod's singletons and the log reads these when it wants them.
+static var draw_usec: int = 0
+static var draw_peak_usec: int = 0
+static var rebuild_usec: int = 0
+static var rebuild_count: int = 0
+static var cached_count: int = 0
+## The single most expensive symbol since the last read, and by how much.
+##
+## anim2d= says gdanimate spent 95-113ms/s rebuilding at 219-288 rebuilds a
+## second, which is 1.6-1.9ms of every frame, and names nobody. peak_usec
+## already says the worst single call was 4-5ms; this says which node made
+## it, which is the difference between "gdanimate is expensive" and "one
+## symbol in Gold's atlas is expensive". Cheap: one comparison per _draw()
+## and a name copied only when the record is beaten.
+static var worst_name: String = ""
+static var worst_usec: int = 0
+## Distinct symbols that drew at all since the last read. rebuilds/cached
+## are per call; this is per node, which is what turns "250 rebuilds/s" into
+## "25 symbols at their 24fps" or "6 symbols rebuilding far too often".
+static var _drawn_ids: Dictionary = {}
 
+## Distinct symbols that drew through each atlas, in the interval.
+##
+## This is how big the fix above is. use_backbuffer_cache and backbuffer_cache
+## used to live on the AnimateAtlas resource, which every symbol naming that
+## atlas folder shares, and every one of them wrote both: a symbol whose frame
+## advanced set the flag false in _draw_impl, and any symbol whose transform
+## changed set it true. With one symbol per atlas that is a private cache.
+## With several it is shared mutable state, and one symbol advancing a frame
+## sent every other symbol on that atlas down the full rebuild path - which
+## frees and recreates every canvas item RID it owns.
+##
+## The device log named the cost: Monochrome reaches 371ms/s in this system
+## with rebuild at 95-100% of it, 480 rebuilds in a second against 1665 cached
+## draws, and single rebuilds costing 14 and 37ms. What it could not say is
+## how many symbols share an atlas, because these nodes are built at runtime
+## and it cannot be read off the scenes - so it is counted here, and shared_max
+## is now the multiplier the fix removes. One symbol per atlas everywhere and
+## it changed nothing; anything above one and that is how many rebuilds a
+## single frame advance used to force.
+##
+## One dictionary write per draw. Kept after the fix because it is the only
+## measurement that says whether the fix mattered, and because this addon is
+## vendored upstream code the PC build has byte for byte - a divergence has to
+## keep justifying itself.
+static var _atlas_users: Dictionary = {}
 
-func _draw_sprite(element: Element) -> void:
-	for collection in _collections:
-		if not collection.map.has(element.name):
-			continue
-		var use_item: bool = false
-		var sprite: CollectedSprite = collection.map.get(element.name)
-		var item: RID
-		if use_item:
-			item = RenderingServer.canvas_item_create()
-			_canvas_items.push_back(item)
-			RenderingServer.canvas_item_set_z_index(item, 
-					mini(_canvas_items.size() - 1, RenderingServer.CANVAS_ITEM_Z_MAX))
-			RenderingServer.canvas_item_set_parent(item, get_canvas_item())
-			RenderingServer.canvas_item_set_transform(item, _current_transform)
-			
-			#if not _filters.is_empty():
-				#var filter_material: ShaderMaterial = _filter_material.duplicate()
-				#RenderingServer.canvas_item_set_material(item, filter_material.get_rid())
-				#
-				#for filter in _filters:
-					#match filter.type:
-						#Filter.FilterType.BLUR:
-							#filter_material.set_shader_parameter('test', 4.0)
-		else:
-			draw_set_transform_matrix(_current_transform)
-		
-		if is_instance_valid(sprite.custom_texture):
-			if use_item:
-				RenderingServer.canvas_item_add_texture_rect(
-					item,
-					Rect2(
-						Vector2.ZERO,
-						Vector2(sprite.rect.size.y, sprite.rect.size.x) \
-								* (Vector2.ONE / collection.scale)
-					),
-					sprite.custom_texture
-				)
-			else:
-				draw_texture_rect(
-					sprite.custom_texture,
-					Rect2(
-						Vector2.ZERO,
-						Vector2(sprite.rect.size.y, sprite.rect.size.x) \
-								* (Vector2.ONE / collection.scale)
-					),
-					false
-				)
-		else:
-			if use_item:
-				RenderingServer.canvas_item_add_texture_rect_region(
-					item,
-					Rect2(Vector2.ZERO, Vector2(sprite.rect.size) * (Vector2.ONE / collection.scale)),
-					collection.texture,
-					Rect2(sprite.rect)
-				)
-			else:
-				draw_texture_rect_region(
-					collection.texture,
-					Rect2(Vector2.ZERO, Vector2(sprite.rect.size) * (Vector2.ONE / collection.scale)),
-					Rect2(sprite.rect),
-				)
-		return
-	printerr('Tried to draw invalid sprite "%s"' % [element.name])
+## The most symbols seen sharing one atlas since the last read.
+static func atlas_sharing_peak() -> int:
+	var peak: int = 0
+	for users in _atlas_users.values():
+		peak = maxi(peak, (users as Dictionary).size())
+	return peak
 
-
-func _draw_timeline(timeline: Timeline, target_frame: int) -> void:
-	var layer_transform := _current_transform
-	for i in timeline.layers.size():
-		var layer: Layer = timeline.layers[timeline.layers.size() - (i + 1)]
-		for layer_frame in layer.frames:
-			if target_frame < layer_frame.index:
-				continue
-			if target_frame > layer_frame.index + layer_frame.duration - 1:
-				continue
-			for element in layer_frame.elements:
-				_current_transform = layer_transform
-				_current_transform *= element.transform
-				match element.type:
-					Element.ElementType.SYMBOL:
-						_draw_symbol(element)
-					Element.ElementType.SPRITE:
-						_draw_sprite(element)
-
-
-func _clear_items() -> void:
-	RenderingServer.canvas_item_clear(get_canvas_item())
-	while not _canvas_items.is_empty():
-		var item: RID = _canvas_items.pop_back()
-		RenderingServer.free_rid(item)
-
-
-func _exit_tree() -> void:
-	_clear_items()
-
+## Reads the counters and clears them, so each caller sees the interval since
+## its own previous call rather than a total since boot.
+static func take_draw_stats() -> Dictionary:
+	var stats := {
+		&"usec": draw_usec,
+		&"peak_usec": draw_peak_usec,
+		&"rebuild_usec": rebuild_usec,
+		&"rebuilds": rebuild_count,
+		&"cached": cached_count,
+		&"worst": worst_name,
+		&"worst_usec": worst_usec,
+		&"symbols": _drawn_ids.size(),
+		&"atlases": _atlas_users.size(),
+		&"shared_max": atlas_sharing_peak(),
+	}
+	draw_usec = 0
+	draw_peak_usec = 0
+	rebuild_usec = 0
+	rebuild_count = 0
+	cached_count = 0
+	worst_name = ""
+	worst_usec = 0
+	_drawn_ids.clear()
+	_atlas_users.clear()
+	return stats
 
 func _draw() -> void:
-	_clear_items()
-	
-	if not is_instance_valid(_timeline):
+	var begin_usec: int = Time.get_ticks_usec()
+	var rebuilt: bool = _draw_impl()
+	var spent: int = Time.get_ticks_usec() - begin_usec
+
+	draw_usec += spent
+	draw_peak_usec = maxi(draw_peak_usec, spent)
+	_drawn_ids[get_instance_id()] = true
+	var drew_with: AnimateAtlas = get_atlas()
+	if drew_with != null:
+		var key: int = drew_with.get_instance_id()
+		if not _atlas_users.has(key):
+			_atlas_users[key] = {}
+		(_atlas_users[key] as Dictionary)[get_instance_id()] = true
+	if spent > worst_usec:
+		worst_usec = spent
+		# Built only when the record is actually beaten, so the common case
+		# pays a comparison and nothing else.
+		worst_name = "%s/%s" % [name, symbol] if not symbol.is_empty() else name
+	if rebuilt:
+		rebuild_usec += spent
+		rebuild_count += 1
+	else:
+		cached_count += 1
+
+## Returns true when it took the full-rebuild path rather than the cached one.
+func _draw_impl() -> bool:
+	var atlas: AnimateAtlas = get_atlas()
+	if not is_instance_valid(atlas):
+		return false
+
+	var draw_info: AnimateDrawInfo = AnimateDrawInfo.new(
+		symbol,
+		frame,
+		offset,
+		get_transform(),
+		internal_canvas_items
+)
+
+	draw_info.screen_transform = get_backbuffer_transform()
+	draw_info.light_mask = light_mask
+	draw_info.visibility_layer = visibility_layer
+
+	if atlas is AdobeAtlas and frame_dirty:
+		_use_backbuffer_cache = false
+
+	# By reference, so a rebuild below fills this symbol's own cache.
+	draw_info.backbuffer_cache = _backbuffer_cache
+	draw_info.use_backbuffer_cache = _use_backbuffer_cache
+
+	if atlas is AdobeAtlas and _use_backbuffer_cache:
+		_draw_adobe(atlas as AdobeAtlas, draw_info)
+		return false
+
+	frame_dirty = false
+	RenderingServer.canvas_item_clear(get_canvas_item())
+
+	for rid: RID in internal_canvas_items:
+		if not rid.is_valid():
+			continue
+
+
+		RenderingServer.free_rid(rid)
+
+	internal_canvas_items.clear()
+
+	match atlas.format:
+		"sparrow":
+			_draw_sparrow(atlas as SparrowAtlas, draw_info)
+		"adobe":
+			_draw_adobe(atlas as AdobeAtlas, draw_info)
+		_:
+			pass
+
+	return true
+
+
+func _draw_sparrow(atlas: SparrowAtlas, draw_info: AnimateDrawInfo) -> void:
+	if not is_instance_valid(atlas.texture):
 		return
-	_current_transform = Transform2D.IDENTITY
-	_draw_timeline(_timeline, frame)
+	if get_animation_length() == 0:
+		return
+
+	var sparrow_frame: SparrowFrame = atlas.get_frame_filtered(frame, symbol)
+	if not is_instance_valid(sparrow_frame):
+		return
+
+	if centered:
+		if sparrow_frame.offset.size != Vector2i.ZERO:
+			draw_info.offset -= sparrow_frame.offset.size/ 2.0
+		else:
+			draw_info.offset -= sparrow_frame.region.size/ 2.0
+	atlas.draw_on(get_canvas_item(), draw_info)
+
+
+func _draw_adobe(atlas: AdobeAtlas, draw_info: AnimateDrawInfo) -> void:
+	if not is_instance_valid(adobe_atlas_material):
+		adobe_atlas_material = load("uid://bxdjijj35wput")
+	if not is_instance_valid(adobe_additive_material):
+		adobe_additive_material = load("uid://cq8o5idg0r1n0")
+
+	draw_info.material = adobe_atlas_material
+	draw_info.additive_material = adobe_additive_material
+	atlas.draw_on(get_canvas_item(), draw_info)
+
+
+func get_animation_length(use_custom: bool = false, custom: String = "") -> int:
+	var atlas: AnimateAtlas = get_atlas()
+	if not is_instance_valid(atlas):
+		return 0
+
+	match atlas.format:
+		"sparrow":
+			return(atlas as SparrowAtlas).get_count_filtered(custom if use_custom else symbol)
+		"adobe":
+			return(atlas as AdobeAtlas).get_length_of(StringName(custom if use_custom else symbol))
+		_:
+			pass
+
+	return 0
+
+
+func validate_frame(value: int, length: int = -1) -> int:
+	if length == -1:
+		length = get_animation_length()
+
+	if value< 0:
+		value = 0
+	if value> length- 1:
+		if loop:
+			value = wrapi(value, 0, length)
+		else:
+			value = clampi(value, 0, length- 1)
+	if length == 0:
+		value = 0
+
+	return value
+
+
+func make_player_from_current() -> void:
+	var atlas:= get_atlas()
+
+	if not atlas:
+		return
+
+	var library:= AnimationLibrary.new()
+
+	var symbols: Array = []
+	var fps:= atlas.get_framerate()
+
+	if atlas is AdobeAtlas:
+		symbols = atlas.symbols.keys()
+	elif atlas is SparrowAtlas:
+		symbols = atlas.symbols
+
+	for cur_symbol in symbols:
+		var str:= String(cur_symbol)
+		var length:= get_animation_length(true, str)
+
+		var animation:= Animation.new()
+		animation.length = float(length)/ fps
+
+		animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_interpolation_type(0, Animation.INTERPOLATION_NEAREST)
+		animation.track_set_path(0, ^".:symbol")
+		animation.track_insert_key(0, 0.0, str)
+
+		animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_interpolation_type(1, Animation.INTERPOLATION_NEAREST)
+		animation.track_set_path(1, ^".:frame")
+
+		for i: int in length:
+			animation.track_insert_key(1, float(i)/ fps, i)
+
+		animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(2, ^".:offset")
+		animation.track_insert_key(2, 0.0, Vector2.ZERO)
+
+		library.add_animation(str.replace("/", ";"), animation)
+
+	var path:= "%s/%s_LIBRARY.res"%[atlas.get_base_dir(), atlas.get_filename()]
+	if ResourceLoader.exists(path):
+		library.take_over_path(path)
+
+	ResourceSaver.save(library, path, ResourceSaver.FLAG_COMPRESS| ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
+
+
+func cache_current() -> void:
+	var atlas: AnimateAtlas = get_atlas()
+	if is_instance_valid(atlas):
+		atlas.cache()
+
+
+func reparse_current() -> void:
+	var atlas: AnimateAtlas = get_atlas()
+	if is_instance_valid(atlas):
+		atlas.parse()
+		queue_redraw()
+
+
+func get_atlas() -> AnimateAtlas:
+	if atlases.is_empty():
+		return null
+	if atlas_index> atlases.size()- 1:
+		atlas_index = atlases.size()- 1
+
+	var atlas: AnimateAtlas = atlases[atlas_index]
+	return atlas
+
+
+func get_backbuffer_transform() -> Transform2D:
+	return get_viewport().get_stretch_transform()* get_global_transform_with_canvas()
