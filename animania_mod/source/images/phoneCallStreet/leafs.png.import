@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b82ig1vjki0gs"
-path="res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"
+uid="uid://ci3ricdkkvof1"
+path="res://.godot/imported/leafs.png-9417d7700840838e889ba08fdc8ddfe7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/rubicon_mania/assets/nte_default.png"
-dest_files=["res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"]
+source_file="res://animania_mod/source/images/phoneCallStreet/leafs.png"
+dest_files=["res://.godot/imported/leafs.png-9417d7700840838e889ba08fdc8ddfe7.ctex"]
 
 [params]
 

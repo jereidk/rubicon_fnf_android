@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b82ig1vjki0gs"
-path="res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"
+uid="uid://ocah3o6cq0yx"
+path="res://.godot/imported/light.png-4806aea803fff7fa05c65211381caec3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/rubicon_mania/assets/nte_default.png"
-dest_files=["res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"]
+source_file="res://animania_mod/source/images/phoneCallStreet/light.png"
+dest_files=["res://.godot/imported/light.png-4806aea803fff7fa05c65211381caec3.ctex"]
 
 [params]
 

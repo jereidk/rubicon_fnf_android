@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b82ig1vjki0gs"
-path="res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"
+uid="uid://dvaixc8d3elgi"
+path="res://.godot/imported/far-wall.png-7f1b41f8d34c8fae8138a184a81a2d19.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/rubicon_mania/assets/nte_default.png"
-dest_files=["res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"]
+source_file="res://animania_mod/source/images/phoneCallStreet/far-wall.png"
+dest_files=["res://.godot/imported/far-wall.png-7f1b41f8d34c8fae8138a184a81a2d19.ctex"]
 
 [params]
 

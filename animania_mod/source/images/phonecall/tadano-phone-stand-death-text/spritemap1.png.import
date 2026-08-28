@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b82ig1vjki0gs"
-path="res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"
+uid="uid://bsd7w4qenr7b2"
+path="res://.godot/imported/spritemap1.png-5d972f830f9717d50f13341cfa52b23a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/rubicon_mania/assets/nte_default.png"
-dest_files=["res://.godot/imported/nte_default.png-b566fcc098d0dd948b70721aac3a14ad.ctex"]
+source_file="res://animania_mod/source/images/phonecall/tadano-phone-stand-death-text/spritemap1.png"
+dest_files=["res://.godot/imported/spritemap1.png-5d972f830f9717d50f13341cfa52b23a.ctex"]
 
 [params]
 
