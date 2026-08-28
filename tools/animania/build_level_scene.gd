@@ -643,6 +643,8 @@ func _build_camera() -> void:
 	events.hud_root = _root.get_node("UILayer/UI")
 	events.player_lanes = _root.get_node("UILayer/UI/Player")
 	events.opponent_lanes = _root.get_node("UILayer/UI/Opponent")
+	events.player_point = _root.get_node("PlayerCameraPoint")
+	events.opponent_point = _root.get_node("OpponentCameraPoint")
 
 	# onBeatHit case 332: the bar and its icons go one way, the strumlines the other.
 	var up: Array[Node] = [_root.get_node("UILayer/UI/HealthBar")]

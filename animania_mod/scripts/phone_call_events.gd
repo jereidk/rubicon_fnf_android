@@ -32,6 +32,33 @@ const HUD_TWEEN_SECONDS := 1.75
 const HUD_TWEEN_DELAY_UP := 0.25
 const HUD_TWEEN_DELAY_DOWN := 0.5
 
+## AnimaniaModule.triggerCameraMovement: every note the CURRENTLY FOCUSED character hits
+## shoves the camera a little in that note's direction, and it eases back to nothing.
+##
+##     camX = camY = 25, and the offset is `camX / camGame.zoom * (stageZoom / 2)`
+##
+## Dividing by the live zoom is what keeps the nudge the same size on screen however far in
+## the camera is, so both terms have to be read live rather than folded into a constant.
+## The stage's own cameraZoom is 0.65, from phoneCallStreet.json.
+##
+## It is skipped for BANNED_NOTEKINDS and when the hitting side is not the one the camera is
+## on - a note from off-camera does not move it.
+const NOTE_NUDGE := 25.0
+const STAGE_ZOOM := 0.65
+## MathUtil.smoothLerpPrecision(offset, 0, elapsed, 1): within a hundredth of zero after one
+## second, which as a per-frame factor is 1 - 0.01^delta.
+const NUDGE_PRECISION := 0.01
+const NUDGE_SECONDS := 1.0
+
+## AnimaniaModule.onNoteHit: opponent notes splash SIXTY PERCENT of the time, at random -
+## not on a perfect hit, which is the player's rule. An autoplayed opponent hits everything
+## perfectly, so applying the player's rule to both sides made komi's side splash on every
+## single note.
+const OPPONENT_SPLASH_CHANCE := 0.6
+
+## AnimaniaModule.BANNED_NOTEKINDS - kinds that drive no animation and no camera.
+const BANNED_NOTEKINDS := [&"noAnimation", &"noanim", &"parents-miss", &"solotime"]
+
 ## Funkin's default per-bop game zoom. SetCameraBop's `intensity` is a multiplier on it,
 ## which is why the chart's AddCameraZoom events mostly carry this exact number.
 const DEFAULT_BOP := 0.015
@@ -125,6 +152,9 @@ const LANES_HALF_ALPHA := 0.5
 @export var hud_root: Control
 @export var player_lanes: Control
 @export var opponent_lanes: Control
+## The two camera markers, for deciding which character the camera is currently on.
+@export var player_point: Node2D
+@export var opponent_point: Node2D
 
 var _hud_rest: Vector2 = Vector2.ONE
 var _hud_tween: Tween
@@ -134,6 +164,7 @@ var _lane_homes: Dictionary[StringName, Vector2] = {}
 ## onBeatHit opens with `if (isPlayerDying) return`. The death sequence sets this.
 var dying: bool = false
 var _shake_amount: float = 0.0
+var _nudge: Vector2 = Vector2.ZERO
 var _shake_left: float = 0.0
 
 
@@ -150,6 +181,16 @@ func _ready() -> void:
 
 	if clock != null and clock.has_signal(&"beat_change"):
 		clock.beat_change.connect(_on_beat)
+
+	# One connection per lane, carrying which lane and which side it belongs to.
+	for entry: Array in [[player_lanes, true], [opponent_lanes, false]]:
+		var lanes: Control = entry[0]
+		if lanes == null:
+			continue
+		for lane: Node in lanes.get_children():
+			if lane.has_signal(&"just_pressed"):
+				lane.just_pressed.connect(
+					_on_lane_hit.bind(lane, bool(entry[1])))
 
 
 ## AddCameraZoom. `hud_zoom` is applied to the UI canvas about the middle of the screen -
@@ -172,7 +213,39 @@ func _centre_hud() -> void:
 	hud.offset = -screen * 0.5 * (hud.scale - Vector2.ONE)
 
 
-## SetCameraBop. `rate` is in beats.
+## triggerCameraMovement, on every note the focused character hits.
+func _on_lane_hit(lane: Node, is_player: bool) -> void:
+	if camera == null or is_player != _camera_is_on_player():
+		return
+
+	# BANNED_NOTEKINDS drive neither animation nor camera.
+	var index: int = int(lane.last_hit_note_index)
+	var notes: Array = lane.data
+	if index >= 0 and index < notes.size() and notes[index] != null:
+		# RubiChart calls it `type`; the chart's note kinds land there.
+		if BANNED_NOTEKINDS.has(StringName(notes[index].type)):
+			return
+
+	var zoom: float = maxf(0.01, camera.zoom.x)
+	var amount: float = NOTE_NUDGE / zoom * (STAGE_ZOOM * 0.5) * FUNKIN_TO_RUBICON
+	match int(lane.lane_id):
+		0: _nudge = Vector2(-amount, 0.0)
+		1: _nudge = Vector2(0.0, amount)
+		2: _nudge = Vector2(0.0, -amount)
+		3: _nudge = Vector2(amount, 0.0)
+
+
+## Which character the camera is on, taken from where it is actually aimed rather than from
+## a flag: the focus is a baked track here, so there is no curFocus to read.
+func _camera_is_on_player() -> bool:
+	if camera == null or player_point == null or opponent_point == null:
+		return true
+	var target: Vector2 = camera.position_interpolate_target
+	return target.distance_squared_to(player_point.global_position) \
+		<= target.distance_squared_to(opponent_point.global_position)
+
+
+## SetCameraBop. `rate` is in beats.## SetCameraBop. `rate` is in beats.
 func set_bop(rate: int, intensity: float) -> void:
 	if bumper == null:
 		return
@@ -184,13 +257,18 @@ func set_bop(rate: int, intensity: float) -> void:
 ## The HUD punch has to decay the way the camera's does; the camera gets that free from
 ## RubiconInterpolatedCamera2D's own lerp, and the CanvasLayer has no equivalent.
 func _process(delta: float) -> void:
+	# The shake and the note nudge share one offset, so they are summed rather than each
+	# writing it - whichever wrote last would otherwise erase the other.
+	var shake := Vector2.ZERO
 	if _shake_left > 0.0:
 		_shake_left -= delta
-		if camera != null:
-			camera.position_interpolate_offset = Vector2(
-				randf_range(-_shake_amount, _shake_amount),
-				randf_range(-_shake_amount, _shake_amount)) \
-				if _shake_left > 0.0 else Vector2.ZERO
+		if _shake_left > 0.0:
+			shake = Vector2(randf_range(-_shake_amount, _shake_amount),
+				randf_range(-_shake_amount, _shake_amount))
+
+	_nudge = _nudge.lerp(Vector2.ZERO, 1.0 - pow(NUDGE_PRECISION, delta / NUDGE_SECONDS))
+	if camera != null:
+		camera.position_interpolate_offset = shake + _nudge
 
 	if hud == null:
 		return

@@ -28,19 +28,31 @@ extends AnimatedSprite2D
 ## `healthBar.flipped = true`, which is the other half of the same mirroring.
 @export var inverted: bool = false
 
-## komi.hx: LOSING_THRESHOLD = 0.25 * 2, against a bar that runs 0..2.
-const LOSING_THRESHOLD := 0.25
 ## iconTimer runs to 4 at 6x elapsed.
 const SING_HOLD := 4.0 / 6.0
 
-## The extremes, and where they come from: phone-call.script tilts an icon when healthLerp
-## passes 1.75 or falls under 0.25 on its 0..2 bar, which is 0.875 and 0.125 of it. Those
-## are the only two numbers in this slice that mark "winning hard" and "about to die", so
-## they are what the win and predeath states use. AnimaniaStuff.makeAmTakeAnimatedIcon,
-## which is what actually drives tadano's four states, is not in this slice - so this is
-## inferred from the mod's own numbers rather than read from its code.
-const WINNING_THRESHOLD := 0.875
+## Which face is on, from `AnimaniaStuff.makeAmTakeAnimatedIcon` - the module that actually
+## drives these, recovered from the mod's own assets. It declares its thresholds against a
+## bar that runs 0..2, so each is half of what it writes:
+##
+##     DEATH_THRESHOLD  = 0.125 * 2  ->  0.125
+##     LOSING_THRESHOLD = 0.25  * 2  ->  0.25
+##     WINING_THRESHOLD = 0.8   * 2  ->  0.8
+##
+## The atlas calls the bottom rung `predeath` where the module calls it `death`; the atlas
+## wins for names, the module for numbers.
 const PREDEATH_THRESHOLD := 0.125
+const LOSING_THRESHOLD := 0.25
+const WINNING_THRESHOLD := 0.8
+
+## And these are a DIFFERENT pair, which is what the first version of this got wrong.
+##
+## phone-call.script tilts an icon when healthLerp passes 1.75 or falls under 0.25 on the
+## same 0..2 bar - 0.875 and 0.125 of it. Those are the angle's thresholds, not the face's.
+## Lacking the module, this port read them as both, and shipped a winning face that waited
+## until 0.875 when the mod turns it on at 0.8. The bottom one agreed by coincidence.
+const WINNING_TILT_AT := 0.875
+const PREDEATH_TILT_AT := 0.125
 
 ## onStartSong's icon.angle, in degrees per unit of overshoot past the threshold.
 const WINNING_TILT := 50.0
@@ -110,10 +122,10 @@ func _apply_tilt_and_bob() -> void:
 	var ratio: float = _ratio()
 	position = _rest_position + Vector2(0.0, -cos((ratio * 2.0 - 1.0) * 2.0) * BOB_AMPLITUDE)
 
-	if ratio > WINNING_THRESHOLD:
-		rotation_degrees = WINNING_TILT * (ratio - WINNING_THRESHOLD) * 2.0
-	elif ratio < PREDEATH_THRESHOLD:
-		rotation_degrees = PREDEATH_TILT * (PREDEATH_THRESHOLD - ratio) * 2.0
+	if ratio > WINNING_TILT_AT:
+		rotation_degrees = WINNING_TILT * (ratio - WINNING_TILT_AT) * 2.0
+	elif ratio < PREDEATH_TILT_AT:
+		rotation_degrees = PREDEATH_TILT * (PREDEATH_TILT_AT - ratio) * 2.0
 	else:
 		rotation_degrees = 0.0
 

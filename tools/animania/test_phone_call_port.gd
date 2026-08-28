@@ -1339,7 +1339,15 @@ func _check_icons(level: Node) -> void:
 		"el umbral de derrota no es el de komi.hx")
 	_check(is_equal_approx(float(constants["SING_HOLD"]), 4.0 / 6.0),
 		"el aguante de la pose de canto no es el de komi.hx")
-	_check(is_equal_approx(float(constants["WINNING_THRESHOLD"]), 0.875),
-		"el umbral de victoria no es el 1.75 del script")
+	# From AnimaniaStuff.makeAmTakeAnimatedIcon, declared against a 0..2 bar, so half of
+	# what it writes. These are the FACE's thresholds.
+	_check(is_equal_approx(float(constants["WINNING_THRESHOLD"]), 0.8),
+		"el umbral de victoria no es el WINING_THRESHOLD del modulo")
 	_check(is_equal_approx(float(constants["PREDEATH_THRESHOLD"]), 0.125),
-		"el umbral de premuerte no es el 0.25 del script")
+		"el umbral de premuerte no es el DEATH_THRESHOLD del modulo")
+	# And these are the ANGLE's, from phone-call.script. Conflating the two is what shipped
+	# a winning face that waited until 0.875.
+	_check(is_equal_approx(float(constants["WINNING_TILT_AT"]), 0.875),
+		"el umbral de inclinacion no es el 1.75 del script")
+	_check(is_equal_approx(float(constants["PREDEATH_TILT_AT"]), 0.125),
+		"el umbral de inclinacion baja no es el 0.25 del script")

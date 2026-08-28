@@ -934,6 +934,41 @@ shot on twos. It is one of six doubles `update()` carries (1, 1.75, 100, 600, 0.
 others) and the only one that makes sense as a boil cadence; the rest belong to the camera
 and the outro lerp. The texture is the mod's own `boil_texture.png`.
 
+## AnimaniaModule, and the icon thresholds it corrected
+
+`scripts/modules/AnimaniaModule.hx` and `AnimaniaStuff.hx` ship as plain HScript, so this is
+transcribed rather than inferred. Three things in them touch phone-call.
+
+**The icon thresholds were wrong, and now are not.** `makeAmTakeAnimatedIcon` declares them
+against a bar that runs 0..2, so each is half of what it writes: death `0.125 * 2`, losing
+`0.25 * 2`, winning `0.8 * 2`. This port had no access to that module and read the ladder's
+thresholds off `phone-call.script`'s *tilt* numbers instead - the healthLerp 1.75 and 0.25
+that set the icon's ANGLE. Two of the three agreed by coincidence; the winning face waited
+until 0.875 when the mod turns it on at **0.8**. They are separate constants now, because
+they are separate things.
+
+**`ONLY_HUD_SONGS = ["phone-call"]`.** `allowedHUD()` is false for this song, so
+`loadAmTakeUI()` returns early and the module's whole extra HUD - the ratings assets, the
+score numbers, the full-combo sprite, the combo tracking - never loads. Phone-call runs on
+the plain HUD **on purpose**, which retires it as a gap rather than leaving it as one.
+
+**`triggerCameraMovement`.** Every note the currently focused character hits shoves the
+camera 25px in that note's direction, easing back to nothing over a second. The offset is
+`camX / camGame.zoom * (stageZoom / 2)`, and dividing by the live zoom is what keeps the
+nudge the same size on screen however far in the camera is - so both terms are read live.
+It is skipped for `BANNED_NOTEKINDS` (`noAnimation`, `noanim`, `parents-miss`, `solotime`)
+and when the hitting side is not the one the camera is on: a note from off-camera does not
+move it. There is no `curFocus` to read here, since the focus is a baked track, so it is
+taken from where the camera is actually aimed.
+
+The shake and the nudge now share one `position_interpolate_offset` and are summed. Written
+separately, whichever ran last erased the other.
+
+**And the splashes were on one rule for two sides.** `onNoteHit` splashes the player only on
+a perfect, and the opponent on `FlxG.random.bool(60)` - six notes in ten, at random,
+whatever the judgment. The opponent is autoplayed and therefore perfect on every note, so
+one rule for both had komi's side splashing on all 167 of hers.
+
 ## The debug overlay, and the duplicate it found
 
 `animania_mod/scripts/debug_overlay.gd`, an autoload, and deliberately one line:

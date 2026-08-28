@@ -31,6 +31,14 @@ const COVER_OFFSET := Vector2.ZERO
 ## amtake-base.json declares two splash variants per lane and Funkin picks between them.
 const SPLASH_VARIANTS := 2
 
+## AnimaniaModule.onNoteHit splashes the two sides by DIFFERENT rules, and this port had
+## both on the player's. Funkin splashes the player only on a perfect; the opponent gets
+## `FlxG.random.bool(60)` - six notes in ten, at random, whatever the judgment.
+##
+## It matters because the opponent is autoplayed and therefore perfect on every note, so one
+## rule for both meant komi's side splashed on all 167 of hers.
+const OPPONENT_SPLASH_CHANCE := 0.6
+
 const LANES := ["left", "down", "up", "right"]
 
 @export var effects: SpriteFrames
@@ -102,21 +110,19 @@ func _on_pressed() -> void:
 	if direction.is_empty():
 		return
 
-	# Only a perfect hit splashes. Funkin splashes on `sick` and nothing else, and letting
-	# every press splash turns the effect into wallpaper.
 	var index: int = int(handler.last_hit_note_index)
 	var results: Array = handler.results
 	if index < 0 or index >= results.size() or results[index] == null:
 		return
-	if results[index].scoring_rating != RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT:
-		return
 
-	var variant: int = randi_range(1, SPLASH_VARIANTS)
-	var name := StringName("splash_%s_%d" % [direction, variant])
-	if effects.has_animation(name):
-		_splash.visible = true
-		_splash.rotation_degrees = randf_range(-ROTATION_VARIANCE, ROTATION_VARIANCE) * 0.5
-		_splash.play(name)
+	if _splashes(results[index]):
+		var variant: int = randi_range(1, SPLASH_VARIANTS)
+		var name := StringName("splash_%s_%d" % [direction, variant])
+		if effects.has_animation(name):
+			_splash.visible = true
+			_splash.rotation_degrees = randf_range(
+				-ROTATION_VARIANCE, ROTATION_VARIANCE) * 0.5
+			_splash.play(name)
 
 	# The cover runs for as long as the note is held, so it starts from the note that was
 	# hit having an ending row - which is what a hold IS in a RubiChart.
@@ -130,6 +136,21 @@ func _on_pressed() -> void:
 	_holding = true
 	_cover.visible = true
 	_cover.play(cover)
+
+
+## The player splashes on a perfect and nothing else - letting every press splash turns the
+## effect into wallpaper. The opponent splashes six times in ten regardless.
+func _splashes(result) -> bool:
+	if _is_opponent():
+		return randf() < OPPONENT_SPLASH_CHANCE
+	return result.scoring_rating == RubiconLevelNoteHitResult.Judgment.JUDGMENT_PERFECT
+
+
+## Read off the tree rather than off the controller's `autoplay`, which a harness turns on
+## for both sides.
+func _is_opponent() -> bool:
+	var parent: Node = handler.get_parent()
+	return parent != null and String(parent.name) == "Opponent"
 
 
 func _on_released() -> void:
