@@ -33,6 +33,7 @@ func _init() -> void:
 	_check_character(TADANO, "tadano", 22)
 	_check_tadano_symbols()
 	_check_leaves()
+	_check_notestyle()
 	_check_level()
 	await _check_camera_events()
 
@@ -542,3 +543,124 @@ func _check_idle_suffix() -> void:
 		"el baile de tadano no cambio al alt: %s" % [tadano.dancing_animations])
 
 	level.queue_free()
+
+
+# The amtake-base note style. Names are checked, but so are COLOURS: a lane-to-colour
+# mapping is the one thing here that can be wrong while every name is right, and the JSON
+# is explicit about it (left purple, down blue, up green, right red).
+func _check_notestyle() -> void:
+	const EXPECTED_COLOURS := {
+		"left": Color8(159, 76, 141), "down": Color8(26, 199, 233),
+		"up": Color8(34, 196, 44), "right": Color8(206, 60, 76),
+	}
+	const DIRECTIONS := ["left", "down", "up", "right"]
+
+	var lanes: SpriteFrames = load("res://animania_mod/notestyle/amtake_lanes_frames.tres")
+	var notes: SpriteFrames = load("res://animania_mod/notestyle/amtake_notes_frames.tres")
+
+	for direction: String in DIRECTIONS:
+		for state: String in ["neutral", "press", "confirm"]:
+			_check(lanes.has_animation("%s_lane_%s" % [direction, state]),
+				"falta %s_lane_%s" % [direction, state])
+		for part: String in ["neutral", "hold", "tail"]:
+			_check(notes.has_animation("%s_note_%s" % [direction, part]),
+				"falta %s_note_%s" % [direction, part])
+
+	_check(lanes.get_animation_names().size() == 12,
+		"amtake_lanes tiene %d animaciones, esperaba 12" % lanes.get_animation_names().size())
+	_check(notes.get_animation_names().size() == 12,
+		"amtake_notes tiene %d animaciones, esperaba 12" % notes.get_animation_names().size())
+
+	for frames: SpriteFrames in [lanes, notes]:
+		for anim: String in frames.get_animation_names():
+			for i: int in frames.get_frame_count(anim):
+				var texture: Texture2D = frames.get_frame_texture(anim, i)
+				_check(texture is AtlasTexture and (texture as AtlasTexture).atlas != null,
+					"%s fotograma %d no tiene textura" % [anim, i])
+
+	# The note and the hold body of a lane have to be the SAME colour. The hold strip ships
+	# with no XML at all - it is eight cells read off the image - so nothing but the pixels
+	# can say whether the slicing lines up with the note colours.
+	for direction: String in DIRECTIONS:
+		var expected: Color = EXPECTED_COLOURS[direction]
+		for part: String in ["neutral", "hold", "tail"]:
+			var average: Color = _average_colour(
+				notes.get_frame_texture("%s_note_%s" % [direction, part], 0))
+			var distance: float = (Vector3(average.r, average.g, average.b)
+				- Vector3(expected.r, expected.g, expected.b)).length()
+			_check(distance < 0.25, "%s_note_%s es %s y esperaba ~%s" % [
+				direction, part, average, expected])
+
+	# note-holds.png ships with no XML at all: it is eight 64x87 cells that were read off
+	# the image. So the slicing is pinned by where each region SITS - eight distinct cells
+	# at the known x offsets, body then tail within each colour - and by the colour check
+	# above, which is what would catch a pair swapped between two directions.
+	const CELLS := [1, 67, 133, 199, 265, 331, 397, 463]
+	var seen: Dictionary = {}
+	for i: int in DIRECTIONS.size():
+		var direction: String = DIRECTIONS[i]
+		for pair: int in 2:
+			var part: String = "hold" if pair == 0 else "tail"
+			var region: AtlasTexture = notes.get_frame_texture(
+				"%s_note_%s" % [direction, part], 0)
+			var expected := Rect2(float(CELLS[i * 2 + pair]), 0.0, 64.0, 87.0)
+			_check(region.region.is_equal_approx(expected),
+				"%s_note_%s recorta %s y esperaba %s" % [
+					direction, part, region.region, expected])
+			_check(not seen.has(region.region),
+				"%s_note_%s repite el recorte %s" % [direction, part, region.region])
+			seen[region.region] = true
+			_check(region.atlas.resource_path.get_file() == "note-holds.png",
+				"%s_note_%s no sale de note-holds.png" % [direction, part])
+
+	# The rewritten scenes. A swapped path that keeps its old uid loads the OLD resource -
+	# note-holds.png did exactly that until the stripping rule was widened.
+	for scene_path: String in ["res://animania_mod/notestyle/Lane.tscn",
+			"res://animania_mod/notestyle/Note.tscn"]:
+		var text: String = FileAccess.get_file_as_string(scene_path)
+		_check(not text.contains("funkin"),
+			"%s todavia menciona funkin" % scene_path)
+		for line: String in text.split("\n"):
+			if line.begins_with("[ext_resource") and line.contains("res://animania_mod"):
+				_check(not line.contains("uid="),
+					"uid obsoleto en %s: %s" % [scene_path, line])
+
+	# A TextureRect with no expand_mode takes its texture's size as its MINIMUM, and a
+	# Control's rect is the larger of its anchored size and its minimum. funkin's tail
+	# graphic is 64x50 and the trail is 50 thick, so they agree by accident; amtake's is
+	# 64x87 and the cap came out 87 thick against a 50-thick trail, sticking out past both
+	# edges. All four Tails need IGNORE_SIZE for the anchors to win.
+	var note_text: String = FileAccess.get_file_as_string(
+		"res://animania_mod/notestyle/Note.tscn")
+	var tails: int = 0
+	var lines: PackedStringArray = note_text.split("\n")
+	for i: int in lines.size():
+		if not lines[i].begins_with("[node name=\"Tail\""):
+			continue
+		tails += 1
+		var found: bool = false
+		for j: int in range(i + 1, mini(i + 14, lines.size())):
+			if lines[j].begins_with("[node"):
+				break
+			if lines[j].strip_edges() == "expand_mode = 1":
+				found = true
+		_check(found, "a la cola de la linea %d le falta expand_mode = 1" % i)
+	_check(tails == 4, "esperaba 4 colas en Note.tscn y hay %d" % tails)
+
+
+func _average_colour(texture: Texture2D) -> Color:
+	var image: Image = (texture as AtlasTexture).get_image()
+	var total := Vector3.ZERO
+	var count: int = 0
+	for y: int in image.get_height():
+		for x: int in image.get_width():
+			var pixel: Color = image.get_pixel(x, y)
+			if pixel.a < 0.8:
+				continue
+			total += Vector3(pixel.r, pixel.g, pixel.b)
+			count += 1
+	if count == 0:
+		return Color.BLACK
+	total /= float(count)
+	return Color(total.x, total.y, total.z)
+

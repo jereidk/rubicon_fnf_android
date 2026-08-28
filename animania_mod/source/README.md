@@ -484,3 +484,67 @@ with no real time passing for them to decay in, so they stack — the screenshot
 interpolate target before capturing, which is where a real playthrough sits between bops,
 and it has to do that on the frame *before* the capture: `get_texture()` returns what was
 last rendered, so settling on the capture frame is a frame too late.
+
+## The amtake-base note style
+
+`amtake-base.json` names the receptors `LeftStatic` / `left press` / `left confirm` and
+colours its notes purple, blue, green, red; Rubicon names the same things
+`<dir>_lane_<neutral|press|confirm>` and `<dir>_note_<neutral|hold|tail>`, and drives them
+through `AnimationTree` state machines keyed on `lane_id` and `lane_state`. So the whole
+port is **a rename plus a set of regions** — the state machines, the trail masking and the
+hit logic are Rubicon's and stay untouched.
+
+The frames are built as `AtlasTexture`s over the mod's own PNGs rather than by repacking
+them into a Rubicon-shaped sheet. One `SpriteFrames` can hold regions from several atlases,
+so `notes.png` and `note-holds.png` sit side by side in one resource, and every region
+comes out of the mod's own XML instead of out of a new sheet nobody can diff. The two
+atlases happen to be authored at the same size as Funkin's — amtake's `LeftStatic` is
+161×163 against funkin's 154×157 — so no rescaling is needed anywhere; the JSON's
+`scale: 0.675` is Funkin's own display scale, which Rubicon bakes into its layout instead.
+
+`Lane.tscn` and `Note.tscn` are produced by **rewriting** the funkin ones: three resource
+paths, one library key and eight regions, with anything the transform cannot find treated
+as a hard error rather than a silent no-op.
+
+### `note-holds.png` ships with no XML
+
+It is a bare 528×87 strip. Read off the image, it is eight 64×87 cells with 2–3px gutters,
+in colour order purple, blue, green, red, and within each colour the body first and the
+tapering end second — the even cells are opaque top to bottom and the odd ones taper. The
+guard pins that slicing two ways: each region against its expected cell offset, and each
+one's **average colour** against the direction the JSON assigns it. Names alone would not
+catch two colours swapped between lanes, which is the one mistake here that stays
+invisible.
+
+### Three things that bit
+
+**A swapped path keeps winning with its old uid.** `note-holds.png` inherited
+`funkin_notes.png`'s `uid=`, and a `uid=` beside a `path=` wins — so the scene kept loading
+the funkin sheet from a line that clearly read `note-holds.png`. Every rewritten
+`ext_resource` now loses its uid.
+
+**The library key is spelled into the clip names.** `Note.tscn` mounts its library as
+`funkin_notes_library` and its animation-track clips are literally
+`"funkin_notes_library/left_note_neutral"`. Renaming the key without the clips would have
+broken every direction switch silently; both go in one swap, and the swaps are ordered so
+the *paths* are replaced before the key, or
+`res://assets/levels/ui/funkin/mania/funkin_notes_library.tres` would have had its middle
+rewritten and pointed at a file that does not exist in a directory that does.
+
+**A `TextureRect` with no `expand_mode` takes its texture's size as its minimum.** A
+Control's rect is the larger of its anchored size and its minimum size. Funkin's tail
+graphic is 64×50 and the trail is 50 thick, so the two agree *by accident*; amtake's is
+64×87, and the cap came out 87 thick against a 50-thick trail, sticking out past both
+edges. `IGNORE_SIZE` on all four `Tail` nodes drops the minimum to zero and lets the
+anchors decide — which is what the trail body was already doing.
+
+### Verified by looking
+
+`tools/animania/harness/notestyle_sheet.gd` renders every lane and note animation frame by
+frame onto a contact sheet. That exists because the first check of this port was a
+gameplay screenshot, and a gameplay screenshot cannot tell *"the port is wrong"* from
+*"that lane has no note on screen right now"* — it looked broken and was not.
+
+Not ported: `noteSplashes` and `strum-holds` (the hit splashes and hold covers, 2.2MB of
+art between them). Rubicon's `Note.tscn` has no slot for either, so they need new nodes
+rather than a rename.

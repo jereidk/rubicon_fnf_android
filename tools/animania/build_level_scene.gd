@@ -39,7 +39,8 @@ const CAMERA_SCRIPT := "res://addons/rubicon_interpolated_camera/scripts/rubicon
 const SETTER_SCRIPT := "res://addons/rubicon_interpolated_camera/scripts/rubicon_position_setter.gd"
 const BUMPER_SCRIPT := "res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd"
 
-const LANE := "res://resources/levels/ui/funkin/mania/Lane.tscn"
+# The amtake-base receptors, not the stock funkin ones. See tools/animania/build_notestyle.gd.
+const LANE := "res://animania_mod/notestyle/Lane.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
 const HEALTH_BAR := "res://resources/levels/ui/funkin/health_bar.tscn"
 # Not resources/levels/ui/funkin/funkin_note_override.tres: this chart uses the note kind

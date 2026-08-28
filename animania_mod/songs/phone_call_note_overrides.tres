@@ -21,7 +21,7 @@
 
 [ext_resource type="Script" path="res://addons/rubicon/scripts/data/game/rubicon_level_note_metadata.gd" id="1_meta"]
 [ext_resource type="Script" path="res://addons/rubicon/scripts/data/game/rubicon_level_note_database.gd" id="2_db"]
-[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/mania/Note.tscn" id="3_note"]
+[ext_resource type="PackedScene" path="res://animania_mod/notestyle/Note.tscn" id="3_note"]
 
 [sub_resource type="Resource" id="Resource_mania"]
 script = ExtResource("1_meta")
