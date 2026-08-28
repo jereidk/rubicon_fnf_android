@@ -233,7 +233,10 @@ filter_clip = true
 [resource]
 animations = [{
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_agyu1")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_agyu1")
 }, {
 "duration": 1.0,
@@ -267,10 +270,16 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_dwnwl")
 }, {
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dwnwl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fwx3t")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_fwx3t")
 }],
 "loop": 0,
@@ -278,7 +287,10 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n028n")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_n028n")
 }, {
 "duration": 1.0,
@@ -312,10 +324,16 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_snqhl")
 }, {
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_snqhl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_efjjl")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_efjjl")
 }],
 "loop": 0,
@@ -323,7 +341,10 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tyamd")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_tyamd")
 }, {
 "duration": 1.0,
@@ -357,10 +378,16 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_akyvn")
 }, {
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_akyvn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cg421")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_cg421")
 }],
 "loop": 0,
@@ -368,7 +395,10 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ytmsf")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_ytmsf")
 }, {
 "duration": 1.0,
@@ -402,10 +432,16 @@ animations = [{
 "speed": 24.0
 }, {
 "frames": [{
-"duration": 2.0,
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_i72hy")
 }, {
-"duration": 2.0,
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i72hy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ni4qs")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_ni4qs")
 }],
 "loop": 0,

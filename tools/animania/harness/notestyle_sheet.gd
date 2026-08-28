@@ -11,8 +11,9 @@ extends Node2D
 const FRAMES := {
 	"lanes": "res://animania_mod/notestyle/amtake_lanes_frames.tres",
 	"notes": "res://animania_mod/notestyle/amtake_notes_frames.tres",
+	"effects": "res://animania_mod/notestyle/amtake_effects_frames.tres",
 }
-const CELL := Vector2(140.0, 128.0)
+const CELL := Vector2(128.0, 96.0)
 const MARGIN := Vector2(16.0, 8.0)
 
 var _frames: int = 0

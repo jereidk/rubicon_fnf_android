@@ -593,6 +593,49 @@ func _check_notestyle() -> void:
 			_check(distance < 0.25, "%s_note_%s es %s y esperaba ~%s" % [
 				direction, part, average, expected])
 
+	# The hit splash and the hold cover. amtake-base.json turns both on; Rubicon has no slot
+	# for either, so lane_effects.gd is new behaviour and this pins its numbers to the JSON.
+	var effects: SpriteFrames = load("res://animania_mod/notestyle/amtake_effects_frames.tres")
+	for direction: String in DIRECTIONS:
+		for variant: int in [1, 2]:
+			_check(effects.has_animation("splash_%s_%d" % [direction, variant]),
+				"falta splash_%s_%d" % [direction, variant])
+		_check(effects.has_animation("cover_%s" % direction), "falta cover_%s" % direction)
+		_check(effects.has_animation("cover_%s_end" % direction),
+			"falta cover_%s_end" % direction)
+		# The body loops - holdNoteCover's <dir>Continue is <dir>Start's clip looped - and
+		# the end does not, or the cover would never go away.
+		_check(effects.get_animation_loop("cover_%s" % direction),
+			"cover_%s tendria que hacer bucle" % direction)
+		_check(not effects.get_animation_loop("cover_%s_end" % direction),
+			"cover_%s_end no tendria que hacer bucle" % direction)
+
+	# The importer strips a frame index with \d+$, and these subtextures are spelled
+	# "note splash purple 10000": the variant digit sits right before the index, so both get
+	# eaten and the two variants merge into one animation. They are split by halving that
+	# merged animation, which only holds if the halves come out the authored length.
+	_check(effects.get_frame_count("splash_left_1") == 4
+			and effects.get_frame_count("splash_left_2") == 4,
+		"los splashes tendrian que tener 4 fotogramas cada variante")
+	_check(effects.get_frame_count("cover_left") == 5,
+		"la cubierta de hold tendria que tener 5 fotogramas")
+	_check(effects.get_frame_count("cover_left_end") == 3,
+		"el final de la cubierta tendria que tener 3 fotogramas")
+
+	var lane_scene: String = FileAccess.get_file_as_string(
+		"res://animania_mod/notestyle/Lane.tscn")
+	_check(lane_scene.contains("lane_effects.gd") and lane_scene.contains("amtake_effects"),
+		"Lane.tscn no lleva el nodo de efectos")
+
+	var effect_constants: Dictionary = load(
+		"res://animania_mod/scripts/lane_effects.gd").get_script_constant_map()
+	_check(is_equal_approx(float(effect_constants["SPLASH_SCALE"]), 0.9),
+		"la escala del splash no es la del JSON")
+	_check(is_equal_approx(float(effect_constants["COVER_SCALE"]), 0.7),
+		"la escala de la cubierta no es la del JSON")
+	_check(is_equal_approx(float(effect_constants["ROTATION_VARIANCE"]), 180.0),
+		"rotationVariance no es la del JSON")
+
 	# note-holds.png ships with no XML at all: it is eight 64x87 cells that were read off
 	# the image. So the slicing is pinned by where each region SITS - eight distinct cells
 	# at the known x offsets, body then tail within each colour - and by the colour check

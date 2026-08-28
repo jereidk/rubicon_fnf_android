@@ -4,6 +4,8 @@
 [ext_resource type="Resource" uid="uid://ndurlv0cfk5o" path="res://addons/rubicon_mania/resources/default_settings.tres" id="2_hxfju"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/notestyle/amtake_lanes_frames.tres" id="3_ts1a1"]
 [ext_resource type="AnimationLibrary" path="res://animania_mod/notestyle/amtake_lanes_library.tres" id="4_ts1a1"]
+[ext_resource type="Script" path="res://animania_mod/scripts/lane_effects.gd" id="5_fx"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/notestyle/amtake_effects_frames.tres" id="6_fx"]
 
 [sub_resource type="Animation" id="Animation_o0sw0"]
 length = 0.001
@@ -580,3 +582,8 @@ reset_on_save = false
 tree_root = SubResource("AnimationNodeStateMachine_o0sw0")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../AnimationPlayer")
+
+[node name="Effects" type="Node2D" parent="." node_paths=PackedStringArray("handler")]
+script = ExtResource("5_fx")
+effects = ExtResource("6_fx")
+handler = NodePath("..")

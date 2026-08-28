@@ -604,3 +604,48 @@ between them, and what drives them is `AnimaniaStuff.makeAmTakeAnimatedIcon` —
 this slice does not have. The frames are built anyway (they are in the atlas, and dropping
 them means re-deriving this later) but only `idle`/`losing` and their two transitions are
 wired up. tadano's icon also does not sing: only komi's atlas has sing poses.
+
+## The hit splashes and the hold covers
+
+`amtake-base.json` turns both on (`noteSplash.enabled`, `holdNoteCover.enabled`) and
+Rubicon has a slot for neither: a Lane is a receptor with a three-state `AnimationTree` and
+nothing else. So `animania_mod/scripts/lane_effects.gd` is new behaviour, driven off the
+handler's own `just_pressed` / `just_released`, and it hangs off the **note style** rather
+than off the level — which is what it is.
+
+The numbers are the JSON's: splash scale 0.9, cover scale 0.7, `rotationVariance` 180
+(applied either way from centre), cover offset `[0, -60]`. Only the offset scales by 1.5 —
+it is a screen distance, while both atlases are already Funkin-sized like the notes.
+
+**Only a perfect hit splashes.** Funkin splashes on `sick` and nothing else, and letting
+every press splash turns the effect into wallpaper. The hold cover starts from the hit note
+having an `ending_row`, which is what a hold *is* in a `RubiChart`.
+
+### The importer cannot separate these two variants
+
+Each colour ships two variants, and the subtextures are spelled
+`note splash purple 10000`. The importer strips a frame index with `\d+$` — so the
+**variant digit sits immediately before the index**, the regex eats both, and variants 1
+and 2 collapse into a single animation named `note splash purple ` (trailing space, 8
+frames). They are separated by halving that merged animation, which is sound because the
+importer sorts frames by `int(index)` and `10000..10003` all come before `20000..20003`.
+The guard pins the halves at their authored lengths (4, 5 and 3 frames) so a change in the
+atlas cannot silently produce two wrong-length variants.
+
+### The cover follows the source, not a guess
+
+`amtake-base.hx`'s `getHoldCoverOffsets()` returns `[x, -y]` and
+`buildNoteHoldCoverSprite` sets `flipY`, both when `Preferences.downscroll` is on — and
+Rubicon's notes fall toward receptors at the *bottom*, which is downscroll. So the authored
+`[0, -60]` becomes `[0, 60]` and the sprite is flipped.
+
+It was rendered the other way round too, with the cover above the receptor where the tail
+is, on the theory that Funkin anchors this somewhere other than the receptor's centre. That
+looked worse — the cover lands on top of the receptor and swallows it. What the offset is
+anchored to in Funkin is not recoverable from this slice, so this follows the source.
+
+### Catching a four-frame effect in a still
+
+`level_shot.gd` nudges every lane's `just_pressed` once before capturing. A splash lasts
+four frames at 24fps and a still frame almost never lands on one, which makes an effect
+that *is* working look absent — the same trap the note style walked into.

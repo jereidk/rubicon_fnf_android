@@ -68,6 +68,8 @@ const TAIL_EXPAND := [
 		"texture = SubResource(\"AtlasTexture_h658e\")\nexpand_mode = 1"],
 ]
 
+const EFFECTS_SCRIPT := "res://animania_mod/scripts/lane_effects.gd"
+
 const LANE_SOURCE := "res://resources/levels/ui/funkin/mania/Lane.tscn"
 const NOTE_SOURCE := "res://resources/levels/ui/funkin/mania/Note.tscn"
 
@@ -81,6 +83,9 @@ func _init() -> void:
 	var notes: SpriteFrames = _build_notes()
 	_save_pair(notes, "amtake_notes")
 
+	var effects: SpriteFrames = _build_effects()
+	_save_pair(effects, "amtake_effects")
+
 	_build_scenes()
 	quit(0)
 
@@ -92,12 +97,26 @@ func _init() -> void:
 ## three resource paths and eight regions, and anything it fails to find is a hard error
 ## rather than a silent no-op.
 func _build_scenes() -> void:
+	# The Lane also gains the hit splash and the hold cover, which Rubicon has no slot for.
+	# They go on the note STYLE rather than on the level, because that is what they are:
+	# amtake-base.json turns them on and gives them their scales and offsets.
+	var lane_extras: String = """
+[node name="Effects" type="Node2D" parent="." node_paths=PackedStringArray("handler")]
+script = ExtResource("5_fx")
+effects = ExtResource("6_fx")
+handler = NodePath("..")
+"""
+	var lane_header: String = (
+		'[ext_resource type="Script" path="%s" id="5_fx"]\n' % EFFECTS_SCRIPT
+		+ '[ext_resource type="SpriteFrames" path="%s/amtake_effects_frames.tres" id="6_fx"]'
+			% OUT)
+
 	_rewrite(LANE_SOURCE, "%s/Lane.tscn" % OUT, [
 		["res://assets/levels/ui/funkin/mania/funkin_lanes_frames.tres",
 			"%s/amtake_lanes_frames.tres" % OUT],
 		["res://assets/levels/ui/funkin/mania/funkin_lanes_library.tres",
 			"%s/amtake_lanes_library.tres" % OUT],
-	])
+	], lane_header, lane_extras)
 
 	# Order matters: the resource PATHS go first, then the library key. The key rename
 	# would otherwise rewrite the middle of
@@ -122,7 +141,8 @@ func _build_scenes() -> void:
 	_rewrite(NOTE_SOURCE, "%s/Note.tscn" % OUT, note_swaps)
 
 
-func _rewrite(from: String, to: String, swaps: Array) -> void:
+func _rewrite(from: String, to: String, swaps: Array, header: String = "",
+		extras: String = "") -> void:
 	var text: String = FileAccess.get_file_as_string(from)
 	if text.is_empty():
 		push_error("no se pudo leer %s" % from)
@@ -135,6 +155,16 @@ func _rewrite(from: String, to: String, swaps: Array) -> void:
 			quit(1)
 			return
 		text = text.replace(swap[0], swap[1])
+
+	if not header.is_empty():
+		# After the last ext_resource, so the ids the extra nodes reference are declared
+		# before anything uses them.
+		var last: int = text.rfind("[ext_resource")
+		var line_end: int = text.find("\n", last)
+		text = text.insert(line_end + 1, header + "\n")
+
+	if not extras.is_empty():
+		text += extras
 
 	# A uid= beside a path= WINS, so every swapped ext_resource line has to lose its uid or
 	# Godot loads the funkin resource the new path was meant to replace. This caught
@@ -174,6 +204,11 @@ func _sparrow(png: String) -> SpriteFrames:
 	data.atlas_path = png.get_basename() + ".xml"
 	data.fps = 24
 	data.loop = false
+	# sparrow.gd carries `last_frame` across animation boundaries and crashes when an
+	# animation's first frame repeats the previous animation's last one - see
+	# tools/animania/build_icons.gd. The effect atlases hit it; the note and lane ones do
+	# not, but nothing here relies on held frames, so it is off for all of them.
+	data.use_frame_duration = false
 	var importer: SpriteImporter = load("res://addons/sprite_importer/importers/sparrow.gd").new()
 	return importer.convert_sprite([data])
 
@@ -219,6 +254,74 @@ func _build_notes() -> SpriteFrames:
 			frames.add_frame(name, region)
 
 	return frames
+
+
+# amtake-base.json's noteSplash and holdNoteCover blocks. Both ship two variants per
+# colour; the splash block names both (left1/left2) and the hold-cover block names only the
+# first, which is why only variant 1 is built for covers.
+const SPLASH_VARIANTS := 2
+
+
+## The hit splashes and the hold covers. Rubicon has no slot for either - see
+## animania_mod/scripts/lane_effects.gd, which is what plays them.
+##
+## These two atlases cannot go through the importer's naming: it strips the frame index
+## with `\\d+$`, and these subtextures are spelled "note splash purple 10000" - the VARIANT
+## digit sits immediately before the index, so the regex eats both and variants 1 and 2
+## collapse into a single animation named "note splash purple " (trailing space, 8 frames).
+## They are separated here by splitting that merged animation in half, which is sound
+## because the importer sorts frames by int(index) and 10000..10003 all come before
+## 20000..20003.
+func _build_effects() -> SpriteFrames:
+	var splashes: SpriteFrames = _sparrow("%s/noteSplashes.png" % SOURCE)
+	var covers: SpriteFrames = _sparrow("%s/strum-holds.png" % SOURCE)
+	var built := SpriteFrames.new()
+	built.remove_animation("default")
+
+	for direction: String in DIRECTIONS:
+		var colour: String = NOTE_COLOURS[direction]
+
+		# amtake-base.json names both splash variants (left1, left2) and picks between them.
+		_split(splashes, "note splash %s " % colour, built,
+			["splash_%s_1" % direction, "splash_%s_2" % direction], false)
+
+		# It names only variant 1 for the covers, so variant 2 is built and dropped. The
+		# body loops - holdNoteCover's `<dir>Continue` is `<dir>Start`'s clip looped.
+		_split(covers, "hold splash %s " % colour, built,
+			["cover_%s" % direction, ""], true)
+		_split(covers, "note splash %s end " % colour, built,
+			["cover_%s_end" % direction, ""], false)
+
+	return built
+
+
+## Splits one merged animation into `names.size()` equal runs. An empty name drops that run.
+func _split(source: SpriteFrames, merged: String, into: SpriteFrames,
+		names: Array, looped: bool) -> void:
+	if not source.has_animation(merged):
+		push_error("no existe la animacion [%s]" % merged)
+		quit(1)
+		return
+
+	var total: int = source.get_frame_count(merged)
+	if total % names.size() != 0:
+		push_error("[%s] tiene %d fotogramas, no divisible entre %d" % [
+			merged, total, names.size()])
+		quit(1)
+		return
+
+	var per_variant: int = total / names.size()
+	for variant: int in names.size():
+		var name: String = names[variant]
+		if name.is_empty():
+			continue
+		into.add_animation(name)
+		into.set_animation_speed(name, source.get_animation_speed(merged))
+		into.set_animation_loop(name, looped)
+		for i: int in per_variant:
+			var frame: int = variant * per_variant + i
+			into.add_frame(name, source.get_frame_texture(merged, frame),
+				source.get_frame_duration(merged, frame))
 
 
 ## Same duration-aware library the character build uses, and for the same reason: the

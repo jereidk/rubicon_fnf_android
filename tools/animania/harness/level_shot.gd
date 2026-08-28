@@ -11,7 +11,7 @@ extends Node2D
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
 # Moments the chart's camera events make interesting: the opening letterbox at 100px, the
 # widest bars of the song, the tightest, and the ending - plus a plain mid-song frame.
-const MOMENTS := [6.0, 45.0, 66.5, 91.0, 92.5, 131.5]
+const MOMENTS := [6.0, 45.0, 66.5, 88.4, 91.0, 92.5, 131.5]
 
 var _level: Node
 var _clock: Node
@@ -65,6 +65,14 @@ func _process(_delta: float) -> void:
 		var camera: Camera2D = get_viewport().get_camera_2d()
 		camera.zoom = camera.zoom_interpolate_target
 		camera.position = camera.position_interpolate_target
+
+		# Nudge every lane once so the shot has splashes in it. They last four frames at
+		# 24fps and a still frame almost never lands on one otherwise, which makes an
+		# effect that IS working look absent.
+		for side: String in ["Opponent", "Player"]:
+			for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
+				if lane.has_signal(&"just_pressed") and lane.results.size() > 0:
+					lane.just_pressed.emit()
 	elif step == 2:
 		var image: Image = get_viewport().get_texture().get_image()
 		var path: String = "user://level_%03d.png" % int(MOMENTS[index])
