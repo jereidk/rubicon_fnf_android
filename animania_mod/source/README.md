@@ -936,12 +936,15 @@ and the outro lerp. The texture is the mod's own `boil_texture.png`.
 
 ## The debug overlay, and the duplicate it found
 
-`animania_mod/scripts/debug_overlay.gd`, an autoload: fps, frame time, the **worst** frame
-in the last quarter second, static and peak and video memory, draw calls and node counts.
-An autoload rather than a node in a scene because the port changes scenes now, and a
-per-scene overlay blinks out exactly when the frame time is worth watching. Debug builds
-only — it frees itself otherwise. F3 toggles it, or a tap in the top-left corner, which is
-off the lanes.
+`animania_mod/scripts/debug_overlay.gd`, an autoload, and deliberately one line:
+`FPS: 60 | MEMORY: 200 MBS`, white, in the project's own font. An autoload rather than a
+node in a scene because the port changes scenes now, and a per-scene overlay blinks out
+exactly when the frame time is worth watching. Debug builds only — it frees itself
+otherwise. F3 toggles it, or a tap in the top-left corner, which is off the lanes.
+
+The mod ships no TTF to use instead: its `images/fonts/` are sparrow atlases
+(`alphabet-white`, `bold`, `default`, `freeplay-clear`) and the `vcr.ttf` the binary names
+is embedded in the executable rather than shipped.
 
 Writing it turned up something else. The touch controls are an autoload *and* the level
 scene instanced a second copy, and the addon has no singleton guard: both ran
