@@ -273,13 +273,25 @@ func _check_level() -> void:
 	_check(song.audio_players.size() == 3,
 		"faltan pistas: las voces vienen partidas por personaje")
 
-	# Each side's chart against the source JSON, where `d` is a lane AND a side.
+	# Each side's chart against the source JSON, where `d` is a lane AND a side - and which
+	# half is whose is settled by MEASUREMENT, not by reading. This line had it backwards,
+	# which is what crossed the two charts: tadano was given the notes komi sings, and komi
+	# sang tadano's. Neither a render nor the data shows it; both halves look like charts.
+	#
+	# What settles it is the mod shipping SPLIT VOCALS. The first `d < 4` note is at 18.95s
+	# and the first `d >= 4` note at 12.26s, so both tracks were measured at both moments:
+	#
+	#     t=12.2s   tadano -52.9 dB (silent)   komi -24.7 dB (singing)
+	#     t=18.9s   tadano -23.7 dB (singing)  komi -62.2 dB (silent)
+	#
+	# So `d < 4` is TADANO, the player, and `d >= 4` is komi. The two chart files on disk
+	# are named the other way round by the converter and were swapped to match.
 	var chart_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHART_JSON))
 	var notes: Array = chart_data["notes"]["standart"]
 	var expected: Dictionary = {"Opponent": 0, "Player": 0}
 	var kinds: Dictionary = {}
 	for note: Dictionary in notes:
-		var side: String = "Player" if int(note.get("d", 0)) >= 4 else "Opponent"
+		var side: String = "Opponent" if int(note.get("d", 0)) >= 4 else "Player"
 		expected[side] = int(expected[side]) + 1
 		var kind: String = str(note.get("k", ""))
 		if not kind.is_empty():
@@ -567,7 +579,7 @@ func _check_camera_events() -> void:
 	await _check_death()
 
 
-## phone-call.script's opening: onCreatePost plus cases 0, 1, 11, 13, 31, 166 and 168.
+## phone-call.script's opening: onCreatePost plus cases 0, 1, 11, 13, 31, 166 and 168.## phone-call.script's opening: onCreatePost plus cases 0, 1, 11, 13, 31, 166 and 168.
 ##
 ## All of it fails silently in the same way. The song still plays with its HUD already up,
 ## its title card never shown and both strumlines on the wrong sides - which is exactly what
