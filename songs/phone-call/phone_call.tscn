@@ -1,33 +1,35 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1_gpnxe"]
-[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/Meta.tres" id="2_jd0re"]
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3_imrfd"]
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_song.gd" id="4_0h4lr"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Inst.ogg" id="5_3xh3s"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Voices-tadano.ogg" id="6_i5oka"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Voices-komi.ogg" id="7_yna2q"]
-[ext_resource type="PackedScene" path="res://animania_mod/stages/stg_phone_call_street.tscn" id="8_1hp4u"]
-[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_komi.tscn" id="9_281pm"]
-[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_tadano.tscn" id="10_2203f"]
-[ext_resource type="PackedScene" path="res://addons/rubicon/resources/levels/ui/default/Judgment.tscn" id="11_l75t8"]
-[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/health_bar.tscn" id="12_g7usa"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/characters/komi_icon.tres" id="13_c8hcn"]
-[ext_resource type="Script" path="res://animania_mod/scripts/animated_health_icon.gd" id="14_g0nvh"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/characters/tadano_icon.tres" id="15_401pc"]
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="16_wxwi8"]
-[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/phone-call_Opponent.tres" id="17_cgly0"]
-[ext_resource type="Resource" path="res://animania_mod/songs/phone_call_note_overrides.tres" id="18_cysce"]
-[ext_resource type="PackedScene" path="res://animania_mod/notestyle/Lane.tscn" id="19_18ffo"]
-[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/phone-call_Player.tres" id="20_lfqtw"]
-[ext_resource type="Resource" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="21_72nuh"]
-[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="22_dl8kc"]
-[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="23_i1ytr"]
-[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_events.gd" id="24_t71hp"]
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="25_nktxk"]
-[ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="26_dklh1"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1_imrfd"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/Meta.tres" id="2_0h4lr"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3_3xh3s"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_song.gd" id="4_i5oka"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Inst.ogg" id="5_yna2q"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Voices-tadano.ogg" id="6_1hp4u"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/songs/audio/Voices-komi.ogg" id="7_281pm"]
+[ext_resource type="PackedScene" path="res://animania_mod/stages/stg_phone_call_street.tscn" id="8_2203f"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_komi.tscn" id="9_l75t8"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_tadano.tscn" id="10_g7usa"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_tadano_stand.tscn" id="11_c8hcn"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_komi_stand.tscn" id="12_g0nvh"]
+[ext_resource type="PackedScene" path="res://addons/rubicon/resources/levels/ui/default/Judgment.tscn" id="13_401pc"]
+[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/health_bar.tscn" id="14_wxwi8"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/characters/komi_icon.tres" id="15_cgly0"]
+[ext_resource type="Script" path="res://animania_mod/scripts/animated_health_icon.gd" id="16_cysce"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/characters/tadano_icon.tres" id="17_18ffo"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="18_lfqtw"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/phone-call_Opponent.tres" id="19_72nuh"]
+[ext_resource type="Resource" path="res://animania_mod/songs/phone_call_note_overrides.tres" id="20_dl8kc"]
+[ext_resource type="PackedScene" path="res://animania_mod/notestyle/Lane.tscn" id="21_i1ytr"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/phone-call/phone-call_Player.tres" id="22_t71hp"]
+[ext_resource type="Resource" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_nktxk"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="24_dklh1"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="25_gg83r"]
+[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_events.gd" id="26_sr2x5"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="27_veclm"]
+[ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="28_8ajqv"]
 
-[sub_resource type="Animation" id="Animation_gg83r"]
+[sub_resource type="Animation" id="Animation_s7ahw"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -42,7 +44,7 @@ tracks/0/keys = {
 "values": [Vector2(1920, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_sr2x5"]
+[sub_resource type="Animation" id="Animation_3pn0j"]
 length = 142.15218
 step = 0.01
 tracks/0/type = "value"
@@ -55,7 +57,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 4.731842, 4.736842, 4.7861843, 4.8355265, 4.8848686, 4.9342103, 4.9835525, 5.0328946, 5.082237, 5.131579, 5.180921, 5.230263, 5.2796054, 5.3289475, 5.3782897, 5.4276314, 5.4769735, 5.5263157, 5.575658, 5.625, 5.674342, 5.7236843, 5.7730265, 5.8223686, 5.8717103, 5.9210525, 5.9703946, 6.019737, 6.069079, 6.118421, 6.167763, 6.2171054, 6.2664475, 6.3157897, 6.3651314, 6.4144735, 6.4638157, 6.513158, 6.5625, 6.611842, 6.6611843, 6.7105265, 63.152893, 63.157894, 63.207237, 63.25658, 63.30592, 63.355263, 63.404606, 63.45395, 63.50329, 63.55263, 63.601974, 63.651318, 63.700657, 63.75, 63.799343, 63.848682, 63.898026, 63.94737, 63.99671, 64.04605, 64.0954, 64.14474, 64.19408, 64.24342, 64.29276, 64.3421, 66.31079, 66.31579, 72.62658, 72.63158, 83.67921, 83.68421, 86.837105, 86.8421, 91.573944, 91.57895, 97.88974, 97.89474, 104.20553, 104.210526, 110.52132, 110.52631, 116.81243, 116.81744, 118.41605, 118.42105, 121.573944, 121.57895, 124.73184, 124.73684, 127.100266, 127.10526, 128.67921, 128.6842, 130.60355, 130.60855, 130.66252, 130.71649, 130.77046, 130.82442, 130.87839, 130.93236, 130.98633, 131.0403, 131.09427, 131.14824, 131.2022, 131.25616, 131.31013, 131.3641, 131.41808, 131.47205, 131.526, 131.57997, 131.63394, 131.68791, 131.74188, 131.79585, 131.84981, 131.90378, 131.95775, 132.01172, 132.06569, 132.11966, 132.17363, 132.22758, 132.28156, 132.33553, 132.3895, 132.44347, 132.49744, 132.55139, 132.60536, 132.65933, 132.7133, 132.76727, 132.82124, 132.8752, 132.92917, 132.98314, 133.03711, 133.09108, 133.14505, 133.19902, 133.25298, 133.30695, 133.36092, 133.41489, 133.46886, 133.52283, 133.57678, 133.63075, 133.68472, 133.7387, 133.79266, 133.84663, 133.90059, 133.95456, 134.00853, 134.0625, 134.11647, 134.17044, 134.22441, 134.27837, 134.33234, 134.3863, 134.44028, 134.49425, 134.54822, 134.60217, 134.65614, 134.71011, 134.76408, 134.81805, 134.87202, 134.92598, 134.97995, 135.03392, 135.08789, 135.14186, 135.19583, 135.2498, 135.30376, 135.35773, 135.4117, 135.46567, 135.51964, 135.57361, 135.62756, 135.68153, 135.7355, 135.78947, 135.85576, 135.92203, 135.98831, 136.05458, 136.12086, 136.18715, 136.25342, 136.3197, 136.38597, 136.45226, 136.51854, 136.58481, 136.6511, 136.71736, 136.78365, 136.84993, 136.9162, 136.98248, 137.04875, 137.11504, 137.18132, 137.24759, 137.31387, 137.38014, 137.44643, 137.51271, 137.57898, 137.64526, 137.71153, 137.77782, 137.8441, 137.91037, 137.97665, 138.04294, 138.1092, 138.17549, 138.24176, 138.30804, 138.37433, 138.4406, 138.50688, 138.57315, 138.63943, 138.70572, 138.77199, 138.83827, 138.90454, 138.97083, 139.03711, 139.10338, 139.16966, 139.23593, 139.30222, 139.3685, 139.43477, 139.50105, 139.56732, 139.6336, 139.69989, 139.76616, 139.83244, 139.89871, 139.965, 140.03128, 140.09755, 140.16383, 140.2301, 140.29639, 140.36267, 140.42894, 140.49522, 140.5615, 140.62778, 140.69406, 140.76033, 140.82661, 140.8929, 140.95917, 141.02545, 141.09172, 141.158, 141.22429, 141.29056, 141.35684, 141.42311, 141.4894, 141.55568, 141.62195, 141.68823, 141.7545, 141.82079, 141.88707, 141.95334, 142.01962, 142.08589, 142.15218),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector2(325, 1173.5), Vector2(325, 1173.5), Vector2(325, 1173.5), Vector2(323.9407, 1173.5), Vector2(320.82248, 1173.5), Vector2(315.73486, 1173.5), Vector2(308.76736, 1173.5), Vector2(300.0095, 1173.5), Vector2(289.55078, 1173.5), Vector2(277.48074, 1173.5), Vector2(263.8889, 1173.5), Vector2(248.86475, 1173.5), Vector2(232.49783, 1173.5), Vector2(214.87766, 1173.5), Vector2(196.09375, 1173.5), Vector2(176.23563, 1173.5), Vector2(155.39279, 1173.5), Vector2(133.65479, 1173.5), Vector2(111.111115, 1173.5), Vector2(87.8513, 1173.5), Vector2(63.964844, 1173.5), Vector2(39.54129, 1173.5), Vector2(14.6701355, 1173.5), Vector2(-10.559082, 1173.5), Vector2(-36.056854, 1173.5), Vector2(-61.733673, 1173.5), Vector2(-87.5, 1173.5), Vector2(-113.26636, 1173.5), Vector2(-138.94315, 1173.5), Vector2(-164.44092, 1173.5), Vector2(-189.67017, 1173.5), Vector2(-214.54126, 1173.5), Vector2(-238.96484, 1173.5), Vector2(-262.85126, 1173.5), Vector2(-286.11108, 1173.5), Vector2(-308.6548, 1173.5), Vector2(-330.39282, 1173.5), Vector2(-351.23566, 1173.5), Vector2(-371.09375, 1173.5), Vector2(-389.8777, 1173.5), Vector2(-407.4978, 1173.5), Vector2(-423.86475, 1173.5), Vector2(-387.5, 1173.5), Vector2(-387.5, 1173.5), Vector2(-387.5, 1173.5), Vector2(-386.95386, 1173.4359), Vector2(-383.1308, 1172.9873), Vector2(-372.7539, 1171.7695), Vector2(-352.5463, 1169.3982), Vector2(-319.23105, 1165.4885), Vector2(-269.53125, 1159.6563), Vector2(-200.17, 1151.5166), Vector2(-107.87036, 1140.6852), Vector2(10.644531, 1126.7773), Vector2(158.65161, 1109.4086), Vector2(339.4278, 1088.1943), Vector2(556.25, 1062.75), Vector2(773.07227, 1037.3057), Vector2(953.84827, 1016.09143), Vector2(1101.8555, 998.72266), Vector2(1220.3705, 984.8148), Vector2(1312.6699, 973.9834), Vector2(1382.0313, 965.84375), Vector2(1431.7311, 960.0114), Vector2(1465.0463, 956.10187), Vector2(1485.2539, 953.73047), Vector2(1495.6309, 952.5127), Vector2(1499.4537, 952.0641), Vector2(1500, 952), Vector2(1500, 952), Vector2(850, 1098.5), Vector2(850, 1098.5), Vector2(1425, 1027), Vector2(1425, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(1425, 1027), Vector2(1425, 1027), Vector2(1125, 1027), Vector2(1125, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(975, 1027), Vector2(975, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(937.5, 1027), Vector2(937.5, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(975, 1027), Vector2(975, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(975, 1027), Vector2(975, 1027), Vector2(975, 1027), Vector2(975, 1027), Vector2(975, 1027), Vector2(975.0011, 1027.0027), Vector2(975.0084, 1027.0211), Vector2(975.0276, 1027.069), Vector2(975.0634, 1027.1586), Vector2(975.12006, 1027.3), Vector2(975.2009, 1027.5024), Vector2(975.309, 1027.7726), Vector2(975.4465, 1028.1162), Vector2(975.615, 1028.5375), Vector2(975.81573, 1029.0394), Vector2(976.0493, 1029.6233), Vector2(976.3159, 1030.2898), Vector2(976.6152, 1031.038), Vector2(976.9464, 1031.8661), Vector2(977.30853, 1032.7714), Vector2(977.7001, 1033.7502), Vector2(978.11926, 1034.7982), Vector2(978.564, 1035.91), Vector2(979.032, 1037.08), Vector2(979.52057, 1038.3014), Vector2(980.027, 1039.5675), Vector2(980.5484, 1040.871), Vector2(981.08154, 1042.204), Vector2(981.62335, 1043.5585), Vector2(982.17053, 1044.9263), Vector2(982.71967, 1046.2992), Vector2(983.2675, 1047.6688), Vector2(983.81067, 1049.0266), Vector2(984.3458, 1050.3646), Vector2(984.8698, 1051.6746), Vector2(985.3795, 1052.9487), Vector2(985.8719, 1054.1797), Vector2(986.3442, 1055.3605), Vector2(986.79376, 1056.4844), Vector2(987.2182, 1057.5455), Vector2(987.6154, 1058.5386), Vector2(987.9836, 1059.459), Vector2(988.3211, 1060.3027), Vector2(988.62683, 1061.0671), Vector2(988.89996, 1061.75), Vector2(989.1402, 1062.3505), Vector2(989.3475, 1062.8687), Vector2(989.52234, 1063.3059), Vector2(989.6659, 1063.6648), Vector2(989.77966, 1063.9492), Vector2(989.86584, 1064.1646), Vector2(989.92706, 1064.3176), Vector2(989.96674, 1064.4169), Vector2(989.98883, 1064.4722), Vector2(989.9981, 1064.4954), Vector2(990, 1064.5), Vector2(990.00055, 1064.5013), Vector2(990.00616, 1064.5155), Vector2(990.0226, 1064.5564), Vector2(990.0547, 1064.6367), Vector2(990.1069, 1064.7672), Vector2(990.1827, 1064.9567), Vector2(990.2851, 1065.2128), Vector2(990.41656, 1065.5414), Vector2(990.57874, 1065.9469), Vector2(990.773, 1066.4325), Vector2(991, 1066.9999), Vector2(991.25995, 1067.6499), Vector2(991.55273, 1068.3818), Vector2(991.8777, 1069.1942), Vector2(992.2337, 1070.0844), Vector2(992.6195, 1071.0488), Vector2(993.0333, 1072.0833), Vector2(993.47314, 1073.1829), Vector2(993.93665, 1074.3416), Vector2(994.4213, 1075.5532), Vector2(994.92444, 1076.811), Vector2(995.44305, 1078.1077), Vector2(995.9741, 1079.4353), Vector2(996.51447, 1080.7863), Vector2(997.06085, 1082.1521), Vector2(997.60986, 1083.5247), Vector2(998.1582, 1084.8955), Vector2(998.7026, 1086.2563), Vector2(999.23956, 1087.599), Vector2(999.76605, 1088.9152), Vector2(1000.2789, 1090.1971), Vector2(1000.7749, 1091.4374), Vector2(1001.25146, 1092.6287), Vector2(1001.70575, 1093.7644), Vector2(1002.13544, 1094.8386), Vector2(1002.53827, 1095.8457), Vector2(1002.91235, 1096.7809), Vector2(1003.2561, 1097.6403), Vector2(1003.5683, 1098.4207), Vector2(1003.848, 1099.12), Vector2(1004.0948, 1099.7369), Vector2(1004.3086, 1100.2715), Vector2(1004.4899, 1100.7247), Vector2(1004.63965, 1101.0991), Vector2(1004.7592, 1101.3981), Vector2(1004.7549, 1101.2996), Vector2(1004.7419, 1101.0056), Vector2(1004.72046, 1100.5193), Vector2(1004.6906, 1099.8433), Vector2(1004.6525, 1098.9802), Vector2(1004.6063, 1097.933), Vector2(1004.5521, 1096.7043), Vector2(1004.49, 1095.297), Vector2(1004.4201, 1093.7139), Vector2(1004.34265, 1091.9575), Vector2(1004.2576, 1090.0309), Vector2(1004.1652, 1087.9366), Vector2(1004.06555, 1085.6777), Vector2(1003.9587, 1083.2567), Vector2(1003.84485, 1080.6764), Vector2(1003.72406, 1077.9397), Vector2(1003.5965, 1075.0492), Vector2(1003.4623, 1072.0078), Vector2(1003.32153, 1068.8182), Vector2(1003.1744, 1065.4833), Vector2(1003.02094, 1062.0056), Vector2(1002.8613, 1058.3882), Vector2(1002.6956, 1054.6337), Vector2(1002.52405, 1050.7449), Vector2(1002.3466, 1046.7245), Vector2(1002.1635, 1042.5753), Vector2(1001.9749, 1038.3002), Vector2(1001.7808, 1033.9017), Vector2(1001.5814, 1029.3829), Vector2(1001.37683, 1024.7465), Vector2(1001.1671, 1019.995), Vector2(1000.9525, 1015.13135), Vector2(1000.7331, 1010.15845), Vector2(1000.5089, 1005.07886), Vector2(1000.2802, 999.8955), Vector2(1000.047, 994.611), Vector2(999.8095, 989.2283), Vector2(999.56775, 983.75), Vector2(999.3219, 978.179), Vector2(999.07214, 972.51807), Vector2(998.8185, 966.76984), Vector2(998.5611, 960.93726), Vector2(998.3001, 955.02295), Vector2(998.03564, 949.0298), Vector2(997.7678, 942.9605), Vector2(997.49677, 936.8179), Vector2(997.2226, 930.6047), Vector2(996.94543, 924.3236), Vector2(996.6654, 917.9776), Vector2(996.3826, 911.5693), Vector2(996.0972, 905.10144), Vector2(995.8093, 898.5769), Vector2(995.51904, 891.9984), Vector2(995.2265, 885.3688), Vector2(994.93176, 878.6907), Vector2(994.6351, 871.967), Vector2(994.3365, 865.20044), Vector2(994.03613, 858.39374), Vector2(993.73413, 851.54974), Vector2(993.4306, 844.6712), Vector2(993.1257, 837.76086), Vector2(992.81946, 830.82153), Vector2(992.5121, 823.85596), Vector2(992.2037, 816.8669), Vector2(991.89435, 809.8571), Vector2(991.5842, 802.82947), Vector2(991.2735, 795.7866), Vector2(990.96216, 788.73145), Vector2(990.6504, 781.66656), Vector2(990.3383, 774.59485), Vector2(990.0261, 767.51917), Vector2(989.7138, 760.44214), Vector2(989.4016, 753.3665), Vector2(989.08954, 746.2952), Vector2(988.77783, 739.23083), Vector2(988.46655, 732.1764), Vector2(988.1558, 725.1344), Vector2(987.8457, 718.1077), Vector2(987.53644, 711.0992), Vector2(987.22815, 704.11145), Vector2(986.92084, 697.14746), Vector2(986.6147, 690.2098), Vector2(986.3098, 683.3014), Vector2(986.0064, 676.42487), Vector2(985.70447, 669.5831), Vector2(985.40424, 662.7788), Vector2(985.1058, 656.0148), Vector2(984.8092, 649.2938), Vector2(984.51465, 642.61865), Vector2(984.2222, 635.99207), Vector2(983.93207, 629.4169), Vector2(983.6443, 622.89575), Vector2(983.3591, 616.4315), Vector2(983.0764, 610.027), Vector2(982.7966, 603.6848), Vector2(982.5196, 597.4079)]
+"values": [Vector2(325, 1173.5), Vector2(325, 1173.5), Vector2(325, 1173.5), Vector2(323.9407, 1173.5), Vector2(320.82248, 1173.5), Vector2(315.73486, 1173.5), Vector2(308.76736, 1173.5), Vector2(300.0095, 1173.5), Vector2(289.55078, 1173.5), Vector2(277.48074, 1173.5), Vector2(263.8889, 1173.5), Vector2(248.86475, 1173.5), Vector2(232.49783, 1173.5), Vector2(214.87766, 1173.5), Vector2(196.09375, 1173.5), Vector2(176.23563, 1173.5), Vector2(155.39279, 1173.5), Vector2(133.65479, 1173.5), Vector2(111.111115, 1173.5), Vector2(87.8513, 1173.5), Vector2(63.964844, 1173.5), Vector2(39.54129, 1173.5), Vector2(14.6701355, 1173.5), Vector2(-10.559082, 1173.5), Vector2(-36.056854, 1173.5), Vector2(-61.733673, 1173.5), Vector2(-87.5, 1173.5), Vector2(-113.26636, 1173.5), Vector2(-138.94315, 1173.5), Vector2(-164.44092, 1173.5), Vector2(-189.67017, 1173.5), Vector2(-214.54126, 1173.5), Vector2(-238.96484, 1173.5), Vector2(-262.85126, 1173.5), Vector2(-286.11108, 1173.5), Vector2(-308.6548, 1173.5), Vector2(-330.39282, 1173.5), Vector2(-351.23566, 1173.5), Vector2(-371.09375, 1173.5), Vector2(-389.8777, 1173.5), Vector2(-407.4978, 1173.5), Vector2(-423.86475, 1173.5), Vector2(-387.5, 1173.5), Vector2(-387.5, 1173.5), Vector2(-387.5, 1173.5), Vector2(-386.95386, 1173.4359), Vector2(-383.1308, 1172.9873), Vector2(-372.7539, 1171.7695), Vector2(-352.5463, 1169.3982), Vector2(-319.23105, 1165.4885), Vector2(-269.53125, 1159.6563), Vector2(-200.17, 1151.5166), Vector2(-107.87036, 1140.6852), Vector2(10.644531, 1126.7773), Vector2(158.65161, 1109.4086), Vector2(339.4278, 1088.1943), Vector2(556.25, 1062.75), Vector2(773.07227, 1037.3057), Vector2(953.84827, 1016.09143), Vector2(1101.8555, 998.72266), Vector2(1220.3705, 984.8148), Vector2(1312.6699, 973.9834), Vector2(1382.0313, 965.84375), Vector2(1431.7311, 960.0114), Vector2(1465.0463, 956.10187), Vector2(1485.2539, 953.73047), Vector2(1495.6309, 952.5127), Vector2(1499.4537, 952.0641), Vector2(1500, 952), Vector2(1500, 952), Vector2(850, 1098.5), Vector2(850, 1098.5), Vector2(1425, 1027), Vector2(1425, 1027), Vector2(-200, 1098.5), Vector2(-200, 1098.5), Vector2(1425, 1027), Vector2(1425, 1027), Vector2(659.5, 735), Vector2(659.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(472, 735), Vector2(472, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5011, 735.0027), Vector2(509.50842, 735.02106), Vector2(509.5276, 735.069), Vector2(509.56342, 735.1585), Vector2(509.62003, 735.3001), Vector2(509.70096, 735.5024), Vector2(509.80902, 735.7725), Vector2(509.94647, 736.1162), Vector2(510.11502, 736.53754), Vector2(510.31573, 737.03937), Vector2(510.54932, 737.62335), Vector2(510.81592, 738.2898), Vector2(511.11517, 739.03796), Vector2(511.4464, 739.866), Vector2(511.80853, 740.77136), Vector2(512.2001, 741.75024), Vector2(512.61926, 742.79816), Vector2(513.064, 743.91003), Vector2(513.532, 745.0799), Vector2(514.02057, 746.3014), Vector2(514.527, 747.5675), Vector2(515.0484, 748.871), Vector2(515.58154, 750.2039), Vector2(516.12335, 751.5585), Vector2(516.67053, 752.92633), Vector2(517.21967, 754.29926), Vector2(517.7675, 755.66876), Vector2(518.31067, 757.0266), Vector2(518.8458, 758.36456), Vector2(519.3698, 759.67456), Vector2(519.8795, 760.9487), Vector2(520.3719, 762.1797), Vector2(520.8442, 763.3605), Vector2(521.29376, 764.4844), Vector2(521.7182, 765.54553), Vector2(522.1154, 766.53864), Vector2(522.4836, 767.459), Vector2(522.8211, 768.30273), Vector2(523.12683, 769.0671), Vector2(523.39996, 769.75), Vector2(523.6402, 770.35046), Vector2(523.8475, 770.86865), Vector2(524.02234, 771.30585), Vector2(524.1659, 771.66473), Vector2(524.27966, 771.9492), Vector2(524.36584, 772.16455), Vector2(524.42706, 772.3176), Vector2(524.46674, 772.4168), Vector2(524.48883, 772.4721), Vector2(524.4981, 772.49536), Vector2(524.5, 772.5), Vector2(524.50055, 772.5014), Vector2(524.50616, 772.51544), Vector2(524.5226, 772.5564), Vector2(524.5547, 772.6367), Vector2(524.6069, 772.76715), Vector2(524.6827, 772.9567), Vector2(524.7851, 773.21277), Vector2(524.91656, 773.5414), Vector2(525.07874, 773.9469), Vector2(525.273, 774.4325), Vector2(525.5, 774.99994), Vector2(525.75995, 775.6499), Vector2(526.05273, 776.38184), Vector2(526.3777, 777.19415), Vector2(526.7337, 778.0843), Vector2(527.1195, 779.04877), Vector2(527.5333, 780.0833), Vector2(527.97314, 781.1828), Vector2(528.43665, 782.34155), Vector2(528.9213, 783.5533), Vector2(529.42444, 784.8111), Vector2(529.94305, 786.10767), Vector2(530.4741, 787.43536), Vector2(531.01447, 788.7862), Vector2(531.56085, 790.1521), Vector2(532.10986, 791.52466), Vector2(532.6582, 792.8955), Vector2(533.2026, 794.2564), Vector2(533.73956, 795.599), Vector2(534.26605, 796.91516), Vector2(534.7789, 798.19714), Vector2(535.2749, 799.4373), Vector2(535.75146, 800.62866), Vector2(536.20575, 801.76447), Vector2(536.63544, 802.8386), Vector2(537.03827, 803.8457), Vector2(537.41235, 804.7809), Vector2(537.7561, 805.64026), Vector2(538.0683, 806.4207), Vector2(538.348, 807.12), Vector2(538.5948, 807.73694), Vector2(538.8086, 808.27155), Vector2(538.9899, 808.7248), Vector2(539.13965, 809.09906), Vector2(539.2592, 809.3981), Vector2(539.2549, 809.2995), Vector2(539.2419, 809.0057), Vector2(539.22046, 808.51935), Vector2(539.1906, 807.84326), Vector2(539.1525, 806.9802), Vector2(539.1063, 805.933), Vector2(539.0521, 804.7043), Vector2(538.99, 803.297), Vector2(538.9201, 801.7138), Vector2(538.84265, 799.9575), Vector2(538.7576, 798.0309), Vector2(538.6652, 795.9367), Vector2(538.56555, 793.6777), Vector2(538.4587, 791.25665), Vector2(538.34485, 788.6764), Vector2(538.22406, 785.93964), Vector2(538.0965, 783.0492), Vector2(537.9623, 780.0078), Vector2(537.82153, 776.81824), Vector2(537.6744, 773.4833), Vector2(537.52094, 770.0057), Vector2(537.3613, 766.38824), Vector2(537.1956, 762.63367), Vector2(537.02405, 758.7449), Vector2(536.8466, 754.7245), Vector2(536.6635, 750.5753), Vector2(536.4749, 746.3002), Vector2(536.2808, 741.9018), Vector2(536.0814, 737.38293), Vector2(535.87683, 732.7464), Vector2(535.6671, 727.995), Vector2(535.4525, 723.13135), Vector2(535.2331, 718.15845), Vector2(535.0089, 713.07886), Vector2(534.7802, 707.8955), Vector2(534.547, 702.611), Vector2(534.3095, 697.2283), Vector2(534.06775, 691.75), Vector2(533.8219, 686.179), Vector2(533.57214, 680.51807), Vector2(533.3185, 674.76984), Vector2(533.0611, 668.93726), Vector2(532.8001, 663.02295), Vector2(532.53564, 657.0298), Vector2(532.2678, 650.9605), Vector2(531.99677, 644.8179), Vector2(531.7226, 638.6047), Vector2(531.44543, 632.3236), Vector2(531.1654, 625.9776), Vector2(530.8826, 619.5693), Vector2(530.5972, 613.10144), Vector2(530.3093, 606.5769), Vector2(530.01904, 599.9984), Vector2(529.7265, 593.3688), Vector2(529.43176, 586.6907), Vector2(529.1351, 579.967), Vector2(528.8365, 573.20044), Vector2(528.53613, 566.39374), Vector2(528.23413, 559.54974), Vector2(527.9306, 552.6712), Vector2(527.6257, 545.76086), Vector2(527.31946, 538.82153), Vector2(527.0121, 531.85596), Vector2(526.7037, 524.8669), Vector2(526.39435, 517.8571), Vector2(526.0842, 510.82944), Vector2(525.7735, 503.78662), Vector2(525.46216, 496.7314), Vector2(525.1504, 489.66656), Vector2(524.8383, 482.59488), Vector2(524.5261, 475.51913), Vector2(524.2138, 468.4421), Vector2(523.9016, 461.36652), Vector2(523.58954, 454.29523), Vector2(523.27783, 447.23087), Vector2(522.96655, 440.17636), Vector2(522.6558, 433.13437), Vector2(522.3457, 426.10773), Vector2(522.03644, 419.09918), Vector2(521.72815, 412.11148), Vector2(521.42084, 405.14743), Vector2(521.1147, 398.20978), Vector2(520.8098, 391.30136), Vector2(520.5064, 384.42487), Vector2(520.20447, 377.5831), Vector2(519.90424, 370.7788), Vector2(519.6058, 364.0148), Vector2(519.3092, 357.29382), Vector2(519.01465, 350.61865), Vector2(518.7222, 343.99207), Vector2(518.43207, 337.41684), Vector2(518.1443, 330.89572), Vector2(517.8591, 324.43152), Vector2(517.5764, 318.02695), Vector2(517.2966, 311.68484), Vector2(517.0196, 305.4079)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -67,7 +69,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 91.57895),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(325, 1173.5), Vector2(1125, 1027)]
+"values": [Vector2(325, 1173.5), Vector2(659.5, 735)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -136,8 +138,8 @@ tracks/7/path = NodePath("../PhoneCallEvents")
 tracks/7/interp = 1
 tracks/7/loop_wrap = true
 tracks/7/keys = {
-"times": PackedFloat32Array(4.6710525, 6.513158, 12.532895, 21.217106, 24.917763, 27.631578, 28.026316, 33.799343, 37.5, 40.263157, 40.657894, 43.717106, 43.81579, 44.210526, 65.476974, 66.414474, 80.13158, 86.447365, 130.75658, 132.21217, 132.23685),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"times": PackedFloat32Array(4.6710525, 6.513158, 12.532895, 21.217106, 24.917763, 27.631578, 28.026316, 33.799343, 37.5, 40.263157, 40.657894, 43.717106, 43.81579, 44.210526, 65.476974, 66.414474, 80.13158, 86.447365, 91.57895, 130.75658, 132.21217, 132.23685),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "values": [{
 "args": [4, 0.0],
 "method": &"set_bop"
@@ -193,6 +195,9 @@ tracks/7/keys = {
 "args": [&"dad", &"breath", false],
 "method": &"play_character_animation"
 }, {
+"args": [],
+"method": &"stand_up"
+}, {
 "args": [4, 0.0],
 "method": &"set_bop"
 }, {
@@ -204,80 +209,91 @@ tracks/7/keys = {
 }]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_veclm"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_m0ign"]
 _data = {
-&"RESET": SubResource("Animation_gg83r"),
-&"scene": SubResource("Animation_sr2x5")
+&"RESET": SubResource("Animation_s7ahw"),
+&"scene": SubResource("Animation_3pn0j")
 }
 
-[node name="PhoneCall" type="Node2D" unique_id=364520092]
-script = ExtResource("1_gpnxe")
-metadata = ExtResource("2_jd0re")
+[node name="PhoneCall" type="Node2D" unique_id=1044106929]
+script = ExtResource("1_imrfd")
+metadata = ExtResource("2_0h4lr")
 
-[node name="RubiconLevelClock" type="Node" parent="." unique_id=1391638160]
-script = ExtResource("3_imrfd")
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=1460838047]
+script = ExtResource("3_3xh3s")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=189691873]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=1201472383]
 callback_mode_discrete = 2
-libraries/ = SubResource("AnimationLibrary_veclm")
+libraries/ = SubResource("AnimationLibrary_m0ign")
 autoplay = &"scene"
 
-[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=1187927566 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
-script = ExtResource("4_0h4lr")
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=1581201357 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+script = ExtResource("4_i5oka")
 audio_players = [NodePath("Instrumental"), NodePath("VocalsTadano"), NodePath("VocalsKomi")]
 sync_reference_player = NodePath("Instrumental")
 
-[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=187691557]
-stream = ExtResource("5_3xh3s")
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=522769763]
+stream = ExtResource("5_yna2q")
 bus = &"Music"
 
-[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=351097616]
-stream = ExtResource("6_i5oka")
+[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=2074998543]
+stream = ExtResource("6_1hp4u")
 bus = &"Music"
 
-[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1655496707]
-stream = ExtResource("7_yna2q")
+[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=920302965]
+stream = ExtResource("7_281pm")
 bus = &"Music"
 
-[node name="Stage" parent="." unique_id=1091887610 instance=ExtResource("8_1hp4u")]
+[node name="Stage" parent="." unique_id=1091887610 instance=ExtResource("8_2203f")]
 
-[node name="Komi" parent="Stage/Scroll_0p9_0p95" parent_id_path=PackedInt32Array(1091887610, 1300837446) index="3" unique_id=1432973371 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("9_281pm")]
+[node name="Komi" parent="Stage/Scroll_0p9_0p95" parent_id_path=PackedInt32Array(1091887610, 1300837446) index="3" unique_id=2125785181 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("9_l75t8")]
 z_index = 210
 position = Vector2(1200, 1365)
 level_note_controller = NodePath("../../../UILayer/UI/Opponent")
 
-[node name="Tadano" parent="Stage" unique_id=1997506540 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("10_2203f")]
+[node name="Tadano" parent="Stage" unique_id=2095122423 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("10_g7usa")]
 z_index = 210
 position = Vector2(50, 1415)
 level_note_controller = NodePath("../../UILayer/UI/Player")
 
-[node name="KomiGirlfriend" parent="Stage" unique_id=2011529123 instance=ExtResource("9_281pm")]
+[node name="KomiGirlfriend" parent="Stage" unique_id=1176767327 instance=ExtResource("9_l75t8")]
+visible = false
 z_index = -1
 position = Vector2(535, 1285)
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=1252994468]
+[node name="TadanoStand" parent="Stage" unique_id=535185831 instance=ExtResource("11_c8hcn")]
+visible = false
+z_index = 710
+position = Vector2(-30, 992)
+
+[node name="KomiStand" parent="Stage" unique_id=1411725615 instance=ExtResource("12_g0nvh")]
+visible = false
+z_index = 710
+position = Vector2(434.5, 995)
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=64247372]
 layer = 2
 
-[node name="UI" type="Control" parent="UILayer" unique_id=759552982]
+[node name="UI" type="Control" parent="UILayer" unique_id=1804300690]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Judgment" parent="UILayer/UI" unique_id=2015776677 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("11_l75t8")]
+[node name="Judgment" parent="UILayer/UI" unique_id=765105452 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_401pc")]
 layout_mode = 1
 level_note_controller = NodePath("../Player")
 
-[node name="HealthBar" parent="UILayer/UI" unique_id=2000574413 node_paths=PackedStringArray("health_module") instance=ExtResource("12_g7usa")]
+[node name="HealthBar" parent="UILayer/UI" unique_id=2000574413 node_paths=PackedStringArray("health_module") instance=ExtResource("14_wxwi8")]
 layout_mode = 1
 health_module = NodePath("../../../RubiconHealthModule")
 
 [node name="IconL" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(2000574413, 1230556197) index="0" unique_id=2114972775 node_paths=PackedStringArray("health_module", "note_controller")]
 scale = Vector2(-0.98039216, 0.98039216)
-sprite_frames = ExtResource("13_c8hcn")
+sprite_frames = ExtResource("15_cgly0")
 animation = &"idle"
 offset = Vector2(-83.5, 0)
-script = ExtResource("14_g0nvh")
+script = ExtResource("16_cysce")
 health_module = NodePath("../../../../../../RubiconHealthModule")
 note_controller = NodePath("../../../../Opponent")
 inverted = true
@@ -285,14 +301,14 @@ has_alt_poses = true
 
 [node name="IconR" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(2000574413, 1230556197) index="1" unique_id=500134408 node_paths=PackedStringArray("health_module", "note_controller")]
 scale = Vector2(1.0273973, 1.0273973)
-sprite_frames = ExtResource("15_401pc")
+sprite_frames = ExtResource("17_18ffo")
 animation = &"idle"
 offset = Vector2(-85.5, 0)
-script = ExtResource("14_g0nvh")
+script = ExtResource("16_cysce")
 health_module = NodePath("../../../../../../RubiconHealthModule")
 note_controller = NodePath("../../../../Player")
 
-[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=45073544]
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=997004412]
 anchors_preset = 0
 anchor_left = 0.25
 anchor_top = 1.0
@@ -302,35 +318,35 @@ offset_top = -160.0
 offset_bottom = -160.0
 grow_horizontal = 2
 grow_vertical = 0
-script = ExtResource("16_wxwi8")
-chart = ExtResource("17_cgly0")
-note_overrides = ExtResource("18_cysce")
+script = ExtResource("18_lfqtw")
+chart = ExtResource("19_72nuh")
+note_overrides = ExtResource("20_dl8kc")
 autoplay = true
 
-[node name="Lane" parent="UILayer/UI/Opponent" unique_id=990823892 instance=ExtResource("19_18ffo")]
+[node name="Lane" parent="UILayer/UI/Opponent" unique_id=990823892 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=1574933033 instance=ExtResource("19_18ffo")]
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=968465029 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=938465910 instance=ExtResource("19_18ffo")]
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=224639055 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1867582900 instance=ExtResource("19_18ffo")]
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1652958279 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="Player" type="Control" parent="UILayer/UI" unique_id=1046877483]
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=2121087362]
 anchors_preset = 0
 anchor_left = 0.75
 anchor_top = 1.0
@@ -340,59 +356,59 @@ offset_top = -160.0
 offset_bottom = -160.0
 grow_horizontal = 2
 grow_vertical = 0
-script = ExtResource("16_wxwi8")
-chart = ExtResource("20_lfqtw")
-note_overrides = ExtResource("18_cysce")
-inputs = ExtResource("21_72nuh")
+script = ExtResource("18_lfqtw")
+chart = ExtResource("22_t71hp")
+note_overrides = ExtResource("20_dl8kc")
+inputs = ExtResource("23_nktxk")
 
-[node name="Lane" parent="UILayer/UI/Player" unique_id=760584206 instance=ExtResource("19_18ffo")]
+[node name="Lane" parent="UILayer/UI/Player" unique_id=1383221922 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Player" unique_id=115508209 instance=ExtResource("19_18ffo")]
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=759159002 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Player" unique_id=120329897 instance=ExtResource("19_18ffo")]
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=766915032 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Player" unique_id=1185454511 instance=ExtResource("19_18ffo")]
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=43795632 instance=ExtResource("21_i1ytr")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1156960833]
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1109238137]
 position = Vector2(-200, 1098.5)
 
-[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=1219053129]
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=1497692124]
 position = Vector2(975, 1027)
 
-[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=682745606]
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1869551519]
 position = Vector2(960, 747)
 
-[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=1139450746]
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=945336496]
 position = Vector2(975, 1027)
 zoom = Vector2(0.975, 0.975)
-script = ExtResource("22_dl8kc")
+script = ExtResource("24_dklh1")
 position_interpolate_target = Vector2(975, 1027)
 position_interpolate_speed = 2.0
 zoom_interpolate_target = Vector2(0.975, 0.975)
 
-[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=2141155892]
-script = ExtResource("23_i1ytr")
+[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=1432241330]
+script = ExtResource("25_gg83r")
 bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=848743866 node_paths=PackedStringArray("camera", "bumper", "hud", "cast")]
-script = ExtResource("24_t71hp")
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=1303077747 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash")]
+script = ExtResource("26_sr2x5")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
 hud = NodePath("../UILayer")
@@ -402,26 +418,40 @@ cast = {
 &"dad": NodePath("../Stage/Scroll_0p9_0p95/Komi"),
 &"gf": NodePath("../Stage/KomiGirlfriend")
 }
+stand_cast = {
+&"boyfriend": NodePath("../Stage/TadanoStand"),
+&"dad": NodePath("../Stage/KomiStand")
+}
+stage = NodePath("../Stage")
+flash = NodePath("../Flash/White")
 
-[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=521175442]
+[node name="Flash" type="CanvasLayer" parent="." unique_id=1175946089]
 
-[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=1364781258]
+[node name="White" type="ColorRect" parent="Flash" unique_id=1652685506]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1939840573]
+
+[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=1457467071]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=1556709574]
+[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=1413116665]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RubiconHealthModule" type="Node" parent="." unique_id=365632554 node_paths=PackedStringArray("note_controller")]
-script = ExtResource("25_nktxk")
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=678886798 node_paths=PackedStringArray("note_controller")]
+script = ExtResource("27_veclm")
 note_controller = NodePath("../UILayer/UI/Player")
 starting_health = 50.0
 starting_health = 50.0
 
-[node name="MobileControls" parent="." unique_id=1703774272 instance=ExtResource("26_dklh1")]
+[node name="MobileControls" parent="." unique_id=1968104640 instance=ExtResource("28_8ajqv")]
 
 [editable path="Stage"]
 [editable path="UILayer/UI/HealthBar"]

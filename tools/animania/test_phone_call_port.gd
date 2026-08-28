@@ -329,6 +329,29 @@ func _check_level() -> void:
 
 	_check_icons(level)
 
+	# phone-call.script's standUP(): the two standing characters are in the scene from the
+	# start, hidden, positioned by setPosition()'s CORNER semantics, and 500 above the
+	# phone pair's z.
+	for entry: Array in [
+			["TadanoStand", Vector2(-175, 325), Vector2(290, 667), "end_animation"],
+			["KomiStand", Vector2(300, 325), Vector2(269, 670), "end_conv"]]:
+		var character: Node2D = level.find_child(entry[0], true, false)
+		_check(character != null, "falta %s" % entry[0])
+		if character == null:
+			continue
+		_check(not character.visible, "%s tendria que empezar oculto" % entry[0])
+		_check(character.z_index == 710, "%s tendria que estar a z=710" % entry[0])
+		var corner: Vector2 = entry[1]
+		var frame: Vector2 = entry[2]
+		_check(character.position.is_equal_approx(
+				corner + Vector2(frame.x * 0.5, frame.y)),
+			"%s esta en %s" % [entry[0], character.position])
+		# The animation the chart asks for at 132.2s, and the reason the swap exists.
+		_check(character.animation_player.has_animation(StringName(entry[3])),
+			"%s no tiene %s" % [entry[0], entry[3]])
+
+	_check(level.get_node("Flash/White") != null, "falta el destello blanco de standUP()")
+
 	level.queue_free()
 
 
@@ -353,6 +376,18 @@ func _check_camera_events() -> void:
 		1: level.get_node("OpponentCameraPoint").position,
 		2: level.get_node("GirlfriendCameraPoint").position,
 	}
+
+	# After standUP() the same `char` index means the standing pair, standing somewhere
+	# else. Their cameraOffsets are tadano-stand [200, 50] and komi-stand [50, 50].
+	const STAND_UP_TIME := 232.0 * 60.0 / 152.0
+	var stand_points: Dictionary = {}
+	for entry: Array in [
+			[0, "TadanoStand", Vector2(290, 667), Vector2(200, 50)],
+			[1, "KomiStand", Vector2(269, 670), Vector2(50, 50)]]:
+		var character: Node2D = level.find_child(entry[1], true, false)
+		stand_points[entry[0]] = (character.position
+			- Vector2(0.0, (entry[2] as Vector2).y * 0.5)
+			+ (entry[3] as Vector2) * FUNKIN_TO_RUBICON)
 
 	# The letterbox has to leave the notes alone: Rubicon anchors its strumlines to the
 	# BOTTOM, unlike Funkin, and the chart asks for 120px bars while notes are arriving.
@@ -458,7 +493,11 @@ func _check_camera_events() -> void:
 
 		match kind:
 			"FocusCamera":
-				var expected: Vector2 = focus_points[int(value.get("char", 0))] + Vector2(
+				var character: int = int(value.get("char", 0))
+				var points: Dictionary = stand_points \
+					if time >= STAND_UP_TIME and stand_points.has(character) \
+					else focus_points
+				var expected: Vector2 = points[character] + Vector2(
 					float(value.get("x", 0)), float(value.get("y", 0))) * FUNKIN_TO_RUBICON
 				_check(camera.position_interpolate_target.distance_to(expected) < 1.0,
 					"FocusCamera en %.1fs apunta a %s y esperaba %s" % [
@@ -505,6 +544,63 @@ func _check_camera_events() -> void:
 	# the loop above has already walked to the end of the song; seeking back to 60 and
 	# forward again does not re-fire what it passed on the way back.
 	await _check_idle_suffix()
+	await _check_stand_up()
+
+
+## The swap itself, walked to rather than seeked to.
+func _check_stand_up() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	await process_frame
+
+	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
+	var stage: Node2D = level.get_node("Stage")
+
+	_check(_visible_props(stage, false) > 0 and _visible_props(stage, true) == 0,
+		"antes del cambio no tendria que verse ningun prop stand-")
+
+	# Beat 232 at 152bpm.
+	await _wind_to(player, 232.0 * 60.0 / 152.0 + 0.5)
+
+	for name: String in ["TadanoStand", "KomiStand"]:
+		var character: Node2D = level.find_child(name, true, false)
+		_check(character.visible, "%s tendria que verse tras el cambio" % name)
+	for name: String in ["Tadano", "Komi", "KomiGirlfriend"]:
+		var character: Node2D = level.find_child(name, true, false)
+		_check(not character.visible, "%s tendria que ocultarse tras el cambio" % name)
+
+	# standUP(): prop.visible = prop.name.indexOf("stand-") != -1 - every prop inverts.
+	var visible_total: int = _visible_props(stage, false)
+	var visible_stand: int = _visible_props(stage, true)
+	_check(visible_total > 0 and visible_total == visible_stand,
+		"tras el cambio solo tendrian que verse props stand-: %d de %d" % [
+			visible_stand, visible_total])
+
+	# The cast rebinds, or the chart's endAnimation/endConv at 132.2s reach the characters
+	# that no longer have them.
+	var events: Node = level.get_node("PhoneCallEvents")
+	_check(events.cast[&"boyfriend"] == level.find_child("TadanoStand", true, false),
+		"el reparto no se reasigno a la pareja de pie")
+	_check(events.cast[&"dad"] == level.find_child("KomiStand", true, false),
+		"el reparto no se reasigno a la pareja de pie")
+
+	# Idempotent: the rebind means a second call would hide what the first revealed, and a
+	# method key fires again whenever something re-seeks across it.
+	events.stand_up()
+	_check(level.find_child("TadanoStand", true, false).visible,
+		"una segunda llamada a stand_up() oculto a la pareja de pie")
+
+	level.queue_free()
+
+
+func _visible_props(node: Node, only_stand: bool) -> int:
+	var count: int = 0
+	for child: Node in node.get_children():
+		if child is Sprite2D and (child as Sprite2D).visible:
+			if not only_stand or String(child.name).contains("stand_"):
+				count += 1
+		count += _visible_props(child, only_stand)
+	return count
 
 
 ## Winds an AnimationPlayer forward in small hops instead of one seek.

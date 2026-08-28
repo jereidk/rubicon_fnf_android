@@ -40,7 +40,92 @@ const TADANO_DRAWN_ORIGIN := Vector2(-211.5, 855.0)
 func _init() -> void:
 	_build_komi()
 	_build_tadano()
+	_build_stand_characters()
 	quit(0)
+
+
+# The two characters phone-call.script's standUP() swaps in at beat 232 - 91.6s at 152bpm,
+# which is where the song stops being a phone call and the two of them are finally standing
+# in front of each other. Both are multisparrow like komi, so the shape is hers; only the
+# animation tables and the frame sizes differ, and both come straight out of the character
+# JSONs and the atlas XML.
+func _build_stand_characters() -> void:
+	_build_sparrow_character("komi_stand", Vector2(269.0, 670.0), false, 8, {
+		&"dance_idle": [&"komi_stand_idle", Vector2(0, 0)],
+		&"sing_left": [&"komi_stand_left", Vector2(4, -2)],
+		&"sing_down": [&"komi_stand_down", Vector2(3, -11)],
+		&"sing_up": [&"komi_stand_up", Vector2(-5, 14)],
+		&"sing_right": [&"komi_stand_right", Vector2(-2, -4)],
+		# The chart's PlayAnimation at 132.2s, and the reason this character exists.
+		&"end_conv": [&"komi_stand_endkun", Vector2(-1, 2)],
+		&"game_over": [&"komi_stand_komigameover", Vector2(-1, 0)],
+	}, true)
+
+	_build_sparrow_character("tadano_stand", Vector2(290.0, 667.0), true, 8, {
+		&"dance_idle": [&"tadano_stand_idle", Vector2(0, 0)],
+		&"sing_left": [&"tadano_stand_left", Vector2(49, -4)],
+		&"sing_down": [&"tadano_stand_down", Vector2(10, -18)],
+		&"sing_up": [&"tadano_stand_up", Vector2(12, 15)],
+		&"sing_right": [&"tadano_stand_right", Vector2(-10, -1)],
+		&"miss_left": [&"tadano_stand_missleft", Vector2(49, -4)],
+		&"miss_down": [&"tadano_stand_missdown", Vector2(10, -18)],
+		&"miss_up": [&"tadano_stand_missup", Vector2(12, 15)],
+		&"miss_right": [&"tadano_stand_missright", Vector2(-10, -1)],
+		&"end_animation": [&"tadano_stand_end", Vector2(3, 2)],
+		&"first_death": [&"tadano_stand_tadanodeath", Vector2(0, 0)],
+	}, false)
+
+
+## `frame` is the sparrow frame size of idle0000, which is Funkin's characterOrigin - see
+## the note at the top of this file. `miss_falls_back` is for a character with no miss art.
+func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
+		sing_time: int, table: Dictionary, miss_falls_back: bool) -> void:
+	var clips: Dictionary = {}
+	var offsets: Dictionary = {}
+	for anim_name: StringName in table:
+		clips[anim_name] = (table[anim_name] as Array)[0]
+		offsets[anim_name] = (table[anim_name] as Array)[1]
+
+	var root := Node2D.new()
+	root.name = basename
+	root.set_script(load(CHARACTER_SCRIPT))
+
+	var sprite := AnimatedSprite2D.new()
+	sprite.name = "AnimatedSprite2D"
+	sprite.sprite_frames = load("%s/%s_frames.tres" % [OUT_DIR, basename])
+	sprite.animation = &"idle"
+	sprite.centered = false
+	sprite.position = Vector2(-frame.x * 0.5, -frame.y)
+	if flip:
+		sprite.scale = Vector2(-1.0, 1.0)
+		sprite.position.x = frame.x * 0.5
+	root.add_child(sprite)
+	sprite.owner = root
+
+	var sprite_player := AnimationPlayer.new()
+	sprite_player.name = "AnimationPlayer"
+	sprite_player.add_animation_library(&"", load("%s/%s_library.tres" % [OUT_DIR, basename]))
+	sprite.add_child(sprite_player)
+	sprite_player.owner = root
+
+	var root_player := AnimationPlayer.new()
+	root_player.name = "RootAnimationPlayer"
+	root_player.add_animation_library(&"", _root_library(
+		clips, offsets, ^"AnimatedSprite2D/AnimationPlayer", ^"AnimatedSprite2D:offset",
+		load("%s/%s_library.tres" % [OUT_DIR, basename])))
+	root_player.autoplay = &"dance_idle"
+	root.add_child(root_player)
+	root_player.owner = root
+
+	root.animation_player = root_player
+	root.animations = _sing_and_miss_map(miss_falls_back)
+	root.mania_anim_groups = _anim_groups()
+	root.dancing_animations = [&"dance_idle"] as Array[StringName]
+	root.dancing_measure_step = 0.25
+	root.singing_sing_to_dance_interval = sing_time
+	root.singing_repeat_loop_point = 2.0 / FPS
+
+	_save(root, "%s/chr_%s.tscn" % [OUT_DIR, basename])
 
 
 # komi.json: sparrow, danceEvery 1, singTime 8, loopHoldFrame 2, offsets [200, 50].

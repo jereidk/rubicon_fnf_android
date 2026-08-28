@@ -17,6 +17,9 @@ extends Node
 ##
 ## They arrive as method-track keys on the level clock's animation.
 
+## camGame.flash(FlxColor.WHITE, 1.5) in standUP().
+const FLASH_SECONDS := 1.5
+
 ## Funkin's default per-bop game zoom. SetCameraBop's `intensity` is a multiplier on it,
 ## which is why the chart's AddCameraZoom events mostly carry this exact number.
 const DEFAULT_BOP := 0.015
@@ -27,8 +30,14 @@ const DEFAULT_BOP := 0.015
 @export var hud: CanvasLayer
 ## The chart names characters the way Funkin does: "boyfriend"/"bf", "dad", "gf".
 @export var cast: Dictionary[StringName, Node] = {}
+## The two characters standUP() swaps in, and the phone-call pair it swaps out.
+@export var stand_cast: Dictionary[StringName, Node] = {}
+@export var stage: Node2D
+## A full-screen white ColorRect for camGame.flash.
+@export var flash: ColorRect
 
 var _hud_rest: Vector2 = Vector2.ONE
+var _stood_up: bool = false
 
 
 func _ready() -> void:
@@ -82,10 +91,14 @@ func play_character_animation(target: StringName, animation: StringName, force: 
 		return
 
 	if not character.animation_player.has_animation(animation):
-		# endAnimation and endConv, at 132.2s, live on the tadano-stand / komi-stand
-		# characters the song swaps in near the end. That swap is not ported.
-		push_warning("PlayAnimation pide %s, que %s no tiene" % [animation, target])
-		return
+		# The chart spells animations Funkin's way and this port spells them Rubicon's, so
+		# `endConv` has to find `end_conv`. Only tried as a fallback: an exact match always
+		# wins, and every name that is already snake_case survives the conversion unchanged.
+		var converted := StringName(String(animation).to_snake_case())
+		if not character.animation_player.has_animation(converted):
+			push_warning("PlayAnimation pide %s, que %s no tiene" % [animation, target])
+			return
+		animation = converted
 
 	if not force and character.animation_player.current_animation == animation:
 		return
@@ -142,3 +155,61 @@ func _release(_animation: StringName, character: Node) -> void:
 		return
 	if character.state == character.CharacterState.STATE_OVERRIDE:
 		character.state = character.CharacterState.STATE_DANCING
+
+
+## phone-call.script's standUP(), at beat 232 - 91.6s at 152bpm, where the song stops being
+## a phone call and the two of them are finally standing in front of each other.
+##
+## The script destroys the phone characters and fetches "tadano-stand" and "komi-stand" from
+## the character registry. Here all four are in the scene from the start and this is a
+## visibility swap: instantiating two multisparrow characters mid-song on a phone is a
+## stall, and there is nothing to gain from it.
+##
+## It also inverts the whole stage - `prop.visible = prop.name.indexOf("stand-") != -1` -
+## which is what the six `stand-` props hidden since buildStage() have been waiting for.
+func stand_up() -> void:
+	# Idempotent, and it has to be: the swap rebinds `cast` onto the standing pair, so a
+	# second call would hide the characters the first one just revealed. A method key fires
+	# more than once whenever something re-seeks across it, which every harness here does.
+	if _stood_up:
+		return
+	_stood_up = true
+
+	for slot: StringName in stand_cast:
+		var character: Node2D = stand_cast[slot]
+		if character == null:
+			continue
+		character.visible = true
+
+	for slot: StringName in [&"boyfriend", &"dad", &"gf"]:
+		var character: Node2D = cast.get(slot)
+		if character != null:
+			character.visible = false
+
+	# The chart's PlayAnimation events at 132.2s ask for `endAnimation` on boyfriend and
+	# `endConv` on dad, and those animations only exist on the standing pair - which is what
+	# the swap is FOR. Funkin gets this for free by destroying the old characters and
+	# putting the new ones in the same slots; here the cast has to be rebound.
+	for slot: StringName in stand_cast:
+		if stand_cast[slot] == null:
+			continue
+		cast[slot] = stand_cast[slot]
+		if slot == &"boyfriend":
+			cast[&"bf"] = stand_cast[slot]
+
+	if stage != null:
+		_swap_props(stage)
+
+	if flash != null:
+		flash.color = Color(1.0, 1.0, 1.0, 1.0)
+		var tween: Tween = create_tween()
+		tween.tween_property(flash, "color:a", 0.0, FLASH_SECONDS)
+
+
+func _swap_props(node: Node) -> void:
+	for child: Node in node.get_children():
+		if child is Sprite2D:
+			# The stage builds every prop under its authored name, `stand-` ones included,
+			# with the dashes turned into underscores.
+			child.visible = String(child.name).contains("stand_")
+		_swap_props(child)

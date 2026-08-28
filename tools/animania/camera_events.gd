@@ -60,17 +60,32 @@ const INSTANT_SPEED := 1000.0
 
 const CAMERA := ^"../RubiconInterpolatedCamera2D"
 
+## phone-call.script's onBeatHit, the parts that are structure rather than tweens and
+## modcharts. Beat 232 is standUP(): both characters swap to their standing versions and
+## every prop on the stage inverts its visibility.
+const SCRIPT_BEATS := [
+	[232, "stand_up", []],
+]
+
 
 var _focus_points: Dictionary = {}
+var _stand_focus_points: Dictionary = {}
+var _stand_from: float = INF
 var _base_zoom: float = 1.0
 var _bar_scale: float = FUNKIN_TO_RUBICON
 
 
-func _init(focus_points: Dictionary, base_zoom: float) -> void:
+func _init(focus_points: Dictionary, base_zoom: float,
+		stand_focus_points: Dictionary = {}, stand_from: float = INF) -> void:
 	# Keyed by Funkin's `char` index: 0 boyfriend, 1 dad, 2 girlfriend. Each value is the
 	# point the camera aims at with no event offset - the character's midpoint plus its
 	# own cameraOffsets.
 	_focus_points = focus_points
+	# After standUP() the same `char` index means a DIFFERENT character standing somewhere
+	# else. Funkin gets this for free, since the camera follows getBoyfriend()/getDad() and
+	# those now return the standing pair; a baked track has to switch tables by time.
+	_stand_focus_points = stand_focus_points
+	_stand_from = stand_from
 	_base_zoom = base_zoom
 
 
@@ -109,6 +124,14 @@ func build(events: Array, length: float) -> Animation:
 		next_of_kind[i] = float(next_of_kind.get("last_%s" % kind_at, INF))
 		next_of_kind["last_%s" % kind_at] = float(events[i]["t"]) / 1000.0
 
+	# phone-call.script acts on beats as well as on chart events, and those beats are not in
+	# the chart at all - standUP() at 232 is the biggest thing that happens in the song and
+	# nothing in phone-call-chart.json mentions it. 152bpm, so a beat is 60/152 seconds.
+	for entry: Array in SCRIPT_BEATS:
+		animation.track_insert_key(punch_track, float(entry[0]) * 60.0 / 152.0, {
+			"method": StringName(entry[1]), "args": entry[2],
+		})
+
 	var counts: Dictionary = {}
 	var focus: Vector2 = _focus_points[1]
 	var zoom: float = _base_zoom
@@ -138,7 +161,10 @@ func build(events: Array, length: float) -> Animation:
 					push_error("FocusCamera nombra char=%d, que no existe" % character)
 					continue
 
-				var target: Vector2 = _focus_points[character] + Vector2(
+				var points: Dictionary = _stand_focus_points \
+					if time >= _stand_from and _stand_focus_points.has(character) \
+					else _focus_points
+				var target: Vector2 = points[character] + Vector2(
 					float(value.get("x", 0)), float(value.get("y", 0))) * FUNKIN_TO_RUBICON
 				var ease_name: String = str(value.get("ease", "CLASSIC"))
 				var duration: float = float(value.get("duration", 4)) * STEP_SECONDS

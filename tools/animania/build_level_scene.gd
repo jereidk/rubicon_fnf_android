@@ -77,6 +77,26 @@ const CAST := {
 	},
 }
 
+# phone-call.script's standUP() destroys the phone characters and fetches these two from the
+# registry; here they are in the scene from the start and hidden, because instantiating two
+# multisparrow characters mid-song on a phone is a stall for nothing. setPosition() places
+# an FlxSprite by its CORNER, so the script's (-175, 325) and (300, 325) become these once
+# the scenes' own bottom-centre anchor is taken off.
+const STAND_CAST := {
+	"TadanoStand": {
+		"scene": "res://animania_mod/characters/chr_tadano_stand.tscn",
+		"corner": Vector2(-175, 325), "frame": Vector2(290, 667), "slot": "boyfriend",
+	},
+	"KomiStand": {
+		"scene": "res://animania_mod/characters/chr_komi_stand.tscn",
+		"corner": Vector2(300, 325), "frame": Vector2(269, 670), "slot": "dad",
+	},
+}
+## standUP(): boyfriend.zIndex = oldZIndex + 500, and the phone pair sit at 210.
+const STAND_Z := 710
+## phone-call.script calls standUP() on beat 232.
+const STAND_UP_BEAT := 232.0
+
 # metadata.json playData.characters: player tadano, opponent komi. The vocals are split
 # per character, which is a V-Slice feature - RubiconLevelSong takes N players, so this is
 # three AudioStreamPlayers rather than the two test.tscn has. Inst goes first because it
@@ -133,6 +153,7 @@ func _init() -> void:
 
 	var ui: Dictionary = _build_ui()
 	_place_cast(stage, ui)
+	_place_stand_cast(stage)
 	_build_camera()
 
 	_build_bars()
@@ -219,8 +240,20 @@ func _bake_camera_events(length: float) -> void:
 		2: _root.get_node("GirlfriendCameraPoint").position,
 	}
 
-	var baker: RefCounted = load(
-		"res://tools/animania/camera_events.gd").new(focus_points, base_zoom)
+	# After standUP() the same FocusCamera `char` means the standing pair, somewhere else.
+	# Their cameraOffsets are komi-stand [50, 50] and tadano-stand [200, 50].
+	var stand_points: Dictionary = {}
+	for character_name: String in STAND_CAST:
+		var entry: Dictionary = STAND_CAST[character_name]
+		var character: Node2D = _root.find_child(character_name, true, false)
+		var offsets := Vector2(200.0, 50.0) if entry["slot"] == "boyfriend" \
+			else Vector2(50.0, 50.0)
+		stand_points[0 if entry["slot"] == "boyfriend" else 1] = (character.position
+			- Vector2(0.0, (entry["frame"] as Vector2).y * 0.5)
+			+ offsets * FUNKIN_TO_RUBICON)
+
+	var baker: RefCounted = load("res://tools/animania/camera_events.gd").new(
+		focus_points, base_zoom, stand_points, STAND_UP_BEAT * 60.0 / 152.0)
 	var scene: Animation = baker.build(chart["events"], length)
 
 	var library: AnimationLibrary = _clock_player.get_animation_library(&"")
@@ -352,6 +385,24 @@ func _add_control(parent: Control, control: Control) -> void:
 	control.set(&"layout_mode", 1)
 
 
+## camGame.flash(FlxColor.WHITE, 1.5) in standUP(). Above the stage and below the HUD, the
+## same place the letterbox sits - it is a flash over the scene, not over the notes.
+func _build_flash() -> ColorRect:
+	var layer := CanvasLayer.new()
+	layer.name = "Flash"
+	layer.layer = 1
+	_root.add_child(layer)
+
+	var rect := ColorRect.new()
+	rect.name = "White"
+	rect.color = Color(1.0, 1.0, 1.0, 0.0)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.size = Vector2(1920.0, 1080.0)
+	layer.add_child(rect)
+	rect.set(&"layout_mode", 0)
+	return rect
+
+
 ## Letterbox bars for the chart's seven CinematicBars events.
 ##
 ## They sit ABOVE the stage and BELOW the HUD, which is a deliberate departure from where
@@ -398,6 +449,9 @@ func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 		var side: String = entry["side"]
 		if not side.is_empty():
 			character.level_note_controller = ui[side]
+		else:
+			# phone-call.script's onCreatePost: currentStage.getGirlfriend().visible = false.
+			character.visible = false
 
 		# The camera aims at a character's midpoint plus its cameraOffsets, and the chart's
 		# FocusCamera events add their own offset on top of that. All three get a marker,
@@ -415,6 +469,19 @@ func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 			- Vector2(0.0, float(entry["height"]) * 0.5)
 			+ (entry["camera_offsets"] as Vector2))
 		_root.add_child(point)
+
+
+func _place_stand_cast(stage: Node2D) -> void:
+	for character_name: String in STAND_CAST:
+		var entry: Dictionary = STAND_CAST[character_name]
+		var character: Node2D = load(entry["scene"]).instantiate(
+			PackedScene.GEN_EDIT_STATE_INSTANCE)
+		character.name = character_name
+		var frame: Vector2 = entry["frame"]
+		character.position = (entry["corner"] as Vector2) + Vector2(frame.x * 0.5, frame.y)
+		character.z_index = STAND_Z
+		character.visible = false
+		stage.add_child(character)
 
 
 func _build_camera() -> void:
@@ -455,6 +522,13 @@ func _build_camera() -> void:
 		&"gf": _root.find_child("KomiGirlfriend", true, false),
 	}
 	events.cast = cast_map
+	var stand_map: Dictionary[StringName, Node] = {}
+	for character_name: String in STAND_CAST:
+		stand_map[StringName((STAND_CAST[character_name] as Dictionary)["slot"])] = \
+			_root.find_child(character_name, true, false)
+	events.stand_cast = stand_map
+	events.stage = _root.get_node("Stage")
+	events.flash = _build_flash()
 
 
 func _own(node: Node, owner: Node) -> void:

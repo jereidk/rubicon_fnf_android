@@ -649,3 +649,70 @@ anchored to in Funkin is not recoverable from this slice, so this follows the so
 `level_shot.gd` nudges every lane's `just_pressed` once before capturing. A splash lasts
 four frames at 24fps and a still frame almost never lands on one, which makes an effect
 that *is* working look absent — the same trap the note style walked into.
+
+## `phone-call.script`, and what it corrects
+
+The slice carries `songs/phone-call/phone-call.script` — 273 lines of `onBeatHit` and
+`onCreatePost` — and reading it properly answers questions this README had previously
+listed as unanswerable. Two corrections first:
+
+**`introText` is not "never turned off".** An earlier section here said nothing in the data
+Animania ships ever hides it, so it was shipped hidden. The song script hides it: beat 1
+plays its `loop` animation, screen-centres it at 0.8 scale and fades it in over 2.5s; beat
+11 fades it back out. Shipping it hidden was the right call for the wrong reason, and the
+right reason is now on file.
+
+**The stage's six `stand-` props are not decoration.** `standUP()` inverts the whole stage
+— `prop.visible = prop.name.indexOf("stand-") != -1` — so every prop the song has used so
+far goes away and the six that have been hidden since `buildStage()` are what is left.
+
+### `standUP()`, at beat 232
+
+91.6s at 152bpm, and the biggest thing that happens in the song: **nothing in
+`phone-call-chart.json` mentions it.** The two characters are swapped for `tadano-stand` and
+`komi-stand`, the stage inverts, the pair are repositioned, and the camera flashes white.
+
+The script destroys the phone characters and fetches the standing pair from the character
+registry. Here all four are in the scene from the start and the swap is a **visibility
+change**: instantiating two multisparrow characters mid-song on a phone is a stall, and
+there is nothing to gain from it. `setPosition()` places an `FlxSprite` by its *corner*, so
+the script's `(-175, 325)` and `(300, 325)` become `(-30, 992)` and `(434.5, 995)` once each
+scene's own bottom-centre anchor is taken off, at `zIndex + 500` = 710.
+
+Three things it needs that Funkin gets for free:
+
+- **The cast has to be rebound.** The chart's `PlayAnimation` events at 132.2s ask for
+  `endAnimation` on boyfriend and `endConv` on dad, and those animations only exist on the
+  standing pair — which is what the swap is *for*. Funkin destroys the old characters and
+  puts the new ones in the same slots; a table of node references has to be reassigned.
+- **`stand_up()` has to be idempotent**, and the rebind is why: a second call would hide the
+  characters the first one just revealed. A method key fires again whenever something
+  re-seeks across it, which every harness here does.
+- **The camera has to switch focus tables.** After the swap the same `FocusCamera` `char`
+  index means a different character standing somewhere else — Funkin's camera follows
+  `getBoyfriend()`/`getDad()` and those now return the standing pair. The baked track takes
+  the standing pair's points for every event at or after beat 232.
+
+Animation names also needed a translation: the chart spells them Funkin's way (`endConv`)
+and this port spells them Rubicon's (`end_conv`). An exact match always wins and
+`to_snake_case()` is only a fallback, so every name already in snake_case is unaffected.
+
+### A sharper version of the method-key rule
+
+Earlier this README recorded that a seek fires a method key only when it lands close after
+it. The ending sharpened that: **when two keys sit close together, a seek fires only the
+nearest one.** `endAnimation` at 132.2122s and `endConv` at 132.2368s are 24.6ms apart, and
+a wound clock played the second and skipped the first — silently, with the right animation
+on one character and nothing on the other. In normal playback both fire, because the
+non-seeking path walks every key in the frame's range. `level_shot.gd` now *plays* the last
+1.6s into each moment rather than winding all the way, which is what makes a shot show what
+the song actually does.
+
+### Still not ported from the script
+
+The camera and HUD shakes (beats 16, 19, 23), the strumline entrances and modchart effects
+(beats 31, 166, 232 onward), the script's own 100px letterbox bars killed at beat 33 — the
+chart's `CinematicBars` events are separate and *are* ported — the HUD tween-off at beat 332,
+and the fade to black at beat 348. `standUP()`'s `tweenCameraZoom(0.8, ...)` is also left
+out on purpose: the chart's baked `ZoomCamera` track owns the camera continuously and has
+events either side of the swap, so a competing zoom would fight it.

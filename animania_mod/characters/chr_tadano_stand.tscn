@@ -1,0 +1,355 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_oi2yb"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/characters/tadano_stand_frames.tres" id="2_6j4e6"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/tadano_stand_library.tres" id="3_fmk5j"]
+
+[sub_resource type="Animation" id="Animation_8ff32"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_elrdj"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_idle"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_loqdn"]
+length = 5.416666828095913
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_end"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-3, -2)]
+}
+
+[sub_resource type="Animation" id="Animation_cg60u"]
+length = 4.16666679084301
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_tadanodeath"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_2wv1o"]
+length = 1.250000037252903
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_missdown"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-10, 18)]
+}
+
+[sub_resource type="Animation" id="Animation_t0yvx"]
+length = 1.250000037252903
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_missleft"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-49, 4)]
+}
+
+[sub_resource type="Animation" id="Animation_hok14"]
+length = 1.250000037252903
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_missright"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(10, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_yf07b"]
+length = 1.250000037252903
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_missup"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-12, -15)]
+}
+
+[sub_resource type="Animation" id="Animation_7mast"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_down"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-10, 18)]
+}
+
+[sub_resource type="Animation" id="Animation_qnneb"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_left"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-49, 4)]
+}
+
+[sub_resource type="Animation" id="Animation_ehutj"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_right"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(10, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_x2jks"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("tadano_stand_up"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(-12, -15)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_wff6y"]
+_data = {
+&"RESET": SubResource("Animation_8ff32"),
+&"dance_idle": SubResource("Animation_elrdj"),
+&"end_animation": SubResource("Animation_loqdn"),
+&"first_death": SubResource("Animation_cg60u"),
+&"miss_down": SubResource("Animation_2wv1o"),
+&"miss_left": SubResource("Animation_t0yvx"),
+&"miss_right": SubResource("Animation_hok14"),
+&"miss_up": SubResource("Animation_yf07b"),
+&"sing_down": SubResource("Animation_7mast"),
+&"sing_left": SubResource("Animation_qnneb"),
+&"sing_right": SubResource("Animation_ehutj"),
+&"sing_up": SubResource("Animation_x2jks")
+}
+
+[node name="tadano_stand" type="Node2D" unique_id=535185831 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_oi2yb")
+animation_player = NodePath("RootAnimationPlayer")
+singing_sing_to_dance_interval = 8
+singing_repeat_loop_point = 0.08333333333333333
+dancing_measure_step = 0.25
+dancing_animations = Array[StringName]([&"dance_idle"])
+animations = Dictionary[StringName, StringName]({
+&"miss_down": &"miss_down",
+&"miss_left": &"miss_left",
+&"miss_right": &"miss_right",
+&"miss_up": &"miss_up",
+&"sing_down": &"sing_down",
+&"sing_left": &"sing_left",
+&"sing_right": &"sing_right",
+&"sing_up": &"sing_up"
+})
+dancing_animations = Array[StringName]([&"dance_idle"])
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1980447859]
+position = Vector2(145, -667)
+scale = Vector2(-1, 1)
+sprite_frames = ExtResource("2_6j4e6")
+animation = &"idle"
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=641480667]
+libraries/ = ExtResource("3_fmk5j")
+
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=19936182]
+libraries/ = SubResource("AnimationLibrary_wff6y")
+autoplay = &"dance_idle"

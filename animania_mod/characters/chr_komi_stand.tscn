@@ -1,10 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_bnxer"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/characters/komi_frames.tres" id="2_bsjck"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/komi_library.tres" id="3_rcgf2"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_kk8p3"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/characters/komi_stand_frames.tres" id="2_q3xma"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/komi_stand_library.tres" id="3_jbmlm"]
 
-[sub_resource type="Animation" id="Animation_vwyng"]
+[sub_resource type="Animation" id="Animation_ak1qv"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -19,7 +19,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_vfqht"]
+[sub_resource type="Animation" id="Animation_kdhr2"]
 length = 0.6250000186264515
 step = 0.041666668
 tracks/0/type = "animation"
@@ -29,33 +29,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_breath"),
-"times": PackedFloat32Array(0)
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [Vector2(6, 4)]
-}
-
-[sub_resource type="Animation" id="Animation_mxasu"]
-length = 0.6250000186264515
-step = 0.041666668
-tracks/0/type = "animation"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"clips": PackedStringArray("komi_idle"),
+"clips": PackedStringArray("komi_stand_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -71,8 +45,8 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_obdu7"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_w3w4c"]
+length = 4.16666679084301
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -81,7 +55,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_reaction"),
+"clips": PackedStringArray("komi_stand_endkun"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -94,11 +68,11 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(3, -17)]
+"values": [Vector2(1, -2)]
 }
 
-[sub_resource type="Animation" id="Animation_pxexk"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_0hsln"]
+length = 4.16666679084301
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -107,7 +81,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_down"),
+"clips": PackedStringArray("komi_stand_komigameover"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -120,10 +94,10 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(4, 5)]
+"values": [Vector2(1, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_gaecu"]
+[sub_resource type="Animation" id="Animation_7vd1v"]
 length = 0.6250000186264515
 step = 0.041666668
 tracks/0/type = "animation"
@@ -133,7 +107,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_left"),
+"clips": PackedStringArray("komi_stand_down"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -146,10 +120,10 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(-5, -2)]
+"values": [Vector2(-3, 11)]
 }
 
-[sub_resource type="Animation" id="Animation_v6rea"]
+[sub_resource type="Animation" id="Animation_wtj3v"]
 length = 0.6250000186264515
 step = 0.041666668
 tracks/0/type = "animation"
@@ -159,7 +133,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_right"),
+"clips": PackedStringArray("komi_stand_left"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -172,10 +146,10 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(8, 2)]
+"values": [Vector2(-4, 2)]
 }
 
-[sub_resource type="Animation" id="Animation_bhqyw"]
+[sub_resource type="Animation" id="Animation_5oi8s"]
 length = 0.6250000186264515
 step = 0.041666668
 tracks/0/type = "animation"
@@ -185,7 +159,7 @@ tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_up"),
+"clips": PackedStringArray("komi_stand_right"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -198,23 +172,49 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(3, -10)]
+"values": [Vector2(2, 4)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_e1t0k"]
+[sub_resource type="Animation" id="Animation_ob1lx"]
+length = 0.6250000186264515
+step = 0.041666668
+tracks/0/type = "animation"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"clips": PackedStringArray("komi_stand_up"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2(5, -14)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_p4q7e"]
 _data = {
-&"RESET": SubResource("Animation_vwyng"),
-&"breath": SubResource("Animation_vfqht"),
-&"dance_idle": SubResource("Animation_mxasu"),
-&"reaction": SubResource("Animation_obdu7"),
-&"sing_down": SubResource("Animation_pxexk"),
-&"sing_left": SubResource("Animation_gaecu"),
-&"sing_right": SubResource("Animation_v6rea"),
-&"sing_up": SubResource("Animation_bhqyw")
+&"RESET": SubResource("Animation_ak1qv"),
+&"dance_idle": SubResource("Animation_kdhr2"),
+&"end_conv": SubResource("Animation_w3w4c"),
+&"game_over": SubResource("Animation_0hsln"),
+&"sing_down": SubResource("Animation_7vd1v"),
+&"sing_left": SubResource("Animation_wtj3v"),
+&"sing_right": SubResource("Animation_5oi8s"),
+&"sing_up": SubResource("Animation_ob1lx")
 }
 
-[node name="komi" type="Node2D" unique_id=2125785181 node_paths=PackedStringArray("animation_player")]
-script = ExtResource("1_bnxer")
+[node name="komi_stand" type="Node2D" unique_id=1411725615 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_kk8p3")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
 singing_repeat_loop_point = 0.08333333333333333
@@ -232,15 +232,15 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=607430235]
-position = Vector2(-153.5, -776)
-sprite_frames = ExtResource("2_bsjck")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1071932106]
+position = Vector2(-134.5, -670)
+sprite_frames = ExtResource("2_q3xma")
 animation = &"idle"
 centered = false
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=240370323]
-libraries/ = ExtResource("3_rcgf2")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=1082882177]
+libraries/ = ExtResource("3_jbmlm")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=135176284]
-libraries/ = SubResource("AnimationLibrary_e1t0k")
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1261019359]
+libraries/ = SubResource("AnimationLibrary_p4q7e")
 autoplay = &"dance_idle"
