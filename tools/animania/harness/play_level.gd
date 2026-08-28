@@ -14,6 +14,10 @@ extends SceneTree
 
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
 
+## 512 samples at 44100 Hz, which is what every non-zero desync reading here turns out to
+## be a multiple of.
+const MIX_BUFFER_MS := 512.0 / 44100.0 * 1000.0
+
 var _level: Node
 var _clock: Node
 var _song: Node
@@ -23,6 +27,10 @@ var _duration: float = 30.0
 var _elapsed: float = 0.0
 var _seeked: bool = false
 var _worst_desync: Dictionary = {}
+var _worst_at: Dictionary = {}
+var _over_threshold: int = 0
+var _worst_frame: float = 0.0
+var _last_trace: float = 0.0
 
 
 func _init() -> void:
@@ -83,10 +91,34 @@ func _tick() -> void:
 				continue
 			vocals.append(player.get_playback_position())
 			var drift: float = absf(player.get_playback_position() - reference)
-			_worst_desync[player.name] = maxf(float(_worst_desync.get(player.name, 0.0)), drift)
+			if drift > float(_worst_desync.get(player.name, 0.0)):
+				_worst_desync[player.name] = drift
+				_worst_at[player.name] = _clock.time_milliseconds / 1000.0
+			if drift > 0.045:
+				_over_threshold += 1
 		if vocals.size() == 2:
-			_worst_desync["entre voces"] = maxf(
-				float(_worst_desync.get("entre voces", 0.0)), absf(vocals[0] - vocals[1]))
+			var between: float = absf(vocals[0] - vocals[1])
+			if between > float(_worst_desync.get("entre voces", 0.0)):
+				_worst_desync["entre voces"] = between
+				_worst_at["entre voces"] = _clock.time_milliseconds / 1000.0
+
+	_worst_frame = maxf(_worst_frame, root.get_process_delta_time())
+
+	# A trace, not just a maximum: drift that climbs steadily is the two streams running at
+	# different rates, and drift that spikes and recovers is the frame pacing of a headless
+	# run. They need different answers, and a single worst-case number cannot tell them apart.
+	if _elapsed - _last_trace >= 10.0:
+		_last_trace = _elapsed
+		var line: String = "OUT traza t=%6.1fs" % [_clock.time_milliseconds / 1000.0]
+		var base: float = _song.sync_reference_player.get_playback_position()
+		for player: AudioStreamPlayer in _song.audio_players:
+			if player == _song.sync_reference_player:
+				continue
+			var drift_ms: float = (player.get_playback_position() - base) * 1000.0
+			line += "  %s %+7.1f ms (%.0f buffers)" % [
+				player.name.trim_prefix("Vocals"), drift_ms,
+				roundf(drift_ms / MIX_BUFFER_MS)]
+		print(line)
 
 	if _elapsed < _duration:
 		return
@@ -104,8 +136,14 @@ func _tick() -> void:
 			controller.performance_combo_value])
 
 	for track_name: String in _worst_desync:
-		print("OUT desfase maximo %-14s %.1f ms" % [
-			track_name, float(_worst_desync[track_name]) * 1000.0])
+		print("OUT desfase maximo %-14s %6.1f ms  en t=%.1fs" % [
+			track_name, float(_worst_desync[track_name]) * 1000.0,
+			float(_worst_at.get(track_name, -1.0))])
+	# Every non-zero reading is a whole number of these. get_playback_position() reports on
+	# mix-buffer boundaries, so reading three players in the same frame can catch them a
+	# buffer or two apart with nothing actually out of sync.
+	print("OUT %d muestras por encima de 45 ms, frame mas largo %.1f ms, un buffer = %.2f ms" % [
+		_over_threshold, _worst_frame * 1000.0, MIX_BUFFER_MS])
 
 	for character_name: String in ["Tadano", "Komi"]:
 		var character: Node = _level.find_child(character_name, true, false)

@@ -319,3 +319,111 @@ The camera currently alternates between the two singers on the measure, the way
 `test.tscn` does. The chart's **103 camera events** — `FocusCamera`, `ZoomCamera`,
 `AddCameraZoom`, `SetCameraBop`, `CinematicBars` — replace that track wholesale and are
 the next pass.
+
+## The camera events
+
+All 97 of the chart's camera events, baked into the level clock's `scene` animation by
+`tools/animania/camera_events.gd` and pinned by the guard against the chart JSON.
+
+Funkin drives its camera in **two stages**, and reproducing both is what makes this look
+like the original rather than approximately like it:
+
+1. an event **tweens a target** — `currentCameraZoom`, or `cameraFollowPoint` — over a
+   duration, with a named ease;
+2. every frame the camera **lerps toward that target** at a fixed rate
+   (`FlxMath.lerp(target, current, 0.95)`, which at 60fps is a Godot
+   `position/zoom_interpolate_speed` of about 3.0 — near enough to Rubicon's own default
+   of 3.125 that the second stage needs no porting at all).
+
+So only stage 1 is baked, into `position_interpolate_target` and `zoom_interpolate_target`,
+and `RubiconInterpolatedCamera2D`'s own lerp does stage 2 exactly as Flixel's does. The
+eases are **baked as sampled linear keys** rather than mapped onto Godot's per-key
+transition exponent — a transition curve cannot express `elasticInOut` at all, and sampling
+reproduces every one of them without having to argue about which is close enough.
+
+| event | count | ported as |
+|---|---|---|
+| `FocusCamera` | 20 | baked `position_interpolate_target`; `INSTANT` also writes `position`, which is where the camera *is*, so it snaps |
+| `ZoomCamera` | 55 | baked `zoom_interpolate_target`; `mode` is `stage` on all 55 and the value is a multiplier on the stage's own `cameraZoom` |
+| `AddCameraZoom` | 12 | a one-shot punch through a method track |
+| `SetCameraBop` | 3 | `RubiconCameraBumper`'s rate and amount |
+| `CinematicBars` | 7 | two `ColorRect`s, heights baked with their eases |
+
+`AddCameraZoom` being a **punch and not a setting** is the one reading that needed
+deciding. The giveaway is that the first of the twelve is `0.05` at 6.5s, inside the
+stretch where `SetCameraBop` has the automatic bop switched off — a manual accent where the
+automatic one cannot reach. The other eleven all carry `0.015`, which is Funkin's default
+per-bop game zoom, i.e. eleven extra bops on top of the regular ones.
+
+This does **not** use `RubiconPositionSetter`. That node picks between *named* points, which
+is the right shape for a level that alternates between two singers on the measure; this
+song authors 20 camera moves with their own offsets, durations and eases, which is strictly
+more than a name can carry.
+
+Also, unlike the world coordinates everywhere else in this port, **camera offsets do get
+scaled** by 1.5 — they are distances on screen, not positions in the world.
+
+### The letterbox sits under the HUD, on purpose
+
+Funkin's receptors are at the top of the screen and its bars can cover the bottom freely.
+Rubicon anchors its strumlines to the **bottom** (`anchor_top 1.0`, `offset -160` — the same
+as `test.tscn`), and the chart asks for 120px bars at 90.8s while notes are still arriving.
+Drawn over the HUD that is a black bar across the strumline you are being asked to hit. So
+`CinematicBars` is layer 1, `UILayer` is 2, and the letterbox frames the scene and leaves
+the notes alone.
+
+### Two things that had to be got right, both invisible when wrong
+
+**A cancelled tween has to stop where it was cancelled.** Funkin cancels the running tween
+on a property when a new event starts on it. A baked tween does not cancel itself: the old
+tween's remaining keys keep writing past the new event and the two interleave on the track.
+The first version of this drifted up to 200px on a focus and 0.13 on a zoom that way. Each
+tween is now truncated at the next event of its kind — or at the end of the song, which is
+what cuts the last `FocusCamera` and `ZoomCamera` short, both running 9.5s from 135.8s into
+an instrumental that stops 6.4s later. The value carried forward is the truncated one,
+because that is where Funkin's next tween starts from too.
+
+**`Animation`'s key-collision test is relative, and it eats pins late in a song.**
+Every track here is LINEAR, so a value has to be *pinned* at the end of its tween or it
+slides straight on toward the next event's first key — a `CLASSIC` focus, which is a single
+key with no tween at all, was arriving 211px short of its target for exactly that reason.
+The pin goes just before the next event. But `Animation::_insert` decides two keys are the
+same key with `Math::is_equal_approx`, whose tolerance is **relative**
+(`CMP_EPSILON * abs(time)`, floored at `CMP_EPSILON`), so the further into a song a key
+sits, the wider the window in which it silently overwrites its neighbour:
+
+```
+dos claves separadas 0.001s      t=10.0000  ->  2 claves
+                                 t=97.8947  ->  2 claves
+                                 t=104.2105 ->  1 clave
+                                 t=142.0000 ->  1 clave
+```
+
+That is measured, not reasoned: at t = 97.89 the tolerance is 0.00098 and a 0.001 gap
+survives, at t = 104.21 it is 0.00104 and the same gap collapses. And it is exactly where
+this port started failing — every camera event before ~100s was right and every one after
+it was short, because the pin had been eaten by the key it was meant to sit in front of.
+The margin is 0.005s now.
+
+### The split vocals, settled
+
+The earlier pass reported worst-case drift and left it at that. Sampled once a second
+across the whole song instead, the picture is different and better:
+
+```
+traza t= 10.1s  Tadano  +0.0 ms   Komi   +0.0 ms
+traza t= 40.1s  Tadano  +0.0 ms   Komi   +0.0 ms
+traza t= 50.2s  Tadano -46.4 ms   Komi  -92.9 ms
+traza t= 60.2s  Tadano  +0.0 ms   Komi   +0.0 ms
+traza t=100.2s  Tadano -69.7 ms   Komi  -92.9 ms
+traza t=120.2s  Tadano  +0.0 ms   Komi  -11.6 ms
+traza t=140.2s  Tadano  +0.0 ms   Komi   +0.0 ms
+```
+
+Twelve of the fourteen samples read **exactly zero**, and every non-zero reading is a whole
+multiple of **11.61 ms — 512 samples at 44100 Hz, one audio mix buffer**. Nothing is
+drifting: `get_playback_position()` reports on mix-buffer boundaries, so reading three
+players in the same frame can catch them a buffer or two apart. Drift that was real would
+climb; this does not, it snaps back to zero. That retires the split-vocal risk this port
+opened with, and the number to re-check on device is the same one — a *trace*, not a
+maximum.

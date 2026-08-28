@@ -9,9 +9,9 @@
 extends Node2D
 
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
-# Moments the chart is busy at: after the intro, mid-song, and past the idleSuffix switch
-# at 65.5s that puts tadano into his -alt pose for the rest of the song.
-const MOMENTS := [20.0, 45.0, 70.0, 100.0]
+# Moments the chart's camera events make interesting: the opening letterbox at 100px, the
+# widest bars of the song, the tightest, and the ending - plus a plain mid-song frame.
+const MOMENTS := [6.0, 45.0, 66.5, 91.0, 92.5, 131.5]
 
 var _level: Node
 var _clock: Node

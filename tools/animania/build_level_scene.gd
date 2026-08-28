@@ -48,6 +48,8 @@ const HEALTH_BAR := "res://resources/levels/ui/funkin/health_bar.tscn"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
+const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_camera_events.gd"
+const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 # Funkin is 1280x720 and this project is 1920x1080, so the stage's own cameraZoom is
 # multiplied by 1.5 to frame the same amount of world. See build_stage_scene.gd.
@@ -82,6 +84,7 @@ const TRACKS := [
 ]
 
 var _root: Node2D
+var _clock_player: AnimationPlayer
 
 
 func _init() -> void:
@@ -99,6 +102,7 @@ func _init() -> void:
 	clock_player.name = "AnimationPlayer"
 	clock_player.callback_mode_discrete = AnimationMixer.ANIMATION_CALLBACK_MODE_DISCRETE_FORCE_CONTINUOUS
 	clock_player.add_animation_library(&"", _clock_library(instrumental.get_length()))
+	_clock_player = clock_player
 	clock_player.autoplay = &"scene"
 	clock.add_child(clock_player)
 
@@ -127,6 +131,8 @@ func _init() -> void:
 	_place_cast(stage, ui)
 	_build_camera()
 
+	_build_bars()
+
 	var health: Node = _add(_root, Node.new(), "RubiconHealthModule", HEALTH_SCRIPT)
 	health.note_controller = ui["Player"]
 	health.starting_health = 50.0
@@ -135,6 +141,8 @@ func _init() -> void:
 	var controls: Node = load(MOBILE_CONTROLS).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	controls.name = "MobileControls"
 	_root.add_child(controls)
+
+	_bake_camera_events(instrumental.get_length())
 
 	_own(_root, _root)
 
@@ -173,43 +181,54 @@ func _metadata() -> Resource:
 	return metadata
 
 
-# For now the camera simply alternates on the measure, the way test.tscn does. The chart's
-# 103 camera events replace this track wholesale and are a separate pass.
+## Only RESET at this point: the "scene" animation needs the camera focus points, which do
+## not exist until the characters are placed, so it is built in _bake_camera_events().
 func _clock_library(length: float) -> AnimationLibrary:
 	var library := AnimationLibrary.new()
-	var point_path := ^"../RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point"
 
 	var reset := Animation.new()
 	reset.length = 0.001
 	var reset_track: int = reset.add_track(Animation.TYPE_VALUE)
-	reset.track_set_path(reset_track, point_path)
+	reset.track_set_path(reset_track, ^"../CinematicBars/Top:size")
 	reset.value_track_set_update_mode(reset_track, Animation.UPDATE_DISCRETE)
-	reset.track_insert_key(reset_track, 0.0, &"Opponent")
+	reset.track_insert_key(reset_track, 0.0, Vector2(1920.0, 0.0))
 	library.add_animation(&"RESET", reset)
 
-	var scene := Animation.new()
-	scene.step = 0.1
-	var track: int = scene.add_track(Animation.TYPE_VALUE)
-	scene.track_set_path(track, point_path)
-	scene.value_track_set_update_mode(track, Animation.UPDATE_DISCRETE)
-	scene.track_set_interpolation_type(track, Animation.INTERPOLATION_NEAREST)
-
-	# 152 BPM, 4/4: a measure is 4 * 60 / 152 seconds. The chart runs to 132.2s.
-	var measure: float = 4.0 * 60.0 / 152.0
-	var index: int = 0
-	while measure * index < length:
-		scene.track_insert_key(track, measure * index,
-			&"Player" if index % 2 == 1 else &"Opponent")
-		index += 1
-	scene.length = length
-	library.add_animation(&"scene", scene)
+	var placeholder := Animation.new()
+	placeholder.length = length
+	library.add_animation(&"scene", placeholder)
 
 	return library
+
+
+## Replaces the placeholder "scene" animation with the chart's 97 camera events.
+func _bake_camera_events(length: float) -> void:
+	var chart: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHART_JSON))
+	var stage: Node2D = _root.get_node("Stage")
+	var base_zoom: float = float(stage.get_meta(&"camera_zoom")) * FUNKIN_TO_RUBICON
+
+	# Funkin's `char` index: 0 boyfriend, 1 dad, 2 girlfriend.
+	var focus_points: Dictionary = {
+		0: _root.get_node("PlayerCameraPoint").position,
+		1: _root.get_node("OpponentCameraPoint").position,
+		2: _root.get_node("GirlfriendCameraPoint").position,
+	}
+
+	var baker: RefCounted = load(
+		"res://tools/animania/camera_events.gd").new(focus_points, base_zoom)
+	var scene: Animation = baker.build(chart["events"], length)
+
+	var library: AnimationLibrary = _clock_player.get_animation_library(&"")
+	library.remove_animation(&"scene")
+	library.add_animation(&"scene", scene)
+	print("OUT %d pistas, %.1fs" % [scene.get_track_count(), scene.length])
 
 
 func _build_ui() -> Dictionary:
 	var layer := CanvasLayer.new()
 	layer.name = "UILayer"
+	# Above CinematicBars (1) and below MobileControls (15).
+	layer.layer = 2
 	_root.add_child(layer)
 
 	var ui := Control.new()
@@ -273,6 +292,32 @@ func _add_control(parent: Control, control: Control) -> void:
 	control.set(&"layout_mode", 1)
 
 
+## Letterbox bars for the chart's seven CinematicBars events.
+##
+## They sit ABOVE the stage and BELOW the HUD, which is a deliberate departure from where
+## Funkin puts them. Funkin's receptors are at the top of the screen and its bars can cover
+## the bottom freely; Rubicon's are anchored to the BOTTOM (anchor_top 1.0, offset -160,
+## the same as test.tscn), and the chart asks for 120px bars at 90.8s while notes are still
+## arriving. Drawn over the HUD that is a bar across the strumline you are being asked to
+## hit. So the letterbox frames the scene and leaves the notes alone.
+func _build_bars() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "CinematicBars"
+	layer.layer = 1
+	_root.add_child(layer)
+
+	for bar_name: String in ["Top", "Bottom"]:
+		var bar := ColorRect.new()
+		bar.name = bar_name
+		bar.color = Color.BLACK
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.position = Vector2.ZERO if bar_name == "Top" else Vector2(0.0, 1080.0)
+		bar.size = Vector2(1920.0, 0.0)
+		layer.add_child(bar)
+		# An animated size is not a layout: anchors would fight the track every frame.
+		bar.set(&"layout_mode", 0)
+
+
 func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 	for character_name: String in CAST:
 		var entry: Dictionary = CAST[character_name]
@@ -294,19 +339,22 @@ func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 		if not side.is_empty():
 			character.level_note_controller = ui[side]
 
-			# The camera aims at the character's midpoint plus its cameraOffsets. These
-			# markers have to be DIRECT children of the level root: the position setter
-			# reads only `target.position` (its _get_node_2d_position always returns zero,
-			# because `node is Parallax2D or ParallaxBackground or ParallaxLayer` parses as
-			# `(node is Parallax2D) or ParallaxBackground or ...`, and a class used as an
-			# expression is truthy). Parent one anywhere else and the parent's offset is
-			# dropped in silence.
-			var point := Marker2D.new()
-			point.name = "%sCameraPoint" % side
-			point.position = (character.position
-				- Vector2(0.0, float(entry["height"]) * 0.5)
-				+ (entry["camera_offsets"] as Vector2))
-			_root.add_child(point)
+		# The camera aims at a character's midpoint plus its cameraOffsets, and the chart's
+		# FocusCamera events add their own offset on top of that. All three get a marker,
+		# girlfriend included: `char` is an index into the cast, and this chart uses 0 and
+		# 1 but the format allows 2.
+		#
+		# These are DIRECT children of the level root on purpose. RubiconPositionSetter, if
+		# anything ever points at them, reads only `target.position` - its ancestor walk is
+		# inert, because `node is Parallax2D or ParallaxBackground or ParallaxLayer` parses
+		# as `(node is Parallax2D) or ParallaxBackground or ...` and a class used as an
+		# expression is truthy - so a marker under any transform loses it in silence.
+		var point := Marker2D.new()
+		point.name = "%sCameraPoint" % (side if not side.is_empty() else "Girlfriend")
+		point.position = (character.position
+			- Vector2(0.0, float(entry["height"]) * 0.5)
+			+ (entry["camera_offsets"] as Vector2))
+		_root.add_child(point)
 
 
 func _build_camera() -> void:
@@ -326,15 +374,19 @@ func _build_camera() -> void:
 	camera.position_interpolate_target = opponent_point.position
 	_root.add_child(camera)
 
-	var setter: Node = _add(camera, Node.new(), "RubiconPositionSetter", SETTER_SCRIPT)
-	var point_map: Dictionary[StringName, Node] = {
-		&"Opponent": opponent_point,
-		&"Player": _root.get_node("PlayerCameraPoint"),
-	}
-	setter.point_map = point_map
-	setter.set(&"current_point", &"Opponent")
+	# No RubiconPositionSetter. That node picks between NAMED points, which is the right
+	# shape for a level that alternates between two singers on the measure; this song
+	# authors 20 camera moves with their own offsets, durations and eases, and the baked
+	# position_interpolate_target track carries all of it.
+	var bumper: Node = _add(camera, Node.new(), "RubiconCameraBumper", BUMPER_SCRIPT)
+	bumper.bump_every = 1  # BumpTime.BEAT - SetCameraBop's `rate` is in beats
+	bumper.bump_interval = 4
+	bumper.bump_amount = 0.0  # the chart's first SetCameraBop turns the bop off
 
-	_add(camera, Node.new(), "RubiconCameraBumper", BUMPER_SCRIPT)
+	var events: Node = _add(_root, Node.new(), "PhoneCallCameraEvents", EVENTS_SCRIPT)
+	events.camera = camera
+	events.bumper = bumper
+	events.hud = _root.get_node("UILayer")
 
 
 func _own(node: Node, owner: Node) -> void:

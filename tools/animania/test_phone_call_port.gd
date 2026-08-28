@@ -21,6 +21,10 @@ const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart
 var _failures: int = 0
 
 
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+const STEP_SECONDS := 60.0 / 152.0 / 4.0
+
+
 func _init() -> void:
 	var stage_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(STAGE_JSON))
 
@@ -30,6 +34,7 @@ func _init() -> void:
 	_check_tadano_symbols()
 	_check_leaves()
 	_check_level()
+	await _check_camera_events()
 
 	if _failures > 0:
 		printerr("%d comprobaciones fallaron" % _failures)
@@ -303,15 +308,15 @@ func _check_level() -> void:
 			and level.get_node("UILayer/UI/Player").inputs != null,
 		"el jugador tiene que tener mapa de entrada y no autoplay")
 
-	# RubiconPositionSetter reads only target.position: its _get_node_2d_position always
-	# returns zero, because `node is Parallax2D or ParallaxBackground or ParallaxLayer`
-	# parses as `(node is Parallax2D) or ParallaxBackground or ...` and a class used as an
-	# expression is truthy. A camera marker anywhere but the level root loses its parent's
-	# offset in silence.
-	var setter: Node = level.get_node(
-		"RubiconInterpolatedCamera2D/RubiconPositionSetter")
-	for point_name: StringName in setter.point_map:
-		var point: Node = setter.point_map[point_name]
+	# One camera marker per cast member, all direct children of the level root. The chart
+	# only uses char 0 and 1, but the format allows 2, and RubiconPositionSetter - if
+	# anything ever points at these - reads only target.position: its ancestor walk is
+	# inert, because `node is Parallax2D or ParallaxBackground or ParallaxLayer` parses as
+	# `(node is Parallax2D) or ParallaxBackground or ...` and a class used as an expression
+	# is truthy. A marker under any transform loses it in silence.
+	for point_name: String in ["PlayerCameraPoint", "OpponentCameraPoint",
+			"GirlfriendCameraPoint"]:
+		var point: Node = level.find_child(point_name, true, false)
 		_check(point != null and point.get_parent() == level,
 			"%s no cuelga de la raiz del nivel" % point_name)
 
@@ -320,5 +325,129 @@ func _check_level() -> void:
 	var health_bar: Control = level.get_node("UILayer/UI/HealthBar")
 	_check(health_bar.anchor_right > health_bar.anchor_left,
 		"la barra de vida perdio sus anclas: %s" % health_bar.get_rect())
+
+	level.queue_free()
+
+
+## The chart's camera events, checked by seeking the level to the END of each tween and
+## reading what the camera actually holds. Expectations come out of the chart JSON, so
+## re-exporting the song moves them; nothing here is a copied number.
+func _check_camera_events() -> void:
+	var chart: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHART_JSON))
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	await process_frame
+
+	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
+	var camera: Camera2D = level.get_node("RubiconInterpolatedCamera2D")
+	var bumper: Node = level.get_node("RubiconInterpolatedCamera2D/RubiconCameraBumper")
+	var top: ColorRect = level.get_node("CinematicBars/Top")
+	var stage: Node2D = level.get_node("Stage")
+	var base_zoom: float = float(stage.get_meta(&"camera_zoom")) * FUNKIN_TO_RUBICON
+
+	var focus_points: Dictionary = {
+		0: level.get_node("PlayerCameraPoint").position,
+		1: level.get_node("OpponentCameraPoint").position,
+		2: level.get_node("GirlfriendCameraPoint").position,
+	}
+
+	# The letterbox has to leave the notes alone: Rubicon anchors its strumlines to the
+	# BOTTOM, unlike Funkin, and the chart asks for 120px bars while notes are arriving.
+	_check(level.get_node("CinematicBars").layer < level.get_node("UILayer").layer,
+		"las barras tapan el HUD")
+
+	var handled: Dictionary = {
+		"FocusCamera": 0, "ZoomCamera": 0, "AddCameraZoom": 0,
+		"SetCameraBop": 0, "CinematicBars": 0,
+	}
+
+	# When does the next event of each kind land? Funkin cancels a running tween when a new
+	# one starts on the same property, so an event whose tween is cut short never reaches
+	# its target and there is nothing to assert about its end - only the ones that finish
+	# are checked. `truncated` counts the rest so the totals below still add up.
+	var next_of_kind: Dictionary = {}
+	var last_seen: Dictionary = {}
+	var chart_events: Array = chart["events"]
+	for i: int in range(chart_events.size() - 1, -1, -1):
+		var kind_at: String = chart_events[i]["e"]
+		next_of_kind[i] = float(last_seen.get(kind_at, INF))
+		last_seen[kind_at] = float(chart_events[i]["t"]) / 1000.0
+
+	var truncated: int = 0
+
+	# In chart order, so the method tracks fire the way they would while playing.
+	for index: int in chart_events.size():
+		var event: Dictionary = chart_events[index]
+		var kind: String = event["e"]
+		if not handled.has(kind):
+			continue
+		handled[kind] = int(handled[kind]) + 1
+
+		var value: Dictionary = event["v"]
+		var time: float = float(event["t"]) / 1000.0
+		# Seek past the end of the tween, so what is read is the value it settles on.
+		var duration: float = 0.0
+		match kind:
+			"FocusCamera", "ZoomCamera":
+				duration = float(value.get("duration", 4)) * STEP_SECONDS
+			"CinematicBars":
+				duration = maxf(float(value.get("upTime", 0.5)),
+					float(value.get("downTime", 0.5)))
+
+		# Cut short by the next event of its kind, or by the end of the song.
+		var cutoff: float = minf(float(next_of_kind[index]),
+			player.get_animation(&"scene").length)
+		if time + duration > cutoff:
+			truncated += 1
+			continue
+
+		# Land inside the flat stretch between the end of this tween and the pin that holds
+		# it until the next event - not past the pin, which is already the next tween.
+		var settled: float = clampf(time + duration + 0.001,
+			time + duration, cutoff - 0.006)
+		player.seek(minf(settled, player.get_animation(&"scene").length), true)
+		await process_frame
+
+		match kind:
+			"FocusCamera":
+				var expected: Vector2 = focus_points[int(value.get("char", 0))] + Vector2(
+					float(value.get("x", 0)), float(value.get("y", 0))) * FUNKIN_TO_RUBICON
+				_check(camera.position_interpolate_target.distance_to(expected) < 1.0,
+					"FocusCamera en %.1fs apunta a %s y esperaba %s" % [
+						time, camera.position_interpolate_target, expected])
+
+			"ZoomCamera":
+				var expected_zoom: float = base_zoom * float(value.get("zoom", 1.0))
+				_check(absf(camera.zoom_interpolate_target.x - expected_zoom) < 0.002,
+					"ZoomCamera en %.1fs deja %.4f y esperaba %.4f" % [
+						time, camera.zoom_interpolate_target.x, expected_zoom])
+
+			"SetCameraBop":
+				# intensity is a multiplier on Funkin's default per-bop game zoom.
+				var intensity: float = float(value.get("intensity", 1.0))
+				_check(absf(bumper.bump_amount - 0.015 * intensity) < 0.0001,
+					"SetCameraBop en %.1fs deja %.5f y esperaba %.5f" % [
+						time, bumper.bump_amount, 0.015 * intensity])
+				_check(bumper.enabled == (intensity > 0.0),
+					"SetCameraBop en %.1fs no encendio/apago el bop" % time)
+				_check(bumper.bump_interval == int(value.get("rate", 4)),
+					"SetCameraBop en %.1fs deja rate %d" % [time, bumper.bump_interval])
+
+			"CinematicBars":
+				var expected_height: float = float(value.get("upY", 0)) * FUNKIN_TO_RUBICON
+				_check(absf(top.size.y - expected_height) < 2.0,
+					"CinematicBars en %.1fs deja %.0fpx y esperaba %.0fpx" % [
+						time, top.size.y, expected_height])
+
+	# Every camera event in the chart has to have been reached, not just the ones that
+	# happened to be checked - a match that silently skips a kind is the failure mode.
+	var totals: Dictionary = {}
+	for event: Dictionary in chart["events"]:
+		totals[event["e"]] = int(totals.get(event["e"], 0)) + 1
+	for kind: String in handled:
+		_check(int(handled[kind]) == int(totals.get(kind, 0)),
+			"%s: comprobados %d de %d" % [kind, handled[kind], totals.get(kind, 0)])
+	print("eventos de camara: %d recorridos, %d con el tween cortado por el siguiente"
+		% [chart_events.size(), truncated])
 
 	level.queue_free()
