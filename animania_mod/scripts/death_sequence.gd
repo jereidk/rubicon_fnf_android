@@ -150,6 +150,11 @@ func die() -> void:
 	if loss_sound != null:
 		loss_sound.play()
 
+	# onBeatHit opens with `if (isPlayerDying) return`, which is what stops the strumline
+	# pulse the moment the player is dead.
+	if events != null:
+		events.set(&"dying", true)
+
 	var standing: bool = is_standing()
 	var player: Node2D = stand_player if standing else phone_player
 	var opponent: Node2D = stand_opponent if standing else phone_opponent

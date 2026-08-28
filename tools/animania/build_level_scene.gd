@@ -632,6 +632,7 @@ func _build_camera() -> void:
 	# level's overlays, because Funkin gives blackScreenSpr zIndex 5999 - above overlay-all
 	# at 5000 and below introText at 6000. Anywhere else and the title card, which is the
 	# only thing meant to read during those first five seconds, is under the black.
+	events.clock = _root.get_node("RubiconLevelClock")
 	events.cover = _build_intro_cover()
 	events.intro_text = _root.find_child("IntroText", true, false)
 	events.hud_root = _root.get_node("UILayer/UI")

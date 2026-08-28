@@ -701,11 +701,13 @@ the song actually does.
 
 ### Still not ported from the script
 
-**The modchart.** `Modchart.set("tanWave", ...)`, `"shake"` and the `scale` pulse every
-other beat from 232 on are a whole subsystem this engine does not have, and the strumline
-scales that go with them (`changeMode(false, 1.05)` / `(false, 0.95)`) are left out with
-them: the second argument of a two-argument `changeMode` is a guess, and guessing wrong
-moves the lanes.
+**Most of the modchart.** `Modchart.set("tanWave", ...)` and `"shake"` deform receptors
+individually and need the whole subsystem. The strumline scales that go with them
+(`changeMode(false, 1.05)` / `(false, 0.95)`) are left out too: the second argument of a
+two-argument `changeMode` is a guess, and guessing wrong moves the lanes.
+
+The `scale` pulse *is* ported — see below — because it is a property of the strumline
+rather than of a receptor, and a strumline here is one Control with four lanes under it.
 
 **The script's own letterbox bars**, and this one is not a gap — it is arithmetic. They are
 100px, and the chart's first `CinematicBars` event puts the ported bars at exactly 100px
@@ -771,6 +773,25 @@ was aimed, and they need nothing from the bake.
 
 The slide is also not arbitrary: the chart's `FocusCamera` on the same beat carries an x
 offset of 700, and the two were clearly written together.
+
+### The pulse, and the one bit of modchart that ports
+
+From beat 234 on, every even beat, both strumlines snap to 1.05 and ease back over exactly
+one beat — the opponent's onto 1.0 and the player's onto **0.95**, which is not a typo in
+the script: the player's lanes end each pulse smaller than they started and spend the odd
+beats there, so they breathe between the two values while the opponent's punch down onto
+rest.
+
+It is the only piece here driven off a beat signal rather than a baked key, because that is
+what it is: `onBeatHit`'s tail, with no upper bound. Funkin guards the whole handler with
+`if (isPlayerDying) return`, so the death sequence sets a flag that stops it.
+
+A Control scales about its pivot, and these lane containers are anchored on the point the
+receptors sit on — so the receptors hold still and the field breathes around them, which is
+what a strumline scale does.
+
+The beat length is measured off the clock's own `RubiconTimeChange` list rather than
+written down, so the ease stays one beat whatever tempo is in effect.
 
 ### Two keys at one beat collapse into one
 
@@ -872,8 +893,8 @@ know what makes it. Every phase that walks the clock now autoplays, and the one 
 The guard also frees each level immediately rather than with `queue_free()`: it builds six
 of them, and a deferred free plus a single awaited frame leaves the old one alive alongside
 the new, each still processing a stage, four characters and eight lanes of `AnimationTree`.
-The whole thing runs in **44 seconds**, most of the growth being the opening and the death,
-which are tween-driven and need real frames rather than seeks.
+The whole thing runs in **52 seconds**, most of the growth being the opening, the pulse and
+the death, which are tween-driven and need real frames rather than seeks.
 
 And it has to run `--headless`, the way its header says. Under a real renderer the frame
 deltas change where the walk lands inside each tween, and six camera readings come out a

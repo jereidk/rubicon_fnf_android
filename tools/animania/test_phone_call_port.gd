@@ -561,6 +561,7 @@ func _check_camera_events() -> void:
 	await _check_stand_up()
 	await _check_script_beats()
 	await _check_opening()
+	await _check_pulse()
 	await _check_death()
 
 
@@ -666,6 +667,65 @@ func _check_opening() -> void:
 
 	_drop(level)
 	await process_frame
+
+
+## onBeatHit's tail: every even beat after 232 both strumlines snap to 1.05 and ease back,
+## the opponent's onto 1.0 and the player's onto 0.95.
+##
+## Sampled over a couple of real seconds rather than caught on one frame: the snap lasts a
+## single frame and the ease lasts a beat, so what is checked is the range the scale covers
+## and the fact that before beat 232 it covers nothing at all.
+func _check_pulse() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	_autoplay(level)
+	await process_frame
+
+	var clock: AnimationPlayer = level.get_node("RubiconLevelClock").animation_player
+	var lanes: Dictionary[String, Control] = {
+		"jugador": level.get_node("UILayer/UI/Player"),
+		"oponente": level.get_node("UILayer/UI/Opponent"),
+	}
+
+	# Beat 232 is 91.6s. Well before it, nothing moves.
+	await _wind_to(clock, 78.0)
+	for side: String in lanes:
+		var quiet: Vector2 = await _scale_range(lanes[side], 1.2)
+		_check(absf(quiet.x - 1.0) < 0.001 and absf(quiet.y - 1.0) < 0.001,
+			"las notas del %s no tendrian que latir antes del beat 232 (%.3f..%.3f)"
+				% [side, quiet.x, quiet.y])
+
+	# Two even beats fit in 1.6s at 152bpm, so this catches the snap and both landings.
+	await _wind_to(clock, 93.0)
+	var beaten: Dictionary[String, Vector2] = {}
+	for side: String in lanes:
+		beaten[side] = await _scale_range(lanes[side], 1.6)
+
+	for side: String in lanes:
+		_check((beaten[side] as Vector2).y > 1.04,
+			"las notas del %s tendrian que saltar a 1.05 (maximo %.3f)"
+				% [side, (beaten[side] as Vector2).y])
+	_check((beaten["jugador"] as Vector2).x < 0.96,
+		"las del jugador tendrian que caer a 0.95 (minimo %.3f)"
+			% (beaten["jugador"] as Vector2).x)
+	_check((beaten["oponente"] as Vector2).x > 0.99,
+		"las del oponente tendrian que quedarse en 1.0 (minimo %.3f)"
+			% (beaten["oponente"] as Vector2).x)
+
+	_drop(level)
+	await process_frame
+
+
+## The smallest and largest x scale a node takes over a stretch of real time.
+func _scale_range(node: Control, seconds: float) -> Vector2:
+	var range_seen := Vector2(INF, -INF)
+	var elapsed: float = 0.0
+	while elapsed < seconds:
+		range_seen.x = minf(range_seen.x, node.scale.x)
+		range_seen.y = maxf(range_seen.y, node.scale.x)
+		elapsed += root.get_process_delta_time()
+		await process_frame
+	return range_seen
 
 
 ## Lets real time pass, which is what every tween in the opening and the death runs on.

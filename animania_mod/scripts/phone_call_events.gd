@@ -63,6 +63,18 @@ const SLIDE_SECONDS := 1.35
 const HUD_IN_SECONDS := 0.35
 const HUD_IN_ZOOM := 1.1
 
+## onBeatHit's tail, every even beat after 232: both strumlines snap to 1.05 and ease back
+## over one beat - the opponent's to 1.0, the player's to 0.95, which leaves the player's
+## lanes breathing between the two and the opponent's punching down onto rest.
+##
+## This is the one piece of the modchart that ports. `tanWave` and `shake` deform receptors
+## individually and need the whole subsystem; `scale` is a property of the strumline, and a
+## strumline here is one Control with four lanes under it.
+const PULSE_FIRST_BEAT := 232
+const PULSE_FROM := 1.05
+const PULSE_TO_OPPONENT := 1.0
+const PULSE_TO_PLAYER := 0.95
+
 ## The two strumlines EXCHANGE sides, and the arithmetic forces that reading whatever
 ## `Constants.STRUMLINE_X_OFFSET` happens to be. onCreatePost moves the player's lanes half
 ## a screen left and nothing ever moves them back, so their home must be
@@ -102,6 +114,9 @@ const LANES_HALF_ALPHA := 0.5
 ## gives it zIndex 5999, between overlay-all at 5000 and introText at 6000, so the title
 ## card reads over the black instead of under it - which is the whole shape of the opening.
 ## It therefore lives inside the stage's screen-space layer, not in the level's overlays.
+## The level clock, for the one thing here that is a rule per beat rather than an event at
+## a time - which is how onBeatHit reads it too.
+@export var clock: Node
 @export var cover: ColorRect
 @export var intro_text: AnimatedSprite2D
 @export var hud_root: Control
@@ -112,6 +127,9 @@ var _hud_rest: Vector2 = Vector2.ONE
 var _hud_tween: Tween
 var _stood_up: bool = false
 var _lane_homes: Dictionary[StringName, Vector2] = {}
+
+## onBeatHit opens with `if (isPlayerDying) return`. The death sequence sets this.
+var dying: bool = false
 var _shake_amount: float = 0.0
 var _shake_left: float = 0.0
 
@@ -126,6 +144,9 @@ func _ready() -> void:
 	if opponent_lanes != null:
 		_lane_homes[&"opponent"] = opponent_lanes.position
 	opening()
+
+	if clock != null and clock.has_signal(&"beat_change"):
+		clock.beat_change.connect(_on_beat)
 
 
 ## AddCameraZoom. `hud_zoom` is applied to the UI canvas about the middle of the screen -
@@ -465,6 +486,33 @@ func boyfriend_slide() -> void:
 	create_tween().tween_property(tadano, "position:x",
 		tadano.position.x + SLIDE_DISTANCE, SLIDE_SECONDS) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## onBeatHit's tail. Funkin guards the whole handler with isPlayerDying, so a dead player
+## gets no pulse either.
+func _on_beat() -> void:
+	if dying or clock == null:
+		return
+	var beat: int = floori(clock.time_beat)
+	if beat <= PULSE_FIRST_BEAT or beat % 2 != 0:
+		return
+
+	# One beat of ease, measured off the clock's own time changes rather than written down,
+	# so the pulse stays on the beat whatever the tempo in effect is.
+	var changes: Array[RubiconTimeChange] = clock.get_time_changes()
+	var seconds: float = (RubiconTimeChange.get_millisecond_at_beat(changes, beat + 1)
+		- RubiconTimeChange.get_millisecond_at_beat(changes, beat)) / 1000.0
+	if seconds <= 0.0:
+		return
+	for entry: Array in [[opponent_lanes, PULSE_TO_OPPONENT], [player_lanes, PULSE_TO_PLAYER]]:
+		var lanes: Control = entry[0]
+		if lanes == null:
+			continue
+		# A Control scales about its pivot, which here is the anchor the receptors sit on -
+		# so the receptors hold still and the field breathes around them.
+		lanes.scale = Vector2.ONE * PULSE_FROM
+		create_tween().tween_property(lanes, "scale", Vector2.ONE * float(entry[1]),
+			seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 ## case 166: two seconds later the opponent's lanes fly in from off the right edge, unwind a
