@@ -15,6 +15,8 @@ const KOMI := "res://animania_mod/characters/chr_komi.tscn"
 const TADANO := "res://animania_mod/characters/chr_tadano.tscn"
 const STAGE_JSON := "res://animania_mod/source/data/phoneCallStreet.json"
 const TADANO_ANIMATION := "res://animania_mod/source/images/phonecall/tadano/Animation.json"
+const LEVEL := "res://songs/phone-call/phone_call.tscn"
+const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 var _failures: int = 0
 
@@ -27,6 +29,7 @@ func _init() -> void:
 	_check_character(TADANO, "tadano", 22)
 	_check_tadano_symbols()
 	_check_leaves()
+	_check_level()
 
 	if _failures > 0:
 		printerr("%d comprobaciones fallaron" % _failures)
@@ -230,3 +233,92 @@ func _check_leaves() -> void:
 		"FlxG.random.bool(10) es un 10%")
 
 	stage.free()
+
+
+# The level scene. Every one of these caught something real while it was being built, and
+# each failure mode is silent: a dropped node, a reset anchor, a missing note kind.
+func _check_level() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+
+	# PackedScene drops a node whose parent is inside an instanced sub-scene unless the
+	# instance is editable, and says nothing. Komi goes inside one of the stage's own
+	# Parallax2D nodes - addCharacter gives DAD scrollFactor (0.9, 0.95) - and vanished
+	# from the first build of this scene exactly that way.
+	for character_name: String in ["Tadano", "Komi", "KomiGirlfriend"]:
+		var character: Node = level.find_child(character_name, true, false)
+		_check(character != null, "falta el personaje %s en el nivel" % character_name)
+	var opponent: Node = level.find_child("Komi", true, false)
+	if opponent != null:
+		_check(opponent.get_parent() is Parallax2D,
+			"komi no esta en la capa de parallax que le da addCharacter()")
+
+	# The clock reads its time off this player, so the animation's length is the song's.
+	var clock: Node = level.get_node("RubiconLevelClock")
+	var song: Node = level.get_node("RubiconLevelSongModule")
+	var timeline: float = clock.animation_player.get_animation(&"scene").length
+	var instrumental: AudioStreamPlayer = song.audio_players[0]
+	_check(is_equal_approx(timeline, instrumental.stream.get_length()),
+		"la linea de tiempo dura %.3fs y el instrumental %.3fs" % [
+			timeline, instrumental.stream.get_length()])
+	_check(instrumental.name == "Instrumental" and song.sync_reference_player == instrumental,
+		"el instrumental tiene que ir primero y ser la referencia de sincronia")
+	_check(song.audio_players.size() == 3,
+		"faltan pistas: las voces vienen partidas por personaje")
+
+	# Each side's chart against the source JSON, where `d` is a lane AND a side.
+	var chart_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHART_JSON))
+	var notes: Array = chart_data["notes"]["standart"]
+	var expected: Dictionary = {"Opponent": 0, "Player": 0}
+	var kinds: Dictionary = {}
+	for note: Dictionary in notes:
+		var side: String = "Player" if int(note.get("d", 0)) >= 4 else "Opponent"
+		expected[side] = int(expected[side]) + 1
+		var kind: String = str(note.get("k", ""))
+		if not kind.is_empty():
+			kinds[kind] = true
+
+	for side: String in ["Opponent", "Player"]:
+		var controller: Node = level.get_node("UILayer/UI/%s" % side)
+		var total: int = 0
+		for section: Resource in controller.chart.sections:
+			for row: Resource in section.rows:
+				total += row.starts.size()
+		_check(total == int(expected[side]),
+			"%s tiene %d notas y el JSON dice %d" % [side, total, expected[side]])
+		_check(controller.get_child_count() == 4,
+			"%s tiene %d carriles, esperaba 4" % [side, controller.get_child_count()])
+
+		# A note kind with no database entry throws on every frame the note is alive, not
+		# once: the full-song run produced 911 errors off two notes.
+		for kind: String in kinds:
+			var key: StringName = StringName("%s_mania" % kind)
+			_check(controller.note_overrides != null
+					and controller.note_overrides.defines.has(key),
+				"no hay entrada de base de datos para %s" % key)
+
+	_check(level.get_node("UILayer/UI/Opponent").autoplay,
+		"el oponente tiene que ir en autoplay")
+	_check(not level.get_node("UILayer/UI/Player").autoplay
+			and level.get_node("UILayer/UI/Player").inputs != null,
+		"el jugador tiene que tener mapa de entrada y no autoplay")
+
+	# RubiconPositionSetter reads only target.position: its _get_node_2d_position always
+	# returns zero, because `node is Parallax2D or ParallaxBackground or ParallaxLayer`
+	# parses as `(node is Parallax2D) or ParallaxBackground or ...` and a class used as an
+	# expression is truthy. A camera marker anywhere but the level root loses its parent's
+	# offset in silence.
+	var setter: Node = level.get_node(
+		"RubiconInterpolatedCamera2D/RubiconPositionSetter")
+	for point_name: StringName in setter.point_map:
+		var point: Node = setter.point_map[point_name]
+		_check(point != null and point.get_parent() == level,
+			"%s no cuelga de la raiz del nivel" % point_name)
+
+	# An instanced Control loses its authored anchors unless layout_mode says to keep them.
+	# The health bar came out 4x27 in the top-left corner before that was set.
+	var health_bar: Control = level.get_node("UILayer/UI/HealthBar")
+	_check(health_bar.anchor_right > health_bar.anchor_left,
+		"la barra de vida perdio sus anclas: %s" % health_bar.get_rect())
+
+	level.queue_free()

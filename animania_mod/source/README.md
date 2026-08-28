@@ -218,3 +218,104 @@ health icons (komi's is an animated icon with `toLosing`/`fromLosing` states
 driven by `komi.hx`, and tadano's comes from a module this slice does not have),
 and tadano's death sequence (`tadano.hx` tweens the HUD off screen and adds a
 `tadano-phone-death-text` atlas that this slice does carry).
+
+## The level scene
+
+`songs/phone-call/phone_call.tscn`, built by `tools/animania/build_level_scene.gd` and
+modelled on `songs/test/test.tscn` — the only worked example of a Rubicon level in this
+repo. Two things about that reference are worth knowing before reading either:
+
+- its `Lane` children have `Note N` children saved into them. Those are pooled notes the
+  handler spawns at runtime that got serialised by accident. Four `Lane` nodes per side is
+  the actual requirement.
+- **the camera's aim is an animation track.** `RubiconLevelClock/AnimationPlayer` plays a
+  `scene` animation that keys `RubiconPositionSetter:current_point`, and that is the seam
+  the chart's 20 `FocusCamera` events belong in.
+
+And one thing that changes how everything else is tested: **the clock reads its time
+straight off that player's `current_animation_position`.** The animation *is* the song's
+timeline — when it ends, the song ends, so its length is the instrumental's 142.152s and
+not a rounded guess. It also means a harness can seek anywhere in the song instead of
+waiting for it, which is what `play_level.gd` and `level_shot.gd` both do.
+
+### Verified by running it
+
+A full 145-second pass with both sides on autoplay:
+
+| | |
+|---|---|
+| notes | **167 / 167** opponent, **195 / 195** player, all `perfect`, zero misses |
+| clock | reached 142.15s — measure 90, beat 360.1 |
+| script errors | **0** |
+| vocals vs. instrumental | 11.6 ms (tadano) / 23.2 ms (komi) worst case |
+| **vocals against each other** | **23.2 ms** worst case |
+
+That last row is the one worth keeping. `check_for_desync()` compares every player against
+`sync_reference_player` only, so two vocals drifting apart while both stay near the
+instrumental is invisible to the engine — which was the open risk when the split-vocal
+question was first raised. Measured, it stays well inside the 45 ms resync threshold, so
+no resync ever fires and the three Vorbis `seek()`s a resync would cost never happen.
+
+The note totals also close the loop on the converter: 167/195 is the split the V-Slice
+`d`-is-lane-and-side rule predicts, arrived at independently by playing the chart.
+
+### Four silent failures this scene walked into
+
+Each was found by building it, and each is now pinned by `test_phone_call_port.gd`.
+
+**`PackedScene` drops a node whose parent is inside an instanced sub-scene**, with no
+error. Komi goes inside one of the stage's own `Parallax2D` nodes — `addCharacter` gives
+DAD `scrollFactor (0.9, 0.95)` — and simply vanished from the first build. The fix is
+`set_editable_instance(stage, true)` before packing.
+
+**An instanced `Control` loses its authored anchors** unless `layout_mode` says to keep
+them. Godot recomputes a Control's layout on reparent, and with `layout_mode` unset it
+resets the anchors to zero: the health bar came out 4x27 pixels in the top-left corner
+instead of the 884x18 bar across the top it is authored as. `test.tscn` carries
+`layout_mode = 1` on every instanced Control for exactly this reason.
+
+**Instancing without `GEN_EDIT_STATE_INSTANCE`** leaves a packed node with no record of
+what it inherited, so `pack()` writes every property *and every connection* as if it were
+local. The health bar's own `value_changed -> _on_value_changed` got authored a second
+time and errored at load with "already connected", and the scene was 630 lines of frozen
+copies of sub-scene properties instead of 235 lines of overrides.
+
+**A note kind with no database entry throws once per frame, not once.** Two of the 362
+notes carry the V-Slice kind `noAnimation`, Rubicon builds the key `noAnimation_mania`,
+and the two paths that matter (`rubicon_level_note_handler.gd:384` and `:515`) index the
+dictionary without the `has()` guard the pool prewarm at `:262` uses. Two notes produced
+**911 errors** in one pass — and the stalls they caused are what pushed the vocal drift to
+92.9 ms in that run, against 23.2 ms once they were gone.
+`animania_mod/songs/phone_call_note_overrides.tres` gives the kind an entry.
+
+What that override does *not* do is the half the kind is named for: in V-Slice
+`noAnimation` means the note is hit but the character does not sing, and Rubicon picks the
+sing animation from the **lane**, never from the note type. There is no flag on
+`RubiconLevelNoteMetadata` to suppress it and no seam that is not vendored engine code.
+Both notes land within 25 ms of the two `PlayAnimation` events that put komi into
+`breath`, which is presumably why the charter marked them; until a character-side hook
+exists, tadano sings through them.
+
+### A landmine in the camera addon
+
+`RubiconPositionSetter` reads only `target.position`. Its `_get_2d_global_position` looks
+like it walks an ancestor chain, but `_get_node_2d_position` opens with
+
+```gdscript
+if node is Parallax2D or ParallaxBackground or ParallaxLayer:
+	return Vector2.ZERO
+```
+
+which parses as `(node is Parallax2D) or ParallaxBackground or ParallaxLayer` — a class
+used as an expression is truthy, so the function always returns zero. It also walks the
+chain from the *setter's* parent, not the target's. The two bugs cancel into "use the
+target's local position", which is correct as long as **every camera marker is a direct
+child of the level root**. Parent one anywhere else and its parent's offset is dropped in
+silence. Both markers here are root children for that reason.
+
+### Still the placeholder
+
+The camera currently alternates between the two singers on the measure, the way
+`test.tscn` does. The chart's **103 camera events** — `FocusCamera`, `ZoomCamera`,
+`AddCameraZoom`, `SetCameraBop`, `CinematicBars` — replace that track wholesale and are
+the next pass.

@@ -10,4 +10,5 @@ bpm = 152.0
 
 [resource]
 script = ExtResource("2_cnmw0")
+title = "Phone Call"
 time_changes = Array[ExtResource("3_fejrq")]([SubResource("Resource_ll2uj")])
