@@ -1,0 +1,70 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/fallguys.png" id="1_o1qg5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cmw8h"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(350, 2, 305, 301)
+margin = Rect2(3, 2, 3, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_elthi"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(306, 305, 305, 297)
+margin = Rect2(0, 4, 3, 6)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i5een"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(2, 271, 302, 302)
+margin = Rect2(4, 0, 6, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_acvon"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(613, 347, 342, 263)
+margin = Rect2(2, 6, -75, 85)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ccbm"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(2, 2, 346, 267)
+margin = Rect2(0, 0, -79, 81)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ps4s"]
+atlas = ExtResource("1_o1qg5")
+region = Rect2(657, 2, 265, 343)
+margin = Rect2(1, 5, 2, 5)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cmw8h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_elthi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i5een")
+}],
+"loop": 0,
+"name": &"bf fall",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_acvon")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5ccbm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ps4s")
+}],
+"loop": 0,
+"name": &"gf fall",
+"speed": 24.0
+}]

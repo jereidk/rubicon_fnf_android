@@ -830,6 +830,56 @@ chart's `PlayAnimation` at 66.414s, which is far enough apart to be two keys but
 enough that a **wound** clock fires only the nearer of them. The guard lets real frames run
 through that window rather than seeking across it.
 
+## The title screen
+
+`animania_mod/menus/title/`, and the first piece of the port that is not the song.
+
+It has two halves that come from two different places, and knowing which is which is the
+whole story:
+
+- **The intro** — the 31 beats of text that spell themselves out over the gradient — is
+  `data/scripts/states/TitleScreen.script`, which the mod ships as plain HScript. So this
+  half is **transcribed**, beat for beat, including the camera punches on 28-31 and the
+  circIn tween that lifts the last line.
+- **Everything after it** is `animania.states.TitleScreen`, compiled into `Animania.exe`.
+  The assets and their animations are the mod's; the layout is this port's.
+
+The beat is the music's own: `animaniaINTRO-metadata.json` says 102bpm 4/4, so a beat is
+60/102s and the intro runs about eighteen seconds. Funkin drives `titleBeat` off the
+Conductor the same way.
+
+### Two compositions, two different scales
+
+The logo and the press-enter prompt are Adobe Animate atlases — the same gdanimate pipeline
+as tadano — and each is a **stage timeline** rather than a symbol: 200 frames called
+`Logolol` and 34 called `main`. `build_adobe_character.gd` had to learn about that, because
+a composition's top level is not in the symbol dictionary. It lives in `stage_symbol`, and
+gdanimate plays it by falling back to it when the requested symbol is unknown — the runtime
+needed nothing, the builder was dropping it as missing.
+
+Placing them by hand went wrong **twice**: once at screen coordinates, which put the logo in
+a corner, and once at the project's flat 1.5x, which filled the screen with a quarter of it.
+So they are measured instead, by `tools/animania/harness/measure_title.gd`, the same
+render-and-count-opaque-pixels trick `measure_character.gd` uses:
+
+| | drawn | local corner |
+|---|---|---|
+| logo | 2277x1643 | (-122, -22) |
+| press enter | 816x139 | (11, 11) |
+
+They are authored at different scales. The logo is far bigger than Funkin's 1280x720 stage —
+it is the whole TV, not a wordmark, so the compiled `TitleScreen` must scale it down — while
+the prompt is stage-sized and only wants the project's 1.5x. Both are placed by their
+**drawn bounds** rather than their node origin, which is what the measured corner is for.
+
+### What is not ported
+
+The falling props and the falling bf/gf are built (`props_frames.tres`, 9 of them, and
+`fallguys_frames.tres`) but nothing drops them yet: `updateProps` is compiled, so speed,
+spawn and spread would be invented. Same for `doJingle` and `cheatCodeShit`. The font is the
+project default — `titleText` belongs to the compiled state, so its font is not recoverable,
+the same gap as the subtitles.
+
 ## Tadano's death sequence
 
 Rubicon has no game-over machinery at all: `RubiconHealthModule` emits `health_depleted`

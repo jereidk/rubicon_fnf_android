@@ -54,7 +54,14 @@ func _init() -> void:
 		var anim_name: String = pair[0]
 		var symbol: StringName = StringName(pair[1])
 
-		if not atlas.symbols.has(symbol):
+		# A composition's top level is not in the symbol dictionary: it lives in
+		# `stage_symbol`, taken from the Animation.json's AN.SN. gdanimate plays it by
+		# FALLING BACK to it whenever the requested symbol is unknown, so the runtime needs
+		# nothing special - but this loop would drop it as missing. The title screen's logo
+		# is exactly that shape: 159 symbols composed by a 200-frame stage called `Logolol`,
+		# with no single symbol wrapping them.
+		var is_stage: bool = symbol == atlas.stage_symbol
+		if not atlas.symbols.has(symbol) and not is_stage:
 			missing.append(String(symbol))
 			continue
 
@@ -77,7 +84,8 @@ func _init() -> void:
 			animation.track_insert_key(frame_track, float(f) / fps, f)
 
 		library.add_animation("%s_%s" % [basename, anim_name], animation)
-		print("OUT %-16s frames=%-4d length=%.3fs  <- %s" % [anim_name, length, animation.length, symbol])
+		print("OUT %-16s frames=%-4d length=%.3fs  <- %s%s" % [
+			anim_name, length, animation.length, symbol, " (stage)" if is_stage else ""])
 
 	if not missing.is_empty():
 		push_error("symbols not in the atlas: %s" % ", ".join(missing))

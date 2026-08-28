@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="fallguys.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="bf fall0000" x="350" y="2" width="305" height="301" frameX="-3" frameY="-2" frameWidth="308" frameHeight="303" rotated="false"/>
+	<SubTexture name="bf fall0001" x="306" y="305" width="305" height="297" frameX="0" frameY="-4" frameWidth="308" frameHeight="303" rotated="false"/>
+	<SubTexture name="bf fall0002" x="2" y="271" width="302" height="302" frameX="-4" frameY="0" frameWidth="308" frameHeight="303" rotated="false"/>
+	<SubTexture name="gf fall0000" x="613" y="347" width="342" height="263" frameX="-2" frameY="-6" frameWidth="267" frameHeight="348" rotated="true"/>
+	<SubTexture name="gf fall0001" x="2" y="2" width="346" height="267" frameX="0" frameY="0" frameWidth="267" frameHeight="348" rotated="true"/>
+	<SubTexture name="gf fall0002" x="657" y="2" width="265" height="343" frameX="-1" frameY="-5" frameWidth="267" frameHeight="348" rotated="false"/>
+</TextureAtlas>

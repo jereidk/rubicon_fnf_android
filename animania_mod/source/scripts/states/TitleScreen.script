@@ -1,0 +1,113 @@
+import flixel.text.FlxTextFormat;
+import flixel.text.FlxTextFormatMarkerPair;
+
+
+var subMark = new FlxTextFormatMarkerPair(new FlxTextFormat(0xFFAAD2FF), '<a>');
+var skipTween:Bool = false;
+function titleBeat(beat)
+{
+	trace(beat);
+	switch(beat)
+	{
+		case 1:
+			titleText.alpha = 0;
+			titleText.text = "<a>ANIMANIA!CREW<a>";
+			titleText.applyMarkup(titleText.text, [subMark]);
+
+			titleText.visible = true;
+
+		case 3:
+			titleText.text = "<a>ANIMANIA!CREW<a>\nPRESENTS";
+			titleText.sceenCenter();
+
+			titleText.applyMarkup(titleText.text, [subMark]);
+
+		case 4:
+			titleText.text = "";
+			titleText.clearFormats();
+			titleText.alpha = 0;
+
+		case 5:
+			titleText.text = "HAVING FUN?";
+
+		case 7:
+			titleText.text += "\nGOOD";
+
+		case 8:
+			titleText.text = "";
+			titleText.alpha = 0;
+
+
+		case 9:
+			titleText.text = "WOOF WOOF";
+
+		case 11:
+			titleText.text += "\nWE FUNK";
+
+		case 12:
+			titleText.text = "";
+			titleText.alpha = 0;
+
+		case 13:
+			titleText.text = "FNF";
+
+		case 15:
+			titleText.text += "\nIS REAL";
+
+		case 16:
+			titleText.text = "";
+			titleText.alpha = 0;
+
+
+		case 17:
+			titleText.text = "GOD DAMN THE SUN";
+
+		case 19:
+			titleText.text += "\nMY EYES";
+
+		case 20:
+			titleText.text = "";
+			skipTween = true;
+			titleText.y = 350;
+			titleText.alpha = 0;
+
+		case 21:
+			titleText.text = "WE ARE";
+
+		case 23:
+			titleText.text += "\nSO REAL";
+
+		case 24:
+			titleText.text = "";
+			skipTween = true;
+			titleText.y = 0;
+			titleText.alpha = 0;
+
+
+		case 25:
+			titleText.text = "FUNKIN\n";
+		case 27:
+			titleText.text += "FOREVER";
+
+		case 28:
+			titleText.alpha = 0;
+			titleText.text = "FRIDAY\n";
+			FlxG.camera.zoom += 0.05;
+		case 29:
+			titleText.text += "NIGHT\n";
+			FlxG.camera.zoom += 0.075;
+		case 30:
+			titleText.text += "FUNKIN\'\n";
+			FlxG.camera.zoom += 0.1;
+		case 31:
+			skipTween = true;
+			titleText.text += "<a>ANIMANIA!<a>";
+			titleText.applyMarkup(titleText.text, [subMark]);
+			FlxTween.tween(titleText, {"scale.x": 1.25, "scale.y": 1.25, y: titleText.y - 100}, .6, {ease: FlxEase.circIn});
+			FlxG.camera.zoom += 0.15;
+	}
+	if (!skipTween)
+		FlxTween.tween(titleText, {x: 0, y: FlxG.height / 2 - titleText.textField.textHeight / 2, alpha: 1}, Conductor.instance.beatLengthMs / 1250, {ease: FlxEase.sineOut});
+	skipTween = false;
+}
+

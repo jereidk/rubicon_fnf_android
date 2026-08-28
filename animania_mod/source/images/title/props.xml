@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="props.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="AM green ring fall0000" x="2" y="2" width="94" height="101" frameX="0" frameY="0" frameWidth="101" frameHeight="94" rotated="true"/>
+	<SubTexture name="AM green ring fall0001" x="2" y="105" width="94" height="101" frameX="0" frameY="0" frameWidth="101" frameHeight="94" rotated="true"/>
+	<SubTexture name="AM green ring fall0002" x="98" y="2" width="94" height="101" frameX="0" frameY="0" frameWidth="101" frameHeight="94" rotated="true"/>
+	<SubTexture name="Japanese noodles0000" x="341" y="185" width="91" height="71" frameX="-2" frameY="-4" frameWidth="81" frameHeight="95" rotated="true"/>
+	<SubTexture name="Japanese noodles0001" x="341" y="185" width="91" height="71" frameX="-2" frameY="-4" frameWidth="81" frameHeight="95" rotated="true"/>
+	<SubTexture name="Japanese noodles0002" x="244" y="186" width="95" height="74" frameX="-2" frameY="0" frameWidth="81" frameHeight="95" rotated="true"/>
+	<SubTexture name="Japanese noodles0003" x="244" y="186" width="95" height="74" frameX="-2" frameY="0" frameWidth="81" frameHeight="95" rotated="true"/>
+	<SubTexture name="Japanese noodles0004" x="244" y="97" width="81" height="87" frameX="0" frameY="-7" frameWidth="81" frameHeight="95" rotated="false"/>
+	<SubTexture name="Japanese noodles0005" x="244" y="97" width="81" height="87" frameX="0" frameY="-7" frameWidth="81" frameHeight="95" rotated="false"/>
+	<SubTexture name="bell0000" x="468" y="2" width="40" height="39" frameX="0" frameY="0" frameWidth="39" frameHeight="40" rotated="true"/>
+	<SubTexture name="bell0001" x="156" y="223" width="38" height="40" frameX="0" frameY="0" frameWidth="39" frameHeight="40" rotated="false"/>
+	<SubTexture name="bell0002" x="115" y="217" width="39" height="40"/>
+	<SubTexture name="disk0000" x="352" y="2" width="114" height="51"/>
+	<SubTexture name="disk0001" x="404" y="55" width="51" height="114" frameX="0" frameY="0" frameWidth="114" frameHeight="51" rotated="true"/>
+	<SubTexture name="disk0002" x="457" y="55" width="51" height="114" frameX="0" frameY="0" frameWidth="114" frameHeight="51" rotated="true"/>
+	<SubTexture name="kamina glasses0000" x="178" y="105" width="64" height="116" frameX="0" frameY="0" frameWidth="116" frameHeight="64" rotated="true"/>
+	<SubTexture name="leek0000" x="194" y="2" width="77" height="93" frameX="-1" frameY="0" frameWidth="78" frameHeight="93" rotated="false"/>
+	<SubTexture name="leek0001" x="327" y="94" width="75" height="89" frameX="0" frameY="-3" frameWidth="78" frameHeight="93" rotated="false"/>
+	<SubTexture name="leek0002" x="273" y="2" width="77" height="90" frameX="0" frameY="-2" frameWidth="78" frameHeight="93" rotated="false"/>
+	<SubTexture name="menu mic0000" x="434" y="171" width="63" height="92"/>
+	<SubTexture name="nenes kunai0000" x="2" y="217" width="111" height="45" frameX="0" frameY="0" frameWidth="45" frameHeight="111" rotated="true"/>
+	<SubTexture name="pear teto0000" x="98" y="105" width="78" height="110"/>
+</TextureAtlas>
