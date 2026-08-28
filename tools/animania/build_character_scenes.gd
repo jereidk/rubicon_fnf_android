@@ -204,7 +204,9 @@ func _build_tadano() -> void:
 		"sing_left_alt", "sing_down_alt", "sing_up_alt", "sing_right_alt",
 		"miss_left", "miss_down", "miss_up", "miss_right",
 		"miss_left_alt", "miss_down_alt", "miss_up_alt", "miss_right_alt",
-		"intro", "death_start", "death_loop",
+		# firstDeath / deathLoop in tadano.json, named the way tadano-stand's are so the
+		# death sequence can ask for one name and reach either form.
+		"intro", "first_death", "death_loop",
 	]
 	var clips: Dictionary = {}
 	var offsets: Dictionary = {}
@@ -212,7 +214,8 @@ func _build_tadano() -> void:
 		# dance_idle is what Rubicon dances; the clip behind it is tadano_idle.
 		var clip: String = "tadano_idle" if anim_name == "dance_idle" \
 			else ("tadano_idle_alt" if anim_name == "dance_idle_alt"
-				else "tadano_%s" % anim_name)
+				else ("tadano_death_start" if anim_name == "first_death"
+					else "tadano_%s" % anim_name))
 		clips[StringName(anim_name)] = StringName(clip)
 		offsets[StringName(anim_name)] = Vector2.ZERO
 

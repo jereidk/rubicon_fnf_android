@@ -716,3 +716,75 @@ chart's `CinematicBars` events are separate and *are* ported — the HUD tween-o
 and the fade to black at beat 348. `standUP()`'s `tweenCameraZoom(0.8, ...)` is also left
 out on purpose: the chart's baked `ZoomCamera` track owns the camera continuously and has
 events either side of the swap, so a competing zoom would fight it.
+
+## Tadano's death sequence
+
+Rubicon has no game-over machinery at all: `RubiconHealthModule` emits `health_depleted`
+and nothing in the engine listens. So every piece of this is new, and every piece of it is
+`tadano-stand.hx`'s `createDeathSprites()` and `tadano.hx`'s `setupDeath()` transcribed —
+the two forms the song can die in, which differ in how elaborate they are rather than in
+shape.
+
+| | phone form | standing form |
+|---|---|---|
+| dark wash | 0.75 over 1.25s, back-out, half a second in | same |
+| black side panels | — | two 400px panels sliding in over six seconds |
+| komi | — (the phone komi was never drawn dying) | plays `gameOver` and stops dancing |
+| retry text | `tadano-phone-death-text`, 850 left and 450 down of the character | `tadano-phone-stand-death-text`, 240 to the right |
+| camera | aims at the character, `death` offsets `(-350, 50)`, zoom ×1.05 | offsets `(190, -40)`, zoom ×1.1 |
+
+Then a shared spine: the HUD leaves the way beat 332 sends it, the camera slides 450 left
+over 3.5s — which is the only reason a retry text placed 850 to the left is ever in frame —
+the death music fades up over twelve seconds at a forced 112 BPM, and every other beat of
+that adds 0.0075 to the camera zoom.
+
+### Three things it needed that Funkin gets for free
+
+**The clock has to stop, and that one is not cosmetic.** The baked camera animation writes
+`position_interpolate_target` every frame, so a death camera aimed at the dying character is
+overwritten by the song's next `FocusCamera` key before it is ever drawn. Pausing it also
+stops the note controllers, which read their time from it. Funkin pushes a substate over
+`PlayState`; here there is one scene, so the level simply stops being a level.
+
+**The retry text lives on a CanvasLayer, not in the world.** Funkin adds it to
+`GameOverSubState`, which draws above `darkBg`; drawn in the world it sits *under* the dark
+wash, which is to say invisible — which is exactly how the first version came out. It still
+has to move with the camera the way an `FlxSprite` at scroll factor 1 does, so it is put
+back under the camera every frame.
+
+**Funkin measures from the character's corner.** These scenes are anchored bottom-centre —
+the same `characterOrigin` rule as everywhere else in this port — so the corner has to be
+taken back off before `(-850, 450)` means what it meant.
+
+Also: `firstDeath` hands over to `deathLoop`, which is where the character waits. Funkin
+does that by calling `playAnimation` twice from the substate; here the first animation
+ending is the cue. tadano's phone form got its animations renamed to `first_death` /
+`death_loop` to match the standing form's, so the sequence asks for one name and reaches
+either.
+
+### What it does not do
+
+**Retry.** There is no pause menu, no game-over scene and no song select on this branch to
+go back to, so `confirm()` plays the confirm beat — the text's `confirm` label, the camera
+pulling up 350, the panels sliding further out, the end music — and stops. Whatever drives
+the flow later calls it and does its own transition.
+
+Nor the confirm's black gradient sweep, and nor komi-stand's `gameOver-loop`: the JSON gives
+it as `frameIndices: [6, 7, 8, 9, 10]`, a five-frame subset, and the sparrow importer's
+frame-duration dedup renumbers frames, so those indices no longer address what they were
+written against. Both stand characters hold their death animation's last frame instead of
+breathing on it.
+
+### A guard that walks the song has to autoplay
+
+Found by this: the camera-events phase did not, so the player missed every note, the health
+emptied, and **the death sequence fired in the middle of the check** — pausing the clock and
+re-aiming the camera, after which every `FocusCamera` reading slid negative together. The
+expectations held until 63s and then drifted, which is a very legible signature once you
+know what makes it. Every phase that walks the clock now autoplays, and the one that is
+*supposed* to die deliberately does not.
+
+The guard also frees each level immediately rather than with `queue_free()`: it builds six
+of them, and a deferred free plus a single awaited frame leaves the old one alive alongside
+the new, each still processing a stage, four characters and eight lanes of `AnimationTree`.
+The whole thing runs in **29 seconds**.

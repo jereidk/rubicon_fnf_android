@@ -51,6 +51,8 @@ const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
 const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
+const DEATH_SCRIPT := "res://animania_mod/scripts/death_sequence.gd"
+const GAMEOVER_AUDIO := "res://animania_mod/source/audio/gameover"
 ## bf_icon.tres's frame height, which is what health_bar.tscn's icon placement assumes.
 const BF_ICON_HEIGHT := 150.0
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
@@ -163,6 +165,8 @@ func _init() -> void:
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
 	_dress_icons(ui, health)
+
+	_build_death(health, song)
 
 	var controls: Node = load(MOBILE_CONTROLS).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	controls.name = "MobileControls"
@@ -412,6 +416,87 @@ func _build_overlays() -> Dictionary:
 		rect.set(&"layout_mode", 0)
 		built[entry[2]] = rect
 	return built
+
+
+## Tadano's death sequence. Rubicon emits health_depleted and nothing in the engine listens,
+## so every piece of this is new: the dark wash, the two black panels, the retry text and
+## the three audio tracks. It all sits on its own CanvasLayer above the stage and below the
+## HUD, because Funkin puts it on the game camera and over PlayState's persistent draw.
+func _build_death(health: Node, song: Node) -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "Death"
+	layer.layer = 1
+	_root.add_child(layer)
+
+	var dark := ColorRect.new()
+	dark.name = "Dark"
+	dark.color = Color(0.0, 0.0, 0.0, 0.0)
+	dark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dark.size = Vector2(1920.0, 1080.0)
+	layer.add_child(dark)
+	dark.set(&"layout_mode", 0)
+
+	var panels: Dictionary = {}
+	for panel_name: String in ["LeftPanel", "RightPanel"]:
+		var panel := ColorRect.new()
+		panel.name = panel_name
+		panel.color = Color.BLACK
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.size = Vector2(600.0, 1080.0)
+		panel.visible = false
+		layer.add_child(panel)
+		panel.set(&"layout_mode", 0)
+		panels[panel_name] = panel
+
+	# The retry text is an Adobe atlas driven by FRAME LABELS, not symbols - see
+	# tools/animania/build_death_text.gd. Its library is swapped in at death time for
+	# whichever form the song is in.
+	var retry := AnimateSymbol.new()
+	retry.name = "RetryText"
+	retry.atlases = [
+		load("res://animania_mod/characters/tadano_death_text_atlas.tres"),
+		load("res://animania_mod/characters/tadano_stand_death_text_atlas.tres"),
+	] as Array[AnimateAtlas]
+	retry.atlas_index = 0
+	retry.centered = false
+	retry.modulate.a = 0.0
+	# On the death layer, above the dark wash - Funkin adds it to GameOverSubState, which
+	# draws over darkBg. death_sequence.gd puts it back under the camera every frame.
+	layer.add_child(retry)
+
+	var retry_player := AnimationPlayer.new()
+	retry_player.name = "AnimationPlayer"
+	retry.add_child(retry_player)
+
+	var sequence: Node = _add(_root, Node.new(), "DeathSequence", DEATH_SCRIPT)
+	sequence.health_module = health
+	sequence.song = song
+	sequence.clock = _root.get_node("RubiconLevelClock")
+	sequence.camera = _root.get_node("RubiconInterpolatedCamera2D")
+	sequence.events = _root.get_node("PhoneCallEvents")
+	sequence.dark = dark
+	sequence.left_panel = panels["LeftPanel"]
+	sequence.right_panel = panels["RightPanel"]
+	sequence.retry_text = retry
+	sequence.retry_player = retry_player
+	sequence.phone_player = _root.find_child("Tadano", true, false)
+	sequence.phone_opponent = _root.find_child("Komi", true, false)
+	sequence.stand_player = _root.find_child("TadanoStand", true, false)
+	sequence.stand_opponent = _root.find_child("KomiStand", true, false)
+	sequence.phone_text = load("res://animania_mod/characters/tadano_death_text_library.tres")
+	sequence.stand_text = load(
+		"res://animania_mod/characters/tadano_stand_death_text_library.tres")
+
+	for entry: Array in [
+			["Music", "gameOver-tadano.ogg", "music"],
+			["LossSound", "fnf_loss_sfx-tadano.ogg", "loss_sound"],
+			["ConfirmMusic", "gameOverEnd-tadano.ogg", "confirm_music"]]:
+		var player := AudioStreamPlayer.new()
+		player.name = entry[0]
+		player.stream = load("%s/%s" % [GAMEOVER_AUDIO, entry[1]])
+		player.bus = &"Music"
+		sequence.add_child(player)
+		sequence.set(StringName(entry[2]), player)
 
 
 ## Letterbox bars for the chart's seven CinematicBars events.

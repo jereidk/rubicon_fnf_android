@@ -361,7 +361,7 @@ func _check_level() -> void:
 	_check(events_node.hud_up.size() == 1 and events_node.hud_down.size() == 2,
 		"el beat 332 mueve la barra hacia arriba y las dos strumlines hacia abajo")
 
-	level.queue_free()
+	_drop(level)
 
 
 ## The chart's camera events, checked by seeking the level to the END of each tween and
@@ -371,6 +371,11 @@ func _check_camera_events() -> void:
 	var chart: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHART_JSON))
 	var level: Node = load(LEVEL).instantiate()
 	root.add_child(level)
+	# Autoplay, or the player misses every note, the health empties and the DEATH SEQUENCE
+	# fires in the middle of the camera walk - it pauses the clock and re-aims the camera at
+	# the dying character, and every FocusCamera reading after that drifts. Found exactly
+	# that way: the expectations held until 63s and then slid negative together.
+	_autoplay(level)
 	await process_frame
 
 	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
@@ -546,7 +551,7 @@ func _check_camera_events() -> void:
 	print("eventos de camara: %d recorridos, %d con el tween cortado por el siguiente"
 		% [chart_events.size(), truncated])
 
-	level.queue_free()
+	_drop(level)
 
 	# The idleSuffix switch, checked where it lands rather than only that it could - on a
 	# FRESH level. Method-track keys fire for the range a seek crosses going forward, and
@@ -555,6 +560,96 @@ func _check_camera_events() -> void:
 	await _check_idle_suffix()
 	await _check_stand_up()
 	await _check_script_beats()
+	await _check_death()
+
+
+## Tadano's death sequence. Rubicon emits health_depleted and nothing in the engine listens,
+## so every piece of this is new - and it cannot be reached by seeking, only by dropping the
+## health and letting the tweens run.
+func _check_death() -> void:
+	const DEATH_SETTLE := 2.5
+
+	for standing: bool in [false, true]:
+		var level: Node = load(LEVEL).instantiate()
+		root.add_child(level)
+		await process_frame
+
+		var sequence: Node = level.get_node("DeathSequence")
+		var clock: Node = level.get_node("RubiconLevelClock")
+		var camera: Camera2D = level.get_node("RubiconInterpolatedCamera2D")
+		var form: String = "de pie" if standing else "por telefono"
+
+		if standing:
+			level.get_node("PhoneCallEvents").stand_up()
+		level.get_node("RubiconHealthModule").health = 0.0
+
+		var elapsed: float = 0.0
+		while elapsed < DEATH_SETTLE:
+			elapsed += root.get_process_delta_time()
+			await process_frame
+
+		# The clock has to stop, and not as a nicety: its baked animation writes
+		# position_interpolate_target every frame, so a death camera aimed at the dying
+		# character is overwritten by the song's next FocusCamera key before it is drawn.
+		_check(not clock.animation_player.is_playing(),
+			"%s: el reloj tendria que pararse al morir" % form)
+
+		var dark: ColorRect = level.get_node("Death/Dark")
+		_check(is_equal_approx(dark.color.a, 0.75),
+			"%s: el oscurecido acabo en %.2f" % [form, dark.color.a])
+
+		# start hands over to loop, and loop is where it waits for a retry.
+		var retry: AnimationPlayer = level.find_child("RetryText", true, false).get_node(
+			"AnimationPlayer")
+		_check(retry.current_animation == &"loop",
+			"%s: el cartel de reintento esta en %s" % [form, retry.current_animation])
+
+		# The panels are createDeathSprites', which only the standing form runs.
+		_check(level.get_node("Death/LeftPanel").visible == standing,
+			"%s: los paneles negros" % form)
+
+		# GameOverSubState re-aims at the dying character; it does not inherit wherever the
+		# song left the camera.
+		var player: Node2D = level.find_child(
+			"TadanoStand" if standing else "Tadano", true, false)
+		_check(player.animation_player.current_animation in [&"first_death", &"death_loop"],
+			"%s: tadano esta en %s" % [form, player.animation_player.current_animation])
+		_check(absf(camera.position_interpolate_target.y - (player.position.y
+				- _death_height(standing) * 0.5)) < 200.0,
+			"%s: la camara no apunta al que muere: %s" % [
+				form, camera.position_interpolate_target])
+
+		if standing:
+			var opponent: Node2D = level.find_child("KomiStand", true, false)
+			_check(opponent.animation_player.current_animation == &"game_over",
+				"de pie: komi tendria que estar en game_over")
+
+		_drop(level)
+		await process_frame
+
+	# The retry text is driven by FRAME LABELS on the main timeline, not by symbols -
+	# gdanimate plays symbols and a label is invisible to it, so these are built by keying
+	# `frame` over each label's range.
+	for basename: String in ["tadano_death_text", "tadano_stand_death_text"]:
+		var library: AnimationLibrary = load(
+			"res://animania_mod/characters/%s_library.tres" % basename)
+		for label: String in ["start", "loop", "confirm"]:
+			_check(library.has_animation(label), "a %s le falta %s" % [basename, label])
+		_check(library.get_animation(&"loop").loop_mode == Animation.LOOP_LINEAR,
+			"%s: loop tendria que hacer bucle" % basename)
+
+	var death_constants: Dictionary = load(
+		"res://animania_mod/scripts/death_sequence.gd").get_script_constant_map()
+	_check(is_equal_approx(float(death_constants["DARK_ALPHA"]), 0.75),
+		"el alpha del oscurecido no es el del .hx")
+	_check(is_equal_approx(float(death_constants["DEATH_BPM"]), 112.0),
+		"Conductor.forceBPM(112)")
+
+
+## What each form is measured at - see tools/animania/harness/measure_character.gd for the
+## phone form and tadano-stand.xml's idle frame for the standing one.
+func _death_height(standing: bool) -> float:
+	return 667.0 if standing else 833.0
 
 
 ## phone-call.script's onBeatHit, the three moments that are not the character swap. Walked
@@ -562,6 +657,7 @@ func _check_camera_events() -> void:
 func _check_script_beats() -> void:
 	var level: Node = load(LEVEL).instantiate()
 	root.add_child(level)
+	_autoplay(level)
 	await process_frame
 
 	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
@@ -614,13 +710,14 @@ func _check_script_beats() -> void:
 	_check(is_equal_approx(black.color.a, 1.0),
 		"el fundido a negro acabo en alpha %.2f" % black.color.a)
 
-	level.queue_free()
+	_drop(level)
 
 
 ## The swap itself, walked to rather than seeked to.
 func _check_stand_up() -> void:
 	var level: Node = load(LEVEL).instantiate()
 	root.add_child(level)
+	_autoplay(level)
 	await process_frame
 
 	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
@@ -660,7 +757,7 @@ func _check_stand_up() -> void:
 	_check(level.find_child("TadanoStand", true, false).visible,
 		"una segunda llamada a stand_up() oculto a la pareja de pie")
 
-	level.queue_free()
+	_drop(level)
 
 
 func _visible_props(node: Node, only_stand: bool) -> int:
@@ -684,6 +781,22 @@ func _visible_props(node: Node, only_stand: bool) -> int:
 const WIND_STEP := 0.5
 
 
+## Both strumlines on autoplay. A guard that walks the song without it has the player miss
+## every note, and a missed song ends in the death sequence rather than at the last bar.
+func _autoplay(level: Node) -> void:
+	for side: String in ["Opponent", "Player"]:
+		level.get_node("UILayer/UI/%s" % side).autoplay = true
+
+
+## Frees a level NOW rather than at the end of the frame. queue_free plus a single awaited
+## frame leaves the old level alive alongside the new one, and this guard builds six of
+## them - each with a stage, four characters, eight lanes of AnimationTree and three audio
+## streams, all still running _process.
+func _drop(level: Node) -> void:
+	root.remove_child(level)
+	level.free()
+
+
 func _wind_to(player: AnimationPlayer, target: float) -> void:
 	var at: float = player.current_animation_position
 	while at < target:
@@ -695,6 +808,7 @@ func _wind_to(player: AnimationPlayer, target: float) -> void:
 func _check_idle_suffix() -> void:
 	var level: Node = load(LEVEL).instantiate()
 	root.add_child(level)
+	_autoplay(level)
 	await process_frame
 
 	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
@@ -710,7 +824,7 @@ func _check_idle_suffix() -> void:
 	_check(tadano.dancing_animations == ([&"dance_idle_alt"] as Array[StringName]),
 		"el baile de tadano no cambio al alt: %s" % [tadano.dancing_animations])
 
-	level.queue_free()
+	_drop(level)
 
 
 # The amtake-base note style. Names are checked, but so are COLOURS: a lane-to-colour
