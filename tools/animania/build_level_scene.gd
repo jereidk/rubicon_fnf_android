@@ -48,10 +48,7 @@ const HEALTH_BAR := "res://resources/levels/ui/funkin/health_bar.tscn"
 # frame the note is alive. See the header of the file itself.
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
-const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
-## How visible the touch hitboxes are at rest. Set on the instance rather than in the
-## vendored addon, so the addon keeps its own default for anything else that uses it.
-const MOBILE_OPACITY := 0.4
+
 const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
 const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
 const DEATH_SCRIPT := "res://animania_mod/scripts/death_sequence.gd"
@@ -171,11 +168,13 @@ func _init() -> void:
 
 	_build_death(health, song)
 
-	var controls: Node = load(MOBILE_CONTROLS).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
-	controls.name = "MobileControls"
-	# The addon defaults to 0.7, which on a phone reads as a slab of colour over the stage.
-	controls.opacity = MOBILE_OPACITY
-	_root.add_child(controls)
+	# No touch controls here. They are an AUTOLOAD - project.godot loads
+	# addons/rubicon_mobile_controls/mobile_controls.tscn globally - and the addon has no
+	# singleton guard, so a copy in the level meant two of them running _setup_buttons and
+	# both drawing. Their alpha stacked, which is why the hitboxes read as a slab on a
+	# device however low either one was set, and setting the opacity here changed the copy
+	# that was not in charge. The autoload alone is right: it also covers the title screen,
+	# which needs a tap to skip the intro.
 
 	_bake_camera_events(instrumental.get_length())
 

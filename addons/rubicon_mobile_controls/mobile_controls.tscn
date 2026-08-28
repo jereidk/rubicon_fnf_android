@@ -9,4 +9,4 @@ lane_count = 4
 control_mode = "Hitbox"
 button_size = Vector2(100, 100)
 spacing = 20.0
-opacity = 0.7
+opacity = 0.4

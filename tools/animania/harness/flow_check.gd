@@ -76,7 +76,30 @@ func _init() -> void:
 	_check(clock.animation_player.current_animation_position > was,
 		"el reloj de la cancion no avanza")
 
+	# The touch controls are an AUTOLOAD, and the level scene instances a second copy. The
+	# addon has no singleton guard, so both run _setup_buttons and both draw - which stacks
+	# their alpha and is why the hitboxes read as opaque on a device however low the
+	# opacity is set on either one.
+	var controls: Array[Node] = []
+	_collect_controls(root, controls)
+	_check(controls.size() == 1, "hay %d juegos de controles tactiles, tendria que haber 1"
+		% controls.size())
+	for control: Node in controls:
+		_check(is_equal_approx(float(control.opacity), 0.4),
+			"los controles tactiles estan a opacity %.2f" % control.opacity)
+
+	_check(root.has_node("DebugOverlay"), "falta el overlay de debug")
+
 	_report()
+
+
+func _collect_controls(node: Node, into: Array[Node]) -> void:
+	var script: Script = node.get_script()
+	if script != null and String(script.resource_path).ends_with(
+			"rubicon_mobile_controls.gd"):
+		into.append(node)
+	for child: Node in node.get_children():
+		_collect_controls(child, into)
 
 
 func _report() -> void:

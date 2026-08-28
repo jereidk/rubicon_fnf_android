@@ -934,6 +934,24 @@ shot on twos. It is one of six doubles `update()` carries (1, 1.75, 100, 600, 0.
 others) and the only one that makes sense as a boil cadence; the rest belong to the camera
 and the outro lerp. The texture is the mod's own `boil_texture.png`.
 
+## The debug overlay, and the duplicate it found
+
+`animania_mod/scripts/debug_overlay.gd`, an autoload: fps, frame time, the **worst** frame
+in the last quarter second, static and peak and video memory, draw calls and node counts.
+An autoload rather than a node in a scene because the port changes scenes now, and a
+per-scene overlay blinks out exactly when the frame time is worth watching. Debug builds
+only — it frees itself otherwise. F3 toggles it, or a tap in the top-left corner, which is
+off the lanes.
+
+Writing it turned up something else. The touch controls are an autoload *and* the level
+scene instanced a second copy, and the addon has no singleton guard: both ran
+`_setup_buttons`, both drew, and their alpha stacked. That is why the hitboxes read as a
+slab on a device — and why dropping the level copy's opacity to 0.4 changed nothing, since
+the copy in charge was the autoload at 0.7. The level no longer carries one. The autoload
+alone is also what the title screen needs, since skipping the intro is a tap.
+
+`flow_check.gd` now counts them, so a second one cannot come back quietly.
+
 ### Getting into the song
 
 `run/main_scene` is the title screen, and the title's confirm goes straight to
