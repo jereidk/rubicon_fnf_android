@@ -615,9 +615,12 @@ func _check_opening() -> void:
 	_check(is_zero_approx(hud.modulate.a), "el HUD no empieza invisible")
 	# The sides do NOT swap - an earlier version of this port read them as swapping and a
 	# device run showed the player's lanes sitting on komi's side.
-	_check(is_equal_approx(player_lanes.position.x, player_home),
-		"las notas del jugador tendrian que quedarse en su sitio (%.0f, no %.0f)"
-			% [player_home, player_lanes.position.x])
+	# The sides DO swap: tadano's lanes on the left, komi's on the right. The first attempt
+	# at this was reverted because the two charts were crossed and it read as the sides
+	# being wrong; with the charts uncrossed, the swap is right.
+	_check(is_equal_approx(player_lanes.position.x, opponent_home),
+		"las notas del jugador tendrian que ir a la casa del oponente (%.0f, no %.0f)"
+			% [opponent_home, player_lanes.position.x])
 	_check(is_equal_approx(opponent_lanes.position.x, opponent_home + 1920.0),
 		"las notas del oponente tendrian que empezar fuera de pantalla (%.0f)"
 			% opponent_lanes.position.x)
@@ -663,9 +666,9 @@ func _check_opening() -> void:
 	# ease-out at 99%, which reads as 0.0 rotation in a printout and is not zero.
 	await _wind_to(clock, 65.0)
 	await _settle(4.6)
-	_check(absf(opponent_lanes.position.x - opponent_home) < 2.0,
-		"las notas del oponente tendrian que aterrizar en su casa (%.0f, no %.0f)"
-			% [opponent_home, opponent_lanes.position.x])
+	_check(absf(opponent_lanes.position.x - player_home) < 2.0,
+		"las notas del oponente tendrian que aterrizar en la casa del jugador (%.0f, no %.0f)"
+			% [player_home, opponent_lanes.position.x])
 	_check(absf(opponent_lanes.rotation_degrees) < 0.01,
 		"tendrian que acabar sin girar (%.3f)" % opponent_lanes.rotation_degrees)
 	_check(absf(opponent_lanes.modulate.a - 0.5) < 0.01,

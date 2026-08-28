@@ -48,6 +48,10 @@ const LANES := ["left", "down", "up", "right"]
 var _splash: AnimatedSprite2D
 var _cover: AnimatedSprite2D
 var _holding: bool = false
+## Which note the last splash belonged to. A press that hits nothing leaves
+## `last_hit_note_index` pointing at the PREVIOUS note, whose result is still sitting there
+## at perfect - so without this, tapping an empty receptor splashed the last note again.
+var _splashed_index: int = -1
 
 
 func _ready() -> void:
@@ -56,8 +60,12 @@ func _ready() -> void:
 
 	_splash = _make_sprite(SPLASH_SCALE, Vector2.ZERO)
 	_cover = _make_sprite(COVER_SCALE, COVER_OFFSET * FUNKIN_TO_RUBICON)
-	# buildNoteHoldCoverSprite: target.flipY = Preferences.downscroll.
+	# buildNoteHoldCoverSprite: target.flipY = Preferences.downscroll. The flip alone mirrors
+	# the drawing about its own centre and leaves it sitting on the receptor; the cover
+	# belongs where the TAIL is, which under downscroll is above. So the position is
+	# mirrored with it.
 	_cover.flip_v = true
+	_cover.offset.y = -_cover_height() * 0.5
 
 	handler.just_pressed.connect(_on_pressed)
 	handler.just_released.connect(_on_released)
@@ -100,6 +108,16 @@ func _make_sprite(sprite_scale: float, offset: Vector2) -> AnimatedSprite2D:
 	return sprite
 
 
+## Half a cover frame, for mirroring its position when it is flipped.
+func _cover_height() -> float:
+	for name: StringName in effects.get_animation_names():
+		if String(name).begins_with("cover_"):
+			var texture: Texture2D = effects.get_frame_texture(name, 0)
+			if texture != null:
+				return texture.get_height() * COVER_SCALE
+	return 0.0
+
+
 func _direction() -> String:
 	var lane: int = int(handler.lane_id)
 	return LANES[lane] if lane >= 0 and lane < LANES.size() else ""
@@ -114,6 +132,10 @@ func _on_pressed() -> void:
 	var results: Array = handler.results
 	if index < 0 or index >= results.size() or results[index] == null:
 		return
+	# This press hit nothing new; the index is left over from the last one.
+	if index == _splashed_index:
+		return
+	_splashed_index = index
 
 	if _splashes(results[index]):
 		var variant: int = randi_range(1, SPLASH_VARIANTS)

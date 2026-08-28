@@ -478,7 +478,12 @@ func opening() -> void:
 	if hud_root != null:
 		hud_root.modulate.a = 0.0
 
-	if player_lanes != null:
+	# The two sides exchange places: tadano's lanes go on the left, komi's on the right.
+	# This was tried once before and reverted, because with the two CHARTS crossed it read
+	# as the sides being wrong. They were not - the charts were - and with those uncrossed
+	# the swap is what the mod does.
+	if player_lanes != null and _lane_homes.has(&"opponent"):
+		player_lanes.position.x = _lane_homes[&"opponent"].x
 		player_lanes.modulate.a = 0.0
 
 	if opponent_lanes != null and _lane_homes.has(&"opponent"):
@@ -598,12 +603,12 @@ func _on_beat() -> void:
 ## case 166: two seconds later the opponent's lanes fly in from off the right edge, unwind a
 ## full turn and settle at half alpha on what was the player's side.
 func opponent_lanes_in() -> void:
-	if opponent_lanes == null or not _lane_homes.has(&"opponent"):
+	if opponent_lanes == null or not _lane_homes.has(&"player"):
 		return
 
 	var tween: Tween = create_tween().set_parallel(true)
 	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(opponent_lanes, "position:x", _lane_homes[&"opponent"].x,
+	tween.tween_property(opponent_lanes, "position:x", _lane_homes[&"player"].x,
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
 	tween.tween_property(opponent_lanes, "rotation_degrees", 0.0,
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)

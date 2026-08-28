@@ -230,9 +230,13 @@ func _build_tadano() -> void:
 	symbol.symbol = "chars render/tadano 1/tadano idle"
 	symbol.centered = false
 	symbol.position = -TADANO_DRAWN_ORIGIN
-	# flipX in the character data. Mirroring the node rather than the art keeps the
-	# atlas untouched and the symbol names comparable against Animation.json.
-	symbol.scale = Vector2(-1.0, 1.0)
+	# tadano.json declares flipX and this port applied it, which left him facing AWAY from
+	# komi - she stands to his right and he was looking right. Observation wins over the
+	# flag, the same way it did for the strumline sides: he faces her.
+	#
+	# Mirroring the node rather than the art keeps the atlas untouched and the symbol names
+	# comparable against Animation.json.
+	symbol.scale = Vector2(1.0, 1.0)
 	root.add_child(symbol)
 	symbol.owner = root
 
