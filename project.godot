@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="RubiconFNF"
-run/main_scene="uid://bte2jyircefco"
+run/main_scene="res://animania_mod/menus/title/title_screen.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="uid://dlxowoyf4wnti"
 

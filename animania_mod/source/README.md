@@ -926,6 +926,27 @@ shot on twos. It is one of six doubles `update()` carries (1, 1.75, 100, 600, 0.
 others) and the only one that makes sense as a boil cadence; the rest belong to the camera
 and the outro lerp. The texture is the mod's own `boil_texture.png`.
 
+### Getting into the song
+
+`run/main_scene` is the title screen, and the title's confirm goes straight to
+`songs/phone-call/phone_call.tscn`. In the mod that confirm is `moveToMain` and it goes to
+the main menu; there is no main menu on this branch, so this is a deliberate shortcut to
+make the thing playable, and it is one line to change the day `MainMenuScreen` exists.
+
+So the flow on a device is: boot, eighteen seconds of intro (any key or tap skips it),
+another press, and the song is running.
+
+The confirm is deaf for `CONFIRM_DELAY` after the intro ends, or the same keystroke that
+skips the intro also confirms it. That check lives **inside `confirm()`**, not in the input
+handler — `tools/animania/harness/flow_check.gd` caught the first version, which guarded
+only the keystroke and let every other caller straight through.
+
+That harness walks the real path rather than instantiating the level: `change_scene_to_file`
+replaces the running scene, so a level that loads fine in a harness can still fail as a
+scene change. It checks that the game boots on the title, that skipping shows it, that the
+confirm is deaf and then is not, that the scene actually becomes the song, and that the
+song's clock is *advancing* rather than merely present.
+
 ### What is not ported
 
 The falling bf/gf are built (`fallguys_frames.tres`) but nothing drops them.

@@ -66,6 +66,18 @@ const BEATS := {
 ## The last beat the intro spells, after which the title proper takes over.
 const LAST_BEAT := 31
 
+## Where a confirm goes.
+##
+## In the mod this is `moveToMain`, and it goes to the main menu. There is no main menu on
+## this branch, so the title goes straight into the one song that is ported. That is a
+## deliberate shortcut for playing the thing, not a reading of the original, and it is the
+## line to change the day MainMenuScreen exists.
+const NEXT_SCENE := "res://songs/phone-call/phone_call.tscn"
+
+## A press during the intro skips it; a press after it confirms. Without this the same
+## keystroke would do both on the frame the intro ends.
+const CONFIRM_DELAY := 0.35
+
 @export var music: AudioStreamPlayer
 @export var intro_text: RichTextLabel
 @export var title: Node2D
@@ -78,6 +90,8 @@ var _elapsed: float = 0.0
 var _line: String = ""
 var _done: bool = false
 var _boil_timer: float = 0.0
+var _confirmed: bool = false
+var _ready_at: float = INF
 
 
 func _ready() -> void:
@@ -90,10 +104,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_bump_boil(delta)
+	_elapsed += delta
 	if _done:
 		return
 
-	_elapsed += delta
 	var beat: int = floori(_elapsed * BPM / 60.0)
 	while _beat < beat:
 		_beat += 1
@@ -164,14 +178,37 @@ func _run_beat(beat: int) -> void:
 
 ## moveToMain: the intro is over and the title itself comes up.
 func _finish() -> void:
+	if _done:
+		return
 	_done = true
+	_ready_at = _elapsed + CONFIRM_DELAY
 	intro_text.visible = false
 	title.visible = true
 
 
-## skipIntro, on any key.
+## skipIntro while the intro runs; the confirm once it is over.
 func _unhandled_input(event: InputEvent) -> void:
-	if _done or not event.is_pressed():
+	if _confirmed or not event.is_pressed():
 		return
-	if event is InputEventKey or event is InputEventScreenTouch:
+	if not (event is InputEventKey or event is InputEventScreenTouch
+			or event is InputEventMouseButton):
+		return
+
+	if not _done:
 		_finish()
+		return
+	confirm()
+
+
+## moveToMain, pointed at the song instead of a menu that does not exist yet.
+##
+## The deaf window lives HERE rather than in the input handler, so it holds for every caller
+## - the first version guarded only the keystroke, and anything else calling confirm() went
+## straight through.
+func confirm() -> void:
+	if _confirmed or not _done or _elapsed < _ready_at:
+		return
+	_confirmed = true
+	if music != null:
+		music.stop()
+	get_tree().change_scene_to_file(NEXT_SCENE)
