@@ -21,6 +21,17 @@ const FINALE_RISE := -100.0
 ## The colour the script's <a> markup applies, as FlxTextFormat(0xFFAAD2FF).
 const ACCENT := Color8(0xAA, 0xD2, 0xFF)
 
+## BOIL_INTERVAL and boilTimer, the pair that sits beside boilShader in the compiled
+## TitleScreen's field list. The interval is read as 0.25 - one of six doubles that
+## update() carries, and the only one that makes sense as a boil cadence: four steps a
+## second, which is hand-drawn animation shot on twos. The other five (1, 1.75, 100, 600,
+## 0.7) belong to the camera and the outro lerp.
+##
+## The whole point of bumpTimer() is that the displacement is re-rolled in STEPS rather than
+## swum through continuously, so it is stepped here rather than driven off TIME in the
+## shader.
+const BOIL_INTERVAL := 0.25
+
 ## Every beat that does something, transcribed from titleBeat(). `text` replaces the line,
 ## `add` appends to it, `clear` empties it, `zoom` punches the camera, and `hold` is the
 ## script's `skipTween` - the beats that place the text themselves instead of letting the
@@ -59,11 +70,14 @@ const LAST_BEAT := 31
 @export var intro_text: RichTextLabel
 @export var title: Node2D
 @export var camera: Camera2D
+## The material carrying boil.gdshader, whose offset this steps.
+@export var boil: ShaderMaterial
 
 var _beat: int = 0
 var _elapsed: float = 0.0
 var _line: String = ""
 var _done: bool = false
+var _boil_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -75,6 +89,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_bump_boil(delta)
 	if _done:
 		return
 
@@ -83,6 +98,18 @@ func _process(delta: float) -> void:
 	while _beat < beat:
 		_beat += 1
 		_run_beat(_beat)
+
+
+## bumpTimer/updateBoil: every BOIL_INTERVAL the displacement is re-rolled, and between
+## rolls it does not move at all. That discontinuity is the effect.
+func _bump_boil(delta: float) -> void:
+	if boil == null:
+		return
+	_boil_timer += delta
+	if _boil_timer < BOIL_INTERVAL:
+		return
+	_boil_timer -= BOIL_INTERVAL
+	boil.set_shader_parameter(&"boil_offset", Vector2(randf(), randf()))
 
 
 ## titleBeat(beat). The default tween at the bottom runs on every beat the script does not

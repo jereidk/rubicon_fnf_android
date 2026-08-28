@@ -102,6 +102,16 @@ func _init() -> void:
 	music.stream = load("res://animania_mod/source/music/animaniaINTRO/animaniaINTRO.ogg")
 	_add(music)
 
+	# The boil goes on the title's own composition rather than on the whole screen: the
+	# field lives on TitleScreen beside logoTV, and a displacement over the intro text would
+	# make it unreadable.
+	var boil := ShaderMaterial.new()
+	boil.shader = load("res://animania_mod/menus/title/boil.gdshader")
+	boil.set_shader_parameter(&"boil_texture",
+		load("res://animania_mod/source/images/title/boil_texture.png"))
+	title.material = boil
+
+	_root.boil = boil
 	_root.music = music
 	_root.intro_text = text
 	_root.title = title

@@ -895,14 +895,42 @@ and says so constant by constant.
 That is the honest shape of the method: exact numbers, exact structure, inferred mapping.
 It cost about an hour for one small function. `create()` is 12.5 KB of code.
 
+### playIntro turned out to be a state flip
+
+Disassembled, `playIntro` is 223 instructions with **no outbound calls** — its only
+references are to statics, one of them `seenIntro`. It choreographs nothing. The intro's
+choreography is `titleBeat` in the `.script`, which this port already transcribes; the
+compiled method just flips state.
+
+That is worth writing down because it is the pleasant kind of finding: a function that
+looked like a gap was not one. And it explains `seenIntro` being **static** rather than a
+member — it survives the state being rebuilt, which is how the intro knows to skip itself on
+a second visit. This port always plays it.
+
+### The boil, ported by behaviour
+
+`assets/shaders/` has no boil frag, so the GLSL is compiled into the binary as a Haxe
+string. What the binary does give is the class: `set_amount(double)`,
+`loadBoilTexture(String)` with a `DEFAULT_BOIL_TEXTURE` static, and the pair
+`bumpTimer()` / `updateBoil()` sitting beside `BOIL_INTERVAL` and `boilTimer` on the title
+state.
+
+That pair **is** the technique, and it is the whole reason the effect reads the way it does:
+the displacement is re-rolled on an interval and does not move at all between rolls. A
+continuous version of the same displacement looks wrong even with the right texture — it
+swims instead of boiling. So the shader takes its offset from outside and the title state
+steps it.
+
+`BOIL_INTERVAL` is read as **0.25** — four steps a second, which is hand-drawn animation
+shot on twos. It is one of six doubles `update()` carries (1, 1.75, 100, 600, 0.7 are the
+others) and the only one that makes sense as a boil cadence; the rest belong to the camera
+and the outro lerp. The texture is the mod's own `boil_texture.png`.
+
 ### What is not ported
 
 The falling bf/gf are built (`fallguys_frames.tres`) but nothing drops them.
-`doJingle` and `cheatCodeShit` are untouched. The `boilShader` — a real effect, with
-`BOIL_INTERVAL` and `boilTimer` beside it in the field list and `boil_texture.png` in the
-assets — is not ported either, nor `swagShader`, `txtVersion`, `seenIntro` (the intro is
-skipped on a second visit; this port always plays it) or the `lerpOutroFactor`/`outroAngle`
-rotation on the way out.
+`doJingle` and `cheatCodeShit` are untouched, and so are `swagShader`, `txtVersion` and the
+`lerpOutroFactor`/`outroAngle` rotation on the way out.
 
 The font is the project default. The real one is named in the binary's literal pool —
 `assets/fonts/vcr.ttf`, which is VCR OSD Mono — but it is embedded in the executable rather

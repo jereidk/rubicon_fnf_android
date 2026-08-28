@@ -1,66 +1,76 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://animania_mod/menus/title/title_screen.gd" id="1_jibpe"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/void gradient.png" id="2_b47i5"]
-[ext_resource type="Script" path="res://animania_mod/menus/title/title_props.gd" id="3_07841"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/title/props_frames.tres" id="4_7yoh1"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="5_fneq6"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="6_or7m5"]
-[ext_resource type="Resource" path="res://animania_mod/menus/title/logo_atlas.tres" id="7_131y4"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/logo_library.tres" id="8_hque6"]
-[ext_resource type="Resource" path="res://animania_mod/menus/title/press_enter_atlas.tres" id="9_2mloa"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/press_enter_library.tres" id="10_upg6s"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaINTRO/animaniaINTRO.ogg" id="11_majus"]
+[ext_resource type="Script" path="res://animania_mod/menus/title/title_screen.gd" id="1_07841"]
+[ext_resource type="Shader" path="res://animania_mod/menus/title/boil.gdshader" id="2_7yoh1"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/boil_texture.png" id="3_fneq6"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/void gradient.png" id="4_or7m5"]
+[ext_resource type="Script" path="res://animania_mod/menus/title/title_props.gd" id="5_131y4"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/title/props_frames.tres" id="6_hque6"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="7_2mloa"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="8_upg6s"]
+[ext_resource type="Resource" path="res://animania_mod/menus/title/logo_atlas.tres" id="9_majus"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/logo_library.tres" id="10_bibgd"]
+[ext_resource type="Resource" path="res://animania_mod/menus/title/press_enter_atlas.tres" id="11_sk1xt"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/press_enter_library.tres" id="12_i2das"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaINTRO/animaniaINTRO.ogg" id="13_wqfhy"]
 
-[node name="TitleScreen" type="Node2D" unique_id=1816910402 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
-script = ExtResource("1_jibpe")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dj81x"]
+shader = ExtResource("2_7yoh1")
+shader_parameter/boil_texture = ExtResource("3_fneq6")
+shader_parameter/amount = null
+shader_parameter/boil_offset = null
+
+[node name="TitleScreen" type="Node2D" unique_id=250534771 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
+script = ExtResource("1_07841")
 music = NodePath("Music")
 intro_text = NodePath("IntroLayer/IntroText")
 title = NodePath("Title")
 camera = NodePath("Camera2D")
+boil = SubResource("ShaderMaterial_dj81x")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=270895682]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=925259056]
 position = Vector2(960, 540)
 
-[node name="Background" type="Sprite2D" parent="." unique_id=1109026962]
+[node name="Background" type="Sprite2D" parent="." unique_id=2085869609]
 scale = Vector2(1920, 1.728)
-texture = ExtResource("2_b47i5")
+texture = ExtResource("4_or7m5")
 centered = false
 
-[node name="Props" type="Node2D" parent="." unique_id=726084067]
-script = ExtResource("3_07841")
-frames = ExtResource("4_7yoh1")
+[node name="Props" type="Node2D" parent="." unique_id=1449907685]
+script = ExtResource("5_131y4")
+frames = ExtResource("6_hque6")
 
-[node name="Title" type="Node2D" parent="." unique_id=1586509451]
+[node name="Title" type="Node2D" parent="." unique_id=1734916147]
 visible = false
+material = SubResource("ShaderMaterial_dj81x")
 
-[node name="Logo" type="Node2D" parent="Title" unique_id=207620091]
+[node name="Logo" type="Node2D" parent="Title" unique_id=2123447898]
 position = Vector2(291.81982, 14.461351)
 scale = Vector2(0.65733415, 0.65733415)
-script = ExtResource("5_fneq6")
+script = ExtResource("7_2mloa")
 symbol = "Logolol"
 centered = false
-atlases = Array[ExtResource("6_or7m5")]([ExtResource("7_131y4")])
+atlases = Array[ExtResource("8_upg6s")]([ExtResource("9_majus")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=1685174769]
-libraries/ = ExtResource("8_hque6")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=202544035]
+libraries/ = ExtResource("10_bibgd")
 autoplay = &"logo_idle"
 
-[node name="PressEnter" type="Node2D" parent="Title" unique_id=1128142728]
+[node name="PressEnter" type="Node2D" parent="Title" unique_id=181434038]
 position = Vector2(331.5, 765)
 scale = Vector2(1.5, 1.5)
-script = ExtResource("5_fneq6")
+script = ExtResource("7_2mloa")
 symbol = "main"
 centered = false
-atlases = Array[ExtResource("6_or7m5")]([ExtResource("9_2mloa")])
+atlases = Array[ExtResource("8_upg6s")]([ExtResource("11_sk1xt")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=142221823]
-libraries/ = ExtResource("10_upg6s")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=1619343850]
+libraries/ = ExtResource("12_i2das")
 autoplay = &"press_enter_loop"
 
-[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=1582467054]
+[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=859535229]
 
-[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=1206441676]
+[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=888649307]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -73,5 +83,5 @@ theme_override_constants/outline_size = 16
 bbcode_enabled = true
 scroll_active = false
 
-[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1883744799]
-stream = ExtResource("11_majus")
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1749829667]
+stream = ExtResource("13_wqfhy")
