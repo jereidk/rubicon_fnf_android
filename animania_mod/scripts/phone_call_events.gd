@@ -20,6 +20,17 @@ extends Node
 ## camGame.flash(FlxColor.WHITE, 1.5) in standUP().
 const FLASH_SECONDS := 1.5
 
+## Funkin is 1280x720 and this project is 1920x1080. Shake intensity is a FRACTION of the
+## camera's size in Flixel, and the HUD tween distances are screen distances, so both scale.
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+const SCREEN_WIDTH := 1920.0
+
+## onBeatHit's tween at beat 332: y +/- 250 over 1.75s, alpha to 0.
+const HUD_TWEEN_DISTANCE := 250.0
+const HUD_TWEEN_SECONDS := 1.75
+const HUD_TWEEN_DELAY_UP := 0.25
+const HUD_TWEEN_DELAY_DOWN := 0.5
+
 ## Funkin's default per-bop game zoom. SetCameraBop's `intensity` is a multiplier on it,
 ## which is why the chart's AddCameraZoom events mostly carry this exact number.
 const DEFAULT_BOP := 0.015
@@ -35,9 +46,16 @@ const DEFAULT_BOP := 0.015
 @export var stage: Node2D
 ## A full-screen white ColorRect for camGame.flash.
 @export var flash: ColorRect
+## A full-screen black ColorRect for camGame.fade.
+@export var fade: ColorRect
+## What beat 332 tweens away: the health bar and its icons upward, the strumlines downward.
+@export var hud_up: Array[Node] = []
+@export var hud_down: Array[Node] = []
 
 var _hud_rest: Vector2 = Vector2.ONE
 var _stood_up: bool = false
+var _shake_amount: float = 0.0
+var _shake_left: float = 0.0
 
 
 func _ready() -> void:
@@ -71,6 +89,14 @@ func set_bop(rate: int, intensity: float) -> void:
 ## The HUD punch has to decay the way the camera's does; the camera gets that free from
 ## RubiconInterpolatedCamera2D's own lerp, and the CanvasLayer has no equivalent.
 func _process(delta: float) -> void:
+	if _shake_left > 0.0:
+		_shake_left -= delta
+		if camera != null:
+			camera.position_interpolate_offset = Vector2(
+				randf_range(-_shake_amount, _shake_amount),
+				randf_range(-_shake_amount, _shake_amount)) \
+				if _shake_left > 0.0 else Vector2.ZERO
+
 	if hud == null or hud.scale.is_equal_approx(_hud_rest):
 		return
 
@@ -213,3 +239,42 @@ func _swap_props(node: Node) -> void:
 			# with the dashes turned into underscores.
 			child.visible = String(child.name).contains("stand_")
 		_swap_props(child)
+
+
+## camGame.shake(intensity, duration) at beats 16, 19 and 23.
+##
+## Flixel's intensity is a FRACTION of the camera's size, so the script's 0.0005 is 0.96px
+## at 1920 wide - a rumble on a beat accent, not a jolt. It is applied through the camera's
+## position_interpolate_OFFSET rather than its position, so it rides on top of the baked
+## FocusCamera track instead of fighting it.
+func shake(intensity: float, duration: float) -> void:
+	_shake_amount = intensity * SCREEN_WIDTH
+	_shake_left = duration
+
+
+## onBeatHit case 332: the HUD leaves. Downscroll here, so the bar and its icons go up and
+## the strumlines go down, both fading, with the strumlines a quarter of a second behind.
+func hud_out() -> void:
+	var distance: float = HUD_TWEEN_DISTANCE * FUNKIN_TO_RUBICON
+	_tween_out(hud_up, -distance, HUD_TWEEN_DELAY_UP)
+	_tween_out(hud_down, distance, HUD_TWEEN_DELAY_DOWN)
+
+
+func _tween_out(nodes: Array[Node], distance: float, delay: float) -> void:
+	for node: Node in nodes:
+		if node == null or not (node is CanvasItem):
+			continue
+		var tween: Tween = create_tween().set_parallel(true)
+		tween.tween_property(node, "position:y", node.position.y + distance,
+			HUD_TWEEN_SECONDS).set_delay(delay).set_trans(Tween.TRANS_QUINT).set_ease(
+			Tween.EASE_IN)
+		tween.tween_property(node, "modulate:a", 0.0,
+			HUD_TWEEN_SECONDS).set_delay(delay)
+
+
+## onBeatHit case 348: camGame.fade(FlxColor.BLACK, 3, false).
+func fade_out(duration: float) -> void:
+	if fade == null:
+		return
+	fade.color = Color(0.0, 0.0, 0.0, 0.0)
+	create_tween().tween_property(fade, "color:a", 1.0, duration)

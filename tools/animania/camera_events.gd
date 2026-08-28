@@ -64,7 +64,15 @@ const CAMERA := ^"../RubiconInterpolatedCamera2D"
 ## modcharts. Beat 232 is standUP(): both characters swap to their standing versions and
 ## every prop on the stage inverts its visibility.
 const SCRIPT_BEATS := [
+	# camGame.shake(.0005, .8) - a rumble on three beat accents.
+	[16, "shake", [0.0005, 0.8]],
+	[19, "shake", [0.0005, 0.8]],
+	[23, "shake", [0.0005, 0.8]],
+	# Both characters swap to their standing versions and the stage inverts.
 	[232, "stand_up", []],
+	# The HUD leaves, and then the screen does.
+	[332, "hud_out", []],
+	[348, "fade_out", [3.0]],
 ]
 
 

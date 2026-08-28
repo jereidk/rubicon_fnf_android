@@ -350,7 +350,16 @@ func _check_level() -> void:
 		_check(character.animation_player.has_animation(StringName(entry[3])),
 			"%s no tiene %s" % [entry[0], entry[3]])
 
-	_check(level.get_node("Flash/White") != null, "falta el destello blanco de standUP()")
+	_check(level.get_node("Overlays/White") != null, "falta el destello blanco de standUP()")
+	_check(level.get_node("Overlays/Black") != null, "falta el fundido a negro del beat 348")
+	# camGame.flash and camGame.fade are on the GAME camera, so they belong above the stage
+	# and below the HUD - by the time the fade runs, beat 332 has taken the HUD away anyway.
+	_check(level.get_node("Overlays").layer < level.get_node("UILayer").layer,
+		"los fundidos tendrian que ir por debajo del HUD")
+
+	var events_node: Node = level.get_node("PhoneCallEvents")
+	_check(events_node.hud_up.size() == 1 and events_node.hud_down.size() == 2,
+		"el beat 332 mueve la barra hacia arriba y las dos strumlines hacia abajo")
 
 	level.queue_free()
 
@@ -545,6 +554,67 @@ func _check_camera_events() -> void:
 	# forward again does not re-fire what it passed on the way back.
 	await _check_idle_suffix()
 	await _check_stand_up()
+	await _check_script_beats()
+
+
+## phone-call.script's onBeatHit, the three moments that are not the character swap. Walked
+## to and then PLAYED through, because all three are tweens that need real time.
+func _check_script_beats() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	await process_frame
+
+	var player: AnimationPlayer = level.get_node("RubiconLevelClock/AnimationPlayer")
+	var camera: Camera2D = level.get_node("RubiconInterpolatedCamera2D")
+	var bar: Control = level.get_node("UILayer/UI/HealthBar")
+	var strumline: Control = level.get_node("UILayer/UI/Player")
+	var black: ColorRect = level.get_node("Overlays/Black")
+
+	var bar_start: float = bar.position.y
+	var strumline_start: float = strumline.position.y
+
+	# beat 16 = 6.32s: camGame.shake(.0005, .8). Flixel's intensity is a fraction of the
+	# camera's size, so this is under a pixel at 1920 wide - a rumble, not a jolt.
+	await _wind_to(player, 6.0)
+	var shaken: float = 0.0
+	while player.current_animation_position < 6.9:
+		shaken = maxf(shaken, camera.position_interpolate_offset.length())
+		await process_frame
+	_check(shaken > 0.0 and shaken < 3.0,
+		"la sacudida del beat 16 fue de %.2f px" % shaken)
+
+	# And it has to stop: the shake rides on position_interpolate_offset so it does not
+	# fight the baked FocusCamera track, which means a leak would drag the camera forever.
+	#
+	# Waited out in REAL frames, not by winding. The shake decays in wall time the way
+	# Flixel's does, and winding moves the song clock without moving the wall clock - so
+	# winding past the last shake re-triggers it and then asks why it has not finished.
+	await _wind_to(player, 11.0)
+	var settled: bool = false
+	for _frame: int in 240:
+		await process_frame
+		if camera.position_interpolate_offset.length() < 0.001:
+			settled = true
+			break
+	_check(settled, "la sacudida no se limpio: %s" % camera.position_interpolate_offset)
+
+	# beat 332 = 131.05s: the HUD leaves, and beat 348 = 137.37s takes the screen with it.
+	await _wind_to(player, 130.5)
+	while player.current_animation_position < 141.0:
+		await process_frame
+
+	_check(is_zero_approx(bar.modulate.a) and is_zero_approx(strumline.modulate.a),
+		"el HUD tendria que haberse desvanecido")
+	# Downscroll: the bar goes up, the strumlines go down, both by 250 scaled 1.5x.
+	_check(is_equal_approx(bar.position.y, bar_start - 375.0),
+		"la barra acabo en y=%.0f y esperaba %.0f" % [bar.position.y, bar_start - 375.0])
+	_check(is_equal_approx(strumline.position.y, strumline_start + 375.0),
+		"la strumline acabo en y=%.0f y esperaba %.0f" % [
+			strumline.position.y, strumline_start + 375.0])
+	_check(is_equal_approx(black.color.a, 1.0),
+		"el fundido a negro acabo en alpha %.2f" % black.color.a)
+
+	level.queue_free()
 
 
 ## The swap itself, walked to rather than seeked to.

@@ -385,22 +385,28 @@ func _add_control(parent: Control, control: Control) -> void:
 	control.set(&"layout_mode", 1)
 
 
-## camGame.flash(FlxColor.WHITE, 1.5) in standUP(). Above the stage and below the HUD, the
-## same place the letterbox sits - it is a flash over the scene, not over the notes.
-func _build_flash() -> ColorRect:
+## standUP()'s camGame.flash(WHITE, 1.5) and beat 348's camGame.fade(BLACK, 3). Both are on
+## the GAME camera in Funkin, so they go above the stage and below the HUD - the same place
+## the letterbox sits. That is right for the fade too: by the time it runs, beat 332 has
+## already tweened the HUD away.
+func _build_overlays() -> Dictionary:
 	var layer := CanvasLayer.new()
-	layer.name = "Flash"
+	layer.name = "Overlays"
 	layer.layer = 1
 	_root.add_child(layer)
 
-	var rect := ColorRect.new()
-	rect.name = "White"
-	rect.color = Color(1.0, 1.0, 1.0, 0.0)
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rect.size = Vector2(1920.0, 1080.0)
-	layer.add_child(rect)
-	rect.set(&"layout_mode", 0)
-	return rect
+	var built: Dictionary = {}
+	for entry: Array in [["White", Color(1, 1, 1, 0), "flash"],
+			["Black", Color(0, 0, 0, 0), "fade"]]:
+		var rect := ColorRect.new()
+		rect.name = entry[0]
+		rect.color = entry[1]
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rect.size = Vector2(1920.0, 1080.0)
+		layer.add_child(rect)
+		rect.set(&"layout_mode", 0)
+		built[entry[2]] = rect
+	return built
 
 
 ## Letterbox bars for the chart's seven CinematicBars events.
@@ -528,7 +534,16 @@ func _build_camera() -> void:
 			_root.find_child(character_name, true, false)
 	events.stand_cast = stand_map
 	events.stage = _root.get_node("Stage")
-	events.flash = _build_flash()
+	var overlays: Dictionary = _build_overlays()
+	events.flash = overlays["flash"]
+	events.fade = overlays["fade"]
+
+	# onBeatHit case 332: the bar and its icons go one way, the strumlines the other.
+	var up: Array[Node] = [_root.get_node("UILayer/UI/HealthBar")]
+	var down: Array[Node] = [
+		_root.get_node("UILayer/UI/Opponent"), _root.get_node("UILayer/UI/Player")]
+	events.hud_up = up
+	events.hud_down = down
 
 
 func _own(node: Node, owner: Node) -> void:
