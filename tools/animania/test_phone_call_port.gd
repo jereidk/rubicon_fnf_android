@@ -26,6 +26,12 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 
 ## How tall the mod draws its health icons, measured on a capture of it running.
 const ICON_HEIGHT := 140.0
+
+## phone-call.script's POSITION_OFFSET, in Funkin pixels. See build_level_scene.gd's own
+## comment on icon.offset for why this is the correction on BOTH icons regardless of side
+## or width - the algebra of `icon.x = C - 26` and `icon.x = C - (width - 26)` reduces to
+## the same "offset.x = -width/2 + 26" either way.
+const ICON_POSITION_OFFSET := 26.0
 const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 
@@ -454,6 +460,10 @@ func _check_camera_events() -> void:
 
 	# After standUP() the same `char` index means the standing pair, standing somewhere
 	# else. Their cameraOffsets are tadano-stand [200, 50] and komi-stand [50, 50].
+	#
+	# NOT scaled by FUNKIN_TO_RUBICON here either - this check carried the same 1.5 the
+	# builder did, so it agreed with the bug instead of catching it. World offsets stay
+	# verbatim; the 1.5 lives on the camera's zoom.
 	const STAND_UP_TIME := 232.0 * 60.0 / 152.0
 	var stand_points: Dictionary = {}
 	for entry: Array in [
@@ -462,7 +472,7 @@ func _check_camera_events() -> void:
 		var character: Node2D = level.find_child(entry[1], true, false)
 		stand_points[entry[0]] = (character.position
 			- Vector2(0.0, (entry[2] as Vector2).y * 0.5)
-			+ (entry[3] as Vector2) * FUNKIN_TO_RUBICON)
+			+ (entry[3] as Vector2))
 
 	# The letterbox has to leave the notes alone: Rubicon anchors its strumlines to the
 	# BOTTOM, unlike Funkin, and the chart asks for 120px bars while notes are arriving.
@@ -1393,10 +1403,12 @@ func _check_icons(level: Node) -> void:
 		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
 		_check(is_equal_approx(absf(icon.scale.y) * frame.get_height(), ICON_HEIGHT),
 			"%s mide %.0fpx de alto y la barra espera %.0f" % [
-				icon_name, absf(icon.scale.y) * frame.get_height()])
-		_check(is_equal_approx(icon.offset.x, -frame.get_width() * 0.5),
+				icon_name, absf(icon.scale.y) * frame.get_height(), ICON_HEIGHT])
+		var expected_offset_x: float = (-frame.get_width() * 0.5
+			+ ICON_POSITION_OFFSET * FUNKIN_TO_RUBICON)
+		_check(is_equal_approx(icon.offset.x, expected_offset_x),
 			"%s tiene offset.x %.1f y esperaba %.1f" % [
-				icon_name, icon.offset.x, -frame.get_width() * 0.5])
+				icon_name, icon.offset.x, expected_offset_x])
 
 	# tadano's icon is a four-rung ladder, and every adjacent pair needs its transition or a
 	# state change plays nothing. Non-adjacent pairs deliberately have none: the walk goes

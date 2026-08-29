@@ -124,8 +124,11 @@ func _process(delta: float) -> void:
 
 
 ## onStartSong: the icon tilts once health passes the extremes, and rides a cosine of it the
-## rest of the time. Both are offsets on top of whatever position the bar gives the icon,
-## which is Rubicon's PathFollow2D and not Funkin's centerPoint arithmetic.
+## rest of the time. Both are offsets on top of wherever the bar puts the icon at rest -
+## which is now a FIXED point pinned to the bar's own centre (see build_health_bar.gd's
+## IconAnchor), matching phone-call.script's `icon.x = healthBar.centerPoint.x + ...`. It
+## used to ride Rubicon's health-driven PathFollow2D instead, which is Funkin's own
+## behaviour and not this mod's: Animania's icons never move in x with health at all.
 func _apply_tilt_and_bob() -> void:
 	var ratio: float = _ratio()
 	position = _rest_position + Vector2(0.0, -cos((ratio * 2.0 - 1.0) * 2.0) * BOB_AMPLITUDE)

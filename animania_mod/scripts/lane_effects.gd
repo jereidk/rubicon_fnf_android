@@ -28,6 +28,9 @@ const ROTATION_VARIANCE := 180.0
 ## detached from the notes they belong to. `flipY = Preferences.downscroll` on line 30 does
 ## still apply, so the sprite is flipped and not offset.
 const COVER_OFFSET := Vector2.ZERO
+## A small manual correction, asked for by eye against the mod: the glow sits a little
+## higher over the receptor than the flip alone puts it.
+const COVER_Y_NUDGE := -10.0
 ## amtake-base.json declares two splash variants per lane and Funkin picks between them.
 const SPLASH_VARIANTS := 2
 
@@ -70,7 +73,10 @@ func _ready() -> void:
 	# cover under the receptor; the splash stays over it.
 	_cover.z_index = -1
 	_cover.flip_v = true
-	_cover.offset.y = -_cover_height() * 0.5
+	# COVER_Y_NUDGE is a small manual correction on top of the measured -half-height: asked
+	# for by eye against a capture of the mod, where the glow sits slightly higher over the
+	# receptor than the flip alone puts it.
+	_cover.offset.y = -_cover_height() * 0.5 + COVER_Y_NUDGE * FUNKIN_TO_RUBICON
 
 	handler.just_pressed.connect(_on_pressed)
 	handler.just_released.connect(_on_released)

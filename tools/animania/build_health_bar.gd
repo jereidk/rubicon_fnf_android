@@ -112,15 +112,28 @@ func _init() -> void:
 	# bar sets it from the health on _ready anyway.
 	path.add_child(follow)
 
+	# The icons do NOT ride this one. phone-call.script sets `icon.x` directly every frame
+	# to `healthBar.centerPoint.x` plus a small fixed offset - never to anything derived
+	# from health - so their separation is constant and their shared position is the bar's
+	# own middle, always. Riding the health-driven follow point put them there only at
+	# exactly 50% and slid them apart from each other's true resting point everywhere else.
+	# A second follow point pinned at the middle of the arc gives them the bow's curve
+	# without any of the drift.
+	var icon_anchor := PathFollow2D.new()
+	icon_anchor.name = "IconAnchor"
+	icon_anchor.rotates = false
+	icon_anchor.progress_ratio = 0.5
+	path.add_child(icon_anchor)
+
 	# Rubicon's own bar names them IconL and IconR and build_level_scene's _dress_icons
 	# rewrites both, so the names are load-bearing. IconL is drawn mirrored, which is what
-	# puts it on the far side of the follow point.
+	# puts it on the far side of the anchor.
 	for icon_name: String in ["IconL", "IconR"]:
 		var icon := AnimatedSprite2D.new()
 		icon.name = icon_name
 		if icon_name == "IconL":
 			icon.scale = Vector2(-1.0, 1.0)
-		follow.add_child(icon)
+		icon_anchor.add_child(icon)
 
 	root.set(&"player_fill", player_fill)
 	root.set(&"opponent_fill", opponent_fill)
@@ -129,8 +142,8 @@ func _init() -> void:
 	# No connect() here: PackedScene.pack() drops a connection that is not CONNECT_PERSIST,
 	# and the bar wires its own on _ready.
 
-	for node: Node in [art, frame, player_fill, opponent_fill, path, follow,
-			follow.get_child(0), follow.get_child(1)]:
+	for node: Node in [art, frame, player_fill, opponent_fill, path, follow, icon_anchor,
+			icon_anchor.get_child(0), icon_anchor.get_child(1)]:
 		node.owner = root
 
 	var packed := PackedScene.new()

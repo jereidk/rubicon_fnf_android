@@ -67,7 +67,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 4.731842, 4.736842, 4.7861843, 4.8355265, 4.8848686, 4.9342103, 4.9835525, 5.0328946, 5.082237, 5.131579, 5.180921, 5.230263, 5.2796054, 5.3289475, 5.3782897, 5.4276314, 5.4769735, 5.5263157, 5.575658, 5.625, 5.674342, 5.7236843, 5.7730265, 5.8223686, 5.8717103, 5.9210525, 5.9703946, 6.019737, 6.069079, 6.118421, 6.167763, 6.2171054, 6.2664475, 6.3157897, 6.3651314, 6.4144735, 6.4638157, 6.513158, 6.5625, 6.611842, 6.6611843, 6.7105265, 63.152893, 63.157894, 63.207237, 63.25658, 63.30592, 63.355263, 63.404606, 63.45395, 63.50329, 63.55263, 63.601974, 63.651318, 63.700657, 63.75, 63.799343, 63.848682, 63.898026, 63.94737, 63.99671, 64.04605, 64.0954, 64.14474, 64.19408, 64.24342, 64.29276, 64.3421, 66.31079, 66.31579, 72.62658, 72.63158, 83.67921, 83.68421, 86.837105, 86.8421, 91.573944, 91.57895, 97.88974, 97.89474, 104.20553, 104.210526, 110.52132, 110.52631, 116.81243, 116.81744, 118.41605, 118.42105, 121.573944, 121.57895, 124.73184, 124.73684, 127.100266, 127.10526, 128.67921, 128.6842, 130.60355, 130.60855, 130.66252, 130.71649, 130.77046, 130.82442, 130.87839, 130.93236, 130.98633, 131.0403, 131.09427, 131.14824, 131.2022, 131.25616, 131.31013, 131.3641, 131.41808, 131.47205, 131.526, 131.57997, 131.63394, 131.68791, 131.74188, 131.79585, 131.84981, 131.90378, 131.95775, 132.01172, 132.06569, 132.11966, 132.17363, 132.22758, 132.28156, 132.33553, 132.3895, 132.44347, 132.49744, 132.55139, 132.60536, 132.65933, 132.7133, 132.76727, 132.82124, 132.8752, 132.92917, 132.98314, 133.03711, 133.09108, 133.14505, 133.19902, 133.25298, 133.30695, 133.36092, 133.41489, 133.46886, 133.52283, 133.57678, 133.63075, 133.68472, 133.7387, 133.79266, 133.84663, 133.90059, 133.95456, 134.00853, 134.0625, 134.11647, 134.17044, 134.22441, 134.27837, 134.33234, 134.3863, 134.44028, 134.49425, 134.54822, 134.60217, 134.65614, 134.71011, 134.76408, 134.81805, 134.87202, 134.92598, 134.97995, 135.03392, 135.08789, 135.14186, 135.19583, 135.2498, 135.30376, 135.35773, 135.4117, 135.46567, 135.51964, 135.57361, 135.62756, 135.68153, 135.7355, 135.78947, 135.85576, 135.92203, 135.98831, 136.05458, 136.12086, 136.18715, 136.25342, 136.3197, 136.38597, 136.45226, 136.51854, 136.58481, 136.6511, 136.71736, 136.78365, 136.84993, 136.9162, 136.98248, 137.04875, 137.11504, 137.18132, 137.24759, 137.31387, 137.38014, 137.44643, 137.51271, 137.57898, 137.64526, 137.71153, 137.77782, 137.8441, 137.91037, 137.97665, 138.04294, 138.1092, 138.17549, 138.24176, 138.30804, 138.37433, 138.4406, 138.50688, 138.57315, 138.63943, 138.70572, 138.77199, 138.83827, 138.90454, 138.97083, 139.03711, 139.10338, 139.16966, 139.23593, 139.30222, 139.3685, 139.43477, 139.50105, 139.56732, 139.6336, 139.69989, 139.76616, 139.83244, 139.89871, 139.965, 140.03128, 140.09755, 140.16383, 140.2301, 140.29639, 140.36267, 140.42894, 140.49522, 140.5615, 140.62778, 140.69406, 140.76033, 140.82661, 140.8929, 140.95917, 141.02545, 141.09172, 141.158, 141.22429, 141.29056, 141.35684, 141.42311, 141.4894, 141.55568, 141.62195, 141.68823, 141.7545, 141.82079, 141.88707, 141.95334, 142.01962, 142.08589, 142.15218),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector2(70, 848.5), Vector2(70, 848.5), Vector2(70, 848.5), Vector2(69.2938, 848.5), Vector2(67.21499, 848.5), Vector2(63.823242, 848.5), Vector2(59.17824, 848.5), Vector2(53.33966, 848.5), Vector2(46.367188, 848.5), Vector2(38.320496, 848.5), Vector2(29.259258, 848.5), Vector2(19.243164, 848.5), Vector2(8.33189, 848.5), Vector2(-3.414894, 848.5), Vector2(-15.9375, 848.5), Vector2(-29.176254, 848.5), Vector2(-43.071472, 848.5), Vector2(-57.563477, 848.5), Vector2(-72.59259, 848.5), Vector2(-88.09914, 848.5), Vector2(-104.02344, 848.5), Vector2(-120.30582, 848.5), Vector2(-136.88657, 848.5), Vector2(-153.70605, 848.5), Vector2(-170.70457, 848.5), Vector2(-187.82245, 848.5), Vector2(-205, 848.5), Vector2(-222.17758, 848.5), Vector2(-239.29544, 848.5), Vector2(-256.29395, 848.5), Vector2(-273.11343, 848.5), Vector2(-289.69418, 848.5), Vector2(-305.97656, 848.5), Vector2(-321.90085, 848.5), Vector2(-337.40738, 848.5), Vector2(-352.43652, 848.5), Vector2(-366.92856, 848.5), Vector2(-380.82376, 848.5), Vector2(-394.0625, 848.5), Vector2(-406.5851, 848.5), Vector2(-418.33188, 848.5), Vector2(-429.24316, 848.5), Vector2(-405, 848.5), Vector2(-405, 848.5), Vector2(-405, 848.5), Vector2(-404.5862, 848.4938), Vector2(-401.68982, 848.45026), Vector2(-393.82813, 848.33203), Vector2(-378.51852, 848.10187), Vector2(-353.27835, 847.72235), Vector2(-315.625, 847.15625), Vector2(-263.0758, 846.36615), Vector2(-193.14815, 845.3148), Vector2(-103.359375, 843.96484), Vector2(8.773132, 842.27893), Vector2(145.73206, 840.2198), Vector2(310, 837.75), Vector2(474.26794, 835.2802), Vector2(611.2268, 833.22107), Vector2(723.3594, 831.53516), Vector2(813.1482, 830.1852), Vector2(883.0758, 829.13385), Vector2(935.625, 828.34375), Vector2(973.2783, 827.77765), Vector2(998.51855, 827.39813), Vector2(1013.8281, 827.16797), Vector2(1021.6898, 827.04974), Vector2(1024.5862, 827.0062), Vector2(1025, 827), Vector2(1025, 827), Vector2(420, 798.5), Vector2(420, 798.5), Vector2(975, 877), Vector2(975, 877), Vector2(-280, 798.5), Vector2(-280, 798.5), Vector2(975, 877), Vector2(975, 877), Vector2(609.5, 735), Vector2(609.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(484.5, 735), Vector2(484.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(270, 733.5), Vector2(270, 733.5), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.5, 735), Vector2(509.50073, 735.00183), Vector2(509.5056, 735.01404), Vector2(509.5184, 735.04596), Vector2(509.54227, 735.10565), Vector2(509.58002, 735.2001), Vector2(509.63397, 735.3349), Vector2(509.70602, 735.515), Vector2(509.79764, 735.74414), Vector2(509.91, 736.025), Vector2(510.04382, 736.35956), Vector2(510.19955, 736.7489), Vector2(510.37726, 737.1932), Vector2(510.57678, 737.69196), Vector2(510.7976, 738.244), Vector2(511.03903, 738.8476), Vector2(511.30005, 739.5001), Vector2(511.5795, 740.1988), Vector2(511.876, 740.94), Vector2(512.188, 741.7199), Vector2(512.5137, 742.53424), Vector2(512.8513, 743.37836), Vector2(513.1989, 744.2473), Vector2(513.5544, 745.1359), Vector2(513.9156, 746.03894), Vector2(514.28033, 746.95087), Vector2(514.6465, 747.86615), Vector2(515.01166, 748.7792), Vector2(515.3738, 749.68445), Vector2(515.7305, 750.57635), Vector2(516.0799, 751.4497), Vector2(516.4197, 752.29913), Vector2(516.7479, 753.1198), Vector2(517.0628, 753.907), Vector2(517.3625, 754.65625), Vector2(517.6455, 755.3637), Vector2(517.9103, 756.02576), Vector2(518.1557, 756.6393), Vector2(518.38074, 757.20184), Vector2(518.58453, 757.7114), Vector2(518.76666, 758.1666), Vector2(518.92676, 758.56696), Vector2(519.06494, 758.9124), Vector2(519.1816, 759.2039), Vector2(519.2773, 759.4432), Vector2(519.35315, 759.6328), Vector2(519.4105, 759.77637), Vector2(519.45135, 759.8784), Vector2(519.47784, 759.9445), Vector2(519.49255, 759.98145), Vector2(519.4988, 759.9969), Vector2(519.5, 760), Vector2(519.50037, 760.0009), Vector2(519.5041, 760.0103), Vector2(519.515, 760.0376), Vector2(519.53644, 760.0912), Vector2(519.5712, 760.1781), Vector2(519.62177, 760.30444), Vector2(519.69006, 760.4752), Vector2(519.7777, 760.6942), Vector2(519.88586, 760.9646), Vector2(520.0153, 761.2883), Vector2(520.1666, 761.6666), Vector2(520.33997, 762.0999), Vector2(520.53516, 762.5879), Vector2(520.7518, 763.12946), Vector2(520.98914, 763.72284), Vector2(521.24634, 764.36584), Vector2(521.5222, 765.05554), Vector2(521.8154, 765.7885), Vector2(522.12445, 766.56104), Vector2(522.4476, 767.36884), Vector2(522.78296, 768.2074), Vector2(523.1287, 769.0718), Vector2(523.4828, 769.9569), Vector2(523.843, 770.8575), Vector2(524.2072, 771.76807), Vector2(524.57324, 772.6831), Vector2(524.9388, 773.59705), Vector2(525.3017, 774.5043), Vector2(525.6597, 775.3993), Vector2(526.0107, 776.2768), Vector2(526.35254, 777.1314), Vector2(526.6833, 777.9582), Vector2(527.001, 778.75244), Vector2(527.30383, 779.50964), Vector2(527.5903, 780.2257), Vector2(527.8588, 780.8971), Vector2(528.1082, 781.5206), Vector2(528.3374, 782.0935), Vector2(528.54553, 782.6138), Vector2(528.732, 783.07996), Vector2(528.89655, 783.4913), Vector2(529.03906, 783.84766), Vector2(529.1599, 784.14984), Vector2(529.25977, 784.3994), Vector2(529.3395, 784.5987), Vector2(529.33655, 784.53296), Vector2(529.32794, 784.3371), Vector2(529.3136, 784.0129), Vector2(529.29376, 783.56213), Vector2(529.2684, 782.98676), Vector2(529.23755, 782.28864), Vector2(529.2014, 781.46954), Vector2(529.16, 780.5313), Vector2(529.1134, 779.4758), Vector2(529.06177, 778.305), Vector2(529.00507, 777.02057), Vector2(528.9435, 775.62445), Vector2(528.877, 774.11847), Vector2(528.8058, 772.50446), Vector2(528.72986, 770.78424), Vector2(528.64935, 768.9598), Vector2(528.56433, 767.0328), Vector2(528.47485, 765.0052), Vector2(528.38104, 762.8788), Vector2(528.28296, 760.6555), Vector2(528.1806, 758.3371), Vector2(528.0742, 755.9255), Vector2(527.96375, 753.4224), Vector2(527.84937, 750.8299), Vector2(527.7311, 748.14966), Vector2(527.609, 745.38354), Vector2(527.4833, 742.53345), Vector2(527.3539, 739.6012), Vector2(527.22095, 736.5886), Vector2(527.08453, 733.49756), Vector2(526.94476, 730.32996), Vector2(526.8017, 727.0876), Vector2(526.6554, 723.7723), Vector2(526.506, 720.38586), Vector2(526.35345, 716.9303), Vector2(526.198, 713.40735), Vector2(526.0397, 709.81885), Vector2(525.8785, 706.1667), Vector2(525.7146, 702.45264), Vector2(525.5481, 698.6787), Vector2(525.37897, 694.84656), Vector2(525.2074, 690.9581), Vector2(525.0334, 687.0153), Vector2(524.8571, 683.01984), Vector2(524.6785, 678.97363), Vector2(524.49786, 674.87854), Vector2(524.31506, 670.73645), Vector2(524.1303, 666.5491), Vector2(523.9436, 662.31836), Vector2(523.75507, 658.04614), Vector2(523.5648, 653.73425), Vector2(523.37286, 649.3846), Vector2(523.1793, 644.99896), Vector2(522.9843, 640.57916), Vector2(522.78784, 636.12714), Vector2(522.5901, 631.64465), Vector2(522.391, 627.1336), Vector2(522.19073, 622.5958), Vector2(521.98944, 618.03314), Vector2(521.78705, 613.44745), Vector2(521.5838, 608.8406), Vector2(521.37964, 604.21436), Vector2(521.17474, 599.5706), Vector2(520.9691, 594.91125), Vector2(520.76294, 590.2381), Vector2(520.55615, 585.553), Vector2(520.349, 580.8577), Vector2(520.1414, 576.15424), Vector2(519.9336, 571.44434), Vector2(519.7256, 566.7299), Vector2(519.5174, 562.01276), Vector2(519.3092, 557.29474), Vector2(519.1011, 552.57764), Vector2(518.89307, 547.86346), Vector2(518.68524, 543.15393), Vector2(518.4777, 538.4509), Vector2(518.2705, 533.7562), Vector2(518.06384, 529.0718), Vector2(517.85767, 524.3994), Vector2(517.6521, 519.74097), Vector2(517.4472, 515.09827), Vector2(517.2431, 510.47318), Vector2(517.0399, 505.86758), Vector2(516.8376, 501.28323), Vector2(516.63635, 496.72205), Vector2(516.43616, 492.18588), Vector2(516.2372, 487.6765), Vector2(516.0394, 483.19586), Vector2(515.8431, 478.74576), Vector2(515.64813, 474.32803), Vector2(515.4547, 469.94455), Vector2(515.2629, 465.59714), Vector2(515.0727, 461.28766), Vector2(514.8843, 457.01797), Vector2(514.69775, 452.7899), Vector2(514.51306, 448.60526)]
+"values": [Vector2(70, 848.5), Vector2(70, 848.5), Vector2(70, 848.5), Vector2(69.2938, 848.5), Vector2(67.21499, 848.5), Vector2(63.823242, 848.5), Vector2(59.17824, 848.5), Vector2(53.33966, 848.5), Vector2(46.367188, 848.5), Vector2(38.320496, 848.5), Vector2(29.259258, 848.5), Vector2(19.243164, 848.5), Vector2(8.33189, 848.5), Vector2(-3.414894, 848.5), Vector2(-15.9375, 848.5), Vector2(-29.176254, 848.5), Vector2(-43.071472, 848.5), Vector2(-57.563477, 848.5), Vector2(-72.59259, 848.5), Vector2(-88.09914, 848.5), Vector2(-104.02344, 848.5), Vector2(-120.30582, 848.5), Vector2(-136.88657, 848.5), Vector2(-153.70605, 848.5), Vector2(-170.70457, 848.5), Vector2(-187.82245, 848.5), Vector2(-205, 848.5), Vector2(-222.17758, 848.5), Vector2(-239.29544, 848.5), Vector2(-256.29395, 848.5), Vector2(-273.11343, 848.5), Vector2(-289.69418, 848.5), Vector2(-305.97656, 848.5), Vector2(-321.90085, 848.5), Vector2(-337.40738, 848.5), Vector2(-352.43652, 848.5), Vector2(-366.92856, 848.5), Vector2(-380.82376, 848.5), Vector2(-394.0625, 848.5), Vector2(-406.5851, 848.5), Vector2(-418.33188, 848.5), Vector2(-429.24316, 848.5), Vector2(-405, 848.5), Vector2(-405, 848.5), Vector2(-405, 848.5), Vector2(-404.5862, 848.4938), Vector2(-401.68982, 848.45026), Vector2(-393.82813, 848.33203), Vector2(-378.51852, 848.10187), Vector2(-353.27835, 847.72235), Vector2(-315.625, 847.15625), Vector2(-263.0758, 846.36615), Vector2(-193.14815, 845.3148), Vector2(-103.359375, 843.96484), Vector2(8.773132, 842.27893), Vector2(145.73206, 840.2198), Vector2(310, 837.75), Vector2(474.26794, 835.2802), Vector2(611.2268, 833.22107), Vector2(723.3594, 831.53516), Vector2(813.1482, 830.1852), Vector2(883.0758, 829.13385), Vector2(935.625, 828.34375), Vector2(973.2783, 827.77765), Vector2(998.51855, 827.39813), Vector2(1013.8281, 827.16797), Vector2(1021.6898, 827.04974), Vector2(1024.5862, 827.0062), Vector2(1025, 827), Vector2(1025, 827), Vector2(420, 798.5), Vector2(420, 798.5), Vector2(975, 877), Vector2(975, 877), Vector2(-280, 798.5), Vector2(-280, 798.5), Vector2(975, 877), Vector2(975, 877), Vector2(584.5, 710), Vector2(584.5, 710), Vector2(170, 708.5), Vector2(170, 708.5), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(170, 708.5), Vector2(170, 708.5), Vector2(459.5, 710), Vector2(459.5, 710), Vector2(170, 708.5), Vector2(170, 708.5), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(170, 708.5), Vector2(170, 708.5), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(484.5, 710), Vector2(484.50073, 710.00183), Vector2(484.5056, 710.01404), Vector2(484.5184, 710.04596), Vector2(484.54227, 710.10565), Vector2(484.58002, 710.2001), Vector2(484.63397, 710.3349), Vector2(484.70602, 710.515), Vector2(484.79764, 710.74414), Vector2(484.91, 711.025), Vector2(485.04382, 711.35956), Vector2(485.19955, 711.7489), Vector2(485.37726, 712.1932), Vector2(485.57678, 712.69196), Vector2(485.7976, 713.244), Vector2(486.03903, 713.8476), Vector2(486.30005, 714.5001), Vector2(486.5795, 715.1988), Vector2(486.876, 715.94), Vector2(487.18796, 716.7199), Vector2(487.5137, 717.53424), Vector2(487.85135, 718.37836), Vector2(488.1989, 719.2473), Vector2(488.55438, 720.1359), Vector2(488.9156, 721.03894), Vector2(489.28036, 721.95087), Vector2(489.64645, 722.86615), Vector2(490.0117, 723.7792), Vector2(490.37378, 724.68445), Vector2(490.73056, 725.57635), Vector2(491.07986, 726.4497), Vector2(491.41968, 727.29913), Vector2(491.74792, 728.1198), Vector2(492.06277, 728.907), Vector2(492.36252, 729.65625), Vector2(492.64548, 730.3637), Vector2(492.9103, 731.02576), Vector2(493.15573, 731.6393), Vector2(493.38074, 732.20184), Vector2(493.58456, 732.7114), Vector2(493.76666, 733.1666), Vector2(493.9268, 733.56696), Vector2(494.06497, 733.9124), Vector2(494.18158, 734.2039), Vector2(494.27728, 734.4432), Vector2(494.35312, 734.6328), Vector2(494.41055, 734.77637), Vector2(494.45135, 734.8784), Vector2(494.4778, 734.9445), Vector2(494.49255, 734.98145), Vector2(494.49875, 734.9969), Vector2(494.5, 735), Vector2(494.50037, 735.0009), Vector2(494.50412, 735.0103), Vector2(494.51505, 735.0376), Vector2(494.53647, 735.0912), Vector2(494.57126, 735.1781), Vector2(494.6218, 735.30444), Vector2(494.69006, 735.4752), Vector2(494.7777, 735.6942), Vector2(494.88583, 735.9646), Vector2(495.01532, 736.2883), Vector2(495.16666, 736.6666), Vector2(495.33997, 737.0999), Vector2(495.53516, 737.5879), Vector2(495.75177, 738.12946), Vector2(495.98914, 738.72284), Vector2(496.24634, 739.36584), Vector2(496.52222, 740.05554), Vector2(496.81543, 740.7885), Vector2(497.12442, 741.56104), Vector2(497.44754, 742.36884), Vector2(497.78296, 743.2074), Vector2(498.1287, 744.0718), Vector2(498.48276, 744.9569), Vector2(498.843, 745.8575), Vector2(499.2072, 746.76807), Vector2(499.57324, 747.6831), Vector2(499.9388, 748.59705), Vector2(500.3017, 749.5043), Vector2(500.65973, 750.3993), Vector2(501.0107, 751.2768), Vector2(501.35257, 752.1314), Vector2(501.6833, 752.9582), Vector2(502.00098, 753.75244), Vector2(502.30386, 754.50964), Vector2(502.5903, 755.2257), Vector2(502.85886, 755.8971), Vector2(503.10825, 756.5206), Vector2(503.3374, 757.0935), Vector2(503.54553, 757.6138), Vector2(503.732, 758.07996), Vector2(503.8965, 758.4913), Vector2(504.03906, 758.84766), Vector2(504.15994, 759.14984), Vector2(504.25977, 759.3994), Vector2(504.33948, 759.5987), Vector2(504.33658, 759.53296), Vector2(504.32794, 759.3371), Vector2(504.31363, 759.0129), Vector2(504.29373, 758.56213), Vector2(504.26834, 757.98676), Vector2(504.23755, 757.28864), Vector2(504.2014, 756.46954), Vector2(504.16, 755.5313), Vector2(504.11343, 754.4758), Vector2(504.06177, 753.305), Vector2(504.00507, 752.02057), Vector2(503.94348, 750.62445), Vector2(503.877, 749.11847), Vector2(503.8058, 747.50446), Vector2(503.7299, 745.78424), Vector2(503.64938, 743.9598), Vector2(503.56433, 742.0328), Vector2(503.47488, 740.0052), Vector2(503.38104, 737.8788), Vector2(503.28293, 735.6555), Vector2(503.18063, 733.3371), Vector2(503.07422, 730.9255), Vector2(502.96378, 728.4224), Vector2(502.84937, 725.8299), Vector2(502.73108, 723.14966), Vector2(502.60904, 720.38354), Vector2(502.48325, 717.53345), Vector2(502.35388, 714.6012), Vector2(502.22095, 711.5886), Vector2(502.08453, 708.49756), Vector2(501.94476, 705.32996), Vector2(501.80167, 702.0876), Vector2(501.6554, 698.7723), Vector2(501.50595, 695.38586), Vector2(501.35345, 691.9303), Vector2(501.198, 688.40735), Vector2(501.03967, 684.81885), Vector2(500.8785, 681.1667), Vector2(500.7146, 677.45264), Vector2(500.54807, 673.6787), Vector2(500.37897, 669.84656), Vector2(500.2074, 665.9581), Vector2(500.03342, 662.0153), Vector2(499.8571, 658.01984), Vector2(499.67856, 653.97363), Vector2(499.49786, 649.87854), Vector2(499.31506, 645.73645), Vector2(499.13028, 641.5491), Vector2(498.9436, 637.31836), Vector2(498.7551, 633.04614), Vector2(498.56482, 628.73425), Vector2(498.37286, 624.3846), Vector2(498.17935, 619.99896), Vector2(497.9843, 615.57916), Vector2(497.78787, 611.12714), Vector2(497.59006, 606.64465), Vector2(497.391, 602.1336), Vector2(497.19077, 597.5958), Vector2(496.98944, 593.03314), Vector2(496.78708, 588.44745), Vector2(496.58377, 583.8406), Vector2(496.37964, 579.21436), Vector2(496.17474, 574.5706), Vector2(495.96912, 569.91125), Vector2(495.7629, 565.2381), Vector2(495.55618, 560.553), Vector2(495.349, 555.8577), Vector2(495.14142, 551.15424), Vector2(494.9336, 546.44434), Vector2(494.72556, 541.7299), Vector2(494.5174, 537.01276), Vector2(494.3092, 532.29474), Vector2(494.10107, 527.57764), Vector2(493.89304, 522.86346), Vector2(493.6852, 518.15393), Vector2(493.4777, 513.4509), Vector2(493.27054, 508.75623), Vector2(493.0638, 504.0718), Vector2(492.85764, 499.39944), Vector2(492.65207, 494.741), Vector2(492.4472, 490.0983), Vector2(492.24313, 485.47318), Vector2(492.0399, 480.86758), Vector2(491.8376, 476.28323), Vector2(491.63632, 471.72205), Vector2(491.43616, 467.18588), Vector2(491.23718, 462.6765), Vector2(491.03946, 458.19586), Vector2(490.84308, 453.74576), Vector2(490.64813, 449.32803), Vector2(490.4547, 444.94455), Vector2(490.26288, 440.59714), Vector2(490.0727, 436.28766), Vector2(489.8843, 432.01797), Vector2(489.69772, 427.7899), Vector2(489.51306, 423.60526)]
 }
 tracks/1/type = "method"
 tracks/1/imported = false
@@ -82,7 +82,7 @@ tracks/1/keys = {
 "args": [Vector2(70, 848.5)],
 "method": &"snap_camera"
 }, {
-"args": [Vector2(609.5, 735)],
+"args": [Vector2(584.5, 710)],
 "method": &"snap_camera"
 }]
 }
@@ -266,32 +266,32 @@ _data = {
 &"scene": SubResource("Animation_gdfam")
 }
 
-[node name="PhoneCall" type="Node2D" unique_id=541992594]
+[node name="PhoneCall" type="Node2D" unique_id=63856205]
 script = ExtResource("1_c8hcn")
 metadata = ExtResource("2_g0nvh")
 
-[node name="RubiconLevelClock" type="Node" parent="." unique_id=1179729950]
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=1131690678]
 script = ExtResource("3_401pc")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=935845461]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=172794598]
 callback_mode_discrete = 2
 libraries/ = SubResource("AnimationLibrary_e7tcl")
 autoplay = &"scene"
 
-[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=2111074862 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=798894934 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
 script = ExtResource("4_wxwi8")
 audio_players = [NodePath("Instrumental"), NodePath("VocalsTadano"), NodePath("VocalsKomi")]
 sync_reference_player = NodePath("Instrumental")
 
-[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=775262378]
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1874873934]
 stream = ExtResource("5_cgly0")
 bus = &"Music"
 
-[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1737088743]
+[node name="VocalsTadano" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1873301926]
 stream = ExtResource("6_cysce")
 bus = &"Music"
 
-[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=960870750]
+[node name="VocalsKomi" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1286867664]
 stream = ExtResource("7_18ffo")
 bus = &"Music"
 
@@ -302,7 +302,7 @@ z_index = 210
 position = Vector2(1200, 1365)
 level_note_controller = NodePath("../../../UILayer/UI/Opponent")
 
-[node name="IntroCover" type="ColorRect" parent="Stage/ScreenSpace" parent_id_path=PackedInt32Array(1273245655, 251836632) index="1" unique_id=410299129]
+[node name="IntroCover" type="ColorRect" parent="Stage/ScreenSpace" parent_id_path=PackedInt32Array(1273245655, 251836632) index="1" unique_id=528513740]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
@@ -313,7 +313,7 @@ z_index = 210
 position = Vector2(50, 1415)
 level_note_controller = NodePath("../../UILayer/UI/Player")
 
-[node name="KomiGirlfriend" parent="Stage" unique_id=2085328695 instance=ExtResource("9_72nuh")]
+[node name="KomiGirlfriend" parent="Stage" unique_id=1808724550 instance=ExtResource("9_72nuh")]
 visible = false
 z_index = -1
 position = Vector2(535, 1285)
@@ -328,30 +328,30 @@ visible = false
 z_index = 710
 position = Vector2(434.5, 995)
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=308394173]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1017579234]
 layer = 2
 
-[node name="UI" type="Control" parent="UILayer" unique_id=107714996]
+[node name="UI" type="Control" parent="UILayer" unique_id=61910155]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Judgment" parent="UILayer/UI" unique_id=2012249069 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_nktxk")]
+[node name="Judgment" parent="UILayer/UI" unique_id=255527736 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_nktxk")]
 layout_mode = 1
 anchors_preset = -1
 level_note_controller = NodePath("../Player")
 
-[node name="HealthBar" parent="UILayer/UI" unique_id=479044515 node_paths=PackedStringArray("health_module") instance=ExtResource("14_dklh1")]
+[node name="HealthBar" parent="UILayer/UI" unique_id=1530595261 node_paths=PackedStringArray("health_module") instance=ExtResource("14_dklh1")]
 layout_mode = 1
 anchors_preset = -1
 health_module = NodePath("../../../RubiconHealthModule")
 
-[node name="IconL" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(479044515, 1900875694) index="0" unique_id=129169549 node_paths=PackedStringArray("health_module", "note_controller")]
+[node name="IconL" parent="UILayer/UI/HealthBar/Path2D/IconAnchor" parent_id_path=PackedInt32Array(1530595261, 1461725811) index="0" unique_id=528532766 node_paths=PackedStringArray("health_module", "note_controller")]
 scale = Vector2(-0.9150327, 0.9150327)
 sprite_frames = ExtResource("15_gg83r")
 animation = &"idle"
-offset = Vector2(-83.5, 0)
+offset = Vector2(-44.5, 0)
 flip_h = true
 script = ExtResource("16_sr2x5")
 inverted = true
@@ -360,16 +360,16 @@ health_module = NodePath("../../../../../../RubiconHealthModule")
 note_controller = NodePath("../../../../Opponent")
 has_alt_poses = true
 
-[node name="IconR" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(479044515, 1900875694) index="1" unique_id=357000063 node_paths=PackedStringArray("health_module", "note_controller")]
+[node name="IconR" parent="UILayer/UI/HealthBar/Path2D/IconAnchor" parent_id_path=PackedInt32Array(1530595261, 1461725811) index="1" unique_id=1795522693 node_paths=PackedStringArray("health_module", "note_controller")]
 scale = Vector2(0.9589041, 0.9589041)
 sprite_frames = ExtResource("17_veclm")
 animation = &"idle"
-offset = Vector2(-85.5, 0)
+offset = Vector2(-46.5, 0)
 script = ExtResource("16_sr2x5")
 health_module = NodePath("../../../../../../RubiconHealthModule")
 note_controller = NodePath("../../../../Player")
 
-[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=724315895]
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=1989762294]
 anchors_preset = 0
 anchor_left = 0.25
 anchor_top = 1.0
@@ -389,29 +389,33 @@ layout_mode = 1
 anchors_preset = -1
 offset_left = -240.0
 offset_right = -240.0
+lane_autoplay_hit_lingers = true
 
-[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=2138280807 instance=ExtResource("21_m0ign")]
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=661373213 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
+lane_autoplay_hit_lingers = true
 
-[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=2066582637 instance=ExtResource("21_m0ign")]
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1492676880 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
+lane_autoplay_hit_lingers = true
 
-[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1993940157 instance=ExtResource("21_m0ign")]
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1065845489 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
+lane_autoplay_hit_lingers = true
 
-[node name="Player" type="Control" parent="UILayer/UI" unique_id=2096558885]
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=643743143]
 anchors_preset = 0
 anchor_left = 0.75
 anchor_top = 1.0
@@ -426,43 +430,43 @@ chart = ExtResource("22_fu7kd")
 note_overrides = ExtResource("20_3pn0j")
 inputs = ExtResource("23_m15pg")
 
-[node name="Lane" parent="UILayer/UI/Player" unique_id=702244736 instance=ExtResource("21_m0ign")]
+[node name="Lane" parent="UILayer/UI/Player" unique_id=2114064000 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Player" unique_id=1933865965 instance=ExtResource("21_m0ign")]
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=341782586 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Player" unique_id=1154305648 instance=ExtResource("21_m0ign")]
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=1673753602 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Player" unique_id=131813243 instance=ExtResource("21_m0ign")]
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=78269510 instance=ExtResource("21_m0ign")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=280114524]
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1389103880]
 position = Vector2(-280, 798.5)
 
-[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=1253017928]
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=135358184]
 position = Vector2(675, 877)
 
-[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=231261282]
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1742869144]
 position = Vector2(1385, 597)
 
-[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=865646976]
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=2018159274]
 position = Vector2(675, 877)
 zoom = Vector2(0.975, 0.975)
 script = ExtResource("24_17ya6")
@@ -470,13 +474,13 @@ position_interpolate_target = Vector2(675, 877)
 position_interpolate_speed = 2.0
 zoom_interpolate_target = Vector2(0.975, 0.975)
 
-[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=1190679800]
+[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=597869118]
 script = ExtResource("25_fxylr")
 bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=156788973 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "player_point", "opponent_point")]
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=1997367992 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "player_point", "opponent_point")]
 script = ExtResource("26_rc3f3")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
@@ -505,24 +509,24 @@ opponent_lanes = NodePath("../UILayer/UI/Opponent")
 player_point = NodePath("../PlayerCameraPoint")
 opponent_point = NodePath("../OpponentCameraPoint")
 
-[node name="Overlays" type="CanvasLayer" parent="." unique_id=108653622]
+[node name="Overlays" type="CanvasLayer" parent="." unique_id=1416791684]
 
-[node name="White" type="ColorRect" parent="Overlays" unique_id=781631134]
+[node name="White" type="ColorRect" parent="Overlays" unique_id=436118664]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="Black" type="ColorRect" parent="Overlays" unique_id=1100894257]
+[node name="Black" type="ColorRect" parent="Overlays" unique_id=1072562868]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
-[node name="Subtitles" type="CanvasLayer" parent="." unique_id=1732253028]
+[node name="Subtitles" type="CanvasLayer" parent="." unique_id=1971417914]
 layer = 3
 
-[node name="Line" type="RichTextLabel" parent="Subtitles" unique_id=248700497 node_paths=PackedStringArray("clock")]
+[node name="Line" type="RichTextLabel" parent="Subtitles" unique_id=70443010 node_paths=PackedStringArray("clock")]
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 202.0
@@ -536,55 +540,55 @@ scroll_active = false
 script = ExtResource("27_n26ha")
 clock = NodePath("../../RubiconLevelClock")
 
-[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1555405142]
+[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1219761869]
 
-[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=1478008952]
+[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=463339237]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=2033240312]
+[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=909139567]
 offset_right = 1920.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RubiconHealthModule" type="Node" parent="." unique_id=1265560200 node_paths=PackedStringArray("note_controller")]
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=955991838 node_paths=PackedStringArray("note_controller")]
 script = ExtResource("28_hkubo")
 note_controller = NodePath("../UILayer/UI/Player")
 starting_health = 50.0
 starting_health = 50.0
 
-[node name="Death" type="CanvasLayer" parent="." unique_id=1903847902]
+[node name="Death" type="CanvasLayer" parent="." unique_id=1004153877]
 
-[node name="Dark" type="ColorRect" parent="Death" unique_id=835698167]
+[node name="Dark" type="ColorRect" parent="Death" unique_id=1036105150]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
-[node name="LeftPanel" type="ColorRect" parent="Death" unique_id=745667734]
+[node name="LeftPanel" type="ColorRect" parent="Death" unique_id=1289756071]
 visible = false
 offset_right = 600.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RightPanel" type="ColorRect" parent="Death" unique_id=1578383967]
+[node name="RightPanel" type="ColorRect" parent="Death" unique_id=1948141315]
 visible = false
 offset_right = 600.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RetryText" type="Node2D" parent="Death" unique_id=1292824539]
+[node name="RetryText" type="Node2D" parent="Death" unique_id=103567626]
 modulate = Color(1, 1, 1, 0)
 script = ExtResource("29_mhfsn")
 centered = false
 atlases = Array[ExtResource("30_dpvpa")]([ExtResource("31_snhhd"), ExtResource("32_b0uto")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Death/RetryText" unique_id=1752010834]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Death/RetryText" unique_id=390145262]
 
-[node name="DeathSequence" type="Node" parent="." unique_id=1558812749 node_paths=PackedStringArray("health_module", "song", "clock", "camera", "events", "dark", "left_panel", "right_panel", "retry_text", "retry_player", "music", "loss_sound", "confirm_music", "phone_player", "phone_opponent", "stand_player", "stand_opponent")]
+[node name="DeathSequence" type="Node" parent="." unique_id=1546585717 node_paths=PackedStringArray("health_module", "song", "clock", "camera", "events", "dark", "left_panel", "right_panel", "retry_text", "retry_player", "music", "loss_sound", "confirm_music", "phone_player", "phone_opponent", "stand_player", "stand_opponent")]
 script = ExtResource("33_o8niu")
 health_module = NodePath("../RubiconHealthModule")
 song = NodePath("../RubiconLevelSongModule")
@@ -606,15 +610,15 @@ stand_opponent = NodePath("../Stage/KomiStand")
 phone_text = ExtResource("34_3xs1m")
 stand_text = ExtResource("35_xr3i4")
 
-[node name="Music" type="AudioStreamPlayer" parent="DeathSequence" unique_id=62116122]
+[node name="Music" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1005020286]
 stream = ExtResource("36_ewmcl")
 bus = &"Music"
 
-[node name="LossSound" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1775570718]
+[node name="LossSound" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1573804578]
 stream = ExtResource("37_loyuv")
 bus = &"Music"
 
-[node name="ConfirmMusic" type="AudioStreamPlayer" parent="DeathSequence" unique_id=1157817796]
+[node name="ConfirmMusic" type="AudioStreamPlayer" parent="DeathSequence" unique_id=585590797]
 stream = ExtResource("38_w4y0v")
 bus = &"Music"
 

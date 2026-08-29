@@ -60,6 +60,11 @@ const GAMEOVER_AUDIO := "res://animania_mod/source/audio/gameover"
 ## y 37..129 of a 1280x720 frame, which is 140 of this project's pixels. Both characters
 ## are fitted to it, since their own frames differ - tadano's is 146 tall and komi's 158.
 const ICON_HEIGHT := 140.0
+
+## phone-call.script's POSITION_OFFSET. Pulls both icons back toward the bar's centre by
+## this many Funkin pixels on each side - see the comment on `icon.offset` below for the
+## algebra that turns it into the same correction for both icons regardless of width.
+const ICON_POSITION_OFFSET := 26.0
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 # Funkin is 1280x720 and this project is 1920x1080, so the stage's own cameraZoom is
@@ -257,6 +262,12 @@ func _bake_camera_events(length: float) -> void:
 
 	# After standUP() the same FocusCamera `char` means the standing pair, somewhere else.
 	# Their cameraOffsets are komi-stand [50, 50] and tadano-stand [200, 50].
+	#
+	# NOT scaled by FUNKIN_TO_RUBICON. Same bug as the chart's own FocusCamera offsets: these
+	# are world-space pixels and this port keeps world coordinates verbatim, the 1.5 lives
+	# on the camera's zoom. Scaled, tadano's point landed at world x=270 instead of 170 -
+	# 100px right of where his own cameraOffsets put it - which is what put empty stage to
+	# the right of him in frame instead of centring him after the character swap.
 	var stand_points: Dictionary = {}
 	for character_name: String in STAND_CAST:
 		var entry: Dictionary = STAND_CAST[character_name]
@@ -265,7 +276,7 @@ func _bake_camera_events(length: float) -> void:
 			else Vector2(50.0, 50.0)
 		stand_points[0 if entry["slot"] == "boyfriend" else 1] = (character.position
 			- Vector2(0.0, (entry["frame"] as Vector2).y * 0.5)
-			+ offsets * FUNKIN_TO_RUBICON)
+			+ offsets)
 
 	var baker: RefCounted = load("res://tools/animania/camera_events.gd").new(
 		focus_points, base_zoom, stand_points, STAND_UP_BEAT * 60.0 / 152.0)
@@ -333,6 +344,15 @@ func _build_ui() -> Dictionary:
 			lane.offset_left = -240.0 + lane_id * 160.0
 			lane.offset_right = lane.offset_left
 			lane.lane_id = lane_id
+			# An autoplayed lane's AnimationTree only ever observes NEUTRAL: hit_note()
+			# sets HIT and clears it again inside the SAME _process call, one frame before
+			# the tree - a child, so it runs after its handler - gets to see it. The
+			# "neutral -> hit_init" transition that draws the receptor's confirm flash
+			# never fires, so komi's side never lit up on a hit while tadano's did. This
+			# is documented, upstream Rubicon behaviour with a one-frame opt-in built for
+			# exactly this: an autoplayed strumline someone deliberately put on screen.
+			if side == "Opponent":
+				lane.lane_autoplay_hit_lingers = true
 			_add_control(controller, lane)
 
 	judgment.level_note_controller = built["Player"]
@@ -403,9 +423,18 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		icon.flip_h = entry["mirror"]
 
 		# offset is in the sprite's own space, and the bar authors -73 for bf's 138px icon:
-		# half its width. Keeping -73 for a 167px icon slides it out of place and overlaps
-		# it with the other one in the middle of the bar.
-		icon.offset = Vector2(-frame.get_width() * 0.5, icon.offset.y)
+		# half its width. Keeping -73 for a 167px icon slides it out of place instead of
+		# scaling with it.
+		#
+		# ICON_POSITION_OFFSET pulls both icons back toward the anchor by the same amount.
+		# phone-call.script never sets icon.x from half a width alone: `icon.x = C - 26` for
+		# one side and `C - (width - 26)` for the other, and the 26 survives the algebra
+		# regardless of which side or how wide the icon is - working through both cases
+		# reduces to the same "offset.x = -width/2 + 26" for both. Left out, the two icons
+		# sit edge to edge with no overlap; a capture of the mod has their heads overlapping.
+		icon.offset = Vector2(
+			-frame.get_width() * 0.5 + ICON_POSITION_OFFSET * FUNKIN_TO_RUBICON,
+			icon.offset.y)
 
 
 ## An instanced Control loses its authored anchors unless layout_mode says to keep them.
