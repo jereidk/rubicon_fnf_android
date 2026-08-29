@@ -1,36 +1,17 @@
 [gd_scene uid="uid://b34e6rl7fyiwr" format=3]
 
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd" id="1_6lk0p"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/Fix/death_4.tres" id="2_onlkv"]
-[ext_resource type="AnimationLibrary" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/Fix/death_4_library.tres" id="3_5l5am"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/skullface/skullface.tres" id="4_luuhk"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/step_4.png" id="5_ayx7p"]
 [ext_resource type="VideoStream" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/step_4.ogv" id="6_ccvjs"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/chimera/sfx_step_4.res" id="7_dddo4"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/ref.mp3" id="8_lhq8q"]
-
-[sub_resource type="Animation" id="Animation_epf2o"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [7]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_8e8fd"]
-_data = {
-&"RESET": SubResource("Animation_epf2o")
-}
+[ext_resource type="VideoStream" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/death_4.ogv" id="v_death"]
+[ext_resource type="VideoStream" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/serena_skullface.ogv" id="v_serena"]
 
 [sub_resource type="Animation" id="Animation_ixuwy"]
 length = 0.001
+
+
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -46,92 +27,44 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:visible")
+tracks/1/path = NodePath("ColorRect:visible")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [false]
+"values": [true]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("ColorRect:visible")
+tracks/2/path = NodePath("VideoPlayer:volume_db")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [-80.0]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("VideoPlayer:volume_db")
+tracks/3/path = NodePath("VideoPlayer:visible")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-80.0]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("VideoPlayer:visible")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [true]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Serena:visible")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("Serena:frame")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [94]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("Serena:animation")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"breezybro/Serena_Skullface_"]
-}
-
-[sub_resource type="Animation" id="Animation_eyxka"]
+}[sub_resource type="Animation" id="Animation_eyxka"]
 resource_name = "animation"
 length = 27.75
 step = 0.04166667
+
+
 tracks/0/type = "audio"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -174,47 +107,37 @@ tracks/2/keys = {
 "update": 0,
 "values": [true, false]
 }
-tracks/3/type = "animation"
+tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("AnimatedSprite2D/AnimationPlayer")
-tracks/3/interp = 1
+tracks/3/path = NodePath("DeathVideo:visible")
+tracks/3/interp = 0
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"clips": PackedStringArray("death_4_library/Final Exports_"),
-"times": PackedFloat32Array(2.5833333)
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("AnimatedSprite2D:visible")
-tracks/4/interp = 0
-tracks/4/loop_wrap = true
-tracks/4/keys = {
 "times": PackedFloat32Array(0, 3.4583333),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("ColorRect:visible")
-tracks/5/interp = 0
-tracks/5/loop_wrap = true
-tracks/5/keys = {
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("ColorRect:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = true
+tracks/4/keys = {
 "times": PackedFloat32Array(0, 6.0833335, 19.083334, 19.708334),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
 "values": [true, false, false, true]
 }
-tracks/6/type = "method"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("VideoPlayer")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
+tracks/5/type = "method"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("VideoPlayer")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
 "times": PackedFloat32Array(6.0833335),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -222,67 +145,70 @@ tracks/6/keys = {
 "method": &"play"
 }]
 }
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("VideoPlayer:volume_db")
-tracks/7/interp = 0
-tracks/7/loop_wrap = true
-tracks/7/keys = {
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("VideoPlayer:volume_db")
+tracks/6/interp = 0
+tracks/6/loop_wrap = true
+tracks/6/keys = {
 "times": PackedFloat32Array(0, 21.291666, 27.083334),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [-80.0, 0.0, 0.0]
 }
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("VideoPlayer:visible")
-tracks/8/interp = 0
-tracks/8/loop_wrap = true
-tracks/8/keys = {
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("VideoPlayer:visible")
+tracks/7/interp = 0
+tracks/7/loop_wrap = true
+tracks/7/keys = {
 "times": PackedFloat32Array(0, 21.291666),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("Serena:visible")
-tracks/9/interp = 0
-tracks/9/loop_wrap = true
-tracks/9/keys = {
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("SerenaVideo:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = true
+tracks/8/keys = {
 "times": PackedFloat32Array(0, 21.5),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [false, true]
 }
-tracks/10/type = "value"
+tracks/9/type = "method"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("DeathVideo")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(2.625),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"play"
+}]
+}
+tracks/10/type = "method"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("Serena:frame")
+tracks/10/path = NodePath("SerenaVideo")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
-"times": PackedFloat32Array(0, 21.5, 27.75),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0, 0, 94]
-}
-tracks/11/type = "value"
-tracks/11/imported = false
-tracks/11/enabled = true
-tracks/11/path = NodePath("Serena:animation")
-tracks/11/interp = 0
-tracks/11/loop_wrap = true
-tracks/11/keys = {
-"times": PackedFloat32Array(0),
+"times": PackedFloat32Array(21.5),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [&"breezybro/Serena_Skullface_"]
+"values": [{
+"args": [],
+"method": &"play"
+}]
 }
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_h71qk"]
 _data = {
 &"RESET": SubResource("Animation_ixuwy"),
@@ -308,25 +234,29 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=124156556]
+[node name="DeathVideo" type="VideoStreamPlayer" parent="."]
 visible = false
-position = Vector2(960, 540)
-scale = Vector2(0.7, 0.7)
-sprite_frames = ExtResource("2_onlkv")
-animation = &"Final Exports_"
-frame = 7
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stream = ExtResource("v_death")
+expand = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=2138849099]
-libraries/ = SubResource("AnimationLibrary_8e8fd")
-libraries/death_4_library = ExtResource("3_5l5am")
-speed_scale = 1.5
-
-[node name="Serena" type="AnimatedSprite2D" parent="." unique_id=240391318]
+[node name="SerenaVideo" type="VideoStreamPlayer" parent="."]
 visible = false
-position = Vector2(960, 540)
-sprite_frames = ExtResource("4_luuhk")
-animation = &"breezybro/Serena_Skullface_"
-frame = 94
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stream = ExtResource("v_serena")
+expand = true
 
 [node name="StepImage" type="TextureRect" parent="." unique_id=1565804573]
 visible = false

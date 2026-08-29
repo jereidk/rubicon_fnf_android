@@ -144,6 +144,23 @@ func _video_checks() -> void:
 		_check(not text.contains("AnimatedSprite2D"),
 			"step_%d: no queda ninguna pista apuntando al sprite que se fue" % step)
 
+	# step_4 es distinto y por eso va aparte: es el unico con TRES vídeos -sus
+	# dos capas de sprites mas el .ogv que ya traia de origen- y sus ventanas no
+	# se solapan, asi que solo uno decodifica a la vez. Sus dos clips nuevos los
+	# arranca una pista de METODO cada uno, que es el mecanismo que la propia
+	# escena ya usaba para su vídeo original en 6.083s; no se invento nada.
+	var s4: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/songs/chimera/scenes/step_4.tscn")
+	_check(not s4.contains("AnimatedSprite2D"),
+		"step_4: no queda rastro de los AnimatedSprite2D que se fueron")
+	_check(not RegEx.create_from_string('NodePath\\("Serena[:/]').search(s4),
+		"step_4: ni ninguna pista apuntando a Serena")
+	for node: String in ["DeathVideo", "SerenaVideo"]:
+		_check(s4.contains('[node name="%s" type="VideoStreamPlayer"' % node),
+			"step_4: %s existe" % node)
+		_check(s4.contains('NodePath("%s")' % node),
+			"step_4: ...y una pista lo arranca")
+
 	var script: String = FileAccess.get_file_as_string(
 		"res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd")
 	# Sobre el CÓDIGO y no sobre el texto: la primera version de esto se puso
