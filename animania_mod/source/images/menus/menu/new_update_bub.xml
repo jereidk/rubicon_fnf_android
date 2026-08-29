@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="new_update_bub.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="new update buble0000" x="1086" y="1" width="47" height="98" frameX="-113" frameY="-40" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0001" x="1" y="1" width="282" height="94" frameX="0" frameY="0" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0002" x="284" y="1" width="265" height="71" frameX="-13" frameY="-23" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0003" x="550" y="1" width="267" height="67" frameX="-11" frameY="-24" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0004" x="550" y="1" width="267" height="67" frameX="-11" frameY="-24" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0005" x="818" y="1" width="267" height="67" frameX="-11" frameY="-24" frameWidth="282" frameHeight="138" rotated="false"/>
+	<SubTexture name="new update buble0006" x="818" y="1" width="267" height="67" frameX="-11" frameY="-24" frameWidth="282" frameHeight="138" rotated="false"/>
+</TextureAtlas>

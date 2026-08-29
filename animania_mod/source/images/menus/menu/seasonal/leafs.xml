@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="leafs.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="leaf 10000" x="1" y="1" width="68" height="57"/>
+	<SubTexture name="leaf 20000" x="47" y="59" width="38" height="64"/>
+	<SubTexture name="leaf 30000" x="1" y="172" width="36" height="68"/>
+	<SubTexture name="leaf 40000" x="1" y="124" width="55" height="47"/>
+	<SubTexture name="leaf 50000" x="38" y="172" width="34" height="66"/>
+	<SubTexture name="leaf 60000" x="1" y="59" width="45" height="64"/>
+</TextureAtlas>

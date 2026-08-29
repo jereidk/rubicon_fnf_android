@@ -1116,3 +1116,68 @@ And it has to run `--headless`, the way its header says. Under a real renderer t
 deltas change where the walk lands inside each tween, and six camera readings come out a
 few hundredths off — 1.0614 against 1.0530, 169px of letterbox against 180 — which looks
 exactly like a broken bake and is not one.
+
+## The menu slice
+
+Added when the port moved past `TitleScreen`. Same rule as the rest: lifted
+verbatim, so the port has its reference in tree.
+
+    images/menus/menu/    the main menu - buttons, backgrounds, the dude,
+                          the seasonal emitters
+
+The music is already here: `music/animaniaLOOP` is what the title's intro
+leads into.
+
+### Why it is in tree at all
+
+The first attempt at the menus was blocked because a container was recreated
+and took `/tmp/linuxbuild` with it - the extracted Linux build every fact
+about the compiled states had been read out of. The slice for `phone-call`
+survived because it was committed; nothing about the menus was. This is that
+lesson applied.
+
+The build itself is NOT in tree: it is 728MB, it is somebody else's work, and
+the parts that matter are either plain text (transcribed below) or need a
+disassembler. Its sha256 is
+`22c804dd53b269dd3e9235ea4e2d388d39a51c1d9afe7609d48b1a950aeea677`
+(`animania061-Linux.tar.gz`).
+
+### Facts, read from the files
+
+The main menu's states live in the binary as `animania.states.MainMenuScreen`,
+`MenuButton`, `MenuDude` and `SeasonalEmitter`, so behaviour is disassembly.
+The LAYOUT is not: it ships as JSON.
+
+**Eight buttons**, one `butts/<name>.json` each, carrying an id and a rect:
+
+| id | name | x | y | w | h |
+|---|---|---|---|---|---|
+| 0 | storymode | 757 | 7 | 404 | 150 |
+| 1 | shop | 1171 | 7 | 177 | 178 |
+| 2 | freeplay | 757 | 160 | 592 | 136 |
+| 3 | website | 757 | 300 | 586 | 124 |
+| 4 | options | 758 | 435 | 170 | 133 |
+| 5 | credits | 941 | 435 | 400 | 133 |
+| 6 | awards | 758 | 578 | 170 | 132 |
+| 7 | exit | 941 | 578 | 400 | 133 |
+
+They are a 2D arrangement, not a list, and `MainMenuScreen.changeItem` takes
+TWO arguments - so navigation is directional rather than an index walk.
+
+**The coordinate space is 1352x790, not 1280x720.** `menu background.png` is
+exactly that, and the shop button's right edge lands at 1348. Read off the
+files rather than assumed; where the mod puts that space on a 1280x720 stage
+is still to be settled.
+
+**Every button has three states**, as named symbols in one Adobe Animate atlas
+(`butts/buttons/`, 3680x1262, 24fps): `render/eng/<name> basic`,
+`<name> white` and `<name> confirm`. The main timeline labels them
+`basic <name>` / `white <name>` / `confirm <name>`, six frames for basic, four
+for white and eighteen for confirm.
+
+**The dude** is `dudes/caramelDance.json`: the `caramen-dance` Sparrow atlas at
+(-75, 225), scale 1.1, layer 1, animation `caramel`.
+
+**Some buttons are locked.** `MainMenuScreen.BLOCKED_BUTTONS` holds THREE names
+and `button_lock.png` is the art for it; which three is still to be read out of
+`__boot`, whose arrays sit in .bss and are filled at runtime.

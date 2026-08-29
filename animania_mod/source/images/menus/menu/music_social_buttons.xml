@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="music_social_buttons.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="amazon0000" x="120" y="0" width="108" height="90"/>
+	<SubTexture name="apple music button0000" x="124" y="92" width="100" height="86"/>
+	<SubTexture name="soundcloud button0000" x="0" y="92" width="122" height="72"/>
+	<SubTexture name="spotify button0000" x="0" y="166" width="84" height="84"/>
+	<SubTexture name="youtube button0000" x="0" y="0" width="118" height="89"/>
+</TextureAtlas>
