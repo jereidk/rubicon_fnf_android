@@ -42,7 +42,7 @@ const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 ## The number of checks a complete run makes. Raise it when you add checks; it only exists
 ## so that a section which stops running is louder than a section which passes.
-const MIN_CHECKS := 816
+const MIN_CHECKS := 826
 
 
 func _init() -> void:
@@ -485,7 +485,42 @@ func _check_level() -> void:
 	_check(events_node.hud_up.size() == 1 and events_node.hud_down.size() == 2,
 		"el beat 332 mueve la barra hacia arriba y las dos strumlines hacia abajo")
 
+	_check_stand_up_hands_over(level, events_node)
+
 	_drop(level)
+
+
+## standUP() has to hand `level_note_controller` to the standing pair, because that is what
+## subscribes a RubiconCharacter to note_changed and to the clock's step_change. They were
+## built hidden and never given one, so after the swap neither of them sang a note or took
+## another dance step: each played its autoplay `dance_idle` once at load and then stood
+## there for the rest of the song.
+##
+## Called rather than seeked, since the swap is idempotent by design and every other
+## harness that reaches this stretch freezes the clock to shoot a frame - which is exactly
+## why a still could not show it.
+func _check_stand_up_hands_over(level: Node, events_node: Node) -> void:
+	var before: Dictionary = {}
+	for slot: StringName in events_node.stand_cast:
+		var phone: Node = events_node.cast.get(slot)
+		_check(phone != null, "el reparto de telefono no tiene %s" % slot)
+		if phone == null:
+			continue
+		before[slot] = phone.get(&"level_note_controller")
+		_check(before[slot] != null,
+			"%s del telefono no tiene controlador de notas" % slot)
+		_check(events_node.stand_cast[slot].get(&"level_note_controller") == null,
+			"%s de pie ya trae controlador: tiene que recibirlo en el cambio" % slot)
+
+	events_node.stand_up()
+
+	for slot: StringName in events_node.stand_cast:
+		var standing: Node = events_node.stand_cast[slot]
+		_check(standing.get(&"level_note_controller") == before.get(slot),
+			"%s de pie no recibio el controlador del cambio: " % slot
+				+ "no cantaria ni haria idle en toda la segunda mitad")
+		_check(events_node.cast.get(slot) == standing,
+			"el reparto no quedo apuntando a %s de pie" % slot)
 
 
 ## The chart's camera events, checked by seeking the level to the END of each tween and

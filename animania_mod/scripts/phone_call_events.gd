@@ -411,9 +411,26 @@ func stand_up() -> void:
 	# `endConv` on dad, and those animations only exist on the standing pair - which is what
 	# the swap is FOR. Funkin gets this for free by destroying the old characters and
 	# putting the new ones in the same slots; here the cast has to be rebound.
+	#
+	# `level_note_controller` moves with the slot, and that is the whole reason the standing
+	# pair animate at all. It is what subscribes a RubiconCharacter to note_changed and to
+	# the clock's step_change, so without it a character sings nothing and never takes
+	# another dance step - it plays its autoplay `dance_idle` once when the scene loads and
+	# then stands there. The phone pair get theirs from the level scene; these two are built
+	# hidden and were never given one, so after the swap both of them froze.
+	#
+	# Handing it over rather than assigning a second one also stops the phone pair: they are
+	# invisible from here on and an invisible character still runs its animations, which for
+	# tadano means redrawing an Adobe symbol tree every frame for nothing.
 	for slot: StringName in stand_cast:
 		if stand_cast[slot] == null:
 			continue
+		var outgoing: Node = cast.get(slot)
+		if outgoing != null:
+			var controller: Variant = outgoing.get(&"level_note_controller")
+			if controller != null:
+				stand_cast[slot].set(&"level_note_controller", controller)
+				outgoing.set(&"level_note_controller", null)
 		cast[slot] = stand_cast[slot]
 		if slot == &"boyfriend":
 			cast[&"bf"] = stand_cast[slot]
