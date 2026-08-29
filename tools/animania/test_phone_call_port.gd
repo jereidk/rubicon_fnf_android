@@ -20,6 +20,12 @@ const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart
 const SUBTITLES := "res://animania_mod/source/songs/phone-call/subtitles/song-lyrics.srt"
 
 var _failures: int = 0
+## How many checks actually ran. A GDScript runtime error inside a check does not stop the
+## run - it prints, abandons what it was doing, and lets the caller carry on - so a section
+## that names a constant somebody deleted goes quiet and the run still ends in "todo OK".
+## That is exactly what happened to the whole icon section. Counting the checks and
+## refusing to pass with fewer than there were is the cheapest thing that notices.
+var _checks: int = 0
 
 
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
@@ -33,6 +39,10 @@ const ICON_HEIGHT := 140.0
 ## the same "offset.x = -width/2 + 26" either way.
 const ICON_POSITION_OFFSET := 26.0
 const STEP_SECONDS := 60.0 / 152.0 / 4.0
+
+## The number of checks a complete run makes. Raise it when you add checks; it only exists
+## so that a section which stops running is louder than a section which passes.
+const MIN_CHECKS := 816
 
 
 func _init() -> void:
@@ -51,11 +61,17 @@ func _init() -> void:
 		printerr("%d comprobaciones fallaron" % _failures)
 		quit(1)
 		return
-	print("todo OK")
+	if _checks < MIN_CHECKS:
+		printerr("solo se ejecutaron %d comprobaciones de %d: alguna seccion se abandono "
+			% [_checks, MIN_CHECKS] + "a medias, mira si hay un SCRIPT ERROR mas arriba")
+		quit(1)
+		return
+	print("todo OK: %d comprobaciones" % _checks)
 	quit(0)
 
 
 func _check(condition: bool, message: String) -> void:
+	_checks += 1
 	if condition:
 		return
 	printerr("FALLO: %s" % message)
@@ -232,6 +248,47 @@ func _check_tadano_symbols() -> void:
 		# The symbol's length is the frame count; a mismatch means the clip cuts short.
 		var frames: int = animation.track_get_key_count(1)
 		_check(frames > 0, "tadano: %s no tiene fotogramas" % anim_name)
+
+	_check_tadano_sing_faces()
+
+
+## The four sing directions share ONE `facessing` symbol and take a two-frame window of it
+## each, declared as firstFrame/lastFrame on the instance. gdanimate used to read only
+## firstFrame, so a play-once instance ran past its window: sing-left started on the left
+## face and walked through the down, up and right ones while the note was still being sung,
+## sing-down through up and right, sing-up into right - and sing-right, whose window ends
+## where the symbol does, was the one direction that looked correct. That is what the bug
+## report described. This holds every window shut.
+##
+## The expected frames come from Animation.json, not from a table, so re-exporting the
+## atlas moves them here too.
+func _check_tadano_sing_faces() -> void:
+	var atlas: AdobeAtlas = load("res://animania_mod/characters/tadano_atlas.tres")
+	atlas.parse()
+	for direction: String in ["left", "down", "up", "right"]:
+		var key: StringName = StringName("chars render/tadano 1/tadano %s" % direction)
+		var symbol: AdobeSymbol = atlas.symbols.get(key)
+		_check(symbol != null, "tadano: falta el simbolo de canto %s" % direction)
+		if symbol == null:
+			continue
+		var seen: bool = false
+		for layer: AdobeLayer in symbol.layers:
+			for layer_frame: AdobeLayerFrame in layer.frames:
+				for element in layer_frame.elements:
+					if not element is AdobeSymbolInstance:
+						continue
+					if element.last_frame < 0:
+						continue
+					seen = true
+					var length: int = atlas.symbols[element.key].length
+					for at: int in layer_frame.duration:
+						var shown: int = atlas.symbol_instance_frame(element, length, at)
+						_check(shown >= element.first_frame and shown <= element.last_frame,
+							("tadano %s: %s se sale de su ventana %d..%d en el fotograma "
+								+ "%d (muestra %d)") % [direction, element.key,
+								element.first_frame, element.last_frame, at, shown])
+		_check(seen, "tadano %s: ninguna instancia declara lastFrame, "
+			% direction + "el atlas se reconstruyo desde una cache vieja")
 
 
 func _check_leaves() -> void:
@@ -1438,9 +1495,13 @@ func _check_icons(level: Node) -> void:
 		"el umbral de victoria no es el WINING_THRESHOLD del modulo")
 	_check(is_equal_approx(float(constants["PREDEATH_THRESHOLD"]), 0.125),
 		"el umbral de premuerte no es el DEATH_THRESHOLD del modulo")
-	# And these are the ANGLE's, from phone-call.script. Conflating the two is what shipped
-	# a winning face that waited until 0.875.
-	_check(is_equal_approx(float(constants["WINNING_TILT_AT"]), 0.875),
-		"el umbral de inclinacion no es el 1.75 del script")
+	# And this is the ANGLE's, from phone-call.script. Conflating the two is what shipped a
+	# winning face that waited until 0.875. There is no WINNING_TILT_AT to check any more:
+	# each icon tilts only when ITS OWN side is losing, so after the inversion both use the
+	# low threshold and differ only in `tilt_degrees` - and this check went on naming the
+	# constant after it was removed, which raised inside _check_icons and took the whole
+	# icon section with it while the run still printed "todo OK".
+	_check(not constants.has("WINNING_TILT_AT"),
+		"WINNING_TILT_AT volvio: el icono debe inclinarse con una sola regla")
 	_check(is_equal_approx(float(constants["PREDEATH_TILT_AT"]), 0.125),
 		"el umbral de inclinacion baja no es el 0.25 del script")

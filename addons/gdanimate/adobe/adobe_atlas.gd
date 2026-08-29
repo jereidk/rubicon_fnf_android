@@ -247,13 +247,8 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 				if element is AdobeSymbolInstance:
 					var symbol_frame: int = element.first_frame
 					if element.type == AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
-						match element.loop_mode:
-							AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
-								symbol_frame = wrapi(symbol_frame + difference, 0, symbols[element.key].length)
-							AdobeSymbolInstance.AdobeSymbolLoopMode.ONE_SHOT:
-								symbol_frame = clampi(symbol_frame + difference, 0, symbols[element.key].length - 1)
-							AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
-								symbol_frame = symbol_frame
+						symbol_frame = symbol_instance_frame(
+							element, symbols[element.key].length, difference)
 					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
 						if not movie_clips_play:
 							symbol_frame = element.first_frame
@@ -562,6 +557,49 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	return gd_frame
 
 
+## Which frame of the pointed-at symbol a graphic instance shows, `difference` frames into
+## the keyframe that holds it.
+##
+## The interesting part is last_frame. An instance may bound itself to a WINDOW of the
+## symbol - first_frame..last_frame - rather than run to the symbol's own end, and the
+## window is allowed to wrap past the end and continue from frame 0. Ignoring the bound
+## silently turns a play-once instance into one that walks out of its window: Animania's
+## tadano packs four sing faces into one `facessing` symbol and gives each direction a
+## two-frame window of it, so without this his sing-left face runs on through the down, up
+## and right faces while the note is still being sung.
+##
+## Reconstructed from SymbolInstance::getFrameIndex in the mod's own build, which is the
+## only place the rule is written down.
+func symbol_instance_frame(
+	element: AdobeSymbolInstance, length: int, difference: int
+) -> int:
+	var first: int = clampi(element.first_frame, 0, maxi(length - 1, 0))
+	if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
+		return first
+
+	var last: int = element.last_frame
+	if last < 0:
+		# No bound: the window is the whole symbol.
+		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
+			return wrapi(first + difference, 0, length)
+		return clampi(first + difference, first, length - 1)
+
+	if last >= first:
+		last = mini(last, length - 1)
+		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
+			return wrapi(first + difference, first, last + 1)
+		return clampi(first + difference, first, last)
+
+	# last < first: the window runs off the end of the symbol and resumes at frame 0, so
+	# its length is the tail plus the head rather than a subtraction.
+	var tail: int = length - first
+	var span: int = last + tail + 1
+	var at: int = posmod(difference, span) \
+		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP \
+		else mini(difference, span - 1)
+	return first + at if at < tail else at - tail
+
+
 func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolInstance:
 	var symbol_instance: AdobeSymbolInstance = AdobeSymbolInstance.new()
 	element = get_pair(optimized, element, "SYMBOL_Instance", "SI")
@@ -572,6 +610,11 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 		symbol_instance.first_frame = get_pair(optimized, element, "firstFrame", "FF")
 	else:
 		symbol_instance.first_frame = 0
+
+	if has_pair(optimized, element, "lastFrame", "LF"):
+		symbol_instance.last_frame = get_pair(optimized, element, "lastFrame", "LF")
+	else:
+		symbol_instance.last_frame = -1
 
 	if has_pair(optimized, element, "Matrix", "MX"):
 		symbol_instance.transform = parse_matrix(get_pair(optimized, element, "Matrix", "MX"))

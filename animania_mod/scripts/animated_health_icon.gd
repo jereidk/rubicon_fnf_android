@@ -65,7 +65,13 @@ const PREDEATH_TILT_AT := 0.125
 ## -30 and the opponent's 50 - and the opponent's sprite is mirrored, so both droop the same
 ## way on screen.
 @export var tilt_degrees: float = -30.0
-## onStartSong's `- Math.cos((health - 1) * 2) * 15` bob, a screen distance so it scales.
+## onStartSong's `+ Math.cos((health - 1) * 2) * 15` bob, a screen distance so it scales.
+##
+## Written as a difference from the cosine's value at NEUTRAL health rather than as the raw
+## term, because ICON_DROP - the rest position this rides on - was measured off a capture
+## of the original with the bar near neutral, so the cosine has to be worth nothing there
+## or the measurement moves. The shape either side is the mod's: the icons sit lowest at
+## neutral and rise by 21 pixels toward both extremes.
 const BOB_AMPLITUDE := 15.0 * 1920.0 / 1280.0
 
 ## The ladder, in order. Every adjacent pair has a transition animation in the atlas and no
@@ -131,7 +137,8 @@ func _process(delta: float) -> void:
 ## behaviour and not this mod's: Animania's icons never move in x with health at all.
 func _apply_tilt_and_bob() -> void:
 	var ratio: float = _ratio()
-	position = _rest_position + Vector2(0.0, -cos((ratio * 2.0 - 1.0) * 2.0) * BOB_AMPLITUDE)
+	position = _rest_position + Vector2(0.0,
+		(cos((ratio * 2.0 - 1.0) * 2.0) - 1.0) * BOB_AMPLITUDE)
 
 	if ratio < PREDEATH_TILT_AT:
 		rotation_degrees = tilt_degrees * (PREDEATH_TILT_AT - ratio) * 2.0

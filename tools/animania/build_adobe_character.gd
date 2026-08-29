@@ -23,6 +23,13 @@ func _init() -> void:
 	var out_dir: String = args[1]
 	var basename: String = args[2]
 
+	# AdobeAtlas.parse() short-circuits to animation_cache.res whenever one exists, so a
+	# run made after a parser change would silently re-save the OLD tree and report success.
+	# The cache is a derived file this same run rewrites two lines down.
+	var stale_cache: String = "%s/animation_cache.res" % folder
+	if FileAccess.file_exists(stale_cache):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(stale_cache))
+
 	var atlas := AdobeAtlas.new()
 	atlas.folder_path = folder
 	atlas.parse()
