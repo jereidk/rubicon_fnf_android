@@ -1209,3 +1209,27 @@ are not in there at all.
 
 **The dude** is one file: `dudes/caramelDance.json` puts the `caramen-dance`
 atlas at (-75, 225), scale 1.1, layer 1, animation `caramel` (16 frames).
+
+**`buttons back` is centred on the SCREEN**, and has nothing to do with where the
+buttons are - which is what this port assumed while the binary was gone.
+`createUIComponents` does
+
+    plate.x = (FlxG.width  - plate.width)  * 0.5
+    plate.y = (FlxG.height - plate.height) * 0.5
+
+as two cvtsi2sd of FlxG.width/height, a subsd of the sprite's own size and a
+multiply by the 0.5 at .rodata 0x59fa5e0. Being placed against FlxG means it lives
+in Funkin's 1280x720 and not in the background's 1352x790 - and it is 738 tall
+against a 720 screen, so the negative y the arithmetic produces is the mod
+expecting it to bleed.
+
+**The music is `AnimaniaLOOPbass`**, loaded in `initMusic` beside the loop that
+`playMusic` starts, with LOWPASS and GAIN filters on it - a bass layer the screen
+ducks. What drives the filter is not recovered yet.
+
+**The screen's own methods**, for whoever picks this up: createBackground,
+createUIComponents, createButtons, createParticles, createSeasonalEffects,
+createSpecialElements, createVisualizers, createMusicSocial, createSocialButtons,
+createNewsButton, initMusic, initMouseEvents, startIntroAnimation, beatHit,
+updateButtonsAnimation, updateCameraScroll, updateCameraZoom, spawnHelpMouseText
+and startTransitionToMenu.

@@ -18,6 +18,10 @@ const SCREEN := Vector2(1920.0, 1080.0)
 ## 1280x720: the shop button's right edge lands at 1348, which only fits here.
 const AUTHORED := Vector2(1352.0, 790.0)
 
+## Funkin is 1280x720 and this project is 1920x1080. Anything the mod places against
+## FlxG.width/height lives in THAT space, not in the background's.
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+
 ## Scaled to COVER the screen and centred, so the background has no edges showing and the
 ## buttons keep their positions relative to it. Whether the mod does exactly this is the one
 ## thing about the layout that is still a reading rather than a measurement.
@@ -45,21 +49,28 @@ func _init() -> void:
 	background.position = _origin
 	_add(background)
 
-	# The plate the buttons sit on. DERIVED, not measured: `buttons back.png` is 660x738 and
-	# the eight rects span 591x704, so it is that block with a margin - centred on it is the
-	# only placement those two numbers allow. Where MainMenuScreen.create() actually puts it
-	# is at 0x1804250 in the Linux build, which loads "menus/menu/buttons back"; tracing the
-	# cvtsi2sd that feeds its position is the way to replace this reading with a fact.
-	var block := Rect2(Vector2(757.0, 7.0), Vector2(1348.0 - 757.0, 711.0 - 7.0))
+	# `buttons back`, and its placement is MEASURED now rather than derived. It used to be
+	# centred on the eight buttons' bounding box, which was the only thing those two sizes
+	# allowed without the binary. createUIComponents does this instead:
+	#
+	#     plate.x = (FlxG.width  - plate.width)  * 0.5
+	#     plate.y = (FlxG.height - plate.height) * 0.5
+	#
+	# - two cvtsi2sd of FlxG.width/height, a subsd of the sprite's own size and a multiply
+	# by the 0.5 at .rodata 0x59fa5e0. So it is centred on the SCREEN and has nothing to do
+	# with where the buttons are.
+	# Scaled by the project's flat 1.5 and not by the background's factor: it is placed
+	# against FlxG.width/height, which is Funkin's 1280x720, so it lives in that space and
+	# not in the background's 1352x790. That it comes out TALLER than the screen is the
+	# mod's own doing - (720 - 738) * 0.5 is a negative y, so the code expects it to bleed.
 	var plate := Sprite2D.new()
 	plate.name = "ButtonsBack"
 	plate.texture = load("%s/buttons back.png" % ART)
 	plate.centered = false
-	plate.scale = Vector2.ONE * _scale
-	plate.position = _origin + (block.get_center()
-		- plate.texture.get_size() * 0.5) * _scale
+	plate.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	plate.position = (SCREEN - plate.texture.get_size() * FUNKIN_TO_RUBICON) * 0.5
 	_add(plate)
-	print("OUT placa detras de los botones en (%.0f, %.0f), derivada del bloque"
+	print("OUT placa centrada en pantalla en (%.0f, %.0f)"
 		% [plate.position.x, plate.position.y])
 
 	var atlas: Resource = load("%s/menu_buttons_atlas.tres" % DIR)
@@ -119,10 +130,10 @@ func _init() -> void:
 	dude.scale = Vector2.ONE * float(dude_data["scale"]) * _scale
 	dude.position = _origin + Vector2(float(dude_pos[0]), float(dude_pos[1])) * _scale
 	_root.add_child(dude)
-	# Right after the background and before the plate: caramelDance.json calls it layer 1,
-	# and he stands on the left where the buttons are not. Put at index 1 he went BEHIND the
+	# Over the plate and under the buttons: caramelDance.json calls it layer 1, and he
+	# stands on the left where the buttons are not. Put at index 1 he went BEHIND the
 	# background and disappeared - the background is index 1.
-	_root.move_child(dude, background.get_index() + 1)
+	_root.move_child(dude, plate.get_index() + 1)
 	dude.owner = _root
 	print("OUT el que baila en (%.0f, %.0f), escala %.2f" % [
 		dude.position.x, dude.position.y, dude.scale.x])
@@ -155,6 +166,19 @@ func _init() -> void:
 	seasonal.set(&"leaf_frames", load("%s/menu_leafs_frames.tres" % DIR))
 	seasonal.set(&"area", SCREEN)
 	_add(seasonal)
+
+	# initMusic. `playMusic` starts the loop the title's intro leads into, and
+	# `AnimaniaLOOPbass` is loaded beside it as a second track with LOWPASS and GAIN
+	# filters on it - a bass layer the screen ducks in and out. Only the loop is wired
+	# here; the layer is vendored and waits for what drives its filter.
+	var music := AudioStreamPlayer.new()
+	music.name = "Music"
+	music.stream = load("res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg")
+	music.bus = &"Music" if AudioServer.get_bus_index(&"Music") >= 0 else &"Master"
+	music.autoplay = true
+	if music.stream is AudioStreamOggVorbis:
+		(music.stream as AudioStreamOggVorbis).loop = true
+	_add(music)
 
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"
