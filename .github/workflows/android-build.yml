@@ -1159,6 +1159,36 @@ jobs:
           # entera, no un ajuste que falle en silencio.
           guard_godot tools/test_typing_ime_replay.gd
 
+          # === Reintentar Chimera no deja las animaciones congeladas
+          # Reportado como "las animaciones de Chimera fallan", y solo pasa en
+          # el REINTENTO: LullabyIntroSkipModule unicamente hace algo si se ha
+          # muerto antes, y lo que hace es seek(19.3, true) sobre la linea de
+          # tiempo. Eso es un external seek, y AnimationMixer, ante uno, a los
+          # sub-clips que no estuvieran ya sonando les asigna el nombre y la
+          # posicion pero NO les da play - se quedan clavados en su primer
+          # fotograma. Es la misma rama del motor que ya obligo a despachar los
+          # clips a mano en el render de cutscenes. Esta guarda no lo lee del
+          # fuente: lo MONTA con dos AnimationPlayer de verdad, comprueba que
+          # el motor deja el sub-clip parado -control negativo, sin el pasaria
+          # en verde hasta con el modulo borrado- y luego que el rescate lo
+          # arranca en la posicion correcta y no desde cero.
+          guard_godot tools/test_intro_skip_clips.gd
+
+          # === Y la cancion no se resincroniza contra su propio error de lectura
+          # check_for_desync() corre cada compas y, si cree ver deriva, hace un
+          # seek de instrumental, voces y efectos a la vez. Decidia leyendo
+          # get_playback_position() a secas, que no es donde esta el audio: le
+          # faltaban las dos correcciones que documenta Godot, y en sentidos
+          # contrarios - sumar get_time_since_last_mix() porque la posicion se
+          # refresca una vez por bloque, restar get_output_latency() porque lo
+          # mezclado aun no ha sonado. Los dos son de decenas de ms y el umbral
+          # son 45, asi que el ruido de medicion entraba y salia solo del
+          # umbral. En PC la latencia es pequena y estable y no se nota; en
+          # Android no, y sale como fallos de ambiente y notas desincronizadas
+          # A RATOS, que es la firma de un umbral rozado y no la de una deriva
+          # de verdad, que creceria en vez de ir y venir.
+          guard_godot tools/test_audio_resync_reading.gd
+
           # === Los errores llegan de verdad a un fichero
           # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
           # mano a ErrorHandler.show_error/show_warning, todas fallos fatales
