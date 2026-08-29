@@ -1,0 +1,69 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://animania_mod/scripts/animania_health_bar.gd" id="1_pwmf0"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/healthbar/healthbar.png" id="2_mxwy6"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/healthbar/whitebar.png" id="3_4smeq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_saj55"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5ofgl"]
+
+[sub_resource type="Curve2D" id="Curve2D_kjwc7"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 66, 75, 0, 0, 0, 0, 126, 70.5, 0, 0, 0, 0, 186, 66.75, 0, 0, 0, 0, 246, 63.75, 0, 0, 0, 0, 306, 60.75, 0, 0, 0, 0, 366, 58.5, 0, 0, 0, 0, 426, 57.75, 0, 0, 0, 0, 486, 56.25, 0, 0, 0, 0, 546, 55.5, 0, 0, 0, 0, 606, 56.25, 0, 0, 0, 0, 666, 57, 0, 0, 0, 0, 726, 59.25, 0, 0, 0, 0, 786, 60.75, 0, 0, 0, 0, 846, 63.75, 0, 0, 0, 0, 906, 66.75, 0, 0, 0, 0, 966, 70.5, 0, 0, 0, 0, 1026, 75)
+}
+point_count = 17
+
+[node name="HealthBar" type="ProgressBar" unique_id=1924584428 node_paths=PackedStringArray("player_fill", "opponent_fill", "path", "path_follow")]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -546.0
+offset_top = 67.5
+offset_right = 546.0
+offset_bottom = 123.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxEmpty_saj55")
+theme_override_styles/fill = SubResource("StyleBoxEmpty_5ofgl")
+value = 50.0
+show_percentage = false
+script = ExtResource("1_pwmf0")
+player_fill = NodePath("Art/PlayerFill")
+opponent_fill = NodePath("Art/OpponentFill")
+path = NodePath("Path2D")
+path_follow = NodePath("Path2D/PathFollow2D")
+
+[node name="Art" type="Node2D" parent="." unique_id=2113234458]
+position = Vector2(0, 55.5)
+scale = Vector2(1.5, -1.5)
+
+[node name="Outline" type="Sprite2D" parent="Art" unique_id=634962723]
+position = Vector2(-23, -7)
+texture = ExtResource("2_mxwy6")
+centered = false
+
+[node name="PlayerFill" type="Sprite2D" parent="Art" unique_id=1548243633]
+modulate = Color(0.49019608, 0.43137255, 0.78039217, 1)
+texture = ExtResource("3_4smeq")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 364, 37)
+
+[node name="OpponentFill" type="Sprite2D" parent="Art" unique_id=471253001]
+modulate = Color(0.4745098, 0.30980393, 0.57254905, 1)
+position = Vector2(364, 0)
+texture = ExtResource("3_4smeq")
+centered = false
+region_enabled = true
+region_rect = Rect2(364, 0, 364, 37)
+
+[node name="Path2D" type="Path2D" parent="." unique_id=1388199239]
+curve = SubResource("Curve2D_kjwc7")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D" unique_id=756479000]
+rotates = false
+
+[node name="IconL" type="AnimatedSprite2D" parent="Path2D/PathFollow2D" unique_id=1842965060]
+scale = Vector2(-1, 1)
+
+[node name="IconR" type="AnimatedSprite2D" parent="Path2D/PathFollow2D" unique_id=852139649]

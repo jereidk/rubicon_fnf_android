@@ -23,6 +23,9 @@ var _failures: int = 0
 
 
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+
+## How tall the mod draws its health icons, measured on a capture of it running.
+const ICON_HEIGHT := 140.0
 const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 
@@ -368,11 +371,22 @@ func _check_level() -> void:
 			"%s esta en %s y el JSON del escenario lo pone en %s" % [
 				row[2], point2d.position, aimed_at])
 
-	# An instanced Control loses its authored anchors unless layout_mode says to keep them.
-	# The health bar came out 4x27 in the top-left corner before that was set.
+	# An instanced Control loses its authored layout twice over: once if layout_mode does
+	# not say to keep the anchors - the bar came out 4x27 in the top-left corner before that
+	# was set - and once if the saved instance carries an `anchors_preset`, which RE-APPLIES
+	# that preset on load and throws the offsets away. The bar is anchored dead centre at
+	# the top, which is preset 5, and it came out pinned 45px above its own mark.
+	#
+	# So this checks the rect it is supposed to have rather than the anchors: the mod's
+	# WHITEBAR.png is 728x37 and drawn at 1.5, centred, with its top 45 Funkin pixels down.
 	var health_bar: Control = level.get_node("UILayer/UI/HealthBar")
-	_check(health_bar.anchor_right > health_bar.anchor_left,
-		"la barra de vida perdio sus anclas: %s" % health_bar.get_rect())
+	var bar_rect: Rect2 = health_bar.get_rect()
+	_check(bar_rect.size.is_equal_approx(Vector2(728.0, 37.0) * FUNKIN_TO_RUBICON),
+		"la barra de vida mide %s y el arte del mod pide %s" % [
+			bar_rect.size, Vector2(728.0, 37.0) * FUNKIN_TO_RUBICON])
+	_check(is_equal_approx(bar_rect.position.y, 45.0 * FUNKIN_TO_RUBICON),
+		"la barra de vida empieza en y=%.1f y la captura la pone en %.1f" % [
+			bar_rect.position.y, 45.0 * FUNKIN_TO_RUBICON])
 
 	_check_icons(level)
 
@@ -1360,11 +1374,12 @@ func _check_icons(level: Node) -> void:
 					_check(icon.sprite_frames.has_animation("sing_%s%s" % [direction, suffix]),
 						"%s no tiene sing_%s%s" % [icon_name, direction, suffix])
 
-		# Rubicon centres its icons on the bar and lays that out for bf's 150px frame; an
-		# unscaled 171px icon runs 30px off the top of the screen.
+		# Both icons are fitted to the height the MOD draws them at, measured off a capture
+		# of it running: 93 pixels of a 1280x720 frame, so 140 of this project's. Their own
+		# frames differ - tadano's is 146 tall and komi's 158 - so neither is left native.
 		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
-		_check(is_equal_approx(absf(icon.scale.y) * frame.get_height(), 150.0),
-			"%s mide %.0fpx de alto y la barra espera 150" % [
+		_check(is_equal_approx(absf(icon.scale.y) * frame.get_height(), ICON_HEIGHT),
+			"%s mide %.0fpx de alto y la barra espera %.0f" % [
 				icon_name, absf(icon.scale.y) * frame.get_height()])
 		_check(is_equal_approx(icon.offset.x, -frame.get_width() * 0.5),
 			"%s tiene offset.x %.1f y esperaba %.1f" % [

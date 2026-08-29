@@ -42,7 +42,10 @@ const BUMPER_SCRIPT := "res://addons/rubicon_interpolated_camera/scripts/rubicon
 # The amtake-base receptors, not the stock funkin ones. See tools/animania/build_notestyle.gd.
 const LANE := "res://animania_mod/notestyle/Lane.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
-const HEALTH_BAR := "res://resources/levels/ui/funkin/health_bar.tscn"
+## Not Rubicon's funkin bar: Animania's is a drawn stroke that arches and tapers, in the
+## two characters' own icon colours, and it ships as art rather than as a rectangle. Built
+## by tools/animania/build_health_bar.gd.
+const HEALTH_BAR := "res://animania_mod/ui/health_bar.tscn"
 # Not resources/levels/ui/funkin/funkin_note_override.tres: this chart uses the note kind
 # "noAnimation" on two notes, and a kind Rubicon has no database entry for throws on every
 # frame the note is alive. See the header of the file itself.
@@ -53,8 +56,10 @@ const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
 const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
 const DEATH_SCRIPT := "res://animania_mod/scripts/death_sequence.gd"
 const GAMEOVER_AUDIO := "res://animania_mod/source/audio/gameover"
-## bf_icon.tres's frame height, which is what health_bar.tscn's icon placement assumes.
-const BF_ICON_HEIGHT := 150.0
+## How tall the mod draws its icons, measured on a capture of it running: their art spans
+## y 37..129 of a 1280x720 frame, which is 140 of this project's pixels. Both characters
+## are fitted to it, since their own frames differ - tadano's is 146 tall and komi's 158.
+const ICON_HEIGHT := 140.0
 const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart.json"
 
 # Funkin is 1280x720 and this project is 1920x1080, so the stage's own cameraZoom is
@@ -374,14 +379,12 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		icon.note_controller = entry["controller"]
 		icon.inverted = entry["inverted"]
 		icon.has_alt_poses = entry["alt"]
-		# Fitted to the height the bar was laid out for rather than left at native size.
-		# Rubicon centres its icons on the bar, so bf's 150px icon already runs 19px off the
-		# top of the screen; tadano's is 171 and would run 30px off. Matching bf's height
-		# keeps Animania's icons in exactly the space Rubicon's layout expects instead of
-		# moving the layout to suit them - and both character JSONs carry
-		# healthIcon.scale 0.9, so the mod scales them down too.
+		# Fitted to the height the MOD draws them at rather than left at native size. That
+		# height is measured off a capture rather than taken from healthIcon.scale: the
+		# JSONs say 0.9, which on tadano's 146px frame would be 131 Funkin pixels, and the
+		# capture puts him at 93.
 		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
-		var fit: float = BF_ICON_HEIGHT / float(frame.get_height())
+		var fit: float = ICON_HEIGHT / float(frame.get_height())
 		icon.scale = Vector2(-fit if entry["flip"] else fit, fit)
 
 		# offset is in the sprite's own space, and the bar authors -73 for bf's 138px icon:
@@ -398,6 +401,12 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 func _add_control(parent: Control, control: Control) -> void:
 	parent.add_child(control)
 	control.set(&"layout_mode", 1)
+	# And PRESET_CUSTOM, or layout_mode picks a preset that happens to match the anchors and
+	# the instance saves `anchors_preset = N`, which RE-APPLIES that preset on load and
+	# throws the authored offsets away. The health bar is anchored dead centre at the top,
+	# which is preset 5, so it came out pinned to the top of the screen 45px above its own
+	# mark. -1 records "custom" and moves nothing.
+	control.set(&"anchors_preset", -1)
 
 
 ## standUP()'s camGame.flash(WHITE, 1.5) and beat 348's camGame.fade(BLACK, 3). Both are on
