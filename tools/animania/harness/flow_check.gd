@@ -1,4 +1,4 @@
-# Boots the game the way a device does and walks title -> song.
+# Boots the game the way a device does and walks title -> main menu -> song.
 #
 # The point is the seam: change_scene_to_file replaces the running scene, so a level that
 # instantiates fine in a harness can still fail as a scene change. This drives the real
@@ -8,6 +8,7 @@
 extends SceneTree
 
 const TITLE := "res://animania_mod/menus/title/title_screen.tscn"
+const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 const SONG := "res://songs/phone-call/phone_call.tscn"
 
 var _failures: int = 0
@@ -57,9 +58,45 @@ func _init() -> void:
 	for i: int in 6:
 		await process_frame
 
+	var menu: Node = current_scene
+	_check(menu != null and menu != title, "el confirm no cambio de escena")
+	if menu == null or menu == title:
+		_report()
+		return
+
+	# moveToMain goes to the MAIN MENU, which is where the mod sends it. It used to go
+	# straight into the song while there was no menu to go to.
+	_check(String(menu.scene_file_path) == MENU,
+		"entro en %s en vez del menu" % menu.scene_file_path)
+	if String(menu.scene_file_path) != MENU:
+		_report()
+		return
+
+	# The walk skips the three blocked buttons rather than stopping on them.
+	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
+		"el menu no empieza en storymode")
+	menu.change_item(1, false)
+	await process_frame
+	_check(String(menu.BUTTONS[menu._selected]) == "freeplay",
+		"desde storymode tendria que saltarse shop y caer en freeplay, no en %s"
+			% menu.BUTTONS[menu._selected])
+
+	menu.do_select()
+	# doSelect waits out the 18-frame confirm animation before it leaves, on a SceneTree
+	# timer - so this waits in WALL CLOCK. Accumulating get_process_delta_time() does not
+	# work here: headless runs frames as fast as it can and the sum outruns the timer.
+	var until: int = Time.get_ticks_msec() + 4000
+	while is_instance_valid(menu) and current_scene == menu \
+			and Time.get_ticks_msec() < until:
+		await process_frame
+	# change_scene_to_file frees the old scene and installs the new one across frames, so
+	# current_scene is briefly neither. Let it land.
+	for i: int in 6:
+		await process_frame
+
 	var level: Node = current_scene
-	_check(level != null and level != title, "el confirm no cambio de escena")
-	if level == null or level == title:
+	_check(level != null and level != menu, "freeplay no cambio de escena")
+	if level == null or level == menu:
 		_report()
 		return
 

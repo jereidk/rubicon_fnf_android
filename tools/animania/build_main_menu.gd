@@ -30,6 +30,7 @@ var _root: Node2D
 func _init() -> void:
 	_root = Node2D.new()
 	_root.name = "MainMenu"
+	_root.set_script(load("res://animania_mod/menus/main/main_menu.gd"))
 
 	var camera := Camera2D.new()
 	camera.name = "Camera2D"
@@ -99,6 +100,14 @@ func _init() -> void:
 	var dude_data: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("%s/dudes/caramelDance.json" % ART))
 	print("OUT el que baila: %s" % dude_data)
+
+	var sfx := AudioStreamPlayer.new()
+	sfx.name = "Sfx"
+	sfx.bus = &"Master"
+	_add(sfx)
+
+	_root.set(&"buttons", buttons)
+	_root.set(&"sfx", sfx)
 
 	var packed := PackedScene.new()
 	packed.pack(_root)

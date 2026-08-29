@@ -68,11 +68,10 @@ const LAST_BEAT := 31
 
 ## Where a confirm goes.
 ##
-## In the mod this is `moveToMain`, and it goes to the main menu. There is no main menu on
-## this branch, so the title goes straight into the one song that is ported. That is a
-## deliberate shortcut for playing the thing, not a reading of the original, and it is the
-## line to change the day MainMenuScreen exists.
-const NEXT_SCENE := "res://songs/phone-call/phone_call.tscn"
+## `moveToMain`, and it now goes where the mod sends it: the main menu. It used to go
+## straight into the song, a deliberate shortcut for playing the thing while
+## MainMenuScreen did not exist here. It does now.
+const NEXT_SCENE := "res://animania_mod/menus/main/main_menu.tscn"
 
 ## A press during the intro skips it; a press after it confirms. Without this the same
 ## keystroke would do both on the frame the intro ends.
@@ -200,7 +199,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	confirm()
 
 
-## moveToMain, pointed at the song instead of a menu that does not exist yet.
+## moveToMain.
 ##
 ## The deaf window lives HERE rather than in the input handler, so it holds for every caller
 ## - the first version guarded only the keystroke, and anything else calling confirm() went
