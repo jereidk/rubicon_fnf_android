@@ -80,6 +80,12 @@ var _seen: Dictionary = {}
 ## ya se sabe el nombre definitivo del fuente: un .jpg del pck acaba siendo .png
 ## aqui, y el md5 que va en la ruta del importado es el de ESA ruta.
 var _imports_wanted: Dictionary = {}
+
+## Todo fichero de texto que este tool escribe, para la pasada final de rutas.
+## Va aparte de la escritura porque un .tres solo se puede reescribir cuando ya
+## esta en disco, y porque haciendolo en UN solo sitio no hay forma de que una
+## clase de fichero se quede sin traducir - que es como se colo la primera vez.
+var _text_written: PackedStringArray = []
 var _written: int = 0
 var _bytes: int = 0
 var _errors: int = 0
@@ -101,6 +107,7 @@ func _init() -> void:
 	for step: int in SCENE_UIDS:
 		_save_scene(step)
 
+	_sweep_paths()
 	_write_imports()
 
 	print("\n%d ficheros, %.1f MB, %d errores%s" % [
@@ -126,6 +133,16 @@ func _dest_path(pck_path: String, kind: String) -> String:
 			return out.get_basename() + ".png"
 		"ogg":
 			return out.get_basename() + ".res"
+		"tres":
+			# Forzado a texto aunque el original fuese .res binario.
+			#
+			# skullface.res es un SpriteFrames, y un SpriteFrames apunta a sus
+			# hojas por ruta. Guardado en binario esas rutas quedan dentro y no
+			# hay forma de traducirlas del res:// del pck al res://lullaby_mod/
+			# de aqui - que es exactamente el fallo que tuvo la primera version
+			# de esto: las escenas quedaron bien y los .tres siguieron apuntando
+			# a ficheros que no existen.
+			return out.get_basename() + ".tres"
 		_:
 			return out
 
@@ -193,7 +210,9 @@ func _extract(pck_path: String) -> void:
 	elif res is AudioStream:
 		_save_resource(_dest_path(pck_path, "ogg"), res)
 	else:
-		_save_resource(_dest_path(pck_path, "res"), res)
+		var dest: String = _dest_path(pck_path, "tres")
+		_save_resource(dest, res)
+		_text_written.append(dest)
 
 
 func _save_texture(pck_path: String, tex: Texture2D) -> void:
@@ -289,6 +308,8 @@ func _save_scene(step: int) -> void:
 		_errors += 1
 		return
 
+	_text_written.append(dest)
+
 	var text: String = FileAccess.get_file_as_string(dest)
 	text = _rewrite(text, step)
 
@@ -296,6 +317,34 @@ func _save_scene(step: int) -> void:
 	fh.store_string(text)
 	fh.close()
 	_note(dest, _size_of(dest))
+
+
+## Traduce las rutas de TODOS los ficheros de texto escritos, escenas incluidas.
+##
+## Una sola pasada, al final, sobre todo lo que se ha escrito. La primera
+## version traducia solo las .tscn y dejaba los .tres con las rutas del pck
+## dentro: las escenas cargaban, los SpriteFrames tambien, y las hojas no
+## estaban. Eso no da error al arrancar - da un gameover sin dibujo.
+func _sweep_paths() -> void:
+	for path: String in _text_written:
+		var text: String = FileAccess.get_file_as_string(path)
+		if text.is_empty():
+			continue
+
+		var out: PackedStringArray = []
+		for line: String in text.split("\n"):
+			if line.begins_with("[ext_resource"):
+				line = RegEx.create_from_string('\\s*uid="[^"]*"').sub(line, "")
+				line = _rewrite_path(line)
+			out.append(line)
+
+		var fh := FileAccess.open(path, FileAccess.WRITE)
+		if fh == null:
+			printerr("  no se reescribe: %s" % path)
+			_errors += 1
+			continue
+		fh.store_string("\n".join(out))
+		fh.close()
 
 
 func _rewrite(text: String, step: int) -> String:
@@ -323,6 +372,15 @@ func _rewrite_path(line: String) -> String:
 		return line
 
 	var pck_path: String = m.get_string(1)
+
+	# Idempotente, porque la pasada final vuelve a ver las escenas que ya se
+	# tradujeron al guardarlas. Sin esta linea la segunda vuelta leia el .res de
+	# un audio ya traducido, le aplicaba la regla .res -> .tres pensada para
+	# skullface, y las cinco escenas acababan pidiendo un sfx_step_N.tres que no
+	# existe. Lo pillo la guarda; a ojo no se ve.
+	if pck_path.begins_with("res://lullaby_mod/"):
+		return line
+
 	var kind: String = "res"
 	match pck_path.get_extension().to_lower():
 		"jpg", "jpeg", "png":
@@ -333,6 +391,11 @@ func _rewrite_path(line: String) -> String:
 			kind = "mp3"
 		"ogv":
 			kind = "ogv"
+		"tres", "res":
+			# En una ruta DEL PCK, un .res solo puede ser skullface.res, que
+			# aqui sale como texto. Las .res que escribe este tool son los
+			# audios, y esas nunca aparecen dentro de un fichero del pck.
+			kind = "tres"
 	var dest: String = _port_path(pck_path) if kind in ["mp3", "ogv"] \
 		else _dest_path(pck_path, kind)
 	return line.replace('path="%s"' % pck_path, 'path="%s"' % dest)

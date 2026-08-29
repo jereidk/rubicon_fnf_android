@@ -1,73 +1,73 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/gameover/step_3/Fix/death_3-0.png" id="1_7e5um"]
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/gameover/step_3/Fix/death_3-1.png" id="2_pbxu0"]
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/gameover/step_3/Fix/death_3-2.png" id="3_c0ajo"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3_packed_0.png" id="packed_0"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3_packed_1.png" id="packed_1"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3_packed_2.png" id="packed_2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vm662"]
-atlas = ExtResource("1_7e5um")
-region = Rect2(1, 1, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t8tri"]
-atlas = ExtResource("1_7e5um")
-region = Rect2(2046, 1, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2050, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mmvct"]
-atlas = ExtResource("1_7e5um")
-region = Rect2(1, 1547, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t6w72"]
-atlas = ExtResource("1_7e5um")
-region = Rect2(2046, 1547, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2050, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3d6p1"]
-atlas = ExtResource("2_pbxu0")
-region = Rect2(1, 1, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_opvob"]
-atlas = ExtResource("1_7e5um")
-region = Rect2(4091, 1, 1, 1)
+atlas = ExtResource("packed_2")
+region = Rect2(2, 3106, 1, 1)
 margin = Rect2(0, 0, 2042, 1543)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_r7byc"]
-atlas = ExtResource("2_pbxu0")
-region = Rect2(2046, 1, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2050, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3a2mi"]
-atlas = ExtResource("2_pbxu0")
-region = Rect2(1, 1547, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_winpy"]
-atlas = ExtResource("2_pbxu0")
-region = Rect2(2046, 1547, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2050, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_na3y8"]
-atlas = ExtResource("3_c0ajo")
-region = Rect2(1, 1, 2043, 1544)
+atlas = ExtResource("packed_2")
+region = Rect2(2, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jbivl"]
-atlas = ExtResource("3_c0ajo")
-region = Rect2(2046, 1, 2043, 1544)
+atlas = ExtResource("packed_2")
+region = Rect2(2050, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qa3iq"]
-atlas = ExtResource("3_c0ajo")
-region = Rect2(1, 1547, 2043, 1544)
+atlas = ExtResource("packed_2")
+region = Rect2(2, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_378ji"]
-atlas = ExtResource("3_c0ajo")
-region = Rect2(2046, 1547, 2043, 1544)
+atlas = ExtResource("packed_2")
+region = Rect2(2050, 1554, 2043, 1544)
 filter_clip = true
 
 [resource]

@@ -1208,6 +1208,20 @@ jobs:
           # gameover sin imagen o sin sonido.
           guard_godot tools/test_chimera_gameover_wired.gd
 
+          # === Y los ASTC precompilados son de verdad lo que dicen ser
+          # Esta comprobacion ya existia y no la ejecutaba nadie; solo se
+          # mencionaba en un mensaje. Ahora corre, porque el riesgo es peor que
+          # no tener precompilados: Godot decide si reimporta comparando el
+          # source_md5 del sidecar, asi que un .res roto junto a un sidecar
+          # correcto se envia tal cual y no hay ni una linea en el log.
+          # Y ese fallo no es hipotetico - precompilar estas texturas lo
+          # produjo a la primera. PortableCompressedTexture2D suelta su buffer
+          # comprimido en cuanto lo sube salvo que se pida conservarlo, cosa
+          # que el editor hace y un --headless no, asi que create_from_image()
+          # devolvia una textura del tamano correcto y lo guardado eran 362
+          # bytes de nada. Esto lo habria dicho en la primera pasada.
+          guard_godot tools/verify_precompiled_astc.gd
+
           # === Los errores llegan de verdad a un fichero
           # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
           # mano a ErrorHandler.show_error/show_warning, todas fallos fatales

@@ -75,18 +75,21 @@ func _initialize() -> void:
 		_check(got_uid == want_uid,
 			"%s: uid %s coincide con el que pide la tabla" % [key, got_uid])
 
-		# Y todo lo que cuelga de ella. Sobre el texto y no con load(), porque
-		# un guion --script no importa nada y los .import de estas texturas
-		# apuntan a ficheros que solo existen despues de un pase de import.
+		# Y todo lo que cuelga de ella, RECURSIVAMENTE. Sobre el texto y no con
+		# load(), porque un guion --script no importa nada y los .import de
+		# estas texturas apuntan a ficheros que solo existen tras un import.
+		#
+		# Que baje a los .tres no es celo de mas: la primera version de esto se
+		# quedaba en el primer nivel y daba verde sobre un port roto. Las cinco
+		# escenas apuntaban bien a sus death_N.tres, y esos .tres seguian
+		# apuntando a res://assets/... - la raiz del pck - porque el extractor
+		# solo habia traducido las escenas. Todo cargaba y no habia ni una hoja
+		# de sprites en su sitio.
+		var seen: Dictionary = {}
 		var missing: PackedStringArray = []
-		for dep: RegExMatch in RegEx.create_from_string(
-				'\\[ext_resource[^\\]]*path="([^"]+)"').search_all(text):
-			var p: String = dep.get_string(1)
-			if not FileAccess.file_exists(p):
-				missing.append(p)
+		var total: int = _refs(scene, seen, missing)
 		_check(missing.is_empty(),
-			"%s: sus %d referencias existen%s" % [key,
-				RegEx.create_from_string('\\[ext_resource').search_all(text).size(),
+			"%s: sus %d referencias existen, en todo el arbol%s" % [key, total,
 				"" if missing.is_empty() else " - FALTAN " + ", ".join(missing)])
 
 	# Y que el modulo se queje en vez de callarse, que es lo que dejo pasar esto
@@ -99,6 +102,35 @@ func _initialize() -> void:
 	if _failures == 0:
 		print("todo OK")
 	quit(1 if _failures > 0 else 0)
+
+
+## Cuenta las referencias de `path` y de todo lo que estas alcanzan, anotando
+## en `missing` las que no estan en disco. Solo baja por los ficheros de texto
+## -.tscn y .tres- porque son los unicos cuyas referencias se pueden leer sin
+## importar el proyecto; un .png o un .ogv son hojas por definicion.
+func _refs(path: String, seen: Dictionary, missing: PackedStringArray) -> int:
+	if seen.has(path):
+		return 0
+	seen[path] = true
+
+	var ext: String = path.get_extension().to_lower()
+	if ext != "tscn" and ext != "tres":
+		return 0
+
+	var text: String = FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return 0
+
+	var total: int = 0
+	for dep: RegExMatch in RegEx.create_from_string(
+			'\\[ext_resource[^\\]]*path="([^"]+)"').search_all(text):
+		var p: String = dep.get_string(1)
+		total += 1
+		if not FileAccess.file_exists(p):
+			missing.append(p)
+			continue
+		total += _refs(p, seen, missing)
+	return total
 
 
 ## La tabla `paths` tal como esta autorada en la escena de la cancion.

@@ -1,52 +1,52 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/gameover/step_4/Fix/death_4-0.png" id="1_gf5wt"]
-[ext_resource type="Texture2D" path="res://assets/funkin/chimera/gameover/step_4/Fix/death_4-1.png" id="2_74fsp"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/Fix/death_4_packed_0.png" id="packed_0"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/Fix/death_4_packed_1.png" id="packed_1"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b4vm6"]
-atlas = ExtResource("1_gf5wt")
-region = Rect2(1, 1, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yeblr"]
-atlas = ExtResource("1_gf5wt")
-region = Rect2(2046, 1, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2050, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lg8fh"]
-atlas = ExtResource("1_gf5wt")
-region = Rect2(1, 1547, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tb830"]
-atlas = ExtResource("1_gf5wt")
-region = Rect2(2046, 1547, 2043, 1544)
+atlas = ExtResource("packed_0")
+region = Rect2(2050, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_86dqi"]
-atlas = ExtResource("2_74fsp")
-region = Rect2(1, 1, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rkoe7"]
-atlas = ExtResource("1_gf5wt")
-region = Rect2(4091, 1, 1, 1)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 3106, 1, 1)
 margin = Rect2(0, 0, 2042, 1543)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8o2gl"]
-atlas = ExtResource("2_74fsp")
-region = Rect2(2046, 1, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2050, 2, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nj2nm"]
-atlas = ExtResource("2_74fsp")
-region = Rect2(1, 1547, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2, 1554, 2043, 1544)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_e1oox"]
-atlas = ExtResource("2_74fsp")
-region = Rect2(2046, 1547, 2043, 1544)
+atlas = ExtResource("packed_1")
+region = Rect2(2050, 1554, 2043, 1544)
 filter_clip = true
 
 [resource]

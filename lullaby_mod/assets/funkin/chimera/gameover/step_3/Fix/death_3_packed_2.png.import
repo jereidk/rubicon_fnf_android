@@ -1,0 +1,14 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3_packed_2.png"
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false
