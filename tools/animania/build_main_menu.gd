@@ -68,6 +68,7 @@ func _init() -> void:
 	buttons.name = "Buttons"
 	_add(buttons)
 
+	var rects: Dictionary = {}
 	var order: PackedStringArray = [
 		"storymode", "shop", "freeplay", "website", "options", "credits", "awards", "exit",
 	]
@@ -76,6 +77,7 @@ func _init() -> void:
 		var data: Dictionary = JSON.parse_string(
 			FileAccess.get_file_as_string("%s/butts/%s.json" % [ART, name]))
 		var pos: Array = data["pos"]
+		rects[name] = Rect2(float(pos[0]), float(pos[1]), float(pos[2]), float(pos[3]))
 		var symbol := AnimateSymbol.new()
 		symbol.name = name.capitalize()
 		symbol.atlases = [atlas] as Array[AnimateAtlas]
@@ -103,9 +105,56 @@ func _init() -> void:
 			name, int(data["id"]), pos[0], pos[1], pos[2], pos[3],
 			symbol.position.x, symbol.position.y])
 
+	# caramelDance.json: the caramen-dance atlas at (-75, 225), scale 1.1, animation
+	# `caramel`. Straight out of the file, like the buttons' rects.
 	var dude_data: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("%s/dudes/caramelDance.json" % ART))
-	print("OUT el que baila: %s" % dude_data)
+	var dude_pos: Array = dude_data["pos"]
+	var dude := AnimatedSprite2D.new()
+	dude.name = "Dude"
+	dude.sprite_frames = load("%s/menu_dude_frames.tres" % DIR)
+	dude.animation = &"caramel"
+	dude.centered = false
+	dude.autoplay = "caramel"
+	dude.scale = Vector2.ONE * float(dude_data["scale"]) * _scale
+	dude.position = _origin + Vector2(float(dude_pos[0]), float(dude_pos[1])) * _scale
+	_root.add_child(dude)
+	# Right after the background and before the plate: caramelDance.json calls it layer 1,
+	# and he stands on the left where the buttons are not. Put at index 1 he went BEHIND the
+	# background and disappeared - the background is index 1.
+	_root.move_child(dude, background.get_index() + 1)
+	dude.owner = _root
+	print("OUT el que baila en (%.0f, %.0f), escala %.2f" % [
+		dude.position.x, dude.position.y, dude.scale.x])
+
+	# button_lock.png over each of the three MainMenuScreen.BLOCKED_BUTTONS. Centred on the
+	# button it covers: the lock is 17 frames of animation and the rect is what it locks.
+	var blocked: PackedStringArray = ["shop", "website", "awards"]
+	var lock_frames: SpriteFrames = load("%s/menu_lock_frames.tres" % DIR)
+	var lock_animation: StringName = lock_frames.get_animation_names()[0]
+	var lock_size: Vector2 = lock_frames.get_frame_texture(lock_animation, 0).get_size()
+	for name: String in blocked:
+		var rect: Rect2 = rects[name]
+		var lock := AnimatedSprite2D.new()
+		lock.name = "%sLock" % name.capitalize()
+		lock.sprite_frames = lock_frames
+		lock.animation = lock_animation
+		lock.autoplay = String(lock_animation)
+		lock.centered = false
+		lock.scale = Vector2.ONE * _scale
+		lock.position = _origin + (rect.get_center() - lock_size * 0.5) * _scale
+		buttons.add_child(lock)
+		lock.owner = _root
+
+	# SeasonalEmitter. Which season is exact - getCurrentSeason reads the month - and only
+	# winter and autumn have art.
+	var seasonal := Node2D.new()
+	seasonal.name = "Seasonal"
+	seasonal.set_script(load("res://animania_mod/menus/main/menu_seasonal.gd"))
+	seasonal.set(&"snow_frames", load("%s/menu_snow_frames.tres" % DIR))
+	seasonal.set(&"leaf_frames", load("%s/menu_leafs_frames.tres" % DIR))
+	seasonal.set(&"area", SCREEN)
+	_add(seasonal)
 
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"

@@ -1,0 +1,83 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/dudes/imageAssets/caramen-dance.png" id="1_ohyxw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wqokk"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(1, 1, 648, 494)
+margin = Rect2(36, 14, 39, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gtuj8"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(650, 1, 651, 495)
+margin = Rect2(28, 13, 36, 15)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qpk5v"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(1302, 1, 638, 509)
+margin = Rect2(27, 0, 49, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ltwmc"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(1, 511, 641, 508)
+margin = Rect2(31, 2, 46, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p0dan"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(643, 511, 663, 494)
+margin = Rect2(6, 14, 24, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iel23"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(1307, 511, 668, 495)
+margin = Rect2(0, 13, 19, 15)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jqtpf"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(1, 1020, 680, 509)
+margin = Rect2(7, 0, 7, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_esvra"]
+atlas = ExtResource("1_ohyxw")
+region = Rect2(682, 1020, 666, 508)
+margin = Rect2(9, 2, 21, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_wqokk")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_gtuj8")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_qpk5v")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ltwmc")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_p0dan")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_iel23")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_jqtpf")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_esvra")
+}],
+"loop": 1,
+"name": &"caramel",
+"speed": 24.0
+}]

@@ -1,0 +1,59 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/seasonal/leafs.png" id="1_2l6vf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5caee"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(1, 1, 68, 57)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lhcvs"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(47, 59, 38, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ukb2d"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(1, 172, 36, 68)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_35nv6"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(1, 124, 55, 47)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7syg6"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(38, 172, 34, 66)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ext78"]
+atlas = ExtResource("1_2l6vf")
+region = Rect2(1, 59, 45, 64)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5caee")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lhcvs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ukb2d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_35nv6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7syg6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ext78")
+}],
+"loop": 1,
+"name": &"leaf ",
+"speed": 24.0
+}]

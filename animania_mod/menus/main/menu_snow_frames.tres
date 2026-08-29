@@ -1,0 +1,99 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/seasonal/snow.png" id="1_ayp0o"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g5yoi"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(1, 1, 18, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fksng"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(37, 24, 15, 15)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kdv3y"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(53, 24, 10, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lxu7x"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(14, 38, 13, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gq64k"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(20, 1, 20, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yn86x"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(20, 21, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_krknd"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(41, 1, 17, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vmgpw"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(53, 37, 9, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_suilg"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(1, 25, 13, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ogp0l"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(1, 38, 12, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_reijr"]
+atlas = ExtResource("1_ayp0o")
+region = Rect2(28, 40, 12, 11)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g5yoi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fksng")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kdv3y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lxu7x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gq64k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yn86x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_krknd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vmgpw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_suilg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ogp0l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_reijr")
+}],
+"loop": 1,
+"name": &"snow ",
+"speed": 24.0
+}]

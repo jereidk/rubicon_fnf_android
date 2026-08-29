@@ -1178,6 +1178,34 @@ for white and eighteen for confirm.
 **The dude** is `dudes/caramelDance.json`: the `caramen-dance` Sparrow atlas at
 (-75, 225), scale 1.1, layer 1, animation `caramel`.
 
-**Some buttons are locked.** `MainMenuScreen.BLOCKED_BUTTONS` holds THREE names
-and `button_lock.png` is the art for it; which three is still to be read out of
-`__boot`, whose arrays sit in .bss and are filled at runtime.
+**Some buttons are locked.** `MainMenuScreen.BLOCKED_BUTTONS` holds three names -
+`shop`, `website` and `awards` - and `button_lock.png` (17 frames) is the art.
+Its array sits in .bss like `BUTTONS_LIST` and is filled at runtime, so both are
+read out of the global initialiser for MainMenuScreen.cpp: one 16-byte String per
+entry, length first and pointer second. The three share their pointers with
+`BUTTONS_LIST[1]`, `[3]` and `[6]`, and none of those registers is rewritten
+between the two stores, which is what stops the match being a coincidence.
+
+**Navigation is a list walk, not a grid one.** `changeItem` takes two `Dynamic`
+parameters, which reads as `(dx, dy)` until you look at what `handleInput` passes:
+`Dynamic(-1), Dynamic(true)` on one branch and
+`Dynamic(-FlxG.mouse.wheel), Dynamic(true)` on the other. The second is a BOOL, so
+it is `changeItem(amount, playSound)` over `BUTTONS_LIST`, and the blocked three
+are skipped rather than refused.
+
+**Sounds**, from the calls rather than from the filenames: `changeItem` plays
+`animania/menu/menu_switch` and `doSelect` plays `confirmMenu`. `cancelMenu` and
+`animania/menu/locked_sfx` are the other two the screen uses.
+
+**The seasons are exact.** `getCurrentSeason()` reads `Cardinal.currentMonth`:
+months 12, 1 and 2 are `winter`, 9 to 11 are `autum` (five letters - the mod's own
+spelling) and everything else is `summer`. Only two have art, `seasonal/snow` and
+`seasonal/leafs`, so summer gets nothing.
+
+**What `SeasonalEmitter.initParticle` carries**, lifted from the doubles it loads:
+250, +/-25, +/-65, 0.7, 0.8, 0.9, 1.0, 1.1 and 75. Which number is which field is
+a reading, the same way `title_props.gd` is; the pool size and the spawn interval
+are not in there at all.
+
+**The dude** is one file: `dudes/caramelDance.json` puts the `caramen-dance`
+atlas at (-75, 225), scale 1.1, layer 1, animation `caramel` (16 frames).
