@@ -43,7 +43,6 @@ enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://
 
 [autoload]
 
-MobileControls="*res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 DebugOverlay="*res://animania_mod/scripts/debug_overlay.gd"
 
 [rubicon]

@@ -143,5 +143,43 @@ func _unhandled_input(event: InputEvent) -> void:
 		var button: int = (event as InputEventMouseButton).button_index
 		if button == MOUSE_BUTTON_WHEEL_UP:
 			change_item(-1)
-		elif button == MOUSE_BUTTON_WHEEL_DOWN:
+			return
+		if button == MOUSE_BUTTON_WHEEL_DOWN:
 			change_item(1)
+			return
+		if button == MOUSE_BUTTON_LEFT:
+			_touch((event as InputEventMouseButton).position)
+		return
+
+	if event is InputEventScreenTouch:
+		_touch((event as InputEventScreenTouch).position)
+
+
+## On a phone the buttons ARE the controls: there are no lane hitboxes on this screen, and
+## the eight rects the mod ships are exactly the areas to aim at.
+##
+## A tap on a button selects it and confirms it in one go, which is what a tap on a menu
+## item means. A tap that lands on nothing does nothing - the background is not a button.
+func _touch(at: Vector2) -> void:
+	var hit: int = _button_at(at)
+	if hit < 0:
+		return
+	if hit != _selected:
+		_selected = hit
+		_refresh()
+		_play(SOUND_SWITCH)
+	do_select()
+
+
+## Which button's rect contains a point, or -1. The rects are set on the nodes by
+## build_main_menu.gd, from the same JSON and the same mapping that place the art.
+func _button_at(at: Vector2) -> int:
+	if buttons == null:
+		return -1
+	for i: int in BUTTONS.size():
+		var node: Node = buttons.get_node_or_null(NodePath(BUTTONS[i].capitalize()))
+		if node == null or not node.has_meta(&"touch_rect"):
+			continue
+		if (node.get_meta(&"touch_rect") as Rect2).has_point(at):
+			return i
+	return -1

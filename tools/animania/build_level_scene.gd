@@ -53,6 +53,10 @@ const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 
 const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
+## The lane hitboxes. A song scene owns them; nothing else does.
+const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
+## What a device run settled on: low enough not to be a slab, high enough to find.
+const MOBILE_CONTROLS_OPACITY := 0.4
 const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
 const DEATH_SCRIPT := "res://animania_mod/scripts/death_sequence.gd"
 const GAMEOVER_AUDIO := "res://animania_mod/source/audio/gameover"
@@ -185,13 +189,21 @@ func _init() -> void:
 
 	_build_death(health, song)
 
-	# No touch controls here. They are an AUTOLOAD - project.godot loads
-	# addons/rubicon_mobile_controls/mobile_controls.tscn globally - and the addon has no
-	# singleton guard, so a copy in the level meant two of them running _setup_buttons and
-	# both drawing. Their alpha stacked, which is why the hitboxes read as a slab on a
-	# device however low either one was set, and setting the opacity here changed the copy
-	# that was not in charge. The autoload alone is right: it also covers the title screen,
-	# which needs a tap to skip the intro.
+	# The touch controls live HERE, in the song, and nowhere else.
+	#
+	# They used to be an autoload, which put four lane hitboxes over every screen in the
+	# game - the title and the main menu included, where there are no lanes to hit and the
+	# hitboxes only stood between a tap and whatever it was aimed at. A song is the only
+	# place a lane exists, so a song is the only place they belong.
+	#
+	# The addon has no singleton guard, so there must be exactly ONE. That is what bit this
+	# before, when the level instanced a copy while the autoload was still running: both ran
+	# _setup_buttons, both drew, their alpha stacked, and setting the opacity on one changed
+	# the copy that was not in charge. flow_check counts them on every screen it walks.
+	var controls: Node = load(MOBILE_CONTROLS).instantiate()
+	controls.name = "MobileControls"
+	controls.set(&"opacity", MOBILE_CONTROLS_OPACITY)
+	_root.add_child(controls)
 
 	_bake_camera_events(instrumental.get_length())
 

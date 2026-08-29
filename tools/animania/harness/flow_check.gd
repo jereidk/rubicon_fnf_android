@@ -36,6 +36,11 @@ func _init() -> void:
 		quit(1)
 		return
 
+	# The lane hitboxes belong to a SONG and to nothing else. On the title the way in is a
+	# tap anywhere, and four hitboxes over the screen only stand between that tap and the
+	# title. They used to be an autoload, which put them on every screen in the game.
+	_check_controls("el titulo", 0)
+
 	# The intro is skippable, and skipping it is what a player does.
 	_check(not title.get_node("Title").visible, "el titulo no tendria que verse aun")
 	title._finish()
@@ -71,6 +76,16 @@ func _init() -> void:
 	if String(menu.scene_file_path) != MENU:
 		_report()
 		return
+
+	_check_controls("el menu", 0)
+
+	# On a phone the menu's own buttons are the controls: a tap has to land on a button's
+	# own rect, and the background is not one.
+	var freeplay_rect: Rect2 = menu.buttons.get_node("Freeplay").get_meta(&"touch_rect")
+	_check(menu._button_at(freeplay_rect.get_center()) == 2,
+		"tocar el centro de freeplay tendria que dar con freeplay")
+	_check(menu._button_at(Vector2(100.0, 540.0)) == -1,
+		"el fondo del menu no es un boton")
 
 	# The walk skips the three blocked buttons rather than stopping on them.
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
@@ -119,8 +134,7 @@ func _init() -> void:
 	# opacity is set on either one.
 	var controls: Array[Node] = []
 	_collect_controls(root, controls)
-	_check(controls.size() == 1, "hay %d juegos de controles tactiles, tendria que haber 1"
-		% controls.size())
+	_check_controls("la cancion", 1)
 	for control: Node in controls:
 		_check(is_equal_approx(float(control.opacity), 0.4),
 			"los controles tactiles estan a opacity %.2f" % control.opacity)
@@ -128,6 +142,17 @@ func _init() -> void:
 	_check(root.has_node("DebugOverlay"), "falta el overlay de debug")
 
 	_report()
+
+
+## How many sets of lane hitboxes are alive right now. The addon has no singleton guard, so
+## two of them draw on top of each other and their alpha stacks - which is what made them
+## read as a slab on a device however low either one was set.
+func _check_controls(where: String, expected: int) -> void:
+	var found: Array[Node] = []
+	_collect_controls(root, found)
+	_check(found.size() == expected,
+		"en %s hay %d juegos de hitboxes y tendria que haber %d"
+			% [where, found.size(), expected])
 
 
 func _collect_controls(node: Node, into: Array[Node]) -> void:

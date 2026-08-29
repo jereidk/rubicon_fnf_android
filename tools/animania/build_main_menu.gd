@@ -84,6 +84,12 @@ func _init() -> void:
 		symbol.centered = false
 		symbol.scale = Vector2.ONE * _scale
 		symbol.position = _origin + Vector2(float(pos[0]), float(pos[1])) * _scale
+		# The rect a tap has to land in, in SCREEN pixels. It is the button's own rect from
+		# its JSON put through the same mapping the sprite is, so the touch area and the art
+		# cannot drift apart: on a phone the buttons ARE the menu's controls.
+		symbol.set_meta(&"touch_rect", Rect2(
+			_origin + Vector2(float(pos[0]), float(pos[1])) * _scale,
+			Vector2(float(pos[2]), float(pos[3])) * _scale))
 		buttons.add_child(symbol)
 		symbol.owner = _root
 
