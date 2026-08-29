@@ -9,7 +9,7 @@
 extends Node2D
 
 const LEVEL := "res://songs/phone-call/phone_call.tscn"
-const MOMENTS := [93.0, 100.0]
+const MOMENTS := [70.0, 85.0, 93.0]
 const WIND_SPEED := 20.0
 
 var _level: Node
@@ -28,21 +28,6 @@ func _ready() -> void:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
 
-func _rect_of(name: String) -> Rect2:
-	var character: Node2D = _level.find_child(name, true, false)
-	var symbol: Node2D = character.get_child(0)
-	var bounds: Rect2 = Rect2()
-	if symbol is AnimatedSprite2D:
-		var texture: Texture2D = (symbol as AnimatedSprite2D).sprite_frames \
-			.get_frame_texture((symbol as AnimatedSprite2D).animation, 0)
-		bounds = Rect2(symbol.position, texture.get_size() * symbol.scale.abs())
-		if symbol.scale.x < 0.0:
-			bounds.position.x = symbol.position.x - bounds.size.x
-	var transform: Transform2D = character.get_viewport_transform() \
-		* character.get_global_transform()
-	return Rect2(transform * bounds.position, transform.get_scale() * bounds.size)
-
-
 func _process(_delta: float) -> void:
 	_frames += 1
 	if _frames < 4:
@@ -59,22 +44,27 @@ func _process(_delta: float) -> void:
 	if _settle < 3:
 		return
 	_settle = 0
+	# The script's own moves are tweens on REAL time, and winding the clock at 20x leaves
+	# them far behind - tadano got caught mid-slide and read 187px short of where he ends
+	# up. Run them out before measuring anything.
+	for running: Tween in get_tree().get_processed_tweens():
+		running.custom_step(10.0)
+		running.kill()
 
-	# The WINDOW's size, not get_visible_rect(): the viewport transform maps into window
-	# pixels (1365 wide here) while get_visible_rect() reports the project's logical 1920,
-	# and dividing by the wrong one shrank every fraction by 0.711.
-	var screen := Vector2(get_window().size)
 	var camera: Camera2D = get_viewport().get_camera_2d()
-	var tadano: Rect2 = _rect_of("TadanoStand")
-	var komi: Rect2 = _rect_of("KomiStand")
-	var events: Node = _level.get_node("PhoneCallEvents")
-	print("OUT t=%5.1f zoom=%.3f cam=(%.0f, %.0f)  tadano cx=%.3f  komi cx=%.3f" % [
+	# Before the swap the standing pair are hidden and the phone pair are on screen.
+	var standing: bool = player.current_animation_position >= 91.58
+	var half: float = 960.0 / camera.zoom.x
+	print("OUT t=%5.1f zoom=%.3f cam=(%.0f, %.0f)" % [
 		player.current_animation_position, camera.zoom.x,
-		camera.position.x, camera.position.y,
-		tadano.get_center().x / screen.x, komi.get_center().x / screen.x])
-	for name: String in ["TadanoStand", "KomiStand"]:
+		camera.position.x, camera.position.y])
+	for name: String in (["TadanoStand", "KomiStand"] if standing else ["Tadano", "Komi"]):
 		var character: Node2D = _level.find_child(name, true, false)
-		print("OUT     %-12s en mundo x=%.0f y=%.0f" % [
-			name, character.global_position.x, character.global_position.y])
-	print("OUT     puntos de pie: %s" % [events.get("stand_cast").keys()])
+		# Where the character's own anchor lands across the frame: 0 is the left edge and
+		# 1 the right. Computed from the camera rather than from the sprite's bounds, which
+		# depend on how each character happens to be drawn.
+		var fraction: float = (character.global_position.x - camera.position.x + half) \
+			/ (half * 2.0)
+		print("OUT     %-12s mundo x=%-7.0f pantalla %.3f" % [
+			name, character.global_position.x, fraction])
 	_index += 1

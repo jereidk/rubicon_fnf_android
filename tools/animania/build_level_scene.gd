@@ -298,8 +298,18 @@ func _bake_camera_events(length: float) -> void:
 			- Vector2(0.0, (entry["frame"] as Vector2).y * 0.5)
 			+ offsets + stage_offsets)
 
+	# case 168 slides tadano 800px right and leaves him there until standUP. Read off the
+	# events script rather than repeated here, so the slide and the camera cannot disagree
+	# about how far he went or how long it took.
+	var slide: Dictionary = load(EVENTS_SCRIPT).get_script_constant_map()
+	var slide_beat: float = 168.0 * 60.0 / 152.0
+	var moved_offsets: Dictionary = {
+		0: Vector2(float(slide["SLIDE_DISTANCE"]), 0.0),
+	}
+
 	var baker: RefCounted = load("res://tools/animania/camera_events.gd").new(
-		focus_points, base_zoom, stand_points, STAND_UP_BEAT * 60.0 / 152.0)
+		focus_points, base_zoom, stand_points, STAND_UP_BEAT * 60.0 / 152.0,
+		moved_offsets, slide_beat + float(slide["SLIDE_SECONDS"]))
 	var scene: Animation = baker.build(chart["events"], length)
 
 	var library: AnimationLibrary = _clock_player.get_animation_library(&"")

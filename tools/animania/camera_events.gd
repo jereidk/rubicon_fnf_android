@@ -99,12 +99,15 @@ const SCRIPT_BEATS := [
 var _focus_points: Dictionary = {}
 var _stand_focus_points: Dictionary = {}
 var _stand_from: float = INF
+var _moved_offsets: Dictionary = {}
+var _moved_from: float = INF
 var _base_zoom: float = 1.0
 var _bar_scale: float = FUNKIN_TO_RUBICON
 
 
 func _init(focus_points: Dictionary, base_zoom: float,
-		stand_focus_points: Dictionary = {}, stand_from: float = INF) -> void:
+		stand_focus_points: Dictionary = {}, stand_from: float = INF,
+		moved_offsets: Dictionary = {}, moved_from: float = INF) -> void:
 	# Keyed by Funkin's `char` index: 0 boyfriend, 1 dad, 2 girlfriend. Each value is the
 	# point the camera aims at with no event offset - the character's midpoint plus its
 	# own cameraOffsets.
@@ -114,6 +117,18 @@ func _init(focus_points: Dictionary, base_zoom: float,
 	# those now return the standing pair; a baked track has to switch tables by time.
 	_stand_focus_points = stand_focus_points
 	_stand_from = stand_from
+	# A character the SCRIPT moves mid-song, and by how much. Funkin never notices: its
+	# focus is the character's LIVE position plus the event's offset, so a character that
+	# walks takes the camera with him. A baked point is his position at build time and
+	# knows nothing about it.
+	#
+	# case 168 slides tadano 800px right, and the chart's next `char=0` focus - at 83.68s,
+	# seventeen seconds later - carries x=0. Baked, that aimed at the empty street he used
+	# to stand on. The event on the slide's own beat carries x=700 and is unaffected,
+	# because at that instant he has not moved yet: the offset applies from the moment the
+	# tween FINISHES, which is what makes both events land where the mod puts them.
+	_moved_offsets = moved_offsets
+	_moved_from = moved_from
 	_base_zoom = base_zoom
 
 
@@ -212,6 +227,11 @@ func build(events: Array, length: float) -> Animation:
 				# character it names; the largest in this chart is 350, so up to 175px out.
 				var target: Vector2 = points[character] + Vector2(
 					float(value.get("x", 0)), float(value.get("y", 0)))
+				# Where the script has walked him since. Only before the swap: standUP()
+				# destroys this pair outright and the standing points are absolute.
+				if time < _stand_from and time >= _moved_from \
+						and _moved_offsets.has(character):
+					target += _moved_offsets[character] as Vector2
 				var ease_name: String = str(value.get("ease", "CLASSIC"))
 				var duration: float = float(value.get("duration", 4)) * STEP_SECONDS
 

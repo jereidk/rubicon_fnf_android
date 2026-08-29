@@ -42,7 +42,7 @@ const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 ## The number of checks a complete run makes. Raise it when you add checks; it only exists
 ## so that a section which stops running is louder than a section which passes.
-const MIN_CHECKS := 852
+const MIN_CHECKS := 853
 
 
 func _init() -> void:
@@ -602,6 +602,15 @@ func _check_camera_events() -> void:
 	# NOT scaled by FUNKIN_TO_RUBICON here either - this check carried the same 1.5 the
 	# builder did, that time too. World offsets stay verbatim; the 1.5 lives on the zoom.
 	const STAND_UP_TIME := 232.0 * 60.0 / 152.0
+	# case 168's `FlxTween.tween(tad, {x: tad.x + 800}, 1.35)`, taken from the events script
+	# so the slide and the camera cannot disagree about it.
+	var slide_constants: Dictionary = load(
+		"res://animania_mod/scripts/phone_call_events.gd").get_script_constant_map()
+	var SLIDE_DISTANCE: float = float(slide_constants["SLIDE_DISTANCE"])
+	var SLIDE_DONE_TIME: float = 168.0 * 60.0 / 152.0 \
+		+ float(slide_constants["SLIDE_SECONDS"])
+	_check(is_equal_approx(SLIDE_DISTANCE, 800.0),
+		"el deslizamiento del beat 168 son 800px en el script")
 	var stage_json: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(STAGE_JSON))
 	var stage_camera_offsets: Dictionary = {}
@@ -738,6 +747,18 @@ func _check_camera_events() -> void:
 				# did, so it agreed with the bug instead of catching it.
 				var expected: Vector2 = points[character] + Vector2(
 					float(value.get("x", 0)), float(value.get("y", 0)))
+				# case 168 slides tadano 800px right and leaves him there until standUP.
+				# Funkin never notices - its focus is the character's LIVE position plus the
+				# event's offset - but a baked point is where he stood at build time. The
+				# only `char=0` focus between the slide and the swap is at 83.68s with x=0,
+				# and baked without this it aimed at x=-280: the empty street he used to
+				# stand on, with him 800px off the right of the frame. This check had the
+				# same blind spot, so it passed the whole time.
+				#
+				# From the moment the tween FINISHES, not from its beat: the event on the
+				# slide's own beat carries x=700 and fires while he has not moved yet.
+				if character == 0 and time >= SLIDE_DONE_TIME and time < STAND_UP_TIME:
+					expected.x += SLIDE_DISTANCE
 				_check(camera.position_interpolate_target.distance_to(expected) < 1.0,
 					"FocusCamera en %.1fs apunta a %s y esperaba %s" % [
 						time, camera.position_interpolate_target, expected])
