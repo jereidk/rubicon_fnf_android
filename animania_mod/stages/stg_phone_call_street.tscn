@@ -1,225 +1,236 @@
 [gd_scene format=3]
 
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/sky.png" id="1_tuxwo"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far building.png" id="2_5ke84"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far city.png" id="3_gu7xv"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far-wall.png" id="4_3urme"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/bg trees.png" id="5_35rwn"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/house.png" id="6_u7jh3"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/back.png" id="7_5eis2"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/road mirror.png" id="8_kttn0"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/pillar.png" id="9_8lkcf"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/bushes right.png" id="10_ygirh"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/light.png" id="11_modoh"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/houses far.png" id="12_36s5y"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/backwall.png" id="13_g1db6"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/road_mirror_2.png" id="14_fhg8e"]
-[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_leaves.gd" id="15_tmdwq"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/stages/leafs_frames.tres" id="16_a2cge"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/stages/intro_frames.tres" id="17_yts3v"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/sky.png" id="1_5ke84"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far building.png" id="2_gu7xv"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far city.png" id="3_3urme"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/far-wall.png" id="4_35rwn"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/bg trees.png" id="5_u7jh3"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/house.png" id="6_5eis2"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/back.png" id="7_kttn0"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/road mirror.png" id="8_8lkcf"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/pillar.png" id="9_ygirh"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/bushes right.png" id="10_modoh"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/light.png" id="11_36s5y"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/houses far.png" id="12_g1db6"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/backwall.png" id="13_fhg8e"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/phoneCallStreet/standUP/road_mirror_2.png" id="14_tmdwq"]
+[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_leaves.gd" id="15_a2cge"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/stages/leafs_frames.tres" id="16_yts3v"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/stages/intro_frames.tres" id="17_gor7u"]
+[ext_resource type="Shader" path="res://animania_mod/shaders/bloom.gdshader" id="18_3j1tx"]
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_gor7u"]
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ugplj"]
 blend_mode = 1
 
-[node name="PhoneCallStreet" type="Node2D" unique_id=1091887610]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_385d8"]
+shader = ExtResource("18_3j1tx")
+shader_parameter/blur_size = null
+
+[node name="PhoneCallStreet" type="Node2D" unique_id=1273245655]
 metadata/camera_zoom = 0.65
 metadata/camera_speed = 2.0
 metadata/ratings_offset = Vector2(180, 500)
 
-[node name="Sky" type="Parallax2D" parent="." unique_id=1178359015]
+[node name="Sky" type="Parallax2D" parent="." unique_id=800893224]
 z_index = -13
 scroll_scale = Vector2(0.1, 0.1)
 repeat_size = Vector2(4243.2, 0)
 autoscroll = Vector2(20, 0)
 repeat_times = 3
 
-[node name="SkySprite" type="Sprite2D" parent="Sky" unique_id=939526379]
+[node name="SkySprite" type="Sprite2D" parent="Sky" unique_id=52778181]
 position = Vector2(-1885.85, -831.5)
 scale = Vector2(1.2, 1.2)
-texture = ExtResource("1_tuxwo")
+texture = ExtResource("1_5ke84")
 centered = false
 
-[node name="Scroll_0p6_0p8" type="Parallax2D" parent="." unique_id=409638880]
+[node name="Scroll_0p6_0p8" type="Parallax2D" parent="." unique_id=1262667290]
 scroll_scale = Vector2(0.6, 0.8)
 
-[node name="far_building" type="Sprite2D" parent="Scroll_0p6_0p8" unique_id=2117790907]
+[node name="far_building" type="Sprite2D" parent="Scroll_0p6_0p8" unique_id=1692603060]
 z_index = 7
 position = Vector2(1268.55, 348.7)
-texture = ExtResource("2_5ke84")
+texture = ExtResource("2_gu7xv")
 centered = false
 
-[node name="Scroll_0p8_0p9" type="Parallax2D" parent="." unique_id=676835013]
+[node name="Scroll_0p8_0p9" type="Parallax2D" parent="." unique_id=1883263859]
 scroll_scale = Vector2(0.8, 0.9)
 
-[node name="far_city" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=2021391973]
+[node name="far_city" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=1352799456]
 z_index = 8
 position = Vector2(190.3, 111.9)
-texture = ExtResource("3_gu7xv")
+texture = ExtResource("3_3urme")
 centered = false
 
-[node name="far_wall" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=457480574]
+[node name="far_wall" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=612796228]
 z_index = 9
 position = Vector2(1203.45, 724.6)
-texture = ExtResource("4_3urme")
+texture = ExtResource("4_35rwn")
 centered = false
 
-[node name="bg_trees" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=1201096064]
+[node name="bg_trees" type="Sprite2D" parent="Scroll_0p8_0p9" unique_id=1400343366]
 z_index = 20
 position = Vector2(-1467.8, -32.6)
-texture = ExtResource("5_35rwn")
+texture = ExtResource("5_u7jh3")
 centered = false
 
-[node name="Scroll_0p77_0p9" type="Parallax2D" parent="." unique_id=497923040]
+[node name="Scroll_0p77_0p9" type="Parallax2D" parent="." unique_id=1730669458]
 scroll_scale = Vector2(0.77, 0.9)
 
-[node name="house" type="Sprite2D" parent="Scroll_0p77_0p9" unique_id=418210475]
+[node name="house" type="Sprite2D" parent="Scroll_0p77_0p9" unique_id=523296911]
 z_index = 19
 position = Vector2(-1552.5, -97.6)
-texture = ExtResource("6_u7jh3")
+texture = ExtResource("6_5eis2")
 centered = false
 
-[node name="Scroll_0p9_0p95" type="Parallax2D" parent="." unique_id=1300837446]
+[node name="Scroll_0p9_0p95" type="Parallax2D" parent="." unique_id=263067168]
 scroll_scale = Vector2(0.9, 0.95)
 
-[node name="back" type="Sprite2D" parent="Scroll_0p9_0p95" unique_id=1424065340]
+[node name="back" type="Sprite2D" parent="Scroll_0p9_0p95" unique_id=1667607633]
 z_index = 200
 position = Vector2(-2000, 325)
-texture = ExtResource("7_5eis2")
+texture = ExtResource("7_kttn0")
 centered = false
 
-[node name="road" type="Sprite2D" parent="Scroll_0p9_0p95" unique_id=1500524363]
+[node name="road" type="Sprite2D" parent="Scroll_0p9_0p95" unique_id=754274262]
 z_index = 220
 position = Vector2(898.65, 335)
-texture = ExtResource("8_kttn0")
+texture = ExtResource("8_8lkcf")
 centered = false
 
-[node name="OpponentPoint" type="Marker2D" parent="Scroll_0p9_0p95" unique_id=1233888101]
+[node name="OpponentPoint" type="Marker2D" parent="Scroll_0p9_0p95" unique_id=408447483]
 z_index = 210
 position = Vector2(1000, 1315)
 metadata/camera_offsets = Vector2(-300, -150)
 
-[node name="Scroll_1p0_0p75" type="Parallax2D" parent="." unique_id=745164369]
+[node name="Scroll_1p0_0p75" type="Parallax2D" parent="." unique_id=1277943110]
 scroll_scale = Vector2(1, 0.75)
 
-[node name="backPillar" type="Sprite2D" parent="Scroll_1p0_0p75" unique_id=2137697735]
+[node name="backPillar" type="Sprite2D" parent="Scroll_1p0_0p75" unique_id=1821168025]
 z_index = 205
 position = Vector2(50, -125)
-texture = ExtResource("9_8lkcf")
+texture = ExtResource("9_ygirh")
 centered = false
 
-[node name="Scroll_0p7_0p9" type="Parallax2D" parent="." unique_id=97262440]
+[node name="Scroll_0p7_0p9" type="Parallax2D" parent="." unique_id=1778390036]
 scroll_scale = Vector2(0.7, 0.9)
 
-[node name="bushes_right" type="Sprite2D" parent="Scroll_0p7_0p9" unique_id=65654814]
+[node name="bushes_right" type="Sprite2D" parent="Scroll_0p7_0p9" unique_id=308175371]
 z_index = 1000
 position = Vector2(1251.95, 450.75)
-texture = ExtResource("10_ygirh")
+texture = ExtResource("10_modoh")
 centered = false
 
-[node name="Scroll_0p0_1p0" type="Parallax2D" parent="." unique_id=721133498]
+[node name="Scroll_0p0_1p0" type="Parallax2D" parent="." unique_id=1358143490]
 scroll_scale = Vector2(0, 1)
 
-[node name="lightShade" type="Sprite2D" parent="Scroll_0p0_1p0" unique_id=1145316189]
+[node name="lightShade" type="Sprite2D" parent="Scroll_0p0_1p0" unique_id=1522564647]
 modulate = Color(1, 1, 1, 0.1)
 z_index = 1500
 position = Vector2(-1695.65, -622.85)
 scale = Vector2(5647.8, 2)
-texture = ExtResource("11_modoh")
+texture = ExtResource("11_36s5y")
 centered = false
 
-[node name="Scroll_0p8_0p8" type="Parallax2D" parent="." unique_id=1095136392]
+[node name="Scroll_0p8_0p8" type="Parallax2D" parent="." unique_id=312717207]
 scroll_scale = Vector2(0.8, 0.8)
 
-[node name="stand_housesFAR" type="Sprite2D" parent="Scroll_0p8_0p8" unique_id=59783921]
+[node name="stand_housesFAR" type="Sprite2D" parent="Scroll_0p8_0p8" unique_id=1108374927]
 visible = false
 z_index = 480
 position = Vector2(450, -75)
 scale = Vector2(1.25, 1.25)
-texture = ExtResource("12_36s5y")
+texture = ExtResource("12_g1db6")
 centered = false
 
-[node name="Scroll_0p85_0p85" type="Parallax2D" parent="." unique_id=302876667]
+[node name="Scroll_0p85_0p85" type="Parallax2D" parent="." unique_id=2143267425]
 scroll_scale = Vector2(0.85, 0.85)
 
-[node name="stand_houseBACK" type="Sprite2D" parent="Scroll_0p85_0p85" unique_id=767851141]
+[node name="stand_houseBACK" type="Sprite2D" parent="Scroll_0p85_0p85" unique_id=1420260585]
 visible = false
 z_index = 482
 position = Vector2(-750, -75)
 scale = Vector2(0.55, 0.55)
-texture = ExtResource("6_u7jh3")
+texture = ExtResource("6_5eis2")
 centered = false
 
-[node name="Scroll_0p9_0p9" type="Parallax2D" parent="." unique_id=794954823]
+[node name="Scroll_0p9_0p9" type="Parallax2D" parent="." unique_id=1669731509]
 scroll_scale = Vector2(0.9, 0.9)
 
-[node name="stand_houseBushesBACK" type="Sprite2D" parent="Scroll_0p9_0p9" unique_id=2115878162]
+[node name="stand_houseBushesBACK" type="Sprite2D" parent="Scroll_0p9_0p9" unique_id=2142919548]
 visible = false
 z_index = 483
 position = Vector2(-750, -50)
 scale = Vector2(0.55, 0.55)
-texture = ExtResource("5_35rwn")
+texture = ExtResource("5_u7jh3")
 centered = false
 
-[node name="Scroll_0p95_0p95" type="Parallax2D" parent="." unique_id=1766217631]
+[node name="Scroll_0p95_0p95" type="Parallax2D" parent="." unique_id=1228858813]
 scroll_scale = Vector2(0.95, 0.95)
 
-[node name="stand_back" type="Sprite2D" parent="Scroll_0p95_0p95" unique_id=1292134737]
+[node name="stand_back" type="Sprite2D" parent="Scroll_0p95_0p95" unique_id=273717538]
 visible = false
 z_index = 490
 position = Vector2(-800, -265)
 scale = Vector2(0.81, 0.81)
-texture = ExtResource("13_g1db6")
+texture = ExtResource("13_fhg8e")
 centered = false
 
-[node name="Scroll_0p945_0p945" type="Parallax2D" parent="." unique_id=1297645410]
+[node name="Scroll_0p945_0p945" type="Parallax2D" parent="." unique_id=1787281967]
 scroll_scale = Vector2(0.945, 0.945)
 
-[node name="stand_lamp" type="Sprite2D" parent="Scroll_0p945_0p945" unique_id=975573839]
+[node name="stand_lamp" type="Sprite2D" parent="Scroll_0p945_0p945" unique_id=66934549]
 visible = false
 z_index = 791
 position = Vector2(50, 95)
 scale = Vector2(0.81, 0.81)
-texture = ExtResource("14_fhg8e")
+texture = ExtResource("14_tmdwq")
 centered = false
 
-[node name="Scroll_1p05_1p05" type="Parallax2D" parent="." unique_id=99867050]
+[node name="Scroll_1p05_1p05" type="Parallax2D" parent="." unique_id=2110678825]
 scroll_scale = Vector2(1.05, 1.05)
 
-[node name="stand_bushesR" type="Sprite2D" parent="Scroll_1p05_1p05" unique_id=1865364657]
+[node name="stand_bushesR" type="Sprite2D" parent="Scroll_1p05_1p05" unique_id=950901637]
 visible = false
 z_index = 795
 position = Vector2(600, 175)
 scale = Vector2(1.1, 1.1)
-texture = ExtResource("10_ygirh")
+texture = ExtResource("10_modoh")
 centered = false
 
-[node name="PlayerPoint" type="Marker2D" parent="." unique_id=1230729877]
+[node name="PlayerPoint" type="Marker2D" parent="." unique_id=568585263]
 z_index = 210
 position = Vector2(-200, 1235)
 metadata/camera_offsets = Vector2(-80, -150)
 
-[node name="GirlfriendPoint" type="Marker2D" parent="." unique_id=2043306945]
+[node name="GirlfriendPoint" type="Marker2D" parent="." unique_id=1395038861]
 z_index = -1
 position = Vector2(335, 1235)
 metadata/camera_offsets = Vector2(425, -150)
 
-[node name="Leaves" type="Node2D" parent="." unique_id=2112238214]
+[node name="Leaves" type="Node2D" parent="." unique_id=1158891443]
 z_index = 900
-script = ExtResource("15_tmdwq")
-leaf_frames = ExtResource("16_a2cge")
+script = ExtResource("15_a2cge")
+leaf_frames = ExtResource("16_yts3v")
 
-[node name="ScreenSpace" type="CanvasLayer" parent="." unique_id=1923786217]
+[node name="ScreenSpace" type="CanvasLayer" parent="." unique_id=251836632]
 
-[node name="OverlayAll" type="Sprite2D" parent="ScreenSpace" unique_id=1388072591]
+[node name="OverlayAll" type="Sprite2D" parent="ScreenSpace" unique_id=1055494757]
 modulate = Color(1, 1, 1, 0.01)
-material = SubResource("CanvasItemMaterial_gor7u")
+material = SubResource("CanvasItemMaterial_ugplj")
 scale = Vector2(1280, 1)
-texture = ExtResource("11_modoh")
+texture = ExtResource("11_36s5y")
 centered = false
 
-[node name="IntroText" type="AnimatedSprite2D" parent="ScreenSpace" unique_id=264427503]
+[node name="IntroText" type="AnimatedSprite2D" parent="ScreenSpace" unique_id=1485754197]
 visible = false
-sprite_frames = ExtResource("17_yts3v")
+sprite_frames = ExtResource("17_gor7u")
 animation = &"intro text"
 autoplay = "intro text"
 centered = false
+
+[node name="Bloom" type="ColorRect" parent="ScreenSpace" unique_id=1047590989]
+material = SubResource("ShaderMaterial_385d8")
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2

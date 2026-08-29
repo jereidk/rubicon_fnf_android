@@ -239,6 +239,34 @@ func _add_screen_space(root: Node2D, props: Array) -> void:
 				intro.visible = false
 				layer.add_child(intro)
 
+	_add_bloom(layer)
+
+
+## phoneCallStreet.hx line 58: a ShaderFilter on FlxG.camera, gated behind
+## Preferences.shaders. A camera filter is a full-screen pass over everything the GAME
+## camera drew, so here it is a full-screen rect at the END of ScreenSpace: above the stage
+## and above overlay-all, and below the Overlays, CinematicBars and UILayer canvases, which
+## is why a capture of the mod has a washed-out wall and a still-black letterbox.
+##
+## Measured before it existed: the mod's wall reads +39 on green and +40 on blue against
+## this port's, with red pinned at 255 in both, and the letterbox reads 0 in both.
+##
+## It is sixteen texture samples a pixel over the whole screen. Nothing here has a quality
+## ladder yet - the mod puts this behind Preferences.shaders - so it ships as an exported
+## flag on the stage that a settings menu can turn off when there is one.
+func _add_bloom(layer: CanvasLayer) -> void:
+	var material := ShaderMaterial.new()
+	material.shader = load("res://animania_mod/shaders/bloom.gdshader")
+
+	var bloom := ColorRect.new()
+	bloom.name = "Bloom"
+	bloom.material = material
+	bloom.color = Color.WHITE
+	bloom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bloom.offset_right = 1920.0
+	bloom.offset_bottom = 1080.0
+	layer.add_child(bloom)
+
 
 func _own(node: Node, owner: Node) -> void:
 	for child: Node in node.get_children():
