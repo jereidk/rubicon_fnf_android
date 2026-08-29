@@ -671,13 +671,15 @@ func _build_subtitles() -> void:
 	label.scroll_active = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.anchor_left = 0.0
-	label.anchor_top = 1.0
+	label.anchor_top = 0.0
 	label.anchor_right = 1.0
-	label.anchor_bottom = 1.0
-	# Two lines of room, sitting above both the letterbox bar at its widest and the
-	# receptors - this song is downscroll, so the bottom of the screen is busy.
-	label.offset_top = -300.0
-	label.offset_bottom = -180.0
+	label.anchor_bottom = 0.0
+	# TOP, not bottom, and this is measured rather than chosen: a capture of the mod running
+	# shows the line just under the upper letterbox bar. The first version of this port put
+	# it at the bottom, reasoning that a subtitle usually goes there - but the bottom of
+	# this screen is where the receptors are, which is presumably why the mod does not.
+	label.offset_top = 120.0
+	label.offset_bottom = 240.0
 	label.add_theme_font_size_override("normal_font_size", 39)
 	label.add_theme_constant_override("outline_size", 12)
 	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
