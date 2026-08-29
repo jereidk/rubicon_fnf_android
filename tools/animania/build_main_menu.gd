@@ -75,6 +75,19 @@ func _init() -> void:
 
 	var atlas: Resource = load("%s/menu_buttons_atlas.tres" % DIR)
 	var library: AnimationLibrary = load("%s/menu_buttons_library.tres" % DIR)
+	# `basic` and `white` are idle cycles - six and four frames - and have to loop, or a
+	# button plays its handful of frames once and then sits there dead. `confirm` is the
+	# one that must not: doSelect waits it out and then leaves.
+	var looped: int = 0
+	for animation_name: StringName in library.get_animation_list():
+		var wants_loop: bool = String(animation_name).ends_with("_basic") \
+			or String(animation_name).ends_with("_white")
+		library.get_animation(animation_name).loop_mode = Animation.LOOP_LINEAR \
+			if wants_loop else Animation.LOOP_NONE
+		looped += 1 if wants_loop else 0
+	ResourceSaver.save(library, "%s/menu_buttons_library.tres" % DIR)
+	print("OUT %d de %d animaciones de boton en bucle" % [
+		looped, library.get_animation_list().size()])
 	var buttons := Node2D.new()
 	buttons.name = "Buttons"
 	_add(buttons)
@@ -187,6 +200,8 @@ func _init() -> void:
 
 	_root.set(&"buttons", buttons)
 	_root.set(&"sfx", sfx)
+	_root.set(&"music", music)
+	_root.set(&"camera", camera)
 
 	var packed := PackedScene.new()
 	packed.pack(_root)

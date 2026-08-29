@@ -39,15 +39,59 @@ const SOUND_LOCKED := "res://animania_mod/source/sounds/animania/menu/locked_sfx
 ## The confirm animation is 18 frames at 24fps. The transition waits it out.
 const CONFIRM_SECONDS := 18.0 / 24.0
 
+## The menu breathes on the beat. animaniaLOOP's own metadata says 102 BPM, 4/4 - the same
+## tempo the title's intro runs at, which is the track this one loops into.
+const BPM := 102.0
+
+## beatHit does `camera.zoom += 0.005` on the game camera, and updateCameraZoom(elapsed)
+## eases it back:
+##
+##     zoom = target + (zoom - target) * exp(-6.25 * elapsed)
+##
+## read straight off the arithmetic - a mulsd by -3.125, an addsd of the result to itself,
+## an exp, then (zoom - target) * that + target. A half-life of 0.111s, so it is a punch and
+## not a sway.
+##
+## The mod's target is 0.885. This port rests at 1.0 instead, because 0.885 is the zoom the
+## MOD's own framing is built around and this scene's framing was settled by looking at it.
+## What is ported is the MOTION - a bump of half a percent decaying at the same rate - and
+## on a base of 1.0 against their 0.885 that is the same half percent either way.
+const BEAT_ZOOM := 0.005
+const ZOOM_DECAY := 6.25
+const ZOOM_REST := 1.0
+
 @export var buttons: Node2D
 @export var sfx: AudioStreamPlayer
+## The looping menu track, which is also the clock the beat comes off.
+@export var music: AudioStreamPlayer
+@export var camera: Camera2D
 
 var _selected: int = 0
 var _confirmed: bool = false
+var _beat: int = -1
 
 
 func _ready() -> void:
 	_refresh()
+	if camera != null:
+		camera.zoom = Vector2.ONE * ZOOM_REST
+
+
+## beatHit, off the music's own playback rather than off a counter: a counter drifts from
+## the track it is supposed to be following, and the track is the only clock this screen has.
+func _process(delta: float) -> void:
+	if camera != null:
+		camera.zoom = Vector2.ONE * (ZOOM_REST
+			+ (camera.zoom.x - ZOOM_REST) * exp(-ZOOM_DECAY * delta))
+
+	if music == null or not music.playing:
+		return
+	var beat: int = floori(music.get_playback_position() * BPM / 60.0)
+	if beat == _beat:
+		return
+	_beat = beat
+	if camera != null:
+		camera.zoom += Vector2.ONE * BEAT_ZOOM
 
 
 ## The walk skips blocked buttons rather than stopping on them, and wraps.
