@@ -80,6 +80,9 @@ const SCRIPT_BEATS := [
 	[23, "shake", [0.0005, 0.8]],
 	# The HUD arrives, twenty milliseconds before the first player note.
 	[31, "hud_in", []],
+	# The opening's own letterbox is killed and the player's keys come back - `disableKeys
+	# = false; // huh`, the script's own comment on it.
+	[33, "keys_on", []],
 	# The opponent's lanes fly in from off-screen; tadano slides into the offset the
 	# chart's FocusCamera on the same beat already carries.
 	[166, "opponent_lanes_in", []],

@@ -111,10 +111,23 @@ const PULSE_TO_PLAYER := 0.95
 ## places - the arithmetic seemed to force it, since nothing ever moves them back and their
 ## home therefore had to be `width / 2 + OFFSET`.
 ##
-## On a device that read as plainly wrong: you control tadano and your lanes sit on komi's
-## side. So it is reverted. Whatever compensates that line in the mod - `changeMode`'s
-## second argument is the obvious suspect, and its meaning is still a guess - the observed
-## result is what counts, and the sides do not swap.
+## That reading was reverted once, when a device run showed tadano's lanes on komi's side -
+## but the CHARTS were crossed at the time, so the notes were the thing on the wrong side,
+## not the lanes. With the charts uncrossed the swap is what the mod does and `opening()`
+## does it. changeMode's second argument, named as the suspect for compensating that line
+## while it was still a guess, turned out to be a plain scale and compensates nothing: see
+## LANE_SCALE_PLAYER.
+## onCreatePost's `playerStrumline.changeMode(false, 1.05)` and
+## `opponentStrumline.changeMode(false, 0.95)`.
+##
+## The second argument is a SCALE - it was a guess in this port for several rounds and it is
+## not any more: Strumline::changeMode(Null<Bool>, Null<Float>, Dynamic) hands the bool to
+## set_miniMode() and the float to the receptor group, then calls refreshReceptorLayout().
+## So the player's field is five percent bigger than stock and the opponent's five percent
+## smaller, all song, and the receptors respace with it.
+const LANE_SCALE_PLAYER := 1.05
+const LANE_SCALE_OPPONENT := 0.95
+
 const LANES_SPIN := 360.0
 const LANES_IN_DELAY := 2.0
 const LANES_IN_SECONDS := 1.35
@@ -153,6 +166,10 @@ const LANES_HALF_ALPHA := 0.5
 @export var player_lanes: Control
 @export var opponent_lanes: Control
 ## The two camera markers, for deciding which character the camera is currently on.
+## onCreatePost's barTop and barBottom: a hundred-pixel letterbox that is up from the very
+## first frame and is killed outright at beat 33. It is NOT the chart's CinematicBars - the
+## chart animates those up from nothing over the first 0.69s, and these are already there.
+@export var script_bars: CanvasItem
 @export var player_point: Node2D
 @export var opponent_point: Node2D
 
@@ -193,9 +210,6 @@ func _ready() -> void:
 					_on_lane_hit.bind(lane, bool(entry[1])))
 
 
-## AddCameraZoom. `hud_zoom` is applied to the UI canvas about the middle of the screen -
-## a CanvasLayer scales from its top-left corner, so scaling alone would slide the whole
-## HUD up and to the left instead of pulsing it in place.
 ## An INSTANT FocusCamera. Funkin's is `camFollow.setPosition(...)` with no tween, and the
 ## camera is already sitting on the point when the next frame draws, so both the aim and
 ## the position move.
@@ -209,6 +223,9 @@ func snap_camera(target: Vector2) -> void:
 	camera.position_interpolate_target = target
 
 
+## AddCameraZoom. `hud_zoom` is applied to the UI canvas about the middle of the screen -
+## a CanvasLayer scales from its top-left corner, so scaling alone would slide the whole HUD
+## up and to the left instead of pulsing it in place.
 func punch(game_zoom: float, hud_zoom: float) -> void:
 	if camera != null:
 		camera.zoom += Vector2.ONE * game_zoom
@@ -258,7 +275,7 @@ func _camera_is_on_player() -> bool:
 		<= target.distance_squared_to(opponent_point.global_position)
 
 
-## SetCameraBop. `rate` is in beats.## SetCameraBop. `rate` is in beats.
+## SetCameraBop. `rate` is in beats.
 func set_bop(rate: int, intensity: float) -> void:
 	if bumper == null:
 		return
@@ -519,11 +536,18 @@ func opening() -> void:
 	if player_lanes != null and _lane_homes.has(&"opponent"):
 		player_lanes.position.x = _lane_homes[&"opponent"].x
 		player_lanes.modulate.a = 0.0
+		player_lanes.scale = Vector2.ONE * LANE_SCALE_PLAYER
 
 	if opponent_lanes != null and _lane_homes.has(&"opponent"):
 		opponent_lanes.position.x = _lane_homes[&"opponent"].x + SCREEN_WIDTH
 		opponent_lanes.modulate.a = 0.0
 		opponent_lanes.rotation_degrees = LANES_SPIN
+		opponent_lanes.scale = Vector2.ONE * LANE_SCALE_OPPONENT
+
+	# onCreatePost's `disableKeys = true`. Beat 33 turns it back on, once the letterbox has
+	# gone and the opening is over. tadano's first note is at 18.95s, well past it, so this
+	# costs no gameplay - it stops the intro answering taps.
+	set_keys_enabled(false)
 
 
 ## Which of the once-per-song beats have already run.
@@ -671,14 +695,23 @@ func _on_beat() -> void:
 		- RubiconTimeChange.get_millisecond_at_beat(changes, beat)) / 1000.0
 	if seconds <= 0.0:
 		return
-	for entry: Array in [[opponent_lanes, PULSE_TO_OPPONENT], [player_lanes, PULSE_TO_PLAYER]]:
+	for entry: Array in [
+		[opponent_lanes, PULSE_TO_OPPONENT, LANE_SCALE_OPPONENT],
+		[player_lanes, PULSE_TO_PLAYER, LANE_SCALE_PLAYER],
+	]:
 		var lanes: Control = entry[0]
 		if lanes == null:
 			continue
+		# Multiplied by the strumline's own scale rather than written over it: in the mod
+		# this is `Modchart.set("scale", ...)`, a MODIFIER stacked on whatever changeMode
+		# left the field at, so the opponent breathes around 0.95 and the player around
+		# 1.05 instead of both snapping to the same size every other beat.
+		var base: float = float(entry[2])
 		# A Control scales about its pivot, which here is the anchor the receptors sit on -
 		# so the receptors hold still and the field breathes around them.
-		lanes.scale = Vector2.ONE * PULSE_FROM
-		create_tween().tween_property(lanes, "scale", Vector2.ONE * float(entry[1]),
+		lanes.scale = Vector2.ONE * base * PULSE_FROM
+		create_tween().tween_property(lanes, "scale",
+			Vector2.ONE * base * float(entry[1]),
 			seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
@@ -698,6 +731,30 @@ func opponent_lanes_in() -> void:
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
 	tween.tween_property(opponent_lanes, "modulate:a", LANES_HALF_ALPHA,
 		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
+
+
+## onCreatePost's `disableKeys = true`, and case 33's `disableKeys = false; // huh`.
+##
+## The player is deaf for the whole opening: the title card, tadano walking in, the three
+## camera rumbles and the HUD's arrival all happen before the lanes will answer a tap.
+## Rubicon spells it `disable_inputs` on the note controller, which the lane Control here
+## IS - the containers this script moves around are the controllers themselves.
+func set_keys_enabled(enabled: bool) -> void:
+	if player_lanes != null:
+		player_lanes.disable_inputs = not enabled
+
+
+## case 33: the opening's letterbox is killed outright and the player's keys come back.
+##
+## Deliberately NOT behind _first_time, unlike the rest of the once-per-song beats: both
+## halves are absolute assignments, so re-firing costs nothing - and guarding it would be
+## actively wrong. opening() turns the keys back off and is itself unguarded on purpose, so
+## a re-seek to the top would leave a guarded keys_on unable to undo it and the lanes deaf
+## for the rest of the song.
+func keys_on() -> void:
+	set_keys_enabled(true)
+	if script_bars != null:
+		script_bars.visible = false
 
 
 ## onBeatHit case 348: camGame.fade(FlxColor.BLACK, 3, false).

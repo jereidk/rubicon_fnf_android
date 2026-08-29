@@ -106,6 +106,9 @@ const STAND_CAST := {
 		"corner": Vector2(300, 325), "frame": Vector2(269, 670), "slot": "dad",
 	},
 }
+## onCreatePost's `barHeight`, in Funkin pixels. The sprites are 20 taller and hang 20 off
+## each edge, so this is what actually shows.
+const SCRIPT_BAR_HEIGHT := 100.0
 ## standUP(): boyfriend.zIndex = oldZIndex + 500, and the phone pair sit at 210.
 const STAND_Z := 710
 ## phone-call.script calls standUP() on beat 232.
@@ -168,9 +171,11 @@ func _init() -> void:
 	var ui: Dictionary = _build_ui()
 	_place_cast(stage, ui)
 	_place_stand_cast(stage)
-	_build_camera()
-
+	# Before the camera: _build_camera wires the events node, and that now points at the
+	# opening's letterbox.
 	_build_bars()
+
+	_build_camera()
 
 	var health: Node = _add(_root, Node.new(), "RubiconHealthModule", HEALTH_SCRIPT)
 	health.note_controller = ui["Player"]
@@ -332,6 +337,11 @@ func _build_ui() -> Dictionary:
 		controller.note_overrides = load(NOTE_OVERRIDES)
 		if side == "Player":
 			controller.inputs = load(INPUT_MAP)
+			# onCreatePost's `disableKeys = true`. Set on the SCENE and not only in the
+			# events script's opening(), because onCreatePost runs before the song exists:
+			# a level that has been instantiated but not entered the tree has not run
+			# _ready, and it should still be deaf.
+			controller.disable_inputs = true
 		else:
 			controller.autoplay = true
 		ui.add_child(controller)
@@ -408,6 +418,8 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		icon.animation = &"idle"
 		icon.health_module = health
 		icon.note_controller = entry["controller"]
+		# onCreatePost sets bopEvery on BOTH icons, so both take the clock.
+		icon.clock = _root.get_node("RubiconLevelClock")
 		icon.inverted = entry["inverted"]
 		icon.tilt_degrees = entry["tilt"]
 		icon.has_alt_poses = entry["alt"]
@@ -583,6 +595,40 @@ func _build_bars() -> void:
 		# An animated size is not a layout: anchors would fight the track every frame.
 		bar.set(&"layout_mode", 0)
 
+	_build_script_bars(layer)
+
+
+## onCreatePost's barTop and barBottom, which are NOT the chart's CinematicBars.
+##
+## The script adds its own pair at zIndex 4999 in onCreatePost and kills them at beat 33.
+## They are sprites `barHeight + 20` tall placed 20px past each edge, so what shows is
+## exactly barHeight - a hundred Funkin pixels top and bottom - and it is there from the
+## FIRST FRAME. The chart's own bars animate up from nothing over the first 0.69 seconds,
+## so without these the song opens on an unletterboxed frame that the mod never shows.
+##
+## They ride in the chart's own CanvasLayer so there is one decision about where the
+## letterbox sits relative to the HUD, not two.
+func _build_script_bars(layer: CanvasLayer) -> void:
+	var holder := Control.new()
+	holder.name = "ScriptBars"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(holder)
+	holder.set(&"layout_mode", 0)
+
+	var height: float = SCRIPT_BAR_HEIGHT * FUNKIN_TO_RUBICON
+	for bar_name: String in ["Top", "Bottom"]:
+		var bar := ColorRect.new()
+		bar.name = bar_name
+		bar.color = Color.BLACK
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(bar)
+		# layout_mode first, then size, then position: setting position before either lets
+		# the later two re-derive the offsets and lose it. The bottom bar came out pinned to
+		# the top exactly that way, and only the guard's rect check saw it.
+		bar.set(&"layout_mode", 0)
+		bar.size = Vector2(1920.0, height)
+		bar.position = Vector2.ZERO if bar_name == "Top" else Vector2(0.0, 1080.0 - height)
+
 
 func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 	for character_name: String in CAST:
@@ -705,6 +751,7 @@ func _build_camera() -> void:
 	events.hud_root = _root.get_node("UILayer/UI")
 	events.player_lanes = _root.get_node("UILayer/UI/Player")
 	events.opponent_lanes = _root.get_node("UILayer/UI/Opponent")
+	events.script_bars = _root.get_node("CinematicBars/ScriptBars")
 	events.player_point = _root.get_node("PlayerCameraPoint")
 	events.opponent_point = _root.get_node("OpponentCameraPoint")
 

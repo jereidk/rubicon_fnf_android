@@ -74,6 +74,19 @@ const PREDEATH_TILT_AT := 0.125
 ## neutral and rise by 21 pixels toward both extremes.
 const BOB_AMPLITUDE := 15.0 * 1920.0 / 1280.0
 
+## onCreatePost's `for (c in [iconP1, iconP2]) c.bopEvery = 4 * 4;`, and HealthIcon's own
+## BOP_SCALE.
+##
+## bopEvery is counted in STEPS, not beats - the method it feeds is onStepHit(Int) - so
+## `4 * 4` is sixteen steps, one bar at 4/4. A slow pulse once a measure rather than the
+## every-beat one stock Funkin does. BOP_SCALE is 0.2, read out of HealthIcon's __boot
+## rather than assumed: the icon jumps to 1.2x and eases back to rest.
+const BOP_EVERY_STEPS := 16
+const BOP_SCALE := 0.2
+## How fast the bop decays. Funkin lerps it out over roughly a beat; this is the same
+## per-second factor the HUD punch in phone_call_events.gd uses, for one decay in the port.
+const BOP_DECAY := 3.0
+
 ## The ladder, in order. Every adjacent pair has a transition animation in the atlas and no
 ## non-adjacent pair does, so a jump of more than one rung walks it a step at a time.
 const LADDER := [&"predeath", &"losing", &"idle", &"winning"]
@@ -81,6 +94,8 @@ const LADDER := [&"predeath", &"losing", &"idle", &"winning"]
 ## mania_directions, in Rubicon's lane order.
 const LANES := [&"left", &"down", &"up", &"right"]
 
+## The level clock, for the icon's own bop. Left null on an icon that does not bop.
+@export var clock: Node
 @export var health_module: Node
 ## The side whose hits this icon reacts to. Leave null for an icon that only tracks health.
 @export var note_controller: Node
@@ -93,11 +108,19 @@ var _state: StringName = &"idle"
 var _sing_timer: float = 0.0
 var _transitioning: bool = false
 var _rest_position: Vector2
+var _rest_scale: Vector2 = Vector2.ONE
 var _initialised: bool = false
 
 
 func _ready() -> void:
 	_rest_position = position
+	# Multiplied into, never written over: one of the two icons carries a negative scale.x
+	# because that is what puts it on its own side of the bar's centre, and the fit to
+	# ICON_HEIGHT is in here too.
+	_rest_scale = scale
+
+	if clock != null and clock.has_signal(&"step_change"):
+		clock.step_change.connect(_on_step)
 
 	if health_module != null and health_module.has_signal(&"health_changed"):
 		health_module.health_changed.connect(_on_health_changed)
@@ -119,6 +142,9 @@ func _process(delta: float) -> void:
 
 	if tilts:
 		_apply_tilt_and_bob()
+
+	if not scale.is_equal_approx(_rest_scale):
+		scale = scale.lerp(_rest_scale, minf(1.0, BOP_DECAY * delta))
 
 	if _sing_timer <= 0.0:
 		return
@@ -144,6 +170,13 @@ func _apply_tilt_and_bob() -> void:
 		rotation_degrees = tilt_degrees * (PREDEATH_TILT_AT - ratio) * 2.0
 	else:
 		rotation_degrees = 0.0
+
+
+## onStepHit: every bopEvery steps the icon jumps to 1 + BOP_SCALE and eases back.
+func _on_step() -> void:
+	if int(clock.time_step) % BOP_EVERY_STEPS != 0:
+		return
+	scale = _rest_scale * (1.0 + BOP_SCALE)
 
 
 func _on_health_changed() -> void:

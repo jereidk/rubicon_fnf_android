@@ -42,7 +42,7 @@ const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 ## The number of checks a complete run makes. Raise it when you add checks; it only exists
 ## so that a section which stops running is louder than a section which passes.
-const MIN_CHECKS := 826
+const MIN_CHECKS := 843
 
 
 func _init() -> void:
@@ -486,8 +486,44 @@ func _check_level() -> void:
 		"el beat 332 mueve la barra hacia arriba y las dos strumlines hacia abajo")
 
 	_check_stand_up_hands_over(level, events_node)
+	_check_opening_lockout(level, events_node)
 
 	_drop(level)
+
+
+## onCreatePost's `disableKeys = true` and its own barTop/barBottom, both undone at beat 33.
+##
+## The letterbox is a SECOND pair, not the chart's CinematicBars: the chart animates those
+## up from nothing over the first 0.69s and the script's are already there on frame one, a
+## hundred Funkin pixels top and bottom. Without them the song opens on a frame the mod
+## never shows.
+func _check_opening_lockout(level: Node, events_node: Node) -> void:
+	var player_lanes: Node = level.get_node("UILayer/UI/Player")
+	_check(player_lanes.disable_inputs,
+		"las teclas tendrian que estar muertas hasta el beat 33")
+
+	var bars: Node = events_node.script_bars
+	_check(bars != null, "falta el letterbox propio del script")
+	if bars == null:
+		return
+	_check(bars.visible, "el letterbox del script tendria que estar puesto desde el frame 1")
+	var height: float = 100.0 * FUNKIN_TO_RUBICON
+	for bar_name: String in ["Top", "Bottom"]:
+		var bar: ColorRect = bars.get_node(bar_name)
+		_check(is_equal_approx(bar.size.y, height),
+			"la barra %s del script mide %.1f y tendria que medir %.1f"
+				% [bar_name, bar.size.y, height])
+		_check(is_equal_approx(bar.size.x, 1920.0),
+			"la barra %s del script no cubre el ancho" % bar_name)
+	_check(is_equal_approx((bars.get_node("Top") as ColorRect).position.y, 0.0),
+		"la barra de arriba no esta pegada al borde")
+	_check(is_equal_approx((bars.get_node("Bottom") as ColorRect).position.y, 1080.0 - height),
+		"la barra de abajo no esta pegada al borde")
+
+	events_node.keys_on()
+	_check(not player_lanes.disable_inputs,
+		"el beat 33 tendria que devolver las teclas")
+	_check(not bars.visible, "el beat 33 mata el letterbox del script")
 
 
 ## standUP() has to hand `level_note_controller` to the standing pair, because that is what
@@ -729,6 +765,7 @@ func _check_camera_events() -> void:
 	await _check_script_beats()
 	await _check_opening()
 	await _check_pulse()
+	await _check_icon_bop()
 	await _check_subtitles()
 	await _check_death()
 
@@ -904,11 +941,72 @@ func _check_subtitles() -> void:
 
 
 ## onBeatHit's tail: every even beat after 232 both strumlines snap to 1.05 and ease back,
-## the opponent's onto 1.0 and the player's onto 0.95.
+## the opponent's onto 1.0 and the player's onto 0.95 - MULTIPLIED by the base scale each
+## strumline already carries from onCreatePost's changeMode, 1.05 for the player and 0.95
+## for the opponent.
+##
+## Those bases are the reason the numbers here are products rather than the script's bare
+## constants. `Modchart.set("scale", ...)` is a modifier stacked on the strumline, not an
+## assignment to it, and changeMode's second argument is a scale: Strumline::changeMode
+## (Null<Bool>, Null<Float>, Dynamic) hands the bool to set_miniMode and the float to the
+## receptor group before calling refreshReceptorLayout. This port used to write the pulse
+## absolutely over a base of 1.0, which made both fields the same size on the beat.
 ##
 ## Sampled over a couple of real seconds rather than caught on one frame: the snap lasts a
 ## single frame and the ease lasts a beat, so what is checked is the range the scale covers
-## and the fact that before beat 232 it covers nothing at all.
+## and the fact that before beat 232 it does not move off its base at all.
+## onCreatePost's `for (c in [iconP1, iconP2]) c.bopEvery = 4 * 4;`.
+##
+## bopEvery counts STEPS - the method it feeds is HealthIcon.onStepHit(Int) - so sixteen of
+## them is one bar at 4/4, a pulse once a measure rather than the every-beat one stock
+## Funkin does. BOP_SCALE is 0.2, read out of HealthIcon's __boot.
+##
+## Watched over real seconds rather than asserted on a still: a frozen icon and a bopping
+## one are the same picture on any single frame, which is how the health bar shipped stuck
+## at 50% for a whole song.
+func _check_icon_bop() -> void:
+	var constants: Dictionary = load(
+		"res://animania_mod/scripts/animated_health_icon.gd").get_script_constant_map()
+	_check(int(constants["BOP_EVERY_STEPS"]) == 16,
+		"bopEvery es 4 * 4 PASOS, un compas")
+	_check(is_equal_approx(float(constants["BOP_SCALE"]), 0.2),
+		"BOP_SCALE es 0.2 en el __boot de HealthIcon")
+
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	_autoplay(level)
+	await process_frame
+
+	var bar: Node = level.get_node("UILayer/UI/HealthBar")
+	for icon_name: String in ["IconL", "IconR"]:
+		var icon: Node2D = bar.find_child(icon_name, true, false)
+		_check(icon != null and icon.get(&"clock") != null,
+			"%s no tiene reloj: no puede latir" % icon_name)
+
+	# A bar at 152bpm is 1.58s, so two and a half seconds always contain one bop.
+	var seen: Dictionary[String, float] = {}
+	for icon_name: String in ["IconL", "IconR"]:
+		seen[icon_name] = 0.0
+	var elapsed: float = 0.0
+	while elapsed < 2.5:
+		for icon_name: String in ["IconL", "IconR"]:
+			var icon: Node2D = bar.find_child(icon_name, true, false)
+			seen[icon_name] = maxf(seen[icon_name], absf(icon.scale.y))
+		elapsed += root.get_process_delta_time()
+		await process_frame
+
+	for icon_name: String in ["IconL", "IconR"]:
+		var icon: Node2D = bar.find_child(icon_name, true, false)
+		var rest: float = ICON_HEIGHT / float(
+			(icon.sprite_frames as SpriteFrames).get_frame_texture(&"idle", 0).get_height())
+		_check(seen[icon_name] > rest * 1.1,
+			"%s no late: su escala nunca pasa de %.3f y el bop la lleva a %.3f"
+				% [icon_name, seen[icon_name], rest * (1.0 + 0.2)])
+
+	_drop(level)
+	await process_frame
+
+
 func _check_pulse() -> void:
 	var level: Node = load(LEVEL).instantiate()
 	root.add_child(level)
@@ -921,13 +1019,16 @@ func _check_pulse() -> void:
 		"oponente": level.get_node("UILayer/UI/Opponent"),
 	}
 
-	# Beat 232 is 91.6s. Well before it, nothing moves.
+	var bases: Dictionary[String, float] = {"jugador": 1.05, "oponente": 0.95}
+
+	# Beat 232 is 91.6s. Well before it, nothing moves off the base.
 	await _wind_to(clock, 78.0)
 	for side: String in lanes:
+		var base: float = bases[side]
 		var quiet: Vector2 = await _scale_range(lanes[side], 1.2)
-		_check(absf(quiet.x - 1.0) < 0.001 and absf(quiet.y - 1.0) < 0.001,
-			"las notas del %s no tendrian que latir antes del beat 232 (%.3f..%.3f)"
-				% [side, quiet.x, quiet.y])
+		_check(absf(quiet.x - base) < 0.001 and absf(quiet.y - base) < 0.001,
+			"las notas del %s no tendrian que latir antes del beat 232, y su base es %.2f (%.3f..%.3f)"
+				% [side, base, quiet.x, quiet.y])
 
 	# Two even beats fit in 1.6s at 152bpm, so this catches the snap and both landings.
 	await _wind_to(clock, 93.0)
@@ -936,15 +1037,18 @@ func _check_pulse() -> void:
 		beaten[side] = await _scale_range(lanes[side], 1.6)
 
 	for side: String in lanes:
-		_check((beaten[side] as Vector2).y > 1.04,
-			"las notas del %s tendrian que saltar a 1.05 (maximo %.3f)"
-				% [side, (beaten[side] as Vector2).y])
-	_check((beaten["jugador"] as Vector2).x < 0.96,
-		"las del jugador tendrian que caer a 0.95 (minimo %.3f)"
-			% (beaten["jugador"] as Vector2).x)
-	_check((beaten["oponente"] as Vector2).x > 0.99,
-		"las del oponente tendrian que quedarse en 1.0 (minimo %.3f)"
-			% (beaten["oponente"] as Vector2).x)
+		var top: float = bases[side] * 1.05
+		_check((beaten[side] as Vector2).y > top - 0.01,
+			"las notas del %s tendrian que saltar a %.4f (maximo %.3f)"
+				% [side, top, (beaten[side] as Vector2).y])
+	# The player lands on 0.95 of its 1.05 base, the opponent on 1.0 of its 0.95 one - so
+	# the player's field breathes and the opponent's punches down onto its own rest.
+	_check((beaten["jugador"] as Vector2).x < 1.05 * 0.95 + 0.01,
+		"las del jugador tendrian que caer a %.4f (minimo %.3f)"
+			% [1.05 * 0.95, (beaten["jugador"] as Vector2).x])
+	_check((beaten["oponente"] as Vector2).x > 0.95 - 0.01,
+		"las del oponente tendrian que quedarse en %.2f (minimo %.3f)"
+			% [0.95, (beaten["oponente"] as Vector2).x])
 
 	_drop(level)
 	await process_frame
