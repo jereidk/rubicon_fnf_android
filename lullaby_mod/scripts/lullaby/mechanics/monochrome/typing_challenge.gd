@@ -322,6 +322,31 @@ func _input(event: InputEvent) -> void :
 	if event is not InputEventKey or event.is_released() or event.is_echo():
 		return
 
+	# Android delivers the on-screen keyboard's characters as ordinary
+	# InputEventKey to the whole tree, and _input() runs BEFORE the focused
+	# Control gets its _gui_input - so the hidden LineEdit that
+	# MonochromeTypingTouchControls focuses to raise the system keyboard does
+	# not stop this from seeing the same keystroke first. Every character was
+	# therefore judged TWICE: once here, and once again a moment later out of
+	# _on_text_changed(). The second reading was compared against the NEXT
+	# letter, so it always missed.
+	#
+	# That is the whole of "the first letter counts and every one after it is
+	# marked wrong", which four separate players reported on the published
+	# port, and it costs 0.5s off the deadline per phantom miss - which is why
+	# the third report is "two letters in and it already counts as failed".
+	#
+	# It could not show up on PC: there, nothing holds focus while the song is
+	# playing, so this branch never runs and the keyboard is read here only.
+	#
+	# Guarded on the focus owner actually being a text field rather than on
+	# OS.has_feature("mobile"), so it holds for any input method that works
+	# this way - a Bluetooth keyboard on the phone included, where the
+	# LineEdit is focused and Android routes hardware keys through it too.
+	var focused: Control = get_viewport().gui_get_focus_owner()
+	if focused is LineEdit or focused is TextEdit:
+		return
+
 	var letter: String = event.as_text_key_label()
 	input_letter(letter.to_lower())
 

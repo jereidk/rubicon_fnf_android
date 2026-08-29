@@ -1142,6 +1142,23 @@ jobs:
           # guardando nada.
           guard_godot tools/test_typing_lane_overlap.gd
 
+          # === Y esas tandas se pueden jugar con un teclado de Android
+          # Cuatro personas distintas lo reportaron igual en los comentarios
+          # del port publicado: la primera letra entra y todas las siguientes
+          # se marcan mal aunque se escriban bien, y a las dos ya cuenta como
+          # fallada. Eran dos causas a la vez, ninguna visible en PC. _input()
+          # leia la misma tecla que el LineEdit oculto iba a leer -corre antes
+          # que el _gui_input del Control con foco, asi que cada letra se
+          # juzgaba dos veces y la segunda lectura se comparaba contra la letra
+          # SIGUIENTE. Y aparte, Gboard manda la palabra ENTERA en cada
+          # pulsacion (region de composicion), asi que un campo que se vaciaba
+          # tras cada letra la rejugaba desde el principio cada vez. La guarda
+          # fija las dos, y comprueba contra el propio motor que la constante
+          # del tipo de teclado existe: la primera version del arreglo pedia
+          # una que no, y eso es un error de parseo que tumba la pantalla
+          # entera, no un ajuste que falle en silencio.
+          guard_godot tools/test_typing_ime_replay.gd
+
           # === Los errores llegan de verdad a un fichero
           # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
           # mano a ErrorHandler.show_error/show_warning, todas fallos fatales

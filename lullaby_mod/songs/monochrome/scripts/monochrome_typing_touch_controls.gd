@@ -126,6 +126,41 @@ var keyboard_occlusion: float = 0.0
 var _base_positions: PackedVector2Array
 var _draining: bool = false
 
+## Everything already handed to the mechanic while this field has held focus.
+## Only what arrives AFTER it is forwarded, and the field is never cleared
+## mid-word.
+##
+## Wiping the field after every character was the other half of the typing
+## bug, and it takes Godot's Android bridge to see why. GodotTextInputWrapper
+## turns the hidden EditText's diff into key events: beforeTextChanged sends
+## one BACKSPACE per character being replaced, and onTextChanged sends every
+## character of the replacement. Gboard - and any IME with suggestions on -
+## keeps the word being typed in a COMPOSING REGION and calls setComposingText
+## with the whole word on each keystroke, so the "replacement" is the entire
+## prefix, every single time:
+##
+##     type r  ->  'r'
+##     type e  ->  DEL, 'r', 'e'
+##     type p  ->  DEL, DEL, 'r', 'e', 'p'
+##
+## Each of those lands as its own text_changed. A field wiped after every
+## character therefore replayed the word from the start on every keystroke and
+## fed the mechanic r, then r + e, then r + e + p. input_letter() judges each
+## character against the ONE letter it is waiting for, so every replayed
+## letter missed - and a miss costs 0.5s off a window that is 2.75s by the
+## fourth bout.
+##
+## Keeping the field is what makes the diff line up again: the replayed prefix
+## is never longer than what has already been consumed, so it forwards
+## nothing, and only the one genuinely new character at the end gets through.
+##
+## Reset on focus and nowhere else, because focus is where Godot re-primes the
+## Android side: HANDLER_OPEN_IME_KEYBOARD does edit.setText("") followed by
+## edit.append(mOriginText) with the LineEdit's own text, listener detached, so
+## the two are back in step exactly then and at no other moment. Clearing the
+## field at any other point would put them back out of step, which is the bug.
+var _consumed: String = ""
+
 ## Painted rather than built out of Buttons: 28 Buttons on rounded styleboxes
 ## cost 255 unbatchable draw calls whenever the keyboard was up, measured on
 ## device against two censuses with an identical scene population. See
@@ -158,6 +193,24 @@ func _ready() -> void:
 		_base_positions.append(t.position if t else Vector2.ZERO)
 
 	if text_input:
+		# Asks Android for TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_PASSWORD,
+		# which is the one input type every mainstream IME answers with
+		# suggestions, autocorrect AND the composing region all switched off.
+		# That is the source of the replay described on _consumed: with no
+		# composing region, setComposingText is never called, each keystroke
+		# is a plain one-character insert, and the diff Godot forwards is one
+		# character rather than the whole word again.
+		#
+		# _consumed handles it either way and stays - a keyboard is another
+		# app and none of this is promised - but there is no reason to ask for
+		# the behaviour that breaks the mechanic when a field this player
+		# never sees can ask for the one that does not.
+		#
+		# What it costs is glide typing and the suggestion strip, and both are
+		# losses worth taking here: the words are "report bug" and "John
+		# Monochrome", not things a dictionary would swipe, and the strip is
+		# another 50-odd pixels of keyboard over the note lanes.
+		text_input.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_PASSWORD
 		text_input.text_changed.connect(_on_text_changed)
 		_set_input_available(false)
 
@@ -330,6 +383,10 @@ func _set_input_available(available: bool) -> void:
 			text_input.visible = true
 		return
 
+	# Before the early-out, so a bout that ends without this having anything
+	# left to undo still starts the next one from zero.
+	_consumed = ""
+
 	if not text_input.visible and text_input.focus_mode == Control.FOCUS_NONE:
 		return
 
@@ -389,13 +446,10 @@ func _apply_raise(wants_input: bool, drawn_height: float = 0.0) -> void:
 		target.position = Vector2(base.x, base.y - lift)
 
 ## Everything the player types arrives here as the field's full contents, so
-## it is forwarded a character at a time and then wiped. The guard is because
-## clearing the text re-emits text_changed.
+## what is forwarded is the part of it that has not been forwarded already -
+## see _consumed for why that is not the same as "all of it, then wipe".
 func _on_text_changed(new_text: String) -> void:
 	if _draining or not typing_challenge:
-		return
-
-	if new_text.is_empty():
 		return
 
 	# The field is focused before the challenge asks for input, to get the
@@ -403,14 +457,29 @@ func _on_text_changed(new_text: String) -> void:
 	# be dropped rather than fed through: input_letter() has no guard of its
 	# own, so an early keystroke would be judged against current_word, count
 	# as a wrong letter and take 0.25s off the deadline.
+	#
+	# Absorbed into _consumed rather than cleared out of the field. Clearing
+	# would leave Godot's LineEdit empty while Android's EditText still held
+	# what was typed, and every keystroke after that would arrive as a replay
+	# of a word this side had never seen - the exact desync _consumed exists
+	# to close, reopened two seconds before the bout it would ruin.
 	if not typing_challenge.prompt_user:
-		_draining = true
-		text_input.text = ""
-		_draining = false
+		_consumed = new_text
+		return
+
+	# Compared by LENGTH, not by prefix, on purpose. A composing IME can also
+	# rewrite what it already sent - autocorrect changing an earlier letter -
+	# and there is nothing this mechanic can do about a letter it has already
+	# eaten. So anything at or below what was consumed is dropped whatever it
+	# now says, including a real backspace: the challenge has no way to
+	# un-type, so swallowing the correction is the honest outcome and
+	# re-feeding it would be a guaranteed miss.
+	var already: int = _consumed.length()
+	if new_text.length() <= already:
 		return
 
 	_draining = true
-	for character in new_text:
-		typing_challenge.input_letter(character)
-	text_input.text = ""
+	for i in range(already, new_text.length()):
+		typing_challenge.input_letter(new_text[i])
+	_consumed = new_text
 	_draining = false
