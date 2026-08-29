@@ -387,6 +387,8 @@ func _release(_animation: StringName, character: Node) -> void:
 ## It also inverts the whole stage - `prop.visible = prop.name.indexOf("stand-") != -1` -
 ## which is what the six `stand-` props hidden since buildStage() have been waiting for.
 func stand_up() -> void:
+	if not _first_time(&"stand_up"):
+		return
 	# Idempotent, and it has to be: the swap rebinds `cast` onto the standing pair, so a
 	# second call would hide the characters the first one just revealed. A method key fires
 	# more than once whenever something re-seeks across it, which every harness here does.
@@ -456,6 +458,8 @@ func shake(intensity: float, duration: float) -> void:
 ## onBeatHit case 332: the HUD leaves. Downscroll here, so the bar and its icons go up and
 ## the strumlines go down, both fading, with the strumlines a quarter of a second behind.
 func hud_out() -> void:
+	if not _first_time(&"hud_out"):
+		return
 	var distance: float = HUD_TWEEN_DISTANCE * FUNKIN_TO_RUBICON
 	_tween_out(hud_up, -distance, HUD_TWEEN_DELAY_UP)
 	_tween_out(hud_down, distance, HUD_TWEEN_DELAY_DOWN)
@@ -505,10 +509,43 @@ func opening() -> void:
 		opponent_lanes.rotation_degrees = LANES_SPIN
 
 
+## Which of the once-per-song beats have already run.
+##
+## Every `case N:` in phone-call.script happens once, but a baked method key does not: a
+## SEEK re-fires the last key it passed, and it keeps re-firing it until a later key
+## exists. Measured on the shot harness, whose 0.5s wind steps ran the beat-1 title card
+## SEVEN times before reaching beat 11 - each call resetting the card's alpha to 0 and
+## starting a fresh fade-in, so the fade-out lost the race and the card sat over the whole
+## song. intro_reveal() is worse and would bite on a device: it reads tadano's x as `home`
+## and then moves him 380 right of it, so a second call reads the offset value as home and
+## leaves him 380px out for good.
+var _ran: Dictionary[StringName, bool] = {}
+
+## The title card's fade, kept so the fade-out can cancel it. Flixel's FlxTween.tween
+## CANCELS whatever is already running on a property - the camera baker relies on the same
+## rule - and Godot's does not: two tweens on modulate:a both keep writing, and whichever
+## the tree happens to step last wins. Left alone, the fade-in outlives its own fade-out
+## and the card stays over the song.
+var _intro_tween: Tween
+
+
+## True the first time it is asked about a beat, false forever after.
+##
+## opening() deliberately does NOT use this: it assigns absolutely off the homes read in
+## _ready, so re-seeking to the top of the song is supposed to put the opening back.
+func _first_time(beat: StringName) -> bool:
+	if _ran.has(beat):
+		return false
+	_ran[beat] = true
+	return true
+
+
 ## case 1: the title card is centred, scaled to 0.8 and fades up over two and a half
 ## seconds. It is the one prop the stage ships switched off, because nothing in the stage
 ## data ever turns it on - this is what does.
 func intro_show_text() -> void:
+	if not _first_time(&"intro_show_text"):
+		return
 	if intro_text == null:
 		return
 
@@ -523,15 +560,24 @@ func intro_show_text() -> void:
 	intro_text.play()
 
 	intro_text.modulate.a = 0.0
-	create_tween().tween_property(intro_text, "modulate:a", 1.0, INTRO_FADE_SECONDS) \
+	_intro_tween = create_tween()
+	_intro_tween.tween_property(intro_text, "modulate:a", 1.0, INTRO_FADE_SECONDS) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## case 11: and back out again, over the same two and a half seconds.
 func intro_hide_text() -> void:
+	if not _first_time(&"intro_hide_text"):
+		return
 	if intro_text == null:
 		return
-	create_tween().tween_property(intro_text, "modulate:a", 0.0, INTRO_FADE_SECONDS) \
+	if _intro_tween != null:
+		# Unconditionally, not `if is_valid()`. A tween that has already reached its end
+		# still writes its property if anything steps it again - which a harness that
+		# fast-forwards tweens does - and then the fade-in wins after the fade-out.
+		_intro_tween.kill()
+	_intro_tween = create_tween()
+	_intro_tween.tween_property(intro_text, "modulate:a", 0.0, INTRO_FADE_SECONDS) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -542,6 +588,8 @@ func intro_hide_text() -> void:
 ## moving character - which is exactly why this port could bake the whole camera into a
 ## value track in the first place. So the walk reads as a walk.
 func intro_reveal() -> void:
+	if not _first_time(&"intro_reveal"):
+		return
 	if cover != null:
 		create_tween().tween_property(cover, "color:a", 0.0, INTRO_FADE_SECONDS) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -565,6 +613,8 @@ func intro_reveal() -> void:
 ## case 31: the HUD arrives, zooming in from 1.1 as it fades up, and the player's lanes fade
 ## up with it.
 func hud_in() -> void:
+	if not _first_time(&"hud_in"):
+		return
 	if hud != null:
 		hud.scale = _hud_rest * HUD_IN_ZOOM
 		_centre_hud()
@@ -578,6 +628,8 @@ func hud_in() -> void:
 
 ## case 168: tadano slides 800 right, into the offset the chart's FocusCamera already has.
 func boyfriend_slide() -> void:
+	if not _first_time(&"boyfriend_slide"):
+		return
 	var tadano: Node2D = cast.get(&"boyfriend")
 	if tadano == null:
 		return
@@ -616,6 +668,8 @@ func _on_beat() -> void:
 ## case 166: two seconds later the opponent's lanes fly in from off the right edge, unwind a
 ## full turn and settle at half alpha on what was the player's side.
 func opponent_lanes_in() -> void:
+	if not _first_time(&"opponent_lanes_in"):
+		return
 	if opponent_lanes == null or not _lane_homes.has(&"player"):
 		return
 

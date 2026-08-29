@@ -29,11 +29,17 @@ var _level: Node
 var _clock: Node
 var _frames: int = 0
 
-## Method-track keys are not reliably fired by seeking - a seek only runs a key if it lands
-## close after it (measured: from 65.0, a 1.0s jump fires the key at 65.477 and a 2.0s jump
-## does not). So the camera bops, the letterbox state and tadano's alt pose set only exist
-## in a shot if the clock is WALKED to the moment rather than dropped on it.
-const WIND_STEP := 0.5
+## Method-track keys are not reliably fired by SEEKING at all. A seek only runs a key if it
+## lands close after it, and "close" is tighter than it looks: winding in 0.5s steps, this
+## harness landed at 4.802 with the title card's beat-11 key at 4.342 and the key did not
+## fire, so the card sat over the whole song at alpha 1 while the beat-1 key that raises it
+## fired five times.
+##
+## So the clock is PLAYED fast rather than walked. At speed_scale every key passes under the
+## playhead exactly once, in order, the way it does on a device - no seek dispatch involved.
+## What that costs is real time for the tweens, which run on frames: they get a twentieth of
+## it, which is what the custom_step in SETTLE is for.
+const WIND_SPEED := 20.0
 
 
 func _ready() -> void:
@@ -44,18 +50,14 @@ func _ready() -> void:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
 
-## One step per FRAME, not a loop inside one. Run as a loop, the whole wind happens between
-## two frames: the animation player fires its method keys through a deferred call queue, and
-## the intro's title card came out pinned at alpha 1 for the whole song because the beat-11
-## key that fades it never landed. The guard's own _wind_to awaits a frame per step for the
-## same reason. It is also the only real time a tween-driven opening ever gets.
+## Runs the clock fast until it reaches the target, then puts it back to normal speed.
 func _wind_step(target: float) -> bool:
 	var player: AnimationPlayer = _clock.animation_player
-	var at: float = player.current_animation_position
-	if at >= target:
+	if player.current_animation_position >= target:
+		player.speed_scale = 1.0
 		return true
-	player.seek(minf(at + WIND_STEP, target), true)
-	return player.current_animation_position >= target
+	player.speed_scale = WIND_SPEED
+	return false
 
 
 enum Step { WIND, PLAY, SETTLE, SHOOT }
@@ -91,6 +93,19 @@ func _process(_delta: float) -> void:
 				_step = Step.SETTLE
 
 		Step.SETTLE:
+			# The opening is all tweens, and tweens run on frames rather than on the clock,
+			# so a wound harness catches them mid-flight. Worse, a seek re-fires the last
+			# method key it passed - measured: the beat-1 title card key fires on all seven
+			# wind steps between it and beat 11 - so the card ends up with a fade-IN tween
+			# started after its fade-out and races it. Running every tween out lands each on
+			# its end value, which is where a real playthrough is by now.
+			for running: Tween in get_tree().get_processed_tweens():
+				running.custom_step(10.0)
+				# And retire it. A tween left in the list gets stepped again at the next
+				# moment, after tweens created since - which is how the title card's
+				# fade-IN kept landing on top of its own fade-out.
+				running.kill()
+
 			# Winding fires every camera bop and AddCameraZoom punch on the way with no real
 			# time for them to decay in, so they stack - the first version of this came out
 			# at zoom 2.03 against a base of 0.975. Settling onto the interpolate target is

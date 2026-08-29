@@ -49,6 +49,11 @@ func _process(_delta: float) -> void:
 		2:
 			var camera: Camera2D = get_viewport().get_camera_2d()
 			camera.zoom = camera.zoom_interpolate_target
+			# The opening is all tweens, which run on frames and not on the clock, so a
+			# wound harness catches them mid-flight. Run them out onto their end values,
+			# which is where a real playthrough is by now.
+			for running: Tween in get_tree().get_processed_tweens():
+				running.custom_step(10.0)
 			camera.position = camera.position_interpolate_target
 			_step = 3
 		3:
