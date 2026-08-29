@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://jpiqwpl54e5d"
+path="res://.godot/imported/death_3-2.png-f9429ba74bbb3076a66a3b1a31073877.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3-2.png"
+dest_files=["res://.godot/imported/death_3-2.png-f9429ba74bbb3076a66a3b1a31073877.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

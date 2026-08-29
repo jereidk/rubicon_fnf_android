@@ -32,5 +32,28 @@ func switch_to_gameover() -> void :
 	else:
 		path_key = &"step_0"
 
-	if not paths[path_key].is_empty():
-		get_tree().change_scene_to_file(paths[path_key])
+	# Con ruido, porque el fallo que esto cubre fue mudo durante todo el port.
+	#
+	# Las cinco escenas de gameover no se portaron y los cinco uid de `paths` no
+	# resolvian contra nada. Leer una clave que no esta en un Dictionary tipado
+	# aborta la funcion; y aunque estuviera, change_scene_to_file() con un uid
+	# muerto no cambia nada y no lanza nada que se vea jugando. Las dos ramas
+	# daban lo mismo desde el sofa: te quedabas sin vida en Chimera y la cancion
+	# seguia, sin gameover y sin reintento, hasta que terminara.
+	#
+	# Que no exista una escena de gameover es un fallo de contenido y tiene que
+	# leerse como tal en el .error, no como "no pasa nada".
+	if not paths.has(path_key):
+		push_error("ChimeraGameoverModule: no hay ruta para %s (muertes=%d)" % [
+			path_key, deaths])
+		return
+
+	var scene_path: String = paths[path_key]
+	if scene_path.is_empty():
+		return
+
+	if not ResourceLoader.exists(scene_path):
+		push_error("ChimeraGameoverModule: %s = %s no resuelve" % [path_key, scene_path])
+		return
+
+	get_tree().change_scene_to_file(scene_path)

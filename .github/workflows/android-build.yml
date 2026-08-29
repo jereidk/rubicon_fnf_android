@@ -1189,6 +1189,25 @@ jobs:
           # de verdad, que creceria en vez de ir y venir.
           guard_godot tools/test_audio_resync_reading.gd
 
+          # === Y morir en Chimera lleva a alguna parte
+          # ChimeraGameoverModule tenia sus cinco rutas escritas en la escena de
+          # la cancion y ninguna de las cinco escenas en el arbol: se quedaron en
+          # el pck de PC junto con sus imagenes, sus sfx y el video de step_4.
+          # Quedarte sin vida en Chimera no hacia nada - la cancion seguia hasta
+          # el final, sin gameover y sin reintento - y el fallo era mudo por
+          # partida doble, porque leer una clave ausente de un Dictionary tipado
+          # aborta la funcion y change_scene_to_file() con un uid muerto tampoco
+          # se queja de nada que se vea jugando. Asi que esto comprueba la cadena
+          # entera: las cinco claves, que cada escena exista, que su uid sea
+          # EXACTAMENTE el que la tabla pide -es lo unico que hace que
+          # change_scene_to_file() encuentre algo- y que cada ext_resource suyo
+          # apunte a un fichero que este. Lo ultimo importa porque estas escenas
+          # vienen del pck, donde la raiz del mod es res:// y aqui es
+          # res://lullaby_mod/, o sea que hubo que reescribir TODAS sus
+          # referencias; una que se escape no da error al arrancar, solo un
+          # gameover sin imagen o sin sonido.
+          guard_godot tools/test_chimera_gameover_wired.gd
+
           # === Los errores llegan de verdad a un fichero
           # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
           # mano a ErrorHandler.show_error/show_warning, todas fallos fatales

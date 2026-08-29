@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://ci50i7qv8qvq"
+path="res://.godot/imported/step_3.png-27082262132529cd6b7cb25411b85f49.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/step_3.png"
+dest_files=["res://.godot/imported/step_3.png-27082262132529cd6b7cb25411b85f49.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false
