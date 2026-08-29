@@ -1227,9 +1227,79 @@ expecting it to bleed.
 `playMusic` starts, with LOWPASS and GAIN filters on it - a bass layer the screen
 ducks. What drives the filter is not recovered yet.
 
-**The screen's own methods**, for whoever picks this up: createBackground,
-createUIComponents, createButtons, createParticles, createSeasonalEffects,
-createSpecialElements, createVisualizers, createMusicSocial, createSocialButtons,
-createNewsButton, initMusic, initMouseEvents, startIntroAnimation, beatHit,
-updateButtonsAnimation, updateCameraScroll, updateCameraZoom, spawnHelpMouseText
-and startTransitionToMenu.
+**The screen breathes on the beat.** `beatHit` adds to the game camera's zoom -
+three `set_zoom` calls computed as `addsd 0x110(%rax)` on the camera's current
+value plus a constant, +0.001 twice and +0.005 once - and `updateCameraZoom(elapsed)`
+eases it back every frame:
+
+    zoom = 0.885 + (zoom - 0.885) * exp(-6.25 * elapsed)
+
+read off a `mulsd -3.125`, an `addsd %xmm0,%xmm0`, a `call exp` and then
+`(zoom - 0.885) * f + 0.885`. A half-life of 0.111s, so it is a punch and not a
+sway. **0.885 is this screen's resting zoom**, and every other zoom number in the
+menu is against it. The tempo is animaniaLOOP's own: 102 BPM, 4/4.
+
+**The buttons do not run their own animations.** `updateButtonsAnimation`
+overwrites each one's current frame every update from a single clock:
+
+    curAnim.curFrame = Std.int(FlxG.game.ticks / 24 * 0.6) % curAnim.frames.length
+
+- 0.025 frames per millisecond, so 25 fps, and `ticks` is the game's elapsed
+milliseconds. The point is that it is SHARED: all eight read one clock and stay in
+step however often the selection moves them between `basic` and `white`. A button
+whose current animation is named `confirm` is skipped. The same method drives the
+Conductor off `FlxG.sound.music.time`, sets `waveform.time = music.time / 1000`,
+and shows `barsViz` only while the track is between 56100ms and 94000ms.
+
+**startIntroAnimation**, in Funkin's 1280x720:
+
+    FlxG.camera.zoom = 3
+    FlxG.camera.scrollAngle = FlxG.random.float(-10, 10)
+    FlxG.camera.scroll.x = FlxG.random.float(-200, 200)   (and .y the same)
+    FlxTween.tween(blackLineUp,   {y: 30 - blackLineUp.height}, 1,    smootherStepOut)
+    FlxTween.tween(blackLineDown, {y: 690},                     1,    smootherStepOut)
+    FlxTween.tween(FlxG.camera,   {zoom: 0.9, scrollAngle: 0},  0.75, smootherStepInOut)
+
+690 is 720 - 30, so both curtains settle showing the same 30px band - the menu's
+letterbox. The camera tween is the one carrying an onComplete, and the menu goes
+live when it lands. **startTransitionToMenu(cls, args, duration = 0.75)** is the
+same thing backwards, and the timer that switches state runs the same duration:
+
+    FlxTween.tween(menuDude,      {x: menuDude.x - 650},              d, backInOut)
+    FlxTween.tween(blackLineUp,   {y: 10 - blackLineUp.height * 0.5}, d, smootherStepOut)
+    FlxTween.tween(blackLineDown, {y: 350},                           d, smootherStepOut)
+    FlxTween.tween(FlxG.camera,   {zoom: 3, scrollAngle: float(-10, 10)},  d, smootherStepInOut)
+    FlxTween.tween(FlxG.camera.scroll, {x: float(-200,200), y: float(-200,200)}, d, smootherStepInOut)
+
+**blackLineUp and blackLineDown** are made in `createUIComponents` as FunkinSprites
+of solid `0xFF000000`, `Std.int(FlxG.width * 1.25)` by `FlxG.height` - a whole
+screen each, wider than one so the angle and the offset cannot uncover an edge.
+That they start at y = 0 is a reading, not a measurement: it is the only y that
+makes the intro's two tweens an opening rather than a closing.
+
+**The eases**, off their own .rodata:
+
+    smootherStep(t)      = t*t*t*(t*(t*6 - 15) + 10)      (6, 15, 10)
+    smootherStepInOut(t) = smootherStep(t)
+    smootherStepOut(t)   = 2 * smootherStep(t*0.5 + 0.5) - 1
+    backInOut(t)         = t2 = 2t; t2 < 1 ? t2*t2*(2.70158*t2 - 1.70158)/2
+                                          : ((t2-2)^2 * (2.70158*(t2-2) + 1.70158) + 2)/2
+
+**The member layout**, from `__GetFields` in declaration order against the offsets
+`__Field` returns: background 0xd0, waveform 0xd8, barsViz 0xe0, buttonsBg 0xe8,
+menuDude 0xf0, menuButtons 0xf8, menuButtonsUI 0x100, locks 0x108, blackLineUp
+0x110, blackLineDown 0x118, newsButton 0x120, then musicSocial, musicSocialLines,
+musicSocialButtons, mouseEvents, seasonalEmitter, colorShader, rainShader,
+debugMenuCamera, canChange, transitioning, overMusic, currentSeason, gokMoveSound,
+bassSound, musicLayerSound, allowToUseNewsButton, allowToUseMusicSocial,
+toogleMusicSocialButtons, musicFilter and imLowkeyWannaPlayManager.
+
+**doSelect(id)** plays `confirmMenu`, cancels the music's volume tween and starts a
+`FlxTween.num` fade in its place, then reads the button's `name` and dispatches.
+The per-button destinations are not recovered.
+
+**Still not ported**, for whoever picks this up: createParticles,
+createVisualizers, createMusicSocial, createSocialButtons, createNewsButton,
+initMouseEvents, updateCameraScroll (constants 3.0, -10.0 and +/-1.0 - mouse
+parallax, inert on Android), spawnHelpMouseText, and whatever drives the
+`AnimaniaLOOPbass` layer's LOWPASS and GAIN.
