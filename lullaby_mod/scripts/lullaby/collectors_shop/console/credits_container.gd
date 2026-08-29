@@ -94,15 +94,32 @@ func _input(event: InputEvent) -> void :
 	elif event.is_action_pressed("ui_right"):
 		_go_previous()
 	if event.is_action_released("ui_right"):
-		right_arrow_mesh.mesh.surface_set_material(0, material_idle)
+		_paint(right_arrow_mesh, material_idle)
 	if event.is_action_released("ui_left"):
-		left_arrow_mesh.mesh.surface_set_material(0, material_idle)
+		_paint(left_arrow_mesh, material_idle)
 
 
 	if event.is_action("ui_up"):
 		description_label.get_v_scroll_bar().value -= 30
 	elif event.is_action("ui_down"):
 		description_label.get_v_scroll_bar().value += 30
+
+## Igual que en home_button.gd, y por el mismo motivo.
+##
+## surface_set_material() escribe en el recurso Mesh, compartido, asi que un
+## null no deja la flecha como estaba: la deja SIN material, y en un
+## SubViewport con own_world_3d y sin una sola luz el material por defecto de
+## Godot sale negro. Este nodo tenia su material_select escrito ANTES de
+## `script =` en la escena, y una propiedad de script puesta antes de que el
+## script exista no se aplica ni se queja: quedaba null, y pulsar una flecha la
+## borraba.
+func _paint(mesh_node: Node, material: StandardMaterial3D) -> void:
+	if material == null:
+		push_warning("credits: material sin asignar, la flecha se deja como esta")
+		return
+	if mesh_node is MeshInstance3D and mesh_node.mesh != null:
+		mesh_node.mesh.surface_set_material(0, material)
+
 
 func _open_current_socials_link() -> void :
 	console.play_sound.emit("sfx_soulroom_select_alt")
@@ -120,7 +137,7 @@ func _go_next() -> void :
 	if left_arrow_anim.is_playing():
 		left_arrow_anim.stop()
 	left_arrow_anim.play("ArrowPress_24f")
-	left_arrow_mesh.mesh.surface_set_material(0, material_select)
+	_paint(left_arrow_mesh, material_select)
 
 	if switch_animation.is_playing():
 		switch_animation.stop()
@@ -141,7 +158,7 @@ func _go_previous() -> void :
 	if right_arrow_anim.is_playing():
 		right_arrow_anim.stop()
 	right_arrow_anim.play("ArrowPress_24f")
-	right_arrow_mesh.mesh.surface_set_material(0, material_select)
+	_paint(right_arrow_mesh, material_select)
 
 	if switch_animation.is_playing():
 		switch_animation.stop()

@@ -1222,6 +1222,25 @@ jobs:
           # bytes de nada. Esto lo habria dicho en la primera pasada.
           guard_godot tools/verify_precompiled_astc.gd
 
+          # === Ninguna escena pierde una propiedad por el orden de sus lineas
+          # Godot aplica las propiedades de un nodo EN ORDEN, con una sola rama
+          # especial para `script`, y no las reordena. Asi que una propiedad
+          # exportada por el script escrita por encima de la linea que asigna
+          # ese script se aplica a un nodo que aun no la tiene: set() falla, y
+          # falla EN SILENCIO - ni error, ni aviso, ni una linea en el log.
+          # Los iconos 3D del Home de la consola se quedaban NEGROS al moverse
+          # por el menu justo por esto: sus material_select estaban escritos
+          # antes del script, quedaban en null, y home_button.gd los mete en
+          # `mesh.surface_set_material(0, ...)`, que escribe en el recurso Mesh
+          # compartido - o sea que un null no deja el icono igual, lo deja SIN
+          # material, y su SubViewport tiene own_world_3d sin una sola luz, asi
+          # que el material por defecto de Godot sale negro. El de Hacks era el
+          # unico que se comportaba, porque sus dos lineas si iban despues.
+          # Por la misma via la pantalla de resultados perdia show_binding y
+          # nunca ensenaba su tecla. Esto no se ve leyendo la escena: se ve
+          # comparando el orden de dos lineas.
+          guard_godot tools/test_script_props_after_script.gd
+
           # === Los errores llegan de verdad a un fichero
           # Hasta ahora lo unico que se registraba eran las SEIS llamadas a
           # mano a ErrorHandler.show_error/show_warning, todas fallos fatales

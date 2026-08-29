@@ -4469,7 +4469,6 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Settings" type="Control" parent="TabContainer/Home/FakeButtons" unique_id=1923068932 node_paths=PackedStringArray("home_container", "tab_target", "icon_model", "icon_mesh", "icon_animation_player", "console")]
-material_select = ExtResource("212")
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(175, 175)
 anchors_preset = 0
@@ -4484,6 +4483,7 @@ focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("28")
+material_select = ExtResource("212")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Settings")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_settings")
@@ -4513,7 +4513,6 @@ text = "Settings"
 horizontal_alignment = 1
 
 [node name="Credits" type="Control" parent="TabContainer/Home/FakeButtons" unique_id=529041713 node_paths=PackedStringArray("home_container", "tab_target", "icon_model", "icon_mesh", "icon_animation_player", "console")]
-material_select = ExtResource("212")
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(175, 175)
 anchors_preset = 0
@@ -4528,6 +4527,7 @@ focus_neighbor_bottom = NodePath("../Cartridges")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("28")
+material_select = ExtResource("212")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Credits")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_credits")
@@ -4557,7 +4557,6 @@ text = "Credits"
 horizontal_alignment = 1
 
 [node name="Training" type="Control" parent="TabContainer/Home/FakeButtons" unique_id=2128180436 node_paths=PackedStringArray("home_container", "tab_target", "icon_model", "icon_mesh", "icon_animation_player", "console")]
-material_select = ExtResource("212")
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(175, 175)
 anchors_preset = 0
@@ -4572,6 +4571,7 @@ focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("28")
+material_select = ExtResource("212")
 disabled = false
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Training")
@@ -4919,7 +4919,6 @@ text = "Role"
 horizontal_alignment = 1
 
 [node name="CreditsContainer" type="HBoxContainer" parent="TabContainer/Credits" unique_id=51789059 node_paths=PackedStringArray("console", "primary_portrait_animation", "secondary_portrait_animation", "switch_animation", "name_label", "next_name_label", "prev_name_label", "role_label", "description_label", "spotlight_animation", "left_arrow_anim", "right_arrow_anim", "left_arrow_mesh", "right_arrow_mesh")]
-material_select = ExtResource("212")
 z_index = 1
 layout_mode = 1
 anchors_preset = 15
@@ -4928,6 +4927,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("40")
+material_select = ExtResource("212")
 console = NodePath("../../..")
 primary_portrait_animation = NodePath("CreditsPortraitPrimary/AnimationPlayer")
 secondary_portrait_animation = NodePath("CreditsPortraitSecondary/AnimationPlayer")

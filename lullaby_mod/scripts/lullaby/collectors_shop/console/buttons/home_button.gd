@@ -25,11 +25,36 @@ func _ready() -> void :
 	home_container.disable_icons.connect(_disable_icons)
 	home_container.enable_icons.connect(_enable_icons)
 
+## Pone un material en la malla del icono, y NUNCA lo quita.
+##
+## `surface_set_material()` escribe en el recurso Mesh, que es compartido, asi
+## que pasarle null no deja el icono "sin cambios": lo deja SIN MATERIAL. Y su
+## SubViewport tiene own_world_3d con ninguna luz y ningun WorldEnvironment -a
+## proposito, porque todo lo que se dibuja ahi es unshaded- de modo que el
+## material por defecto de Godot, que si se sombrea, sale NEGRO.
+##
+## Era exactamente el bug: los cinco material_select de la escena estaban
+## escritos ANTES de `script =`, y una propiedad de script puesta antes de que
+## el script exista no se aplica ni avisa - se queda en null. Comprobado contra
+## este motor. Asi que enfocar un boton borraba el material de su icono y el
+## icono se quedaba negro al moverse por el menu; el de Hacks se salvaba solo
+## porque sus dos lineas si estaban despues.
+##
+## El orden ya esta corregido en la escena. Esto es la otra mitad: aunque
+## vuelva a faltar un material, lo peor que puede pasar es que el icono no
+## cambie de aspecto, no que desaparezca.
+func _paint(material: StandardMaterial3D) -> void:
+	if material == null:
+		push_warning("%s: material sin asignar, el icono se deja como esta" % name)
+		return
+	if icon_mesh is MeshInstance3D and icon_mesh.mesh != null:
+		icon_mesh.mesh.surface_set_material(0, material)
+
+
 func _focus_entered() -> void :
 	home_container.bubble_target = position + pivot_offset
 
-	if icon_mesh is MeshInstance3D:
-		icon_mesh.mesh.surface_set_material(0, material_select)
+	_paint(material_select)
 	if tween:
 		tween.kill()
 	tween = create_tween()
@@ -39,8 +64,7 @@ func _focus_entered() -> void :
 func _focus_exited() -> void :
 	console.play_sound.emit("sfx_soulroom_click")
 
-	if icon_mesh is MeshInstance3D:
-		icon_mesh.mesh.surface_set_material(0, material_idle)
+	_paint(material_idle)
 	if tween:
 		tween.kill()
 	tween = create_tween()
