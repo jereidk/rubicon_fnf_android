@@ -72,6 +72,7 @@ func _init() -> void:
 
 	var started: int = Time.get_ticks_msec()
 	for src: String in _sources(needle):
+		_complete_import(src)
 		_compile(src)
 
 	print("\n%d comprimidas, %d saltadas, %d errores, %.1f min" % [
@@ -109,6 +110,69 @@ func _scan(dir_path: String, needle: String, out: PackedStringArray) -> void:
 				out.append(full.trim_suffix(".import"))
 		name = dir.get_next()
 	dir.list_dir_end()
+
+
+## Completa el [remap] de un .import al que le falten uid o path.
+##
+## Sin esto, precompilar no sirve absolutamente de nada, y es una lección que
+## costó una build entera de 12m29s de import. De editor_file_system.cpp:
+##
+##     if (!found_uid) {
+##         return true; // UID not found, old format, reimport.
+##     }
+##     ...
+##     for (const String &E : to_check) {   // to_check se llena con path=
+##         if (!FileAccess::exists(E)) return true;
+##     }
+##
+## O sea que un .import sin `uid=` se reimporta INCONDICIONALMENTE, sin llegar
+## siquiera a abrir el .md5 que dice que ya está hecho. Y sin `path=` no hay
+## ninguna salida cuya existencia comprobar.
+##
+## repack_atlas.py escribe sus .import sin ninguno de los dos, con un comentario
+## que dice que Godot los asigna en el primer import y que copiar uno ajeno
+## colisionaría. Lo segundo es cierto y lo primero también - pero el primer
+## import es exactamente el que se está intentando evitar, y Godot no commitea
+## el .import que regenera, así que la siguiente build vuelve a empezar. Doce
+## hojas de 4096x3104 recomprimidas en cada build, para siempre.
+##
+## El uid se GENERA aquí, nunca se copia: ResourceUID.create_id() da uno nuevo,
+## que es justo lo que el miedo a la colisión pedía. path y dest_files son
+## deterministas y no pueden colisionar por construcción.
+func _complete_import(source: String) -> void:
+	var import_path: String = source + ".import"
+	var text: String = FileAccess.get_file_as_string(import_path)
+	if text.is_empty():
+		return
+
+	var has_uid: bool = text.contains("\nuid=")
+	var has_path: bool = text.contains("\npath=")
+	if has_uid and has_path:
+		return
+
+	var imported: String = "res://.godot/imported/%s-%s.res" % [
+		source.get_file(), source.md5_text()]
+
+	var out: PackedStringArray = []
+	for line: String in text.split("\n"):
+		out.append(line)
+		# Justo detrás de type=, que es donde los escribe el editor.
+		if line.begins_with("type="):
+			if not has_uid:
+				out.append('uid="%s"' % ResourceUID.id_to_text(ResourceUID.create_id()))
+			if not has_path:
+				out.append('path="%s"' % imported)
+		elif line.begins_with("source_file=") and not text.contains("\ndest_files="):
+			out.append('dest_files=["%s"]' % imported)
+
+	var fh := FileAccess.open(import_path, FileAccess.WRITE)
+	if fh == null:
+		printerr("  no se reescribe: %s" % import_path)
+		_errors += 1
+		return
+	fh.store_string("\n".join(out))
+	fh.close()
+	print("  .import completado: %s" % source.get_file())
 
 
 func _compile(source: String) -> void:

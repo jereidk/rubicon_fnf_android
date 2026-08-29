@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://mk11qckse15h"
+path="res://.godot/imported/skullface_packed_0.png-31188dad8481b677e8053d0c124ad681.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/skullface/skullface_packed_0.png"
+dest_files=["res://.godot/imported/skullface_packed_0.png-31188dad8481b677e8053d0c124ad681.res"]
 
 [params]
 

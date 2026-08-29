@@ -92,6 +92,8 @@ func _initialize() -> void:
 			"%s: sus %d referencias existen, en todo el arbol%s" % [key, total,
 				"" if missing.is_empty() else " - FALTAN " + ", ".join(missing)])
 
+	_video_checks()
+
 	# Y que el modulo se queje en vez de callarse, que es lo que dejo pasar esto
 	# durante todo el port.
 	var mod: String = _read(MODULE)
@@ -102,6 +104,58 @@ func _initialize() -> void:
 	if _failures == 0:
 		print("todo OK")
 	quit(1 if _failures > 0 else 0)
+
+
+## Los steps 1-3 dibujan su muerte con un vídeo, y hay un orden que respetar.
+##
+## Sus 13 fotogramas vivian en tres hojas de 4096x4096 por step - 75 MB de PNG,
+## 27 MB de ASTC, y una recompresion ASTC que por si sola costo 12m29s de
+## import - por dos segundos y medio de animacion fija. Ahora son tres .ogv de
+## medio mega.
+##
+## Lo que se comprueba aqui es lo que NO se ve fallar hasta que alguien juega:
+##
+##   el VideoPlayer va ANTES que StepImage entre los hijos. Los hermanos 2D se
+##     dibujan en orden, asi que la tarjeta de texto tiene que seguir tapando el
+##     vídeo igual que tapaba al sprite. Invertidos, la tarjeta desaparece
+##     detras de la animacion de muerte y el jugador ve el final antes que el
+##     principio;
+##
+##   no queda ninguna pista apuntando al AnimatedSprite2D que ya no existe;
+##
+##   y el script arranca el vídeo en la misma llamada que la animacion, que es
+##     la unica sincronizacion que hay entre los dos. Si alguien lo mueve a un
+##     _ready() o le mete un await, el vídeo se adelanta un segundo entero: el
+##     Timer de estas escenas no fija wait_time, asi que usa el defecto de Godot
+##     y la animacion arranca un segundo despues de cargar la escena.
+func _video_checks() -> void:
+	for step: int in [1, 2, 3]:
+		var scene: String = "res://lullaby_mod/songs/chimera/scenes/step_%d.tscn" % step
+		var text: String = FileAccess.get_file_as_string(scene)
+		if text.is_empty():
+			continue
+
+		var video_at: int = text.find('[node name="VideoPlayer"')
+		var still_at: int = text.find('[node name="StepImage"')
+		_check(video_at >= 0, "step_%d: la muerte la dibuja un VideoPlayer" % step)
+		_check(video_at >= 0 and still_at > video_at,
+			"step_%d: ...y va ANTES que StepImage, o la tarjeta queda tapada" % step)
+
+		_check(not text.contains("AnimatedSprite2D"),
+			"step_%d: no queda ninguna pista apuntando al sprite que se fue" % step)
+
+	var script: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd")
+	# Sobre el CÓDIGO y no sobre el texto: la primera version de esto se puso
+	# roja contra una funcion correcta, porque el comentario que explica que no
+	# debe haber ningun await contiene la palabra "await".
+	var body: String = _code_only(_func_body(script, "_on_timer_timeout"))
+	var video_at: int = body.find("video_player.play()")
+	var anim_at: int = body.find('anim_player.play(')
+	_check(video_at >= 0 and anim_at > video_at,
+		"el vídeo arranca en la misma llamada que la animacion, y antes que ella")
+	_check(not body.contains("await"),
+		"...sin await por medio, o los dos dejan de salir en el mismo fotograma")
 
 
 ## Cuenta las referencias de `path` y de todo lo que estas alcanzan, anotando
@@ -146,6 +200,27 @@ func _paths_table(song: String) -> Dictionary:
 			'&"(step_\\d)":\\s*"([^"]+)"').search_all(block):
 		out[m.get_string(1)] = m.get_string(2)
 	return out
+
+
+## `body` sin lineas de comentario, para preguntas sobre lo que el codigo HACE.
+func _code_only(body: String) -> String:
+	var out: PackedStringArray = []
+	for line: String in body.split("\n"):
+		var code: String = line
+		var hash_at: int = code.find("#")
+		if hash_at >= 0:
+			code = code.substr(0, hash_at)
+		out.append(code)
+	return "\n".join(out)
+
+
+func _func_body(text: String, name: String) -> String:
+	var head: int = text.find("func %s(" % name)
+	if head < 0:
+		_check(false, "%s() existe" % name)
+		return ""
+	var tail: int = text.find("\nfunc ", head + 1)
+	return text.substr(head, tail - head if tail > head else -1)
 
 
 func _check(ok: bool, what: String) -> bool:

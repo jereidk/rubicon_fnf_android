@@ -2,10 +2,13 @@
 
 importer="lullaby.astc_sprite"
 type="Texture2D"
+uid="uid://dm7glh4ali836"
+path="res://.godot/imported/death_4_packed_1.png-5755bdbc8cc6ead2aa20679927d4e0aa.res"
 
 [deps]
 
 source_file="res://lullaby_mod/assets/funkin/chimera/gameover/step_4/Fix/death_4_packed_1.png"
+dest_files=["res://.godot/imported/death_4_packed_1.png-5755bdbc8cc6ead2aa20679927d4e0aa.res"]
 
 [params]
 

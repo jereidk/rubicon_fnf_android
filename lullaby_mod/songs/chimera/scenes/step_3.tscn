@@ -1,42 +1,9 @@
 [gd_scene uid="uid://be5fvajhp7xny" format=3]
 
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd" id="1_4yqe4"]
-[ext_resource type="SpriteFrames" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3.tres" id="2_cf6fw"]
-[ext_resource type="AnimationLibrary" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/Fix/death_3_library.tres" id="3_4oe3l"]
 [ext_resource type="Texture2D" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/step_3.png" id="4_j84p0"]
 [ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/chimera/sfx_step_3.res" id="5_g2hbr"]
-
-[sub_resource type="Animation" id="Animation_epf2o"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [7]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"Final Exports_"]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_8e8fd"]
-_data = {
-&"RESET": SubResource("Animation_epf2o")
-}
+[ext_resource type="VideoStream" path="res://lullaby_mod/assets/funkin/chimera/gameover/step_3/death_3.ogv" id="3_video"]
 
 [sub_resource type="Animation" id="Animation_ixuwy"]
 length = 0.001
@@ -52,13 +19,6 @@ tracks/0/keys = {
 "update": 1,
 "values": [false]
 }
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:visible")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
@@ -76,13 +36,6 @@ tracks/0/path = NodePath("Sound")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": [{
-"end_offset": 0.0,
-"start_offset": 0.0,
-"stream": ExtResource("5_g2hbr")
-}],
-"times": PackedFloat32Array(0)
-}
 tracks/0/use_blend = true
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -91,28 +44,21 @@ tracks/1/path = NodePath("StepImage:visible")
 tracks/1/interp = 0
 tracks/1/loop_wrap = true
 tracks/1/keys = {
+"clips": [{
+"end_offset": 0.0,
+"start_offset": 0.0,
+"stream": ExtResource("5_g2hbr")
+}],
+"times": PackedFloat32Array(0)
+}
 "times": PackedFloat32Array(0, 6.7916665),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/2/type = "animation"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("AnimatedSprite2D/AnimationPlayer")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
 "clips": PackedStringArray("death_3_library/Final Exports_", "death_3_library/loop", "death_3_library/loop"),
 "times": PackedFloat32Array(6.7916665, 8, 9)
 }
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("AnimatedSprite2D:visible")
-tracks/3/interp = 0
-tracks/3/loop_wrap = true
-tracks/3/keys = {
 "times": PackedFloat32Array(0, 9.333333),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
@@ -125,7 +71,7 @@ _data = {
 &"animation": SubResource("Animation_eyxka")
 }
 
-[node name="Step3" type="Control" unique_id=460846163 node_paths=PackedStringArray("anim_player")]
+[node name="Step3" type="Control" unique_id=460846163 node_paths=PackedStringArray("anim_player", "video_player")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -133,6 +79,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_4yqe4")
+video_player = NodePath("VideoPlayer")
 anim_player = NodePath("AnimationPlayer")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1286300198]
@@ -144,17 +91,16 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=124156556]
-visible = false
-position = Vector2(960, 540)
-scale = Vector2(0.7, 0.7)
-sprite_frames = ExtResource("2_cf6fw")
-animation = &"Final Exports_"
-frame = 7
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=2138849099]
-libraries/ = SubResource("AnimationLibrary_8e8fd")
-libraries/death_3_library = ExtResource("3_4oe3l")
+[node name="VideoPlayer" type="VideoStreamPlayer" parent="." unique_id=124156556]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stream = ExtResource("3_video")
+expand = true
 
 [node name="StepImage" type="TextureRect" parent="." unique_id=1565804573]
 visible = false
