@@ -1338,12 +1338,21 @@ func _average_colour(texture: Texture2D) -> Color:
 # so all of this is new behaviour rather than a rename, and every number comes from
 # komi.hx's initHealthIcon.
 func _check_icons(level: Node) -> void:
-	# phone-call.script's onStartSong: playerId 0 (Dad) gets updateHealthIcon(health) and
-	# playerId 1 (Boyfriend) gets updateHealthIcon(2 - health). So the PLAYER's icon reads
-	# the inverse in this song, not the opponent's - the reverse of stock Funkin.
+	# phone-call.script's onStartSong gives playerId 1 `updateHealthIcon(2 - health)` and
+	# playerId 0 `updateHealthIcon(health)`, labelled `// Boyfriend` and `// Dad`. THE
+	# COMMENTS ARE BACKWARDS, and this check had them copied in, so it agreed with the bug
+	# for two rounds: on a device tadano wore the losing face at full health and the winning
+	# one as he died.
+	#
+	# AnimaniaStuff.makeAmTakeAnimatedIcon settles it in the mod's own code -
+	# `isPlayer = (icon.playerId == 0)` - so playerId 0 is the player and it is the OPPONENT
+	# that reads the inverse, as in stock Funkin. The two tilts agree: playerId 0 tilts below
+	# healthLerp .25 and playerId 1 above 1.75, each reacting to its own side losing.
 	var expected: Dictionary = {
-		"IconL": {"frames": "komi_icon", "inverted": false, "alt": true, "flip": true},
-		"IconR": {"frames": "tadano_icon", "inverted": true, "alt": false, "flip": false},
+		"IconL": {"frames": "komi_icon", "inverted": true, "alt": true, "flip": true,
+			"tilt": 50.0},
+		"IconR": {"frames": "tadano_icon", "inverted": false, "alt": false, "flip": false,
+			"tilt": -30.0},
 	}
 
 	for icon_name: String in expected:
@@ -1360,6 +1369,10 @@ func _check_icons(level: Node) -> void:
 			"%s usa %s" % [icon_name, icon.sprite_frames.resource_path.get_file()])
 		_check(icon.inverted == entry["inverted"],
 			"%s: invertido tendria que ser %s" % [icon_name, entry["inverted"]])
+		# One tilt rule per icon, on its own side losing, with the mod's own degrees.
+		_check(is_equal_approx(icon.tilt_degrees, float(entry["tilt"])),
+			"%s se inclina %.0f grados y el script dice %.0f" % [
+				icon_name, icon.tilt_degrees, float(entry["tilt"])])
 		_check(icon.has_alt_poses == entry["alt"],
 			"%s: poses alt tendrian que ser %s" % [icon_name, entry["alt"]])
 		_check((icon.scale.x < 0.0) == entry["flip"],

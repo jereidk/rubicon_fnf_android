@@ -21,11 +21,16 @@ extends AnimatedSprite2D
 
 ## Which side of the bar an icon reads.
 ##
-## phone-call.script's onStartSong is explicit: playerId 1 (Boyfriend) gets
-## `updateHealthIcon(2 - health)` and playerId 0 (Dad) gets `updateHealthIcon(health)`. So
-## it is the PLAYER's icon that reads the inverse here, not the opponent's - the reverse of
-## stock Funkin, and of the first version of this port. The song also runs
-## `healthBar.flipped = true`, which is the other half of the same mirroring.
+## phone-call.script's onStartSong gives playerId 1 `updateHealthIcon(2 - health)` and
+## playerId 0 `updateHealthIcon(health)`, and labels them `// Boyfriend` and `// Dad` in
+## that order. THE COMMENTS ARE BACKWARDS. AnimaniaStuff.makeAmTakeAnimatedIcon settles it
+## in the mod's own code - `isPlayer = (icon.playerId == 0)` - so playerId 0 is the player
+## and it is the OPPONENT's icon that reads the inverse, as in stock Funkin.
+##
+## Taking the comments at their word put the losing face on tadano at full health and the
+## winning face on him as he died. The two tilts say the same thing and were nonsense the
+## other way round: playerId 0 tilts when healthLerp is BELOW .25 and playerId 1 when it is
+## ABOVE 1.75, which is each of them reacting to its own side losing.
 @export var inverted: bool = false
 
 ## iconTimer runs to 4 at 6x elapsed.
@@ -51,12 +56,15 @@ const WINNING_THRESHOLD := 0.8
 ## same 0..2 bar - 0.875 and 0.125 of it. Those are the angle's thresholds, not the face's.
 ## Lacking the module, this port read them as both, and shipped a winning face that waited
 ## until 0.875 when the mod turns it on at 0.8. The bottom one agreed by coincidence.
-const WINNING_TILT_AT := 0.875
 const PREDEATH_TILT_AT := 0.125
 
 ## onStartSong's icon.angle, in degrees per unit of overshoot past the threshold.
-const WINNING_TILT := 50.0
-const PREDEATH_TILT := -30.0
+##
+## One rule per icon, not two: each one tilts only when ITS OWN side is losing, which after
+## the inversion is the same threshold for both. The degrees differ per icon - the player's
+## -30 and the opponent's 50 - and the opponent's sprite is mirrored, so both droop the same
+## way on screen.
+@export var tilt_degrees: float = -30.0
 ## onStartSong's `- Math.cos((health - 1) * 2) * 15` bob, a screen distance so it scales.
 const BOB_AMPLITUDE := 15.0 * 1920.0 / 1280.0
 
@@ -122,10 +130,8 @@ func _apply_tilt_and_bob() -> void:
 	var ratio: float = _ratio()
 	position = _rest_position + Vector2(0.0, -cos((ratio * 2.0 - 1.0) * 2.0) * BOB_AMPLITUDE)
 
-	if ratio > WINNING_TILT_AT:
-		rotation_degrees = WINNING_TILT * (ratio - WINNING_TILT_AT) * 2.0
-	elif ratio < PREDEATH_TILT_AT:
-		rotation_degrees = PREDEATH_TILT * (PREDEATH_TILT_AT - ratio) * 2.0
+	if ratio < PREDEATH_TILT_AT:
+		rotation_degrees = tilt_degrees * (PREDEATH_TILT_AT - ratio) * 2.0
 	else:
 		rotation_degrees = 0.0
 

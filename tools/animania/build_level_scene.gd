@@ -353,7 +353,10 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 			# PLAYER's icon that reads the inverse in this song, not the opponent's - the
 			# reverse of stock Funkin, and of the first version of this port. The song also
 			# sets healthBar.flipped, which is the other half of the same mirroring.
-			"controller": ui["Opponent"], "inverted": false, "alt": true,
+			# The OPPONENT reads the inverse - see animania_health_icon.gd, and
+			# AnimaniaStuff's own `isPlayer = (icon.playerId == 0)`, which is what settles
+			# it against the song script's backwards comments.
+			"controller": ui["Opponent"], "inverted": true, "alt": true, "tilt": 50.0,
 			# komi.hx sets icon.flipX, and the atlas's poses are authored for it - which is
 			# why its "right" art is this port's sing_left.
 			"flip": true,
@@ -367,8 +370,8 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		},
 		"IconR": {
 			"frames": "res://animania_mod/characters/tadano_icon.tres",
-			"controller": ui["Player"], "inverted": true, "alt": false, "flip": false,
-			"mirror": false,
+			"controller": ui["Player"], "inverted": false, "alt": false, "flip": false,
+			"mirror": false, "tilt": -30.0,
 		},
 	}
 
@@ -386,6 +389,7 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		icon.health_module = health
 		icon.note_controller = entry["controller"]
 		icon.inverted = entry["inverted"]
+		icon.tilt_degrees = entry["tilt"]
 		icon.has_alt_poses = entry["alt"]
 		# Fitted to the height the MOD draws them at rather than left at native size. That
 		# height is measured off a capture rather than taken from healthIcon.scale: the

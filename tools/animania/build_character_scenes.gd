@@ -134,6 +134,11 @@ func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
 	root.animations = _sing_and_miss_map(miss_falls_back)
 	root.mania_anim_groups = _anim_groups()
 	root.dancing_animations = [&"dance_idle"] as Array[StringName]
+	# loopHold in every one of these characters' JSONs. Rubicon re-triggers the dance
+	# animation on every dance step whatever it is doing, so a bop that is longer than a beat
+	# gets cut off and restarted and the idle reads as a twitch. With this off it plays out
+	# and then waits for the next step, which is the hold the flag asks for.
+	root.dancing_force_dance = false
 	root.dancing_measure_step = 0.25
 	root.singing_sing_to_dance_interval = sing_time
 	root.singing_repeat_loop_point = 2.0 / FPS
@@ -196,6 +201,11 @@ func _build_komi() -> void:
 	root.animations = _sing_and_miss_map(true)
 	root.mania_anim_groups = _anim_groups()
 	root.dancing_animations = [&"dance_idle"] as Array[StringName]
+	# loopHold in every one of these characters' JSONs. Rubicon re-triggers the dance
+	# animation on every dance step whatever it is doing, so a bop that is longer than a beat
+	# gets cut off and restarted and the idle reads as a twitch. With this off it plays out
+	# and then waits for the next step, which is the hold the flag asks for.
+	root.dancing_force_dance = false
 	root.dancing_measure_step = 0.25          # danceEvery 1 beat: 4 / (4 * 4)
 	root.singing_sing_to_dance_interval = 8   # singTime
 	root.singing_repeat_loop_point = 2.0 / FPS  # loopHoldFrame
@@ -272,6 +282,11 @@ func _build_tadano() -> void:
 	root.animations = _sing_and_miss_map(false)
 	root.mania_anim_groups = _anim_groups()
 	root.dancing_animations = [&"dance_idle"] as Array[StringName]
+	# loopHold in every one of these characters' JSONs. Rubicon re-triggers the dance
+	# animation on every dance step whatever it is doing, so a bop that is longer than a beat
+	# gets cut off and restarted and the idle reads as a twitch. With this off it plays out
+	# and then waits for the next step, which is the hold the flag asks for.
+	root.dancing_force_dance = false
 	root.dancing_measure_step = 0.25
 	root.singing_sing_to_dance_interval = 6
 	root.singing_repeat_loop_point = 2.0 / FPS

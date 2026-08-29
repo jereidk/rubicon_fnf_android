@@ -64,6 +64,11 @@ func _ready() -> void:
 	# the drawing about its own centre and leaves it sitting on the receptor; the cover
 	# belongs where the TAIL is, which under downscroll is above. So the position is
 	# mirrored with it.
+	# BEHIND the receptor. This node is a sibling drawn after it, so both effects landed on
+	# top and the cover buried the arrow it belongs to instead of haloing it - a capture of
+	# the mod has the arrow drawn over its glow. A relative z_index of -1 puts just the
+	# cover under the receptor; the splash stays over it.
+	_cover.z_index = -1
 	_cover.flip_v = true
 	_cover.offset.y = -_cover_height() * 0.5
 

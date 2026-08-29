@@ -12,7 +12,7 @@ signal lane_released(lane_id: int)
 @export var opacity: float = 0.7
 
 var buttons: Array = []
-var hitboxes: Array[ColorRect] = []
+var hitboxes: Array[TextureRect] = []
 var lane_ids: Array = []
 
 # Mapeo de lanes a teclas (estándar FNF)
@@ -104,16 +104,45 @@ func _setup_buttons_mode() -> void:
 		buttons.append(btn)
 		lane_ids.append(i)
 
+## A gradient rather than a flat slab. A full-height ColorRect at one alpha reads as a
+## coloured pane over the stage - the whole column tints, characters included - and a
+## capture of a press shows it as exactly that. The feedback belongs where the fingers and
+## the receptors are, so it fades from nothing at the top to the lane's colour at the
+## bottom, and the peak alpha goes up to make up for the rest of the column being lighter.
 func _setup_hitbox_mode() -> void:
 	for i in range(lane_count):
-		var hb = ColorRect.new()
+		var hb = TextureRect.new()
 		hb.name = "HitboxColumn%d" % i
-		hb.color = lane_colors.get(i, Color(1, 1, 1, 0.15))
-		hb.color.a = 0.0  # Invisible por defecto
+		hb.texture = _create_column_gradient(lane_colors.get(i, Color(1, 1, 1, HITBOX_PEAK_ALPHA)))
+		hb.stretch_mode = TextureRect.STRETCH_SCALE
+		hb.modulate.a = 0.0  # Invisible por defecto
 
 		main_control.add_child(hb)
 		hitboxes.append(hb)
 		lane_ids.append(i)
+
+
+## Peak alpha at the bottom of a pressed column, before `opacity` scales it.
+const HITBOX_PEAK_ALPHA: float = 0.30
+
+
+func _create_column_gradient(color: Color) -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 1.0])
+	var top: Color = color
+	top.a = 0.0
+	var bottom: Color = color
+	bottom.a = HITBOX_PEAK_ALPHA
+	gradient.colors = PackedColorArray([top, bottom])
+
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill_from = Vector2(0.0, 0.0)
+	texture.fill_to = Vector2(0.0, 1.0)
+	# One column of pixels stretched across the lane: the gradient only varies vertically.
+	texture.width = 1
+	texture.height = 256
+	return texture
 
 func _create_circle_texture(color: Color) -> ImageTexture:
 	var size = int(button_size.x)
@@ -260,9 +289,7 @@ func _on_lane_pressed_visual(lane: int) -> void:
 		if lane >= 0 and lane < hitboxes.size():
 			var hb = hitboxes[lane]
 			if is_instance_valid(hb):
-				var base_color = lane_colors.get(lane, Color(1, 1, 1, 0.15))
-				hb.color = base_color
-				hb.color.a = opacity
+				hb.modulate.a = opacity
 
 func _on_lane_released_visual(lane: int) -> void:
 	if control_mode == "Buttons":
@@ -274,10 +301,7 @@ func _on_lane_released_visual(lane: int) -> void:
 		if lane >= 0 and lane < hitboxes.size():
 			var hb = hitboxes[lane]
 			if is_instance_valid(hb):
-				var tween = create_tween()
-				var target_color = hb.color
-				target_color.a = 0.0
-				tween.tween_property(hb, "color", target_color, 0.1)
+				create_tween().tween_property(hb, "modulate:a", 0.0, 0.1)
 
 func _send_input_event(lane: int, pressed_state: bool) -> void:
 	var event = InputEventKey.new()
