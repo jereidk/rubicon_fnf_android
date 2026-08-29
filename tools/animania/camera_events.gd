@@ -59,6 +59,8 @@ const FUNKIN_LERP_SPEED := 3.0
 const INSTANT_SPEED := 1000.0
 
 const CAMERA := ^"../RubiconInterpolatedCamera2D"
+## The node the method tracks call into; the punch track already points here.
+const CAMERA_EVENTS := ^"../PhoneCallEvents"
 
 ## phone-call.script's onBeatHit, the parts that are structure rather than tweens and
 ## modcharts. Beat 232 is standUP(): both characters swap to their standing versions and
@@ -119,7 +121,20 @@ func build(events: Array, length: float) -> Animation:
 	animation.step = 0.01
 
 	var position_track: int = _value_track(animation, NodePath("%s:position_interpolate_target" % CAMERA))
-	var snap_track: int = _value_track(animation, NodePath("%s:position" % CAMERA))
+	# An INSTANT focus is a ONE-SHOT, so it cannot be a value track. A value track writes
+	# its property every frame - between keys it interpolates, and past its last key it
+	# clamps - so a `:position` track does not snap the camera, it PINS it: it overwrote
+	# the interpolated camera every frame all song, and at 9.2s left it 579px from its own
+	# target, still sliding toward the next INSTANT nineteen events away. Measured against
+	# a capture of the original that put the whole stage 706px off.
+	#
+	# A method key fires once and then leaves the property alone, which is what a snap is.
+	# It gets a track of its own rather than sharing the punch track: the chart's two
+	# INSTANT focuses land at 0.0s and 91.5789s, which are exactly `opening` and `stand_up`
+	# on the script-beat table, and two method keys at one time on ONE track collapse into
+	# one. Two tracks keep both.
+	var snap_track: int = animation.add_track(Animation.TYPE_METHOD)
+	animation.track_set_path(snap_track, CAMERA_EVENTS)
 	var zoom_track: int = _value_track(animation, NodePath("%s:zoom_interpolate_target" % CAMERA))
 	var speed_track: int = _value_track(animation, NodePath("%s:position_interpolate_speed" % CAMERA))
 	var top_track: int = _value_track(animation, ^"../CinematicBars/Top:size")
@@ -127,7 +142,7 @@ func build(events: Array, length: float) -> Animation:
 	var bottom_y_track: int = _value_track(animation, ^"../CinematicBars/Bottom:position")
 
 	var punch_track: int = animation.add_track(Animation.TYPE_METHOD)
-	animation.track_set_path(punch_track, ^"../PhoneCallEvents")
+	animation.track_set_path(punch_track, CAMERA_EVENTS)
 
 	# Every track here is LINEAR, so a value has to be PINNED at the end of its tween or it
 	# slides straight on toward the next event's first key. That is not a rounding error:
@@ -160,8 +175,9 @@ func build(events: Array, length: float) -> Animation:
 	var zoom: float = _base_zoom
 	var speed: float = FUNKIN_LERP_SPEED
 
+	# No snap key here: the camera scene is already built sitting on the opponent's point,
+	# and the chart's first event is an INSTANT focus at 0.0s that would collide with it.
 	animation.track_insert_key(position_track, 0.0, focus)
-	animation.track_insert_key(snap_track, 0.0, focus)
 	animation.track_insert_key(zoom_track, 0.0, Vector2.ONE * zoom)
 	animation.track_insert_key(speed_track, 0.0, speed)
 	_bars(animation, top_track, bottom_track, bottom_y_track, 0.0, 0.0, 0.0, 0.0, "linear")
@@ -187,8 +203,12 @@ func build(events: Array, length: float) -> Animation:
 				var points: Dictionary = _stand_focus_points \
 					if time >= _stand_from and _stand_focus_points.has(character) \
 					else _focus_points
+				# The event's x/y are WORLD offsets in Funkin pixels, and this port keeps
+				# world coordinates verbatim - the 1.5 lives on the camera's zoom. They were
+				# being scaled by it, which put every focus 1.5x its own offset from the
+				# character it names; the largest in this chart is 350, so up to 175px out.
 				var target: Vector2 = points[character] + Vector2(
-					float(value.get("x", 0)), float(value.get("y", 0))) * FUNKIN_TO_RUBICON
+					float(value.get("x", 0)), float(value.get("y", 0)))
 				var ease_name: String = str(value.get("ease", "CLASSIC"))
 				var duration: float = float(value.get("duration", 4)) * STEP_SECONDS
 
@@ -196,7 +216,9 @@ func build(events: Array, length: float) -> Animation:
 					# Writing `position` sets where the camera IS; _process carries on
 					# lerping from there, so target plus position is a real snap.
 					animation.track_insert_key(position_track, time, target)
-					animation.track_insert_key(snap_track, time, target)
+					animation.track_insert_key(snap_track, time, {
+						"method": &"snap_camera", "args": [target],
+					})
 					focus = target
 				elif ease_name == "CLASSIC":
 					# Funkin's classic follow has no tween: the target jumps and the

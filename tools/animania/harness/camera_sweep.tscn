@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/animania/harness/camera_sweep.gd" id="1_s"]
+
+[node name="CameraSweep" type="Node2D"]
+script = ExtResource("1_s")

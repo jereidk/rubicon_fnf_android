@@ -196,6 +196,19 @@ func _ready() -> void:
 ## AddCameraZoom. `hud_zoom` is applied to the UI canvas about the middle of the screen -
 ## a CanvasLayer scales from its top-left corner, so scaling alone would slide the whole
 ## HUD up and to the left instead of pulsing it in place.
+## An INSTANT FocusCamera. Funkin's is `camFollow.setPosition(...)` with no tween, and the
+## camera is already sitting on the point when the next frame draws, so both the aim and
+## the position move.
+##
+## This is a method and not a baked value track on purpose: a value track writes its
+## property EVERY frame, so a `:position` track does not snap a camera, it pins one.
+func snap_camera(target: Vector2) -> void:
+	if camera == null:
+		return
+	camera.position = target
+	camera.position_interpolate_target = target
+
+
 func punch(game_zoom: float, hud_zoom: float) -> void:
 	if camera != null:
 		camera.zoom += Vector2.ONE * game_zoom

@@ -16,6 +16,13 @@ const SOURCE := "res://animania_mod/source/songs/phone-call/subtitles/song-lyric
 const FONT_SIZE := 39
 const OUTLINE_SIZE := 12
 
+## The line sits on a dark plate, not straight on the stage. Read off a capture of the mod
+## at 9.2s: the wall behind the box measures (237.5, 191.1, 183.5) and the box over it
+## (178.6, 140.7, 136.4) - the same 0.745 on all three channels, which is black at a
+## quarter alpha and not a tint. Drawn with BBCode rather than a panel so it hugs the text
+## the way the mod's does.
+const BACKDROP := "#00000040"
+
 @export var clock: Node
 
 var _cues: Array[Dictionary] = []
@@ -42,7 +49,8 @@ func _process(_delta: float) -> void:
 	if index == _showing:
 		return
 	_showing = index
-	text = "" if index < 0 else "[center]%s[/center]" % String(_cues[index]["text"])
+	text = "" if index < 0 else "[center][bgcolor=%s]%s[/bgcolor][/center]" % [
+		BACKDROP, String(_cues[index]["text"])]
 
 
 ## SubRip: blocks separated by a blank line, each an index, a `from --> to` line and the

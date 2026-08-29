@@ -19,7 +19,7 @@ const CAST := {
 	"tadano": {
 		"scene": "res://animania_mod/characters/chr_tadano.tscn",
 		"marker": "PlayerPoint", "offsets": Vector2(250, 180),
-		"camera_offsets": Vector2(-250, 100), "height": 833.0,
+		"camera_offsets": Vector2(-250, 100), "height": 1133.0,
 	},
 	"komi_opponent": {
 		"scene": "res://animania_mod/characters/chr_komi.tscn",

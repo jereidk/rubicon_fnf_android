@@ -61,13 +61,15 @@ const CHART_JSON := "res://animania_mod/source/songs/phone-call/phone-call-chart
 # multiplied by 1.5 to frame the same amount of world. See build_stage_scene.gd.
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 
-# The two singers, with the numbers each one's JSON authors. `height` is what
-# tools/animania/harness/measure_character.gd reports and is only used to find the
-# midpoint Funkin's camera aims at.
+# The two singers, with the numbers each one's JSON authors. `height` is the height of
+# Funkin's FRAME and is used only to find the midpoint its camera aims at - not the height
+# of the art drawn in it. For komi they coincide (sparrow frame 776, art 769 sitting on its
+# bottom edge); for tadano, an Animate atlas with no authored frame, they do not, and 1133
+# is measured against a capture of the original - see build_character_scenes.gd.
 const CAST := {
 	"Tadano": {
 		"scene": TADANO, "marker": "PlayerPoint", "offsets": Vector2(250, 180),
-		"camera_offsets": Vector2(-250, 100), "height": 833.0, "side": "Player",
+		"camera_offsets": Vector2(-250, 100), "height": 1133.0, "side": "Player",
 	},
 	"Komi": {
 		"scene": KOMI, "marker": "OpponentPoint", "offsets": Vector2(200, 50),
@@ -563,11 +565,18 @@ func _place_cast(stage: Node2D, ui: Dictionary) -> void:
 		# inert, because `node is Parallax2D or ParallaxBackground or ParallaxLayer` parses
 		# as `(node is Parallax2D) or ParallaxBackground or ...` and a class used as an
 		# expression is truthy - so a marker under any transform loses it in silence.
+		# Two sets of offsets, not one. Stage_obj::applyCharacterData in the mod's own
+		# binary does `cameraFocusPoint.x += charData.cameraOffsets[0]` and the same for y,
+		# ON TOP of the ones BaseCharacter_obj::resetCameraFocusPoint already added from the
+		# character JSON - so phoneCallStreet.json's [-80, -150] for bf, [-300, -150] for
+		# dad and [425, -150] for gf all count, and this port was dropping them.
+		var stage_offsets: Vector2 = marker.get_meta(&"camera_offsets", Vector2.ZERO)
 		var point := Marker2D.new()
 		point.name = "%sCameraPoint" % (side if not side.is_empty() else "Girlfriend")
 		point.position = (character.position
 			- Vector2(0.0, float(entry["height"]) * 0.5)
-			+ (entry["camera_offsets"] as Vector2))
+			+ (entry["camera_offsets"] as Vector2)
+			+ stage_offsets)
 		_root.add_child(point)
 
 
@@ -678,8 +687,11 @@ func _build_subtitles() -> void:
 	# shows the line just under the upper letterbox bar. The first version of this port put
 	# it at the bottom, reasoning that a subtitle usually goes there - but the bottom of
 	# this screen is where the receptors are, which is presumably why the mod does not.
-	label.offset_top = 120.0
-	label.offset_bottom = 240.0
+	#
+	# Where exactly comes off the same capture: the mod's line sits with its box between
+	# y=135 and y=167 of a 1280x720 frame, which is 202 project pixels down, not 120.
+	label.offset_top = 202.0
+	label.offset_bottom = 322.0
 	label.add_theme_font_size_override("normal_font_size", 39)
 	label.add_theme_constant_override("outline_size", 12)
 	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))

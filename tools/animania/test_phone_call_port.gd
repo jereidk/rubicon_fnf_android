@@ -176,9 +176,16 @@ func _check_character(path: String, character_name: String, expected: int) -> vo
 					"%s/%s: %s no tiene la propiedad" % [character_name, anim_name, path_string])
 
 	# Stage.addCharacter anchors by characterOrigin - horizontal centre, vertical BOTTOM -
-	# so a character node's own origin has to be its feet. Checked as "the art is drawn
-	# above and around the origin", which is what that means and what a corner-anchored
-	# character (the first version of this port) fails.
+	# so a character node's own origin has to be that point of its FRAME. Checked as "the
+	# art is drawn above the origin", which a corner-anchored character (the first version
+	# of this port) fails.
+	#
+	# Horizontally it is only checkable for komi. Her frame is the sparrow 307x776 and her
+	# art fills it, so centred art means a centred frame. tadano is an Animate atlas whose
+	# frame is much bigger than his art and is not readable from Animation.json, so his
+	# anchor is measured against a capture of the original instead - see
+	# build_character_scenes.gd. Asserting "centred" here would only assert the guess this
+	# port started with, which is exactly the guess that put him 755px off.
 	var drawn: Node2D = null
 	for child: Node in character.get_children():
 		if child is AnimatedSprite2D or child is AnimateSymbol:
@@ -190,8 +197,9 @@ func _check_character(path: String, character_name: String, expected: int) -> vo
 		_check(anchor.y < -100.0,
 			"%s no esta anclado por los pies: el sprite sale en y=%.1f" % [
 				character_name, anchor.y])
-		_check(absf(anchor.x) < 300.0,
-			"%s no esta centrado en horizontal: el sprite sale en x=%.1f" % [
+		var centred: float = 300.0 if character_name != "tadano" else 600.0
+		_check(absf(anchor.x) < centred,
+			"%s se dibuja en x=%.1f, fuera del marco que su origen dice tener" % [
 				character_name, anchor.x])
 
 	character.queue_free()
@@ -333,6 +341,32 @@ func _check_level() -> void:
 		var point: Node = level.find_child(point_name, true, false)
 		_check(point != null and point.get_parent() == level,
 			"%s no cuelga de la raiz del nivel" % point_name)
+
+	# TWO sets of camera offsets reach every marker, not one. Stage_obj::applyCharacterData
+	# in the mod's own binary adds the STAGE's cameraOffsets on top of the ones the
+	# character JSON already gave BaseCharacter_obj::resetCameraFocusPoint. Read here from
+	# phoneCallStreet.json rather than from the port, so the port cannot agree with itself:
+	# the marker has to sit exactly the stage's offset away from the character's midpoint.
+	var stage_data: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(STAGE_JSON))
+	# node name, marker name, the character JSON's own cameraOffsets, and the height of
+	# Funkin's frame (komi's sparrow frame; tadano's measured against the original).
+	var cast_points: Array = [
+		["bf", "Tadano", "PlayerCameraPoint", Vector2(-250, 100), 1133.0],
+		["dad", "Komi", "OpponentCameraPoint", Vector2(-225, 50), 776.0],
+		["gf", "KomiGirlfriend", "GirlfriendCameraPoint", Vector2(425, -150), 776.0],
+	]
+	for row: Array in cast_points:
+		var character: Node2D = level.find_child(row[1], true, false)
+		var offsets: Array = stage_data["characters"][row[0]]["cameraOffsets"]
+		var aimed_at: Vector2 = (character.position
+			- Vector2(0.0, float(row[4]) * 0.5)
+			+ (row[3] as Vector2)
+			+ Vector2(float(offsets[0]), float(offsets[1])))
+		var point2d: Node2D = level.get_node(row[2])
+		_check(point2d.position.distance_to(aimed_at) < 1.0,
+			"%s esta en %s y el JSON del escenario lo pone en %s" % [
+				row[2], point2d.position, aimed_at])
 
 	# An instanced Control loses its authored anchors unless layout_mode says to keep them.
 	# The health bar came out 4x27 in the top-left corner before that was set.
@@ -524,8 +558,12 @@ func _check_camera_events() -> void:
 				var points: Dictionary = stand_points \
 					if time >= STAND_UP_TIME and stand_points.has(character) \
 					else focus_points
+				# NOT scaled by FUNKIN_TO_RUBICON. The event's x/y are world offsets in
+				# Funkin pixels and this port keeps world coordinates verbatim; the 1.5
+				# lives on the camera's zoom. This check carried the same 1.5 the baker
+				# did, so it agreed with the bug instead of catching it.
 				var expected: Vector2 = points[character] + Vector2(
-					float(value.get("x", 0)), float(value.get("y", 0))) * FUNKIN_TO_RUBICON
+					float(value.get("x", 0)), float(value.get("y", 0)))
 				_check(camera.position_interpolate_target.distance_to(expected) < 1.0,
 					"FocusCamera en %.1fs apunta a %s y esperaba %s" % [
 						time, camera.position_interpolate_target, expected])

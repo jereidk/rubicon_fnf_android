@@ -29,12 +29,25 @@ const OUT_DIR := "res://animania_mod/characters"
 # 24fps in both atlases; the loop point is loopHoldFrame frames in.
 const FPS := 24.0
 
-# Funkin's characterOrigin. komi's is the sparrow frame size of idle0000 (307x776 in
-# komi.xml); tadano is an Animate atlas with no authored size, so its drawn bounds were
-# measured by rendering it - see tools/animania/harness/measure_character.gd. Re-measure
-# rather than adjust by eye if either character's art changes.
+# Funkin's characterOrigin, which is (width / 2, height) of the sprite's FRAME - not of
+# the art drawn inside it. For komi the two are the same thing: her sparrow frame is
+# 307x776 (idle0000 in komi.xml) and measure_character.gd renders 305x769 sitting centred
+# on the frame's bottom, so anchoring by the drawn bounds anchors by the frame.
+#
+# tadano is an Animate atlas and they are NOT the same thing. gdanimate draws him out of a
+# symbol tree with no authored frame, so this used his drawn bounds - and Funkin's frame
+# turns out to be far bigger than his art, with the art low and to the left inside it.
+# Using the drawn bounds put him 755px right and 21px low, which a capture of the original
+# at 9.2s measures directly: with the camera on its (corrected) mark the stage lines up to
+# a pixel and tadano did not. Both numbers below are that measurement.
+#
+# TADANO_ORIGIN is the frame's bottom-centre expressed in the symbol's own space, so
+# `symbol.position = -TADANO_ORIGIN` puts the character node's origin there.
+# TADANO_FRAME_HEIGHT is the same frame's height, and the camera needs it: Funkin aims at
+# the frame's MIDPOINT, so an 833 there aimed 150px below where the original aims.
 const KOMI_FRAME := Vector2(307.0, 776.0)
-const TADANO_DRAWN_ORIGIN := Vector2(-211.5, 855.0)
+const TADANO_ORIGIN := Vector2(543.5, 876.0)
+const TADANO_FRAME_HEIGHT := 1133.0
 
 
 func _init() -> void:
@@ -229,7 +242,7 @@ func _build_tadano() -> void:
 	symbol.atlas_index = 0
 	symbol.symbol = "chars render/tadano 1/tadano idle"
 	symbol.centered = false
-	symbol.position = -TADANO_DRAWN_ORIGIN
+	symbol.position = -TADANO_ORIGIN
 	# tadano.json declares flipX and this port applied it, which left him facing AWAY from
 	# komi - she stands to his right and he was looking right. Observation wins over the
 	# flag, the same way it did for the strumline sides: he faces her.
