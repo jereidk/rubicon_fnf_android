@@ -36,6 +36,13 @@ extends RubiconHealthBar
 
 func _ready() -> void:
 	super()
+	# Connected here rather than in the scene. RubiconHealthBar leans on its .tscn carrying
+	# `[connection signal="value_changed"]`, and a connect() made while building a scene in
+	# code is NOT stored by PackedScene.pack() unless it is flagged CONNECT_PERSIST - so the
+	# built bar came out with no connection at all and sat frozen at 50% for the whole song,
+	# icons included, because the parent updates the path follow from that same handler.
+	if not value_changed.is_connected(_on_value_changed):
+		value_changed.connect(_on_value_changed)
 	_repaint()
 
 

@@ -126,7 +126,8 @@ func _init() -> void:
 	root.set(&"opponent_fill", opponent_fill)
 	root.set(&"path", path)
 	root.set(&"path_follow", follow)
-	root.value_changed.connect(root._on_value_changed)
+	# No connect() here: PackedScene.pack() drops a connection that is not CONNECT_PERSIST,
+	# and the bar wires its own on _ready.
 
 	for node: Node in [art, frame, player_fill, opponent_fill, path, follow,
 			follow.get_child(0), follow.get_child(1)]:

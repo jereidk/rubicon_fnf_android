@@ -357,10 +357,18 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 			# komi.hx sets icon.flipX, and the atlas's poses are authored for it - which is
 			# why its "right" art is this port's sing_left.
 			"flip": true,
+			# And her ART flips back. `flip` only picks the side: Rubicon places an icon by
+			# the SIGN of scale.x, so the one on the far side of the follow point is
+			# mirrored as a side effect of being put there. Against a capture of the mod
+			# that came out backwards - the curved strand that sits on the right of her face
+			# was on the left - so the drawing is mirrored again, which leaves her where she
+			# was and facing the way the mod draws her.
+			"mirror": true,
 		},
 		"IconR": {
 			"frames": "res://animania_mod/characters/tadano_icon.tres",
 			"controller": ui["Player"], "inverted": true, "alt": false, "flip": false,
+			"mirror": false,
 		},
 	}
 
@@ -386,6 +394,9 @@ func _dress_icons(ui: Dictionary, health: Node) -> void:
 		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
 		var fit: float = ICON_HEIGHT / float(frame.get_height())
 		icon.scale = Vector2(-fit if entry["flip"] else fit, fit)
+		# flip_h and not another sign on the scale: the sign is what puts the icon on its
+		# side of the follow point, so mirroring the art has to happen inside the sprite.
+		icon.flip_h = entry["mirror"]
 
 		# offset is in the sprite's own space, and the bar authors -73 for bf's 138px icon:
 		# half its width. Keeping -73 for a 167px icon slides it out of place and overlaps
