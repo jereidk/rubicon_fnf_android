@@ -41,17 +41,6 @@
 [ext_resource type="SpriteFrames" uid="uid://bpftoiwuo1osv" path="res://lullaby_mod/assets/funkin/monochrome/intro/tex_mono_unowns_intro_frames.tres" id="38"]
 [ext_resource type="Script" uid="uid://c5st6d5bqjepj" path="res://lullaby_mod/songs/monochrome/scripts/monochrome_note_camera.gd" id="39"]
 [ext_resource type="Script" uid="uid://8thuf00inmg8" path="res://lullaby_mod/songs/monochrome/JumpscareShake.gd" id="40"]
-[ext_resource type="Texture2D" uid="uid://cmcrr4w1gfu5e" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/cut_mono_intro_bg_0.png" id="41"]
-[ext_resource type="Texture2D" uid="uid://dsefne2nrufgs" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/cut_mono_intro_bg_1.jpg" id="42"]
-[ext_resource type="Texture2D" uid="uid://c5vg1fykiyu0n" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/cut_mono_intro_bg_2.png" id="43"]
-[ext_resource type="Texture2D" uid="uid://dkoy1k04myv60" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/cut_mono_intro_bg_3.png" id="44"]
-[ext_resource type="Texture2D" uid="uid://dder5asp1qorw" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/cut_mono_intro_bg_4.png" id="45"]
-[ext_resource type="SpriteFrames" uid="uid://dfr4qgdngitpc" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_unown_frames.tres" id="46"]
-[ext_resource type="AnimationLibrary" uid="uid://c34aghsf8jcrr" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_unown_library.tres" id="47"]
-[ext_resource type="SpriteFrames" uid="uid://2tvrt7fl5pjm" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_rise_frames.tres" id="48"]
-[ext_resource type="AnimationLibrary" uid="uid://c8815ycf4qe4n" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_rise_library.tres" id="49"]
-[ext_resource type="SpriteFrames" uid="uid://cnmmhg5j2wqo3" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_celebi_frames.tres" id="50"]
-[ext_resource type="SpriteFrames" uid="uid://yqk0r5dei2su" path="res://lullaby_mod/assets/funkin/monochrome/cutscene/intro/anims/cut_mono_intro_unown_front_frames.tres" id="51"]
 [ext_resource type="SpriteFrames" uid="uid://kcifmp4uvgk3" path="res://lullaby_mod/assets/funkin/monochrome/stage/eyesfront/tex_fg_unowns.res" id="52"]
 [ext_resource type="AnimationLibrary" uid="uid://b7ocyv3jc85nl" path="res://lullaby_mod/assets/funkin/monochrome/stage/eyesfront/tex_fg_unowns_library.tres" id="53"]
 [ext_resource type="Material" uid="uid://c87gakvlk07sl" path="res://lullaby_mod/resources/shaders/blend_modes/additive.tres" id="54"]
@@ -87,6 +76,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/pause_icon_button.gd" id="204"]
 [ext_resource type="Script" uid="uid://6ut7qq2zy3rw" path="res://addons/rubicon_mania/scripts/rubicon_health_module_mania_misplay.gd" id="205"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/lullaby_effect_rect_gate.gd" id="301"]
+[ext_resource type="VideoStream" path="res://lullaby_mod/songs/monochrome/video/intro.ogv" id="intro_video"]
 
 [sub_resource type="Animation" id="Animation_w1qyd"]
 length = 0.001
@@ -884,6 +874,8 @@ markers = [{
 "name": &"buildup jumpscare",
 "time": 231.54167
 }]
+
+
 tracks/0/type = "audio"
 tracks/0/imported = false
 tracks/0/enabled = false
@@ -929,162 +921,164 @@ tracks/2/keys = {
 "times": PackedFloat32Array(1)
 }
 tracks/2/use_blend = true
-tracks/3/type = "animation"
+tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("../Front/Cutscene/IntroAnimationPlayer")
-tracks/3/interp = 1
+tracks/3/path = NodePath("../Black:visible")
+tracks/3/interp = 0
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"clips": PackedStringArray("intro", "RESET"),
-"times": PackedFloat32Array(1, 35)
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("../Black:visible")
-tracks/4/interp = 0
-tracks/4/loop_wrap = true
-tracks/4/keys = {
 "times": PackedFloat32Array(0, 20.041666),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("../UILayer/GameUI/Player:modulate")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("../UILayer/GameUI/Player:modulate")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
 "times": PackedFloat32Array(0, 31.2727, 34.0909, 266.54544, 294.63635, 295.81818),
 "transitions": PackedFloat32Array(1, 1, 0, 1, 1.3660405, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
 }
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("../Stage/GoldPhase1:visible")
-tracks/6/interp = 0
-tracks/6/loop_wrap = true
-tracks/6/keys = {
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("../Stage/GoldPhase1:visible")
+tracks/5/interp = 0
+tracks/5/loop_wrap = true
+tracks/5/keys = {
 "times": PackedFloat32Array(0, 19.666666, 152.08333),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
 }
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("../Stage/GoldPhase1:singing_should_sing")
-tracks/7/interp = 0
-tracks/7/loop_wrap = true
-tracks/7/keys = {
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("../Stage/GoldPhase1:singing_should_sing")
+tracks/6/interp = 0
+tracks/6/loop_wrap = true
+tracks/6/keys = {
 "times": PackedFloat32Array(0, 35.583332, 70.594, 72.756, 100.965, 103.12699, 107.912, 110.083336, 122.4128, 124.666664, 135.924, 138.08598, 145),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
-tracks/8/type = "animation"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("../Stage/GoldPhase1/AnimationPlayer")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
+tracks/7/type = "animation"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("../Stage/GoldPhase1/AnimationPlayer")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
 "clips": PackedStringArray("0_aura", "0_dance_idle", "0_throw_up", "0_dance_idle", "0_throw_up", "0_dance_idle", "1_jumpscare", "2_triple_jumpscare_first", "2_triple_jumpscare_second", "2_jumpscare_short", "2_dance_idle", "2_throw_up", "3_dance_idle", "3_jumpscare", "3_no_more"),
 "times": PackedFloat32Array(19.666666, 35.583332, 70.594, 72.719, 100.965, 103.09, 107.912, 122.431816, 122.61364, 122.833336, 124.666664, 135.91667, 138.08333, 145, 146.875)
 }
-tracks/9/type = "animation"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("../Stage/GoldPhase2/AnimationPlayer")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
+tracks/8/type = "animation"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("../Stage/GoldPhase2/AnimationPlayer")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
 "clips": PackedStringArray("dance_idle", "jumpscare_buildup_3", "dance_idle", "jumpscare_buildup_0", "jumpscare_buildup_1", "dance_idle", "jumpscare_buildup_0", "jumpscare_buildup_1", "jumpscare_buildup_2", "jumpscare_buildup_3", "dance_idle", "jumpscare", "dance_idle", "jumpscare_short", "dance_idle", "special_letssplitboys"),
 "times": PackedFloat32Array(151.375, 214.79167, 216.75, 218.875, 219.04167, 219.25, 231.54546, 231.81818, 232.09091, 232.375, 234.33333, 236.54167, 238.54167, 249.66667, 251.29167, 364.7159)
 }
-tracks/10/type = "value"
-tracks/10/imported = false
-tracks/10/enabled = true
-tracks/10/path = NodePath("../UILayer/GameUI:modulate")
-tracks/10/interp = 1
-tracks/10/loop_wrap = true
-tracks/10/keys = {
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("../UILayer/GameUI:modulate")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
 "times": PackedFloat32Array(0, 368.79166, 371.66666),
 "transitions": PackedFloat32Array(1, 2, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
-tracks/11/type = "value"
-tracks/11/imported = false
-tracks/11/enabled = true
-tracks/11/path = NodePath("../Front/RadialBlur:material:shader_parameter/intensity")
-tracks/11/interp = 1
-tracks/11/loop_wrap = true
-tracks/11/keys = {
+tracks/10/type = "value"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath("../Front/RadialBlur:material:shader_parameter/intensity")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = {
 "times": PackedFloat32Array(0, 107.916664, 108, 108.958336, 122.833336, 122.875, 123.083336, 145, 145.04166, 146.25, 214.79167, 214.87502, 216.04167, 232.375, 232.45833, 232.70834, 233.54167, 236.58333, 236.66666, 236.875, 237.91667, 240.9966, 241.66667, 241.8536, 242.0378, 249.66667, 249.70834, 249.91667, 250.66667, 331.29166, 382.5),
 "transitions": PackedFloat32Array(0, 0.5, 0.5, 1, 0.5, 1, 1, 0.5, 1, 1, 0.5, 1, 1, -2, 1, 1, 1, 0.5, 1, 1, 0, 0, 0, 0, 1, 0.5, 1, 1, 0, 1, 2),
 "update": 0,
 "values": [0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 1.334000063365, 1.334000063365, 2.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.50000002375, 0.50000002375]
 }
-tracks/12/type = "animation"
-tracks/12/imported = false
-tracks/12/enabled = true
-tracks/12/path = NodePath("../Stage/GoldPhase1/PoseGroupSwitcher")
-tracks/12/interp = 1
-tracks/12/loop_wrap = true
-tracks/12/keys = {
+tracks/11/type = "animation"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("../Stage/GoldPhase1/PoseGroupSwitcher")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = {
 "clips": PackedStringArray("initial", "after_1st", "after_2nd"),
 "times": PackedFloat32Array(0, 110.083336, 122.458336)
 }
-tracks/13/type = "value"
-tracks/13/imported = false
-tracks/13/enabled = true
-tracks/13/path = NodePath("../Stage/GoldPhase2:visible")
-tracks/13/interp = 0
-tracks/13/loop_wrap = true
-tracks/13/keys = {
+tracks/12/type = "value"
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/path = NodePath("../Stage/GoldPhase2:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = true
+tracks/12/keys = {
 "times": PackedFloat32Array(0, 151.375, 266.625, 329.375),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true]
 }
-tracks/14/type = "value"
-tracks/14/imported = false
-tracks/14/enabled = true
-tracks/14/path = NodePath("../Stage/GoldPhase2:singing_should_sing")
-tracks/14/interp = 0
-tracks/14/loop_wrap = true
-tracks/14/keys = {
+tracks/13/type = "value"
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/path = NodePath("../Stage/GoldPhase2:singing_should_sing")
+tracks/13/interp = 0
+tracks/13/loop_wrap = true
+tracks/13/keys = {
 "times": PackedFloat32Array(0, 145, 231.54546, 238.18182, 266.625, 329.375, 364.7159),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false]
 }
-tracks/15/type = "value"
-tracks/15/imported = false
-tracks/15/enabled = true
-tracks/15/path = NodePath("../UIBlack:visible")
-tracks/15/interp = 0
-tracks/15/loop_wrap = true
-tracks/15/keys = {
+tracks/14/type = "value"
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/path = NodePath("../UIBlack:visible")
+tracks/14/interp = 0
+tracks/14/loop_wrap = true
+tracks/14/keys = {
 "times": PackedFloat32Array(0, 122.431816, 122.47727, 122.61364, 122.65909, 122.77273, 122.84091, 218.875, 218.96591, 219.04167, 219.13258, 219.25, 219.34091, 231.45454, 231.54546, 231.72728, 231.81818, 232, 232.09091, 232.27272, 232.375, 329.36365, 330.9091),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
+tracks/15/type = "value"
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/path = NodePath("../Stage/TypingChallenge:active")
+tracks/15/interp = 0
+tracks/15/loop_wrap = true
+tracks/15/keys = {
+"times": PackedFloat32Array(0, 73, 84, 110.25, 121, 149.70833, 155.79167, 187.72728, 194, 219.18182, 226),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [false, true, false, true, false, true, false, true, false, true, false]
+}
 tracks/16/type = "value"
 tracks/16/imported = false
 tracks/16/enabled = true
-tracks/16/path = NodePath("../Stage/TypingChallenge:active")
+tracks/16/path = NodePath("../Stage/TypingChallenge:show_celebi")
 tracks/16/interp = 0
 tracks/16/loop_wrap = true
 tracks/16/keys = {
-"times": PackedFloat32Array(0, 73, 84, 110.25, 121, 149.70833, 155.79167, 187.72728, 194, 219.18182, 226),
+"times": PackedFloat32Array(0, 69, 84, 99.454544, 121, 134.36363, 155.79167, 187.72728, 194, 219.18182, 226),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false]
@@ -1092,269 +1086,269 @@ tracks/16/keys = {
 tracks/17/type = "value"
 tracks/17/imported = false
 tracks/17/enabled = true
-tracks/17/path = NodePath("../Stage/TypingChallenge:show_celebi")
+tracks/17/path = NodePath("../Stage/TypingChallenge:time_end")
 tracks/17/interp = 0
 tracks/17/loop_wrap = true
 tracks/17/keys = {
-"times": PackedFloat32Array(0, 69, 84, 99.454544, 121, 134.36363, 155.79167, 187.72728, 194, 219.18182, 226),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [false, true, false, true, false, true, false, true, false, true, false]
-}
-tracks/18/type = "value"
-tracks/18/imported = false
-tracks/18/enabled = true
-tracks/18/path = NodePath("../Stage/TypingChallenge:time_end")
-tracks/18/interp = 0
-tracks/18/loop_wrap = true
-tracks/18/keys = {
 "times": PackedFloat32Array(0, 69, 99.454544, 149.20833, 187.72728, 219.18182),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [0.0, 82.0, 117.5, 154.5, 192.5, 223.4]
 }
-tracks/19/type = "value"
-tracks/19/imported = false
-tracks/19/enabled = true
-tracks/19/path = NodePath("../Stage/TypingChallenge:prompt_user")
-tracks/19/interp = 0
-tracks/19/loop_wrap = true
-tracks/19/keys = {
+tracks/18/type = "value"
+tracks/18/imported = false
+tracks/18/enabled = true
+tracks/18/path = NodePath("../Stage/TypingChallenge:prompt_user")
+tracks/18/interp = 0
+tracks/18/loop_wrap = true
+tracks/18/keys = {
 "times": PackedFloat32Array(0, 75.258, 84, 111.15909, 121, 150.29167, 155.79167, 189.75, 194, 220.27272, 226),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false]
 }
-tracks/20/type = "value"
-tracks/20/imported = false
-tracks/20/enabled = true
-tracks/20/path = NodePath("../UIBlack/UIBlackFG:color")
-tracks/20/interp = 1
-tracks/20/loop_wrap = true
-tracks/20/keys = {
+tracks/19/type = "value"
+tracks/19/imported = false
+tracks/19/enabled = true
+tracks/19/path = NodePath("../UIBlack/UIBlackFG:color")
+tracks/19/interp = 1
+tracks/19/loop_wrap = true
+tracks/19/keys = {
 "times": PackedFloat32Array(0, 329.36365, 330.0909, 330.18182, 330.9091),
 "transitions": PackedFloat32Array(0, 1.624505, 0, 0, 0),
 "update": 0,
 "values": [Color(0, 0, 0, 1), Color(0, 0, 0, 0), Color(0, 0, 0, 1), Color(0, 0, 0, 1), Color(0.20784314, 0.050980393, 0.050980393, 0)]
 }
-tracks/21/type = "value"
-tracks/21/imported = false
-tracks/21/enabled = true
-tracks/21/path = NodePath("../UILayer/UIBlackBG:color")
-tracks/21/interp = 1
-tracks/21/loop_wrap = true
-tracks/21/keys = {
+tracks/20/type = "value"
+tracks/20/imported = false
+tracks/20/enabled = true
+tracks/20/path = NodePath("../UILayer/UIBlackBG:color")
+tracks/20/interp = 1
+tracks/20/loop_wrap = true
+tracks/20/keys = {
 "times": PackedFloat32Array(0, 330.36365, 330.9091, 331.0909, 331.27274, 369.29166, 374),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 0, 0.5, 1),
 "update": 0,
 "values": [Color(0, 0, 0, 1), Color(0, 0, 0, 1), Color(0.2091576, 0.0522894, 0.0522894, 1), Color(0.3137255, 0.078431375, 0.078431375, 0.6745098), Color(0.3137255, 0.078431375, 0.078431375, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 1)]
 }
-tracks/22/type = "value"
-tracks/22/imported = false
-tracks/22/enabled = true
-tracks/22/path = NodePath("../UILayer/UIBlackBG:visible")
-tracks/22/interp = 0
-tracks/22/loop_wrap = true
-tracks/22/keys = {
+tracks/21/type = "value"
+tracks/21/imported = false
+tracks/21/enabled = true
+tracks/21/path = NodePath("../UILayer/UIBlackBG:visible")
+tracks/21/interp = 0
+tracks/21/loop_wrap = true
+tracks/21/keys = {
 "times": PackedFloat32Array(0, 330.36365),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [false, true]
 }
+tracks/22/type = "animation"
+tracks/22/imported = false
+tracks/22/enabled = false
+tracks/22/path = NodePath("../MonoCloseup/Cutscene")
+tracks/22/interp = 1
+tracks/22/loop_wrap = true
+tracks/22/keys = {
+"clips": PackedStringArray("cutscene"),
+"times": PackedFloat32Array(266.45456)
+}
 tracks/23/type = "animation"
 tracks/23/imported = false
-tracks/23/enabled = false
-tracks/23/path = NodePath("../MonoCloseup/Cutscene")
+tracks/23/enabled = true
+tracks/23/path = NodePath("../BloodCutscene/BloodPlayer")
 tracks/23/interp = 1
 tracks/23/loop_wrap = true
 tracks/23/keys = {
-"clips": PackedStringArray("cutscene"),
-"times": PackedFloat32Array(266.45456)
+"clips": PackedStringArray("RESET", "cutscene_0", "cutscene_1", "RESET"),
+"times": PackedFloat32Array(0, 294.45456, 326.18182, 330.18182)
 }
 tracks/24/type = "animation"
 tracks/24/imported = false
 tracks/24/enabled = true
-tracks/24/path = NodePath("../BloodCutscene/BloodPlayer")
+tracks/24/path = NodePath("../MonoCloseup/Sequences")
 tracks/24/interp = 1
 tracks/24/loop_wrap = true
 tracks/24/keys = {
-"clips": PackedStringArray("RESET", "cutscene_0", "cutscene_1", "RESET"),
-"times": PackedFloat32Array(0, 294.45456, 326.18182, 330.18182)
-}
-tracks/25/type = "animation"
-tracks/25/imported = false
-tracks/25/enabled = true
-tracks/25/path = NodePath("../MonoCloseup/Sequences")
-tracks/25/interp = 1
-tracks/25/loop_wrap = true
-tracks/25/keys = {
 "clips": PackedStringArray("approach", "close_up", "crawl_side", "crawl_back", "red", "closer_up", "getting_up", "typho", "watching_hand_back", "watching_hand_side", "reaching_hand"),
 "times": PackedFloat32Array(266.45834, 267.20834, 270.875, 274.54166, 278.20834, 278.58334, 281.08334, 285.45834, 285.83334, 289.20834, 292.75)
 }
-tracks/26/type = "value"
-tracks/26/imported = false
-tracks/26/enabled = true
-tracks/26/path = NodePath("../MonoCloseup:visible")
-tracks/26/interp = 0
-tracks/26/loop_wrap = true
-tracks/26/keys = {
+tracks/25/type = "value"
+tracks/25/imported = false
+tracks/25/enabled = true
+tracks/25/path = NodePath("../MonoCloseup:visible")
+tracks/25/interp = 0
+tracks/25/loop_wrap = true
+tracks/25/keys = {
 "times": PackedFloat32Array(0, 266.45456, 294.58334),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
 }
-tracks/27/type = "value"
-tracks/27/imported = false
-tracks/27/enabled = true
-tracks/27/path = NodePath("../UILayer/GameUI/MonoHealthBar:modulate")
-tracks/27/interp = 1
-tracks/27/loop_wrap = true
-tracks/27/keys = {
+tracks/26/type = "value"
+tracks/26/imported = false
+tracks/26/enabled = true
+tracks/26/path = NodePath("../UILayer/GameUI/MonoHealthBar:modulate")
+tracks/26/interp = 1
+tracks/26/loop_wrap = true
+tracks/26/keys = {
 "times": PackedFloat32Array(0, 31.208334, 34.026535, 266.54166, 330.66666, 359.66666, 369.41666),
 "transitions": PackedFloat32Array(1, 1, 0, 0, 1, 3.2490091, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
-tracks/28/type = "animation"
-tracks/28/imported = false
-tracks/28/enabled = true
-tracks/28/path = NodePath("../BoyfriendScream/AnimationPlayer")
-tracks/28/interp = 1
-tracks/28/loop_wrap = true
-tracks/28/keys = {
+tracks/27/type = "animation"
+tracks/27/imported = false
+tracks/27/enabled = true
+tracks/27/path = NodePath("../BoyfriendScream/AnimationPlayer")
+tracks/27/interp = 1
+tracks/27/loop_wrap = true
+tracks/27/keys = {
 "clips": PackedStringArray("cutscene_0"),
 "times": PackedFloat32Array(240.9966)
 }
-tracks/29/type = "value"
-tracks/29/imported = false
-tracks/29/enabled = true
-tracks/29/path = NodePath("../BoyfriendScream:visible")
-tracks/29/interp = 0
-tracks/29/loop_wrap = true
-tracks/29/keys = {
+tracks/28/type = "value"
+tracks/28/imported = false
+tracks/28/enabled = true
+tracks/28/path = NodePath("../BoyfriendScream:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = true
+tracks/28/keys = {
 "times": PackedFloat32Array(0, 240.99751, 242.125),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
 }
-tracks/30/type = "value"
-tracks/30/imported = false
-tracks/30/enabled = true
-tracks/30/path = NodePath("../Stage/Peepers:progress")
-tracks/30/interp = 1
-tracks/30/loop_wrap = true
-tracks/30/keys = {
+tracks/29/type = "value"
+tracks/29/imported = false
+tracks/29/enabled = true
+tracks/29/path = NodePath("../Stage/Peepers:progress")
+tracks/29/interp = 1
+tracks/29/loop_wrap = true
+tracks/29/keys = {
 "times": PackedFloat32Array(0, 91.541664, 91.833336, 92.66667, 93.083336, 151.9167, 232.41667, 232.5, 233.04167, 233.41667, 236.70834, 236.79167, 237.41667, 237.75002, 249.83336, 249.91669, 250.54169, 250.87503, 329.58334, 330.04166, 362.5417, 382.09),
 "transitions": PackedFloat32Array(1, 0.5, 1, 0.5, 0, 0, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 1, 1, 2, 1),
 "update": 0,
 "values": [0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 }
-tracks/31/type = "animation"
-tracks/31/imported = false
-tracks/31/enabled = true
-tracks/31/path = NodePath("../Stage/UnownKing/KingsEye/AnimationPlayer")
-tracks/31/interp = 1
-tracks/31/loop_wrap = true
-tracks/31/keys = {
+tracks/30/type = "animation"
+tracks/30/imported = false
+tracks/30/enabled = true
+tracks/30/path = NodePath("../Stage/UnownKing/KingsEye/AnimationPlayer")
+tracks/30/interp = 1
+tracks/30/loop_wrap = true
+tracks/30/keys = {
 "clips": PackedStringArray("Open", "idle"),
 "times": PackedFloat32Array(363.70834, 364.83334)
 }
-tracks/32/type = "value"
-tracks/32/imported = false
-tracks/32/enabled = true
-tracks/32/path = NodePath("../Stage/UnownKing/KingsEye:visible")
-tracks/32/interp = 0
-tracks/32/loop_wrap = true
-tracks/32/keys = {
+tracks/31/type = "value"
+tracks/31/imported = false
+tracks/31/enabled = true
+tracks/31/path = NodePath("../Stage/UnownKing/KingsEye:visible")
+tracks/31/interp = 0
+tracks/31/loop_wrap = true
+tracks/31/keys = {
 "times": PackedFloat32Array(0, 330.29166),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [false, true]
 }
-tracks/33/type = "animation"
-tracks/33/imported = false
-tracks/33/enabled = true
-tracks/33/path = NodePath("../Stage/UnownKing/Pulse/AnimationPlayer")
-tracks/33/interp = 1
-tracks/33/loop_wrap = true
-tracks/33/keys = {
+tracks/32/type = "animation"
+tracks/32/imported = false
+tracks/32/enabled = true
+tracks/32/path = NodePath("../Stage/UnownKing/Pulse/AnimationPlayer")
+tracks/32/interp = 1
+tracks/32/loop_wrap = true
+tracks/32/keys = {
 "clips": PackedStringArray("pulse", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse_quick", "pulse_quick", "pulse_quick", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse_quick", "pulse_quick", "pulse_quick", "pulse", "pulse_quick", "pulse_quicker", "pulse_quicker", "pulse_quick", "pulse_quicker", "pulse_quicker", "pulse_quick", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quick", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker", "pulse_quicker"),
 "times": PackedFloat32Array(152, 153.625, 153.83333, 154.04167, 154.25, 154.45833, 154.66667, 154.875, 155.08333, 155.29167, 155.5, 155.70834, 155.91667, 156.125, 156.33334, 156.54167, 156.75, 156.95833, 157.16666, 157.375, 157.58333, 157.79166, 158, 158.20833, 158.41666, 158.625, 158.83333, 159.04167, 159.25, 159.45833, 159.66667, 159.875, 160.08333, 160.29167, 160.5, 160.70834, 160.91667, 161.125, 161.33334, 161.54167, 161.75, 161.95834, 162.37502, 162.58334, 162.79167, 163.00002, 163.20834, 163.41667, 163.625, 163.83333, 164.04166, 164.25, 164.45833, 164.66666, 164.875, 165.08333, 165.29166, 165.5, 165.70833, 165.91666, 166.125, 166.33333, 166.54167, 166.75, 166.95833, 167.16666, 167.37498, 167.58331, 167.79166, 167.99998, 168.20831, 168.41666, 168.62498, 168.83331, 169.04166, 169.24998, 169.45831, 169.66667, 169.875, 170.08334, 170.29167, 170.5, 170.70833, 170.91666, 171.125, 175.5, 177.73209, 177.95833, 178.20834, 178.45834, 178.68459, 178.91667, 179.16667, 179.39291, 179.625, 179.83333, 188.70833, 195.16667, 195.66544, 196.16667, 199.54167, 200.58333, 201.66667, 202.70834, 203.79167, 204.875, 205.91666, 207, 208.125, 209.20833, 210.33333, 211.37498, 212.45833, 213.5, 214.75, 214.95834, 215.16667, 215.375, 215.58334, 215.79167, 216, 223.625, 224.66667, 225.75, 226.83333, 227.93124, 229.04167, 230.125, 231.5, 231.75, 232.04167, 233.375, 237.875, 238.20833, 238.41667, 238.91667, 239.25, 239.45834, 239.95834, 240.29167, 240.50002, 241.91667, 243.04167, 244.125, 245.29167, 246.41667, 247.54167, 248.83334, 249, 249.20833, 249.41667, 249.58333, 251.31033, 253.54167, 253.75, 253.91667, 254.04167, 255.08333, 256.125, 257.25, 258.33334, 259.45834, 260.58334, 261.70834, 266.04166, 331.08334, 331.66666, 332.29166, 332.875, 333.45834, 334.0417, 334.625, 335.79166, 336.375, 336.91666, 337.45834, 338.04166, 338.625, 339.20834, 339.79166, 340.375, 340.9583, 341.54166, 342.12497, 342.74997, 344.37503, 344.95834, 345.5417, 346.125, 346.70834, 348.62503, 348.83334, 349.0417, 349.25, 349.45834, 349.6667, 349.875, 350.08334, 350.2917, 350.5, 350.70834, 350.9167, 351.125, 351.33334, 351.5417, 351.75, 351.95834, 352.1667, 352.375, 352.58334, 352.7917, 353, 353.20834, 353.4167, 353.625, 353.83334, 354.0417, 354.25, 354.45834, 354.6667, 354.875, 355.08334, 355.2917, 355.5, 355.70834, 355.9167, 356.125, 356.5417, 356.95834, 357.16666, 357.375, 357.7917, 358, 358.20834, 358.4167, 358.625, 358.83334, 359.0417, 359.25, 359.45834, 359.6667, 359.875, 360.08334, 360.2917, 360.5, 360.70834, 360.9167, 361.125, 361.33334, 361.5417, 361.75, 361.95834, 362.1667, 362.375, 362.58334, 362.7917, 363)
 }
-tracks/34/type = "animation"
-tracks/34/imported = false
-tracks/34/enabled = true
-tracks/34/path = NodePath("../Stage/IntroUnowns/AnimationPlayer")
-tracks/34/interp = 1
-tracks/34/loop_wrap = true
-tracks/34/keys = {
+tracks/33/type = "animation"
+tracks/33/imported = false
+tracks/33/enabled = true
+tracks/33/path = NodePath("../Stage/IntroUnowns/AnimationPlayer")
+tracks/33/interp = 1
+tracks/33/loop_wrap = true
+tracks/33/keys = {
 "clips": PackedStringArray("driveby", "driveby", "driveby", "driveby", "driveby", "driveby", "driveby", "driveby"),
 "times": PackedFloat32Array(151.75, 155.83333, 159.79167, 163.83333, 198.04167, 202.125, 206.08334, 210.125)
 }
-tracks/35/type = "value"
-tracks/35/imported = false
-tracks/35/enabled = true
-tracks/35/path = NodePath("../Stage/IntroUnowns:modulate")
-tracks/35/interp = 0
-tracks/35/loop_wrap = true
-tracks/35/keys = {
+tracks/34/type = "value"
+tracks/34/imported = false
+tracks/34/enabled = true
+tracks/34/path = NodePath("../Stage/IntroUnowns:modulate")
+tracks/34/interp = 0
+tracks/34/loop_wrap = true
+tracks/34/keys = {
 "times": PackedFloat32Array(0, 19.833334, 151.75, 198.04167, 202.125, 206.08333, 210.125),
 "transitions": PackedFloat32Array(0, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(0.9476804, 0, 0.37156987, 0.96862745), Color(0.98039216, 0, 0, 0.60784316), Color(0.9804042, 0, 0, 0.632), Color(0.9804042, 0, 0, 0.72900003), Color(0.9804042, 0, 0, 0.48200002), Color(0.9804042, 0, 0, 0.319)]
 }
-tracks/36/type = "value"
-tracks/36/imported = false
-tracks/36/enabled = true
-tracks/36/path = NodePath("../Stage/IntroUnowns:scale")
-tracks/36/interp = 0
-tracks/36/loop_wrap = true
-tracks/36/keys = {
+tracks/35/type = "value"
+tracks/35/imported = false
+tracks/35/enabled = true
+tracks/35/path = NodePath("../Stage/IntroUnowns:scale")
+tracks/35/interp = 0
+tracks/35/loop_wrap = true
+tracks/35/keys = {
 "times": PackedFloat32Array(0, 21.833334, 155.79167, 159.79167, 163.83334, 198.04167, 202.125, 206.08334, 210.125),
 "transitions": PackedFloat32Array(1, 0, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [Vector2(2, 2), Vector2(2, 2), Vector2(1.2, 1.2), Vector2(0.7, 0.7), Vector2(1.125, 1.125), Vector2(0.6, 0.6), Vector2(0.7, 0.7), Vector2(0.8, 0.8), Vector2(0.9, 0.9)]
 }
+tracks/36/type = "value"
+tracks/36/imported = false
+tracks/36/enabled = true
+tracks/36/path = NodePath("../Stage/IntroUnowns:rotation")
+tracks/36/interp = 0
+tracks/36/loop_wrap = true
+tracks/36/keys = {
+"times": PackedFloat32Array(0, 155.83333, 159.79167, 163.83334, 198.04167, 202.125, 206.08334, 210.125),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -1.5707963267948966, -2.007128639793479, 0.40666171571467896, -0.3490658503988659, -0.3298672286269279, 0.17453292519943295, 0.7976154681614084]
+}
 tracks/37/type = "value"
 tracks/37/imported = false
 tracks/37/enabled = true
-tracks/37/path = NodePath("../Stage/IntroUnowns:rotation")
+tracks/37/path = NodePath("../Stage/IntroUnowns:offset")
 tracks/37/interp = 0
 tracks/37/loop_wrap = true
 tracks/37/keys = {
 "times": PackedFloat32Array(0, 155.83333, 159.79167, 163.83334, 198.04167, 202.125, 206.08334, 210.125),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [0.0, -1.5707963267948966, -2.007128639793479, 0.40666171571467896, -0.3490658503988659, -0.3298672286269279, 0.17453292519943295, 0.7976154681614084]
+"values": [Vector2(0, 0), Vector2(100, -300), Vector2(-300, 500), Vector2(0, 0), Vector2(-1000, -100), Vector2(-300, -300), Vector2(700, -100), Vector2(100, -250)]
 }
 tracks/38/type = "value"
 tracks/38/imported = false
 tracks/38/enabled = true
-tracks/38/path = NodePath("../Stage/IntroUnowns:offset")
+tracks/38/path = NodePath("../UILayer/GameUI:visible")
 tracks/38/interp = 0
 tracks/38/loop_wrap = true
 tracks/38/keys = {
-"times": PackedFloat32Array(0, 155.83333, 159.79167, 163.83334, 198.04167, 202.125, 206.08334, 210.125),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(100, -300), Vector2(-300, 500), Vector2(0, 0), Vector2(-1000, -100), Vector2(-300, -300), Vector2(700, -100), Vector2(100, -250)]
-}
-tracks/39/type = "value"
-tracks/39/imported = false
-tracks/39/enabled = true
-tracks/39/path = NodePath("../UILayer/GameUI:visible")
-tracks/39/interp = 0
-tracks/39/loop_wrap = true
-tracks/39/keys = {
 "times": PackedFloat32Array(0, 240.9966, 241.66469, 241.72626, 241.8536, 241.90959, 242.03784),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [true, false, true, false, true, false, true]
 }
+tracks/39/type = "value"
+tracks/39/imported = false
+tracks/39/enabled = true
+tracks/39/path = NodePath("../BloodCutscene/BloodGold:visible")
+tracks/39/interp = 0
+tracks/39/loop_wrap = true
+tracks/39/keys = {
+"times": PackedFloat32Array(0, 314.0396, 326.19223),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [false, true, false]
+}
 tracks/40/type = "value"
 tracks/40/imported = false
 tracks/40/enabled = true
-tracks/40/path = NodePath("../BloodCutscene/BloodGold:visible")
+tracks/40/path = NodePath("../BloodCutscene/BloodBF:visible")
 tracks/40/interp = 0
 tracks/40/loop_wrap = true
 tracks/40/keys = {
@@ -1366,94 +1360,82 @@ tracks/40/keys = {
 tracks/41/type = "value"
 tracks/41/imported = false
 tracks/41/enabled = true
-tracks/41/path = NodePath("../BloodCutscene/BloodBF:visible")
+tracks/41/path = NodePath("../Stage/Peepers:hold_percent")
 tracks/41/interp = 0
 tracks/41/loop_wrap = true
 tracks/41/keys = {
-"times": PackedFloat32Array(0, 314.0396, 326.19223),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/42/type = "value"
-tracks/42/imported = false
-tracks/42/enabled = true
-tracks/42/path = NodePath("../Stage/Peepers:hold_percent")
-tracks/42/interp = 0
-tracks/42/loop_wrap = true
-tracks/42/keys = {
 "times": PackedFloat32Array(0, 232.41667, 236.70833, 249.83334),
 "transitions": PackedFloat32Array(1, 1, 0, 0),
 "update": 0,
 "values": [0.0, 0.5, 0.75, 1.0]
 }
-tracks/43/type = "value"
-tracks/43/imported = false
-tracks/43/enabled = true
-tracks/43/path = NodePath("../Stage/Peepers:hold_progress")
-tracks/43/interp = 1
-tracks/43/loop_wrap = true
-tracks/43/keys = {
+tracks/42/type = "value"
+tracks/42/imported = false
+tracks/42/enabled = true
+tracks/42/path = NodePath("../Stage/Peepers:hold_progress")
+tracks/42/interp = 1
+tracks/42/loop_wrap = true
+tracks/42/keys = {
 "times": PackedFloat32Array(0, 151.91667, 232.41667, 233.04167, 233.41667, 236.70834, 236.95833, 237.33334, 237.70834, 249.83336, 250.08334, 250.45836, 250.83336, 265.625, 266.54166, 329.95834, 330.04166),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 1, 1, 1),
 "update": 0,
 "values": [0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0]
 }
-tracks/44/type = "value"
-tracks/44/imported = false
-tracks/44/enabled = true
-tracks/44/path = NodePath("../Stage/Peepers:violent_shake_enabled")
-tracks/44/interp = 0
-tracks/44/loop_wrap = true
-tracks/44/keys = {
+tracks/43/type = "value"
+tracks/43/imported = false
+tracks/43/enabled = true
+tracks/43/path = NodePath("../Stage/Peepers:violent_shake_enabled")
+tracks/43/interp = 0
+tracks/43/loop_wrap = true
+tracks/43/keys = {
 "times": PackedFloat32Array(0, 232.41667, 233.41667, 236.70834, 237.5, 249.83333, 252),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false]
 }
-tracks/45/type = "value"
-tracks/45/imported = false
-tracks/45/enabled = true
-tracks/45/path = NodePath("../Stage/Peepers:violent_shake_amount")
-tracks/45/interp = 1
-tracks/45/loop_wrap = true
-tracks/45/keys = {
+tracks/44/type = "value"
+tracks/44/imported = false
+tracks/44/enabled = true
+tracks/44/path = NodePath("../Stage/Peepers:violent_shake_amount")
+tracks/44/interp = 1
+tracks/44/loop_wrap = true
+tracks/44/keys = {
 "times": PackedFloat32Array(0, 249.83333, 252),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [4.0, 4.0, 0.0]
 }
-tracks/46/type = "value"
-tracks/46/imported = false
-tracks/46/enabled = true
-tracks/46/path = NodePath("../Stage/Peepers:eye_style")
-tracks/46/interp = 0
-tracks/46/loop_wrap = true
-tracks/46/keys = {
+tracks/45/type = "value"
+tracks/45/imported = false
+tracks/45/enabled = true
+tracks/45/path = NodePath("../Stage/Peepers:eye_style")
+tracks/45/interp = 0
+tracks/45/loop_wrap = true
+tracks/45/keys = {
 "times": PackedFloat32Array(0, 151.66667, 232.41667),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [0, 1, 0]
 }
-tracks/47/type = "value"
-tracks/47/imported = false
-tracks/47/enabled = true
-tracks/47/path = NodePath("../Stage/Peepers:wobble_intensity")
-tracks/47/interp = 1
-tracks/47/loop_wrap = true
-tracks/47/keys = {
+tracks/46/type = "value"
+tracks/46/imported = false
+tracks/46/enabled = true
+tracks/46/path = NodePath("../Stage/Peepers:wobble_intensity")
+tracks/46/interp = 1
+tracks/46/loop_wrap = true
+tracks/46/keys = {
 "times": PackedFloat32Array(0, 330.04166, 382.09),
 "transitions": PackedFloat32Array(0, 0, 1),
 "update": 0,
 "values": [1.0, 15.0, 1.0]
 }
-tracks/48/type = "method"
-tracks/48/imported = false
-tracks/48/enabled = true
-tracks/48/path = NodePath("../Stage/UnownKing/KingsEye/AnimationPlayer")
-tracks/48/interp = 1
-tracks/48/loop_wrap = true
-tracks/48/keys = {
+tracks/47/type = "method"
+tracks/47/imported = false
+tracks/47/enabled = true
+tracks/47/path = NodePath("../Stage/UnownKing/KingsEye/AnimationPlayer")
+tracks/47/interp = 1
+tracks/47/loop_wrap = true
+tracks/47/keys = {
 "times": PackedFloat32Array(366.54166),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -1461,14 +1443,26 @@ tracks/48/keys = {
 "method": &"stop"
 }]
 }
+tracks/48/type = "value"
+tracks/48/imported = false
+tracks/48/enabled = true
+tracks/48/path = NodePath("../BloodCutscene/BloodGold:singing_should_sing")
+tracks/48/interp = 0
+tracks/48/loop_wrap = true
+tracks/48/keys = {
+"times": PackedFloat32Array(0, 314.25, 326.08334),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [false, true, false]
+}
 tracks/49/type = "value"
 tracks/49/imported = false
 tracks/49/enabled = true
-tracks/49/path = NodePath("../BloodCutscene/BloodGold:singing_should_sing")
+tracks/49/path = NodePath("../BloodCutscene/BloodBF:singing_should_sing")
 tracks/49/interp = 0
 tracks/49/loop_wrap = true
 tracks/49/keys = {
-"times": PackedFloat32Array(0, 314.25, 326.08334),
+"times": PackedFloat32Array(0, 314.16666, 326.08334),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
@@ -1476,142 +1470,130 @@ tracks/49/keys = {
 tracks/50/type = "value"
 tracks/50/imported = false
 tracks/50/enabled = true
-tracks/50/path = NodePath("../BloodCutscene/BloodBF:singing_should_sing")
+tracks/50/path = NodePath("../UILayer/GameUI/Player:material:shader")
 tracks/50/interp = 0
 tracks/50/loop_wrap = true
 tracks/50/keys = {
-"times": PackedFloat32Array(0, 314.16666, 326.08334),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/51/type = "value"
-tracks/51/imported = false
-tracks/51/enabled = true
-tracks/51/path = NodePath("../UILayer/GameUI/Player:material:shader")
-tracks/51/interp = 0
-tracks/51/loop_wrap = true
-tracks/51/keys = {
 "times": PackedFloat32Array(0, 294.5, 330.125),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [null, ExtResource("11"), null]
 }
-tracks/52/type = "value"
-tracks/52/imported = false
-tracks/52/enabled = true
-tracks/52/path = NodePath("../UILayer/GameUI/Player:material:shader_parameter/progress")
-tracks/52/interp = 1
-tracks/52/loop_wrap = true
-tracks/52/keys = {
+tracks/51/type = "value"
+tracks/51/imported = false
+tracks/51/enabled = true
+tracks/51/path = NodePath("../UILayer/GameUI/Player:material:shader_parameter/progress")
+tracks/51/interp = 1
+tracks/51/loop_wrap = true
+tracks/51/keys = {
 "times": PackedFloat32Array(313.16666, 313.54166, 328.08334, 328.375),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
 "values": [0.0, 1.0, 1.0, 0.0]
 }
-tracks/53/type = "value"
-tracks/53/imported = false
-tracks/53/enabled = true
-tracks/53/path = NodePath("../Stage/TypingChallenge:word_list")
-tracks/53/interp = 0
-tracks/53/loop_wrap = true
-tracks/53/keys = {
+tracks/52/type = "value"
+tracks/52/imported = false
+tracks/52/enabled = true
+tracks/52/path = NodePath("../Stage/TypingChallenge:word_list")
+tracks/52/interp = 0
+tracks/52/loop_wrap = true
+tracks/52/keys = {
 "times": PackedFloat32Array(0, 68.875, 149.20833, 171.75, 382.09),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 1,
 "values": [["leave", "dying", "hurry", "flash", "gold", "perish", "tiresome", "useless", "celebi", "cyndaquil", "typhlosion", "abandoned", "lost silver", "vultures", "who are you", "red", "mt silver", "its cold", "John Monochrome"], ["leave", "dying", "hurry", "flash", "gold", "perish", "tiresome", "useless", "celebi", "cyndaquil", "typhlosion", "abandoned", "lost silver", "vultures", "who are you", "red", "mt silver", "its cold", "John Monochrome"], ["leave", "dying", "hurry", "flash", "gold", "perish", "tiresome", "useless", "celebi", "cyndaquil", "typhlosion", "abandoned", "lost silver", "vultures", "who are you", "red", "mt silver", "its cold", "John Monochrome"], ["all seeing", "leave", "hollow", "hallow", "unown", "hurry", "praise be", "enlight", "here", "join", "sacrifice", "susej", "release", "no one", "beast", "century"], ["all seeing", "leave", "hollow", "hallow", "unown", "hurry", "praise be", "enlight", "here", "join", "sacrifice", "susej", "release", "no one", "beast", "century"]]
 }
-tracks/54/type = "value"
-tracks/54/imported = false
-tracks/54/enabled = true
-tracks/54/path = NodePath("../Stage/Peepers:visible")
-tracks/54/interp = 0
-tracks/54/loop_wrap = true
-tracks/54/keys = {
+tracks/53/type = "value"
+tracks/53/imported = false
+tracks/53/enabled = true
+tracks/53/path = NodePath("../Stage/Peepers:visible")
+tracks/53/interp = 0
+tracks/53/loop_wrap = true
+tracks/53/keys = {
 "times": PackedFloat32Array(0, 91.541664, 92.958336, 151.91667, 205.375, 232.41667, 241, 242.08333, 266.54166, 330.04166),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true]
 }
+tracks/54/type = "value"
+tracks/54/imported = false
+tracks/54/enabled = true
+tracks/54/path = NodePath("../PauseMenu/PauseMenu/LeftSide/Sprite:animation")
+tracks/54/interp = 0
+tracks/54/loop_wrap = true
+tracks/54/keys = {
+"times": PackedFloat32Array(0, 151.625),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [&"boyfriend", &"boyfriend_phase2"]
+}
 tracks/55/type = "value"
 tracks/55/imported = false
 tracks/55/enabled = true
-tracks/55/path = NodePath("../PauseMenu/PauseMenu/LeftSide/Sprite:animation")
+tracks/55/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:animation")
 tracks/55/interp = 0
 tracks/55/loop_wrap = true
 tracks/55/keys = {
 "times": PackedFloat32Array(0, 151.625),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [&"boyfriend", &"boyfriend_phase2"]
+"values": [&"gold", &"gold_phase2"]
 }
 tracks/56/type = "value"
 tracks/56/imported = false
 tracks/56/enabled = true
-tracks/56/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:animation")
+tracks/56/path = NodePath("../PauseMenu/PauseMenu/LeftSide/Sprite:position")
 tracks/56/interp = 0
 tracks/56/loop_wrap = true
 tracks/56/keys = {
 "times": PackedFloat32Array(0, 151.625),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [&"gold", &"gold_phase2"]
+"values": [Vector2(406, -539), Vector2(357, -539)]
 }
 tracks/57/type = "value"
 tracks/57/imported = false
 tracks/57/enabled = true
-tracks/57/path = NodePath("../PauseMenu/PauseMenu/LeftSide/Sprite:position")
+tracks/57/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:position")
 tracks/57/interp = 0
 tracks/57/loop_wrap = true
 tracks/57/keys = {
 "times": PackedFloat32Array(0, 151.625),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(406, -539), Vector2(357, -539)]
+"values": [Vector2(480, -539), Vector2(580, -539)]
 }
 tracks/58/type = "value"
 tracks/58/imported = false
 tracks/58/enabled = true
-tracks/58/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:position")
+tracks/58/path = NodePath("../UILayer/GameUI/MonoHealthBar:visible")
 tracks/58/interp = 0
 tracks/58/loop_wrap = true
 tracks/58/keys = {
-"times": PackedFloat32Array(0, 151.625),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(480, -539), Vector2(580, -539)]
-}
-tracks/59/type = "value"
-tracks/59/imported = false
-tracks/59/enabled = true
-tracks/59/path = NodePath("../UILayer/GameUI/MonoHealthBar:visible")
-tracks/59/interp = 0
-tracks/59/loop_wrap = true
-tracks/59/keys = {
 "times": PackedFloat32Array(0, 241, 242),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [true, false, true]
 }
-tracks/60/type = "value"
-tracks/60/imported = false
-tracks/60/enabled = true
-tracks/60/path = NodePath("../Front/FrontEyes:scale")
-tracks/60/interp = 1
-tracks/60/loop_wrap = true
-tracks/60/keys = {
+tracks/59/type = "value"
+tracks/59/imported = false
+tracks/59/enabled = true
+tracks/59/path = NodePath("../Front/FrontEyes:scale")
+tracks/59/interp = 1
+tracks/59/loop_wrap = true
+tracks/59/keys = {
 "times": PackedFloat32Array(0, 265.41666, 266.41666, 330.20834, 331.375),
 "transitions": PackedFloat32Array(1, 2, 1, -2, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(1, 1), Vector2(1, 1), Vector2(1, 1), Vector2(1, 1)]
 }
-tracks/61/type = "method"
-tracks/61/imported = false
-tracks/61/enabled = true
-tracks/61/path = NodePath("../Stage/TypingChallenge")
-tracks/61/interp = 1
-tracks/61/loop_wrap = true
-tracks/61/keys = {
+tracks/60/type = "method"
+tracks/60/imported = false
+tracks/60/enabled = true
+tracks/60/path = NodePath("../Stage/TypingChallenge")
+tracks/60/interp = 1
+tracks/60/loop_wrap = true
+tracks/60/keys = {
 "times": PackedFloat32Array(150, 330.29166),
 "transitions": PackedFloat32Array(1, 1),
 "values": [{
@@ -1622,74 +1604,86 @@ tracks/61/keys = {
 "method": &"add_one_fail"
 }]
 }
-tracks/62/type = "value"
-tracks/62/imported = false
-tracks/62/enabled = true
-tracks/62/path = NodePath("../Stage/Peepers:stagger_amount")
-tracks/62/interp = 0
-tracks/62/loop_wrap = true
-tracks/62/keys = {
+tracks/61/type = "value"
+tracks/61/imported = false
+tracks/61/enabled = true
+tracks/61/path = NodePath("../Stage/Peepers:stagger_amount")
+tracks/61/interp = 0
+tracks/61/loop_wrap = true
+tracks/61/keys = {
 "times": PackedFloat32Array(91.541664, 232.375),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [0.561, 0.706]
 }
-tracks/63/type = "value"
-tracks/63/imported = false
-tracks/63/enabled = true
-tracks/63/path = NodePath("../Front/FrontEyes:visible")
-tracks/63/interp = 0
-tracks/63/loop_wrap = true
-tracks/63/keys = {
+tracks/62/type = "value"
+tracks/62/imported = false
+tracks/62/enabled = true
+tracks/62/path = NodePath("../Front/FrontEyes:visible")
+tracks/62/interp = 0
+tracks/62/loop_wrap = true
+tracks/62/keys = {
 "times": PackedFloat32Array(0, 241, 242.125, 266.41666, 330.20834, 368.75),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [true, false, true, false, true, false]
 }
-tracks/64/type = "value"
-tracks/64/imported = false
-tracks/64/enabled = true
-tracks/64/path = NodePath("../Stage/Peepers:movement_speed")
-tracks/64/interp = 1
-tracks/64/loop_wrap = true
-tracks/64/keys = {
+tracks/63/type = "value"
+tracks/63/imported = false
+tracks/63/enabled = true
+tracks/63/path = NodePath("../Stage/Peepers:movement_speed")
+tracks/63/interp = 1
+tracks/63/loop_wrap = true
+tracks/63/keys = {
 "times": PackedFloat32Array(0, 232.375, 330.83334, 364.70834, 366.54166),
 "transitions": PackedFloat32Array(0, 0, 2, 2, 1),
 "update": 0,
 "values": [1.0, 2.0, 2.0, 7.0, 0.0]
 }
-tracks/65/type = "value"
-tracks/65/imported = false
-tracks/65/enabled = true
-tracks/65/path = NodePath("../IntroCamera/RubiconStrumTracker:move_amount")
-tracks/65/interp = 0
-tracks/65/loop_wrap = true
-tracks/65/keys = {
+tracks/64/type = "value"
+tracks/64/imported = false
+tracks/64/enabled = true
+tracks/64/path = NodePath("../IntroCamera/RubiconStrumTracker:move_amount")
+tracks/64/interp = 0
+tracks/64/loop_wrap = true
+tracks/64/keys = {
 "times": PackedFloat32Array(0, 34.5, 91.541664, 124.666664, 151.375, 173.45833, 189.41667, 195.20833, 195.75, 196.79167, 197.375, 198.45833, 199.58333, 201.75, 208.29167, 210.45833, 214.875, 223.625, 225.91667, 227.91667, 231.54167, 232.375, 236.58333, 241.625, 244.29167, 246.45833, 248.66667, 249.375, 249.79167, 251.91667, 252.75, 256.79166, 258.45834, 261, 262.83334, 331.16666),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [8.0, 4.0, 8.0, 12.0, 16.0, 18.0, 20.0, 18.0, 14.0, 10.0, 18.0, 20.0, 16.0, 20.0, 22.0, 24.0, 12.0, 16.0, 18.0, 20.0, 22.0, 12.0, 16.0, 20.0, 24.0, 26.0, 24.0, 26.0, 28.0, 20.0, 16.0, 12.0, 24.0, 22.0, 20.0, 32.0]
 }
-tracks/66/type = "value"
-tracks/66/imported = false
-tracks/66/enabled = true
-tracks/66/path = NodePath("../IntroCamera/RubiconStrumTracker:enabled")
-tracks/66/interp = 0
-tracks/66/loop_wrap = true
-tracks/66/keys = {
+tracks/65/type = "value"
+tracks/65/imported = false
+tracks/65/enabled = true
+tracks/65/path = NodePath("../IntroCamera/RubiconStrumTracker:enabled")
+tracks/65/interp = 0
+tracks/65/loop_wrap = true
+tracks/65/keys = {
 "times": PackedFloat32Array(0, 34.5, 151.625, 266.08334, 331.16666, 363.83334),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, true, false, true, false]
 }
+tracks/66/type = "value"
+tracks/66/imported = false
+tracks/66/enabled = true
+tracks/66/path = NodePath("../Stage/GoldPhase2:modulate")
+tracks/66/interp = 0
+tracks/66/loop_wrap = true
+tracks/66/keys = {
+"times": PackedFloat32Array(0, 369.125),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(0, 0, 0, 1)]
+}
 tracks/67/type = "value"
 tracks/67/imported = false
 tracks/67/enabled = true
-tracks/67/path = NodePath("../Stage/GoldPhase2:modulate")
+tracks/67/path = NodePath("../Stage/Peepers:modulate")
 tracks/67/interp = 0
 tracks/67/loop_wrap = true
 tracks/67/keys = {
-"times": PackedFloat32Array(0, 369.125),
+"times": PackedFloat32Array(0, 368.95834),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(0, 0, 0, 1)]
@@ -1697,46 +1691,34 @@ tracks/67/keys = {
 tracks/68/type = "value"
 tracks/68/imported = false
 tracks/68/enabled = true
-tracks/68/path = NodePath("../Stage/Peepers:modulate")
-tracks/68/interp = 0
+tracks/68/path = NodePath("../IntroCamera:zoom")
+tracks/68/interp = 1
 tracks/68/loop_wrap = true
 tracks/68/keys = {
-"times": PackedFloat32Array(0, 368.95834),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(0, 0, 0, 1)]
-}
-tracks/69/type = "value"
-tracks/69/imported = false
-tracks/69/enabled = true
-tracks/69/path = NodePath("../IntroCamera:zoom")
-tracks/69/interp = 1
-tracks/69/loop_wrap = true
-tracks/69/keys = {
 "times": PackedFloat32Array(147.54167, 153.45833, 173.45833, 223.625, 231.45833, 231.54167, 370.16666, 374.83334),
 "transitions": PackedFloat32Array(-2, -2, 1, 1, 0, 1, -2, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(0.6, 0.6), Vector2(1, 1), Vector2(1, 1), Vector2(1.5, 1.5), Vector2(1, 1), Vector2(1, 1), Vector2(0.7, 0.7)]
 }
-tracks/70/type = "value"
-tracks/70/imported = false
-tracks/70/enabled = true
-tracks/70/path = NodePath("../IntroCamera:position")
-tracks/70/interp = 1
-tracks/70/loop_wrap = true
-tracks/70/keys = {
+tracks/69/type = "value"
+tracks/69/imported = false
+tracks/69/enabled = true
+tracks/69/path = NodePath("../IntroCamera:position")
+tracks/69/interp = 1
+tracks/69/loop_wrap = true
+tracks/69/keys = {
 "times": PackedFloat32Array(0, 370.16666, 374.83334),
 "transitions": PackedFloat32Array(1, -2, 1),
 "update": 0,
 "values": [Vector2(960, 540), Vector2(960, 540), Vector2(960, 0)]
 }
-tracks/71/type = "method"
-tracks/71/imported = false
-tracks/71/enabled = true
-tracks/71/path = NodePath("../UILayer/GameUI/MonoHealthBar")
-tracks/71/interp = 1
-tracks/71/loop_wrap = true
-tracks/71/keys = {
+tracks/70/type = "method"
+tracks/70/imported = false
+tracks/70/enabled = true
+tracks/70/path = NodePath("../UILayer/GameUI/MonoHealthBar")
+tracks/70/interp = 1
+tracks/70/loop_wrap = true
+tracks/70/keys = {
 "times": PackedFloat32Array(330.45834),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -1744,13 +1726,13 @@ tracks/71/keys = {
 "method": &"_on_typing_challenge_force_second_fail"
 }]
 }
-tracks/72/type = "method"
-tracks/72/imported = false
-tracks/72/enabled = true
-tracks/72/path = NodePath("../Front/FrontEyes/EyeSegmentPlayer")
-tracks/72/interp = 1
-tracks/72/loop_wrap = true
-tracks/72/keys = {
+tracks/71/type = "method"
+tracks/71/imported = false
+tracks/71/enabled = true
+tracks/71/path = NodePath("../Front/FrontEyes/EyeSegmentPlayer")
+tracks/71/interp = 1
+tracks/71/loop_wrap = true
+tracks/71/keys = {
 "times": PackedFloat32Array(366.54166),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -1758,59 +1740,59 @@ tracks/72/keys = {
 "method": &"stop"
 }]
 }
-tracks/73/type = "animation"
-tracks/73/imported = false
-tracks/73/enabled = true
-tracks/73/path = NodePath("../Front/FrontEyes/EyeSegmentPlayer")
-tracks/73/interp = 1
-tracks/73/loop_wrap = true
-tracks/73/keys = {
+tracks/72/type = "animation"
+tracks/72/imported = false
+tracks/72/enabled = true
+tracks/72/path = NodePath("../Front/FrontEyes/EyeSegmentPlayer")
+tracks/72/interp = 1
+tracks/72/loop_wrap = true
+tracks/72/keys = {
 "clips": PackedStringArray("FullOut", "Full"),
 "times": PackedFloat32Array(265.41666, 330.20834)
 }
-tracks/74/type = "value"
-tracks/74/imported = false
-tracks/74/enabled = true
-tracks/74/path = NodePath("../Stage/UnownKing/Pulse:scale")
-tracks/74/interp = 1
-tracks/74/loop_wrap = true
-tracks/74/keys = {
+tracks/73/type = "value"
+tracks/73/imported = false
+tracks/73/enabled = true
+tracks/73/path = NodePath("../Stage/UnownKing/Pulse:scale")
+tracks/73/interp = 1
+tracks/73/loop_wrap = true
+tracks/73/keys = {
 "times": PackedFloat32Array(147.54167, 153.45833, 173.45833, 223.625, 231.47571, 231.54167, 370.16663, 374.8333),
 "transitions": PackedFloat32Array(-2, -2, 1, 1, 0, 1, -2, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(1.8, 1.8), Vector2(1, 1), Vector2(1, 1), Vector2(0.75, 0.75), Vector2(1, 1), Vector2(1, 1), Vector2(1.4, 1.4)]
 }
-tracks/75/type = "value"
-tracks/75/imported = false
-tracks/75/enabled = true
-tracks/75/path = NodePath("../Stage/UnownKing/KingsEye:scale")
-tracks/75/interp = 1
-tracks/75/loop_wrap = true
-tracks/75/keys = {
+tracks/74/type = "value"
+tracks/74/imported = false
+tracks/74/enabled = true
+tracks/74/path = NodePath("../Stage/UnownKing/KingsEye:scale")
+tracks/74/interp = 1
+tracks/74/loop_wrap = true
+tracks/74/keys = {
 "times": PackedFloat32Array(370.16666, 374.83334),
 "transitions": PackedFloat32Array(-2, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(0.7, 0.7)]
 }
-tracks/76/type = "value"
-tracks/76/imported = false
-tracks/76/enabled = true
-tracks/76/path = NodePath("../Stage/UnownKing/TextureRect:scale")
-tracks/76/interp = 1
-tracks/76/loop_wrap = true
-tracks/76/keys = {
+tracks/75/type = "value"
+tracks/75/imported = false
+tracks/75/enabled = true
+tracks/75/path = NodePath("../Stage/UnownKing/TextureRect:scale")
+tracks/75/interp = 1
+tracks/75/loop_wrap = true
+tracks/75/keys = {
 "times": PackedFloat32Array(147.54167, 153.45833, 173.45833, 223.625, 231.45833, 231.54167, 370.16666, 374.83334),
 "transitions": PackedFloat32Array(-2, -2, 1, 1, 0, 1, -2, 1),
 "update": 0,
 "values": [Vector2(1, 1), Vector2(1.8, 1.8), Vector2(1, 1), Vector2(1, 1), Vector2(0.75, 0.75), Vector2(1, 1), Vector2(1, 1), Vector2(1.4, 1.4)]
 }
-tracks/77/type = "method"
-tracks/77/imported = false
-tracks/77/enabled = true
-tracks/77/path = NodePath("../IntroCamera/RubiconCameraShake")
-tracks/77/interp = 1
-tracks/77/loop_wrap = true
-tracks/77/keys = {
+tracks/76/type = "method"
+tracks/76/imported = false
+tracks/76/enabled = true
+tracks/76/path = NodePath("../IntroCamera/RubiconCameraShake")
+tracks/76/interp = 1
+tracks/76/loop_wrap = true
+tracks/76/keys = {
 "times": PackedFloat32Array(214.875, 215.54167, 232.45833, 233.16667, 236.75, 237.375, 249.83333, 250.16667),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
 "values": [{
@@ -1839,14 +1821,26 @@ tracks/77/keys = {
 "method": &"stop"
 }]
 }
+tracks/77/type = "value"
+tracks/77/imported = false
+tracks/77/enabled = true
+tracks/77/path = NodePath("../UILayer/GameUI/Player/Lane0:modulate")
+tracks/77/interp = 1
+tracks/77/loop_wrap = true
+tracks/77/keys = {
+"times": PackedFloat32Array(365.625, 366.66666),
+"transitions": PackedFloat32Array(0.70710677, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
 tracks/78/type = "value"
 tracks/78/imported = false
 tracks/78/enabled = true
-tracks/78/path = NodePath("../UILayer/GameUI/Player/Lane0:modulate")
+tracks/78/path = NodePath("../UILayer/GameUI/Player/Lane1:modulate")
 tracks/78/interp = 1
 tracks/78/loop_wrap = true
 tracks/78/keys = {
-"times": PackedFloat32Array(365.625, 366.66666),
+"times": PackedFloat32Array(367.70834, 369.75),
 "transitions": PackedFloat32Array(0.70710677, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
@@ -1854,11 +1848,11 @@ tracks/78/keys = {
 tracks/79/type = "value"
 tracks/79/imported = false
 tracks/79/enabled = true
-tracks/79/path = NodePath("../UILayer/GameUI/Player/Lane1:modulate")
+tracks/79/path = NodePath("../UILayer/GameUI/Player/Lane2:modulate")
 tracks/79/interp = 1
 tracks/79/loop_wrap = true
 tracks/79/keys = {
-"times": PackedFloat32Array(367.70834, 369.75),
+"times": PackedFloat32Array(366.41666, 367.58334),
 "transitions": PackedFloat32Array(0.70710677, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
@@ -1866,11 +1860,11 @@ tracks/79/keys = {
 tracks/80/type = "value"
 tracks/80/imported = false
 tracks/80/enabled = true
-tracks/80/path = NodePath("../UILayer/GameUI/Player/Lane2:modulate")
+tracks/80/path = NodePath("../UILayer/GameUI/Player/Lane3:modulate")
 tracks/80/interp = 1
 tracks/80/loop_wrap = true
 tracks/80/keys = {
-"times": PackedFloat32Array(366.41666, 367.58334),
+"times": PackedFloat32Array(364.58334, 365.5),
 "transitions": PackedFloat32Array(0.70710677, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
@@ -1878,52 +1872,53 @@ tracks/80/keys = {
 tracks/81/type = "value"
 tracks/81/imported = false
 tracks/81/enabled = true
-tracks/81/path = NodePath("../UILayer/GameUI/Player/Lane3:modulate")
-tracks/81/interp = 1
+tracks/81/path = NodePath("../Stage/IntroUnowns:visible")
+tracks/81/interp = 0
 tracks/81/loop_wrap = true
 tracks/81/keys = {
-"times": PackedFloat32Array(364.58334, 365.5),
-"transitions": PackedFloat32Array(0.70710677, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
-}
-tracks/82/type = "value"
-tracks/82/imported = false
-tracks/82/enabled = true
-tracks/82/path = NodePath("../Stage/IntroUnowns:visible")
-tracks/82/interp = 0
-tracks/82/loop_wrap = true
-tracks/82/keys = {
 "times": PackedFloat32Array(0, 19.833334, 26, 151.75, 154.5, 155.83333, 158.58333, 159.79167, 162.54167, 163.83333, 166.58333, 198.04167, 200.79167, 202.125, 204.875, 206.08333, 208.83333, 210.125, 212.875),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false]
 }
-tracks/83/type = "value"
-tracks/83/imported = false
-tracks/83/enabled = true
-tracks/83/path = NodePath("../Stage/UnownKing/TextureRect:visible")
-tracks/83/interp = 0
-tracks/83/loop_wrap = true
-tracks/83/keys = {
+tracks/82/type = "value"
+tracks/82/imported = false
+tracks/82/enabled = true
+tracks/82/path = NodePath("../Stage/UnownKing/TextureRect:visible")
+tracks/82/interp = 0
+tracks/82/loop_wrap = true
+tracks/82/keys = {
 "times": PackedFloat32Array(0, 266.6364, 330.20834),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [true, false, true]
 }
-tracks/84/type = "value"
-tracks/84/imported = false
-tracks/84/enabled = true
-tracks/84/path = NodePath("../ResultsScreen/LullabyResultsScreen:visible")
-tracks/84/interp = 0
-tracks/84/loop_wrap = true
-tracks/84/keys = {
+tracks/83/type = "value"
+tracks/83/imported = false
+tracks/83/enabled = true
+tracks/83/path = NodePath("../ResultsScreen/LullabyResultsScreen:visible")
+tracks/83/interp = 0
+tracks/83/loop_wrap = true
+tracks/83/keys = {
 "times": PackedFloat32Array(0, 266.6364, 330.2083),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [true, false, true]
 }
-
+tracks/84/type = "method"
+tracks/84/imported = false
+tracks/84/enabled = true
+tracks/84/path = NodePath("../Front/Cutscene")
+tracks/84/interp = 1
+tracks/84/loop_wrap = true
+tracks/84/keys = {
+"times": PackedFloat32Array(1),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"play"
+}]
+}
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ycvm2"]
 _data = {
 &"RESET": SubResource("Animation_w1qyd"),
@@ -3028,705 +3023,6 @@ tracks/2/keys = {
 _data = {
 &"RESET": SubResource("Animation_iwhfc"),
 &"driveby": SubResource("Animation_yjbt2")
-}
-
-[sub_resource type="Animation" id="Animation_d20ol"]
-length = 0.01
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:animation")
-tracks/1/interp = 0
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [&"Bf_Shots_Monochrome_Int"]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_j67g8"]
-_data = {
-&"RESET": SubResource("Animation_d20ol")
-}
-
-[sub_resource type="Animation" id="Animation_gdhhu"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"celebi 1/celebi 1_"]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:offset")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, 0)]
-}
-
-[sub_resource type="Animation" id="Animation_sct1k"]
-resource_name = "rise"
-length = 4.75
-step = 0.09090909
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:animation")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 2.7083335),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [&"celebi 1/celebi 1_", &"celebi 2/celebi 2_"]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:frame")
-tracks/1/interp = 0
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0.6363636, 0.8181818, 1, 1.1818182, 1.3636364, 1.5454545, 1.6363636, 1.7272727, 1.8181818, 1.9090909, 2, 2.090909, 2.1818182, 2.2727275, 2.3636365, 2.7083335, 2.7500002, 2.7916667, 2.8333335, 2.875, 2.9166667, 2.9583333, 3, 3.0416667, 3.0833333, 3.125, 3.1666667, 3.2083333, 3.25, 3.2916667, 3.3333333, 3.375, 3.4166667, 3.4583333, 3.5, 3.5416667, 3.5833333, 3.625, 3.6666667, 3.7083333, 3.75, 3.7916667, 3.8333333, 3.875, 3.9166667, 3.9583333, 4, 4.0416665, 4.0833335, 4.125, 4.1666665, 4.2083335, 4.25, 4.2916665, 4.3333335, 4.375, 4.4166665, 4.4583335, 4.5, 4.5416665, 4.5833335, 4.625),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:offset")
-tracks/2/interp = 0
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 2.7083335),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(388, -188)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_iwhfc"]
-_data = {
-&"RESET": SubResource("Animation_gdhhu"),
-&"rise": SubResource("Animation_sct1k")
-}
-
-[sub_resource type="Animation" id="Animation_dca31"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [22]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:visible")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:animation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"flyby"]
-}
-
-[sub_resource type="Animation" id="Animation_dlplp"]
-resource_name = "flyby"
-length = 2.0909183
-step = 0.09090909
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:animation")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [&"flyby"]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:frame")
-tracks/1/interp = 0
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.09090909, 0.18181819, 0.27272728, 0.36363637, 0.45454547, 0.54545456, 0.6363636, 0.72727275, 0.8181818, 0.90909094, 1, 1.0909091, 1.1818181, 1.2727273, 1.3636364, 1.4545455, 1.5454545, 1.6363636, 1.7272727, 1.8181819, 1.9090909, 2),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 20]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:visible")
-tracks/2/interp = 0
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 2.090909),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, false]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_dca31"]
-_data = {
-&"RESET": SubResource("Animation_dca31"),
-&"flyby": SubResource("Animation_dlplp")
-}
-
-[sub_resource type="Animation" id="Animation_fqggl"]
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:visible")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Props/Bg2/Bg2Hand:visible")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("../../Black:visible")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Props/mono_rise:visible")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Props/Bg2/Bg2Hand:position")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(173, 178)]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Props/Bg1:visible")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("Props/Bg2:visible")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("Props/Bg3:visible")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("Props/Bg4:visible")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("Props/unowns_rise:visible")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/10/type = "value"
-tracks/10/imported = false
-tracks/10/enabled = true
-tracks/10/path = NodePath("../../IntroCamera:zoom")
-tracks/10/interp = 1
-tracks/10/loop_wrap = true
-tracks/10/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(1, 1)]
-}
-tracks/11/type = "value"
-tracks/11/imported = false
-tracks/11/enabled = true
-tracks/11/path = NodePath("Props:visible")
-tracks/11/interp = 1
-tracks/11/loop_wrap = true
-tracks/11/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/12/type = "value"
-tracks/12/imported = false
-tracks/12/enabled = true
-tracks/12/path = NodePath("Props/Celebi:visible")
-tracks/12/interp = 1
-tracks/12/loop_wrap = true
-tracks/12/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/13/type = "value"
-tracks/13/imported = false
-tracks/13/enabled = true
-tracks/13/path = NodePath("../../Stage/BlackBG:visible")
-tracks/13/interp = 1
-tracks/13/loop_wrap = true
-tracks/13/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/14/type = "value"
-tracks/14/imported = false
-tracks/14/enabled = true
-tracks/14/path = NodePath("Props/Bg4:offset")
-tracks/14/interp = 1
-tracks/14/loop_wrap = true
-tracks/14/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, 533.21)]
-}
-tracks/15/type = "value"
-tracks/15/imported = false
-tracks/15/enabled = true
-tracks/15/path = NodePath("Props/Unowns_Front:visible")
-tracks/15/interp = 1
-tracks/15/loop_wrap = true
-tracks/15/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/16/type = "value"
-tracks/16/imported = false
-tracks/16/enabled = true
-tracks/16/path = NodePath("../../IntroCamera:visible")
-tracks/16/interp = 1
-tracks/16/loop_wrap = true
-tracks/16/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-
-[sub_resource type="Animation" id="Animation_4qo5s"]
-resource_name = "intro"
-length = 34.0
-step = 0.09090909
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:visible")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 3.2727273, 34),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("../../Black:visible")
-tracks/1/interp = 0
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 18.9647),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, false]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Props/Bg1:visible")
-tracks/2/interp = 0
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 3.2727275, 7.2727275),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Props/Bg2:visible")
-tracks/3/interp = 0
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 7.2727275, 9.636364),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Props/Bg2/Bg2Hand:position")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(7.2727275, 9.636364),
-"transitions": PackedFloat32Array(1.0717735, 1),
-"update": 0,
-"values": [Vector2(93, 178), Vector2(103.075, 178)]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Props/Bg2/Bg2Hand:visible")
-tracks/5/interp = 0
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 7.2727275, 9.636364),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("Props/Bg3:visible")
-tracks/6/interp = 0
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0, 9.636364, 13.818182),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("Props/mono_rise:visible")
-tracks/7/interp = 0
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0, 9.636364, 13.818182),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/8/type = "animation"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("Props/mono_rise/AnimationPlayer")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"clips": PackedStringArray("mono_rise_library/RESET", "mono_rise_library/Bf_Shots_Monochrome_Intro"),
-"times": PackedFloat32Array(0, 12.363636)
-}
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("Props/Bg4:visible")
-tracks/9/interp = 0
-tracks/9/loop_wrap = true
-tracks/9/keys = {
-"times": PackedFloat32Array(0, 13.818182),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [false, true]
-}
-tracks/10/type = "value"
-tracks/10/imported = false
-tracks/10/enabled = true
-tracks/10/path = NodePath("Props/Bg2:position")
-tracks/10/interp = 1
-tracks/10/loop_wrap = true
-tracks/10/keys = {
-"times": PackedFloat32Array(7.2727275, 9.613636, 9.636364),
-"transitions": PackedFloat32Array(1.0717735, 0, 1),
-"update": 0,
-"values": [Vector2(956, 540), Vector2(963, 540), Vector2(961, 540)]
-}
-tracks/11/type = "value"
-tracks/11/imported = false
-tracks/11/enabled = true
-tracks/11/path = NodePath("Props/Bg4:offset")
-tracks/11/interp = 0
-tracks/11/loop_wrap = true
-tracks/11/keys = {
-"times": PackedFloat32Array(13.818182, 16.272728, 16.454546, 16.636364, 16.90909, 17.09091),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [Vector2(0, 141), Vector2(0, 220), Vector2(0, 318), Vector2(0, 489.26), Vector2(0, 707), Vector2(0, 1083)]
-}
-tracks/12/type = "value"
-tracks/12/imported = false
-tracks/12/enabled = true
-tracks/12/path = NodePath("Props/unowns_rise:visible")
-tracks/12/interp = 0
-tracks/12/loop_wrap = true
-tracks/12/keys = {
-"times": PackedFloat32Array(0, 12.363636, 13.818182),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/13/type = "animation"
-tracks/13/imported = false
-tracks/13/enabled = true
-tracks/13/path = NodePath("Props/unowns_rise/AnimationPlayer")
-tracks/13/interp = 1
-tracks/13/loop_wrap = true
-tracks/13/keys = {
-"clips": PackedStringArray("RESET", "intro_unown_library/Bf_Shots_Monochrome_Int"),
-"times": PackedFloat32Array(12.272727, 12.613637)
-}
-tracks/14/type = "value"
-tracks/14/imported = false
-tracks/14/enabled = true
-tracks/14/path = NodePath("../../IntroCamera:zoom")
-tracks/14/interp = 1
-tracks/14/loop_wrap = true
-tracks/14/keys = {
-"times": PackedFloat32Array(0, 18.90909, 28.09091, 32.090908, 34),
-"transitions": PackedFloat32Array(0, 1, 2, 0.5, 1),
-"update": 0,
-"values": [Vector2(1, 1), Vector2(0.2, 0.2), Vector2(0.35, 0.35), Vector2(0.9, 0.9), Vector2(1, 1)]
-}
-tracks/15/type = "value"
-tracks/15/imported = false
-tracks/15/enabled = true
-tracks/15/path = NodePath("Props:visible")
-tracks/15/interp = 0
-tracks/15/loop_wrap = true
-tracks/15/keys = {
-"times": PackedFloat32Array(0, 19.181818),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, false]
-}
-tracks/16/type = "value"
-tracks/16/imported = false
-tracks/16/enabled = true
-tracks/16/path = NodePath("Props/Celebi:visible")
-tracks/16/interp = 0
-tracks/16/loop_wrap = true
-tracks/16/keys = {
-"times": PackedFloat32Array(0, 14.545455),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [false, true]
-}
-tracks/17/type = "animation"
-tracks/17/imported = false
-tracks/17/enabled = true
-tracks/17/path = NodePath("Props/Celebi/AnimationPlayer")
-tracks/17/interp = 1
-tracks/17/loop_wrap = true
-tracks/17/keys = {
-"clips": PackedStringArray("rise"),
-"times": PackedFloat32Array(14.545455)
-}
-tracks/18/type = "value"
-tracks/18/imported = false
-tracks/18/enabled = true
-tracks/18/path = NodePath("../../Stage/BlackBG:visible")
-tracks/18/interp = 0
-tracks/18/loop_wrap = true
-tracks/18/keys = {
-"times": PackedFloat32Array(0, 34),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, true]
-}
-tracks/19/type = "animation"
-tracks/19/imported = false
-tracks/19/enabled = true
-tracks/19/path = NodePath("../../Stage/IntroUnowns/AnimationPlayer")
-tracks/19/interp = 1
-tracks/19/loop_wrap = true
-tracks/19/keys = {
-"clips": PackedStringArray("driveby"),
-"times": PackedFloat32Array(20.363636)
-}
-tracks/20/type = "animation"
-tracks/20/imported = false
-tracks/20/enabled = true
-tracks/20/path = NodePath("Props/Unowns_Front/AnimationPlayer")
-tracks/20/interp = 1
-tracks/20/loop_wrap = true
-tracks/20/keys = {
-"clips": PackedStringArray("flyby"),
-"times": PackedFloat32Array(13.818182)
-}
-tracks/21/type = "value"
-tracks/21/imported = false
-tracks/21/enabled = true
-tracks/21/path = NodePath("Props/Unowns_Front:visible")
-tracks/21/interp = 0
-tracks/21/loop_wrap = true
-tracks/21/keys = {
-"times": PackedFloat32Array(0, 13.818182, 14.818182),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/22/type = "value"
-tracks/22/imported = false
-tracks/22/enabled = true
-tracks/22/path = NodePath("../../IntroCamera:enabled")
-tracks/22/interp = 0
-tracks/22/loop_wrap = true
-tracks/22/keys = {
-"times": PackedFloat32Array(0, 33.81818),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, true]
-}
-tracks/23/type = "value"
-tracks/23/imported = false
-tracks/23/enabled = true
-tracks/23/path = NodePath("../../IntroCamera:visible")
-tracks/23/interp = 0
-tracks/23/loop_wrap = true
-tracks/23/keys = {
-"times": PackedFloat32Array(0, 34),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [true, true]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_okklf"]
-_data = {
-&"RESET": SubResource("Animation_fqggl"),
-&"intro": SubResource("Animation_4qo5s")
 }
 
 [sub_resource type="Gradient" id="Gradient_8a62c"]
@@ -5126,7 +4422,6 @@ script = ExtResource("14")
 start_player = NodePath("AnimationPlayer")
 skips = {
 NodePath("../RubiconLevelClock/AnimationPlayer"): 28.5,
-NodePath("../Front/Cutscene/IntroAnimationPlayer"): 27.5,
 NodePath("../Stage/GoldPhase1/AnimationPlayer"): 8.666
 }
 metadata/_custom_type_script = "uid://ced11qxpiyooc"
@@ -5379,81 +4674,16 @@ editor_preview = true
 [node name="Front" type="CanvasLayer" parent="." unique_id=2142539605]
 layer = 62
 
-[node name="Cutscene" type="Node2D" parent="Front" unique_id=921935512]
-visible = false
-
-[node name="Props" type="Node2D" parent="Front/Cutscene" unique_id=2036903664]
-
-[node name="Bg1" type="Sprite2D" parent="Front/Cutscene/Props" unique_id=1538476505]
-position = Vector2(960, 540)
-texture = ExtResource("41")
-
-[node name="Bg2" type="Sprite2D" parent="Front/Cutscene/Props" unique_id=19959504]
-position = Vector2(956, 540)
-scale = Vector2(1.029, 1.029)
-texture = ExtResource("42")
-
-[node name="Bg2Hand" type="Sprite2D" parent="Front/Cutscene/Props/Bg2" unique_id=815590102]
-visible = false
-position = Vector2(173, 178)
-texture = ExtResource("43")
-
-[node name="Bg3" type="Sprite2D" parent="Front/Cutscene/Props" unique_id=268660877]
-position = Vector2(960, 540)
-texture = ExtResource("44")
-
-[node name="Bg4" type="Sprite2D" parent="Front/Cutscene/Props" unique_id=728193250]
-position = Vector2(960, 540)
-texture = ExtResource("45")
-offset = Vector2(0, 533.21)
-
-[node name="unowns_rise" type="AnimatedSprite2D" parent="Front/Cutscene/Props" unique_id=49347676]
-visible = false
-position = Vector2(960, 73)
-scale = Vector2(1.03, 1.03)
-sprite_frames = ExtResource("46")
-animation = &"Bf_Shots_Monochrome_Int"
-frame = 7
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Front/Cutscene/Props/unowns_rise" unique_id=1901951348]
-reset_on_save = false
-libraries/ = SubResource("AnimationLibrary_j67g8")
-libraries/intro_unown_library = ExtResource("47")
-
-[node name="mono_rise" type="AnimatedSprite2D" parent="Front/Cutscene/Props" unique_id=167347300]
-visible = false
-position = Vector2(1001.73395, 540.12494)
-scale = Vector2(1.333642, 1.3336418)
-sprite_frames = ExtResource("48")
-animation = &"Bf_Shots_Monochrome_Intro"
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Front/Cutscene/Props/mono_rise" unique_id=242328374]
-reset_on_save = false
-libraries/mono_rise_library = ExtResource("49")
-
-[node name="Celebi" type="AnimatedSprite2D" parent="Front/Cutscene/Props" unique_id=569809704]
-visible = false
-position = Vector2(572, 728)
-sprite_frames = ExtResource("50")
-animation = &"celebi 1/celebi 1_"
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Front/Cutscene/Props/Celebi" unique_id=2045805353]
-libraries/ = SubResource("AnimationLibrary_iwhfc")
-
-[node name="Unowns_Front" type="AnimatedSprite2D" parent="Front/Cutscene/Props" unique_id=1951777355]
-visible = false
-position = Vector2(960, 540)
-sprite_frames = ExtResource("51")
-animation = &"flyby"
-frame = 22
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Front/Cutscene/Props/Unowns_Front" unique_id=1193550741]
-libraries/ = SubResource("AnimationLibrary_dca31")
-speed_scale = 2.0
-
-[node name="IntroAnimationPlayer" type="AnimationPlayer" parent="Front/Cutscene" unique_id=1329298178]
-reset_on_save = false
-libraries/ = SubResource("AnimationLibrary_okklf")
+[node name="Cutscene" type="VideoStreamPlayer" parent="Front" unique_id=921935512]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stream = ExtResource("intro_video")
+expand = true
 
 [node name="FrontEyes" type="Node2D" parent="Front" unique_id=1026811517]
 position = Vector2(960, 540)
@@ -5553,7 +4783,7 @@ color = Color(0, 0, 0, 0)
 offset_right = 1920.0
 offset_bottom = 1080.0
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=1881897317]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1881897317 groups=["cutscene_live_overlay"]]
 layer = 6
 
 [node name="UIBlackBG" type="ColorRect" parent="UILayer" unique_id=1261565469]

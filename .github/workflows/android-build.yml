@@ -1223,6 +1223,18 @@ jobs:
           # el video.
           guard_godot tools/test_closeup_video_wired.gd
 
+          # === Y el intro de Monochrome, con el HUD FUERA del horneado
+          # Ventana 1-35s, primera nota del jugador en 44s: nada que el jugador
+          # pueda alterar. Costaba 27.9 MB de textura suya; el clip son 3.3 MB.
+          # Lo que vigila esto es el fallo que ya se colo una vez: si UILayer no
+          # esta en el grupo cutscene_live_overlay, el harness no lo esconde al
+          # renderizar y el HUD acaba PINTADO dentro del video - el primer
+          # intento salio con el strumline y las lineas del hitbox horneadas
+          # encima del arte. Y eso es peor que feo, porque el hitbox cambia con
+          # los ajustes del jugador, asi que horneado seria mentira en cuanto
+          # alguien toque una opcion.
+          guard_godot tools/test_monochrome_intro_video.gd
+
           # === Y los ASTC precompilados son de verdad lo que dicen ser
           # Esta comprobacion ya existia y no la ejecutaba nadie; solo se
           # mencionaba en un mensaje. Ahora corre, porque el riesgo es peor que
