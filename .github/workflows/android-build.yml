@@ -1208,6 +1208,21 @@ jobs:
           # gameover sin imagen o sin sonido.
           guard_godot tools/test_chimera_gameover_wired.gd
 
+          # === Y la cutscene MonoCloseup de Monochrome tambien es un video
+          # Elegida midiendo: su ventana va de 266.5s a 294.6s y el chart de
+          # Monochrome tiene 800 notas del jugador, NINGUNA dentro. Es un
+          # interludio de 28.8s que nadie puede alterar - la misma medida
+          # descarto al BloodCutscene de al lado, donde caen 45 notas dentro de
+          # sus 12.2s. Dibujarla costaba 44.5 MB de textura en ~35 nodos; el
+          # clip son 5.8 MB. Lo que vigila esto es lo que romperia la cutscene
+          # sin que nada falle al arrancar: que la raiz siga llamandose
+          # MonoCloseup y siendo AspectRatioContainer -la cancion entra por
+          # NodePath desde fuera-, que el AnimationPlayer conserve la animacion
+          # 'cutscene' que la cancion dispara, y que esa animacion siga teniendo
+          # la pista de metodo que llama a play(), que es lo unico que arranca
+          # el video.
+          guard_godot tools/test_closeup_video_wired.gd
+
           # === Y los ASTC precompilados son de verdad lo que dicen ser
           # Esta comprobacion ya existia y no la ejecutaba nadie; solo se
           # mencionaba en un mensaje. Ahora corre, porque el riesgo es peor que
