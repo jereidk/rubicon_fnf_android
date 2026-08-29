@@ -60,6 +60,21 @@ const BEAT_ZOOM := 0.005
 const ZOOM_DECAY := 6.25
 const ZOOM_REST := 1.0
 
+## updateButtonsAnimation does not let the buttons' animations run themselves. Every frame
+## it overwrites each one's current frame from ONE clock:
+##
+##     curAnim.curFrame = Std.int(FlxG.game.ticks / 24 * 0.6) % curAnim.frames.length
+##
+## - a multiply by 1/24 and then by 0.6, which is 0.025 frames per millisecond, so 25 fps,
+## and `ticks` is the game's own elapsed milliseconds. The point is not the rate but the
+## SHARE: all eight read the same clock, so they stay in step however often the selection
+## moves them between `basic` and `white`, where eight independent players drift apart the
+## first time one of them restarts.
+##
+## A button whose current animation is named `confirm` is exempt - the walk skips it - and
+## that one does play out on its own.
+const IDLE_FPS := 25.0
+
 @export var buttons: Node2D
 @export var sfx: AudioStreamPlayer
 ## The looping menu track, which is also the clock the beat comes off.
@@ -69,6 +84,10 @@ const ZOOM_REST := 1.0
 var _selected: int = 0
 var _confirmed: bool = false
 var _beat: int = -1
+## Which state each button is showing, so the idle driver knows what to skip and how long
+## the cycle it is winding is.
+var _state: Dictionary = {}
+var _nodes: Dictionary = {}
 
 
 func _ready() -> void:
@@ -80,6 +99,8 @@ func _ready() -> void:
 ## beatHit, off the music's own playback rather than off a counter: a counter drifts from
 ## the track it is supposed to be following, and the track is the only clock this screen has.
 func _process(delta: float) -> void:
+	_drive_idles()
+
 	if camera != null:
 		camera.zoom = Vector2.ONE * (ZOOM_REST
 			+ (camera.zoom.x - ZOOM_REST) * exp(-ZOOM_DECAY * delta))
@@ -145,17 +166,54 @@ func _refresh() -> void:
 
 
 func _animate(name: String, state: String) -> void:
-	if buttons == null:
-		return
-	var node: Node = buttons.get_node_or_null(NodePath(name.capitalize()))
+	var node: Node = _button_node(name)
 	if node == null:
 		return
+	_state[name] = state
+
 	var player: AnimationPlayer = node.get_node_or_null(^"AnimationPlayer")
-	if player == null:
-		return
 	var animation := StringName("menu_buttons_%s_%s" % [name, state])
-	if player.has_animation(animation):
-		player.play(animation)
+	if state == "confirm":
+		if player != null and player.has_animation(animation):
+			player.play(animation)
+		return
+
+	# The idles never run on the player: _drive_idles owns their frame, and a player
+	# writing the same property would be fighting it for the answer.
+	if player != null:
+		player.stop()
+	var states: Dictionary = node.get_meta(&"states", {})
+	if states.has(state):
+		node.set(&"symbol", String((states[state] as Dictionary)["symbol"]))
+
+
+## updateButtonsAnimation, once per frame. Every button not playing its confirm reads the
+## same clock, so they cycle together.
+func _drive_idles() -> void:
+	var phase: int = floori(Time.get_ticks_msec() * IDLE_FPS / 1000.0)
+	for name: String in BUTTONS:
+		var state: String = String(_state.get(name, "basic"))
+		if state == "confirm":
+			continue
+		var node: Node = _button_node(name)
+		if node == null:
+			continue
+		var states: Dictionary = node.get_meta(&"states", {})
+		if not states.has(state):
+			continue
+		var count: int = int((states[state] as Dictionary)["frames"])
+		if count > 0:
+			node.set(&"frame", phase % count)
+
+
+## The button nodes by name, looked up once. _drive_idles walks all eight every frame.
+func _button_node(name: String) -> Node:
+	if _nodes.has(name):
+		return _nodes[name] as Node
+	var node: Node = null if buttons == null \
+		else buttons.get_node_or_null(NodePath(name.capitalize()))
+	_nodes[name] = node
+	return node
 
 
 func _play(path: String) -> void:
@@ -221,7 +279,7 @@ func _button_at(at: Vector2) -> int:
 	if buttons == null:
 		return -1
 	for i: int in BUTTONS.size():
-		var node: Node = buttons.get_node_or_null(NodePath(BUTTONS[i].capitalize()))
+		var node: Node = _button_node(BUTTONS[i])
 		if node == null or not node.has_meta(&"touch_rect"):
 			continue
 		if (node.get_meta(&"touch_rect") as Rect2).has_point(at):

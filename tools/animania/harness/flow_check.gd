@@ -96,6 +96,22 @@ func _init() -> void:
 		"desde storymode tendria que saltarse shop y caer en freeplay, no en %s"
 			% menu.BUTTONS[menu._selected])
 
+	# updateButtonsAnimation drives every idle off ONE clock, so two buttons in the same
+	# state show the same frame - including one that has just been switched back to `basic`
+	# by the walk above. With each button on its own AnimationPlayer that is exactly what
+	# breaks: the restarted one goes back to frame 0 while the rest carry on.
+	var was_frame: int = int(menu._button_node("storymode").frame)
+	var settle: int = Time.get_ticks_msec() + 150
+	while Time.get_ticks_msec() < settle:
+		await process_frame
+	var walked: int = int(menu._button_node("storymode").frame)
+	_check(walked == int(menu._button_node("exit").frame),
+		"storymode va por el cuadro %d y exit por el %d, tendrian que ir juntos"
+			% [walked, menu._button_node("exit").frame])
+	# 150ms at 25fps is between three and four frames of a six-frame cycle, so it cannot
+	# land back where it started.
+	_check(walked != was_frame, "el ciclo de reposo de los botones no avanza")
+
 	menu.do_select()
 	# doSelect waits out the 18-frame confirm animation before it leaves, on a SceneTree
 	# timer - so this waits in WALL CLOCK. Accumulating get_process_delta_time() does not

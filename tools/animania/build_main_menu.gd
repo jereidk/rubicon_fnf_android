@@ -78,6 +78,10 @@ func _init() -> void:
 	# `basic` and `white` are idle cycles - six and four frames - and have to loop, or a
 	# button plays its handful of frames once and then sits there dead. `confirm` is the
 	# one that must not: doSelect waits it out and then leaves.
+	#
+	# The player only ever runs `confirm`, though: the idles are driven by the menu itself
+	# off one shared clock (see main_menu.gd IDLE_FPS), which is what the mod does. The loop
+	# flag stays right anyway so the library reads correctly on its own.
 	var looped: int = 0
 	for animation_name: StringName in library.get_animation_list():
 		var wants_loop: bool = String(animation_name).ends_with("_basic") \
@@ -116,6 +120,11 @@ func _init() -> void:
 		symbol.set_meta(&"touch_rect", Rect2(
 			_origin + Vector2(float(pos[0]), float(pos[1])) * _scale,
 			Vector2(float(pos[2]), float(pos[3])) * _scale))
+		# What each state IS, taken off the library rather than named again here: the
+		# composition the symbol has to show and how many frames its cycle is. The menu
+		# needs both to drive the idles itself, and reading them from the animation that
+		# already carries them is one source instead of two that can disagree.
+		symbol.set_meta(&"states", _states_of(library, name))
 		buttons.add_child(symbol)
 		symbol.owner = _root
 
@@ -216,3 +225,23 @@ func _init() -> void:
 func _add(node: Node) -> void:
 	_root.add_child(node)
 	node.owner = _root
+
+
+## { state: { "symbol": String, "frames": int } } for one button, read out of the
+## AnimationLibrary the same animations are built from.
+func _states_of(library: AnimationLibrary, name: String) -> Dictionary:
+	var states: Dictionary = {}
+	for state: String in ["basic", "white", "confirm"]:
+		var key := StringName("menu_buttons_%s_%s" % [name, state])
+		if not library.has_animation(key):
+			continue
+		var animation: Animation = library.get_animation(key)
+		var entry: Dictionary = {"symbol": "", "frames": 0}
+		for track: int in animation.get_track_count():
+			var path: NodePath = animation.track_get_path(track)
+			if path == ^".:symbol" and animation.track_get_key_count(track) > 0:
+				entry["symbol"] = String(animation.track_get_key_value(track, 0))
+			elif path == ^".:frame":
+				entry["frames"] = animation.track_get_key_count(track)
+		states[state] = entry
+	return states
