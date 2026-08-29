@@ -90,6 +90,28 @@ func _init() -> void:
 	# The walk skips the three blocked buttons rather than stopping on them.
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
 		"el menu no empieza en storymode")
+
+	# startIntroAnimation: the menu is deaf until its camera tween lands, and the curtains
+	# still cover the screen while it does.
+	# A handful of frames have already gone by getting here, so this is "still closing",
+	# not "still at zero" - the curtain's first frames are its fastest.
+	_check(menu._intro >= 0.0, "el intro del menu ya se acabo antes de mirarlo")
+	_check(menu.curtain_up.position.y > -520.0 and menu.curtain_down.position.y < 520.0,
+		"las cortinas ya van por %.0f y %.0f nada mas entrar"
+			% [menu.curtain_up.position.y, menu.curtain_down.position.y])
+	menu.change_item(1, false)
+	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
+		"el menu no tendria que responder durante el intro")
+	var intro_until: int = Time.get_ticks_msec() + 1400
+	while Time.get_ticks_msec() < intro_until:
+		await process_frame
+	_check(menu.curtain_up.position.y < -900.0 and menu.curtain_down.position.y > 900.0,
+		"las cortinas se quedaron en %.0f y %.0f"
+			% [menu.curtain_up.position.y, menu.curtain_down.position.y])
+	_check(is_equal_approx(menu.camera.rotation, 0.0)
+		and menu.camera.offset.is_zero_approx(),
+		"la camara no volvio a su sitio tras el intro")
+
 	menu.change_item(1, false)
 	await process_frame
 	_check(String(menu.BUTTONS[menu._selected]) == "freeplay",

@@ -202,6 +202,21 @@ func _init() -> void:
 		(music.stream as AudioStreamOggVorbis).loop = true
 	_add(music)
 
+	# blackLineUp and blackLineDown: two FunkinSprites made solid 0xFF000000,
+	# Std.int(FlxG.width * 1.25) wide by FlxG.height tall. A whole screen each, and wider
+	# than one so the intro's random angle and offset cannot uncover an edge. They are
+	# world space, like the mod's - scrollFactor 1, so the camera moves over them.
+	var curtains: Array[Control] = []
+	for which: String in ["BlackLineUp", "BlackLineDown"]:
+		var curtain := ColorRect.new()
+		curtain.name = which
+		curtain.color = Color(0.0, 0.0, 0.0, 1.0)
+		curtain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		curtain.size = Vector2(SCREEN.x * 1.25, SCREEN.y)
+		curtain.position = Vector2((SCREEN.x - SCREEN.x * 1.25) * 0.5, 0.0)
+		_add(curtain)
+		curtains.append(curtain)
+
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"
 	sfx.bus = &"Master"
@@ -211,6 +226,8 @@ func _init() -> void:
 	_root.set(&"sfx", sfx)
 	_root.set(&"music", music)
 	_root.set(&"camera", camera)
+	_root.set(&"curtain_up", curtains[0])
+	_root.set(&"curtain_down", curtains[1])
 
 	var packed := PackedScene.new()
 	packed.pack(_root)

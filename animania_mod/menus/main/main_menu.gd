@@ -75,11 +75,47 @@ const ZOOM_REST := 1.0
 ## that one does play out on its own.
 const IDLE_FPS := 25.0
 
+## startIntroAnimation, whole. The camera comes in at three times its size, off centre and
+## off square, and settles; two black curtains that cover the screen open off the top and
+## the bottom and leave a band of each showing.
+##
+## Straight off the compiled method, in Funkin's 1280x720:
+##
+##     FlxG.camera.zoom = 3
+##     FlxG.camera.scrollAngle = FlxG.random.float(-10, 10)
+##     FlxG.camera.scroll.x = FlxG.random.float(-200, 200)   (and .y the same)
+##     FlxTween.tween(blackLineUp,   {y: 30 - blackLineUp.height}, 1,    smootherStepOut)
+##     FlxTween.tween(blackLineDown, {y: 690},                     1,    smootherStepOut)
+##     FlxTween.tween(FlxG.camera,   {zoom: 0.9, scrollAngle: 0},  0.75, smootherStepInOut)
+##
+## 690 is 720 - 30, so both curtains settle showing the same 30px band. The curtains are
+## FunkinSprites made solid 0xFF000000, Std.int(FlxG.width * 1.25) wide by FlxG.height tall
+## - a whole screen each, and wider than one so the angle and the offset cannot uncover an
+## edge. That they START at y = 0 is the one reading here: it is the only y that makes
+## these two tweens an opening rather than a closing.
+##
+## The camera tween is the one with an onComplete, and the menu goes live when it lands -
+## 0.75s, while the curtains are still moving.
+const INTRO_CURTAIN := 1.0
+const INTRO_CAMERA := 0.75
+## 30px of curtain left showing, in this project's 1.5x of Funkin's space.
+const INTRO_BAND := 30.0 * 1920.0 / 1280.0
+const INTRO_ANGLE := 10.0
+const INTRO_SCROLL := 200.0 * 1920.0 / 1280.0
+## The mod's zoom numbers are all against ITS resting 0.885 (see ZOOM_REST), so what
+## carries over is the ratio: three and a bit times the resting size down to a touch over.
+const INTRO_ZOOM_FROM := 3.0 / 0.885
+const INTRO_ZOOM_TO := 0.9 / 0.885
+
 @export var buttons: Node2D
 @export var sfx: AudioStreamPlayer
 ## The looping menu track, which is also the clock the beat comes off.
 @export var music: AudioStreamPlayer
 @export var camera: Camera2D
+## The two black curtains, in world space like the mod's: they do not follow the camera,
+## which is why they are wider than the screen.
+@export var curtain_up: Control
+@export var curtain_down: Control
 
 var _selected: int = 0
 var _confirmed: bool = false
@@ -88,18 +124,83 @@ var _beat: int = -1
 ## the cycle it is winding is.
 var _state: Dictionary = {}
 var _nodes: Dictionary = {}
+## Seconds since startIntroAnimation, or -1 once both its tweens have landed.
+var _intro: float = 0.0
+var _intro_zoom: float = 1.0
+var _intro_angle: float = 0.0
+var _intro_offset := Vector2.ZERO
 
 
 func _ready() -> void:
 	_refresh()
+	_start_intro()
+
+
+func _start_intro() -> void:
+	_intro = 0.0
 	if camera != null:
-		camera.zoom = Vector2.ONE * ZOOM_REST
+		camera.zoom = Vector2.ONE * ZOOM_REST * INTRO_ZOOM_FROM
+		camera.rotation = deg_to_rad(randf_range(-INTRO_ANGLE, INTRO_ANGLE))
+		camera.offset = Vector2(
+			randf_range(-INTRO_SCROLL, INTRO_SCROLL),
+			randf_range(-INTRO_SCROLL, INTRO_SCROLL))
+		_intro_zoom = camera.zoom.x
+		_intro_angle = camera.rotation
+		_intro_offset = camera.offset
+	if curtain_up != null:
+		curtain_up.position.y = 0.0
+	if curtain_down != null:
+		curtain_down.position.y = 0.0
+	_advance_intro(0.0)
+
+
+## Both intro tweens, on their own clock rather than on a Tween: the two eases are
+## polynomials the mod spells out and a Godot transition is a different curve, so the
+## motion is only the same if it is the same arithmetic.
+func _advance_intro(delta: float) -> void:
+	_intro += delta
+
+	var opening: float = _smoother_step_out(minf(_intro / INTRO_CURTAIN, 1.0))
+	if curtain_up != null:
+		curtain_up.position.y = -(curtain_up.size.y - INTRO_BAND) * opening
+	if curtain_down != null:
+		curtain_down.position.y = (curtain_down.size.y - INTRO_BAND) * opening
+
+	var settling: float = _smoother_step(minf(_intro / INTRO_CAMERA, 1.0))
+	if camera != null:
+		camera.zoom = Vector2.ONE * lerpf(
+			_intro_zoom, ZOOM_REST * INTRO_ZOOM_TO, settling)
+		camera.rotation = lerpf(_intro_angle, 0.0, settling)
+		camera.offset = _intro_offset.lerp(Vector2.ZERO, settling)
+
+	if _intro >= maxf(INTRO_CURTAIN, INTRO_CAMERA):
+		_intro = -1.0
+
+
+## FlxEase.smootherStep: t*t*t*(t*(t*6 - 15) + 10), read off the 6, 15 and 10 in .rodata.
+## smootherStepInOut is this one unchanged.
+func _smoother_step(t: float) -> float:
+	return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+
+
+## FlxEase.smootherStepOut: the same curve over its second half, stretched back out.
+func _smoother_step_out(t: float) -> float:
+	return 2.0 * _smoother_step(t * 0.5 + 0.5) - 1.0
+
+
+## Whether the menu answers yet. The mod turns it on in the camera tween's onComplete.
+func _live() -> bool:
+	return _intro < 0.0 or _intro >= INTRO_CAMERA
 
 
 ## beatHit, off the music's own playback rather than off a counter: a counter drifts from
 ## the track it is supposed to be following, and the track is the only clock this screen has.
 func _process(delta: float) -> void:
 	_drive_idles()
+
+	if _intro >= 0.0:
+		_advance_intro(delta)
+		return
 
 	if camera != null:
 		camera.zoom = Vector2.ONE * (ZOOM_REST
@@ -117,7 +218,7 @@ func _process(delta: float) -> void:
 
 ## The walk skips blocked buttons rather than stopping on them, and wraps.
 func change_item(amount: int, play_sound: bool = true) -> void:
-	if _confirmed or amount == 0:
+	if _confirmed or amount == 0 or not _live():
 		return
 	var step: int = signi(amount)
 	var at: int = _selected
@@ -136,7 +237,7 @@ func change_item(amount: int, play_sound: bool = true) -> void:
 
 ## doSelect: the chosen button plays its `confirm` animation and the menu leaves.
 func do_select() -> void:
-	if _confirmed:
+	if _confirmed or not _live():
 		return
 	var name: String = BUTTONS[_selected]
 	if BLOCKED.has(name):
@@ -227,7 +328,7 @@ func _play(path: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _confirmed or not event.is_pressed():
+	if _confirmed or not event.is_pressed() or not _live():
 		return
 
 	if event is InputEventKey:
