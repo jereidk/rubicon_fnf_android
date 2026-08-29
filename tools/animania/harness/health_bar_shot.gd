@@ -44,8 +44,11 @@ func _process(_delta: float) -> void:
 	var image: Image = get_viewport().get_texture().get_image()
 	var path: String = "user://health_%03d.png" % int(VALUES[_index])
 	image.save_png(path)
-	print("OUT vida=%3.0f  ratio=%.2f  ancho del lado del jugador=%.0f -> %s" % [
+	var iconl: Node2D = bar.find_child("IconL", true, false)
+	var iconr: Node2D = bar.find_child("IconR", true, false)
+	print("OUT vida=%3.0f ratio=%.2f jugador=%.0fpx  IconL(komi)=%.0f IconR(tadano)=%.0f -> %s" % [
 		VALUES[_index], bar.get_as_ratio(),
 		(bar.get_node("Art/PlayerFill") as Sprite2D).region_rect.size.x,
+		iconl.global_position.x, iconr.global_position.x,
 		ProjectSettings.globalize_path(path)])
 	_index += 1

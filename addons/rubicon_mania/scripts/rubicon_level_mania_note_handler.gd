@@ -173,7 +173,18 @@ func _process_lane(delta: float) -> void:
 		# See lane_autoplay_hit_lingers: clearing this on the frame it was set
 		# is what stops an autoplayed lane ever lighting up.
 		var lit_this_frame : bool = lane_autoplay_hit_lingers and _lane_hit_frame == Engine.get_process_frames()
-		if not lit_this_frame:
+		# And a lane parked on a sustain has to stay lit for as long as the hold
+		# lasts. The guard above reads the note BEHIND note_hit_index, which does
+		# not advance while a hold is live - so mid-hold it is reading the note
+		# before the sustain, sees a completed hit, and clears. A held lane went
+		# dark one frame after the hold began, so an autoplayed side glowed on
+		# taps and never on sustains. The note being parked on is the one that
+		# answers the question.
+		var holding : bool = lane_autoplay_hit_lingers \
+			and note_hit_index < results.size() \
+			and results[note_hit_index] != null \
+			and results[note_hit_index].scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_INCOMPLETE
+		if not lit_this_frame and not holding:
 			lane_state = LaneState.LANE_STATE_NEUTRAL
 
 func _press(event : InputEvent) -> void:

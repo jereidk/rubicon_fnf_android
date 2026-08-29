@@ -14,7 +14,7 @@ _data = {
 }
 point_count = 17
 
-[node name="HealthBar" type="ProgressBar" unique_id=1530595261 node_paths=PackedStringArray("player_fill", "opponent_fill", "path", "path_follow")]
+[node name="HealthBar" type="ProgressBar" unique_id=1517628594 node_paths=PackedStringArray("player_fill", "opponent_fill", "path", "path_follow")]
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -546.0
@@ -33,23 +33,23 @@ opponent_fill = NodePath("Art/OpponentFill")
 path = NodePath("Path2D")
 path_follow = NodePath("Path2D/PathFollow2D")
 
-[node name="Art" type="Node2D" parent="." unique_id=382203739]
+[node name="Art" type="Node2D" parent="." unique_id=240086082]
 position = Vector2(0, 55.5)
 scale = Vector2(1.5, -1.5)
 
-[node name="Outline" type="Sprite2D" parent="Art" unique_id=817746987]
+[node name="Outline" type="Sprite2D" parent="Art" unique_id=1616091127]
 position = Vector2(-23, -7)
 texture = ExtResource("2_mxwy6")
 centered = false
 
-[node name="PlayerFill" type="Sprite2D" parent="Art" unique_id=342408476]
+[node name="PlayerFill" type="Sprite2D" parent="Art" unique_id=365109704]
 modulate = Color(0.49019608, 0.43137255, 0.78039217, 1)
 texture = ExtResource("3_4smeq")
 centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 364, 37)
 
-[node name="OpponentFill" type="Sprite2D" parent="Art" unique_id=2083024905]
+[node name="OpponentFill" type="Sprite2D" parent="Art" unique_id=89273809]
 modulate = Color(0.4745098, 0.30980393, 0.57254905, 1)
 position = Vector2(364, 0)
 texture = ExtResource("3_4smeq")
@@ -57,16 +57,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(364, 0, 364, 37)
 
-[node name="Path2D" type="Path2D" parent="." unique_id=1734918537]
+[node name="Path2D" type="Path2D" parent="." unique_id=1016924833]
 curve = SubResource("Curve2D_kjwc7")
 
-[node name="PathFollow2D" type="PathFollow2D" parent="Path2D" unique_id=482169522]
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D" unique_id=1094047588]
 rotates = false
 
-[node name="IconAnchor" type="PathFollow2D" parent="Path2D" unique_id=1461725811]
-rotates = false
-
-[node name="IconL" type="AnimatedSprite2D" parent="Path2D/IconAnchor" unique_id=528532766]
+[node name="IconL" type="AnimatedSprite2D" parent="Path2D/PathFollow2D" unique_id=1246529400]
 scale = Vector2(-1, 1)
 
-[node name="IconR" type="AnimatedSprite2D" parent="Path2D/IconAnchor" unique_id=1795522693]
+[node name="IconR" type="AnimatedSprite2D" parent="Path2D/PathFollow2D" unique_id=332403851]

@@ -42,7 +42,7 @@ const STEP_SECONDS := 60.0 / 152.0 / 4.0
 
 ## The number of checks a complete run makes. Raise it when you add checks; it only exists
 ## so that a section which stops running is louder than a section which passes.
-const MIN_CHECKS := 843
+const MIN_CHECKS := 852
 
 
 func _init() -> void:
@@ -482,6 +482,10 @@ func _check_level() -> void:
 		"los fundidos tendrian que ir por debajo del HUD")
 
 	var events_node: Node = level.get_node("PhoneCallEvents")
+	var stand: Node2D = level.find_child("TadanoStand", true, false)
+	_check(stand != null and (stand.get_child(0) as Node2D).scale.x > 0.0,
+		"tadano de pie va SIN espejo: su arte ya mira hacia komi, que esta a su derecha")
+
 	_check(events_node.hud_up.size() == 1 and events_node.hud_down.size() == 2,
 		"el beat 332 mueve la barra hacia arriba y las dos strumlines hacia abajo")
 
@@ -587,20 +591,38 @@ func _check_camera_events() -> void:
 	}
 
 	# After standUP() the same `char` index means the standing pair, standing somewhere
-	# else. Their cameraOffsets are tadano-stand [200, 50] and komi-stand [50, 50].
+	# else. Their cameraOffsets are tadano-stand [200, 50] and komi-stand [50, 50], PLUS
+	# the stage's own for the slot they are put into - which is the half this check used to
+	# leave out, so it agreed with the bug for two rounds instead of catching it.
+	#
+	# The stage's offsets are read from the JSON here rather than from the markers the
+	# builder writes them onto: a check that reads the builder's own output cannot tell a
+	# wrong value from a wrong idea.
 	#
 	# NOT scaled by FUNKIN_TO_RUBICON here either - this check carried the same 1.5 the
-	# builder did, so it agreed with the bug instead of catching it. World offsets stay
-	# verbatim; the 1.5 lives on the camera's zoom.
+	# builder did, that time too. World offsets stay verbatim; the 1.5 lives on the zoom.
 	const STAND_UP_TIME := 232.0 * 60.0 / 152.0
+	var stage_json: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(STAGE_JSON))
+	var stage_camera_offsets: Dictionary = {}
+	# phoneCallStreet.json spells the slots bf/dad/gf.
+	for slot: String in ["bf", "dad"]:
+		var declared: Array = (stage_json.get("characters", {}) as Dictionary) \
+			.get(slot, {}).get("cameraOffsets", [0, 0])
+		stage_camera_offsets[slot] = Vector2(float(declared[0]), float(declared[1]))
+	_check(stage_camera_offsets["bf"].is_equal_approx(Vector2(-80.0, -150.0))
+			and stage_camera_offsets["dad"].is_equal_approx(Vector2(-300.0, -150.0)),
+		"phoneCallStreet.json ya no declara los cameraOffsets que este check espera")
+
 	var stand_points: Dictionary = {}
 	for entry: Array in [
-			[0, "TadanoStand", Vector2(290, 667), Vector2(200, 50)],
-			[1, "KomiStand", Vector2(269, 670), Vector2(50, 50)]]:
+			[0, "TadanoStand", Vector2(290, 667), Vector2(200, 50), "bf"],
+			[1, "KomiStand", Vector2(269, 670), Vector2(50, 50), "dad"]]:
 		var character: Node2D = level.find_child(entry[1], true, false)
 		stand_points[entry[0]] = (character.position
 			- Vector2(0.0, (entry[2] as Vector2).y * 0.5)
-			+ (entry[3] as Vector2))
+			+ (entry[3] as Vector2)
+			+ (stage_camera_offsets[entry[4]] as Vector2))
 
 	# The letterbox has to leave the notes alone: Rubicon anchors its strumlines to the
 	# BOTTOM, unlike Funkin, and the chart asks for 120px bars while notes are arriving.
@@ -766,6 +788,8 @@ func _check_camera_events() -> void:
 	await _check_opening()
 	await _check_pulse()
 	await _check_icon_bop()
+	await _check_icons_follow_health()
+	await _check_opponent_sustain_glow()
 	await _check_subtitles()
 	await _check_death()
 
@@ -955,6 +979,102 @@ func _check_subtitles() -> void:
 ## Sampled over a couple of real seconds rather than caught on one frame: the snap lasts a
 ## single frame and the ease lasts a beat, so what is checked is the range the scale covers
 ## and the fact that before beat 232 it does not move off its base at all.
+## komi's receptors have to stay lit for as long as a sustain lasts, not just on the tap.
+##
+## The clear that resets an autoplayed lane reads the note BEHIND note_hit_index, and that
+## index does not advance while a hold is live - so mid-hold it read the note before the
+## sustain, saw a completed hit, and cleared. Her lane went dark one frame after the hold
+## began. The window here contains a 592ms sustain on her `right` lane at 28.03s.
+##
+## Measured over real seconds: lane_state is a value that lives for a frame at a time, and
+## nothing about a still says how long it held.
+func _check_opponent_sustain_glow() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	_autoplay(level)
+	await process_frame
+
+	var clock: AnimationPlayer = level.get_node("RubiconLevelClock").animation_player
+	await _wind_to(clock, 27.6)
+
+	var lanes: Array[Node] = []
+	for lane: Node in level.get_node("UILayer/UI/Opponent").get_children():
+		if lane.has_method(&"get_mode_id"):
+			lanes.append(lane)
+	_check(lanes.size() == 4, "el oponente no tiene cuatro carriles")
+
+	var longest: float = 0.0
+	var current: float = 0.0
+	var elapsed: float = 0.0
+	while elapsed < 1.6:
+		var lit: bool = false
+		for lane: Node in lanes:
+			# LANE_STATE_HIT is 2; PUSH is 1 and NEUTRAL is 0.
+			lit = lit or int(lane.lane_state) == 2
+		current = current + root.get_process_delta_time() if lit else 0.0
+		longest = maxf(longest, current)
+		elapsed += root.get_process_delta_time()
+		await process_frame
+
+	# A tap's linger is one frame. Anything past a fifth of a second is a hold being held.
+	_check(longest > 0.25,
+		"los carriles de komi solo se encienden %.0fms seguidos: no aguantan el sostenido"
+			% (longest * 1000.0))
+
+	_drop(level)
+	await process_frame
+
+
+## The icons ride the fill's SEAM, which is what `healthBar.centerPoint` is - FlxBar's
+## centre point is where the boundary currently sits, not the bar's geometric middle.
+##
+## A round of this port read it as a fixed middle and parked both icons on a follow point at
+## progress_ratio 0.5, which is not even the middle of this curve: they ended up bunched at
+## the left END of the arc and stopped answering the health at all. The guard had nothing to
+## say about it, which is why it shipped. This is that check.
+func _check_icons_follow_health() -> void:
+	var level: Node = load(LEVEL).instantiate()
+	root.add_child(level)
+	await process_frame
+
+	var health: Node = level.get_node("RubiconHealthModule")
+	var bar: Control = level.get_node("UILayer/UI/HealthBar")
+	var seen: Dictionary[String, Array] = {"IconL": [], "IconR": []}
+	for value: float in [15.0, 50.0, 85.0]:
+		health.health = value
+		await process_frame
+		await process_frame
+		for icon_name: String in seen:
+			(seen[icon_name] as Array).append(
+				(bar.find_child(icon_name, true, false) as Node2D).global_position.x)
+
+	for icon_name: String in seen:
+		var xs: Array = seen[icon_name]
+		_check(float(xs[0]) < float(xs[1]) and float(xs[1]) < float(xs[2]),
+			"%s no sigue la vida: x = %.0f, %.0f, %.0f al 15, 50 y 85%%"
+				% [icon_name, xs[0], xs[1], xs[2]])
+		# A bar 728 Funkin pixels wide travels 1092 of this project's, so a seventy percent
+		# swing is most of it. Catches an icon that merely wobbles.
+		_check(float(xs[2]) - float(xs[0]) > 500.0,
+			"%s se mueve solo %.0fpx entre el 15%% y el 85%%"
+				% [icon_name, float(xs[2]) - float(xs[0])])
+
+	# And the seam has to be under them: the player's half grows RIGHTWARD with his health,
+	# so a bar that shrank it would put the icons on the wrong colour.
+	var widths: Array[float] = []
+	for value: float in [15.0, 85.0]:
+		health.health = value
+		await process_frame
+		await process_frame
+		widths.append((bar.get_node("Art/PlayerFill") as Sprite2D).region_rect.size.x)
+	_check(widths[1] > widths[0],
+		"la mitad del jugador tendria que crecer con su vida (%.0f -> %.0f)"
+			% [widths[0], widths[1]])
+
+	_drop(level)
+	await process_frame
+
+
 ## onCreatePost's `for (c in [iconP1, iconP2]) c.bopEvery = 4 * 4;`.
 ##
 ## bopEvery counts STEPS - the method it feeds is HealthIcon.onStepHit(Int) - so sixteen of

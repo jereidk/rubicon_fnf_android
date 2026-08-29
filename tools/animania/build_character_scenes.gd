@@ -74,7 +74,11 @@ func _build_stand_characters() -> void:
 		&"game_over": [&"komi_stand_komigameover", Vector2(-1, 0)],
 	}, true)
 
-	_build_sparrow_character("tadano_stand", Vector2(290.0, 667.0), true, 8, {
+	# NOT mirrored. tadano-stand's art already faces komi, who stands to his right, and this
+	# port had it flipped - the same mistake the phone tadano had, and settled the same way:
+	# a capture of the mod has his hair sweeping right and the star at his upper right, and
+	# he is pointing at her. Observation over the flag.
+	_build_sparrow_character("tadano_stand", Vector2(290.0, 667.0), false, 8, {
 		&"dance_idle": [&"tadano_stand_idle", Vector2(0, 0)],
 		&"sing_left": [&"tadano_stand_left", Vector2(49, -4)],
 		&"sing_down": [&"tadano_stand_down", Vector2(10, -18)],

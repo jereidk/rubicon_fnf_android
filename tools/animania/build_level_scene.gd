@@ -268,6 +268,15 @@ func _bake_camera_events(length: float) -> void:
 	# After standUP() the same FocusCamera `char` means the standing pair, somewhere else.
 	# Their cameraOffsets are komi-stand [50, 50] and tadano-stand [200, 50].
 	#
+	# TWO sets of offsets, not one - the same rule the phone pair already follow.
+	# Stage_obj::applyCharacterData adds the STAGE's own cameraOffsets on top of the ones
+	# the character JSON carries, and standUP() puts these two into the SAME slots
+	# (addCharacter(.., CharacterType.BF/DAD)), so phoneCallStreet's [-80, -150] for bf and
+	# [-300, -150] for dad count for them too. Dropped, the camera sat 300px right of komi
+	# and 150px low on both, which is a device run reporting the framing after the swap does
+	# not match the mod - measured at 94.3s with the camera at world x=588 where komi's own
+	# point puts it at 288.
+	#
 	# NOT scaled by FUNKIN_TO_RUBICON. Same bug as the chart's own FocusCamera offsets: these
 	# are world-space pixels and this port keeps world coordinates verbatim, the 1.5 lives
 	# on the camera's zoom. Scaled, tadano's point landed at world x=270 instead of 170 -
@@ -279,9 +288,15 @@ func _bake_camera_events(length: float) -> void:
 		var character: Node2D = _root.find_child(character_name, true, false)
 		var offsets := Vector2(200.0, 50.0) if entry["slot"] == "boyfriend" \
 			else Vector2(50.0, 50.0)
+		# The slot's own marker, which is where the stage's offsets were read onto.
+		var marker_name: String = "PlayerPoint" if entry["slot"] == "boyfriend" \
+			else "OpponentPoint"
+		var marker: Marker2D = stage.find_child(marker_name, true, false)
+		var stage_offsets: Vector2 = Vector2.ZERO if marker == null \
+			else marker.get_meta(&"camera_offsets", Vector2.ZERO)
 		stand_points[0 if entry["slot"] == "boyfriend" else 1] = (character.position
 			- Vector2(0.0, (entry["frame"] as Vector2).y * 0.5)
-			+ offsets)
+			+ offsets + stage_offsets)
 
 	var baker: RefCounted = load("res://tools/animania/camera_events.gd").new(
 		focus_points, base_zoom, stand_points, STAND_UP_BEAT * 60.0 / 152.0)
