@@ -226,6 +226,7 @@ func _init() -> void:
 	_root.set(&"sfx", sfx)
 	_root.set(&"music", music)
 	_root.set(&"camera", camera)
+	_root.set(&"dude", dude)
 	_root.set(&"curtain_up", curtains[0])
 	_root.set(&"curtain_down", curtains[1])
 

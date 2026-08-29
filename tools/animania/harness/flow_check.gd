@@ -134,7 +134,27 @@ func _init() -> void:
 	# land back where it started.
 	_check(walked != was_frame, "el ciclo de reposo de los botones no avanza")
 
+	# startTransitionToMenu runs while the confirm animation does: the curtains close back
+	# onto each other, the dude walks off to the left and the camera pulls back out to the
+	# three-times zoom it came in at.
+	var dude_at: float = menu.dude.position.x
 	menu.do_select()
+	await process_frame
+	_check(menu._exit >= 0.0, "doSelect no arranco la transicion de salida")
+	var closing: int = Time.get_ticks_msec() + 700
+	while is_instance_valid(menu) and current_scene == menu \
+			and Time.get_ticks_msec() < closing:
+		await process_frame
+	if is_instance_valid(menu) and current_scene == menu:
+		_check(menu.curtain_up.position.y > -560.0
+			and menu.curtain_down.position.y < 560.0,
+			"las cortinas no se cerraron: %.0f y %.0f"
+				% [menu.curtain_up.position.y, menu.curtain_down.position.y])
+		_check(menu.dude.position.x < dude_at - 700.0,
+			"el que baila no se fue: %.0f -> %.0f" % [dude_at, menu.dude.position.x])
+		_check(menu.camera.zoom.x > 3.0,
+			"la camara no se alejo, esta en %.2f" % menu.camera.zoom.x)
+
 	# doSelect waits out the 18-frame confirm animation before it leaves, on a SceneTree
 	# timer - so this waits in WALL CLOCK. Accumulating get_process_delta_time() does not
 	# work here: headless runs frames as fast as it can and the sum outruns the timer.

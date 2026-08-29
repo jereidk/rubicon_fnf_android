@@ -107,6 +107,24 @@ const INTRO_SCROLL := 200.0 * 1920.0 / 1280.0
 const INTRO_ZOOM_FROM := 3.0 / 0.885
 const INTRO_ZOOM_TO := 0.9 / 0.885
 
+## startTransitionToMenu, which is the intro run backwards. Its default duration is 0.75 -
+## the same 0.75 the confirm animation takes, so the two are one gesture:
+##
+##     FlxTween.tween(menuDude,      {x: menuDude.x - 650},              d, backInOut)
+##     FlxTween.tween(blackLineUp,   {y: 10 - blackLineUp.height * 0.5}, d, smootherStepOut)
+##     FlxTween.tween(blackLineDown, {y: 350},                           d, smootherStepOut)
+##     FlxTween.tween(FlxG.camera,   {zoom: 3, scrollAngle: float(-10, 10)},  d, smootherStepInOut)
+##     FlxTween.tween(FlxG.camera.scroll, {x: float(-200,200), y: float(-200,200)}, d, smootherStepInOut)
+##     new FlxTimer().start(d, _ -> switch state)
+##
+## The curtains close onto each other: -350 and 350 with a screen of height each, which
+## overlap by 20px in the middle and cover everything. Same numbers as the opening, and the
+## same 1.5x into this project's space.
+const EXIT_SECONDS := 0.75
+const EXIT_DUDE := 650.0 * 1920.0 / 1280.0
+const EXIT_CURTAIN_UP := 10.0 * 1920.0 / 1280.0
+const EXIT_CURTAIN_DOWN := 350.0 * 1920.0 / 1280.0
+
 @export var buttons: Node2D
 @export var sfx: AudioStreamPlayer
 ## The looping menu track, which is also the clock the beat comes off.
@@ -116,6 +134,8 @@ const INTRO_ZOOM_TO := 0.9 / 0.885
 ## which is why they are wider than the screen.
 @export var curtain_up: Control
 @export var curtain_down: Control
+## He is the only thing on the screen the exit moves besides the curtains and the camera.
+@export var dude: Node2D
 
 var _selected: int = 0
 var _confirmed: bool = false
@@ -129,6 +149,14 @@ var _intro: float = 0.0
 var _intro_zoom: float = 1.0
 var _intro_angle: float = 0.0
 var _intro_offset := Vector2.ZERO
+## Seconds into startTransitionToMenu, or -1 while it is not running.
+var _exit: float = -1.0
+var _exit_dude: float = 0.0
+var _exit_zoom: float = 1.0
+var _exit_up: float = 0.0
+var _exit_down: float = 0.0
+var _exit_angle: float = 0.0
+var _exit_offset := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -160,13 +188,13 @@ func _start_intro() -> void:
 func _advance_intro(delta: float) -> void:
 	_intro += delta
 
-	var opening: float = _smoother_step_out(minf(_intro / INTRO_CURTAIN, 1.0))
+	var opening: float = _smoother_step_out(clampf(_intro / INTRO_CURTAIN, 0.0, 1.0))
 	if curtain_up != null:
 		curtain_up.position.y = -(curtain_up.size.y - INTRO_BAND) * opening
 	if curtain_down != null:
 		curtain_down.position.y = (curtain_down.size.y - INTRO_BAND) * opening
 
-	var settling: float = _smoother_step(minf(_intro / INTRO_CAMERA, 1.0))
+	var settling: float = _smoother_step(clampf(_intro / INTRO_CAMERA, 0.0, 1.0))
 	if camera != null:
 		camera.zoom = Vector2.ONE * lerpf(
 			_intro_zoom, ZOOM_REST * INTRO_ZOOM_TO, settling)
@@ -188,6 +216,54 @@ func _smoother_step_out(t: float) -> float:
 	return 2.0 * _smoother_step(t * 0.5 + 0.5) - 1.0
 
 
+## FlxEase.backInOut, with the 2.70158 and the 1.70158 read out of .rodata.
+func _back_in_out(t: float) -> float:
+	var at: float = t * 2.0
+	if at < 1.0:
+		return at * at * (2.70158 * at - 1.70158) * 0.5
+	at -= 2.0
+	return (at * at * (2.70158 * at + 1.70158) + 2.0) * 0.5
+
+
+func _start_exit() -> void:
+	_exit = 0.0
+	_exit_dude = dude.position.x if dude != null else 0.0
+	_exit_up = curtain_up.position.y if curtain_up != null else 0.0
+	_exit_down = curtain_down.position.y if curtain_down != null else 0.0
+	if camera != null:
+		_exit_zoom = camera.zoom.x
+		_exit_angle = deg_to_rad(randf_range(-INTRO_ANGLE, INTRO_ANGLE))
+		_exit_offset = Vector2(
+			randf_range(-INTRO_SCROLL, INTRO_SCROLL),
+			randf_range(-INTRO_SCROLL, INTRO_SCROLL))
+	_advance_exit(0.0)
+
+
+## Note it does NOT stop at the end: it holds on the last frame until the scene changes,
+## because letting it fall through would hand the camera straight back to the beat's decay
+## and undo the zoom in the frames before the switch.
+func _advance_exit(delta: float) -> void:
+	_exit += delta
+	var t: float = clampf(_exit / EXIT_SECONDS, 0.0, 1.0)
+
+	if dude != null:
+		dude.position.x = lerpf(_exit_dude, _exit_dude - EXIT_DUDE, _back_in_out(t))
+
+	var closing: float = _smoother_step_out(t)
+	if curtain_up != null:
+		curtain_up.position.y = lerpf(
+			_exit_up, EXIT_CURTAIN_UP - curtain_up.size.y * 0.5, closing)
+	if curtain_down != null:
+		curtain_down.position.y = lerpf(_exit_down, EXIT_CURTAIN_DOWN, closing)
+
+	var leaving: float = _smoother_step(t)
+	if camera != null:
+		camera.zoom = Vector2.ONE * lerpf(
+			_exit_zoom, ZOOM_REST * INTRO_ZOOM_FROM, leaving)
+		camera.rotation = lerpf(0.0, _exit_angle, leaving)
+		camera.offset = Vector2.ZERO.lerp(_exit_offset, leaving)
+
+
 ## Whether the menu answers yet. The mod turns it on in the camera tween's onComplete.
 func _live() -> bool:
 	return _intro < 0.0 or _intro >= INTRO_CAMERA
@@ -197,6 +273,10 @@ func _live() -> bool:
 ## the track it is supposed to be following, and the track is the only clock this screen has.
 func _process(delta: float) -> void:
 	_drive_idles()
+
+	if _exit >= 0.0:
+		_advance_exit(delta)
+		return
 
 	if _intro >= 0.0:
 		_advance_intro(delta)
@@ -247,16 +327,21 @@ func do_select() -> void:
 	_confirmed = true
 	_play(SOUND_CONFIRM)
 	_animate(name, "confirm")
+	_start_exit()
+
+	# The confirm animation and the transition are the same 0.75 seconds, which is why the
+	# mod can start both and only wait once.
+	await get_tree().create_timer(EXIT_SECONDS).timeout
 
 	if not DESTINATIONS.has(name):
-		# Nowhere to go yet. The confirm still plays out, then the menu comes back, so a
-		# button that is not ported reads as "not yet" instead of as a freeze.
-		await get_tree().create_timer(CONFIRM_SECONDS).timeout
+		# Nowhere to go yet, so it comes back in the way it went out. A button that is not
+		# ported reads as "not yet" instead of as a freeze.
+		_exit = -1.0
 		_confirmed = false
 		_refresh()
+		_start_intro()
 		return
 
-	await get_tree().create_timer(CONFIRM_SECONDS).timeout
 	get_tree().change_scene_to_file(String(DESTINATIONS[name]))
 
 
