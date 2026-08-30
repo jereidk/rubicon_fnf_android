@@ -95,9 +95,6 @@
 [ext_resource type="SpriteFrames" uid="uid://dj54xcbebruhq" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/serena_looking_back.tres" id="93"]
 [ext_resource type="AnimationLibrary" uid="uid://b6ti6qub0nkdk" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/serena_looking_back_library.tres" id="94"]
 [ext_resource type="Texture2D" uid="uid://p0lxqfqoj85o" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/Running/finalshot.png" id="95"]
-[ext_resource type="Texture2D" uid="uid://rt4hiwly686f" path="res://lullaby_mod/assets/funkin/chimera/textures/house_outside/intro/1.png" id="96"]
-[ext_resource type="Texture2D" uid="uid://cpg0idhtbr7u7" path="res://lullaby_mod/assets/funkin/chimera/textures/house_outside/intro/2.png" id="97"]
-[ext_resource type="Texture2D" uid="uid://ckgdfh86a2mtl" path="res://lullaby_mod/assets/funkin/chimera/textures/house_outside/intro/3.png" id="98"]
 [ext_resource type="FontFile" uid="uid://ccukgoph618vn" path="res://lullaby_mod/resources/fonts/fnt_balthazar.ttf" id="99"]
 [ext_resource type="Texture2D" uid="uid://d3fflm85iyp3w" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/handclick.png" id="100"]
 [ext_resource type="Texture2D" uid="uid://djlc8u3327p3u" path="res://lullaby_mod/assets/funkin/chimera/textures/serena/intro/evil_photos.png" id="101"]
@@ -3826,131 +3823,95 @@ tracks/11/keys = {
 tracks/12/type = "value"
 tracks/12/imported = false
 tracks/12/enabled = true
-tracks/12/path = NodePath("../Prelude/1:modulate")
-tracks/12/interp = 1
+tracks/12/path = NodePath("../Prelude:visible")
+tracks/12/interp = 0
 tracks/12/loop_wrap = true
 tracks/12/keys = {
-"times": PackedFloat32Array(0, 0.46666667, 15.9167),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1)]
-}
-tracks/13/type = "value"
-tracks/13/imported = false
-tracks/13/enabled = true
-tracks/13/path = NodePath("../Prelude/2:modulate")
-tracks/13/interp = 1
-tracks/13/loop_wrap = true
-tracks/13/keys = {
-"times": PackedFloat32Array(0, 8.533334, 9.066668, 15.9167),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0.78039217)]
-}
-tracks/14/type = "value"
-tracks/14/imported = false
-tracks/14/enabled = true
-tracks/14/path = NodePath("../Prelude/3:modulate")
-tracks/14/interp = 1
-tracks/14/loop_wrap = true
-tracks/14/keys = {
-"times": PackedFloat32Array(0, 12.799999, 13.333333),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
-}
-tracks/15/type = "value"
-tracks/15/imported = false
-tracks/15/enabled = true
-tracks/15/path = NodePath("../Prelude:visible")
-tracks/15/interp = 0
-tracks/15/loop_wrap = true
-tracks/15/keys = {
 "times": PackedFloat32Array(0, 15.9333),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/16/type = "value"
-tracks/16/imported = false
-tracks/16/enabled = true
-tracks/16/path = NodePath("../Environment/chimera_house/floorfucked:visible")
-tracks/16/interp = 1
-tracks/16/loop_wrap = true
-tracks/16/keys = {
+tracks/13/type = "value"
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/path = NodePath("../Environment/chimera_house/floorfucked:visible")
+tracks/13/interp = 1
+tracks/13/loop_wrap = true
+tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
 }
-tracks/17/type = "value"
-tracks/17/imported = false
-tracks/17/enabled = true
-tracks/17/path = NodePath("../UILayer/PreludeCaption:text")
-tracks/17/interp = 0
-tracks/17/loop_wrap = true
-tracks/17/keys = {
+tracks/14/type = "value"
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/path = NodePath("../UILayer/PreludeCaption:text")
+tracks/14/interp = 0
+tracks/14/loop_wrap = true
+tracks/14/keys = {
 "times": PackedFloat32Array(0, 8.933333, 13.1),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": ["Serena Yvonne Gabena, 20 years old. Photos recovered on-site.
 On the back's written: \"Hey hayyy\"", "\"Weird new bug type. Shiny shell :O\"", "\"Lonely lil' house\""]
 }
-tracks/18/type = "value"
-tracks/18/imported = false
-tracks/18/enabled = true
-tracks/18/path = NodePath("../UILayer/PreludeCaption:modulate")
-tracks/18/interp = 1
-tracks/18/loop_wrap = true
-tracks/18/keys = {
+tracks/15/type = "value"
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/path = NodePath("../UILayer/PreludeCaption:modulate")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/keys = {
 "times": PackedFloat32Array(-0.033333335, 0.54166675, 8.541667, 8.933333, 9.2, 12.916667, 13.1, 13.333333, 15.933300, 15.933400),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 0),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0.99999994), Color(1, 1, 1, 0)]
 }
-tracks/19/type = "value"
-tracks/19/imported = false
-tracks/19/enabled = true
-tracks/19/path = NodePath("../Prelude/Black:visible")
-tracks/19/interp = 1
-tracks/19/loop_wrap = true
-tracks/19/keys = {
+tracks/16/type = "value"
+tracks/16/imported = false
+tracks/16/enabled = true
+tracks/16/path = NodePath("../Prelude/Black:visible")
+tracks/16/interp = 1
+tracks/16/loop_wrap = true
+tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [true]
 }
-tracks/20/type = "value"
-tracks/20/imported = false
-tracks/20/enabled = true
-tracks/20/path = NodePath("SerenaDisorient:visible")
-tracks/20/interp = 1
-tracks/20/loop_wrap = true
-tracks/20/keys = {
+tracks/17/type = "value"
+tracks/17/imported = false
+tracks/17/enabled = true
+tracks/17/path = NodePath("SerenaDisorient:visible")
+tracks/17/interp = 1
+tracks/17/loop_wrap = true
+tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
 }
-tracks/21/type = "value"
-tracks/21/imported = false
-tracks/21/enabled = true
-tracks/21/path = NodePath("SerenaReaching:visible")
-tracks/21/interp = 1
-tracks/21/loop_wrap = true
-tracks/21/keys = {
+tracks/18/type = "value"
+tracks/18/imported = false
+tracks/18/enabled = true
+tracks/18/path = NodePath("SerenaReaching:visible")
+tracks/18/interp = 1
+tracks/18/loop_wrap = true
+tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
 }
-tracks/22/type = "value"
-tracks/22/imported = false
-tracks/22/enabled = true
-tracks/22/path = NodePath("../Environment/Lights/TvLight:light_energy")
-tracks/22/interp = 0
-tracks/22/loop_wrap = true
-tracks/22/keys = {
+tracks/19/type = "value"
+tracks/19/imported = false
+tracks/19/enabled = true
+tracks/19/path = NodePath("../Environment/Lights/TvLight:light_energy")
+tracks/19/interp = 0
+tracks/19/loop_wrap = true
+tracks/19/keys = {
 "times": PackedFloat32Array(0, 16.5417),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
@@ -9537,115 +9498,115 @@ tracks/31/keys = {
 tracks/32/type = "value"
 tracks/32/imported = false
 tracks/32/enabled = true
-tracks/32/path = NodePath("../Prelude/1:modulate")
+tracks/32/path = NodePath("../Prelude:visible")
 tracks/32/interp = 0
 tracks/32/loop_wrap = true
 tracks/32/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 0)]
+"values": [false]
 }
 tracks/33/type = "value"
 tracks/33/imported = false
 tracks/33/enabled = true
-tracks/33/path = NodePath("../Prelude/2:modulate")
+tracks/33/path = NodePath("SerenaHeartbeat/Heart/HeartbeatController:beating_starting_time_seconds")
 tracks/33/interp = 0
 tracks/33/loop_wrap = true
 tracks/33/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 0)]
+"values": [0.55]
 }
 tracks/34/type = "value"
 tracks/34/imported = false
 tracks/34/enabled = true
-tracks/34/path = NodePath("../Prelude/3:modulate")
+tracks/34/path = NodePath("../Environment/Lights/Ray:transparency")
 tracks/34/interp = 0
 tracks/34/loop_wrap = true
 tracks/34/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 0)]
+"values": [0.0]
 }
 tracks/35/type = "value"
 tracks/35/imported = false
 tracks/35/enabled = true
-tracks/35/path = NodePath("../Prelude:visible")
+tracks/35/path = NodePath("SerenaBase/SerenaBase:dancing_should_dance")
 tracks/35/interp = 0
 tracks/35/loop_wrap = true
 tracks/35/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [false]
+"values": [true]
 }
 tracks/36/type = "value"
 tracks/36/imported = false
 tracks/36/enabled = true
-tracks/36/path = NodePath("SerenaHeartbeat/Heart/HeartbeatController:beating_starting_time_seconds")
+tracks/36/path = NodePath("../Outro:visible")
 tracks/36/interp = 0
 tracks/36/loop_wrap = true
 tracks/36/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.55]
+"values": [false]
 }
 tracks/37/type = "value"
 tracks/37/imported = false
 tracks/37/enabled = true
-tracks/37/path = NodePath("../Environment/Lights/Ray:transparency")
+tracks/37/path = NodePath("SerenaExiting/WalkingPath/WalkingFollow/WalkRemoteTransform:update_position")
 tracks/37/interp = 0
 tracks/37/loop_wrap = true
 tracks/37/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [false]
 }
 tracks/38/type = "value"
 tracks/38/imported = false
 tracks/38/enabled = true
-tracks/38/path = NodePath("SerenaBase/SerenaBase:dancing_should_dance")
+tracks/38/path = NodePath("GETOUT/CrawlPath/CrawlFollow/CrawlRemoteTransform:update_position")
 tracks/38/interp = 0
 tracks/38/loop_wrap = true
 tracks/38/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [true]
+"values": [false]
 }
 tracks/39/type = "value"
 tracks/39/imported = false
 tracks/39/enabled = true
-tracks/39/path = NodePath("../Outro:visible")
+tracks/39/path = NodePath("../Environment/WorldEnvironment:colors")
 tracks/39/interp = 0
 tracks/39/loop_wrap = true
 tracks/39/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [false]
+"values": [PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1)]
 }
 tracks/40/type = "value"
 tracks/40/imported = false
 tracks/40/enabled = true
-tracks/40/path = NodePath("SerenaExiting/WalkingPath/WalkingFollow/WalkRemoteTransform:update_position")
+tracks/40/path = NodePath("../Environment/WorldEnvironment:offsets")
 tracks/40/interp = 0
 tracks/40/loop_wrap = true
 tracks/40/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [false]
+"values": [PackedFloat32Array(0, 1)]
 }
 tracks/41/type = "value"
 tracks/41/imported = false
 tracks/41/enabled = true
-tracks/41/path = NodePath("GETOUT/CrawlPath/CrawlFollow/CrawlRemoteTransform:update_position")
+tracks/41/path = NodePath("../UILayer/Borders:visible")
 tracks/41/interp = 0
 tracks/41/loop_wrap = true
 tracks/41/keys = {
@@ -9657,343 +9618,343 @@ tracks/41/keys = {
 tracks/42/type = "value"
 tracks/42/imported = false
 tracks/42/enabled = true
-tracks/42/path = NodePath("../Environment/WorldEnvironment:colors")
+tracks/42/path = NodePath("../Environment/chimera_house/frontDoor:visible")
 tracks/42/interp = 0
 tracks/42/loop_wrap = true
 tracks/42/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1)]
+"values": [true]
 }
 tracks/43/type = "value"
 tracks/43/imported = false
 tracks/43/enabled = true
-tracks/43/path = NodePath("../Environment/WorldEnvironment:offsets")
+tracks/43/path = NodePath("../Environment/chimera_house/frontDoor_001:visible")
 tracks/43/interp = 0
 tracks/43/loop_wrap = true
 tracks/43/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [PackedFloat32Array(0, 1)]
+"values": [true]
 }
 tracks/44/type = "value"
 tracks/44/imported = false
 tracks/44/enabled = true
-tracks/44/path = NodePath("../UILayer/Borders:visible")
-tracks/44/interp = 0
+tracks/44/path = NodePath("../SerenaLookBehind/AnimatedSprite2D:position")
+tracks/44/interp = 1
 tracks/44/loop_wrap = true
 tracks/44/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [false]
+"values": [Vector2(854, 553)]
 }
 tracks/45/type = "value"
 tracks/45/imported = false
 tracks/45/enabled = true
-tracks/45/path = NodePath("../Environment/chimera_house/frontDoor:visible")
-tracks/45/interp = 0
+tracks/45/path = NodePath("../Camera3D/OmniLight3D:spot_attenuation")
+tracks/45/interp = 1
 tracks/45/loop_wrap = true
 tracks/45/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [true]
+"values": [2.39]
 }
 tracks/46/type = "value"
 tracks/46/imported = false
 tracks/46/enabled = true
-tracks/46/path = NodePath("../Environment/chimera_house/frontDoor_001:visible")
-tracks/46/interp = 0
+tracks/46/path = NodePath("../Camera3D/OmniLight3D:light_specular")
+tracks/46/interp = 1
 tracks/46/loop_wrap = true
 tracks/46/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [true]
+"values": [0.054]
 }
 tracks/47/type = "value"
 tracks/47/imported = false
 tracks/47/enabled = true
-tracks/47/path = NodePath("../SerenaLookBehind/AnimatedSprite2D:position")
+tracks/47/path = NodePath("../Camera3D/OmniLight3D:light_color")
 tracks/47/interp = 1
 tracks/47/loop_wrap = true
 tracks/47/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(854, 553)]
+"values": [Color(0.40994936, 0.43319207, 0.53423107, 1)]
 }
 tracks/48/type = "value"
 tracks/48/imported = false
 tracks/48/enabled = true
-tracks/48/path = NodePath("../Camera3D/OmniLight3D:spot_attenuation")
+tracks/48/path = NodePath("SerenaDisorient/Disorient:animation")
 tracks/48/interp = 1
 tracks/48/loop_wrap = true
 tracks/48/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [2.39]
+"update": 1,
+"values": [&"Fall"]
 }
 tracks/49/type = "value"
 tracks/49/imported = false
 tracks/49/enabled = true
-tracks/49/path = NodePath("../Camera3D/OmniLight3D:light_specular")
+tracks/49/path = NodePath("../Prelude/Black:modulate")
 tracks/49/interp = 1
 tracks/49/loop_wrap = true
 tracks/49/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.054]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/50/type = "value"
 tracks/50/imported = false
 tracks/50/enabled = true
-tracks/50/path = NodePath("../Camera3D/OmniLight3D:light_color")
+tracks/50/path = NodePath("SerenaReaching:visible")
 tracks/50/interp = 1
 tracks/50/loop_wrap = true
 tracks/50/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.40994936, 0.43319207, 0.53423107, 1)]
+"update": 1,
+"values": [false]
 }
 tracks/51/type = "value"
 tracks/51/imported = false
 tracks/51/enabled = true
-tracks/51/path = NodePath("SerenaDisorient/Disorient:animation")
+tracks/51/path = NodePath("../Environment/chimera_house/frontDoor_001:position")
 tracks/51/interp = 1
 tracks/51/loop_wrap = true
 tracks/51/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"Fall"]
+"update": 0,
+"values": [Vector3(0.29058182, 1.0084604, 3.6126037)]
 }
 tracks/52/type = "value"
 tracks/52/imported = false
 tracks/52/enabled = true
-tracks/52/path = NodePath("../Prelude/Black:modulate")
+tracks/52/path = NodePath("../Environment/chimera_house/frontDoor:position")
 tracks/52/interp = 1
 tracks/52/loop_wrap = true
 tracks/52/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [Vector3(0.29058182, 1.0084604, 3.6126037)]
 }
 tracks/53/type = "value"
 tracks/53/imported = false
 tracks/53/enabled = true
-tracks/53/path = NodePath("SerenaReaching:visible")
+tracks/53/path = NodePath("../Environment/chimera_house/frontDoor:rotation")
 tracks/53/interp = 1
 tracks/53/loop_wrap = true
 tracks/53/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Vector3(0, 0, 0)]
 }
 tracks/54/type = "value"
 tracks/54/imported = false
 tracks/54/enabled = true
-tracks/54/path = NodePath("../Environment/chimera_house/frontDoor_001:position")
+tracks/54/path = NodePath("../Environment/chimera_house/frontDoor_001:rotation")
 tracks/54/interp = 1
 tracks/54/loop_wrap = true
 tracks/54/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0.29058182, 1.0084604, 3.6126037)]
+"values": [Vector3(0, 0, 0)]
 }
 tracks/55/type = "value"
 tracks/55/imported = false
 tracks/55/enabled = true
-tracks/55/path = NodePath("../Environment/chimera_house/frontDoor:position")
+tracks/55/path = NodePath("SerenaDisorient:position")
 tracks/55/interp = 1
 tracks/55/loop_wrap = true
 tracks/55/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0.29058182, 1.0084604, 3.6126037)]
+"values": [Vector3(0.06, -0.08, 0)]
 }
 tracks/56/type = "value"
 tracks/56/imported = false
 tracks/56/enabled = true
-tracks/56/path = NodePath("../Environment/chimera_house/frontDoor:rotation")
+tracks/56/path = NodePath("../BlackBoxofAwesomeness:color")
 tracks/56/interp = 1
 tracks/56/loop_wrap = true
 tracks/56/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0, 0, 0)]
+"values": [Color(0, 0, 0, 0)]
 }
 tracks/57/type = "value"
 tracks/57/imported = false
 tracks/57/enabled = true
-tracks/57/path = NodePath("../Environment/chimera_house/frontDoor_001:rotation")
+tracks/57/path = NodePath("../Environment/WorldEnvironment:environment")
 tracks/57/interp = 1
 tracks/57/loop_wrap = true
 tracks/57/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 0, 0)]
+"update": 1,
+"values": [ExtResource("56")]
 }
 tracks/58/type = "value"
 tracks/58/imported = false
 tracks/58/enabled = true
-tracks/58/path = NodePath("SerenaDisorient:position")
+tracks/58/path = NodePath("SerenaHeartbeat/SerenaScared:visible")
 tracks/58/interp = 1
 tracks/58/loop_wrap = true
 tracks/58/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0.06, -0.08, 0)]
+"update": 1,
+"values": [true]
 }
 tracks/59/type = "value"
 tracks/59/imported = false
 tracks/59/enabled = true
-tracks/59/path = NodePath("../BlackBoxofAwesomeness:color")
+tracks/59/path = NodePath("../Environment/Lights/Ray:position")
 tracks/59/interp = 1
 tracks/59/loop_wrap = true
 tracks/59/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(0, 0, 0, 0)]
+"values": [Vector3(0.43205583, 4.651292, -0.108115196)]
 }
 tracks/60/type = "value"
 tracks/60/imported = false
 tracks/60/enabled = true
-tracks/60/path = NodePath("../Environment/WorldEnvironment:environment")
+tracks/60/path = NodePath("../Environment/Lights/TvLight:light_color")
 tracks/60/interp = 1
 tracks/60/loop_wrap = true
 tracks/60/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("56")]
+"update": 0,
+"values": [Color(0.8182125, 0.8776439, 0.9625812, 1)]
 }
 tracks/61/type = "value"
 tracks/61/imported = false
 tracks/61/enabled = true
-tracks/61/path = NodePath("SerenaHeartbeat/SerenaScared:visible")
+tracks/61/path = NodePath("../Environment/Lights/TvLight:light_negative")
 tracks/61/interp = 1
 tracks/61/loop_wrap = true
 tracks/61/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [false]
 }
 tracks/62/type = "value"
 tracks/62/imported = false
 tracks/62/enabled = true
-tracks/62/path = NodePath("../Environment/Lights/Ray:position")
+tracks/62/path = NodePath("../Camera3D/OmniLight3D:light_negative")
 tracks/62/interp = 1
 tracks/62/loop_wrap = true
 tracks/62/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0.43205583, 4.651292, -0.108115196)]
+"update": 1,
+"values": [false]
 }
 tracks/63/type = "value"
 tracks/63/imported = false
 tracks/63/enabled = true
-tracks/63/path = NodePath("../Environment/Lights/TvLight:light_color")
+tracks/63/path = NodePath("../Camera3D/CrawlTransform3D:update_position")
 tracks/63/interp = 1
 tracks/63/loop_wrap = true
 tracks/63/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.8182125, 0.8776439, 0.9625812, 1)]
+"update": 1,
+"values": [false]
 }
 tracks/64/type = "value"
 tracks/64/imported = false
 tracks/64/enabled = true
-tracks/64/path = NodePath("../Environment/Lights/TvLight:light_negative")
-tracks/64/interp = 1
+tracks/64/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:position")
+tracks/64/interp = 0
 tracks/64/loop_wrap = true
 tracks/64/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/65/type = "value"
-tracks/65/imported = false
-tracks/65/enabled = true
-tracks/65/path = NodePath("../Camera3D/OmniLight3D:light_negative")
-tracks/65/interp = 1
-tracks/65/loop_wrap = true
-tracks/65/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/66/type = "value"
-tracks/66/imported = false
-tracks/66/enabled = true
-tracks/66/path = NodePath("../Camera3D/CrawlTransform3D:update_position")
-tracks/66/interp = 1
-tracks/66/loop_wrap = true
-tracks/66/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/67/type = "value"
-tracks/67/imported = false
-tracks/67/enabled = true
-tracks/67/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:position")
-tracks/67/interp = 0
-tracks/67/loop_wrap = true
-tracks/67/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector3(0.586, 0.272, 0.17)]
 }
-tracks/68/type = "value"
-tracks/68/imported = false
-tracks/68/enabled = true
-tracks/68/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:rotation")
-tracks/68/interp = 0
-tracks/68/loop_wrap = true
-tracks/68/keys = {
+tracks/65/type = "value"
+tracks/65/imported = false
+tracks/65/enabled = true
+tracks/65/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:rotation")
+tracks/65/interp = 0
+tracks/65/loop_wrap = true
+tracks/65/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector3(0, 0, 0)]
 }
-tracks/69/type = "value"
-tracks/69/imported = false
-tracks/69/enabled = true
-tracks/69/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:light_energy")
-tracks/69/interp = 1
-tracks/69/loop_wrap = true
-tracks/69/keys = {
+tracks/66/type = "value"
+tracks/66/imported = false
+tracks/66/enabled = true
+tracks/66/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:light_energy")
+tracks/66/interp = 1
+tracks/66/loop_wrap = true
+tracks/66/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [4.858]
 }
+tracks/67/type = "value"
+tracks/67/imported = false
+tracks/67/enabled = true
+tracks/67/path = NodePath("SerenaDisorient:visible")
+tracks/67/interp = 1
+tracks/67/loop_wrap = true
+tracks/67/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/68/type = "value"
+tracks/68/imported = false
+tracks/68/enabled = true
+tracks/68/path = NodePath("SerenaTakingPictures/SerenaCinematics:frame")
+tracks/68/interp = 1
+tracks/68/loop_wrap = true
+tracks/68/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/69/type = "value"
+tracks/69/imported = false
+tracks/69/enabled = true
+tracks/69/path = NodePath("SerenaTakingPictures/SerenaCinematics:animation")
+tracks/69/interp = 1
+tracks/69/loop_wrap = true
+tracks/69/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"serena picture 1"]
+}
 tracks/70/type = "value"
 tracks/70/imported = false
 tracks/70/enabled = true
-tracks/70/path = NodePath("SerenaDisorient:visible")
+tracks/70/path = NodePath("../SerenaLookBehind:visible")
 tracks/70/interp = 1
 tracks/70/loop_wrap = true
 tracks/70/keys = {
@@ -10005,79 +9966,79 @@ tracks/70/keys = {
 tracks/71/type = "value"
 tracks/71/imported = false
 tracks/71/enabled = true
-tracks/71/path = NodePath("SerenaTakingPictures/SerenaCinematics:frame")
+tracks/71/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:light_energy")
 tracks/71/interp = 1
 tracks/71/loop_wrap = true
 tracks/71/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
+"update": 0,
+"values": [4.839655]
 }
 tracks/72/type = "value"
 tracks/72/imported = false
 tracks/72/enabled = true
-tracks/72/path = NodePath("SerenaTakingPictures/SerenaCinematics:animation")
+tracks/72/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:light_color")
 tracks/72/interp = 1
 tracks/72/loop_wrap = true
 tracks/72/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"serena picture 1"]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/73/type = "value"
 tracks/73/imported = false
 tracks/73/enabled = true
-tracks/73/path = NodePath("../SerenaLookBehind:visible")
+tracks/73/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:light_color")
 tracks/73/interp = 1
 tracks/73/loop_wrap = true
 tracks/73/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/74/type = "value"
 tracks/74/imported = false
 tracks/74/enabled = true
-tracks/74/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:light_energy")
+tracks/74/path = NodePath("../hex:position")
 tracks/74/interp = 1
 tracks/74/loop_wrap = true
 tracks/74/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [4.839655]
+"values": [Vector3(0, 0, 0)]
 }
 tracks/75/type = "value"
 tracks/75/imported = false
 tracks/75/enabled = true
-tracks/75/path = NodePath("SerenaTakingPictures/SerenaCinematics/PhoneGlow:light_color")
+tracks/75/path = NodePath("../hex:visible")
 tracks/75/interp = 1
 tracks/75/loop_wrap = true
 tracks/75/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
+"update": 1,
+"values": [true]
 }
 tracks/76/type = "value"
 tracks/76/imported = false
 tracks/76/enabled = true
-tracks/76/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:light_color")
+tracks/76/path = NodePath("../hex:rotation")
 tracks/76/interp = 1
 tracks/76/loop_wrap = true
 tracks/76/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [Vector3(0, 0.16231562, 0)]
 }
 tracks/77/type = "value"
 tracks/77/imported = false
 tracks/77/enabled = true
-tracks/77/path = NodePath("../hex:position")
+tracks/77/path = NodePath("SerenaTakingPictures/SerenaCinematics:position")
 tracks/77/interp = 1
 tracks/77/loop_wrap = true
 tracks/77/keys = {
@@ -10089,7 +10050,7 @@ tracks/77/keys = {
 tracks/78/type = "value"
 tracks/78/imported = false
 tracks/78/enabled = true
-tracks/78/path = NodePath("../hex:visible")
+tracks/78/path = NodePath("SerenaShock:visible")
 tracks/78/interp = 1
 tracks/78/loop_wrap = true
 tracks/78/keys = {
@@ -10101,343 +10062,343 @@ tracks/78/keys = {
 tracks/79/type = "value"
 tracks/79/imported = false
 tracks/79/enabled = true
-tracks/79/path = NodePath("../hex:rotation")
+tracks/79/path = NodePath("SerenaTakingPictures/SerenaCinematics:visible")
 tracks/79/interp = 1
 tracks/79/loop_wrap = true
 tracks/79/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 0.16231562, 0)]
+"update": 1,
+"values": [true]
 }
 tracks/80/type = "value"
 tracks/80/imported = false
 tracks/80/enabled = true
-tracks/80/path = NodePath("SerenaTakingPictures/SerenaCinematics:position")
+tracks/80/path = NodePath("SerenaShock/BackingUp:animation")
 tracks/80/interp = 1
 tracks/80/loop_wrap = true
 tracks/80/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0, 0, 0)]
+"values": [&"Behind_View-"]
 }
 tracks/81/type = "value"
 tracks/81/imported = false
 tracks/81/enabled = true
-tracks/81/path = NodePath("SerenaShock:visible")
+tracks/81/path = NodePath("SerenaShock/BackingUp:visible")
 tracks/81/interp = 1
 tracks/81/loop_wrap = true
 tracks/81/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [false]
 }
 tracks/82/type = "value"
 tracks/82/imported = false
 tracks/82/enabled = true
-tracks/82/path = NodePath("SerenaTakingPictures/SerenaCinematics:visible")
+tracks/82/path = NodePath("../Environment/Lights/TvLight:light_energy")
 tracks/82/interp = 1
 tracks/82/loop_wrap = true
 tracks/82/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [0.0]
 }
 tracks/83/type = "value"
 tracks/83/imported = false
 tracks/83/enabled = true
-tracks/83/path = NodePath("SerenaShock/BackingUp:animation")
+tracks/83/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:spot_angle")
 tracks/83/interp = 1
 tracks/83/loop_wrap = true
 tracks/83/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [&"Behind_View-"]
+"values": [0.0]
 }
 tracks/84/type = "value"
 tracks/84/imported = false
 tracks/84/enabled = true
-tracks/84/path = NodePath("SerenaShock/BackingUp:visible")
+tracks/84/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:position")
 tracks/84/interp = 1
 tracks/84/loop_wrap = true
 tracks/84/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [false]
+"values": [Vector3(0, 0, 0)]
 }
 tracks/85/type = "value"
 tracks/85/imported = false
 tracks/85/enabled = true
-tracks/85/path = NodePath("../Environment/Lights/TvLight:light_energy")
+tracks/85/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:spot_range")
 tracks/85/interp = 1
 tracks/85/loop_wrap = true
 tracks/85/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [6.149]
 }
 tracks/86/type = "value"
 tracks/86/imported = false
 tracks/86/enabled = true
-tracks/86/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:spot_angle")
+tracks/86/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:rotation")
 tracks/86/interp = 1
 tracks/86/loop_wrap = true
 tracks/86/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [Vector3(-0.14835298, 3.1415925, -4.9719953e-09)]
 }
 tracks/87/type = "value"
 tracks/87/imported = false
 tracks/87/enabled = true
-tracks/87/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:position")
+tracks/87/path = NodePath("../Environment/Lights/TvLight:omni_range")
 tracks/87/interp = 1
 tracks/87/loop_wrap = true
 tracks/87/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0, 0, 0)]
+"values": [43.927]
 }
 tracks/88/type = "value"
 tracks/88/imported = false
 tracks/88/enabled = true
-tracks/88/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:spot_range")
+tracks/88/path = NodePath("SerenaReaching/Reaching:visible")
 tracks/88/interp = 1
 tracks/88/loop_wrap = true
 tracks/88/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [6.149]
+"update": 1,
+"values": [true]
 }
 tracks/89/type = "value"
 tracks/89/imported = false
 tracks/89/enabled = true
-tracks/89/path = NodePath("SerenaTakingPictures/SerenaCinematics/flash:rotation")
+tracks/89/path = NodePath("SerenaShock/BackingUp:position")
 tracks/89/interp = 1
 tracks/89/loop_wrap = true
 tracks/89/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(-0.14835298, 3.1415925, -4.9719953e-09)]
+"values": [Vector3(1.0199519, 2.4304554, 2.5418832)]
 }
 tracks/90/type = "value"
 tracks/90/imported = false
 tracks/90/enabled = true
-tracks/90/path = NodePath("../Environment/Lights/TvLight:omni_range")
+tracks/90/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:visible")
 tracks/90/interp = 1
 tracks/90/loop_wrap = true
 tracks/90/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [43.927]
+"update": 1,
+"values": [false]
 }
 tracks/91/type = "value"
 tracks/91/imported = false
 tracks/91/enabled = true
-tracks/91/path = NodePath("SerenaReaching/Reaching:visible")
+tracks/91/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:position")
 tracks/91/interp = 1
 tracks/91/loop_wrap = true
 tracks/91/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Vector3(3.6077404, 3.2152355, -1.4741367)]
 }
 tracks/92/type = "value"
 tracks/92/imported = false
 tracks/92/enabled = true
-tracks/92/path = NodePath("SerenaShock/BackingUp:position")
+tracks/92/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:modulate")
 tracks/92/interp = 1
 tracks/92/loop_wrap = true
 tracks/92/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(1.0199519, 2.4304554, 2.5418832)]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/93/type = "value"
 tracks/93/imported = false
 tracks/93/enabled = true
-tracks/93/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:visible")
+tracks/93/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:animation")
 tracks/93/interp = 1
 tracks/93/loop_wrap = true
 tracks/93/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [false]
+"values": [&"Serena Walking instance "]
 }
 tracks/94/type = "value"
 tracks/94/imported = false
 tracks/94/enabled = true
-tracks/94/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:position")
+tracks/94/path = NodePath("../UILayer/NTSC:material:shader_parameter/blur_amount")
 tracks/94/interp = 1
 tracks/94/loop_wrap = true
 tracks/94/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(3.6077404, 3.2152355, -1.4741367)]
+"values": [0.749999983236]
 }
 tracks/95/type = "value"
 tracks/95/imported = false
 tracks/95/enabled = true
-tracks/95/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:modulate")
+tracks/95/path = NodePath("../Environment/chimera_house/window_004:visible")
 tracks/95/interp = 1
 tracks/95/loop_wrap = true
 tracks/95/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
+"update": 1,
+"values": [true]
 }
 tracks/96/type = "value"
 tracks/96/imported = false
 tracks/96/enabled = true
-tracks/96/path = NodePath("SerenaWalkingOut/SerenaWalkingOut:animation")
+tracks/96/path = NodePath("../Environment/chimera_house/window_001:visible")
 tracks/96/interp = 1
 tracks/96/loop_wrap = true
 tracks/96/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [&"Serena Walking instance "]
+"values": [true]
 }
 tracks/97/type = "value"
 tracks/97/imported = false
 tracks/97/enabled = true
-tracks/97/path = NodePath("../UILayer/NTSC:material:shader_parameter/blur_amount")
+tracks/97/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:animation")
 tracks/97/interp = 1
 tracks/97/loop_wrap = true
 tracks/97/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.749999983236]
+"update": 1,
+"values": [&"Arm_Broken_-"]
 }
 tracks/98/type = "value"
 tracks/98/imported = false
 tracks/98/enabled = true
-tracks/98/path = NodePath("../Environment/chimera_house/window_004:visible")
+tracks/98/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:visible")
 tracks/98/interp = 1
 tracks/98/loop_wrap = true
 tracks/98/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [false]
 }
 tracks/99/type = "value"
 tracks/99/imported = false
 tracks/99/enabled = true
-tracks/99/path = NodePath("../Environment/chimera_house/window_001:visible")
+tracks/99/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:frame")
 tracks/99/interp = 1
 tracks/99/loop_wrap = true
 tracks/99/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [0]
 }
 tracks/100/type = "value"
 tracks/100/imported = false
 tracks/100/enabled = true
-tracks/100/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:animation")
+tracks/100/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:rotation")
 tracks/100/interp = 1
 tracks/100/loop_wrap = true
 tracks/100/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"Arm_Broken_-"]
+"update": 0,
+"values": [Vector3(-0.02617994, -1.712168, -0.010471975)]
 }
 tracks/101/type = "value"
 tracks/101/imported = false
 tracks/101/enabled = true
-tracks/101/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:visible")
+tracks/101/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:position")
 tracks/101/interp = 1
 tracks/101/loop_wrap = true
 tracks/101/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Vector3(3.046, -2.267, -1.254)]
 }
 tracks/102/type = "value"
 tracks/102/imported = false
 tracks/102/enabled = true
-tracks/102/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:frame")
+tracks/102/path = NodePath("../Camera3D/OmniLight3D:rotation")
 tracks/102/interp = 1
 tracks/102/loop_wrap = true
 tracks/102/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
+"update": 0,
+"values": [Vector3(0, 0, 0)]
 }
 tracks/103/type = "value"
 tracks/103/imported = false
 tracks/103/enabled = true
-tracks/103/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:rotation")
+tracks/103/path = NodePath("../Camera3D/OmniLight3D:position")
 tracks/103/interp = 1
 tracks/103/loop_wrap = true
 tracks/103/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(-0.02617994, -1.712168, -0.010471975)]
+"values": [Vector3(0, 0, 0)]
 }
 tracks/104/type = "value"
 tracks/104/imported = false
 tracks/104/enabled = true
-tracks/104/path = NodePath("SerenaBrokenArm/SerenaBrokenArm:position")
+tracks/104/path = NodePath("../Environment/chimera_house/mdl_chimera_camera:visible")
 tracks/104/interp = 1
 tracks/104/loop_wrap = true
 tracks/104/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(3.046, -2.267, -1.254)]
+"update": 1,
+"values": [false]
 }
 tracks/105/type = "value"
 tracks/105/imported = false
 tracks/105/enabled = true
-tracks/105/path = NodePath("../Camera3D/OmniLight3D:rotation")
+tracks/105/path = NodePath("HexCrawl/CrawlPath/HexFollow/HexCrawlTransform:update_position")
 tracks/105/interp = 1
 tracks/105/loop_wrap = true
 tracks/105/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 0, 0)]
+"update": 1,
+"values": [false]
 }
 tracks/106/type = "value"
 tracks/106/imported = false
 tracks/106/enabled = true
-tracks/106/path = NodePath("../Camera3D/OmniLight3D:position")
+tracks/106/path = NodePath("HexCrawl/CrawlPath/HexFollow:progress_ratio")
 tracks/106/interp = 1
 tracks/106/loop_wrap = true
 tracks/106/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0, 0, 0)]
+"values": [0.0]
 }
 tracks/107/type = "value"
 tracks/107/imported = false
 tracks/107/enabled = true
-tracks/107/path = NodePath("../Environment/chimera_house/mdl_chimera_camera:visible")
+tracks/107/path = NodePath("../Camera3D/Player:monitoring")
 tracks/107/interp = 1
 tracks/107/loop_wrap = true
 tracks/107/keys = {
@@ -10449,154 +10410,118 @@ tracks/107/keys = {
 tracks/108/type = "value"
 tracks/108/imported = false
 tracks/108/enabled = true
-tracks/108/path = NodePath("HexCrawl/CrawlPath/HexFollow/HexCrawlTransform:update_position")
+tracks/108/path = NodePath("../hex:singing_should_sing")
 tracks/108/interp = 1
 tracks/108/loop_wrap = true
 tracks/108/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [false]
+"values": [true]
 }
 tracks/109/type = "value"
 tracks/109/imported = false
 tracks/109/enabled = true
-tracks/109/path = NodePath("HexCrawl/CrawlPath/HexFollow:progress_ratio")
+tracks/109/path = NodePath("../hex:dancing_should_dance")
 tracks/109/interp = 1
 tracks/109/loop_wrap = true
 tracks/109/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.0]
+"update": 1,
+"values": [true]
 }
 tracks/110/type = "value"
 tracks/110/imported = false
 tracks/110/enabled = true
-tracks/110/path = NodePath("../Camera3D/Player:monitoring")
+tracks/110/path = NodePath("../UILayer/UIBlack:color")
 tracks/110/interp = 1
 tracks/110/loop_wrap = true
 tracks/110/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Color(0, 0, 0, 0)]
 }
 tracks/111/type = "value"
 tracks/111/imported = false
 tracks/111/enabled = true
-tracks/111/path = NodePath("../hex:singing_should_sing")
+tracks/111/path = NodePath("../Prelude/Black:visible")
 tracks/111/interp = 1
 tracks/111/loop_wrap = true
 tracks/111/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [false]
 }
 tracks/112/type = "value"
 tracks/112/imported = false
 tracks/112/enabled = true
-tracks/112/path = NodePath("../hex:dancing_should_dance")
+tracks/112/path = NodePath("SerenaCrawling:visible")
 tracks/112/interp = 1
 tracks/112/loop_wrap = true
 tracks/112/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [false]
 }
 tracks/113/type = "value"
 tracks/113/imported = false
 tracks/113/enabled = true
-tracks/113/path = NodePath("../UILayer/UIBlack:color")
+tracks/113/path = NodePath("../BlackBoxofAwesomeness:visible")
 tracks/113/interp = 1
 tracks/113/loop_wrap = true
 tracks/113/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0, 0, 0, 0)]
+"update": 1,
+"values": [false]
 }
 tracks/114/type = "value"
 tracks/114/imported = false
 tracks/114/enabled = true
-tracks/114/path = NodePath("../Prelude/Black:visible")
+tracks/114/path = NodePath("../BlackBoxofAwesomeness:modulate")
 tracks/114/interp = 1
 tracks/114/loop_wrap = true
 tracks/114/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Color(0, 0, 0, 1)]
 }
 tracks/115/type = "value"
 tracks/115/imported = false
 tracks/115/enabled = true
-tracks/115/path = NodePath("SerenaCrawling:visible")
+tracks/115/path = NodePath("SerenaHeartbeat/SerenaScared:modulate")
 tracks/115/interp = 1
 tracks/115/loop_wrap = true
 tracks/115/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/116/type = "value"
 tracks/116/imported = false
 tracks/116/enabled = true
-tracks/116/path = NodePath("../BlackBoxofAwesomeness:visible")
+tracks/116/path = NodePath("../UILayer/FrontText:modulate")
 tracks/116/interp = 1
 tracks/116/loop_wrap = true
 tracks/116/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/117/type = "value"
-tracks/117/imported = false
-tracks/117/enabled = true
-tracks/117/path = NodePath("../BlackBoxofAwesomeness:modulate")
-tracks/117/interp = 1
-tracks/117/loop_wrap = true
-tracks/117/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0, 0, 0, 1)]
-}
-tracks/118/type = "value"
-tracks/118/imported = false
-tracks/118/enabled = true
-tracks/118/path = NodePath("SerenaHeartbeat/SerenaScared:modulate")
-tracks/118/interp = 1
-tracks/118/loop_wrap = true
-tracks/118/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
-}
-tracks/119/type = "value"
-tracks/119/imported = false
-tracks/119/enabled = true
-tracks/119/path = NodePath("../UILayer/FrontText:modulate")
-tracks/119/interp = 1
-tracks/119/loop_wrap = true
-tracks/119/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Color(1, 1, 1, 0)]
 }
-tracks/120/type = "method"
-tracks/120/imported = false
-tracks/120/enabled = true
-tracks/120/path = NodePath("../UILayer/FrontText")
-tracks/120/interp = 1
-tracks/120/loop_wrap = true
-tracks/120/keys = {
+tracks/117/type = "method"
+tracks/117/imported = false
+tracks/117/enabled = true
+tracks/117/path = NodePath("../UILayer/FrontText")
+tracks/117/interp = 1
+tracks/117/loop_wrap = true
+tracks/117/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -10604,68 +10529,68 @@ tracks/120/keys = {
 "method": &"_ready"
 }]
 }
-tracks/121/type = "position_3d"
-tracks/121/imported = false
-tracks/121/enabled = true
-tracks/121/path = NodePath("../hex")
-tracks/121/interp = 1
-tracks/121/loop_wrap = true
-tracks/121/keys = PackedFloat32Array(0, 1, -3.574, 0, -3.327)
-tracks/122/type = "value"
-tracks/122/imported = false
-tracks/122/enabled = true
-tracks/122/path = NodePath("../Environment/chimera_house/fuck you:visible")
-tracks/122/interp = 0
-tracks/122/loop_wrap = true
-tracks/122/keys = {
+tracks/118/type = "position_3d"
+tracks/118/imported = false
+tracks/118/enabled = true
+tracks/118/path = NodePath("../hex")
+tracks/118/interp = 1
+tracks/118/loop_wrap = true
+tracks/118/keys = PackedFloat32Array(0, 1, -3.574, 0, -3.327)
+tracks/119/type = "value"
+tracks/119/imported = false
+tracks/119/enabled = true
+tracks/119/path = NodePath("../Environment/chimera_house/fuck you:visible")
+tracks/119/interp = 0
+tracks/119/loop_wrap = true
+tracks/119/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [false]
 }
-tracks/123/type = "value"
-tracks/123/imported = false
-tracks/123/enabled = true
-tracks/123/path = NodePath("../Camera3D/OmniLight3D:visible")
-tracks/123/interp = 1
-tracks/123/loop_wrap = true
-tracks/123/keys = {
+tracks/120/type = "value"
+tracks/120/imported = false
+tracks/120/enabled = true
+tracks/120/path = NodePath("../Camera3D/OmniLight3D:visible")
+tracks/120/interp = 1
+tracks/120/loop_wrap = true
+tracks/120/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [true]
 }
-tracks/124/type = "value"
-tracks/124/imported = false
-tracks/124/enabled = true
-tracks/124/path = NodePath("../UILayer/UIBlack:visible")
-tracks/124/interp = 1
-tracks/124/loop_wrap = true
-tracks/124/keys = {
+tracks/121/type = "value"
+tracks/121/imported = false
+tracks/121/enabled = true
+tracks/121/path = NodePath("../UILayer/UIBlack:visible")
+tracks/121/interp = 1
+tracks/121/loop_wrap = true
+tracks/121/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
 }
-tracks/125/type = "value"
-tracks/125/imported = false
-tracks/125/enabled = true
-tracks/125/path = NodePath("SerenaJumpscared:position")
-tracks/125/interp = 1
-tracks/125/loop_wrap = true
-tracks/125/keys = {
+tracks/122/type = "value"
+tracks/122/imported = false
+tracks/122/enabled = true
+tracks/122/path = NodePath("SerenaJumpscared:position")
+tracks/122/interp = 1
+tracks/122/loop_wrap = true
+tracks/122/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector3(0, 0, 0)]
 }
-tracks/126/type = "value"
-tracks/126/imported = false
-tracks/126/enabled = true
-tracks/126/path = NodePath("../UILayer/FrontText:text")
-tracks/126/interp = 1
-tracks/126/loop_wrap = true
-tracks/126/keys = {
+tracks/123/type = "value"
+tracks/123/imported = false
+tracks/123/enabled = true
+tracks/123/path = NodePath("../UILayer/FrontText:text")
+tracks/123/interp = 1
+tracks/123/loop_wrap = true
+tracks/123/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
@@ -14842,24 +14767,6 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
-
-[node name="1" type="Sprite2D" parent="Prelude" unique_id=251585102]
-modulate = Color(1, 1, 1, 0)
-position = Vector2(960.5, 496.50006)
-scale = Vector2(0.945, 0.945)
-texture = ExtResource("96")
-
-[node name="2" type="Sprite2D" parent="Prelude" unique_id=1162571127]
-modulate = Color(1, 1, 1, 0)
-position = Vector2(960.5, 496.5)
-scale = Vector2(0.945, 0.945)
-texture = ExtResource("97")
-
-[node name="3" type="Sprite2D" parent="Prelude" unique_id=514682214]
-modulate = Color(1, 1, 1, 0)
-position = Vector2(960.5, 496.5)
-scale = Vector2(0.945, 0.945)
-texture = ExtResource("98")
 
 [node name="SerenaCamera" type="Node2D" parent="." unique_id=2104763171]
 visible = false

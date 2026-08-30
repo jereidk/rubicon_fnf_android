@@ -1,117 +1,151 @@
 extends SceneTree
 
-## The art a pre-rendered cutscene video replaces must stay in the project.
+## The pre-rendered cutscene videos are now the ONLY copy. Guard them as such.
 ##
-## The question this answers, written down because it will be asked again: now
-## that Safety Lullaby's intro and Chimera's prelude are .ogv files - and now
-## that ALL FOUR presets ask for video, so no player sees the live scene in
-## normal play - can the sprites and backgrounds they were made from be
-## deleted?
+## This file used to assert the opposite, and the reversal was deliberate, so
+## the old reasoning is kept here rather than deleted - it is still correct, it
+## just lost.
 ##
-## Still no, and the reason changed, which is why this is written out rather
-## than left as an assertion. It used to be "Medium and up run the live
-## cutscene". That stopped being true the day every preset switched to video.
-## What remains:
+## What it used to say: the art a video replaces must stay, because the .ogv is
+## output and the sprites are the negative. render_cutscene.gd films the live
+## scene by switching prefer_cutscene_video off, so with no live scene there is
+## nothing to film, and the cutscene is frozen forever at whatever was last
+## encoded - no resolution change, no fix to a frame, no re-cut. That argument
+## caught a deletion in run #215 and was right to.
 ##
-##   * THE ART IS THE ONLY SOURCE THE VIDEO CAN BE RE-RENDERED FROM. The .ogv
-##     is output, not a master. Delete the sprites and the cutscene is frozen
-##     forever at whatever was last encoded - no resolution change, no fix to
-##     a frame, no re-cut. render_cutscene.gd works by switching
-##     prefer_cutscene_video OFF and filming the live scene; with no live
-##     scene there is nothing to film.
-##   * It is still the fallback. LullabyCutsceneVideo retires silently when the
-##     .ogv is missing, which is what a development checkout looks like, and
-##     the live scene carries it. Without the art that path draws nothing.
+## What changed: it was put to the owner with that cost stated plainly, and the
+## answer was to freeze them and take the space. So the art is gone on purpose,
+## and these cutscenes CANNOT be re-rendered any more. Four others were already
+## in that state without anyone deciding it - Chimera's deaths 1-3, step_4,
+## MonoCloseup and Monochrome's intro all lost their sprites when they were
+## baked - which is part of why keeping two policies at once stopped making
+## sense.
 ##
-## Measured, so the trade is on the record rather than argued from memory:
+## So the risk inverted. It is no longer "someone deletes the master"; it is
+## "someone deletes, moves or breaks the wiring to the only copy that exists".
+## An .ogv is one file with no .import sidecar and nothing else referencing it,
+## which makes it exactly the kind of thing a cleanup pass eats. What this file
+## checks now:
 ##
-##     Safety Lullaby  intro.tscn      29 ficheros  8.3 MB  ->  intro.ogv   3.2 MB
-##     Chimera         Intro+Prelude   13 ficheros  9.3 MB  ->  prelude.ogv 3.5 MB
+##   * every song that hands a cutscene to a video still HAS its video node.
+##     Listed, not discovered, so a scene losing one is red here instead of a
+##     silently shorter run;
+##   * the .ogv it names is on disk;
+##   * and the component still plays it when there is no live scene to fall back
+##     to. That last one is the whole arrangement: with the art gone, a preset
+##     saying "no video" would not give the prettier version, it would give
+##     thirty seconds of nothing.
 ##
-## The videos are smaller than the art they stand in for - 6.7 MB against 17.6
-## - which is exactly what makes deleting the art look like a free win. It is
-## not free; it is the negative of the film.
+## What is NOT frozen, and must not be quietly swept later:
 ##
-## What IS wasted, and is left alone on purpose: on Low the scene still loads
-## the art it will not draw, because the cutscene is a dependency of the song
-## scene. For Safety Lullaby that is ~0.5s of a 3.19s load and it could be
-## deferred - the instance has zero external overrides and only seven NodePath
-## references. For Chimera it could not: Intro is seventeen inline nodes and
-## about twenty-four references reach inside it, down to
-## Intro/IntroAnimationPlayer and Prelude/Black. Half a second, bought with the
-## exact failure mode that had already silently dropped Chimera's caption -
-## a reference that stops resolving and says nothing - is not a good trade
-## today. This file exists so that decision stays deliberate.
+##   * Chimera's `Intro`, eighteen nodes. `intro` and `taking_a_looksie` drive
+##     it and whether the second falls inside the video's 34.708s window could
+##     not be established without running the game. Unverified is not safe.
+##   * `Prelude/Black`. It looks like prelude scenery and is not: `113_reaching`
+##     fades its modulate through eight keys, far past the video window. It
+##     survives only because the sprites beside it were removed one by one
+##     instead of by deleting their parent.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_cutscene_assets_kept.gd
 
 const VIDEO_SCRIPT := "res://lullaby_mod/scripts/lullaby/cutscene/lullaby_cutscene_video.gd"
 
-## Songs known to hand a cutscene over to a video, and what each one replaces.
-## Listed rather than discovered so that a scene LOSING its video node is a red
-## line here instead of a silently shorter run.
+## Songs known to hand a cutscene over to a video.
 const WIRED := {
 	"safety lullaby": "res://lullaby_mod/songs/safety_lullaby/sng_safety_lullaby.tscn",
 	"chimera": "res://lullaby_mod/songs/chimera/sng_chimera.tscn",
 }
+
+## Los .ogv que ya no tienen de donde volver a salir. Cada uno es la unica copia
+## de su cutscene, asi que se comprueban por ruta ademas de por la escena que los
+## nombra: si alguien renombra la carpeta, la escena y el fichero se mueven
+## juntos y la comprobacion de arriba seguiria en verde.
+const FROZEN := [
+	"res://lullaby_mod/songs/safety_lullaby/video/intro.ogv",
+	"res://lullaby_mod/songs/chimera/video/prelude.ogv",
+	"res://lullaby_mod/songs/monochrome/video/intro.ogv",
+	"res://lullaby_mod/songs/monochrome/video/closeup.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_1/death_1.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_2/death_2.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_3/death_3.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_4/death_4.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_4/serena_skullface.ogv",
+	"res://lullaby_mod/assets/funkin/chimera/gameover/step_4/step_4.ogv",
+]
+
+## Lo que se retiro a proposito y no debe volver: si reaparece, vuelven con el
+## los megabytes que se decidio no pagar, y nadie lo notaria mirando el juego.
+const RETIRED := {
+	"res://lullaby_mod/songs/safety_lullaby/scenes/intro.tscn":
+		"la intro viva de Safety Lullaby",
+	"res://lullaby_mod/assets/funkin/chimera/textures/house_outside/intro/1.png":
+		"las tarjetas de foto del preludio de Chimera",
+}
+
+## Y lo que sobrevive dentro de Chimera aunque parezca del preludio.
+const CHIMERA_KEEPS := ["Prelude", "Black", "Intro"]
 
 var _failures: int = 0
 var _checks: int = 0
 
 
 func _initialize() -> void:
-	_preset_checks()
 	for label: String in WIRED:
 		_song_checks(label, WIRED[label])
+
+	_frozen_checks()
+	_retired_checks()
+	_component_checks()
 
 	print("")
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
-		print("todo OK - el arte que sustituyen los videos sigue entero")
+		print("todo OK - los videos congelados siguen enteros y cableados")
 	quit(1 if _failures > 0 else 0)
 
 
-## The switch the whole arrangement rests on, in both directions.
+## Cada .ogv sigue en disco. Es la comprobacion barata que atrapa el borrado
+## accidental, que es ahora el unico fallo irreversible que queda.
+func _frozen_checks() -> void:
+	for path: String in FROZEN:
+		_check("existe %s" % path.get_file(),
+			FileAccess.file_exists(path) or ResourceLoader.exists(path),
+			path)
+
+
+func _retired_checks() -> void:
+	for path: String in RETIRED:
+		_check("sigue retirado: %s" % RETIRED[path],
+			not FileAccess.file_exists(path), path.get_file())
+
+	# Y los nodos de Chimera que NO se fueron, que es lo que separa esta poda de
+	# haber borrado el nodo Prelude entero.
+	var chimera: String = FileAccess.get_file_as_string(WIRED["chimera"])
+	for node: String in CHIMERA_KEEPS:
+		_check("[chimera] el nodo %s sigue en la escena" % node,
+			chimera.contains('[node name="%s"' % node))
+	_check("[chimera] y 113_reaching sigue pudiendo fundir con Black",
+		chimera.contains('NodePath("../Prelude/Black:modulate")'))
+
+
+## El componente, sin escena viva detras.
 ##
-## This used to assert that some preset still ran the live cutscene, and that
-## assertion is now gone because it stopped being true - all four ask for
-## video. What is checked instead is that the SWITCH still exists and is still
-## honoured, because that is what keeps the art reachable: render_cutscene.gd
-## turns prefer_cutscene_video off to film the live scene, and a checkout with
-## no .ogv falls back through the same path. Lose the switch and the art
-## becomes genuinely unreachable - at which point deleting it would be correct,
-## and the video could never be re-rendered again.
-func _preset_checks() -> void:
-	var dir: DirAccess = DirAccess.open("res://lullaby_mod/resources/quality_presets")
-	_check("se lee la carpeta de presets", dir != null)
-	if dir == null:
+## Con el arte fuera, `live_cutscene` llega vacio y el preset deja de tener voto:
+## no hay version bonita a la que caer. Se comprueba sobre el codigo porque este
+## guion no monta el arbol; test_cutscene_video.gd lo prueba corriendolo.
+func _component_checks() -> void:
+	var code: String = FileAccess.get_file_as_string(VIDEO_SCRIPT)
+	_check("el componente se lee", not code.is_empty())
+	if code.is_empty():
 		return
 
-	var video: PackedStringArray = []
-	var live: PackedStringArray = []
-	for file: String in dir.get_files():
-		if not file.ends_with(".tres"):
-			continue
-		var text: String = FileAccess.get_file_as_string(
-			"res://lullaby_mod/resources/quality_presets/".path_join(file))
-		if text.contains("prefer_cutscene_video = true"):
-			video.append(file)
-		else:
-			live.append(file)
-
-	_check("todos los presets piden video", live.is_empty(),
-		"sin video: %s" % ", ".join(live) if not live.is_empty() else ", ".join(video))
-
-	# Y la salida de emergencia, que es lo que mantiene el arte alcanzable.
-	var harness: String = FileAccess.get_file_as_string(
-		"res://tools/harness/render_cutscene.gd")
-	_check("el harness sigue pudiendo apagar el video para filmar la escena viva",
-		harness.contains('set("graphics_prefer_cutscene_video", false)'))
-
-	var component: String = FileAccess.get_file_as_string(VIDEO_SCRIPT)
-	_check("y el componente sigue retirandose si falta el .ogv",
-		component.contains("ResourceLoader.exists(video_path)"))
+	_check("sin cutscene viva, el preset no decide",
+		code.contains("if live_cutscene == null:") and code.contains("return true"))
+	_check("y no exige una companera para montarse",
+		not code.contains("clock == null or live_cutscene == null"))
+	_check("sigue retirandose si falta el .ogv",
+		code.contains("ResourceLoader.exists(video_path)"))
 
 
 func _song_checks(label: String, path: String) -> void:
@@ -120,7 +154,6 @@ func _song_checks(label: String, path: String) -> void:
 	if scene.is_empty():
 		return
 
-	# El id del script del nodo de video en ESTA escena.
 	var script_id: String = ""
 	var re := RegEx.create_from_string(
 		'\\[ext_resource type="Script"[^\\]]*path="%s"[^\\]]*id="([^"]+)"'
@@ -137,82 +170,22 @@ func _song_checks(label: String, path: String) -> void:
 	if block.is_empty():
 		return
 
-	# El .ogv. Que exista es lo que hace que el camino de video sea real; sin
-	# el, el nodo se retira en silencio y Low se queda con la cutscene viva -
-	# que funciona, pero entonces el video no esta haciendo nada.
 	var video_path: String = _quoted(block, "video_path = \"")
 	_check("[%s] declara un video_path" % label, not video_path.is_empty())
 	if not video_path.is_empty():
 		_check("[%s] y el .ogv esta en el repo: %s" % [label, video_path.get_file()],
 			FileAccess.file_exists(video_path))
+		_check("[%s] y ese .ogv esta en la lista de congelados" % label,
+			FROZEN.has(video_path), video_path)
 
-	# Y la cutscene viva: el nodo, y todo el arte del que cuelga.
-	var live_path: String = _quoted(block, "live_cutscene = NodePath(\"")
-	_check("[%s] declara un live_cutscene" % label, not live_path.is_empty())
-	if live_path.is_empty():
-		return
-
-	var live_name: String = live_path.trim_prefix("../")
-	_check("[%s] el nodo '%s' sigue en la escena" % [label, live_name],
-		scene.contains('[node name="%s"' % live_name))
-
-	_art_checks(label, scene, live_name)
-
-
-## Every file the live cutscene draws from, still on disk.
-##
-## This is the check the rest of the file exists for. A cleanup pass that
-## deletes "unused" sprites because a video now covers them turns this red
-## instead of shipping a blank cutscene to everyone above Low.
-##
-## Two shapes, because the two songs are authored differently. Safety Lullaby's
-## IntroCutscene is an instance of intro.tscn, so the art hangs off that scene
-## and is followed into it. Chimera's Intro is seventeen inline nodes, so the
-## art is whatever ExtResource its own blocks name.
-func _art_checks(label: String, scene: String, live_name: String) -> void:
-	var ids: Dictionary = {}
-	for m in RegEx.create_from_string(
-			'\\[ext_resource type="([^"]+)"[^\\]]*path="([^"]+)"[^\\]]*id="([^"]+)"'
-			).search_all(scene):
-		ids[m.get_string(3)] = m.get_string(2)
-
-	var wanted: Dictionary = {}
-	for block: String in scene.split("\n[node "):
-		var head: String = block.split("\n", true, 1)[0]
-		var name: String = _quoted(head, 'name="')
-		var parent: String = _quoted(head, 'parent="')
-		if parent.is_empty():
-			continue
-		var inside: bool = parent.begins_with(live_name) \
-			or (parent == "." and name == live_name)
-		if not inside:
-			continue
-		for m in RegEx.create_from_string('ExtResource\\("([^"]+)"\\)').search_all(block):
-			var id: String = m.get_string(1)
-			if ids.has(id):
-				wanted[ids[id]] = true
-
-	# Una instancia trae su arte dentro de su propia escena, no aqui.
-	var followed: Dictionary = {}
-	for res: String in wanted:
-		followed[res] = true
-		if not res.ends_with(".tscn"):
-			continue
-		var inner: String = FileAccess.get_file_as_string(res)
-		for m in RegEx.create_from_string(
-				'\\[ext_resource [^\\]]*path="([^"]+)"').search_all(inner):
-			followed[m.get_string(1)] = true
-
-	_check("[%s] la cutscene viva sigue teniendo arte del que tirar" % label,
-		followed.size() >= 3, "%d recursos" % followed.size())
-
-	var missing: PackedStringArray = []
-	for res: String in followed:
-		if not FileAccess.file_exists(res) and not ResourceLoader.exists(res):
-			missing.append(res.get_file())
-	_check("[%s] y ninguno de sus %d recursos falta" % [label, followed.size()],
-		missing.is_empty(),
-		"" if missing.is_empty() else "faltan: " + ", ".join(missing.slice(0, 5)))
+	# El reloj, que es lo unico que queda sincronizando el video con la cancion.
+	var clock: String = _quoted(block, "clock = NodePath(\"")
+	_check("[%s] declara un clock" % label, not clock.is_empty())
+	if not clock.is_empty():
+		_check("[%s] y sube un nivel para alcanzarlo (%s)" % [label, clock],
+			clock.begins_with("../"))
+		_check("[%s] y ese nodo existe en la cancion" % label,
+			scene.contains('[node name="%s"' % clock.substr(3).split("/")[0]))
 
 
 ## El bloque `[node ...]` que contiene `needle`.

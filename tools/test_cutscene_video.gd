@@ -159,18 +159,35 @@ func _song_wiring_checks() -> void:
 	var linea: int = texto.find('[node name="IntroVideo"')
 	var fin: int = texto.find("]", linea)
 	_check(linea >= 0 and texto.substr(linea, fin - linea).contains(
-			'node_paths=PackedStringArray("live_cutscene", "clock")'),
-		"...con node_paths= declarado, sin lo cual los exports llegan nulos")
+			'node_paths=PackedStringArray("clock")'),
+		"...con node_paths= declarado, sin lo cual el export llega nulo")
 
 	# Y que las dos rutas lleguen a algun sitio. IntroVideo cuelga de la raiz,
 	# asi que `../X` desde el es el hijo X de la raiz.
-	for campo: String in ["live_cutscene", "clock"]:
+	for campo: String in ["clock"]:
 		var ruta: String = String(props.get(campo, ""))
 		_check(ruta.begins_with("../"),
 			"%s sube un nivel (%s) - un hermano no se alcanza sin ../" % [campo, ruta])
 		var destino: String = ruta.substr(3)
 		_check(rutas.has(destino),
 			"...y %s existe en la cancion (%s)" % [destino, campo])
+
+	# La cutscene viva se FUE, y que no vuelva sin querer.
+	#
+	# Sus 8.2 MB de sprites se cargaban en cada partida para no dibujarse nunca:
+	# los cuatro presets ponen `prefer_cutscene_video` y el flag no esta en la
+	# interfaz, asi que no habia configuracion alcanzable que los usara. Volver a
+	# instanciar `intro.tscn` aqui no romperia nada visible - el video seguiria
+	# tapandola- y por eso hace falta una guarda: el sintoma seria solo un APK mas
+	# gordo y mas RAM, que es justo lo que nadie mira.
+	_check(not texto.contains('[node name="IntroCutscene"'),
+		"la cutscene viva no ha vuelto a la cancion")
+	_check(not texto.contains("safety_lullaby/scenes/intro.tscn"),
+		"...ni su ext_resource")
+	_check(not texto.contains("IntroCutscene"),
+		"...ni ninguna pista apuntando a ella")
+	_check(String(props.get("live_cutscene", "")).is_empty(),
+		"...y el nodo del video ya no dice tener companera")
 
 	_check(String(props.get("video_path", "")).ends_with(".ogv")
 			and ResourceLoader.exists(String(props.get("video_path", ""))),
@@ -388,6 +405,22 @@ func _behaviour_checks() -> void:
 		return
 	_check(ResourceLoader.exists(FIXTURE), "existe el .ogv de prueba")
 
+	# --- 0. Sin cutscene viva el preset no vota.
+	#
+	# Esta es la unica regla del componente que puede dejar la pantalla en negro
+	# si se rompe, y no se puede leer del codigo: hay que correrlo. Cuando
+	# `live_cutscene` esta vacio la escena viva ya no existe -Safety Lullaby, tras
+	# retirarla- y el video no es una preferencia de calidad, es la cutscene.
+	# Dejar que el preset lo apagase ahi no daria la version bonita, daria treinta
+	# segundos de nada.
+	var sola := _mount(script, FIXTURE, false, false)
+	_check(_video_players(sola.node) == 1,
+		"sin cutscene viva el vídeo se monta aunque el preset diga que no")
+	sola.node.queue_free()
+	await process_frame
+
+	# Y con companera, el preset manda como siempre: la comprobacion de abajo.
+
 	# --- 1. El preset no lo pide: no se toca nada.
 	var off := _mount(script, FIXTURE, false)
 	_check(off.live.process_mode == Node.PROCESS_MODE_PAUSABLE,
@@ -473,7 +506,8 @@ func _behaviour_checks() -> void:
 
 
 ## Monta el componente con una cutscene falsa y un reloj de verdad.
-func _mount(script: GDScript, path: String, wanted: bool) -> Dictionary:
+func _mount(script: GDScript, path: String, wanted: bool,
+		con_viva: bool = true) -> Dictionary:
 	var host := Node.new()
 	root.add_child(host)
 
@@ -486,10 +520,12 @@ func _mount(script: GDScript, path: String, wanted: bool) -> Dictionary:
 		root.add_child(settings)
 	settings.set("graphics_prefer_cutscene_video", wanted)
 
-	var live := Node2D.new()
-	live.name = "LiveCutscene"
-	live.process_mode = Node.PROCESS_MODE_PAUSABLE
-	host.add_child(live)
+	var live: Node2D = null
+	if con_viva:
+		live = Node2D.new()
+		live.name = "LiveCutscene"
+		live.process_mode = Node.PROCESS_MODE_PAUSABLE
+		host.add_child(live)
 
 	var clock := AnimationPlayer.new()
 	var anim := Animation.new()

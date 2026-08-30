@@ -1,7 +1,7 @@
 class_name LullabyCutsceneVideo
 extends Node
 
-## Sustituye una cutscene viva por un vídeo pre-renderizado en los presets bajos.
+## Dibuja una cutscene con un vídeo pre-renderizado en vez de con la escena viva.
 ##
 ## Por qué existe
 ## -------------
@@ -39,16 +39,22 @@ extends Node
 ## extrapolación es solo microarquitectura. A 960x432 son ~3ms en el g53 y
 ## ~8.5ms en un A12, cada 1/30s, sin picos.
 ##
-## Lo que este nodo NO hace, y por qué
-## -----------------------------------
-## No toca `visible` de la cutscene. El Timeline de la canción anima
-## `../IntroCutscene:visible` con una pista, y una escritura nuestra sobre la
-## misma propiedad pelearía con ella - es la trampa que `settings.gd` ya
-## documenta para las Light2D. El vídeo se pone ENCIMA en su propio CanvasLayer
-## y a la cutscene se le apaga el `process_mode`, que es lo que de verdad
-## importa: el gasto son los 57 AnimationPlayer y los 15 AnimationTree, no los
-## cinco draw calls. Queda el relleno de la cutscene tapada (0.6 pantallas)
-## como desperdicio consciente; el premio son los picos de 50-86ms.
+## Dos modos, y la diferencia importa
+## ----------------------------------
+## CON `live_cutscene`: la escena viva sigue en el árbol y el vídeo se pone
+## ENCIMA en su propio CanvasLayer. No se le toca el `visible` -el Timeline de
+## la canción lo anima con una pista y escribir sobre la misma propiedad
+## pelearía con ella, la trampa que `settings.gd` ya documenta para las
+## Light2D-, solo el `process_mode`, que es lo que de verdad cuesta. Queda el
+## relleno de la cutscene tapada como desperdicio consciente. Así entró esto en
+## ec9aee1, cuando el preset todavía podía elegir la escena viva.
+##
+## SIN `live_cutscene`: la escena viva ya no está. Es el caso de Safety
+## Lullaby desde que se midió que ningún preset la elegía - los cuatro ponen
+## `prefer_cutscene_video` y el flag no está en la interfaz-, así que sus 8.2 MB
+## de sprites se cargaban, ocupaban RAM y viajaban en el APK para no dibujarse
+## nunca. Ahí el vídeo no es una preferencia de calidad, es la cutscene: no hay
+## `process_mode` que apagar, y `_wanted()` deja de consultar al preset.
 ##
 ## Se retira en silencio si no hay vídeo. El `.ogv` lo produce CI, así que un
 ## checkout de desarrollo no lo tiene y la canción tiene que funcionar igual -
@@ -56,6 +62,11 @@ extends Node
 
 ## El nodo de la cutscene viva cuyo procesamiento se apaga mientras corre el
 ## vídeo. Su `visible` no se toca (ver arriba).
+##
+## OPCIONAL. Vacío significa que la cutscene viva ya no está en el árbol porque
+## se retiró - es el caso de Safety Lullaby, donde el vídeo dejó de ser una capa
+## por encima y pasó a ser lo único que hay. Sin nadie a quien apagarle el
+## `process_mode` este nodo sigue haciendo su trabajo: reproducir y sincronizar.
 @export var live_cutscene: Node
 
 ## El `.ogv` pre-renderizado. Vacío o inexistente = este nodo se retira.
@@ -129,8 +140,8 @@ func _ready() -> void:
 		push_warning("LullabyCutsceneVideo: '%s' no es un VideoStream" % video_path)
 		return
 
-	if clock == null or live_cutscene == null:
-		push_warning("LullabyCutsceneVideo: falta clock o live_cutscene, no se sustituye")
+	if clock == null:
+		push_warning("LullabyCutsceneVideo: falta clock, no se sustituye")
 		return
 
 	_layer = CanvasLayer.new()
@@ -156,15 +167,24 @@ func _ready() -> void:
 	#     preset dentro del árbol     -> size=(1920, 1080)
 	_player.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	_live_mode = live_cutscene.process_mode
-	live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED
+	if live_cutscene != null:
+		_live_mode = live_cutscene.process_mode
+		live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED
 
 	_player.play()
 	set_process(true)
 
 
 ## Si el preset pide vídeo. Ausente el singleton (bancos, pruebas), no.
+##
+## Salvo que no haya a qué volver. Cuando `live_cutscene` está vacío la escena
+## viva ya no existe -se retiró del árbol- y el vídeo no es una preferencia de
+## calidad, es la cutscene. Dejar que el preset lo apagase ahí no daría la
+## versión bonita, daría treinta segundos de pantalla vacía.
 func _wanted() -> bool:
+	if live_cutscene == null:
+		return true
+
 	var settings: Object = Engine.get_singleton(&"Settings") if Engine.has_singleton(&"Settings") else null
 	if settings == null:
 		settings = get_node_or_null(^"/root/Settings")
@@ -175,6 +195,17 @@ func _wanted() -> bool:
 
 func _process(_delta: float) -> void:
 	if _player == null or _handed_back:
+		return
+
+	# Sin animacion en curso no hay posicion que leer, y preguntarla igualmente
+	# es un error rojo por fotograma: `current_animation_position` llama a
+	# get_current_animation_position(), que exige un playback activo. Pasa de
+	# verdad y no solo en un banco - `_ready()` enciende el proceso en el mismo
+	# fotograma en que la escena entra al arbol, antes de que nadie haya llamado
+	# a play() sobre el reloj. Se veia en la salida de test_cutscene_video.gd
+	# desde antes de esto; con el arte fuera y el video como unica capa, valia la
+	# pena dejar de ensuciar el log.
+	if clock.current_animation.is_empty():
 		return
 
 	var here: float = clock.current_animation_position
