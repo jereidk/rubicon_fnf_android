@@ -25,7 +25,7 @@ blend_mode = 3
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_l4uxu"]
 blend_mode = 3
 
-[node name="MainStageAmTake" type="Node2D" unique_id=1260088483]
+[node name="MainStageAmTake" type="Node2D" unique_id=423146090]
 metadata/characters = {
 "bf": {
 "cameraOffsets": [0.0, 0.0],
@@ -48,170 +48,174 @@ metadata/characters = {
 }
 metadata/camera_zoom = 0.58
 
-[node name="StageWall" type="Sprite2D" parent="." unique_id=455725056]
+[node name="StageWall" type="Sprite2D" parent="." unique_id=545044976]
 position = Vector2(-900, -350)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("1_d41o1")
 centered = false
 metadata/scroll = [0.975, 0.975]
 
-[node name="PosterDad" type="Sprite2D" parent="." unique_id=1372534693]
+[node name="PosterDad" type="Sprite2D" parent="." unique_id=1696318343]
 position = Vector2(-100, -75)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("2_o62pl")
 centered = false
 metadata/scroll = [0.975, 0.975]
 
-[node name="PosterPlayer" type="Sprite2D" parent="." unique_id=767655831]
+[node name="PosterPlayer" type="Sprite2D" parent="." unique_id=1088255234]
 position = Vector2(1100, -75)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("3_yp4st")
 centered = false
 metadata/scroll = [0.975, 0.975]
 
-[node name="StageFloor" type="Sprite2D" parent="." unique_id=805101651]
+[node name="StageFloor" type="Sprite2D" parent="." unique_id=1490543871]
 position = Vector2(-1090, 700)
 texture = ExtResource("4_6psms")
 centered = false
 metadata/scroll = [0.99, 0.99]
 
-[node name="SmokeLb" type="Sprite2D" parent="." unique_id=1741604819]
+[node name="SmokeLb" type="Sprite2D" parent="." unique_id=338284920]
+modulate = Color(1, 1, 1, 0)
 position = Vector2(-200, 640)
 texture = ExtResource("5_mnobt")
 centered = false
 metadata/scroll = [0.97, 0.97]
 
-[node name="SmokeRb" type="Sprite2D" parent="." unique_id=545269002]
+[node name="SmokeRb" type="Sprite2D" parent="." unique_id=632807347]
+modulate = Color(1, 1, 1, 0)
 position = Vector2(510, 610)
 texture = ExtResource("5_mnobt")
 centered = false
 metadata/scroll = [0.97, 0.97]
 
-[node name="BoomBoxStageRight" type="AnimatedSprite2D" parent="." unique_id=432791140]
+[node name="BoomBoxStageRight" type="AnimatedSprite2D" parent="." unique_id=1402819662]
 position = Vector2(1400, 300)
 sprite_frames = ExtResource("6_fv2dd")
 animation = &"right boomboxes"
 autoplay = "right boomboxes"
 
-[node name="GfBoomBoxSpeakers" type="AnimatedSprite2D" parent="." unique_id=1191018661]
+[node name="GfBoomBoxSpeakers" type="AnimatedSprite2D" parent="." unique_id=1592464447]
 position = Vector2(340, 430)
 sprite_frames = ExtResource("7_a0mf8")
 animation = &"stage speakers"
 autoplay = "stage speakers"
 
-[node name="BoomBoxStageLeft" type="AnimatedSprite2D" parent="." unique_id=1141635270]
+[node name="BoomBoxStageLeft" type="AnimatedSprite2D" parent="." unique_id=1211541254]
 position = Vector2(-400, 450)
 sprite_frames = ExtResource("8_7rd8e")
 animation = &"boombox stage"
 autoplay = "boombox stage"
 
-[node name="StageFrames" type="Sprite2D" parent="." unique_id=177196149]
+[node name="StageFrames" type="Sprite2D" parent="." unique_id=2025711000]
 position = Vector2(-760, -310)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("9_3rqrd")
 centered = false
 metadata/scroll = [1.1, 1.1]
 
-[node name="BoomBoxFramesLeft" type="AnimatedSprite2D" parent="." unique_id=1999442345]
+[node name="BoomBoxFramesLeft" type="AnimatedSprite2D" parent="." unique_id=1326066935]
 position = Vector2(-100, -250)
 sprite_frames = ExtResource("10_8tjlu")
 animation = &"frame boombox"
 autoplay = "frame boombox"
 
-[node name="BoomBoxFramesRight" type="AnimatedSprite2D" parent="." unique_id=1031332422]
+[node name="BoomBoxFramesRight" type="AnimatedSprite2D" parent="." unique_id=1812807209]
 position = Vector2(1100, -250)
 sprite_frames = ExtResource("10_8tjlu")
 animation = &"frame boombox"
 autoplay = "frame boombox"
 
-[node name="SmokeLf" type="Sprite2D" parent="." unique_id=1580836160]
+[node name="SmokeLf" type="Sprite2D" parent="." unique_id=649850035]
+modulate = Color(1, 1, 1, 0)
 position = Vector2(-350, 750)
 texture = ExtResource("5_mnobt")
 centered = false
 metadata/scroll = [0.99, 0.99]
 
-[node name="SmokeRf" type="Sprite2D" parent="." unique_id=118719170]
+[node name="SmokeRf" type="Sprite2D" parent="." unique_id=315726603]
+modulate = Color(1, 1, 1, 0)
 position = Vector2(600, 715)
 texture = ExtResource("5_mnobt")
 centered = false
 metadata/scroll = [0.99, 0.99]
 
-[node name="StoplightLeftLeft" type="AnimatedSprite2D" parent="." unique_id=284350896]
+[node name="StoplightLeftLeft" type="AnimatedSprite2D" parent="." unique_id=164393229]
 position = Vector2(-400, -250)
 sprite_frames = ExtResource("11_ll4i1")
 animation = &"spotlight off"
 autoplay = "spotlight off"
 
-[node name="StoplightLeftRight" type="AnimatedSprite2D" parent="." unique_id=1071866863]
+[node name="StoplightLeftRight" type="AnimatedSprite2D" parent="." unique_id=945205977]
 position = Vector2(250, -250)
 sprite_frames = ExtResource("11_ll4i1")
 animation = &"spotlight off"
 autoplay = "spotlight off"
 
-[node name="StoplightRightLeft" type="AnimatedSprite2D" parent="." unique_id=413543942]
+[node name="StoplightRightLeft" type="AnimatedSprite2D" parent="." unique_id=1685854095]
 position = Vector2(850, -250)
 sprite_frames = ExtResource("11_ll4i1")
 animation = &"spotlight off"
 autoplay = "spotlight off"
 
-[node name="StoplightRightRight" type="AnimatedSprite2D" parent="." unique_id=1584162964]
+[node name="StoplightRightRight" type="AnimatedSprite2D" parent="." unique_id=1307646463]
 position = Vector2(1500, -250)
 sprite_frames = ExtResource("11_ll4i1")
 animation = &"spotlight off"
 autoplay = "spotlight off"
 
-[node name="FloorLightBged" type="AnimatedSprite2D" parent="." unique_id=1136922692]
+[node name="FloorLightBged" type="AnimatedSprite2D" parent="." unique_id=170501747]
 position = Vector2(-500, 900)
 sprite_frames = ExtResource("12_goqvr")
 animation = &"floor light off"
 autoplay = "floor light off"
 
-[node name="FloorLights" type="AnimatedSprite2D" parent="." unique_id=1687578501]
+[node name="FloorLights" type="AnimatedSprite2D" parent="." unique_id=1954446023]
+modulate = Color(1, 1, 1, 0)
 position = Vector2(-447, 946)
 sprite_frames = ExtResource("12_goqvr")
 animation = &"light rings floor"
 autoplay = "light rings floor"
 
-[node name="FloorLightsBlendy" type="AnimatedSprite2D" parent="." unique_id=1899897674]
-modulate = Color(1, 1, 1, 0.5)
+[node name="FloorLightsBlendy" type="AnimatedSprite2D" parent="." unique_id=188718477]
+modulate = Color(1, 1, 1, 0)
 material = SubResource("CanvasItemMaterial_jj1ih")
 position = Vector2(-790, 600)
 sprite_frames = ExtResource("12_goqvr")
 animation = &"down light"
 autoplay = "down light"
 
-[node name="BigCurtainLeft" type="AnimatedSprite2D" parent="." unique_id=1585881903]
+[node name="BigCurtainLeft" type="AnimatedSprite2D" parent="." unique_id=240515333]
 position = Vector2(-1250, -350)
 sprite_frames = ExtResource("13_t3kea")
 animation = &"stagecurtain"
 autoplay = "stagecurtain"
 
-[node name="BigCurtainRight" type="AnimatedSprite2D" parent="." unique_id=2013089687]
+[node name="BigCurtainRight" type="AnimatedSprite2D" parent="." unique_id=124384520]
 position = Vector2(1580, -350)
 sprite_frames = ExtResource("13_t3kea")
 animation = &"stagecurtain"
 autoplay = "stagecurtain"
 
-[node name="BigCurtainUpFar" type="AnimatedSprite2D" parent="." unique_id=1846205859]
+[node name="BigCurtainUpFar" type="AnimatedSprite2D" parent="." unique_id=1721426767]
 position = Vector2(-1125, -425)
 sprite_frames = ExtResource("13_t3kea")
 animation = &"curtains far"
 autoplay = "curtains far"
 
-[node name="BigCurtainUpTOp1" type="AnimatedSprite2D" parent="." unique_id=149077665]
+[node name="BigCurtainUpTOp1" type="AnimatedSprite2D" parent="." unique_id=794859495]
 position = Vector2(-1125, -650)
 sprite_frames = ExtResource("13_t3kea")
 animation = &"curtains top "
 autoplay = "curtains top "
 
-[node name="BigCurtainUpTOp2" type="AnimatedSprite2D" parent="." unique_id=1973972864]
+[node name="BigCurtainUpTOp2" type="AnimatedSprite2D" parent="." unique_id=1339478539]
 position = Vector2(-750, -625)
 sprite_frames = ExtResource("13_t3kea")
 animation = &"curtains top "
 autoplay = "curtains top "
 
-[node name="Vin1" type="Sprite2D" parent="." unique_id=438087553]
-modulate = Color(1, 1, 1, 0)
+[node name="Vin1" type="Sprite2D" parent="." unique_id=661801003]
 material = SubResource("CanvasItemMaterial_8s0bi")
 position = Vector2(-820, -450)
 scale = Vector2(1.45, 1.4)
@@ -219,8 +223,8 @@ texture = ExtResource("14_0m55i")
 centered = false
 metadata/scroll = [0.9, 0.9]
 
-[node name="Vin2" type="Sprite2D" parent="." unique_id=325745455]
-modulate = Color(1, 1, 1, 0.8)
+[node name="Vin2" type="Sprite2D" parent="." unique_id=1930484438]
+modulate = Color(1, 1, 1, 0)
 material = SubResource("CanvasItemMaterial_l4uxu")
 position = Vector2(-820, -450)
 scale = Vector2(1.4, 1.4)

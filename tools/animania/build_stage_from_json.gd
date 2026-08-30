@@ -157,6 +157,7 @@ func _init() -> void:
 			prop["name"], sprite.position.x, sprite.position.y, sprite.scale.x,
 			int(prop.get("zIndex", 0))])
 
+	_apply_script_overrides(root, stage_name)
 	_apply_script_tweens(root, stage_name)
 
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
@@ -259,3 +260,43 @@ func _apply_script_tweens(root: Node2D, stage_name: String) -> void:
 
 	player.add_animation_library(&"", library)
 	player.autoplay = first
+
+
+## What a stage's `.hx` sets on its props AT CREATE, which is not what the JSON says.
+##
+## mainStageAmTake.hx opens with `setLight(true)`, `setSmokeVisible(false)` and then flips
+## both vignettes - six props whose JSON values are the wrong ones to build. The lights and
+## the smoke come on later, driven by the song; a stage built from the JSON alone starts
+## with them already on.
+##
+## `0.00001` in the script is Flixel's way of keeping a sprite in the draw list while
+## invisible; here it is just 0.
+const SCRIPT_OVERRIDES := {
+	"mainStageAmTake": {
+		# mainStageAmTake.hx:73-74 - the JSON has these the other way round.
+		"Vin1": 1.0,
+		"Vin2": 0.0,
+		# setLight(true) at :66, which is :371-374.
+		"FloorLights": 0.0,
+		"FloorLightsBlendy": 0.0,
+		# setSmokeVisible(false) at :67, which is :549.
+		"SmokeLf": 0.0,
+		"SmokeRf": 0.0,
+		"SmokeLb": 0.0,
+		"SmokeRb": 0.0,
+	},
+}
+
+
+func _apply_script_overrides(root: Node2D, stage_name: String) -> void:
+	if not SCRIPT_OVERRIDES.has(stage_name):
+		return
+	var applied: int = 0
+	for prop_name: String in SCRIPT_OVERRIDES[stage_name]:
+		var target: CanvasItem = root.get_node_or_null(prop_name) as CanvasItem
+		if target == null:
+			print("OUT override sin prop: %s" % prop_name)
+			continue
+		target.modulate.a = float(SCRIPT_OVERRIDES[stage_name][prop_name])
+		applied += 1
+	print("OUT %d props con el valor del .hx en vez del JSON" % applied)
