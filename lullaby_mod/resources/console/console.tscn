@@ -4602,7 +4602,6 @@ text = "Training"
 horizontal_alignment = 1
 
 [node name="Gallery" type="Control" parent="TabContainer/Home/FakeButtons" unique_id=1644002917 node_paths=PackedStringArray("home_container", "icon_model", "icon_mesh", "icon_animation_player", "console")]
-material_select = ExtResource("212")
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(175, 175)
 anchors_preset = 0
@@ -4617,6 +4616,7 @@ focus_neighbor_right = NodePath("../Training")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("31")
+material_select = ExtResource("212")
 home_container = NodePath("../..")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_gallery")
 icon_mesh = NodePath("../../IconSubViewport/SubViewport/ui_gallery/UI_Icons/Skeleton3D/GALLERY")
@@ -4661,6 +4661,8 @@ focus_neighbor_bottom = NodePath("../Gallery")
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("32")
+material_idle = ExtResource("29")
+material_select = ExtResource("212")
 home_container = NodePath("../..")
 tab_target = NodePath("../../../Cartridges")
 icon_model = NodePath("../../IconSubViewport/SubViewport/ui_cartridge")

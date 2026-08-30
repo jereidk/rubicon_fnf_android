@@ -43,6 +43,7 @@ var _failures: int = 0
 var _scenes: int = 0
 var _nodes: int = 0
 var _exports: Dictionary = {}
+var _classes: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -141,14 +142,27 @@ func _check_node(scene: String, head: String, body: String, scripts: Dictionary)
 			prop, scripts[script_id].get_file()])
 
 
-## Los nombres que exporta un script. Solo el fichero en si - una propiedad
-## heredada de una clase base se declara en OTRO fichero y ahi el orden lo
-## decide esa otra clase, asi que no se puede juzgar desde aqui sin resolver la
-## herencia entera. Lo que se pierde por no hacerlo son falsos negativos, no
-## falsos positivos.
+## Los nombres que exporta un script, SUBIENDO por la herencia.
+##
+## La primera version leia solo el fichero en si, y lo dejo escrito como una
+## limitacion aceptable: "lo que se pierde son falsos negativos, no falsos
+## positivos". El falso negativo llego. `console.tscn` escribia `material_select`
+## antes de `script =` en el boton Gallery, esta guarda daba verde sobre 128
+## escenas, y el icono se quedaba negro en el telefono - porque
+## `gallery_button.gd` hace `extends ConsoleHomeButton` y el export esta
+## declarado en la clase padre, no en el.
+##
+## No hace falta resolver la herencia entera: basta seguir `extends <ClaseGlobal>`
+## por el registro de clases del proyecto, que es como se declaran todas las de
+## este arbol. Un `extends "res://..."` por ruta tambien vale. Lo que sigue sin
+## cubrirse es heredar de un tipo del MOTOR, y ahi no hay export de usuario que
+## perder.
 func _exports_of(path: String) -> Dictionary:
 	if _exports.has(path):
 		return _exports[path]
+
+	# Antes de recorrer, para que un ciclo de herencia no cuelgue esto.
+	_exports[path] = {}
 
 	var names: Dictionary = {}
 	var text: String = FileAccess.get_file_as_string(path)
@@ -157,5 +171,33 @@ func _exports_of(path: String) -> Dictionary:
 			).search_all(text):
 		names[m.get_string(1)] = true
 
+	var base: String = _base_script_of(text)
+	if not base.is_empty() and base != path:
+		for inherited: String in _exports_of(base):
+			names[inherited] = true
+
 	_exports[path] = names
 	return names
+
+
+## La ruta del script del que hereda `text`, o "" si hereda de un tipo del motor.
+func _base_script_of(text: String) -> String:
+	var m: RegExMatch = RegEx.create_from_string(
+		'(?m)^extends\\s+"([^"]+)"').search(text)
+	if m != null:
+		return m.get_string(1)
+
+	var by_name: RegExMatch = RegEx.create_from_string(
+		'(?m)^extends\\s+([A-Za-z_][A-Za-z0-9_]*)').search(text)
+	if by_name == null:
+		return ""
+	return _class_paths().get(by_name.get_string(1), "")
+
+
+## Nombre de clase global -> fichero, del registro del proyecto.
+func _class_paths() -> Dictionary:
+	if not _classes.is_empty():
+		return _classes
+	for entry: Dictionary in ProjectSettings.get_global_class_list():
+		_classes[String(entry.get("class", ""))] = String(entry.get("path", ""))
+	return _classes
