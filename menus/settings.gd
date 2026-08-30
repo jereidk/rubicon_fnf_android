@@ -231,12 +231,16 @@ var _stashed_copy_modes: Dictionary = {}
 ## reason _stashed_copy_modes is: its restore loop assigns Materials back.
 var _stashed_visibility: Dictionary = {}
 
-## Los ColorRect de efecto silenciados mientras los efectos estan apagados.
+## Los ColorRect de efecto colapsados mientras los efectos estan apagados.
+##
+## id -> {propiedad: valor original}, para devolverles la geometria exacta que
+## tenian y no un preset supuesto.
 ##
 ## Distinto de `_stashed_visibility`, que es "esto lo escondi yo y hay que
 ## devolverlo al encender". Esto es "esto no debe dibujarse mientras el ajuste
 ## este puesto, lo encienda quien lo encienda" - y lo enciende una pista de
-## animacion, que no sabe nada del preset.
+## animacion, que no sabe nada del preset. Por eso no se hace con `visible`:
+## ver `_hide_if_it_draws_nothing`.
 var _muted_effect_rects: Dictionary = {}
 var _watching_new_nodes: bool = false
 
@@ -1397,37 +1401,40 @@ func _hide_if_it_draws_nothing(node: Node, property: StringName) -> void:
 	# dos capas a pantalla completa con alpha cero, 1.15 Mpx cada una en un
 	# g53. Godot no descarta un CanvasItem por tener alpha 0; solo `visible`
 	# lo salta.
+	# Se colapsa el rect a tamaño cero en vez de escribirle `visible`.
+	#
+	# La primera version escribia `visible = false` y lo reponia desde
+	# `visibility_changed` cada vez que una pista lo encendia. Funcionaba - el
+	# overdraw de la entrada a Chimera bajo de 5.1x a 2.1x, medido - pero era
+	# pelearse con las pistas cada fotograma, que es la trampa que este proyecto
+	# ya tiene escrita en test_cutscene_video.gd, y el primer log del dispositivo
+	# con ese cambio trajo un aviso que no estaba antes:
+	#
+	#     couldn't resolve track: '../UILayer/RainParent/Rain:visible'
+	#
+	# Rain es exactamente uno de los rects que esto silencia y su `visible` lo
+	# conducen tres pistas.
+	#
+	# Un Control sin tamaño no rasteriza nada, y NADIE anima anclajes ni offsets
+	# de estos nodos - comprobado sobre la escena: las unicas pistas de anclaje
+	# de Chimera son de `UILayer/GameUI/Player`. Asi que colapsarlo consigue el
+	# mismo ahorro de relleno, no necesita señal, no necesita reponerse, y no
+	# escribe una sola propiedad que alguien mas este conduciendo.
 	var id: int = node.get_instance_id()
-	if not _muted_effect_rects.has(id):
-		_muted_effect_rects[id] = true
-		node.visibility_changed.connect(_remute_effect_rect.bind(id))
-
-	# El apunte para restaurar SOLO si estaba visible, que es el contrato que
-	# ya tenia esto: `_restore_effect_shaders` pone `visible = true` a todo lo
-	# que hay ahi, asi que meter un nodo que estaba oculto lo revelaria.
-	if node.visible:
-		_stashed_visibility[id] = true
-	node.visible = false
-
-
-## Vuelve a esconder un rect de efecto que algo ha encendido.
-##
-## Diferido, y no por gusto: escribir `visible` de forma sincrona DENTRO de
-## `visibility_changed` no cuaja de forma fiable - la escritura reentrante se
-## pierde durante la emision. Medido: con la version sincrona el rect aguantaba
-## el primer encendido y volvia a quedarse visible al tercero.
-##
-## Cuesta un fotograma de relleno cada vez que una pista lo enciende, contra
-## quedarse dibujando para siempre.
-##
-## No entra en bucle: `visibility_changed` solo se emite cuando el valor cambia
-## de verdad, asi que poner `false` sobre algo ya `false` no dispara nada.
-func _remute_effect_rect(id: int) -> void:
-	if not _muted_effect_rects.has(id):
+	if _muted_effect_rects.has(id):
 		return
-	var node: Object = instance_from_id(id)
-	if is_instance_valid(node) and node is CanvasItem and node.visible:
-		node.set_deferred(&"visible", false)
+	_muted_effect_rects[id] = {
+		&"anchor_right": node.anchor_right,
+		&"anchor_bottom": node.anchor_bottom,
+		&"offset_right": node.offset_right,
+		&"offset_bottom": node.offset_bottom,
+	}
+	# Al ancla contraria, no a cero: un rect anclado abajo-derecha con
+	# `anchor_left = 1` se colapsaria igual, y poner ceros lo estiraria.
+	node.anchor_right = node.anchor_left
+	node.anchor_bottom = node.anchor_top
+	node.offset_right = node.offset_left
+	node.offset_bottom = node.offset_top
 
 ## Hides a mesh whose every surface is an effect shader living on the *mesh
 ## resource* rather than on the node.
@@ -1530,16 +1537,14 @@ func _restore_effect_shaders() -> void:
 	# Only ever puts back a true this setting itself turned off, so a node
 	# something else hid in the meantime is not revealed by turning the
 	# effects back on.
-	# El silenciador se suelta ANTES de restaurar, o el propio `visible = true`
-	# de abajo dispararia `visibility_changed` y se volveria a esconder solo.
+	# Los rects colapsados recuperan su geometria. Se guardo el valor que tenian
+	# y no un preset, para que un rect authoreado de otra forma vuelva al suyo.
 	for id: int in _muted_effect_rects:
 		var muted: Object = instance_from_id(id)
-		if is_instance_valid(muted) and muted is CanvasItem:
-			# Con el mismo `bind(id)`: un Callable ligado no es igual al que no
-			# lo esta, asi que buscarlo sin ligar no lo encontraria nunca.
-			var cb: Callable = _remute_effect_rect.bind(id)
-			if muted.visibility_changed.is_connected(cb):
-				muted.visibility_changed.disconnect(cb)
+		if is_instance_valid(muted) and muted is Control:
+			var was: Dictionary = _muted_effect_rects[id]
+			for prop: StringName in was:
+				muted.set(prop, was[prop])
 	_muted_effect_rects.clear()
 
 	for id: int in _stashed_visibility:

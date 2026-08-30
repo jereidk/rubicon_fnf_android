@@ -60,6 +60,7 @@ func _initialize() -> void:
 	var rect := ColorRect.new()
 	rect.color = Color(0, 0, 0, 0)
 	rect.visible = false
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var mat := ShaderMaterial.new()
 	mat.shader = shader
 	rect.material = mat
@@ -68,28 +69,24 @@ func _initialize() -> void:
 	host.call("_strip_shader_material_property", rect, &"material")
 
 	_check(rect.material == null, "el material se quita")
-	_check(not rect.visible, "y el rect queda invisible")
+	_check(is_zero_approx(rect.size.x) and is_zero_approx(rect.size.y),
+		"y el rect queda sin tamaño, o sea sin rasterizar nada (%s)" % rect.size)
 
-	# Lo que hace la pista de animacion a mitad de cancion.
+	# Lo que hace la pista de animacion a mitad de cancion. Ya no hay que
+	# reponer nada: encenderlo no le devuelve el tamaño.
 	rect.visible = true
 	await process_frame
-	_check(not rect.visible,
-		"y SIGUE invisible despues de que algo lo encienda")
+	_check(is_zero_approx(rect.size.x) and is_zero_approx(rect.size.y),
+		"encenderlo NO le devuelve el tamaño (%s)" % rect.size)
+	_check(rect.visible,
+		"y no le peleamos el `visible` a la pista: sigue como ella lo dejo")
 
-	# Varias veces, que las pistas escriben mas de una vez.
-	for i: int in 3:
-		rect.visible = true
-		await process_frame
-	_check(not rect.visible, "y aguanta que insistan")
-
-	# Al volver a encender los efectos, deja de estorbar: el material vuelve y
-	# encenderlo funciona otra vez.
+	# Al volver a encender los efectos, recupera su geometria exacta.
 	host.call("_restore_effect_shaders")
 	_check(rect.material != null, "restaurar devuelve el material")
-	rect.visible = true
 	await process_frame
-	_check(rect.visible,
-		"y con los efectos encendidos ya se puede volver a mostrar")
+	_check(rect.size.x > 0.0 and rect.size.y > 0.0,
+		"y le devuelve el tamaño que tenia (%s)" % rect.size)
 
 	rect.free()
 	host.free()
