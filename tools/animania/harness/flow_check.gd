@@ -139,6 +139,13 @@ func _init() -> void:
 		"tutorial: falta alguien del reparto")
 	_check(tutorial.get_node_or_null("PauseMenu") != null,
 		"tutorial: sin pausa no se puede salir de la cancion")
+	# The wire that makes a character play anything at all. Without it both stand frozen
+	# with an empty current_animation - no singing and no idle either.
+	for who: String in ["Bf", "Gf"]:
+		_check((tutorial.get_node("Stage/%s" % who) as Node2D).level_note_controller != null,
+			"tutorial: %s sin level_note_controller, no baila ni canta" % who)
+	_check(tutorial.get_node_or_null("SongCamera") != null,
+		"tutorial: sin camara de cancion no sigue a quien canta")
 	tutorial.queue_free()
 	await process_frame
 	for i: int in range(1, week_playable.size()):

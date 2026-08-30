@@ -20,6 +20,10 @@ const SONGS: Array[Dictionary] = [
 		"scene": "res://songs/phone-call/phone_call.tscn",
 	},
 	{
+		# Plays, but its chart is EMPTY - zero notes in all three difficulties, which is
+		# what the mod ships. So it is the stage, the cast dancing and the music, and
+		# nothing to hit. Left in because it is the mod's own data; hiding it would be
+		# hiding a fact about the mod.
 		"id": "tutorial",
 		"disk": "tutorial",
 		"scene": "res://songs/tutorial/tutorial.tscn",

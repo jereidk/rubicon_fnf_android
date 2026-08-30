@@ -11,16 +11,16 @@
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/tutorial.png" id="9_6aqfe"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/dadbattle.png" id="10_o0dt4"]
 
-[node name="FreeplayScreen" type="Node2D" unique_id=1014997395 node_paths=PackedStringArray("disks", "sfx", "bed")]
+[node name="FreeplayScreen" type="Node2D" unique_id=1961659088 node_paths=PackedStringArray("disks", "sfx", "bed")]
 script = ExtResource("1_26ewy")
 disks = NodePath("Disks")
 sfx = NodePath("Sfx")
 bed = NodePath("Bed")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=269047435]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2107801635]
 position = Vector2(960, 540)
 
-[node name="Backdrop" type="ColorRect" parent="." unique_id=812437949]
+[node name="Backdrop" type="ColorRect" parent="." unique_id=2129211804]
 offset_left = -165.0
 offset_top = -585.0
 offset_right = 2085.0
@@ -28,13 +28,13 @@ offset_bottom = 1665.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Backwall" type="Sprite2D" parent="." unique_id=836444801]
+[node name="Backwall" type="Sprite2D" parent="." unique_id=1735585301]
 position = Vector2(0, 28.125)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_nrp1q")
 centered = false
 
-[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=572857417]
+[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=1217459356]
 position = Vector2(0, 381)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("3_6g38l")
@@ -43,13 +43,13 @@ autoplay = "bed"
 frame = 1
 centered = false
 
-[node name="TvGlow" type="Sprite2D" parent="." unique_id=194616432]
+[node name="TvGlow" type="Sprite2D" parent="." unique_id=2136191917]
 position = Vector2(424.5, 739.5)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("4_tqdln")
 centered = false
 
-[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=1686479083]
+[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=22715658]
 position = Vector2(829.5, 90)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("5_8bujw")
@@ -57,7 +57,7 @@ animation = &"freeplay tv образец "
 autoplay = "freeplay tv образец "
 centered = false
 
-[node name="Player" type="AnimatedSprite2D" parent="." unique_id=2114984470]
+[node name="Player" type="AnimatedSprite2D" parent="." unique_id=2104662239]
 position = Vector2(75, 757.5)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("6_a7llm")
@@ -65,15 +65,15 @@ animation = &"player"
 autoplay = "player"
 centered = false
 
-[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=1845682205]
+[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=1869588359]
 position = Vector2(68.625, 772.5)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("7_67l72")
 centered = false
 
-[node name="Disks" type="Node2D" parent="." unique_id=1997589654]
+[node name="Disks" type="Node2D" parent="." unique_id=448069610]
 
-[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=2062341977]
+[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=1755487516]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("8_ae7x2")
 metadata/hitbox = Rect2(-243, -96.75, 486, 193.5)
@@ -82,7 +82,7 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=622338125]
+[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=1513409402]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("9_6aqfe")
 metadata/hitbox = Rect2(-242.25, -96, 484.5, 192)
@@ -91,7 +91,7 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=774458910]
+[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=1822854465]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("10_o0dt4")
 metadata/hitbox = Rect2(-269.25, -119.25, 538.5, 238.5)
@@ -100,4 +100,4 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=252255064]
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1406343878]

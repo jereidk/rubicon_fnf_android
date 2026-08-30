@@ -327,6 +327,14 @@ Three things that bit while building this:
   `position_interpolate_target` / `zoom_interpolate_target`. Set only the position and the
   shot comes out framing whatever the script starts on; set both, to the same value, so it
   opens there instead of sliding in.
+- **A character with no `level_note_controller` plays NOTHING** - not its sing animations
+  and not even its idle. RubiconCharacter subscribes to `note_changed` and to the clock's
+  `step_change` through it. Both of tutorial's stood frozen with an empty
+  `current_animation`, and it read as "the camera does not follow the singer" because the
+  singer was never singing.
+- **Animania's `tutorial` chart has zero notes** in all three difficulties. Do not go
+  hunting for why nobody sings in it: there is nothing to sing. Use `bopeebo` to exercise
+  singing and the camera.
 - **A note controller with a chart and no Lane children draws nothing.** It reads on screen
   as "the strumlines are off-frame".
 

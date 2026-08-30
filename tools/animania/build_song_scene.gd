@@ -35,6 +35,7 @@ const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 const MOBILE_CONTROLS_OPACITY := 0.4
 const PAUSE_MENU := "res://animania_mod/menus/pause/pause_menu.tscn"
+const SONG_CAMERA := "res://animania_mod/scripts/song_camera.gd"
 
 const SOURCE := "res://animania_mod/source/songs"
 const STAGES := "res://animania_mod/stages"
@@ -126,8 +127,26 @@ func _init() -> void:
 
 	var ui: Dictionary = _build_ui(difficulty)
 	var where: Dictionary = stage.get_meta(&"characters", {})
-	_place_cast(stage, cast_names, where)
+	_place_cast(stage, cast_names, where, ui)
 	_build_camera(where, cast_names, float(stage.get_meta(&"camera_zoom", 1.0)))
+
+	# The camera work a chart does not ask for: follow whoever sings, bump on the beat.
+	# phone-call does not use this - it has 97 baked FocusCamera events of its own.
+	var song_camera: Node = _add(Node.new(), "SongCamera", SONG_CAMERA)
+	song_camera.camera = _root.get_node("RubiconInterpolatedCamera2D")
+	song_camera.clock = _root.get_node("RubiconLevelClock")
+	song_camera.player_point = _root.get_node_or_null("PlayerCameraPoint")
+	song_camera.opponent_point = _root.get_node_or_null("OpponentCameraPoint")
+	song_camera.player = _root.get_node_or_null(
+		"Stage/%s" % String(cast_names.get("player", "")).to_pascal_case().replace("-", ""))
+	song_camera.opponent = _root.get_node_or_null(
+		"Stage/%s" % String(cast_names.get("opponent", "")).to_pascal_case().replace("-", ""))
+	# The tempo map's first entry, which is the song's own bpm.
+	var changes: Array = meta.get("timeChanges", [])
+	song_camera.bpm = float((changes[0] as Dictionary).get("bpm", 100.0)) \
+		if not changes.is_empty() else 100.0
+	print("OUT camara: bpm=%.1f sigue a %s y %s" % [song_camera.bpm,
+		song_camera.player, song_camera.opponent])
 
 	var health: Node = _add(Node.new(), "RubiconHealthModule", HEALTH_SCRIPT)
 	health.note_controller = ui["Player"]
@@ -248,7 +267,8 @@ func _build_ui(difficulty: String) -> Dictionary:
 ## The cast, anchored the way Funkin does it: a stage position is where the character's
 ## FEET go, and the character scenes are already built with that origin (measured, see
 ## build_character_scenes.gd). So the position goes on verbatim.
-func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary) -> void:
+func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary,
+		ui: Dictionary) -> void:
 	for slot: String in ["opponent", "girlfriend", "player"]:
 		var who: String = String(cast_names.get(slot, ""))
 		if who.is_empty():
@@ -263,10 +283,25 @@ func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary) -> vo
 		var key: String = {"player": "bf", "opponent": "dad", "girlfriend": "gf"}[slot]
 		var at: Array = (where.get(key, {}) as Dictionary).get("position", [640, 500])
 		character.position = Vector2(float(at[0]), float(at[1]))
+		# THE wire. RubiconCharacter subscribes to note_changed and to the clock's
+		# step_change through its level_note_controller, and a character without one plays
+		# nothing at all - not even its idle. The first build of tutorial had both of them
+		# standing frozen with an empty current_animation, and it read as "the camera does
+		# not follow the singer" because the singer was never singing.
+		if slot != "girlfriend" and ui.has(_controller_for(slot)):
+			character.level_note_controller = ui[_controller_for(slot)]
+		else:
+			# Girlfriend sings nothing, but she still dances, so she takes the opponent's
+			# controller purely for its clock.
+			character.level_note_controller = ui.get("Opponent")
 		stage.add_child(character)
 		character.owner = _root
 		print("OUT %-11s %-20s en (%.0f, %.0f)" % [
 			slot, who, character.position.x, character.position.y])
+
+
+func _controller_for(slot: String) -> String:
+	return "Player" if slot == "player" else "Opponent"
 
 
 func _build_camera(where: Dictionary, cast_names: Dictionary, zoom: float) -> void:

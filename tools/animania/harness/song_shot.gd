@@ -10,6 +10,10 @@ const SONG := "res://songs/tutorial/tutorial.tscn"
 var _level: Node
 var _pending: bool = false
 var _elapsed: float = 0.0
+## Where the camera was aimed the last time it was looked at, so a target that never moves
+## is visible as a number rather than as a feeling about the screenshot.
+var _seen: Array[Vector2] = []
+var _next_sample: float = 1.0
 
 
 func _ready() -> void:
@@ -30,5 +34,18 @@ func _process(delta: float) -> void:
 		get_tree().quit()
 		return
 	_elapsed += delta
-	if _elapsed > 6.0:
+	if _elapsed >= _next_sample:
+		_next_sample += 1.0
+		for who: String in ["Bf", "Gf"]:
+			var c: Node2D = _level.get_node_or_null("Stage/%s" % who)
+			if c != null:
+				print("OUT %.0fs %-3s %s" % [_elapsed, who,
+					c.animation_player.current_animation])
+		var camera: Camera2D = _level.get_node_or_null("RubiconInterpolatedCamera2D")
+		if camera != null:
+			var aim: Vector2 = camera.get(&"position_interpolate_target")
+			if _seen.is_empty() or not _seen[-1].is_equal_approx(aim):
+				_seen.append(aim)
+	if _elapsed > 20.0:
+		print("OUT la camara apunto a %d sitios: %s" % [_seen.size(), _seen])
 		_pending = true
