@@ -57,6 +57,28 @@ on:
           Costs 52% more bytes.
         required: false
         default: '60'
+      abi:
+        description: >-
+          Which Android ABIs to build. arm64 is the default and is what every
+          build so far has shipped.
+
+          arm32 builds armeabi-v7a only, for a 32-bit device. both puts the two
+          in one APK, which installs anywhere at the cost of carrying two sets
+          of native libraries - that is the one to hand someone whose phone you
+          do not know. all produces the three APKs above as three separate
+          files, for comparing them.
+
+          x86 and x86_64 stay off in every case. They are emulator ABIs, nothing
+          here has been tested on one, and shipping them would only make the APK
+          bigger.
+        required: false
+        default: 'arm64'
+        type: choice
+        options:
+          - arm64
+          - arm32
+          - both
+          - all
       export_import_cache:
         description: >-
           Set to true to also upload .godot/imported as an artifact. It is
@@ -1923,36 +1945,68 @@ jobs:
           BUILD_TYPE="${BUILD_TYPE:-release}"
 
           if [ "$BUILD_TYPE" = "debug" ]; then
-            PRESET="Android Debug"; FLAG="--export-debug"; OUT="builds/android_debug.apk"
+            PRESET="Android Debug"; FLAG="--export-debug"
           else
-            PRESET="Android Release"; FLAG="--export-release"; OUT="builds/android_release.apk"
+            PRESET="Android Release"; FLAG="--export-release"
           fi
-          echo "Exporting preset '$PRESET' with $FLAG"
 
-          $GODOT --headless $FLAG "$PRESET" "$OUT" 2>&1
-
-          if [ -f "$OUT" ]; then
-            echo "APK_SIZE=$(du -h "$OUT" | cut -f1)" >> $GITHUB_OUTPUT
-            echo "apk_path=$OUT" >> $GITHUB_OUTPUT
-            echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
-            echo "build_success=true" >> $GITHUB_OUTPUT
+          # Que ABI se construyen. `all` no es una configuracion del preset,
+          # son tres exportaciones, asi que se expande aqui y no en el script
+          # que edita export_presets.cfg.
+          ABI="${{ inputs.abi }}"
+          ABI="${ABI:-arm64}"
+          if [ "$ABI" = "all" ]; then
+            VARIANTS="arm64 arm32 both"
           else
-            echo "build_success=false" >> $GITHUB_OUTPUT
-            exit 1
+            VARIANTS="$ABI"
           fi
+          echo "Exporting preset '$PRESET' with $FLAG for: $VARIANTS"
+
+          for v in $VARIANTS; do
+            # El preset se reescribe entre exportaciones, asi que esto tiene
+            # que correr una vez por variante y no fuera del bucle.
+            python3 tools/set_export_abi.py "$PRESET" "$v"
+
+            OUT="builds/${BUILD_TYPE}_${v}.apk"
+            $GODOT --headless $FLAG "$PRESET" "$OUT" 2>&1
+
+            if [ ! -f "$OUT" ]; then
+              echo "::error::la exportacion $v no produjo $OUT"
+              echo "build_success=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            echo "  $v -> $OUT ($(du -h "$OUT" | cut -f1))"
+          done
+
+          # export_presets.cfg queda modificado en el runner. No se commitea
+          # nada, pero dejarlo como estaba evita que un paso posterior lea un
+          # preset que no es el del repo.
+          git checkout -- export_presets.cfg || true
+
+          FIRST=$(ls builds/${BUILD_TYPE}_*.apk | head -1)
+          echo "APK_SIZE=$(du -h "$FIRST" | cut -f1)" >> $GITHUB_OUTPUT
+          echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
+          echo "abi=$ABI" >> $GITHUB_OUTPUT
+          echo "build_success=true" >> $GITHUB_OUTPUT
 
       - name: Sign APK with Release Keystore
         if: steps.build.outputs.build_success == 'true'
         run: |
-          $ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}/apksigner sign \
-            --ks ~/.android/release.keystore \
-            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
-            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-            --out builds/rubicon-release.apk \
-            "${{ steps.build.outputs.apk_path }}"
+          # Una firma por APK. Con abi=all son tres, y los tres llevan la
+          # MISMA clave a proposito: asi se pueden instalar uno sobre otro para
+          # compararlos sin desinstalar y perder la partida guardada.
+          for apk in builds/${{ steps.build.outputs.build_type }}_*.apk; do
+            v="$(basename "$apk" .apk)"; v="${v##*_}"
+            $ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}/apksigner sign \
+              --ks ~/.android/release.keystore \
+              --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+              --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+              --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+              --out "builds/rubicon-release-${v}.apk" \
+              "$apk"
+            echo "Signed: builds/rubicon-release-${v}.apk"
+          done
 
-          echo "Signed APK: builds/rubicon-release.apk"
           ls -lh builds/
 
       - name: Upload APK artifact
@@ -1960,7 +2014,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rubicon-fnfr-android-release
-          path: builds/rubicon-release.apk
+          path: builds/rubicon-release-*.apk
           retention-days: 3
           compression-level: 9
 
@@ -1993,7 +2047,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: rubicon-release.apk
+          files: rubicon-release-*.apk
           generate_release_notes: true
           prerelease: ${{ !contains(github.ref, '-rc') }}
         env:
