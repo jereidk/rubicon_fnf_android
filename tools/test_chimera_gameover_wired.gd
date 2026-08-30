@@ -94,6 +94,7 @@ func _initialize() -> void:
 
 	_video_checks()
 	_restart_checks()
+	_they_actually_load()
 
 	# Y que el modulo se queje en vez de callarse, que es lo que dejo pasar esto
 	# durante todo el port.
@@ -174,6 +175,38 @@ func _video_checks() -> void:
 		"el vídeo arranca en la misma llamada que la animacion, y antes que ella")
 	_check(not body.contains("await"),
 		"...sin await por medio, o los dos dejan de salir en el mismo fotograma")
+
+
+## Las cinco escenas PARSEAN y se instancian.
+##
+## Esta comprobacion no estaba, y su ausencia dejo pasar una rotura total: al
+## hornear las muertes 1-3 a video se quitaron las pistas del AnimatedSprite2D
+## borrando las lineas `tracks/N/`, y el cuerpo multilinea de esas pistas -lo que
+## sigue a `keys = {` hasta un `}` suelto- se quedo dentro. El resultado no fue
+## una animacion rara sino un .tscn invalido:
+##
+##     step_1.tscn:39 - Parse Error: Unexpected identifier 'tracks'.
+##     Failed loading resource: res://lullaby_mod/songs/chimera/scenes/step_1.tscn
+##
+## Morir en los steps 1, 2 o 3 no llevaba a ninguna parte. Y esta guarda estaba
+## VERDE, porque todo lo demas que comprueba lo hace sobre el texto del fichero
+## con FileAccess.get_file_as_string(), y un .tscn que no parsea se lee como
+## cadena igual de bien que uno correcto.
+##
+## Lo encontro el log del telefono, no CI. Por eso ahora se cargan de verdad y se
+## instancian: cargar prueba que parsea, instanciar prueba que sus dependencias
+## resuelven.
+func _they_actually_load() -> void:
+	for key: String in KEYS:
+		var path: String = "res://lullaby_mod/songs/chimera/scenes/%s.tscn" % key
+		var packed: PackedScene = ResourceLoader.load(path, "PackedScene",
+			ResourceLoader.CACHE_MODE_IGNORE)
+		if not _check(packed != null, "%s: parsea y carga" % key):
+			continue
+		var node: Node = packed.instantiate()
+		_check(node != null, "%s: ...y se instancia" % key)
+		if node != null:
+			node.free()
 
 
 ## Morir en Chimera devuelve al principio de la cancion. Siempre.
