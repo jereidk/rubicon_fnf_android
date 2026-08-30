@@ -17,6 +17,18 @@ name: iOS Build
 # at the first restore step. That resolves itself when the branch merges.
 on:
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: >-
+          release uses Godot's release engine template and builds the app in
+          Xcode's Release configuration; debug uses the debug template and
+          configuration. Neither is signed either way.
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
 
 permissions:
   contents: read
@@ -43,14 +55,76 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # Pointers only, deliberately. Every LFS object inside the sparse
+      # checkout is a precompiled import - about 398MB of them - and smudging
+      # on checkout spends that much LFS bandwidth on every single run. Three
+      # runs is past the 1GB a month the free allowance gives, which is
+      # exactly what took build #109 down before it reached step 3:
+      #
+      #   batch response: This repository exceeded its LFS budget.
+      #
+      # The objects are fetched below instead, from a cache when there is one.
       - name: Checkout repository
         uses: actions/checkout@v4
+        env:
+          GIT_LFS_SKIP_SMUDGE: 1
         with:
-          lfs: true
+          lfs: false
           sparse-checkout: |
             /*
             !/lullaby_mod/original_pck/
           sparse-checkout-cone-mode: false
+
+      - name: Cache Git LFS objects
+        id: cache-lfs
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          # A skipped smudge leaves each file as its pointer, and a pointer is
+          # literally the object's oid, so hashing them keys the cache on the
+          # LFS content itself and on nothing else. Editing a .gd or a .tscn
+          # does not move this key; adding a precompiled import does.
+          key: lfs-${{ runner.os }}-${{ hashFiles('precompiled_astc_imports/*.res', '**/*.lmbake', '**/*.ctex') }}
+
+      - name: Materialise Git LFS files
+        run: |
+          # Nothing in LFS is required any more. The only game assets that were
+          # behind it - two lightmap bakes, 510KB together - are plain git
+          # objects now; everything left is precompiled import output, which is
+          # a build accelerator. So an LFS outage has to degrade this job, not
+          # end it, and `git lfs pull` failing is not fatal.
+          #
+          # checkout, not pull, when the objects are already local: it smudges
+          # out of .git/lfs/objects and never contacts the server, so a warm
+          # cache costs zero bandwidth. Only a miss pays for a fetch.
+          if [ "${{ steps.cache-lfs.outputs.cache-hit }}" = "true" ]; then
+            echo "LFS cache hit - materialising from local objects"
+            git lfs checkout || echo "::warning::git lfs checkout fallo"
+          else
+            echo "LFS cache miss - fetching from the server"
+            git lfs pull || echo "::warning::git lfs pull fallo (presupuesto agotado?)"
+          fi
+
+          # Whatever is still a pointer is unusable, and has to be named rather
+          # than fed to Godot: the restore step below would otherwise copy 130
+          # bytes of text into .godot/imported/ as though it were a compressed
+          # texture. Counted here, skipped there.
+          pointers=0
+          for f in $(git lfs ls-files -n); do
+            [ -f "$f" ] || continue
+            if head -c 64 "$f" | grep -q "git-lfs.github.com/spec"; then
+              pointers=$((pointers + 1))
+            fi
+          done
+
+          total=$(git lfs ls-files -n | wc -l)
+          echo "LFS: $((total - pointers))/$total materializados, $pointers sin resolver"
+          if [ "$pointers" -gt 0 ]; then
+            echo "::warning::$pointers objetos LFS sin resolver - se importara desde las fuentes"
+            echo "### LFS degradado" >> "$GITHUB_STEP_SUMMARY"
+            echo "$pointers de $total objetos no se pudieron descargar." >> "$GITHUB_STEP_SUMMARY"
+            echo "El build continua reimportando desde las fuentes: mas lento, mismo resultado." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # macOS puts these under ~/Library/Application Support/Godot, not the
       # ~/.local/share/godot the Android workflow uses. Same tpz, different
@@ -128,9 +202,32 @@ jobs:
       # the reimport here exactly as they do on Linux.
       - name: Restore precompiled ASTC imports
         run: |
+          #
+          # Each .res is only copied when it is real content. An unresolved LFS
+          # pointer here is 130 bytes of text, and handing that to Godot as a
+          # compressed texture is worse than not having it: skipping lets the
+          # importer notice the output is missing and rebuild it from the PNG,
+          # which is slow but correct. The .md5 sidecar only travels with a
+          # .res that was actually copied - on its own it would tell Godot the
+          # import is already done and there is nothing to rebuild.
           mkdir -p .godot/imported
-          cp precompiled_astc_imports/*.res precompiled_astc_imports/*.md5 .godot/imported/
-          echo "Restored $(ls precompiled_astc_imports/*.res | wc -l) precompiled ASTC imports"
+          copied=0
+          skipped=0
+          for res in precompiled_astc_imports/*.res; do
+            [ -f "$res" ] || continue
+            if head -c 64 "$res" | grep -q "git-lfs.github.com/spec"; then
+              skipped=$((skipped + 1))
+              continue
+            fi
+            cp "$res" .godot/imported/
+            md5="${res%.res}.md5"
+            [ -f "$md5" ] && cp "$md5" .godot/imported/
+            copied=$((copied + 1))
+          done
+          echo "Restored $copied precompiled ASTC imports ($skipped sin resolver)"
+          if [ "$skipped" -gt 0 ]; then
+            echo "::warning::$skipped imports precompilados no disponibles - Godot los rehara"
+          fi
 
       - name: Restore precompiled lightmap imports
         run: |
@@ -213,7 +310,27 @@ jobs:
           # it - the exporter reports "Target folder does not exist or is
           # inaccessible" rather than creating it.
           mkdir -p builds/ios
-          $GODOT --headless --export-debug "iOS" builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj 2>&1
+
+          # Two separate debug/release axes on iOS, and the first pass at
+          # this workflow got both wrong: --export-debug picks which engine
+          # template goes into the xcframework, and -configuration below
+          # picks how Xcode builds the app around it. Measured on the real
+          # 4.7.1 templates, a debug engine runs GDScript 1.1-1.56x slower
+          # than a release one - unevenly, with method calls worst - so a
+          # debug default would ship the slow one and distort any timing
+          # taken on it.
+          BUILD_TYPE="${{ inputs.build_type }}"
+          BUILD_TYPE="${BUILD_TYPE:-release}"
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            EXPORT_FLAG="--export-debug"; XC_CONFIG="Debug"
+          else
+            EXPORT_FLAG="--export-release"; XC_CONFIG="Release"
+          fi
+          echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+          echo "XC_CONFIG=$XC_CONFIG" >> $GITHUB_ENV
+          echo "Exporting iOS with $EXPORT_FLAG (Xcode configuration $XC_CONFIG)"
+
+          $GODOT --headless $EXPORT_FLAG "iOS" builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj 2>&1
           ls -la builds/ios
 
       - name: Build unsigned .app
@@ -230,7 +347,7 @@ jobs:
           xcodebuild \
             -project "builds/ios/${{ env.XCODE_SCHEME }}.xcodeproj" \
             -scheme "${{ env.XCODE_SCHEME }}" \
-            -configuration Debug \
+            -configuration "$XC_CONFIG" \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/dd" \
@@ -247,7 +364,7 @@ jobs:
           # and nothing else required. Built by hand rather than with
           # `xcodebuild -exportArchive`, which insists on an export options
           # plist and a signing identity.
-          APP="$RUNNER_TEMP/dd/Build/Products/Debug-iphoneos/${{ env.XCODE_SCHEME }}.app"
+          APP="$RUNNER_TEMP/dd/Build/Products/$XC_CONFIG-iphoneos/${{ env.XCODE_SCHEME }}.app"
           if [ ! -d "$APP" ]; then
             echo "No .app at $APP"
             find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name '*.app' || true
