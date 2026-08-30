@@ -125,9 +125,20 @@ var _msaa: String = ""
 ## que se entrega a 960 de ancho, no: 1024 sigue dando mas resolucion de sombra
 ## por pixel entregado de la que el jugador puede ver.
 ##
-## Sin medir todavia. Por eso es un parametro y no un cambio: `sombras=1024`
-## contra el mismo tramo dice cuanto de los 1910 ms/frame se va aqui, y solo
-## entonces se decide.
+## MEDIDO, y no es esto. El mismo tramo de Chimera
+## (`desde=53.7 hasta=55.2`, la sesion de fotos, `draw=52 prims=27748`):
+##
+##     sombras=1024   2237 ms/frame
+##     sombras=0      2288 ms/frame   (bajando aun: 2560 -> 2361 -> 2288)
+##
+## Los dos convergen a ~2.2 s/frame. El atlas de sombras era la sospecha
+## razonable -16.8 megapixeles contra un viewport de 1.05- y resulta que no
+## mueve la aguja en esta escena. Lo que la mueve son 54 llamadas de dibujo con
+## 32 materiales distintos: coste de cambios de estado, no de relleno.
+##
+## El parametro se queda porque sigue sirviendo para una entrega -grabar con las
+## sombras que el jugador vera y no con las de High- pero no como palanca de
+## tiempo de render.
 var _sombras: int = -1
 
 ## Escala del bufer 3D para la captura. <= 0 = lo que diga el preset.
