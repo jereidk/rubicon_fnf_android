@@ -1339,3 +1339,79 @@ createVisualizers, createMusicSocial, createSocialButtons, createNewsButton,
 initMouseEvents, updateCameraScroll (constants 3.0, -10.0 and +/-1.0 - mouse
 parallax, inert on Android), spawnHelpMouseText, and whatever drives the
 `AnimaniaLOOPbass` layer's LOWPASS and GAIN.
+
+## Freeplay
+
+`animania.states.FreeplayScreen` is compiled like the main menu, so this is read out of the
+Linux build. `create()` names the shape of it: `preloadThemes`, `loadAllAvalaibleSongs`,
+`FreeplayAtlasHandler.preloadFromSongs`, `buildBg`, `postHeader`, `generateDisksList`,
+`showStickers` and `checkBed`. It is a big screen — a TV diorama, a disk carousel, an album
+roll, difficulty sprites, stickers, a rank panel, a skin selector and a help page.
+
+### Reading a FunkinSprite.create takes one step of care
+
+`create(Null<double> x, Null<double> y, String path)` takes each coordinate as a 16-byte
+block of `{flag byte, double}`, and the caller builds both on the stack — so which block is
+x does not show up in the loads. `create()` itself settles it:
+
+    cmpb $0x0,(%rsi) ; jne skip ; mov 0x8(%rsi),%r13     <- first argument
+    cmpb $0x0,(%rdx) ; jne skip ; movsd 0x8(%rdx),%xmm0  <- second
+
+and `buildBg` loads `%rsi` from the block at `-0x70(%rbp)` and `%rdx` from the one at
+`-0x60`. So the **first** block is x, and a flag byte of **zero** means the value is
+there. Read the other way round, the diorama's VCR ends up in the sky — which is exactly
+what the first render showed.
+
+### The diorama
+
+`buildBg` opens with a black `FlxSprite` blown up to 1500x1500 and centred, and then, in
+Funkin's 1280x720:
+
+| sprite | at | note |
+| --- | --- | --- |
+| `bg/freeplay backwall` | (0, 18.75) | 912x712 |
+| `bg/bed` | (0, 254) | sparrow; `light` = frame [0], `normal` = [1], a third on [2] |
+| `bg/tv glow` | (computed, 493) | 997x357 |
+| `bg/player` | (50, 505) | sparrow, the VCR |
+| `bg/player-layer` | (45.75, 515) | over it, four left and ten down |
+
+The bed's three "animations" are `addByIndices` over single frames, so they are three
+STATES and not a cycle — `checkBed` is what picks one.
+
+The TV's own placement is not a constant: it is created through `Paths.imageGraphic` and
+positioned by setters that read other sprites. The arithmetic says where anyway — the wall
+is 912 wide in a 1280 screen, leaving 368 of nothing to the right, and the TV is 727 wide,
+so putting its right edge on the screen's (x = 553) covers that gap exactly. The glow lands
+the same way.
+
+### The carousel
+
+`DiskSpr.updateDiskPos` does not move a disk to its place, it eases toward a point:
+
+    x = MathUtil.smoothLerpPrecision(x, target.x, elapsed, 0.256)
+    y = MathUtil.smoothLerpPrecision(y, target.y, elapsed, 0.192)
+
+`smoothLerpPrecision(from, to, dt, halfLife)` is `to + (from - to) * pow(2, -dt / halfLife)`
+— a half-life in seconds and not a rate, so it is frame-rate independent, and the y trailing
+the x by a quarter is what makes a disk arrive with a roll rather than square.
+`changeSelection` wraps the index with `FlxMath.wrap` and plays `freeplay/song switch`
+through `FunkinSound.playOnce` at 0.4. `DiskSpr.changeDisk` loads the art from
+`animania-freeplay/disks/<name>`.
+
+What writes the target point is NOT recovered, so where the selected disk sits and how far
+apart the rest are is placed rather than read. It is marked as such in the script.
+
+### What is not ported
+
+The port has one song, so the list has one entry — but the walk is written against a list,
+because the day a second song is charted is the day this has to keep working.
+
+**TVBACK and TVNOISE are deliberately out.** They are the TV's animated glitch and its
+static: 98 and 111 frames of full-frame noise in atlases of 5492x8192 and 5279x2528, 30MB
+between them. A 5492x8192 RGBA texture is around 180MB uncompressed, which is texture
+budget a phone may simply not have — and they are noise, so a trimmed version would read
+the same. They go in when that trim is decided.
+
+Also out: `postHeader`, `showStickers`, `checkBed`, `preloadThemes`, the album roll, the
+difficulty sprites and `changeDiff`, the rank panel, the skin selector, `CharPlayer`, and
+the help page.
