@@ -1978,6 +1978,22 @@ jobs:
             echo "  $v -> $OUT ($(du -h "$OUT" | cut -f1))"
           done
 
+          # Y en el resumen de la corrida, no solo en el log. El API de logs
+          # devuelve la cola del job, y con los pasos de subida escupiendo una
+          # linea por cada 8 MB el paso de build queda siempre fuera de alcance
+          # - hubo que deducir que las tres variantes eran distintas restando
+          # totales de artefactos entre dos corridas. El resumen se lee de una.
+          {
+            echo "### APKs exportados (\`$BUILD_TYPE\`, abi=\`$ABI\`)"
+            echo ""
+            echo "| variante | tamaño |"
+            echo "| --- | ---: |"
+            for f in builds/${BUILD_TYPE}_*.apk; do
+              v="$(basename "$f" .apk)"; v="${v##*_}"
+              echo "| $v | $(du -h "$f" | cut -f1) |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
           # export_presets.cfg queda modificado en el runner. No se commitea
           # nada, pero dejarlo como estaba evita que un paso posterior lea un
           # preset que no es el del repo.
