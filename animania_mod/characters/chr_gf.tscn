@@ -1,15 +1,17 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_kk8p3"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/characters/komi_stand_frames.tres" id="2_q3xma"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/komi_stand_library.tres" id="3_jbmlm"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_41jlh"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_sjasv"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_0rgk8"]
+[ext_resource type="Resource" path="res://animania_mod/characters/gf_atlas.tres" id="4_ecxxm"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/gf_library.tres" id="5_gdfvc"]
 
-[sub_resource type="Animation" id="Animation_ak1qv"]
+[sub_resource type="Animation" id="Animation_ew25x"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D:offset")
+tracks/0/path = NodePath("AnimateSymbol:offset")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -19,23 +21,23 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_kdhr2"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_qggn5"]
+length = 0.8333333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_idle"),
+"clips": PackedStringArray("gf_cheer"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -45,210 +47,210 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_w3w4c"]
-length = 4.16666679084301
+[sub_resource type="Animation" id="Animation_a1bfo"]
+length = 0.625
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_endkun"),
+"clips": PackedStringArray("gf_dance_left"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(1, -2)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_0hsln"]
-length = 4.16666679084301
+[sub_resource type="Animation" id="Animation_tixxq"]
+length = 0.625
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_komigameover"),
+"clips": PackedStringArray("gf_dance_right"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(1, 0)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_7vd1v"]
-length = 0.2083333395421505
-loop_mode = 1
+[sub_resource type="Animation" id="Animation_sii7b"]
+length = 0.375
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_komigameover_loop"),
+"clips": PackedStringArray("gf_sing_down"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(1, 0)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_wtj3v"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_yu42m"]
+length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_down"),
+"clips": PackedStringArray("gf_sing_left"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(-3, 11)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_5oi8s"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_xb607"]
+length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_left"),
+"clips": PackedStringArray("gf_sing_right"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(-4, 2)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ob1lx"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_j4i0q"]
+length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_right"),
+"clips": PackedStringArray("gf_sing_up"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(2, 4)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_p4q7e"]
-length = 0.6250000186264515
+[sub_resource type="Animation" id="Animation_1nxhc"]
+length = 0.9583333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite2D/AnimationPlayer")
+tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("komi_stand_up"),
+"clips": PackedStringArray("gf_sob"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite2D:offset")
+tracks/1/path = NodePath("AnimateSymbol:offset")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(5, -14)]
+"values": [Vector2(0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_dc3ht"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_iuhs8"]
 _data = {
-&"RESET": SubResource("Animation_ak1qv"),
-&"dance_idle": SubResource("Animation_kdhr2"),
-&"end_conv": SubResource("Animation_w3w4c"),
-&"game_over": SubResource("Animation_0hsln"),
-&"game_over_loop": SubResource("Animation_7vd1v"),
-&"sing_down": SubResource("Animation_wtj3v"),
-&"sing_left": SubResource("Animation_5oi8s"),
-&"sing_right": SubResource("Animation_ob1lx"),
-&"sing_up": SubResource("Animation_p4q7e")
+&"RESET": SubResource("Animation_ew25x"),
+&"cheer": SubResource("Animation_qggn5"),
+&"dance_left": SubResource("Animation_a1bfo"),
+&"dance_right": SubResource("Animation_tixxq"),
+&"sing_down": SubResource("Animation_sii7b"),
+&"sing_left": SubResource("Animation_yu42m"),
+&"sing_right": SubResource("Animation_xb607"),
+&"sing_up": SubResource("Animation_j4i0q"),
+&"sob": SubResource("Animation_1nxhc")
 }
 
-[node name="komi_stand" type="Node2D" unique_id=1163530795 node_paths=PackedStringArray("animation_player")]
-script = ExtResource("1_kk8p3")
+[node name="gf" type="Node2D" unique_id=292146856 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_41jlh")
 animation_player = NodePath("RootAnimationPlayer")
-singing_sing_to_dance_interval = 8
+singing_sing_to_dance_interval = 6
 singing_repeat_loop_point = 0.08333333333333333
 dancing_measure_step = 0.25
 dancing_force_dance = false
-dancing_animations = Array[StringName]([&"dance_idle"])
+dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
+transition_update_queued_animations = true
 animations = Dictionary[StringName, StringName]({
 &"miss_down": &"sing_down",
 &"miss_left": &"sing_left",
@@ -259,17 +261,18 @@ animations = Dictionary[StringName, StringName]({
 &"sing_right": &"sing_right",
 &"sing_up": &"sing_up"
 })
-dancing_animations = Array[StringName]([&"dance_idle"])
+dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1867604800]
-position = Vector2(-134.5, -670)
-sprite_frames = ExtResource("2_q3xma")
-animation = &"idle"
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=699692422]
+position = Vector2(-184.5, -436)
+script = ExtResource("2_sjasv")
+symbol = "EVERYTHING/GF/anims/GF DANCE LEFT"
 centered = false
+atlases = Array[ExtResource("3_0rgk8")]([ExtResource("4_ecxxm")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=1048057514]
-libraries/ = ExtResource("3_jbmlm")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=213420977]
+libraries/ = ExtResource("5_gdfvc")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1770318875]
-libraries/ = SubResource("AnimationLibrary_dc3ht")
-autoplay = &"dance_idle"
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1718159539]
+libraries/ = SubResource("AnimationLibrary_iuhs8")
+autoplay = &"dance_left"

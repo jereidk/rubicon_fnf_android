@@ -14,6 +14,8 @@ extends Node2D
 const SCENES := {
 	"komi": "res://animania_mod/characters/chr_komi.tscn",
 	"tadano": "res://animania_mod/characters/chr_tadano.tscn",
+	"bf": "res://animania_mod/characters/chr_bf.tscn",
+	"gf": "res://animania_mod/characters/chr_gf.tscn",
 }
 const PAD := Vector2(1400, 1400)
 

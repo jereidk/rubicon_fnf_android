@@ -54,7 +54,33 @@ func _init() -> void:
 	_build_komi()
 	_build_tadano()
 	_build_stand_characters()
+	_build_week1_characters()
 	quit(0)
+
+
+## bf and gf, which four of story mode's seven songs need. Both are Adobe atlases; their
+## symbol names are in the atlas's own Animation.json and are NOT the `prefix` their
+## character JSON gives - gf's JSON says `idle` where the atlas says
+## "EVERYTHING/GF/anims/GF DANCE LEFT".
+##
+## The origins are MEASURED, with tools/animania/harness/measure_character.gd - an Adobe
+## atlas has no authored size, so the only way to know where a character's feet are is to
+## render it and count opaque pixels. Guessed first and both floated above the stage and
+## overlapped each other; the harness reported the drift and these are those numbers folded
+## in. `singTime` is the character JSON's: bf 8, gf 6.1 rounded to 6.
+func _build_week1_characters() -> void:
+	_build_adobe_character("bf", Vector2(155.0, 343.0), "render/BF IDLE", [
+		"dance_idle", "sing_left", "sing_down", "sing_up", "sing_right",
+		"miss_left", "miss_down", "miss_up", "miss_right", "hey",
+	], 8, false)
+
+	# gf has no miss art at all - she never misses - so miss_* fall back to the sing
+	# animations, which is what Funkin does when `<anim>miss` is absent.
+	_build_adobe_character("gf", Vector2(184.5, 436.0), "EVERYTHING/GF/anims/GF DANCE LEFT",
+		[
+			"dance_left", "dance_right", "sing_left", "sing_down", "sing_up", "sing_right",
+			"cheer", "sob",
+		], 6, true)
 
 
 # The two characters phone-call.script's standUP() swaps in at beat 232 - 91.6s at 152bpm,
@@ -320,6 +346,80 @@ func _build_tadano() -> void:
 	root.transition_update_queued_animations = true
 
 	_save(root, "%s/chr_tadano.tscn" % OUT_DIR)
+
+
+## An Adobe character's scene, from its already-built atlas and library. The same shape
+## _build_tadano lays out by hand - he keeps his own builder because of the idleSuffix
+## remapping and the two death forms - but driven by a table so bf, gf and whatever comes
+## next are a list of names rather than a copied function.
+##
+## `origin` is Funkin's characterOrigin: horizontal centre, vertical BOTTOM. `names` maps
+## the Rubicon animation to the clip in the library, which build_adobe_character.gd already
+## named after the character.
+func _build_adobe_character(basename: String, origin: Vector2, symbol: String,
+		names: PackedStringArray, sing_time: int, miss_falls_back: bool) -> void:
+	var clips: Dictionary = {}
+	var offsets: Dictionary = {}
+	var library: AnimationLibrary = load("%s/%s_library.tres" % [OUT_DIR, basename])
+	for anim_name: String in names:
+		var clip := StringName("%s_%s" % [basename, anim_name])
+		if not library.has_animation(clip):
+			push_error("%s has no clip %s" % [basename, clip])
+			quit(1)
+			return
+		clips[StringName(anim_name)] = clip
+		offsets[StringName(anim_name)] = Vector2.ZERO
+
+	var root := Node2D.new()
+	root.name = basename
+	root.set_script(load(CHARACTER_SCRIPT))
+
+	var sprite := AnimateSymbol.new()
+	sprite.name = "AnimateSymbol"
+	sprite.atlases = [load("%s/%s_atlas.tres" % [OUT_DIR, basename])] as Array[AnimateAtlas]
+	sprite.atlas_index = 0
+	sprite.symbol = symbol
+	sprite.centered = false
+	sprite.position = -origin
+	root.add_child(sprite)
+	sprite.owner = root
+
+	var sprite_player := AnimationPlayer.new()
+	sprite_player.name = "AnimationPlayer"
+	sprite_player.add_animation_library(&"", library)
+	sprite.add_child(sprite_player)
+	sprite_player.owner = root
+
+	# The dance is danceLeft/danceRight when the character has them and dance_idle when it
+	# does not - gf alternates, bf holds one idle - and Rubicon takes the list either way.
+	var dancing: Array[StringName] = []
+	for candidate: String in ["dance_left", "dance_right", "dance_idle"]:
+		if clips.has(StringName(candidate)):
+			dancing.append(StringName(candidate))
+	if dancing.size() > 1:
+		dancing.erase(&"dance_idle")
+
+	var root_player := AnimationPlayer.new()
+	root_player.name = "RootAnimationPlayer"
+	root_player.add_animation_library(&"", _root_library(
+		clips, offsets, ^"AnimateSymbol/AnimationPlayer", ^"AnimateSymbol:offset", library))
+	root_player.autoplay = dancing[0]
+	root.add_child(root_player)
+	root_player.owner = root
+
+	root.animation_player = root_player
+	root.animations = _sing_and_miss_map(miss_falls_back)
+	root.mania_anim_groups = _anim_groups()
+	root.dancing_animations = dancing
+	root.dancing_force_dance = false
+	root.dancing_measure_step = 0.25
+	root.singing_sing_to_dance_interval = sing_time
+	root.singing_repeat_loop_point = 2.0 / FPS
+	# gdanimate sprites need the queued animation refreshed the same frame or the first
+	# drawn frame is the previous symbol's - the export's own documentation says so.
+	root.transition_update_queued_animations = true
+
+	_save(root, "%s/chr_%s.tscn" % [OUT_DIR, basename])
 
 
 func _anim_groups() -> Dictionary:

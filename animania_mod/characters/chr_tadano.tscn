@@ -593,7 +593,7 @@ _data = {
 &"sing_up_alt": SubResource("Animation_2xbd6")
 }
 
-[node name="tadano" type="Node2D" unique_id=1938826014 node_paths=PackedStringArray("animation_player")]
+[node name="tadano" type="Node2D" unique_id=1691220061 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_vp6wq")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 6
@@ -614,16 +614,16 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=116539515]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=95376570]
 position = Vector2(-543.5, -876)
 script = ExtResource("2_gku0q")
 symbol = "chars render/tadano 1/tadano idle"
 centered = false
 atlases = Array[ExtResource("3_neua2")]([ExtResource("4_ay4va")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1309639507]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=534826231]
 libraries/ = ExtResource("5_whrgg")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=638986248]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1626599796]
 libraries/ = SubResource("AnimationLibrary_jua3b")
 autoplay = &"dance_idle"
