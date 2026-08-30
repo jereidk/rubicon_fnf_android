@@ -354,6 +354,10 @@ Three things that bit while building this:
   hardcodes 152 BPM and carries that song's script beats. Funkin measures an event's
   `duration` in STEPS (a sixteenth of a beat), not seconds, and the event's x/y are
   world-space so they are NOT scaled by the 1.5.
+- **A shake goes on the camera's OFFSET, not on its target.** `position_interpolate_offset`
+  is a separate property, so a shake and a focus move can happen at once without one eating
+  the other - which is what FlxCamera.shake does. Its `intensity` is a FRACTION of the
+  camera's size, not pixels, so it is against Funkin's 1280 and is not scaled.
 - **Two things must not drive the camera at once.** With events baked onto the clock, the
   follow-the-singer fallback writes the same two properties every frame and they fight -
   so the builder turns it off for a song whose chart has events.

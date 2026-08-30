@@ -162,6 +162,15 @@ func _init() -> void:
 			% scene.get_track_count())
 	_check(not battle.get_node("SongCamera").follows_singer,
 		"dadbattle: el seguidor sigue puesto y peleara con el chart")
+	# Four properties, not two: foco, zoom, angulo y la sacudida, que va sobre el OFFSET
+	# de la camara y no sobre su objetivo - asi una sacudida y un movimiento de foco pueden
+	# pasar a la vez sin comerse el uno al otro.
+	var aimed: Dictionary = {}
+	for i: int in scene.get_track_count():
+		aimed[String(scene.track_get_path(i)).get_slice(":", 1)] = true
+	for wanted: String in ["position_interpolate_target", "zoom_interpolate_target",
+			"rotation_interpolate_target", "position_interpolate_offset"]:
+		_check(aimed.has(wanted), "dadbattle: la camara no hornea %s" % wanted)
 	battle.queue_free()
 	await process_frame
 	tutorial.queue_free()

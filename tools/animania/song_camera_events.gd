@@ -41,9 +41,18 @@ func build(events: Array, length: float, into: Animation) -> Animation:
 
 	var focus := _track(into, ^"../RubiconInterpolatedCamera2D:position_interpolate_target")
 	var zoom := _track(into, ^"../RubiconInterpolatedCamera2D:zoom_interpolate_target")
+	var angle := _track(into, ^"../RubiconInterpolatedCamera2D:rotation_interpolate_target")
+	# A shake moves the camera OFF its target rather than moving the target, which is what
+	# FlxCamera.shake does - and it means a shake and a focus move can happen at once
+	# without one eating the other.
+	var shake := _track(into, ^"../RubiconInterpolatedCamera2D:position_interpolate_offset")
+	into.track_insert_key(shake, 0.0, Vector2.ZERO)
+	into.track_insert_key(angle, 0.0, 0.0)
 
 	var at_position: Vector2 = _focus_points.get(1, Vector2.ZERO)
 	var at_zoom: float = _base_zoom
+	var at_angle: float = 0.0
+	var shakes: int = 0
 	var wrote_focus: int = 0
 	var wrote_zoom: int = 0
 
@@ -76,6 +85,21 @@ func build(events: Array, length: float, into: Animation) -> Animation:
 				wrote_zoom += _sample(into, zoom, time, seconds,
 					Vector2.ONE * at_zoom, Vector2.ONE * to_zoom, ease_name, ease_dir)
 				at_zoom = to_zoom
+			"AngleCamera":
+				# Funkin's angle is degrees and Godot's rotation is radians. The delay is
+				# part of the event, not of the tween.
+				var to_angle: float = deg_to_rad(float(values.get("angle", 0.0)))
+				var delay: float = float(values.get("delay", 0)) * _step_seconds
+				_sample_float(into, angle, time + delay, seconds, at_angle, to_angle,
+					ease_name, ease_dir)
+				at_angle = to_angle
+			"ScreenShake":
+				# FlxCamera.shake(intensity, duration): the intensity is a FRACTION of the
+				# camera's size, not pixels, so it is against Funkin's 1280x720 - and this
+				# port keeps world coordinates verbatim, so it stays in that space.
+				var strength: float = float(values.get("gameIntensity", 0.0)) * 1280.0
+				var span: float = float(values.get("gameTime", 0.0))
+				shakes += _shake(into, shake, time, span, strength)
 			"AddCameraZoom":
 				# A punch, not a move: it adds and the camera's own lerp takes it back.
 				var punch: float = at_zoom * (1.0 + float(values.get("gameZoom", 0.0)))
@@ -83,7 +107,8 @@ func build(events: Array, length: float, into: Animation) -> Animation:
 				into.track_insert_key(zoom, time + 0.25, Vector2.ONE * at_zoom)
 				wrote_zoom += 2
 
-	print("OUT camara horneada: %d claves de foco, %d de zoom" % [wrote_focus, wrote_zoom])
+	print("OUT camara horneada: %d claves de foco, %d de zoom, %d de sacudida"
+		% [wrote_focus, wrote_zoom, shakes])
 	return into
 
 
@@ -158,3 +183,38 @@ func _directed(t: float, dir: String, curve: Callable) -> float:
 				else 1.0 - 0.5 * float(curve.call((1.0 - t) * 2.0))
 		_:
 			return curve.call(t)
+
+
+## The same sampler for a scalar track.
+func _sample_float(animation: Animation, track: int, time: float, seconds: float,
+		from: float, to: float, ease_name: String, ease_dir: String) -> void:
+	if seconds <= 0.0:
+		animation.track_insert_key(track, time, to)
+		return
+	var steps: int = maxi(2, int(ceil(seconds * SAMPLES_PER_SECOND)))
+	for i: int in steps + 1:
+		var t: float = float(i) / float(steps)
+		animation.track_insert_key(track, time + seconds * t,
+			lerpf(from, to, _ease(t, ease_name, ease_dir)))
+
+
+## A shake, baked. Flixel picks a new random offset every frame and fades it out over the
+## duration; this samples the same thing at 24 a second and lands back on zero, so a shake
+## that is interrupted by the next event does not leave the camera off its mark.
+func _shake(animation: Animation, track: int, time: float, seconds: float,
+		strength: float) -> int:
+	if seconds <= 0.0 or is_zero_approx(strength):
+		return 0
+	var rng := RandomNumberGenerator.new()
+	# Seeded off the event time so a rebuild produces the same shake, which keeps the
+	# scene diffable.
+	rng.seed = int(time * 1000.0)
+	var steps: int = maxi(2, int(ceil(seconds * SAMPLES_PER_SECOND)))
+	for i: int in steps:
+		var t: float = float(i) / float(steps)
+		var fade: float = 1.0 - t
+		animation.track_insert_key(track, time + seconds * t, Vector2(
+			rng.randf_range(-strength, strength) * fade,
+			rng.randf_range(-strength, strength) * fade))
+	animation.track_insert_key(track, time + seconds, Vector2.ZERO)
+	return steps + 1
