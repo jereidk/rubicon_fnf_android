@@ -104,6 +104,30 @@ func change_to(path: String, loading_screen: StringName, end_manually: bool = fa
 	await _current_loader.start()
 
 	get_tree().unload_current_scene()
+
+	# Y se le deja terminar ANTES de pedir la carga nueva.
+	#
+	# `unload_current_scene()` hace `queue_free`, que difiere la destruccion al
+	# final del fotograma. Pedir la carga en la linea siguiente ponia a destruir
+	# la escena vieja y a cargar la nueva a la vez, peleandose por la misma cola
+	# del servidor de render. El log del dispositivo lo mide sin ambiguedad:
+	#
+	#   saliendo de intro.tscn   (189/849 retenidos)   ->  5.3s, sin un paron
+	#   saliendo de la tienda    (459/1722 retenidos)  -> 18.4s, 11s clavado
+	#   saliendo de sng_chimera  (459/1722 retenidos)  -> 19.0s,  9s clavado
+	#
+	# Los dos parones se quedan en un numero FIJO de dependencias -196/348 y
+	# 296/459- sin avanzar ni una durante esos segundos, y se desbloquean
+	# exactamente cuando aparece el lote de modelos .gltf. La unica carga rapida
+	# es la unica que salia de una escena pequeña.
+	#
+	# Dos fotogramas y no uno: el primero corre los `queue_free` encolados, y el
+	# segundo deja que el servidor de render procese las RID que esos frees le
+	# dejaron. La pantalla de carga ya esta montada -`await _current_loader
+	# .start()` esta justo arriba- asi que el jugador no ve ninguno de los dos.
+	await get_tree().process_frame
+	await get_tree().process_frame
+
 	# Before the request, so the count is of what is cached from here on and
 	# not of whatever the outgoing scene happened to leave behind.
 	_collect_direct_deps(_watching_path)

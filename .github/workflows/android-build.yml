@@ -817,6 +817,16 @@ jobs:
           # with no error anywhere.
           guard_godot tools/test_pause_children_sleep.gd
 
+          # === Verify the outgoing scene is torn down before the new load
+          # unload_current_scene() is a queue_free, so requesting the load on
+          # the next line ran destruction and loading at once, fighting over
+          # the render server's queue. Measured: leaving intro.tscn loads in
+          # 5.3s with no stall; leaving the shop or Chimera stalls 9-11s at a
+          # fixed dependency count. Checked as an ORDER, because that is what
+          # can be asserted without a phone, and a refactor moving the request
+          # up would cost ten seconds again with no error anywhere.
+          guard_godot tools/test_teardown_before_load.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F
