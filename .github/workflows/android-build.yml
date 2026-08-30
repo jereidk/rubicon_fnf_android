@@ -1580,6 +1580,26 @@ jobs:
           # which is the failure that blacked the house out for eleven days.
           guard_godot tools/test_house_props_not_blended.gd
 
+          # === Chimera's depth range is scaled to the scene
+          # Camera3D authored no far, so it ran Godot's default 4000 over a
+          # scene whose furthest transform origin is 33.6 units out - 120x more
+          # depth range than the scene needs. Set to 200, six times the scene.
+          # Honest about what this buys: Godot 4 is reverse-Z, and with a float
+          # depth buffer the far plane barely affects precision - near is the
+          # lever. It does still matter on the 24-bit unorm depth buffers many
+          # phones give. So this is hygiene with a possible device win, not a
+          # proven fix for the reported flicker.
+          # near is deliberately left at its default. Raising it is what would
+          # actually buy precision, and it clips whatever is close to the
+          # camera; measuring how far it can go needs real camera-to-geometry
+          # distance, and an AABB probe cannot give it - the camera is INSIDE
+          # the house, so 90 of its 107 poses sit inside some mesh's AABB and
+          # the measurement comes out zero. Not touched without that number.
+          # The guard protects the premise, not the constant: if anyone puts
+          # something genuinely distant in the scene, 200 would start clipping
+          # it and this finds out before the player does.
+          guard_godot tools/test_chimera_depth_range.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
