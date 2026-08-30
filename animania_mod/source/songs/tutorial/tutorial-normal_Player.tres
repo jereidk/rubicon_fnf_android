@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RubiChart" format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart.gd" id="1_vpger"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_scroll_velocity.gd" id="2_vb2ya"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_section.gd" id="3_mtv5n"]
+
+[sub_resource type="Resource" id="Resource_xq013"]
+script = ExtResource("2_vb2ya")
+
+[resource]
+script = ExtResource("1_vpger")
+scroll_velocities = Array[ExtResource("2_vb2ya")]([SubResource("Resource_xq013")])
