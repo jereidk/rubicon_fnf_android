@@ -72,6 +72,11 @@ func _build_stand_characters() -> void:
 		# The chart's PlayAnimation at 132.2s, and the reason this character exists.
 		&"end_conv": [&"komi_stand_endkun", Vector2(-1, 2)],
 		&"game_over": [&"komi_stand_komigameover", Vector2(-1, 0)],
+		# komi-stand.json declares gameOver AND gameOver-loop, the second one
+		# `frameIndices: [6, 7, 8, 9, 10]` of the same prefix with `looped: true`. Funkin
+		# hands over to `<name>-loop` when `<name>` finishes, and death_sequence.gd already
+		# looks for it - it just was not being built, so komi froze on her last frame.
+		&"game_over_loop": [&"komi_stand_komigameover", Vector2(-1, 0), Vector2i(6, 10)],
 	}, true)
 
 	# NOT mirrored. tadano-stand's art already faces komi, who stands to his right, and this
@@ -97,11 +102,27 @@ func _build_stand_characters() -> void:
 ## the note at the top of this file. `miss_falls_back` is for a character with no miss art.
 func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
 		sing_time: int, table: Dictionary, miss_falls_back: bool) -> void:
+	var sprite_frames: SpriteFrames = load("%s/%s_frames.tres" % [OUT_DIR, basename])
+	var sprite_library: AnimationLibrary = load(
+		"%s/%s_library.tres" % [OUT_DIR, basename])
+
 	var clips: Dictionary = {}
 	var offsets: Dictionary = {}
+	var looping: Dictionary = {}
 	for anim_name: StringName in table:
-		clips[anim_name] = (table[anim_name] as Array)[0]
-		offsets[anim_name] = (table[anim_name] as Array)[1]
+		var entry: Array = table[anim_name] as Array
+		var clip: StringName = entry[0]
+		offsets[anim_name] = entry[1]
+		# A third element is a frame WINDOW of the clip, which is what a character JSON's
+		# `frameIndices` is. It becomes an animation of its own in the sprite library, and
+		# it loops - a window is only ever declared here for a `-loop`.
+		if entry.size() > 2:
+			clip = _window(sprite_frames, sprite_library, basename, clip,
+				entry[2] as Vector2i)
+			looping[anim_name] = true
+		clips[anim_name] = clip
+	if not looping.is_empty():
+		ResourceSaver.save(sprite_library, "%s/%s_library.tres" % [OUT_DIR, basename])
 
 	var root := Node2D.new()
 	root.name = basename
@@ -109,7 +130,7 @@ func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
 
 	var sprite := AnimatedSprite2D.new()
 	sprite.name = "AnimatedSprite2D"
-	sprite.sprite_frames = load("%s/%s_frames.tres" % [OUT_DIR, basename])
+	sprite.sprite_frames = sprite_frames
 	sprite.animation = &"idle"
 	sprite.centered = false
 	sprite.position = Vector2(-frame.x * 0.5, -frame.y)
@@ -121,7 +142,7 @@ func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
 
 	var sprite_player := AnimationPlayer.new()
 	sprite_player.name = "AnimationPlayer"
-	sprite_player.add_animation_library(&"", load("%s/%s_library.tres" % [OUT_DIR, basename]))
+	sprite_player.add_animation_library(&"", sprite_library)
 	sprite.add_child(sprite_player)
 	sprite_player.owner = root
 
@@ -129,7 +150,7 @@ func _build_sparrow_character(basename: String, frame: Vector2, flip: bool,
 	root_player.name = "RootAnimationPlayer"
 	root_player.add_animation_library(&"", _root_library(
 		clips, offsets, ^"AnimatedSprite2D/AnimationPlayer", ^"AnimatedSprite2D:offset",
-		load("%s/%s_library.tres" % [OUT_DIR, basename])))
+		sprite_library, looping))
 	root_player.autoplay = &"dance_idle"
 	root.add_child(root_player)
 	root_player.owner = root
@@ -318,7 +339,8 @@ func _sing_and_miss_map(miss_falls_back_to_sing: bool) -> Dictionary:
 # One root animation per entry: an animation track dispatching the clip on the child
 # player, and a value track pinning the sprite offset. Same shape as bf.tscn.
 func _root_library(clips: Dictionary, offsets: Dictionary, player_path: NodePath,
-		offset_path: NodePath, source: AnimationLibrary) -> AnimationLibrary:
+		offset_path: NodePath, source: AnimationLibrary,
+		looping: Dictionary = {}) -> AnimationLibrary:
 	var library := AnimationLibrary.new()
 	var reset := Animation.new()
 	reset.length = 0.001
@@ -339,6 +361,10 @@ func _root_library(clips: Dictionary, offsets: Dictionary, player_path: NodePath
 		var animation := Animation.new()
 		animation.length = clip_animation.length
 		animation.step = clip_animation.step
+		# The root animation has to loop too, or the root player stops after one pass and
+		# takes the sprite player's clip back to its start with it.
+		if looping.has(anim_name):
+			animation.loop_mode = Animation.LOOP_LINEAR
 
 		var clip_track: int = animation.add_track(Animation.TYPE_ANIMATION)
 		animation.track_set_path(clip_track, player_path)
@@ -354,6 +380,44 @@ func _root_library(clips: Dictionary, offsets: Dictionary, player_path: NodePath
 
 	library.add_animation(&"RESET", reset)
 	return library
+
+
+## One animation over a WINDOW of another clip's frames, looping - a character JSON's
+## `frameIndices` with `looped: true`. Added to the sprite library beside the clip it cuts
+## from, so the sprite player and the root library both see it.
+func _window(frames: SpriteFrames, library: AnimationLibrary, basename: String,
+		clip: StringName, window: Vector2i) -> StringName:
+	var name := StringName("%s_loop" % clip)
+	if library.has_animation(name):
+		return name
+
+	var source: Animation = library.get_animation(clip)
+	var sprite_clip: String = String(clip).trim_prefix("%s_" % basename)
+	var animation := Animation.new()
+	animation.step = source.step
+	animation.loop_mode = Animation.LOOP_LINEAR
+
+	var name_track: int = animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(name_track, ^".:animation")
+	animation.value_track_set_update_mode(name_track, Animation.UPDATE_DISCRETE)
+	animation.track_set_interpolation_type(name_track, Animation.INTERPOLATION_NEAREST)
+	animation.track_insert_key(name_track, 0.0, sprite_clip)
+
+	var frame_track: int = animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(frame_track, ^".:frame")
+	animation.value_track_set_update_mode(frame_track, Animation.UPDATE_DISCRETE)
+	animation.track_set_interpolation_type(frame_track, Animation.INTERPOLATION_NEAREST)
+
+	var elapsed: float = 0.0
+	var last: int = mini(window.y, frames.get_frame_count(sprite_clip) - 1)
+	for i: int in range(window.x, last + 1):
+		animation.track_insert_key(frame_track, elapsed * animation.step, i)
+		elapsed += frames.get_frame_duration(sprite_clip, i)
+	animation.length = maxf(elapsed * animation.step, animation.step)
+
+	library.add_animation(name, animation)
+	print("OUT %s cuadros %d..%d, %.3fs" % [name, window.x, last, animation.length])
+	return name
 
 
 func _save(root: Node, path: String) -> void:

@@ -1313,6 +1313,15 @@ func _check_death() -> void:
 			var opponent: Node2D = level.find_child("KomiStand", true, false)
 			_check(opponent.animation_player.current_animation == &"game_over",
 				"de pie: komi tendria que estar en game_over")
+			# komi-stand.json declares gameOver-loop as frames 6..10 of the same prefix,
+			# looped, and Funkin hands over to it when gameOver ends. Without it built she
+			# froze on her last frame.
+			_check(opponent.animation_player.has_animation(&"game_over_loop"),
+				"de pie: a komi le falta game_over_loop")
+			var komi_loop: Animation = opponent.animation_player.get_animation(
+				&"game_over_loop")
+			_check(komi_loop.loop_mode == Animation.LOOP_LINEAR,
+				"de pie: game_over_loop de komi no hace bucle")
 
 		# The lane hitboxes are not part of the HUD the death sends away, and while they
 		# are up they eat the tap that retries - so the death hides them.

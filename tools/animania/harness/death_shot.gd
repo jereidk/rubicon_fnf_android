@@ -85,9 +85,13 @@ func _process(delta: float) -> void:
 
 	var retry: AnimationPlayer = _level.find_child(
 		"RetryText", true, false).get_node("AnimationPlayer")
-	print("OUT %-9s oscuro=%.2f  retry=%-6s  panel=%s -> %s" % [
+	# komi's gameOver hands over to gameOver-loop, and by now it should have: this shot is
+	# seconds after the death, and gameOver itself is under a second long.
+	var komi: Node2D = _level.find_child("KomiStand" if _standing else "Komi", true, false)
+	print("OUT %-9s oscuro=%.2f  retry=%-6s  panel=%-5s  komi=%s -> %s" % [
 		name, _level.get_node("Death/Dark").color.a, retry.current_animation,
 		_level.get_node("Death/LeftPanel").visible,
+		komi.animation_player.current_animation,
 		ProjectSettings.globalize_path("user://death_%s.png" % name)])
 
 	if not _standing:
