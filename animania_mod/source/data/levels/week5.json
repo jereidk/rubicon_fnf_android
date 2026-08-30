@@ -1,0 +1,77 @@
+{
+	"version": "1.0.0",
+	"name": "RED SNOW",
+	"titleAsset": "storymenu/titles/week5",
+	"props": [
+		{
+			"assetPath": "storymenu/props/amtake/week5/PARENTS_MENU",
+			"scale": 0.43,
+			"offsets": [-225, -190],
+			"animations": [
+				{
+					"name": "idle",
+					"prefix": "parents idle",
+					"frameRate": 24
+				},
+				{
+					"name": "idle-loop",
+					"prefix": "parents idle",
+					"frameIndices": [10, 11, 12, 13],
+					"frameRate": 24
+				},
+				{
+					"name": "confirm",
+					"offsets": [0, 15],
+					"prefix": "parents confirm"
+				}
+			]
+		},
+		{
+			"assetPath": "storymenu/props/amtake/week5/X-MAS_BF_MENU",
+			"scale": 0.75,
+			"offsets": [125, -2],
+			"animations": [
+				{
+					"name": "idle",
+					"prefix": "bf idle",
+					"frameRate": 24
+				},
+				{
+					"name": "confirm",
+					"prefix": "bf confirm",
+					"offsets": [-20, 12],
+					"frameRate": 24
+				}
+			]
+		},
+		{
+			"assetPath": "storymenu/props/amtake/week5/X-MAS_GF_MENU",
+			"scale": 0.55,
+			"offsets": [100, -70],
+			"animations": [
+				{
+					"name": "danceLeft",
+					"prefix": "gf idle",
+					"frameIndices": [
+						30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+					]
+				},
+				{
+					"name": "danceRight",
+					"prefix": "gf idle",
+					"frameIndices": [
+						15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+						29
+					]
+				},
+				{
+					"name": "confirm",
+					"prefix": "gf confirm",
+					"offsets": [8, 3]
+				}
+			]
+		}
+	],
+	"background": "#99CCFF",
+	"songs": ["cocoa", "eggnog", "winter-horrorland"]
+}

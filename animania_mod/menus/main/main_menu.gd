@@ -24,6 +24,7 @@ const BLOCKED: PackedStringArray = ["shop", "website", "awards"]
 ## here yet; a button that leads nowhere is left selectable and does nothing, because
 ## hiding it would change a layout that is measured.
 const DESTINATIONS := {
+	"storymode": "res://animania_mod/menus/story/story_menu.tscn",
 	"freeplay": "res://animania_mod/menus/freeplay/freeplay_screen.tscn",
 }
 

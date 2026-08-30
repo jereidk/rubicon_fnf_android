@@ -9,6 +9,7 @@ extends SceneTree
 
 const TITLE := "res://animania_mod/menus/title/title_screen.tscn"
 const MENU := "res://animania_mod/menus/main/main_menu.tscn"
+const STORY := "res://animania_mod/menus/story/story_menu.tscn"
 const FREEPLAY := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const SONG := "res://songs/phone-call/phone_call.tscn"
 
@@ -87,6 +88,38 @@ func _init() -> void:
 		"tocar el centro de freeplay tendria que dar con freeplay")
 	_check(menu._button_at(Vector2(100.0, 540.0)) == -1,
 		"el fondo del menu no es un boton")
+
+	# Story mode is a screen now, and it is built from the mod's own level JSONs: three
+	# weeks are offered and KomiCantCommunicate is not, because its file says
+	# `visible: false`. The port can only play that hidden one, so every week it DOES list
+	# is one whose songs are not built - and it says so rather than pretending.
+	var story: PackedScene = load(STORY)
+	var story_menu: Node = story.instantiate()
+	root.add_child(story_menu)
+	await process_frame
+	_check(story_menu.week_count() == 3,
+		"story tendria que ofrecer 3 semanas y ofrece %d" % story_menu.week_count())
+	var first: Node2D = story_menu.titles.get_child(0)
+	_check(story_menu.week_at(first.position) == 0,
+		"tocar el titulo tendria que dar con la semana")
+	# Only meaningful while no listed week is playable, which is the state today - and it
+	# checks that first, because confirming a week that IS built would change the scene out
+	# from under the rest of this walk.
+	var playable: bool = false
+	for i: int in story_menu.week_count():
+		for song: String in (story_menu.titles.get_child(i).get_meta(&"songs")
+				as PackedStringArray):
+			if ResourceLoader.exists(String(story_menu.SONG_SCENES.get(song, ""))):
+				playable = true
+	_check(not playable,
+		"alguna semana de story ya es jugable: esta comprobacion hay que rehacerla")
+	if not playable:
+		story_menu.confirm()
+		await process_frame
+		_check(current_scene == menu,
+			"una semana sin canciones construidas no tendria que entrar en nada")
+	story_menu.queue_free()
+	await process_frame
 
 	# The walk skips the three blocked buttons rather than stopping on them.
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",

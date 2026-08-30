@@ -251,7 +251,10 @@ The phone-call pipeline is bespoke, so this is the shape rather than a script:
   environment proxy. This repo has no LFS, so it does not bite; do not try to work around it.
 - **Never delete an asset because it looks orphaned.** The repo has been broken by that at
   least three times.
-- **`pkill -f <pattern>` can match and kill your own shell.** Kill by PID.
+- **`pkill -f <pattern>` can match and kill your own shell** — and so can
+  `ps | grep <pattern> | kill`, because the running command's own line contains the pattern.
+  A restore that follows the kill in the same chain then never happens, and the working tree
+  is left mid-experiment. Kill by a PID you have already printed, in its own call.
 - The harness **blocks chained `sleep N; cmd`**. Use `python3 -c "import time;time.sleep(N)"`
   alone, or run in the background.
 - **Artifact downloads are blocked.** Builds are triggered with

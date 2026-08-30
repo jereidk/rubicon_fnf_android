@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://animania_mod/menus/story/story_menu.gd" id="1_rl4b5"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/titles/tutorial.png" id="2_348ss"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/titles/week1.png" id="3_txksi"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/titles/week5.png" id="4_3hsvb"]
+
+[node name="StoryMenu" type="Node2D" unique_id=1132945735 node_paths=PackedStringArray("titles", "sfx")]
+script = ExtResource("1_rl4b5")
+titles = NodePath("Titles")
+sfx = NodePath("Sfx")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=594898598]
+position = Vector2(960, 540)
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1394752555]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.06, 0.05, 0.1, 1)
+
+[node name="Titles" type="Node2D" parent="." unique_id=775761117]
+
+[node name="Tutorial" type="Sprite2D" parent="Titles" unique_id=295740126]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_348ss")
+metadata/hitbox = Rect2(-332.25, -61.5, 664.5, 123)
+metadata/name = "BASIC RHYTHM"
+metadata/songs = PackedStringArray("tutorial")
+
+[node name="Week1" type="Sprite2D" parent="Titles" unique_id=1090512272]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("3_txksi")
+metadata/hitbox = Rect2(-269.25, -66.75, 538.5, 133.5)
+metadata/name = "DADDY DEAREST"
+metadata/songs = PackedStringArray("bopeebo", "fresh", "dadbattle")
+
+[node name="Week5" type="Sprite2D" parent="Titles" unique_id=1287582955]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("4_3hsvb")
+metadata/hitbox = Rect2(-273, -68.25, 546, 136.5)
+metadata/name = "RED SNOW"
+metadata/songs = PackedStringArray("cocoa", "eggnog", "winter-horrorland")
+
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1272640268]

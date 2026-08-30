@@ -1,0 +1,44 @@
+{
+	"version": "1.0.0",
+	"name": "BASIC RHYTHM",
+	"titleAsset": "storymenu/titles/tutorial",
+	"props": [
+		{
+			"assetPath": "storymenu/props/amtake/week1/GF_STANDART_MENU",
+			"scale": 0.55,
+			"offsets": [-120, -100],
+			"animations": [
+				{
+					"name": "danceLeft",
+					"prefix": "gf idle",
+					"frameIndices": [
+						30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+					]
+				},
+				{
+					"name": "danceRight",
+					"prefix": "gf idle",
+					"frameIndices": [
+						15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+						29
+					]
+				}
+			]
+		},
+		{
+			"assetPath": "storymenu/props/amtake/week1/BF_STANDART_MENU",
+			"scale": 0.75,
+			"offsets": [145, 120],
+			"animations": [
+				{
+					"name": "idle",
+					"prefix": "bf idle",
+					"frameRate": 24
+				}
+			]
+		}
+	],
+	"background": "#CC99FF",
+	"forceFreeplayVisible": true,
+	"songs": ["tutorial"]
+}
