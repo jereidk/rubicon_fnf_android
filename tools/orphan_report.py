@@ -10,13 +10,28 @@ towards "still referenced" is that a false orphan here means deleting art that
 some scene loads by name at runtime, and that failure only shows up when a
 player reaches that scene.
 
-Reachability is measured three ways at once, and a file survives if ANY of
+AND UNREACHED IS NOT THE SAME AS UNUSED. This tool answers "can anything load
+this?" - it does not and cannot answer "should this exist?". The case that
+proved it: the art behind Safety Lullaby's intro and Chimera's prelude comes out
+of here as unreachable, correctly, because all four quality presets ask for the
+pre-rendered video and nothing draws the live scene any more. Deleting it on
+that basis was still wrong, and CI caught it - test_cutscene_assets_kept.gd
+holds the reason. That art is the only master the .ogv can ever be re-rendered
+from: render_cutscene.gd films the live scene by turning prefer_cutscene_video
+off, so with no live scene there is nothing to film, and the cutscene is frozen
+at whatever was last encoded. The .ogv is output, not a negative.
+
+So before deleting anything this lists, read test_cutscene_assets_kept.gd, and
+ask what the file is the SOURCE of - not just who loads it.
+
+Reachability is measured several ways at once, and a file survives if ANY of
 them holds:
 
   * transitive walk. From every .tscn and .tres that is not itself inside an
     assets folder, follow every ext_resource path (and every uid, resolved
     through the project's uid map) as far as it goes. This is what proves that
-    an atlas .tres nobody loads any more does not keep its sheets alive.
+    an atlas .tres nobody loads any more does not keep its sheets alive. The
+    walk goes THROUGH binary .res/.scn too, decoding them - see below.
   * literal mention. Any res:// path spelled out in a .gd, .cfg or .json. Code
     that builds a path with load("res://.../%s.png" % name) is caught by the
     prefix check below instead.
@@ -25,6 +40,14 @@ them holds:
   * folder of a model. A .gltf names its textures by bare filename inside its
     own JSON, never as a res:// path, so anything sharing a directory with a
     reachable model counts as reachable too.
+  * Adobe Animate atlases. spritemap1.png is named by spritemap1.json beside an
+    Animation.json, never by a res:// path.
+  * binary resources. A .res is not text and this project's are `RSCC` -
+    zstd-compressed - so neither grep nor `strings` gets anything out of one.
+    Stopping there was the most expensive blind spot this report had: the mod's
+    .res files resolve BY PATH, and those paths point at res://assets/, the PC
+    pck's root. Without decoding them, 86 of the 89 MB under assets/ came out as
+    unreachable when they are exactly what the game loads.
 
 Every one of those rules was added because the report was WRONG without it,
 and each time the error pointed the same way - towards calling live art dead.
@@ -37,14 +60,18 @@ Usage:
     python3 tools/orphan_report.py <dir> [<dir>]  # only under these
 """
 
-import json
 import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TEXT_RES = (".tscn", ".tres")
+## Los binarios de Godot. Se atraviesan igual que los de texto, decodificandolos
+## - ver read_binary_res.py y la nota de `descend` mas abajo.
+BIN_RES = (".res", ".scn")
 # Sin .import: cada .png trae uno que nombra su propio source_file, asi que
 # incluirlos hacia que TODA imagen se declarase a si misma como usada y el
 # informe saliera en cero. Un .import no es nadie que alcance nada.
@@ -55,6 +82,12 @@ LEAF = (".png", ".jpg", ".jpeg", ".webp", ".ogg", ".mp3", ".wav", ".ogv",
 
 SKIP_DIRS = {".git", ".godot", "reference", "tools", "precompiled_astc_imports",
              "precompiled_texture_imports", "precompiled_lightmap_imports"}
+
+
+def binary_payload(path):
+    """El contenido de un .res/.scn, descomprimido si es `RSCC`."""
+    from read_binary_res import payload
+    return payload(path)
 
 
 def walk_files():
@@ -69,7 +102,19 @@ def rel(p):
 
 
 def main():
-    only = [a.rstrip("/") for a in sys.argv[1:]]
+    args = sys.argv[1:]
+    # Con `--con-recursos` tambien se listan los .tres y .tscn que nadie alcanza,
+    # ni los .res, .json y .xml que los acompañan. Hace falta para vaciar una
+    # carpeta entera: un SpriteFrames
+    # huerfano sigue "referenciando" sus PNG, asi que si se borran las imagenes y
+    # se deja el .tres, lo que queda es un recurso roto en vez de una carpeta
+    # limpia. Fuera de ese caso estorba, porque casi todo .tres vive colgado de
+    # una escena y la lista se llena de ruido.
+    global LEAF
+    if "--con-recursos" in args:
+        args.remove("--con-recursos")
+        LEAF = LEAF + (".tres", ".tscn", ".res", ".scn", ".json", ".xml")
+    only = [a.rstrip("/") for a in args]
 
     all_files = list(walk_files())
     on_disk = {rel(p): p for p in all_files}
@@ -112,10 +157,31 @@ def main():
             continue
         reached.add(cur)
         p = on_disk.get(cur)
-        if p is None or os.path.splitext(cur)[1].lower() not in TEXT_RES:
+        if p is None:
             continue
-        text = open(p, encoding="utf-8", errors="replace").read()
-        for tok in re.findall(r'"((?:res|uid)://[^"]+)"', text):
+        ext = os.path.splitext(cur)[1].lower()
+        if ext in TEXT_RES:
+            text = open(p, encoding="utf-8", errors="replace").read()
+            found = re.findall(r'"((?:res|uid)://[^"]+)"', text)
+        elif ext in BIN_RES:
+            # Un .res es un recurso BINARIO, y los de este proyecto son `RSCC`
+            # -comprimidos con zstd- asi que ni un grep ni `strings` sacan nada
+            # de ellos. Pararse aqui era el punto ciego mas caro del informe: los
+            # .res del mod resuelven POR RUTA -no guardan uid, se comprobo
+            # decodificando el uid de las texturas y buscandolo en el binario- y
+            # esas rutas apuntan a res://assets/, la raiz del pck de PC. Sin
+            # leerlos, 86 de los 89 MB de assets/ salian como inalcanzables
+            # cuando en realidad son justo lo que el juego carga.
+            try:
+                found = [m.decode("ascii", "replace")
+                         for m in re.findall(rb'(?:res|uid)://[\x20-\x7e]+',
+                                             binary_payload(p))]
+            except Exception as e:
+                print("  aviso: no se pudo leer %s (%s)" % (cur, e), file=sys.stderr)
+                found = []
+        else:
+            continue
+        for tok in found:
             nxt = resolve(tok)
             if nxt and nxt not in reached:
                 stack.append(nxt)
@@ -164,12 +230,30 @@ def main():
         if r in reached or r in named:
             model_dirs.add(r.rsplit("/", 1)[0] + "/")
 
+    # --- 5. los atlas de Adobe Animate.
+    #
+    # `spritemap1.png` lo nombra `spritemap1.json`, que a su vez cuelga de un
+    # `Animation.json` en la misma carpeta, y ninguno de los dos escribe una ruta
+    # res://. Sin esto el informe acusaba de muertos a los 3.67 MB de
+    # `characters/hypno_world` y a los 2.66 MB de `characters/gf`, que son la
+    # animacion de hipnosis de GF: arte muy vivo.
+    def animate_atlas(r):
+        base = r.rsplit("/", 1)
+        if len(base) != 2:
+            return False
+        folder, name = base
+        stem = name.rsplit(".", 1)[0]
+        return (folder + "/" + stem + ".json") in on_disk \
+            and (folder + "/Animation.json") in on_disk
+
     def code_reaches(r):
         if r in named:
             return True
         if any(r.startswith(d) for d in named_dirs):
             return True
-        return any(r.startswith(d) for d in model_dirs)
+        if any(r.startswith(d) for d in model_dirs):
+            return True
+        return animate_atlas(r)
 
     # --- el veredicto, solo sobre hojas de arte.
     rows = []
@@ -190,6 +274,8 @@ def main():
         print("%10.2f MB  %s" % (size / 1048576.0, r))
     print("\n%d ficheros sin nadie que los alcance, %.1f MB"
           % (len(rows), total / 1048576.0))
+    print("NO es una lista para borrar: inalcanzable no es lo mismo que sin usar.")
+    print("Antes de tocar nada, lee tools/test_cutscene_assets_kept.gd.")
 
 
 if __name__ == "__main__":
