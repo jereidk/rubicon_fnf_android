@@ -133,9 +133,56 @@ func _initialize() -> void:
 	_check(sink.stamps.has(2),
 		"y los de al lado siguen midiendo")
 
+	_hidden_checks(script)
+
 	scene.free()
 	sink.free()
 	_finish()
+
+
+## El recuento de nodos ocultos que procesan, que es la cifra accionable.
+##
+## Se comprueba porque es la unica de la linea que ya viene con una accion
+## implicita -"esto corre sin dibujarse, quitalo"- y un recuento equivocado
+## mandaria a perseguir fantasmas. Peepers fueron 256 callbacks ocultos y nadie
+## los vio hasta que un contador de shaders lo delato.
+##
+## El logger se instancia SIN meterlo en el arbol: asi no corre su `_ready` ni
+## su `_process`, que es lo que colgo la primera version de esta prueba.
+func _hidden_checks(script: GDScript) -> void:
+	var log_node: Node = script.new()
+
+	var raiz := Node2D.new()
+	root.add_child(raiz)
+
+	# Dos visibles que procesan, uno oculto que procesa, y uno oculto que no.
+	for i: int in 2:
+		var v := Node2D.new()
+		v.set_process(true)
+		raiz.add_child(v)
+
+	var escondido := Node2D.new()
+	escondido.visible = false
+	raiz.add_child(escondido)
+	var dentro := Node2D.new()
+	dentro.set_process(true)
+	escondido.add_child(dentro)
+
+	var quieto := Node2D.new()
+	quieto.visible = false
+	quieto.set_process(false)
+	raiz.add_child(quieto)
+
+	var counts: Array = log_node.call("_count_processing", raiz)
+	_check(int(counts[0]) == 3,
+		"cuenta los 3 nodos que procesan, no los 5 que hay (%d)" % counts[0])
+	# El hijo de un padre invisible cuenta como oculto aunque su propio
+	# `visible` sea true: lo que decide es is_visible_in_tree().
+	_check(int(counts[1]) == 1,
+		"y 1 de ellos esta oculto, por el padre y no por si mismo (%d)" % counts[1])
+
+	raiz.free()
+	log_node.free()
 
 
 func _finish() -> void:

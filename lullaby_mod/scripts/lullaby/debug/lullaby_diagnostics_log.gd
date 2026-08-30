@@ -586,6 +586,30 @@ var _probe_at: PackedInt64Array = []
 ## El reparto por region del fotograma que gano el record, en microsegundos.
 var _peak_regions: PackedInt64Array = []
 
+## Lo mismo acumulado sobre todos los fotogramas del intervalo, para poder
+## distinguir un pico de un coste constante.
+##
+## El pico solo dice cual fue el peor fotograma. Una region que cuesta 2ms en
+## TODOS es peor que una que cuesta 14ms en uno de cada sesenta, y mirando solo
+## `script_max` las dos se ven igual de mal - que es exactamente el error que ya
+## se cometio con las sub-medidas que eran tasas.
+var _probe_acc: PackedInt64Array = []
+var _probe_frames: int = 0
+
+## Cuantos nodos con `_process` vive cada region, y cuantos de ellos estan
+## invisibles.
+##
+## Esto es lo que convierte el reparto en algo accionable. "Sequences=14.20" te
+## dice donde mirar; "Sequences=14.20 (48 proc, 31 ocultos)" te dice QUE hacer,
+## porque un nodo que corre GDScript cada fotograma sin dibujarse no esta
+## costando poco, esta costando de balde.
+##
+## No es hipotetico en este proyecto: Peepers eran 256 callbacks de `_process`
+## disparandose ocultos y hizo falta un contador de shaders para verlo. Un
+## recuento lo habria dicho directamente.
+var _probe_procn: PackedInt32Array = []
+var _probe_hidden: PackedInt32Array = []
+
 
 func _stamp_probe(slot: int, now_usec: int) -> void:
 	if slot >= 0 and slot < _probe_at.size():
@@ -600,13 +624,18 @@ func _stamp_probe(slot: int, now_usec: int) -> void:
 func _install_probes(scene: Node) -> void:
 	_probe_names.clear()
 	_probe_at.clear()
+	_probe_acc.clear()
+	_probe_procn.clear()
+	_probe_hidden.clear()
+	_probe_frames = 0
 	if scene == null:
 		return
 
 	for child: Node in scene.get_children():
 		if child is _ScriptProbe:
 			continue
-		if not _has_processing(child):
+		var counts: Array[int] = _count_processing(child)
+		if counts[0] == 0:
 			continue
 		var probe := _ScriptProbe.new()
 		probe.name = "DiagProbe_%s" % child.name
@@ -614,40 +643,91 @@ func _install_probes(scene: Node) -> void:
 		probe.slot = _probe_names.size()
 		_probe_names.append(child.name)
 		_probe_at.append(-1)
+		_probe_acc.append(0)
+		_probe_procn.append(counts[0])
+		_probe_hidden.append(counts[1])
 		child.add_child(probe)
 
 
-## Si algo de este subarbol puede correr GDScript por fotograma.
-func _has_processing(node: Node) -> bool:
+## [cuantos corren GDScript por fotograma, cuantos de esos estan invisibles].
+##
+## "Invisible" es `is_visible_in_tree()` en falso, que es lo que de verdad
+## importa: un nodo puede tener `visible = true` y estar dentro de un padre
+## apagado. Lo que no se cuenta como oculto es un Node pelado sin
+## representacion visual - un controlador o un modulo no dibuja nada por
+## definicion y llamarlo desperdicio seria ruido.
+func _count_processing(node: Node) -> Array[int]:
+	var total: int = 0
+	var hidden: int = 0
 	var stack: Array[Node] = [node]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
 		if n.is_processing() or n.is_physics_processing():
-			return true
+			total += 1
+			var ci := n as CanvasItem
+			var n3 := n as Node3D
+			if (ci != null and not ci.is_visible_in_tree()) \
+					or (n3 != null and not n3.is_visible_in_tree()):
+				hidden += 1
 		for c: Node in n.get_children():
 			stack.append(c)
-	return false
+	return [total, hidden]
 
 
 ## El reparto del fotograma pico, listo para escribir.
+## Se ordena por el MEDIO, no por el pico.
+##
+## Lo que se quiere optimizar es lo que cuesta siempre, no lo que costo una vez:
+## una region a 2ms constantes se lleva 120ms por segundo y una que hace 14ms
+## una vez de cada sesenta se lleva 14. Rankeadas por pico, la segunda sale
+## primera y manda a optimizar lo que no toca.
+##
+## `oculto=` es la unica cifra de esta linea que ya viene con una accion
+## implicita: nodos corriendo GDScript por fotograma sin dibujarse. No siempre
+## es un fallo -un controlador invisible sigue siendo legitimo- pero es el
+## primer sitio donde mirar.
 func _regions_text() -> String:
-	if _peak_regions.is_empty():
+	if _probe_names.is_empty():
 		return "-"
 	var rows: Array = []
-	for i: int in _peak_regions.size():
-		rows.append([_peak_regions[i], _probe_names[i] if i < _probe_names.size() else "?"])
+	for i: int in _probe_names.size():
+		var avg: float = 0.0
+		if _probe_frames > 0 and i < _probe_acc.size():
+			avg = float(_probe_acc[i]) / float(_probe_frames)
+		var peak: int = _peak_regions[i] if i < _peak_regions.size() else 0
+		rows.append([avg, peak, _probe_names[i], _probe_procn[i], _probe_hidden[i]])
 	rows.sort_custom(func(a, b): return a[0] > b[0])
+
 	var out: PackedStringArray = []
 	for row: Array in rows.slice(0, 6):
-		if row[0] < 0:
-			out.append("%s=-" % row[1])
-		elif row[0] >= 100:
-			out.append("%s=%.2f" % [row[1], row[0] / 1000.0])
+		if float(row[0]) < 100.0 and int(row[1]) < 100:
+			continue
+		var hid: String = ""
+		if int(row[4]) > 0:
+			hid = " %d/%d ocultos" % [row[4], row[3]]
+		elif int(row[3]) > 0:
+			hid = " %d proc" % row[3]
+		out.append("%s=%.2f/%.2f%s" % [
+			row[2], float(row[0]) / 1000.0, float(row[1]) / 1000.0, hid])
 	return " ".join(out) if not out.is_empty() else "(todo <0.1ms)"
 
 
 func _close_script_bracket(now_usec: int) -> void:
 	_script_usec = now_usec - _script_begin_usec
+
+	# El acumulado va ANTES del filtro del record: el pico se queda con un
+	# fotograma de cada muchos, y una region que cuesta poco pero siempre no
+	# aparece nunca en el. Las dos cifras dicen cosas distintas y hacen falta
+	# las dos.
+	if not _probe_acc.is_empty():
+		_probe_frames += 1
+		var walk: int = _script_begin_usec
+		for i: int in _probe_at.size():
+			var mark: int = _probe_at[i]
+			if mark < 0:
+				continue
+			_probe_acc[i] += maxi(0, mark - walk)
+			walk = mark
 
 	# The record is kept on the frame minus this node's own share, not on the
 	# frame. self= exists because rest= was the largest number in this log and
@@ -2043,9 +2123,13 @@ func _collect_blackout_watch() -> void:
 	# DESPUES del recuento, no antes: una sonda define `_process`, asi que Godot
 	# le enciende el procesado sola y se contaria a si misma en _process_nodes.
 	_install_probes(scene)
+	var reparto: PackedStringArray = []
+	for i: int in _probe_names.size():
+		reparto.append("%s(%d proc, %d ocultos)"
+			% [_probe_names[i], _probe_procn[i], _probe_hidden[i]])
 	_entry("PROBES", "%d regiones instaladas en %s: %s" % [
 		_probe_names.size(), _current_scene_name(),
-		", ".join(_probe_names) if not _probe_names.is_empty() else "ninguna"])
+		", ".join(reparto) if not reparto.is_empty() else "ninguna"])
 
 ## Times the same shot three ways and writes GPUSPLIT.
 ##
@@ -4190,12 +4274,20 @@ func _entry(kind: String, detail: String) -> void:
 	# avisos, cambios de escena- y colgar esto de todas ellas duplicaria el log
 	# para repetir el mismo reparto.
 	if kind.begins_with("CENSUS") and not _probe_names.is_empty():
-		_file.store_line("[%9.2fs] %-10s script_max=%.2fms rest=%.2fms | %s" % [
-			seconds, "REGIONS",
+		# medio/pico en milisegundos, ordenado por el medio. El pico es el
+		# fotograma que gano el record de script_max; el medio cubre los %d
+		# fotogramas desde la linea anterior.
+		_file.store_line("[%9.2fs] %-10s n=%d script_max=%.2fms rest=%.2fms | %s" % [
+			seconds, "REGIONS", _probe_frames,
 			float(_script_peak_usec) / 1000.0,
 			float(maxi(0, _script_peak_usec - _peak_note_usec - _peak_lane_usec
 				- _peak_bounds_usec - _peak_pump_usec - _peak_char_usec)) / 1000.0,
 			_regions_text()])
+		# Igual que churn= y anim2d=: cada linea cubre el intervalo desde la
+		# anterior, no desde que arranco la sesion.
+		for i: int in _probe_acc.size():
+			_probe_acc[i] = 0
+		_probe_frames = 0
 	# Counts, not rates, and cleared here so each line covers the interval
 	# since the previous one - same contract as churn= and anim2d=. idle= is
 	# deliberately not cleared: it is a timestamp, not a tally.
