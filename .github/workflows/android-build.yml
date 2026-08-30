@@ -781,6 +781,15 @@ jobs:
           # itself, so this one is measured against real burns.
           guard_godot tools/test_script_regions.gd
 
+          # === Verify a muted effect rect does not come back on its own
+          # The setting strips the shader and hides the rect, but hiding once
+          # only holds for a node nothing animates. Chimera's UILayer/NTSC is
+          # authored visible=false and four animation tracks switch it on
+          # mid-song, so with sha_fx=off it drew a materialless transparent
+          # ColorRect over the whole screen - measured in the device log at
+          # over=5.1x with NTSC and Rain both at alpha 0.
+          guard_godot tools/test_effect_rect_stays_muted.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F
