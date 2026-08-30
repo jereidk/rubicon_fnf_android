@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="spotlight.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="spotlight0000" x="1" y="1" width="287" height="234"/>
+	<SubTexture name="spotlight off0000" x="289" y="1" width="287" height="234"/>
+	<SubTexture name="spotlight ray0000" x="1" y="236" width="618" height="1454"/>
+	<SubTexture name="spotlight ring0000" x="620" y="236" width="81" height="36"/>
+</TextureAtlas>

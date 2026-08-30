@@ -1,0 +1,54 @@
+{
+	"version": "2.2.3",
+	"songName": "Bopeebo",
+	"artist": "BruhLeebert",
+	"charter": "PurSk",
+	"divisions": 96,
+	"diskName": "bopeebo",
+	"diskOffsets": [0, 0],
+	"freeplayLayer": "dad",
+	"looped": false,
+	"offsets": {
+		"instrumental": 0,
+		"altInstrumentals": {},
+		"vocals": {}
+	},
+	"playerSkin": "bf-standart",
+	"girlfriendSkin": "gf-standart",
+	"weekName": "WEEK1",
+	"playData": {
+		"songVariations": [],
+		"difficulties": ["easy", "normal", "hard"],
+
+		"characters": {
+			"player": "bf",
+			"girlfriend": "gf",
+			"opponent": "dad",
+			"instrumental": "",
+			"altInstrumentals": [],
+			"playerVocal": "bf"
+		},
+		"stage": "mainStageAmTake",
+		"noteStyle": "amtake-base",
+		"ratings": {
+			"easy": 5,
+			"normal": 7,
+			"hard": 9
+		},
+		"album": "expansionMini",
+		"previewStart": 0,
+		"previewEnd": 0
+	},
+	"generatedBy": "Friday Night Funkin': Grafex - v0.4.0G",
+	"timeFormat": "ms",
+	"timeChanges": [
+		{
+			"t": 0,
+			"b": 0,
+			"bpm": 110,
+			"n": 4,
+			"d": 4,
+			"bt": [4, 4, 4, 4]
+		}
+	]
+}

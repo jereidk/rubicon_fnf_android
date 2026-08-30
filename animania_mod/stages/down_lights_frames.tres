@@ -1,0 +1,58 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/down lights.png" id="1_ofg8w"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tyaqs"]
+atlas = ExtResource("1_ofg8w")
+region = Rect2(1, 1, 2892, 861)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ah3sh"]
+atlas = ExtResource("1_ofg8w")
+region = Rect2(1, 863, 2273, 291)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4blb7"]
+atlas = ExtResource("1_ofg8w")
+region = Rect2(1, 1155, 2273, 291)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_244m3"]
+atlas = ExtResource("1_ofg8w")
+region = Rect2(1, 1447, 2169, 180)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tyaqs")
+}],
+"loop": 1,
+"name": &"down light",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ah3sh")
+}],
+"loop": 1,
+"name": &"floor light",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4blb7")
+}],
+"loop": 1,
+"name": &"floor light off",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_244m3")
+}],
+"loop": 1,
+"name": &"light rings floor",
+"speed": 24.0
+}]

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="down lights.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="down light0000" x="1" y="1" width="2892" height="861"/>
+	<SubTexture name="floor light0000" x="1" y="863" width="2273" height="291"/>
+	<SubTexture name="floor light off0000" x="1" y="1155" width="2273" height="291"/>
+	<SubTexture name="light rings floor0000" x="1" y="1447" width="2169" height="180"/>
+</TextureAtlas>

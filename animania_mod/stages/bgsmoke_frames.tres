@@ -1,0 +1,119 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/bgSmoke.png" id="1_gp2hk"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yaaf5"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1, 1, 945, 235)
+margin = Rect2(0, 4, 0, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4o576"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(947, 1, 940, 241)
+margin = Rect2(5, 0, 5, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a6jvw"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1888, 1, 927, 238)
+margin = Rect2(3, 8, 18, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4dtsw"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1, 243, 954, 142)
+margin = Rect2(2, 5, 6, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ipi7"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(956, 243, 953, 150)
+margin = Rect2(7, 0, 7, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_282k6"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1910, 243, 949, 143)
+margin = Rect2(0, 3, 11, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r0wqv"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1, 394, 1267, 158)
+margin = Rect2(0, 3, 1, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xlkkn"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1269, 394, 1256, 158)
+margin = Rect2(12, 8, 12, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yq3jk"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1, 553, 1262, 162)
+margin = Rect2(3, 0, 6, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eyijh"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1264, 553, 1251, 300)
+margin = Rect2(0, 4, 9, 14)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bgf28"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1, 854, 1246, 305)
+margin = Rect2(6, 9, 14, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptspa"]
+atlas = ExtResource("1_gp2hk")
+region = Rect2(1248, 854, 1253, 307)
+margin = Rect2(7, 0, 7, 7)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_yaaf5")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_4o576")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_a6jvw")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_4dtsw")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_1ipi7")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_282k6")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_r0wqv")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_xlkkn")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_yq3jk")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_eyijh")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_bgf28")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_ptspa")
+}],
+"loop": 1,
+"name": &"weed",
+"speed": 24.0
+}]

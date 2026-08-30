@@ -1,0 +1,46 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/right boombox stage.png" id="1_7diki"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kytmc"]
+atlas = ExtResource("1_7diki")
+region = Rect2(1, 1, 434, 563)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u5vjy"]
+atlas = ExtResource("1_7diki")
+region = Rect2(1286, 1, 420, 561)
+margin = Rect2(10, 0, 14, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dcuy1"]
+atlas = ExtResource("1_7diki")
+region = Rect2(436, 1, 424, 561)
+margin = Rect2(8, 0, 10, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ehohk"]
+atlas = ExtResource("1_7diki")
+region = Rect2(861, 1, 424, 561)
+margin = Rect2(8, 0, 10, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_kytmc")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_u5vjy")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_dcuy1")
+}, {
+"duration": 9.0,
+"texture": SubResource("AtlasTexture_ehohk")
+}],
+"loop": 1,
+"name": &"right boomboxes",
+"speed": 24.0
+}]

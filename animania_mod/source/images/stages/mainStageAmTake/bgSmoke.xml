@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="bgSmoke.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="weed10000" x="1" y="1" width="945" height="235" frameX="0" frameY="-4" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10001" x="1" y="1" width="945" height="235" frameX="0" frameY="-4" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10002" x="1" y="1" width="945" height="235" frameX="0" frameY="-4" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10003" x="1" y="1" width="945" height="235" frameX="0" frameY="-4" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10004" x="947" y="1" width="940" height="241" frameX="-5" frameY="0" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10005" x="947" y="1" width="940" height="241" frameX="-5" frameY="0" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10006" x="947" y="1" width="940" height="241" frameX="-5" frameY="0" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10007" x="947" y="1" width="940" height="241" frameX="-5" frameY="0" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10008" x="1888" y="1" width="927" height="238" frameX="-3" frameY="-8" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10009" x="1888" y="1" width="927" height="238" frameX="-3" frameY="-8" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10010" x="1888" y="1" width="927" height="238" frameX="-3" frameY="-8" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed10011" x="1888" y="1" width="927" height="238" frameX="-3" frameY="-8" frameWidth="945" frameHeight="246" rotated="false"/>
+	<SubTexture name="weed20000" x="1" y="243" width="954" height="142" frameX="-2" frameY="-5" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20001" x="1" y="243" width="954" height="142" frameX="-2" frameY="-5" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20002" x="1" y="243" width="954" height="142" frameX="-2" frameY="-5" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20003" x="1" y="243" width="954" height="142" frameX="-2" frameY="-5" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20004" x="956" y="243" width="953" height="150" frameX="-7" frameY="0" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20005" x="956" y="243" width="953" height="150" frameX="-7" frameY="0" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20006" x="956" y="243" width="953" height="150" frameX="-7" frameY="0" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20007" x="956" y="243" width="953" height="150" frameX="-7" frameY="0" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20008" x="1910" y="243" width="949" height="143" frameX="0" frameY="-3" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20009" x="1910" y="243" width="949" height="143" frameX="0" frameY="-3" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20010" x="1910" y="243" width="949" height="143" frameX="0" frameY="-3" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed20011" x="1910" y="243" width="949" height="143" frameX="0" frameY="-3" frameWidth="960" frameHeight="150" rotated="false"/>
+	<SubTexture name="weed30000" x="1" y="394" width="1267" height="158" frameX="0" frameY="-3" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30001" x="1" y="394" width="1267" height="158" frameX="0" frameY="-3" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30002" x="1" y="394" width="1267" height="158" frameX="0" frameY="-3" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30003" x="1" y="394" width="1267" height="158" frameX="0" frameY="-3" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30004" x="1269" y="394" width="1256" height="158" frameX="-12" frameY="-8" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30005" x="1269" y="394" width="1256" height="158" frameX="-12" frameY="-8" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30006" x="1269" y="394" width="1256" height="158" frameX="-12" frameY="-8" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30007" x="1269" y="394" width="1256" height="158" frameX="-12" frameY="-8" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30008" x="1" y="553" width="1262" height="162" frameX="-3" frameY="0" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30009" x="1" y="553" width="1262" height="162" frameX="-3" frameY="0" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30010" x="1" y="553" width="1262" height="162" frameX="-3" frameY="0" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed30011" x="1" y="553" width="1262" height="162" frameX="-3" frameY="0" frameWidth="1268" frameHeight="166" rotated="false"/>
+	<SubTexture name="weed40000" x="1264" y="553" width="1251" height="300" frameX="0" frameY="-4" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40001" x="1264" y="553" width="1251" height="300" frameX="0" frameY="-4" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40002" x="1264" y="553" width="1251" height="300" frameX="0" frameY="-4" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40003" x="1264" y="553" width="1251" height="300" frameX="0" frameY="-4" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40004" x="1" y="854" width="1246" height="305" frameX="-6" frameY="-9" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40005" x="1" y="854" width="1246" height="305" frameX="-6" frameY="-9" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40006" x="1" y="854" width="1246" height="305" frameX="-6" frameY="-9" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40007" x="1" y="854" width="1246" height="305" frameX="-6" frameY="-9" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40008" x="1248" y="854" width="1253" height="307" frameX="-7" frameY="0" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40009" x="1248" y="854" width="1253" height="307" frameX="-7" frameY="0" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40010" x="1248" y="854" width="1253" height="307" frameX="-7" frameY="0" frameWidth="1260" frameHeight="314" rotated="false"/>
+	<SubTexture name="weed40011" x="1248" y="854" width="1253" height="307" frameX="-7" frameY="0" frameWidth="1260" frameHeight="314" rotated="false"/>
+</TextureAtlas>

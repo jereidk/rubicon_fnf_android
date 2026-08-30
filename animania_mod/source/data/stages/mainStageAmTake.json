@@ -1,0 +1,637 @@
+{
+	"props": [
+		{
+			"danceEvery": 0,
+			"zIndex": 1,
+			"position": [-900, -350],
+			"scale": [1.1, 1.1],
+			"animType": "sparrow",
+			"name": "stageWall",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/stagewall",
+			"scroll": [0.975, 0.975],
+			"animations": []
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 2,
+			"position": [-100, -75],
+			"scale": [1.1, 1.1],
+			"animType": "sparrow",
+			"name": "posterDad",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/daddy poster",
+			"scroll": [0.975, 0.975],
+			"animations": []
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 3,
+			"position": [1100, -75],
+			"scale": [1.1, 1.1],
+			"animType": "sparrow",
+			"name": "posterPlayer",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/bf poster",
+			"scroll": [0.975, 0.975],
+			"animations": []
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 4,
+			"position": [-1090, 700],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "stageFloor",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/stage floor",
+			"scroll": [0.99, 0.99],
+			"animations": []
+		},
+
+		{
+			"danceEvery": 0,
+			"zIndex": 70,
+			"position": [-500, 900],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "floorLightBged",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/down lights",
+			"startingAnimation": "off",
+			"scroll": [1.015, 1.015],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "floor light off",
+					"name": "off",
+					"looped": true,
+					"flipX": false
+				},
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "floor light0",
+					"name": "on",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 71,
+			"position": [-447, 946],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"blend": "multyply",
+			"name": "floorLights",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/down lights",
+			"startingAnimation": "y",
+			"scroll": [1.015, 1.015],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "light rings floor",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 100,
+			"position": [-790, 600],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"blend": "add",
+			"name": "floorLightsBlendy",
+			"isPixel": false,
+			"alpha": 0.5,
+			"assetPath": "stages/mainStageAmTake/down lights",
+			"startingAnimation": "y",
+			"scroll": [1.015, 1.015],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "down light",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+
+		{
+			"danceEvery": 0,
+			"zIndex": 50,
+			"position": [-760, -310],
+			"scale": [1.1, 1.1],
+			"animType": "sparrow",
+			"name": "stageFrames",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/stageframe",
+			"scroll": [1.1, 1.1],
+			"animations": []
+		},
+
+		{
+			"danceEvery": 0,
+			"zIndex": 101,
+			"position": [-1250, -350],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "bigCurtainLeft",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/curtains",
+			"startingAnimation": "y",
+			"scroll": [1.15, 1.15],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "stagecurtain",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 102,
+			"position": [1580, -350],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "bigCurtainRight",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/curtains",
+			"startingAnimation": "y",
+			"scroll": [1.15, 1.15],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "stagecurtain",
+					"name": "y",
+					"looped": true,
+					"flipX": true
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 103,
+			"position": [-1125, -425],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "bigCurtainUpFar",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/curtains",
+			"startingAnimation": "y",
+			"scroll": [1.12, 1.12],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "curtains far",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+
+		{
+			"danceEvery": 0,
+			"zIndex": 104,
+			"position": [-1125, -650],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "bigCurtainUpTOp1",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/curtains",
+			"startingAnimation": "y",
+			"scroll": [1.155, 1.155],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "curtains top 2",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 105,
+			"position": [-750, -625],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "bigCurtainUpTOp2",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/curtains",
+			"startingAnimation": "y",
+			"scroll": [1.2, 1.2],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 1,
+					"prefix": "curtains top 1",
+					"name": "y",
+					"looped": true,
+					"flipX": false
+				}
+			]
+		},
+
+		{
+			"danceEvery": 1,
+			"zIndex": 9,
+			"position": [-400, 450],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "boomBoxStageLeft",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/boombox stage",
+			"startingAnimation": "idle",
+			"scroll": [0.98, 0.98],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "boombox stage",
+					"name": "idle",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 1,
+			"zIndex": 8,
+			"position": [1400, 300],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "boomBoxStageRight",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/right boombox stage",
+			"startingAnimation": "idle",
+			"scroll": [0.98, 0.98],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "right boomboxes",
+					"name": "idle",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 2,
+			"zIndex": 51,
+			"position": [-100, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "boomBoxFramesLeft",
+			"isPixel": false,
+			"lowQuality": true,
+			"assetPath": "stages/mainStageAmTake/frame boombox",
+			"startingAnimation": "idle",
+			"scroll": [1.1, 1.1],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "frame boombox",
+					"name": "idle",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 2,
+			"zIndex": 52,
+			"position": [1100, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "boomBoxFramesRight",
+			"isPixel": false,
+			"lowQuality": true,
+			"assetPath": "stages/mainStageAmTake/frame boombox",
+			"startingAnimation": "idle",
+			"scroll": [1.1, 1.1],
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "frame boombox",
+					"name": "idle",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 56,
+			"position": [-400, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "stoplightLeftLeft",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/spotlight",
+			"startingAnimation": "on",
+			"scroll": [1.1, 1.1],
+			"angle": -15,
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight off0",
+					"name": "off",
+					"looped": false,
+					"flipX": false
+				},
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight0",
+					"name": "on",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 58,
+			"position": [250, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "stoplightLeftRight",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/spotlight",
+			"startingAnimation": "on",
+			"scroll": [1.1, 1.1],
+			"angle": -15,
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight off0",
+					"name": "off",
+					"looped": false,
+					"flipX": false
+				},
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight0",
+					"name": "on",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 60,
+			"position": [850, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "stoplightRightLeft",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/spotlight",
+			"startingAnimation": "on",
+			"scroll": [1.1, 1.1],
+			"angle": 15,
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight off0",
+					"name": "off",
+					"looped": false,
+					"flipX": false
+				},
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight0",
+					"name": "on",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+		{
+			"danceEvery": 0,
+			"zIndex": 62,
+			"position": [1500, -250],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "stoplightRightRight",
+			"isPixel": false,
+			"assetPath": "stages/mainStageAmTake/spotlight",
+			"startingAnimation": "on",
+			"scroll": [1.1, 1.1],
+			"angle": 15,
+			"animations": [
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight off0",
+					"name": "off",
+					"looped": false,
+					"flipX": false
+				},
+				{
+					"offsets": [0, 0],
+					"flipY": false,
+					"frameRate": 24,
+					"prefix": "spotlight0",
+					"name": "on",
+					"looped": false,
+					"flipX": false
+				}
+			]
+		},
+
+		{
+			"danceEvery": 1,
+			"zIndex": 9,
+			"position": [340, 430],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "gfBoomBoxSpeakers",
+			"assetPath": "stages/base_speakers",
+			"startingAnimation": "idle",
+			"scroll": [0.99, 0.99],
+			"animations": [
+				{
+					"prefix": "stage speakers0",
+					"name": "idle"
+				}
+			]
+		},
+
+		{
+			"danceEvery": 1,
+			"zIndex": 53,
+			"position": [-350, 750],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "smoke-lf",
+			"assetPath": "stages/mainStageAmTake/bgSmoke",
+			"startingAnimation": "y",
+			"scroll": [0.99, 0.99],
+			"animations": [
+				{
+					"prefix": "weed1",
+					"looped": true,
+					"name": "y"
+				}
+			]
+		},
+		{
+			"danceEvery": 1,
+			"zIndex": 54,
+			"position": [600, 715],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "smoke-rf",
+			"assetPath": "stages/mainStageAmTake/bgSmoke",
+			"startingAnimation": "y",
+			"scroll": [0.99, 0.99],
+			"animations": [
+				{
+					"prefix": "weed4",
+					"looped": true,
+					"name": "y"
+				}
+			]
+		},
+
+		{
+			"danceEvery": 1,
+			"zIndex": 6,
+			"position": [-200, 640],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "smoke-lb",
+			"assetPath": "stages/mainStageAmTake/bgSmoke",
+			"startingAnimation": "y",
+			"scroll": [0.97, 0.97],
+			"animations": [
+				{
+					"prefix": "weed2",
+					"looped": true,
+					"name": "y"
+				}
+			]
+		},
+		{
+			"danceEvery": 1,
+			"zIndex": 7,
+			"position": [510, 610],
+			"scale": [1, 1],
+			"animType": "sparrow",
+			"name": "smoke-rb",
+			"assetPath": "stages/mainStageAmTake/bgSmoke",
+			"startingAnimation": "y",
+			"scroll": [0.97, 0.97],
+			"animations": [
+				{
+					"prefix": "weed3",
+					"looped": true,
+					"name": "y"
+				}
+			]
+		},
+		{
+			"danceEvery": 1,
+			"zIndex": 317,
+			"position": [-820, -450],
+			"scale": [1.45, 1.4],
+			"animType": "sparrow",
+			"name": "vin1",
+			"blend": "multiply",
+			"alpha": 0,
+			"zoomFactor": 0.65,
+			"initialZoom": 0.6,
+			"assetPath": "stages/mainStageAmTake/vin1",
+			"scroll": [0.9, 0.9]
+		},
+		{
+			"danceEvery": 1,
+			"zIndex": 317,
+			"position": [-820, -450],
+			"scale": [1.4, 1.4],
+			"animType": "sparrow",
+			"name": "vin2",
+			"blend": "multiply",
+			"zoomFactor": 0.9,
+			"alpha": 0.8,
+			"initialZoom": 0.6,
+			"assetPath": "stages/mainStageAmTake/vin2",
+			"scroll": [0.9, 0.9]
+		}
+	],
+	"cameraZoom": 0.58,
+	"version": "1.0.0",
+	"characters": {
+		"bf": {
+			"zIndex": 30,
+			"position": [1220, 920],
+			"stageCamera": [900, 475],
+			"cameraOffsets": [0, 0]
+		},
+		"dad": {
+			"zIndex": 20,
+			"position": [250, 925],
+			"stageCamera": [420, 475],
+			"cameraOffsets": [0, 0]
+		},
+		"gf": {
+			"zIndex": 10,
+			"position": [725, 779],
+			"stageCamera": [650, 375],
+			"cameraOffsets": [0, 0]
+		}
+	},
+	"name": "Main Stage (AmTake)",
+	"cameraSpeed": 1.05,
+	"ratingsOffset": [-35, 100],
+	"directory": "week1"
+}

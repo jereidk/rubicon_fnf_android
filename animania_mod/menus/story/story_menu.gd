@@ -19,6 +19,7 @@ extends Node2D
 const SONG_SCENES := {
 	"phone-call": "res://songs/phone-call/phone_call.tscn",
 	"tutorial": "res://songs/tutorial/tutorial.tscn",
+	"bopeebo": "res://songs/bopeebo/bopeebo.tscn",
 	"dadbattle": "res://songs/dadbattle/dadbattle.tscn",
 }
 

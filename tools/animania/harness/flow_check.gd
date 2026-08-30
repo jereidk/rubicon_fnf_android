@@ -120,7 +120,10 @@ func _init() -> void:
 		var songs: PackedStringArray = story_menu.titles.get_child(i).get_meta(&"songs")
 		week_playable.append(not songs.is_empty()
 			and ResourceLoader.exists(String(story_menu.SONG_SCENES.get(songs[0], ""))))
+	# BASIC RHYTHM is tutorial and DADDY DEAREST opens on bopeebo; both are built. RED SNOW
+	# is week5 and none of its three songs are.
 	_check(week_playable[0], "la primera semana de story tendria que ser jugable ya")
+	_check(week_playable[1], "DADDY DEAREST abre con bopeebo y bopeebo ya esta")
 	# And that week's song is a real level, not just a file that exists: it comes out of
 	# the generic builder, so this is the check that the pipeline produces something
 	# playable and not merely something that packs.
@@ -148,7 +151,7 @@ func _init() -> void:
 		"tutorial: sin camara de cancion no sigue a quien canta")
 	tutorial.queue_free()
 	await process_frame
-	for i: int in range(1, week_playable.size()):
+	for i: int in range(2, week_playable.size()):
 		_check(not week_playable[i],
 			"la semana %d dice ser jugable y sus canciones no estan construidas" % i)
 	story_menu.queue_free()

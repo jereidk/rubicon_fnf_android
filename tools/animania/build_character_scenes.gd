@@ -74,6 +74,11 @@ func _build_week1_characters() -> void:
 		"miss_left", "miss_down", "miss_up", "miss_right", "hey",
 	], 8, false)
 
+	# dad. Origin measured like the other two - see the note above.
+	_build_adobe_character("dad", Vector2(200.0, 775.0), "EVERYTHING/RENDER/anims/Idle", [
+		"dance_idle", "sing_left", "sing_down", "sing_up", "sing_right",
+	], 8, true)
+
 	# gf has no miss art at all - she never misses - so miss_* fall back to the sing
 	# animations, which is what Funkin does when `<anim>miss` is absent.
 	_build_adobe_character("gf", Vector2(184.5, 436.0), "EVERYTHING/GF/anims/GF DANCE LEFT",

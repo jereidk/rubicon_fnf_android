@@ -1,0 +1,58 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/spotlight.png" id="1_6iwbi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bymi8"]
+atlas = ExtResource("1_6iwbi")
+region = Rect2(1, 1, 287, 234)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_27drb"]
+atlas = ExtResource("1_6iwbi")
+region = Rect2(289, 1, 287, 234)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sxsyp"]
+atlas = ExtResource("1_6iwbi")
+region = Rect2(1, 236, 618, 1454)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1tluq"]
+atlas = ExtResource("1_6iwbi")
+region = Rect2(620, 236, 81, 36)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bymi8")
+}],
+"loop": 1,
+"name": &"spotlight",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_27drb")
+}],
+"loop": 1,
+"name": &"spotlight off",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sxsyp")
+}],
+"loop": 1,
+"name": &"spotlight ray",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1tluq")
+}],
+"loop": 1,
+"name": &"spotlight ring",
+"speed": 24.0
+}]

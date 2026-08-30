@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="right boombox stage.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="right boomboxes0000" x="1" y="1" width="434" height="563"/>
+	<SubTexture name="right boomboxes0001" x="1" y="1" width="434" height="563"/>
+	<SubTexture name="right boomboxes0002" x="1286" y="1" width="420" height="561" frameX="-10" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0003" x="1286" y="1" width="420" height="561" frameX="-10" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0004" x="436" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0005" x="436" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0006" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0007" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0008" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0009" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0010" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0011" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0012" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0013" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+	<SubTexture name="right boomboxes0014" x="861" y="1" width="424" height="561" frameX="-8" frameY="0" frameWidth="434" frameHeight="563" rotated="false"/>
+</TextureAtlas>

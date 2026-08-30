@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="boombox stage.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="boombox stage0000" x="2" y="2" width="457" height="387"/>
+	<SubTexture name="boombox stage0001" x="2" y="2" width="457" height="387"/>
+	<SubTexture name="boombox stage0002" x="461" y="2" width="447" height="383" frameX="-1" frameY="-4" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0003" x="461" y="2" width="447" height="383" frameX="-1" frameY="-4" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0004" x="910" y="2" width="451" height="379" frameX="-1" frameY="-8" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0005" x="2" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0006" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0007" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0008" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0009" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0010" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0011" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0012" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0013" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+	<SubTexture name="boombox stage0014" x="455" y="391" width="451" height="373" frameX="-1" frameY="-14" frameWidth="457" frameHeight="387"/>
+</TextureAtlas>

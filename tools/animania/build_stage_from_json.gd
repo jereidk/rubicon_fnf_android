@@ -54,18 +54,61 @@ func _init() -> void:
 
 	var built: int = 0
 	for prop: Dictionary in props:
-		var asset: String = "%s/%s.png" % [ART, String(prop["assetPath"]).get_file()]
+		# assetPath keeps its folder - two stages have props with the same file name - so
+		# the vendored tree mirrors the mod's under images/stages.
+		var relative: String = String(prop["assetPath"]).trim_prefix("stages/")
+		var asset: String = "%s/%s.png" % [ART, relative]
 		if not ResourceLoader.exists(asset):
-			print("OUT %-16s SIN ARTE (%s)" % [prop["name"], asset])
+			print("OUT %-20s SIN ARTE (%s)" % [prop["name"], asset])
 			continue
+
+		# A sparrow prop is a frame of an atlas, not the whole sheet. Most of them have no
+		# animations at all and just want frame 0; the ones that do - the curtains, the
+		# smoke, the lights - get an AnimatedSprite2D. Drawing the raw PNG instead puts the
+		# entire spritesheet on the stage, which is what the first pass of this did.
+		var frames: SpriteFrames = null
+		var animations: Array = prop.get("animations", [])
+		if String(prop.get("animType", "")) == "sparrow":
+			var built_frames: String = "%s/%s_frames.tres" % [
+				OUT_DIR, relative.get_file().to_snake_case()]
+			if ResourceLoader.exists(built_frames):
+				frames = load(built_frames)
+			# Some props say `sparrow` and ship a bare PNG with no atlas beside it - the
+			# stage wall, the posters, the floor, the vignettes. Those are the whole
+			# picture and fall through to the plain path below.
+
+		if frames != null:
+			var animated := AnimatedSprite2D.new()
+			animated.name = String(prop["name"]).to_pascal_case()
+			animated.sprite_frames = frames
+			var names: PackedStringArray = frames.get_animation_names()
+			var wanted: String = names[0] if not names.is_empty() else ""
+			# A prop that declares an animation names it by PREFIX, the same way a
+			# character does; the importer already split the atlas by prefix.
+			if not animations.is_empty():
+				var prefix: String = String((animations[0] as Dictionary).get("prefix", ""))
+				for candidate: String in names:
+					if candidate.begins_with(prefix) or prefix.begins_with(candidate):
+						wanted = candidate
+			animated.animation = StringName(wanted)
+			# Only a prop that ships an animation plays; the rest hold their first frame.
+			if animations.is_empty():
+				animated.autoplay = ""
+			else:
+				animated.autoplay = wanted
+			_place(animated, prop)
+			root.add_child(animated)
+			animated.owner = root
+			built += 1
+			print("OUT %-20s %-22s (%.0f, %.0f) z=%d" % [prop["name"], wanted,
+				animated.position.x, animated.position.y, int(prop.get("zIndex", 0))])
+			continue
+
 		var sprite := Sprite2D.new()
 		sprite.name = String(prop["name"]).to_pascal_case()
 		sprite.texture = load(asset)
 		sprite.centered = false
-		var position: Array = prop.get("position", [0, 0])
-		sprite.position = Vector2(float(position[0]), float(position[1]))
-		var scale: Array = prop.get("scale", [1, 1])
-		sprite.scale = Vector2(float(scale[0]), float(scale[1]))
+		_place(sprite, prop)
 		# Funkin's scrollFactor. Rubicon's camera does not read it, so it is kept as meta
 		# rather than faked - a prop that should parallax and does not is a known gap, and
 		# a wrong number baked into the position would not be.
@@ -84,3 +127,37 @@ func _init() -> void:
 	var err: int = ResourceSaver.save(packed, out)
 	print("OUT %d props, %s %s" % [built, "saved" if err == OK else "FAILED", out])
 	quit(0 if err == OK else 1)
+
+
+## Position and scale verbatim in Funkin's space, plus the two fields that decide whether a
+## prop is scenery or a full-screen black rectangle.
+##
+## `alpha` and `blend` are easy to miss because most props carry neither. mainStageAmTake's
+## two vignettes carry both - vin1 is `alpha: 0` (there but invisible) and vin2 is
+## `alpha: 0.8, blend: multiply` - and ignoring them drew two opaque sheets at zIndex 317,
+## which is over everything. Half the stage came out black.
+func _place(node: Node2D, prop: Dictionary) -> void:
+	var position: Array = prop.get("position", [0, 0])
+	node.position = Vector2(float(position[0]), float(position[1]))
+	var scale: Array = prop.get("scale", [1, 1])
+	node.scale = Vector2(float(scale[0]), float(scale[1]))
+
+	if prop.has("alpha"):
+		node.modulate.a = float(prop["alpha"])
+
+	var blend: String = String(prop.get("blend", ""))
+	if blend.is_empty():
+		return
+	var material := CanvasItemMaterial.new()
+	match blend:
+		"multiply":
+			material.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+		"add", "additive":
+			material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		"subtract":
+			material.blend_mode = CanvasItemMaterial.BLEND_MODE_SUB
+		_:
+			print("OUT %-20s blend '%s' sin equivalente, se deja normal"
+				% [prop["name"], blend])
+			return
+	node.material = material

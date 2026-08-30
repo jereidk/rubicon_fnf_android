@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="curtains.png" width="4717" height="1720">
+	<SubTexture name="curtains far0000" x="1" y="932" width="3681" height="239" frameX="-0" frameY="-1" frameWidth="3681" frameHeight="240"/>
+	<SubTexture name="curtains top 10000" x="1" y="494" width="2973" height="435" frameX="-0" frameY="-0" frameWidth="2973" frameHeight="435"/>
+	<SubTexture name="curtains top 20000" x="1" y="1" width="3688" height="490" frameX="-0" frameY="-0" frameWidth="3688" frameHeight="490"/>
+	<SubTexture name="stagecurtain0000" x="3692" y="1" width="1024" height="1718" frameX="-0" frameY="-0" frameWidth="1024" frameHeight="1719"/>
+</TextureAtlas>

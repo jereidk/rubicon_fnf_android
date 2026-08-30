@@ -5,7 +5,7 @@
 #       --path . res://tools/animania/harness/song_shot.tscn
 extends Node2D
 
-const SONG := "res://songs/tutorial/tutorial.tscn"
+const SONG := "res://songs/bopeebo/bopeebo.tscn"
 
 var _level: Node
 var _pending: bool = false
@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed >= _next_sample:
 		_next_sample += 1.0
-		for who: String in ["Bf", "Gf"]:
+		for who: String in ["Bf", "Dad"]:
 			var c: Node2D = _level.get_node_or_null("Stage/%s" % who)
 			if c != null:
 				print("OUT %.0fs %-3s %s" % [_elapsed, who,
@@ -46,6 +46,6 @@ func _process(delta: float) -> void:
 			var aim: Vector2 = camera.get(&"position_interpolate_target")
 			if _seen.is_empty() or not _seen[-1].is_equal_approx(aim):
 				_seen.append(aim)
-	if _elapsed > 20.0:
+	if _elapsed > 22.0:
 		print("OUT la camara apunto a %d sitios: %s" % [_seen.size(), _seen])
 		_pending = true

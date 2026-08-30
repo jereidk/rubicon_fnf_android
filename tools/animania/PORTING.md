@@ -335,6 +335,13 @@ Three things that bit while building this:
 - **Animania's `tutorial` chart has zero notes** in all three difficulties. Do not go
   hunting for why nobody sings in it: there is nothing to sing. Use `bopeebo` to exercise
   singing and the camera.
+- **A stage prop's `alpha` and `blend` are easy to miss** because most props carry neither.
+  mainStageAmTake's two vignettes carry both - `alpha: 0` on one, `alpha: 0.8` plus
+  `blend: multiply` on the other - and ignoring them drew two opaque sheets at zIndex 317,
+  over everything. Half the stage came out black.
+- **A prop that says `animType: sparrow` may still be a bare PNG** with no atlas beside it
+  (the wall, the posters, the floor, the vignettes). Fall back to drawing it whole rather
+  than skipping it.
 - **A note controller with a chart and no Lane children draws nothing.** It reads on screen
   as "the strumlines are off-frame".
 

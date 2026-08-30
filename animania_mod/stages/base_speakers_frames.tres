@@ -1,0 +1,46 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/base_speakers.png" id="1_a4fg8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p08dw"]
+atlas = ExtResource("1_a4fg8")
+region = Rect2(1, 1, 765, 336)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_27kw6"]
+atlas = ExtResource("1_a4fg8")
+region = Rect2(767, 1, 751, 336)
+margin = Rect2(7, 0, 14, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jhxxf"]
+atlas = ExtResource("1_a4fg8")
+region = Rect2(1, 338, 756, 336)
+margin = Rect2(4, 0, 9, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h7fho"]
+atlas = ExtResource("1_a4fg8")
+region = Rect2(758, 338, 755, 336)
+margin = Rect2(5, 0, 10, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_p08dw")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_27kw6")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_jhxxf")
+}, {
+"duration": 9.0,
+"texture": SubResource("AtlasTexture_h7fho")
+}],
+"loop": 1,
+"name": &"stage speakers",
+"speed": 24.0
+}]

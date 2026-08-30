@@ -1,0 +1,55 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/curtains.png" id="1_xdwju"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t0gp6"]
+atlas = ExtResource("1_xdwju")
+region = Rect2(1, 932, 3681, 239)
+margin = Rect2(0, 1, 0, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uyoo7"]
+atlas = ExtResource("1_xdwju")
+region = Rect2(1, 494, 2973, 435)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6a1mq"]
+atlas = ExtResource("1_xdwju")
+region = Rect2(1, 1, 3688, 490)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kfl1v"]
+atlas = ExtResource("1_xdwju")
+region = Rect2(3692, 1, 1024, 1718)
+margin = Rect2(0, 0, 0, 1)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t0gp6")
+}],
+"loop": 1,
+"name": &"curtains far",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uyoo7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6a1mq")
+}],
+"loop": 1,
+"name": &"curtains top ",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kfl1v")
+}],
+"loop": 1,
+"name": &"stagecurtain",
+"speed": 24.0
+}]
