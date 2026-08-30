@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="freeplay tv.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="freeplay tv образец 10000" x="2" y="2" width="727" height="627" frameX="0" frameY="0" frameWidth="727" frameHeight="749" rotated="false"/>
+	<SubTexture name="freeplay tv образец 10001" x="2" y="2" width="727" height="627" frameX="0" frameY="0" frameWidth="727" frameHeight="749" rotated="false"/>
+	<SubTexture name="freeplay tv образец 10002" x="731" y="2" width="451" height="473" frameX="-130" frameY="-298" frameWidth="727" frameHeight="749" rotated="true"/>
+	<SubTexture name="freeplay tv образец 10003" x="731" y="2" width="451" height="473" frameX="-130" frameY="-298" frameWidth="727" frameHeight="749" rotated="true"/>
+	<SubTexture name="freeplay tv образец 10004" x="1184" y="2" width="466" height="457" frameX="-135" frameY="-288" frameWidth="727" frameHeight="749" rotated="false"/>
+	<SubTexture name="freeplay tv образец 10005" x="1184" y="2" width="466" height="457" frameX="-135" frameY="-288" frameWidth="727" frameHeight="749" rotated="false"/>
+</TextureAtlas>

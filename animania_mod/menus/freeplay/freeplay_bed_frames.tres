@@ -1,0 +1,35 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/bed.png" id="1_5v4rt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y3udv"]
+atlas = ExtResource("1_5v4rt")
+region = Rect2(1, 1, 742, 474)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0g7hc"]
+atlas = ExtResource("1_5v4rt")
+region = Rect2(744, 1, 742, 474)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aehfh"]
+atlas = ExtResource("1_5v4rt")
+region = Rect2(1487, 1, 742, 474)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y3udv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0g7hc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aehfh")
+}],
+"loop": 1,
+"name": &"bed",
+"speed": 24.0
+}]

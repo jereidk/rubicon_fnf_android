@@ -1,0 +1,38 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/player.png" id="1_8f0n6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_11o3x"]
+atlas = ExtResource("1_8f0n6")
+region = Rect2(2, 2, 528, 131)
+margin = Rect2(0, 0, 3, 12)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wduxv"]
+atlas = ExtResource("1_8f0n6")
+region = Rect2(532, 2, 528, 125)
+margin = Rect2(-1, 18, 3, 18)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bey2a"]
+atlas = ExtResource("1_8f0n6")
+region = Rect2(1062, 2, 528, 124)
+margin = Rect2(-3, 10, 3, 19)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_11o3x")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_wduxv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bey2a")
+}],
+"loop": 1,
+"name": &"player",
+"speed": 24.0
+}]

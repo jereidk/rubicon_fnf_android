@@ -24,7 +24,7 @@ const BLOCKED: PackedStringArray = ["shop", "website", "awards"]
 ## here yet; a button that leads nowhere is left selectable and does nothing, because
 ## hiding it would change a layout that is measured.
 const DESTINATIONS := {
-	"freeplay": "res://songs/phone-call/phone_call.tscn",
+	"freeplay": "res://animania_mod/menus/freeplay/freeplay_screen.tscn",
 }
 
 ## `changeItem(amount:Int, playSound:Bool)`. NOT a direction pair, which is what the two

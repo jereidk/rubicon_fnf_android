@@ -9,6 +9,7 @@ extends SceneTree
 
 const TITLE := "res://animania_mod/menus/title/title_screen.tscn"
 const MENU := "res://animania_mod/menus/main/main_menu.tscn"
+const FREEPLAY := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const SONG := "res://songs/phone-call/phone_call.tscn"
 
 var _failures: int = 0
@@ -167,9 +168,36 @@ func _init() -> void:
 	for i: int in 6:
 		await process_frame
 
+	var freeplay: Node = current_scene
+	_check(freeplay != null and freeplay != menu, "freeplay no cambio de escena")
+	if freeplay == null or freeplay == menu:
+		_report()
+		return
+
+	# The menu's freeplay button goes to the freeplay SCREEN. It used to go straight into
+	# the song while there was no screen to go to.
+	_check(String(freeplay.scene_file_path) == FREEPLAY,
+		"entro en %s en vez de freeplay" % freeplay.scene_file_path)
+	if String(freeplay.scene_file_path) != FREEPLAY:
+		_report()
+		return
+
+	_check_controls("freeplay", 0)
+
+	# The disks are freeplay's controls on a phone, the way the buttons are the menu's.
+	var disk: Node2D = freeplay.disks.get_child(0)
+	_check(freeplay.disk_at(disk.position) == 0,
+		"tocar el disco tendria que dar con el disco")
+	_check(freeplay.disk_at(Vector2(120.0, 900.0)) == -1,
+		"la cama de freeplay no es un disco")
+
+	freeplay.confirm()
+	for i: int in 8:
+		await process_frame
+
 	var level: Node = current_scene
-	_check(level != null and level != menu, "freeplay no cambio de escena")
-	if level == null or level == menu:
+	_check(level != null and level != freeplay, "el disco no cambio de escena")
+	if level == null or level == freeplay:
 		_report()
 		return
 

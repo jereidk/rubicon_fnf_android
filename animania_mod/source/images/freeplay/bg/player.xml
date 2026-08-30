@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="cdRom.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="player0000" x="2" y="2" width="528" height="131" frameX="0" frameY="0" frameWidth="531" frameHeight="143"/>
+	<SubTexture name="player0001" x="2" y="2" width="528" height="131" frameX="0" frameY="0" frameWidth="531" frameHeight="143"/>
+	<SubTexture name="player0002" x="532" y="2" width="528" height="125" frameX="1" frameY="-18" frameWidth="531" frameHeight="143"/>
+	<SubTexture name="player0003" x="532" y="2" width="528" height="125" frameX="1" frameY="-18" frameWidth="531" frameHeight="143"/>
+	<SubTexture name="player0004" x="1062" y="2" width="528" height="124" frameX="3" frameY="-10" frameWidth="531" frameHeight="143"/>
+</TextureAtlas>

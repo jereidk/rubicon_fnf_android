@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://k4mxls637r4f"
+path="res://.godot/imported/song switch.ogg-d6f41a382a814f8f124edfb9b9cb011c.oggvorbisstr"
+
+[deps]
+
+source_file="res://animania_mod/source/sounds/freeplay/song switch.ogg"
+dest_files=["res://.godot/imported/song switch.ogg-d6f41a382a814f8f124edfb9b9cb011c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
