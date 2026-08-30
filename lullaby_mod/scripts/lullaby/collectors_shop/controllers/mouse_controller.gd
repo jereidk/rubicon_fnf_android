@@ -87,6 +87,25 @@ var _hand_state: StringName = &""
 var _last_shop_state: CollectorShop.ShopStates
 var _hand_state_machine: AnimationNodeStateMachinePlayback
 
+## Lo ultimo que se le escribio al raycast y al cursor, para no repetirlo.
+##
+## Las tres escrituras de `_physics_process` cuestan lo mismo cambie el valor o
+## no: `target_position` y `collision_mask` marcan el RayCast3D sucio y lo
+## re-registran en PhysicsServer3D, e `Input.set_default_cursor_shape()` es una
+## llamada al SO. Se hacian las tres incondicionalmente cada paso de fisica.
+##
+## El log del dispositivo mide la tienda en `phys=5.16ms` con un solo nodo de
+## fisica (`physn=1`), 10 objetos y 10 pares de colision. Diez pares de cajas y
+## capsulas no cuestan cinco milisegundos, y lo unico que corre ahi dentro
+## ademas del paso del servidor es este callback.
+##
+## Solo el raycast: el cursor NO se cachea, y `_set_cursor()` explica por que.
+##
+## Que sea seguro cachear estos dos se comprobo enumerando: nadie mas en el
+## proyecto escribe `target_position` ni `collision_mask` de este RayCast3D.
+var _last_ray_target: Vector3 = Vector3.INF
+var _last_ray_mask: int = -1
+
 
 func _ready() -> void :
 	if hand_animation_tree:
@@ -178,15 +197,21 @@ func _tap_on_overlay(point: Vector2) -> bool:
 func _physics_process(_delta: float) -> void :
 	if not _can_ray_cast():
 		colliding = false
-		if override_cursor_shape >= 0:
-			Input.set_default_cursor_shape(override_cursor_shape)
-		else:
-			Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+		_set_cursor(override_cursor_shape if override_cursor_shape >= 0
+			else Input.CURSOR_ARROW)
 		return
 
-	ray_cast.target_position = camera.project_ray_normal(get_aim_position()) * ray_length
+	# Solo si de verdad cambia. Escribirlo igualmente re-registra el raycast en
+	# PhysicsServer3D e invalida su consulta cacheada, y la mira solo se mueve
+	# cuando el jugador mueve la camara - no treinta veces por segundo mientras
+	# esta quieto mirando un estante.
+	var target: Vector3 = camera.project_ray_normal(get_aim_position()) * ray_length
+	if not target.is_equal_approx(_last_ray_target):
+		_last_ray_target = target
+		ray_cast.target_position = target
 
-	if root:
+	if root and root.state != _last_ray_mask:
+		_last_ray_mask = root.state
 		ray_cast.collision_mask = root.state
 
 	colliding = ray_cast.is_colliding()
@@ -196,12 +221,24 @@ func _physics_process(_delta: float) -> void :
 	if clickable and "can_interact" in collider:
 		clickable = clickable and collider.can_interact
 
-	if override_cursor_shape >= 0:
-		Input.set_default_cursor_shape(override_cursor_shape)
-	else:
-		Input.set_default_cursor_shape(
-			Input.CURSOR_POINTING_HAND if clickable else Input.CURSOR_ARROW
-		)
+	_set_cursor(override_cursor_shape if override_cursor_shape >= 0
+		else (Input.CURSOR_POINTING_HAND if clickable else Input.CURSOR_ARROW))
+
+
+## El cursor. SIN cachear, y eso es deliberado.
+##
+## La primera version se saltaba la llamada cuando el valor no cambiaba, igual
+## que con el raycast. No vale aqui: `cartridge_bag_handler.gd` tambien llama a
+## `Input.set_default_cursor_shape()`, y una cache que solo conoce sus propias
+## escrituras se desincroniza en cuanto el otro escribe. El fallo seria que este
+## nodo quisiera volver a CURSOR_ARROW, la cache dijera "ya esta", y el cursor se
+## quedara en la mano que puso el bolso.
+##
+## Cachear esto de verdad exige que los dos pasen por el mismo sitio, y no vale
+## la pena: el ahorro es una llamada al SO por paso de fisica, contra las dos
+## del raycast que si tocan PhysicsServer3D.
+func _set_cursor(shape: int) -> void:
+	Input.set_default_cursor_shape(shape)
 
 
 func _process(delta: float) -> void :

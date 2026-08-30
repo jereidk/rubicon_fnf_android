@@ -790,6 +790,15 @@ jobs:
           # over=5.1x with NTSC and Rain both at alpha 0.
           guard_godot tools/test_effect_rect_stays_muted.gd
 
+          # === Verify the shop's raycast is not rewritten every physics step
+          # target_position and collision_mask both dirty the RayCast3D and
+          # re-register it with PhysicsServer3D, so writing them unchanged
+          # costs the same as writing them changed - thirty times a second
+          # while the player stands still. The device log measures the shop at
+          # phys=5.16ms with physn=1 and ten collision pairs of boxes and
+          # capsules, which is not what ten pairs cost.
+          guard_godot tools/test_shop_raycast_writes.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F
