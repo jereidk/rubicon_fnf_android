@@ -288,10 +288,47 @@ Recorded so the next person does not go looking for a bug that is not there.
   mod's own `data/credits.json` - but not the portraits, the typed-out text with its
   per-entry speed and pitch and its embedded `<img>` tags, the social buttons or the
   stickers. Those want the mod's bitmap fonts, which the port does not have yet.
+- **A guard that asserts "how far did this get in N frames"** is a guard that fails the day
+  the walk gets a heavier scene to load before it. The menu's curtain check did exactly
+  that. Assert the RANGE the thing moves through, not a threshold read off one run.
 - **The retry's `StickerSubState`.** Funkin returns to `PlayState` through a sticker
   transition; the port reloads the level instead and says so at the point of use.
 
 ---
+
+## 8b. Adding a song, for real
+
+The pipeline exists now and `tutorial` came out of it end to end. For a new song:
+
+```bash
+# 1. vendor: data/songs/<id>/<id>-{chart,metadata}.json -> animania_mod/source/songs/<id>/
+#           songs/<id>/*.ogg                            -> songs/<id>/
+#           data/stages/<stage>.json + its art          -> animania_mod/source/{data,images}/
+run --headless --path . --import                       # ALWAYS, or the next step hangs
+run --headless --path . --script tools/animania/build_song_chart.gd  -- <id>
+run --headless --path . --script tools/animania/build_stage_from_json.gd -- <stage>
+# 2. characters: add a _build_adobe_character(...) line, MEASURE the origin, rebuild
+run --headless --path . --script tools/animania/build_character_scenes.gd
+run --rendering-driver opengl3 --path . res://tools/animania/harness/measure_character.tscn
+# 3. the level
+run --headless --path . --script tools/animania/build_song_scene.gd  -- <id>
+run --rendering-driver opengl3 --path . res://tools/animania/harness/song_shot.tscn
+```
+
+Then add it to `SONGS` in freeplay and to `SONG_SCENES` in the story menu.
+
+Three things that bit while building this:
+
+- **The addon's script paths are not what they look like.** The song module is
+  `rubicon_level_song.gd`, not `rubicon_song_module.gd`. A wrong path is a runtime error,
+  which abandons `_init` before its `quit()` - the build then hangs to the timeout printing
+  nothing at all, not even the banner. Instrumenting with prints found it in one run.
+- **The interpolated camera does not draw from `position`.** It eases toward
+  `position_interpolate_target` / `zoom_interpolate_target`. Set only the position and the
+  shot comes out framing whatever the script starts on; set both, to the same value, so it
+  opens there instead of sliding in.
+- **A note controller with a chart and no Lane children draws nothing.** It reads on screen
+  as "the strumlines are off-frame".
 
 ## 9. Dadbattle: where it stands
 

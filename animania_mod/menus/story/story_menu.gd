@@ -18,6 +18,7 @@ extends Node2D
 ## agree on purpose: a song is playable when its scene exists and not before.
 const SONG_SCENES := {
 	"phone-call": "res://songs/phone-call/phone_call.tscn",
+	"tutorial": "res://songs/tutorial/tutorial.tscn",
 	"dadbattle": "res://songs/dadbattle/dadbattle.tscn",
 }
 

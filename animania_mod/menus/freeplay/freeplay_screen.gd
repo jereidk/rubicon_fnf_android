@@ -20,6 +20,11 @@ const SONGS: Array[Dictionary] = [
 		"scene": "res://songs/phone-call/phone_call.tscn",
 	},
 	{
+		"id": "tutorial",
+		"disk": "tutorial",
+		"scene": "res://songs/tutorial/tutorial.tscn",
+	},
+	{
 		# Its chart, audio and scripts are in the repo and converted; its three characters
 		# and its stage are not built yet, so the scene does not exist and confirm() gives
 		# it the locked sound. That is the honest state and it needs no special case: the

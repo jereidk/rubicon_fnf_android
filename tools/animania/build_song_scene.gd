@@ -29,6 +29,8 @@ const CONTROLLER_SCRIPT := \
 const HEALTH_BAR := "res://animania_mod/ui/health_bar.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
+## The amtake-base receptors, which is the note style every Animania song uses.
+const LANE := "res://animania_mod/notestyle/Lane.tscn"
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 const MOBILE_CONTROLS_OPACITY := 0.4
@@ -215,10 +217,31 @@ func _build_ui(difficulty: String) -> Dictionary:
 		controller.note_overrides = load(NOTE_OVERRIDES)
 		if side == "Player":
 			controller.inputs = load(INPUT_MAP)
+		else:
+			controller.autoplay = true
 		ui.add_child(controller)
 		controller.owner = _root
 		built[side] = controller
 
+		# Four lanes, 160px apart, centred: -240, -80, 80, 240. Without these a controller
+		# has a chart and nothing to draw it on - which is what the first build of tutorial
+		# was, and it read as "the strumlines are off-frame" until it turned out they had
+		# never been made.
+		for lane_id: int in 4:
+			var lane: Control = load(LANE).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
+			lane.name = "Lane" if lane_id == 0 else "Lane%d" % [lane_id + 1]
+			lane.offset_left = -240.0 + lane_id * 160.0
+			lane.offset_right = lane.offset_left
+			lane.lane_id = lane_id
+			# An autoplayed lane's AnimationTree only ever observes NEUTRAL unless this is
+			# on: hit_note() sets HIT and clears it in the same _process call, one frame
+			# before the tree gets to see it, so the receptor's confirm flash never fires.
+			if side == "Opponent":
+				lane.lane_autoplay_hit_lingers = true
+			controller.add_child(lane)
+			lane.owner = _root
+
+	judgment.level_note_controller = built["Player"]
 	return built
 
 

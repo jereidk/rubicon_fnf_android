@@ -110,22 +110,40 @@ func _init() -> void:
 	_check(story_menu._selected == 2,
 		"el toque no selecciona en story: sigue en %d" % story_menu._selected)
 	story_menu.change_week(-2, false)
-	# Only meaningful while no listed week is playable, which is the state today - and it
-	# checks that first, because confirming a week that IS built would change the scene out
-	# from under the rest of this walk.
-	var playable: bool = false
+	# BASIC RHYTHM is `tutorial`, and tutorial is built now - so story mode leads
+	# somewhere. The check moved with it: the first week has to have a playable first song,
+	# and the others (DADDY DEAREST, RED SNOW) still must not, because their songs are not
+	# built. confirm() is NOT called here - it would change the scene out from under the
+	# rest of this walk - and freeplay's own confirm covers that path below.
+	var week_playable: Array[bool] = []
 	for i: int in story_menu.week_count():
-		for song: String in (story_menu.titles.get_child(i).get_meta(&"songs")
-				as PackedStringArray):
-			if ResourceLoader.exists(String(story_menu.SONG_SCENES.get(song, ""))):
-				playable = true
-	_check(not playable,
-		"alguna semana de story ya es jugable: esta comprobacion hay que rehacerla")
-	if not playable:
-		story_menu.confirm()
-		await process_frame
-		_check(current_scene == menu,
-			"una semana sin canciones construidas no tendria que entrar en nada")
+		var songs: PackedStringArray = story_menu.titles.get_child(i).get_meta(&"songs")
+		week_playable.append(not songs.is_empty()
+			and ResourceLoader.exists(String(story_menu.SONG_SCENES.get(songs[0], ""))))
+	_check(week_playable[0], "la primera semana de story tendria que ser jugable ya")
+	# And that week's song is a real level, not just a file that exists: it comes out of
+	# the generic builder, so this is the check that the pipeline produces something
+	# playable and not merely something that packs.
+	var tutorial: Node = load("res://songs/tutorial/tutorial.tscn").instantiate()
+	root.add_child(tutorial)
+	await process_frame
+	for side: String in ["Opponent", "Player"]:
+		var controller: Node = tutorial.get_node("UILayer/UI/%s" % side)
+		_check(controller.chart != null, "tutorial: %s sin carta" % side)
+		# Four lanes each, or the chart has nothing to draw itself on - which is exactly
+		# what the first build of tutorial was.
+		_check(controller.get_child_count() >= 4,
+			"tutorial: %s tiene %d carriles" % [side, controller.get_child_count()])
+	_check(tutorial.get_node_or_null("Stage/Bf") != null
+		and tutorial.get_node_or_null("Stage/Gf") != null,
+		"tutorial: falta alguien del reparto")
+	_check(tutorial.get_node_or_null("PauseMenu") != null,
+		"tutorial: sin pausa no se puede salir de la cancion")
+	tutorial.queue_free()
+	await process_frame
+	for i: int in range(1, week_playable.size()):
+		_check(not week_playable[i],
+			"la semana %d dice ser jugable y sus canciones no estan construidas" % i)
 	story_menu.queue_free()
 	await process_frame
 
@@ -152,12 +170,19 @@ func _init() -> void:
 
 	# startIntroAnimation: the menu is deaf until its camera tween lands, and the curtains
 	# still cover the screen while it does.
-	# A handful of frames have already gone by getting here, so this is "still closing",
-	# not "still at zero" - the curtain's first frames are its fastest.
+	# Still opening: somewhere between covering the screen and the band they settle at.
+	# This used to assert a threshold picked off one run, which measures how many frames
+	# went by rather than what the curtains do - and it started failing the day the walk
+	# got a heavier scene to load before it. What matters is that they are en route.
 	_check(menu._intro >= 0.0, "el intro del menu ya se acabo antes de mirarlo")
-	_check(menu.curtain_up.position.y > -520.0 and menu.curtain_down.position.y < 520.0,
-		"las cortinas ya van por %.0f y %.0f nada mas entrar"
-			% [menu.curtain_up.position.y, menu.curtain_down.position.y])
+	var open_by: float = -(menu.curtain_up.size.y - menu.INTRO_BAND)
+	_check(menu.curtain_up.position.y <= 0.0 and menu.curtain_up.position.y >= open_by,
+		"la cortina de arriba esta en %.0f, fuera de [%.0f, 0]"
+			% [menu.curtain_up.position.y, open_by])
+	_check(menu.curtain_down.position.y >= 0.0
+		and menu.curtain_down.position.y <= -open_by,
+		"la cortina de abajo esta en %.0f, fuera de [0, %.0f]"
+			% [menu.curtain_down.position.y, -open_by])
 	menu.change_item(1, false)
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
 		"el menu no tendria que responder durante el intro")
