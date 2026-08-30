@@ -1263,6 +1263,7 @@ jobs:
           # referencias; una que se escape no da error al arrancar, solo un
           # gameover sin imagen o sin sonido.
           guard_godot tools/test_chimera_gameover_wired.gd
+          guard_godot tools/test_hex_bones_resolve.gd
 
           # === Y la cutscene MonoCloseup de Monochrome tambien es un video
           # Elegida midiendo: su ventana va de 266.5s a 294.6s y el chart de

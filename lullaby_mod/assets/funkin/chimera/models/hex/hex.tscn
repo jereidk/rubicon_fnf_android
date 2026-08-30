@@ -11,7 +11,7 @@
 [ext_resource type="Animation" uid="uid://b4qma1gr7ufvt" path="res://lullaby_mod/resources/animations/hex/anims/sing_right_short.tres" id="9"]
 [ext_resource type="Animation" uid="uid://dh304hbfjv8jk" path="res://lullaby_mod/resources/animations/hex/anims/sing_up.tres" id="10"]
 [ext_resource type="Animation" uid="uid://be8vw5dqluq33" path="res://lullaby_mod/resources/animations/hex/anims/sing_up_short.tres" id="11"]
-[ext_resource type="AnimationLibrary" uid="uid://ccbuccrfnilgm" path="res://lullaby_mod/resources/animations/hex/hex_misc_anim_library.res" id="12"]
+[ext_resource type="AnimationLibrary" uid="uid://hy20gd3ren0rr" path="res://lullaby_mod/resources/animations/hex/hex_misc_anim_library.res" id="12"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3jwps"]
 _data = {
