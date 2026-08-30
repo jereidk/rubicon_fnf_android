@@ -44,9 +44,16 @@ const CAMERA := "res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd"
 
 ## Los tamaños de grupo de Chimera, contados sobre `sng_chimera.tscn`: las claves
 ## de `Camera3D:position` de `precache` y de cada `extra_sweep_animations`, en
-## ese orden. Fijos aqui a proposito - si la escena cambia y esta prueba deja de
-## describirla, lo que hay que revisar es el reparto, no el numero.
-const CHIMERA_GROUPS: Array[int] = [15, 4, 13, 16, 16, 4, 5, 2, 7]
+## ese orden - `precache` 15, `122_fall` 13, `121_closetrunout` 4, `103_stroll` 5,
+## `116_hexstare` 3. Fijos aqui a proposito: si la escena cambia y esta prueba
+## deja de describirla, lo que hay que revisar es el reparto, no el numero.
+##
+## Eran nueve grupos y 82 poses. Cinco secuencias salieron de la lista porque
+## caen enteras bajo uno de los dos videos, que apagan el pase 3D mientras suenan
+## - ver `test_sweep_skips_video_windows.gd`. Con 40 poses y los 30 fotogramas
+## que Chimera reveló en el log, el reparto ya no es solo mejor: mas la cola de
+## `SWEEP_TAIL_SECONDS`, alcanza para verlas todas.
+const CHIMERA_GROUPS: Array[int] = [15, 13, 4, 5, 3]
 
 ## Los fotogramas que Chimera tuvo de verdad, del log del dispositivo
 ## (`extra=30 frames`). El presupuesto real, no uno holgado.

@@ -915,8 +915,27 @@ jobs:
           # read as healthy for as long as it did. Round-robin across the source
           # animations now, plus a bounded tail after the reveal. This guard runs
           # the real order and asserts the prefix property, and pins the old
-          # behaviour (3 groups of 9) so the regression cannot come back quietly.
+          # behaviour so the regression cannot come back quietly. The list is
+          # four sequences now, not eight - see the next step for why.
           guard_godot tools/test_sweep_covers_every_sequence.gd
+
+          # === ...and that it is not warming shots a video covers
+          # Chimera draws two of its cutscenes with pre-rendered video, both with
+          # disable_3d_while_playing, so the 3D pass does not run in those
+          # windows. Five of the eight listed sequences fell entirely inside one:
+          # 45 of the 82 poses warming framings the player never sees in 3D, two
+          # of them (104_photographysesh, 114_hexapproach) among the very stalls
+          # the export was added for, which stopped stalling because a video went
+          # over them. And the mirror case - where a video hands back mid-clip
+          # the scene draws in 3D cold, which is what put 116_hexstare in, at
+          # 111.0s inside 107.21-113.14.
+          # Both rules are DERIVED from the scene: each video node's window
+          # against the clock's clip track. Moving an ends_at changes what this
+          # guard demands instead of quietly rotting.
+          # Assumes graphics_prefer_cutscene_video stays on - it is true in
+          # settings.gd and in all four quality presets, exposed in no menu, and
+          # only offline harnesses turn it off.
+          guard_godot tools/test_sweep_skips_video_windows.gd
 
           # === The other half of the same stall: the lights, and their order
           # The viewpoints alone did not do it. The lighting state is part of

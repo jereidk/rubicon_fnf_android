@@ -45,9 +45,17 @@ extends SceneTree
 
 const SCRIPT_PATH := "res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd"
 const CHIMERA_PATH := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
+## La lista era de ocho y ahora es de cuatro. Las cinco que faltan
+## (`101_prelude`, `102_intro`, `104_photographysesh`, `107_turnaround`,
+## `114_hexapproach`) caen enteras dentro de la ventana de uno de los dos videos
+## de Chimera, y los dos llevan `disable_3d_while_playing`, asi que el pase 3D no
+## corre ahi: eran 45 de las 82 poses del barrido calentando encuadres que el
+## jugador no ve en 3D nunca. `116_hexstare` entra por lo contrario - es donde el
+## video del photoshoot devuelve el mando, a los 111.0s, a media reproduccion del
+## clip. Ese reparto lo comprueba `test_sweep_skips_video_windows.gd`
+## derivandolo de la escena; aqui solo se fija el resultado.
 const EXPECTED_SEQUENCES := [
-	&"104_photographysesh", &"122_fall", &"107_turnaround", &"101_prelude",
-	&"121_closetrunout", &"103_stroll", &"102_intro", &"114_hexapproach",
+	&"122_fall", &"121_closetrunout", &"103_stroll", &"116_hexstare",
 ]
 
 var _failures: int = 0
@@ -244,11 +252,13 @@ func _scene_wiring_checks() -> void:
 			_check(lib_block.contains('&"%s"' % seq),
 				"%s existe de verdad en la biblioteca de secuencias" % seq)
 
-	# El barrido sirve las poses en orden, una por frame de revelado: con mas
-	# poses que frames, las del final pueden no llegar a servirse. Por eso la
-	# lista va ordenada por el peor frame medido de cada secuencia (el log de
-	# 2026-08-24: 104 2267ms, 122 1911ms historico, 107 1110ms, 101 771ms),
-	# y por eso el orden importa en el guard y no solo la pertenencia.
+	# El orden ya no decide quien llega a servirse - eso lo arregla el
+	# round-robin de `_build_sweep_order()`, que reparte los frames entre todos
+	# los grupos en vez de recorrerlos del tirón - pero sigue decidiendo quien va
+	# primero DENTRO de cada vuelta, asi que la lista se mantiene ordenada por el
+	# peor frame medido: `122_fall` 1911ms historico, luego `121_closetrunout`
+	# (5 pipelines) y `103_stroll` sin medida, y `116_hexstare` al final porque
+	# no esta por un frame medido sino por ser el punto de devolucion del video.
 	var list_at: int = block.find("extra_sweep_animations")
 	_check(list_at >= 0, "la lista de extra_sweep_animations existe")
 	if list_at >= 0:
