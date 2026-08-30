@@ -395,7 +395,23 @@ jobs:
           # restore-keys here so commits that don't touch a hashed file get
           # a useful partial cache instead of a full cold rebuild every
           # time.
-          key: godot-import-v5-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', 'project.godot') }}
+          # `**/*.import` esta en la lista, y su ausencia costo 28 avisos por
+          # arranque en el telefono.
+          #
+          # Un .import lleva el uid con el que se importo su fuente. Si ese uid
+          # cambia y el .png no, la clave no se movia y CI restauraba el
+          # .godot/imported de antes - incluido el .scn de mdl_shop_base.gltf,
+          # que referencia sus texturas POR UID. El resultado en el dispositivo:
+          #
+          #     'mdl_shop_base.gltf': In external resource #0, invalid UID:
+          #     'uid://b4or6wqc5ygp0' - using text path instead: ...rug.png
+          #
+          # x28, una por textura. Godot cae a la ruta de texto y el modelo se ve
+          # bien, asi que esto nunca rompio nada visible - pero el arbol
+          # importado que se estaba enviando era mas viejo que el proyecto. Un
+          # import local limpio da el uid correcto (b28qifxbpkgla), que es como
+          # se supo que la culpa era de la cache y no del .gltf.
+          key: godot-import-v5-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ hashFiles('**/*.png', '**/*.jpg', '**/*.ogg', '**/*.wav', '**/*.mp3', '**/*.gltf', '**/*.glb', '**/*.ttf', '**/*.otf', '**/*.tres', '**/*.tscn', '**/*.gd', '**/*.gd.uid', '**/*.import', 'project.godot') }}
           restore-keys: |
             godot-import-v5-${{ runner.os }}-${{ env.GODOT_VERSION }}-
 
