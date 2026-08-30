@@ -122,6 +122,26 @@ locale/translations=PackedStringArray("res://lullaby_mod/resources/localization/
 
 [rendering]
 
+; Quitar la informacion de depuracion del SPIR-V TAMBIEN en debug.
+;
+; El motor trae strip_debug=false y strip_debug.release=true, o sea que solo la
+; quita en release - y todas las builds que este proyecto ha enviado a alguien
+; son debug, re-firmadas con la clave de release. La cabecera del log del
+; dispositivo lo confirma: `template : debug`.
+;
+; Importa porque el coste que domina la entrada a Chimera es compilar pipelines,
+; y el desglose del log dice que son especializaciones: 871 en una sesion, ~420
+; de ellas en Chimera. El driver compila SPIR-V, y un SPIR-V con nombres y
+; tablas de depuracion es mas grande y tarda mas.
+;
+; NO reduce el NUMERO de pipelines - eso es fijo, ver lullaby_preload_camera.gd:
+; en 4.7 un pipeline solo existe tras dibujar y RenderingServer no expone nada
+; para precompilarlos. Solo puede abaratar cada uno.
+;
+; Sin medir. No se puede medir fuera del telefono: aqui no hay Vulkan ni Adreno
+; y en headless no se compila ni un pipeline. Lo que decide si esto sirve es
+; comparar el `precache finished (12346ms)` de Chimera antes y despues.
+shader_compiler/shader_cache/strip_debug=true
 textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/import_bptc=true
 renderer/rendering_method="forward_plus"
