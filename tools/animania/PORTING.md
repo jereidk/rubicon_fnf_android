@@ -354,6 +354,11 @@ Three things that bit while building this:
   hardcodes 152 BPM and carries that song's script beats. Funkin measures an event's
   `duration` in STEPS (a sixteenth of a beat), not seconds, and the event's x/y are
   world-space so they are NOT scaled by the 1.5.
+- **A Control with anchors set refuses `size`.** Godot logs "If you want to set size,
+  change the anchors" and drops the write, so an animation track that writes `size` on an
+  anchored Control does nothing. The cinematic bars were built with `PRESET_TOP_WIDE` and
+  their whole baked track was inert. The guard said OK; only the printed error gave it
+  away - which is why a run's raw output is worth reading even when it passes.
 - **A shake goes on the camera's OFFSET, not on its target.** `position_interpolate_offset`
   is a separate property, so a shake and a focus move can happen at once without one eating
   the other - which is what FlxCamera.shake does. Its `intensity` is a FRACTION of the

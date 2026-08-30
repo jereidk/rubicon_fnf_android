@@ -27,8 +27,12 @@ extends Node
 ## write the same two properties every frame, so leaving this on has the two of them
 ## fighting over the camera. dadbattle authors 98 of them.
 @export var follows_singer: bool = true
-const BUMP_EVERY_BEATS := 4
 const BUMP := 0.015
+## SetCameraBop's `rate` and `intensity`. Baked as value tracks on the clock when the chart
+## sets them - dadbattle changes both three times - and these are the defaults for a song
+## that never does.
+@export var bump_every_beats: int = 4
+@export var bump_scale: float = 1.0
 const BUMP_DECAY := 6.0
 
 var _rest_zoom: Vector2
@@ -59,8 +63,8 @@ func _process(delta: float) -> void:
 	if beat == _beat:
 		return
 	_beat = beat
-	if beat % BUMP_EVERY_BEATS == 0:
-		camera.zoom = _rest_zoom * (1.0 + BUMP)
+	if bump_every_beats > 0 and beat % bump_every_beats == 0:
+		camera.zoom = _rest_zoom * (1.0 + BUMP * bump_scale)
 		camera.set(&"zoom_interpolate_target", camera.zoom)
 
 

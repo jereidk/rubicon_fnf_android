@@ -44,6 +44,7 @@ const CHARACTERS := "res://animania_mod/characters"
 ## Funkin is 1280x720 and this project is 1920x1080, and that 1.5x lives on the camera -
 ## the stage's coordinates and the character positions stay verbatim.
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+const SCREEN := Vector2(1920.0, 1080.0)
 
 var _root: Node2D
 var _song_id: String
@@ -126,6 +127,34 @@ func _init() -> void:
 	_root.add_child(stage)
 	stage.owner = _root
 	_root.set_editable_instance(stage, true)
+
+	# The letterbox the chart's CinematicBars events drive. Built always, at zero height,
+	# so the baked track has something to write to - a track pointing at a node that is not
+	# there is silently dropped when the scene is packed.
+	var bars := CanvasLayer.new()
+	bars.name = "CinematicBars"
+	bars.layer = 1
+	_root.add_child(bars)
+	bars.owner = _root
+	for edge: String in ["Top", "Bottom"]:
+		var bar := ColorRect.new()
+		bar.name = edge
+		bar.color = Color.BLACK
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bars.add_child(bar)
+		bar.owner = _root
+		# NO anchors. A Control with anchors set refuses `size` - Godot logs "If you want
+		# to set size, change the anchors" and drops the write - so the baked track would
+		# do nothing at all. The guard caught this only because the error printed; the
+		# check itself still said OK.
+		bar.set(&"layout_mode", 0)
+		bar.size = Vector2(SCREEN.x, 0.0)
+		if edge == "Top":
+			bar.position = Vector2.ZERO
+		else:
+			# Flipped and pinned to the bottom edge, so ONE size track grows it upward.
+			bar.position = Vector2(0.0, SCREEN.y)
+			bar.scale = Vector2(1.0, -1.0)
 
 	var ui: Dictionary = _build_ui(difficulty)
 	var where: Dictionary = stage.get_meta(&"characters", {})

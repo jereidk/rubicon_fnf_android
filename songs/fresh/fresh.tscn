@@ -80,6 +80,54 @@ tracks/3/keys = {
 "update": 0,
 "values": [Vector2(0, 0)]
 }
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("../CinematicBars/Top:size")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 3.875, 3.9166667, 3.9583333, 4, 4.0416665, 4.0833335, 4.125, 4.1666665, 4.2083335, 4.25, 4.2916665, 4.3333335, 4.375, 4.4166665, 4.4583335, 4.5, 4.5416665, 4.5833335, 4.625, 4.6666665, 4.7083335, 4.75, 4.7916665, 4.8333335, 4.875, 4.9166665, 4.9583335, 5, 5.0416665, 5.0833335, 5.125, 5.1666665, 5.2083335, 5.25, 5.2916665, 5.3333335, 5.375, 5.4166665, 5.4583335, 5.5, 5.5416665, 5.5833335, 5.625, 5.6666665, 5.7083335, 5.75, 5.7916665, 5.8333335, 5.875, 7.875, 7.9159093, 7.956818, 7.9977274, 8.038636, 8.079545, 8.120455, 8.161364, 8.202272, 8.243182, 8.284091, 8.325, 54.5, 54.541668, 54.583332, 54.625, 54.666668, 54.708332, 54.75, 72.125, 72.166664, 72.208336, 72.25, 72.291664, 72.333336, 72.375),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(1920, 0), Vector2(1920, 0), Vector2(1920, 4.590522), Vector2(1920, 8.9898), Vector2(1920, 13.201904), Vector2(1920, 17.230904), Vector2(1920, 21.080864), Vector2(1920, 24.75586), Vector2(1920, 28.259956), Vector2(1920, 31.597221), Vector2(1920, 34.77173), Vector2(1920, 37.787544), Vector2(1920, 40.648735), Vector2(1920, 43.359375), Vector2(1920, 45.92353), Vector2(1920, 48.34527), Vector2(1920, 50.628662), Vector2(1920, 52.77778), Vector2(1920, 54.796684), Vector2(1920, 56.689453), Vector2(1920, 58.46015), Vector2(1920, 60.112846), Vector2(1920, 61.65161), Vector2(1920, 63.080513), Vector2(1920, 64.40362), Vector2(1920, 65.625), Vector2(1920, 66.748726), Vector2(1920, 67.77886), Vector2(1920, 68.71948), Vector2(1920, 69.57465), Vector2(1920, 70.34844), Vector2(1920, 71.04492), Vector2(1920, 71.66816), Vector2(1920, 72.22222), Vector2(1920, 72.71118), Vector2(1920, 73.13911), Vector2(1920, 73.51006), Vector2(1920, 73.828125), Vector2(1920, 74.09736), Vector2(1920, 74.32183), Vector2(1920, 74.505615), Vector2(1920, 74.65278), Vector2(1920, 74.76739), Vector2(1920, 74.853516), Vector2(1920, 74.91523), Vector2(1920, 74.9566), Vector2(1920, 74.98169), Vector2(1920, 74.994576), Vector2(1920, 74.99932), Vector2(1920, 75), Vector2(1920, 75), Vector2(1920, 63.809166), Vector2(1920, 54.64688), Vector2(1920, 47.31029), Vector2(1920, 41.596542), Vector2(1920, 37.30278), Vector2(1920, 34.226147), Vector2(1920, 32.163788), Vector2(1920, 30.912848), Vector2(1920, 30.270473), Vector2(1920, 30.03381), Vector2(1920, 30), Vector2(1920, 30), Vector2(1920, 50), Vector2(1920, 70), Vector2(1920, 90), Vector2(1920, 110), Vector2(1920, 130), Vector2(1920, 150), Vector2(1920, 150), Vector2(1920, 149.51389), Vector2(1920, 146.11111), Vector2(1920, 136.875), Vector2(1920, 118.888885), Vector2(1920, 89.236115), Vector2(1920, 45)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("../CinematicBars/Bottom:size")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 3.875, 3.9166667, 3.9583333, 4, 4.0416665, 4.0833335, 4.125, 4.1666665, 4.2083335, 4.25, 4.2916665, 4.3333335, 4.375, 4.4166665, 4.4583335, 4.5, 4.5416665, 4.5833335, 4.625, 4.6666665, 4.7083335, 4.75, 4.7916665, 4.8333335, 4.875, 4.9166665, 4.9583335, 5, 5.0416665, 5.0833335, 5.125, 5.1666665, 5.2083335, 5.25, 5.2916665, 5.3333335, 5.375, 5.4166665, 5.4583335, 5.5, 5.5416665, 5.5833335, 5.625, 5.6666665, 5.7083335, 5.75, 5.7916665, 5.8333335, 5.875, 7.875, 7.9159093, 7.956818, 7.9977274, 8.038636, 8.079545, 8.120455, 8.161364, 8.202272, 8.243182, 8.284091, 8.325, 54.5, 54.541668, 54.583332, 54.625, 54.666668, 54.708332, 54.75, 72.125, 72.166664, 72.208336, 72.25, 72.291664, 72.333336, 72.375),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(1920, 0), Vector2(1920, 0), Vector2(1920, 4.590522), Vector2(1920, 8.9898), Vector2(1920, 13.201904), Vector2(1920, 17.230904), Vector2(1920, 21.080864), Vector2(1920, 24.75586), Vector2(1920, 28.259956), Vector2(1920, 31.597221), Vector2(1920, 34.77173), Vector2(1920, 37.787544), Vector2(1920, 40.648735), Vector2(1920, 43.359375), Vector2(1920, 45.92353), Vector2(1920, 48.34527), Vector2(1920, 50.628662), Vector2(1920, 52.77778), Vector2(1920, 54.796684), Vector2(1920, 56.689453), Vector2(1920, 58.46015), Vector2(1920, 60.112846), Vector2(1920, 61.65161), Vector2(1920, 63.080513), Vector2(1920, 64.40362), Vector2(1920, 65.625), Vector2(1920, 66.748726), Vector2(1920, 67.77886), Vector2(1920, 68.71948), Vector2(1920, 69.57465), Vector2(1920, 70.34844), Vector2(1920, 71.04492), Vector2(1920, 71.66816), Vector2(1920, 72.22222), Vector2(1920, 72.71118), Vector2(1920, 73.13911), Vector2(1920, 73.51006), Vector2(1920, 73.828125), Vector2(1920, 74.09736), Vector2(1920, 74.32183), Vector2(1920, 74.505615), Vector2(1920, 74.65278), Vector2(1920, 74.76739), Vector2(1920, 74.853516), Vector2(1920, 74.91523), Vector2(1920, 74.9566), Vector2(1920, 74.98169), Vector2(1920, 74.994576), Vector2(1920, 74.99932), Vector2(1920, 75), Vector2(1920, 75), Vector2(1920, 63.809166), Vector2(1920, 54.64688), Vector2(1920, 47.31029), Vector2(1920, 41.596542), Vector2(1920, 37.30278), Vector2(1920, 34.226147), Vector2(1920, 32.163788), Vector2(1920, 30.912848), Vector2(1920, 30.270473), Vector2(1920, 30.03381), Vector2(1920, 30), Vector2(1920, 30), Vector2(1920, 50), Vector2(1920, 70), Vector2(1920, 90), Vector2(1920, 110), Vector2(1920, 130), Vector2(1920, 150), Vector2(1920, 150), Vector2(1920, 149.51389), Vector2(1920, 146.11111), Vector2(1920, 136.875), Vector2(1920, 118.888885), Vector2(1920, 89.236115), Vector2(1920, 45)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("../SongCamera:bump_every_beats")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0.125, 7.875, 23.875, 24.375, 36.875, 37.875, 39.625, 39.875, 47.875, 50.875, 53.875, 72.375, 87.875),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [4, 4, 4, 1, 4, 1, 2, 4, 2, 1, 1, 1, 4]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("../SongCamera:bump_scale")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0.125, 7.875, 23.875, 24.375, 36.875, 37.875, 39.625, 39.875, 47.875, 50.875, 53.875, 72.375, 87.875),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 1.0, 0.0, 0.8, 0.0, 1.0, 1.0, 1.0, 1.1, 1.15, 0.0, 1.5, 1.0]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_nmc12"]
 _data = {
@@ -87,32 +135,32 @@ _data = {
 &"scene": SubResource("Animation_41ppm")
 }
 
-[node name="Fresh" type="Node2D" unique_id=349222848]
+[node name="Fresh" type="Node2D" unique_id=1334505358]
 script = ExtResource("1_jhh1i")
 metadata = ExtResource("2_1p4il")
 
-[node name="RubiconLevelClock" type="Node" parent="." unique_id=760653984]
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=391864093]
 script = ExtResource("3_v1dkc")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=1836901086]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=720343745]
 callback_mode_discrete = 2
 libraries/ = SubResource("AnimationLibrary_nmc12")
 autoplay = &"scene"
 
-[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=1275611971 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=486804898 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
 script = ExtResource("4_qfc2m")
 audio_players = [NodePath("Instrumental"), NodePath("VoicesBf"), NodePath("VoicesDad")]
 sync_reference_player = NodePath("Instrumental")
 
-[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=282546160]
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1083079033]
 stream = ExtResource("5_vu12e")
 bus = &"Music"
 
-[node name="VoicesBf" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=2031261837]
+[node name="VoicesBf" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=2096005961]
 stream = ExtResource("6_gtaiu")
 bus = &"Music"
 
-[node name="VoicesDad" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=2016731638]
+[node name="VoicesDad" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1242909864]
 stream = ExtResource("7_i16on")
 bus = &"Music"
 
@@ -187,16 +235,31 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="UILayer" type="CanvasLayer" parent="." unique_id=1765703882]
+[node name="CinematicBars" type="CanvasLayer" parent="." unique_id=1536623034]
+
+[node name="Top" type="ColorRect" parent="CinematicBars" unique_id=267787044]
+offset_right = 1920.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Bottom" type="ColorRect" parent="CinematicBars" unique_id=1347817230]
+offset_top = 1080.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+scale = Vector2(1, -1)
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=873524518]
 layer = 2
 
-[node name="UI" type="Control" parent="UILayer" unique_id=1691973309]
+[node name="UI" type="Control" parent="UILayer" unique_id=1155682965]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Judgment" parent="UILayer/UI" unique_id=1948231072 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_7q14u")]
+[node name="Judgment" parent="UILayer/UI" unique_id=1473614801 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_7q14u")]
 layout_mode = 1
 level_note_controller = NodePath("../Player")
 
@@ -204,7 +267,7 @@ level_note_controller = NodePath("../Player")
 layout_mode = 0
 health_module = NodePath("../../../RubiconHealthModule")
 
-[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=2085866917]
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=893801369]
 anchors_preset = 0
 anchor_left = 0.25
 anchor_top = 1.0
@@ -225,28 +288,28 @@ offset_left = -240.0
 offset_right = -240.0
 lane_autoplay_hit_lingers = true
 
-[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=304911699 instance=ExtResource("18_lv5jx")]
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=729154440 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 lane_autoplay_hit_lingers = true
 
-[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1444917780 instance=ExtResource("18_lv5jx")]
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1996331959 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 lane_autoplay_hit_lingers = true
 
-[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1635967809 instance=ExtResource("18_lv5jx")]
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=491210585 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 lane_autoplay_hit_lingers = true
 
-[node name="Player" type="Control" parent="UILayer/UI" unique_id=345000054]
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=1679465829]
 anchors_preset = 0
 anchor_left = 0.75
 anchor_top = 1.0
@@ -261,46 +324,46 @@ chart = ExtResource("19_ownou")
 note_overrides = ExtResource("17_ourpq")
 inputs = ExtResource("20_iye6t")
 
-[node name="Lane" parent="UILayer/UI/Player" unique_id=236877811 instance=ExtResource("18_lv5jx")]
+[node name="Lane" parent="UILayer/UI/Player" unique_id=1699814364 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Lane2" parent="UILayer/UI/Player" unique_id=1242515990 instance=ExtResource("18_lv5jx")]
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=2075847044 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Lane3" parent="UILayer/UI/Player" unique_id=85477904 instance=ExtResource("18_lv5jx")]
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=1744250100 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Lane4" parent="UILayer/UI/Player" unique_id=1575343317 instance=ExtResource("18_lv5jx")]
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=1038634089 instance=ExtResource("18_lv5jx")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=2026183417]
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1681307469]
 position = Vector2(1220, 920)
 
-[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=535815008]
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=983361309]
 position = Vector2(250, 925)
 
-[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1520882487]
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=276376771]
 position = Vector2(725, 779)
 
-[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=2136406378]
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=1176010695]
 position = Vector2(735, 922.5)
 zoom = Vector2(0.87, 0.87)
 script = ExtResource("21_an488")
 position_interpolate_target = Vector2(735, 922.5)
 zoom_interpolate_target = Vector2(0.87, 0.87)
 
-[node name="SongCamera" type="Node" parent="." unique_id=1517972755 node_paths=PackedStringArray("camera", "player", "opponent", "player_point", "opponent_point", "clock")]
+[node name="SongCamera" type="Node" parent="." unique_id=265903062 node_paths=PackedStringArray("camera", "player", "opponent", "player_point", "opponent_point", "clock")]
 script = ExtResource("22_b8ses")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 player = NodePath("../Stage/Bf")
@@ -311,13 +374,13 @@ clock = NodePath("../RubiconLevelClock")
 bpm = 120.0
 follows_singer = false
 
-[node name="RubiconHealthModule" type="Node" parent="." unique_id=321483381 node_paths=PackedStringArray("note_controller")]
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=1272452192 node_paths=PackedStringArray("note_controller")]
 script = ExtResource("23_poi4k")
 note_controller = NodePath("../UILayer/UI/Player")
 starting_health = 50.0
 starting_health = 50.0
 
-[node name="MobileControls" type="CanvasLayer" parent="." unique_id=382470214 instance=ExtResource("24_xoxhu")]
+[node name="MobileControls" type="CanvasLayer" parent="." unique_id=1130960017 instance=ExtResource("24_xoxhu")]
 layer = 15
 script = ExtResource("25_mkhdq")
 opacity = 0.4

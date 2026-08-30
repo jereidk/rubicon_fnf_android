@@ -21,6 +21,8 @@ extends RefCounted
 ## How finely an eased tween is sampled. 24 keys a second is the art's own frame rate and
 ## is finer than the camera's own lerp can resolve.
 const SAMPLES_PER_SECOND := 24.0
+const SCREEN := Vector2(1920.0, 1080.0)
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 
 var _focus_points: Dictionary
 var _base_zoom: float
@@ -48,10 +50,19 @@ func build(events: Array, length: float, into: Animation) -> Animation:
 	var shake := _track(into, ^"../RubiconInterpolatedCamera2D:position_interpolate_offset")
 	into.track_insert_key(shake, 0.0, Vector2.ZERO)
 	into.track_insert_key(angle, 0.0, 0.0)
+	# The letterbox, and the two things SetCameraBop sets on the beat bump.
+	var bar_top := _track(into, ^"../CinematicBars/Top:size")
+	var bar_bottom := _track(into, ^"../CinematicBars/Bottom:size")
+	var bop_rate := _track(into, ^"../SongCamera:bump_every_beats")
+	var bop_scale := _track(into, ^"../SongCamera:bump_scale")
+	into.track_insert_key(bar_top, 0.0, Vector2(SCREEN.x, 0.0))
+	into.track_insert_key(bar_bottom, 0.0, Vector2(SCREEN.x, 0.0))
 
 	var at_position: Vector2 = _focus_points.get(1, Vector2.ZERO)
 	var at_zoom: float = _base_zoom
 	var at_angle: float = 0.0
+	var at_bar_top: float = 0.0
+	var at_bar_bottom: float = 0.0
 	var shakes: int = 0
 	var wrote_focus: int = 0
 	var wrote_zoom: int = 0
@@ -100,6 +111,25 @@ func build(events: Array, length: float, into: Animation) -> Animation:
 				var strength: float = float(values.get("gameIntensity", 0.0)) * 1280.0
 				var span: float = float(values.get("gameTime", 0.0))
 				shakes += _shake(into, shake, time, span, strength)
+			"SetCameraBop":
+				# Discrete: a rate is a whole number of beats and there is nothing to ease.
+				into.track_insert_key(bop_rate, time, int(values.get("rate", 4)))
+				into.track_insert_key(bop_scale, time,
+					float(values.get("intensity", 1.0)))
+			"CinematicBars":
+				# upTime/downTime are SECONDS here, not steps - 1.25 and 0.5 are what the
+				# chart carries and no tempo makes those a whole number of sixteenths. The
+				# bars are screen-space, so their height IS scaled by the 1.5.
+				var top_to: float = float(values.get("upY", 0.0)) * FUNKIN_TO_RUBICON
+				var bottom_to: float = float(values.get("downY", 0.0)) * FUNKIN_TO_RUBICON
+				_sample_size(into, bar_top, time, float(values.get("upTime", 0.0)),
+					at_bar_top, top_to, String(values.get("upEase", "linear")),
+					String(values.get("easeDirup", "In")))
+				_sample_size(into, bar_bottom, time, float(values.get("downTime", 0.0)),
+					at_bar_bottom, bottom_to, String(values.get("downEase", "linear")),
+					String(values.get("easeDirdown", "In")))
+				at_bar_top = top_to
+				at_bar_bottom = bottom_to
 			"AddCameraZoom":
 				# A punch, not a move: it adds and the camera's own lerp takes it back.
 				var punch: float = at_zoom * (1.0 + float(values.get("gameZoom", 0.0)))
@@ -218,3 +248,16 @@ func _shake(animation: Animation, track: int, time: float, seconds: float,
 			rng.randf_range(-strength, strength) * fade))
 	animation.track_insert_key(track, time + seconds, Vector2.ZERO)
 	return steps + 1
+
+
+## A bar's height, as a size on a full-width rect.
+func _sample_size(animation: Animation, track: int, time: float, seconds: float,
+		from: float, to: float, ease_name: String, ease_dir: String) -> void:
+	if seconds <= 0.0:
+		animation.track_insert_key(track, time, Vector2(SCREEN.x, to))
+		return
+	var steps: int = maxi(2, int(ceil(seconds * SAMPLES_PER_SECOND)))
+	for i: int in steps + 1:
+		var t: float = float(i) / float(steps)
+		animation.track_insert_key(track, time + seconds * t,
+			Vector2(SCREEN.x, lerpf(from, to, _ease(t, ease_name, ease_dir))))

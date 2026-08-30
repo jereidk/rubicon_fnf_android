@@ -169,8 +169,14 @@ func _init() -> void:
 	for i: int in scene.get_track_count():
 		aimed[String(scene.track_get_path(i)).get_slice(":", 1)] = true
 	for wanted: String in ["position_interpolate_target", "zoom_interpolate_target",
-			"rotation_interpolate_target", "position_interpolate_offset"]:
+			"rotation_interpolate_target", "position_interpolate_offset",
+			"size", "bump_every_beats", "bump_scale"]:
 		_check(aimed.has(wanted), "dadbattle: la camara no hornea %s" % wanted)
+	# The bars have to EXIST for their track to survive packing - Godot drops a track whose
+	# node is not there, silently.
+	_check(battle.get_node_or_null("CinematicBars/Top") != null
+		and battle.get_node_or_null("CinematicBars/Bottom") != null,
+		"dadbattle: sin barras las pistas de CinematicBars se caen al empaquetar")
 	battle.queue_free()
 	await process_frame
 	tutorial.queue_free()
