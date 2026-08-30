@@ -1314,6 +1314,11 @@ func _check_death() -> void:
 			_check(opponent.animation_player.current_animation == &"game_over",
 				"de pie: komi tendria que estar en game_over")
 
+		# The lane hitboxes are not part of the HUD the death sends away, and while they
+		# are up they eat the tap that retries - so the death hides them.
+		_check(not level.get_node("MobileControls").visible,
+			"%s: los hitboxes tendrian que esconderse al morir" % form)
+
 		# deathConfirm is NOT the same in the two forms, and this port ran the standing
 		# one's numbers for both. Only tadano-stand.hx slides the panels and drops the
 		# black curtain; tadano.hx just raises the camera, on its own delay and ease.
@@ -1333,6 +1338,13 @@ func _check_death() -> void:
 			_check(is_equal_approx(
 					level.get_node("Death/LeftPanel").position.x, panel_at),
 				"al telefono los paneles no tendrian que moverse")
+
+		# Retrying is the port's own: the mod goes back through a StickerSubState and there
+		# is none here. What is the mod's is the wait - each form's confirm delay plus the
+		# 3.5s its tweens run.
+		_check(is_equal_approx(sequence.retry_seconds(standing),
+				(0.2 if standing else 0.8) + 3.5),
+			"%s: el reintento espera %.2fs" % [form, sequence.retry_seconds(standing)])
 
 		_drop(level)
 		await process_frame

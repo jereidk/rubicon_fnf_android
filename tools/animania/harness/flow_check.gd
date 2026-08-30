@@ -199,6 +199,26 @@ func _init() -> void:
 
 	_check(root.has_node("DebugOverlay"), "falta el overlay de debug")
 
+	# And dying leads back into the song. The mod goes through a StickerSubState and there
+	# is none here, so the level reloads - which only works when the level IS the running
+	# scene, and this is the only place that is true.
+	var death: Node = level.get_node("DeathSequence")
+	level.get_node("RubiconHealthModule").health = 0.0
+	await process_frame
+	_check(not level.get_node("MobileControls").visible,
+		"al morir los hitboxes siguen puestos")
+	death.confirm()
+	var wait: int = Time.get_ticks_msec() \
+		+ int(death.retry_seconds(death.is_standing()) * 1000.0) + 2500
+	while is_instance_valid(level) and current_scene == level \
+			and Time.get_ticks_msec() < wait:
+		await process_frame
+	for i: int in 6:
+		await process_frame
+	_check(current_scene != null and current_scene != level
+		and String(current_scene.scene_file_path) == SONG,
+		"el reintento no recargo la cancion: %s" % [current_scene])
+
 	_report()
 
 

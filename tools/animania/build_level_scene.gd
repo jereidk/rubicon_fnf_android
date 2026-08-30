@@ -204,6 +204,10 @@ func _init() -> void:
 	controls.name = "MobileControls"
 	controls.set(&"opacity", MOBILE_CONTROLS_OPACITY)
 	_root.add_child(controls)
+	# The death hides them: they are not part of the HUD it sends away, and while they are
+	# up they eat the tap that retries. Wired here rather than in _build_death because that
+	# runs before these exist.
+	_root.get_node("DeathSequence").mobile_controls = controls
 
 	_bake_camera_events(instrumental.get_length())
 

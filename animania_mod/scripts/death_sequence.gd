@@ -9,9 +9,11 @@ extends Node
 ## Distances are Funkin's and scale by 1.5, being screen distances. Times and eases are
 ## verbatim.
 ##
-## What this does NOT do is retry. There is no pause menu, no game-over scene and no song
-## select on this branch to go back to, so `confirm()` plays the confirm beat and stops -
-## whatever drives the flow later calls it and then does the transition itself.
+## Retrying is the one place this cannot follow the mod. Funkin's GameOverSubState.update
+## ends the confirm by building a StickerSubState and going back into PlayState through it,
+## and there is no sticker transition here - so this reloads the level instead. The standing
+## form's own curtain is black by then and covers the swap; the phone form's confirm has no
+## curtain, so there the reload is visible. That is a gap, not a choice.
 
 ## createDeathSprites: darkBg tweens to 0.75 over 1.25s backOut after half a second.
 const DARK_ALPHA := 0.75
@@ -76,6 +78,12 @@ const LOOP_SECONDS := 3.5
 ## deathConfirm: the camera pulls up 350 over 3.5s.
 const CONFIRM_CAMERA_RISE := -350.0
 
+## How long the confirm runs before the level comes back: its own tweens, which are 3.5s
+## from where each form starts them - the standing one immediately, the phone one after its
+## 0.8 delay.
+const RETRY_DELAY_STANDING := 0.2
+const RETRY_DELAY_PHONE := 0.8
+
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 const SCREEN := Vector2(1920.0, 1080.0)
 
@@ -104,6 +112,9 @@ const SCREEN := Vector2(1920.0, 1080.0)
 ## The black curtain the standing form's confirm wipes down. Screen space, like its
 ## scrollFactor.set().
 @export var gradient: Control
+## The lane hitboxes. They are not part of the HUD the death sends away, and while they are
+## up they eat the tap that is meant to retry - and a dead player cannot hit notes anyway.
+@export var mobile_controls: CanvasLayer
 ## The retry text has one atlas per form.
 @export var phone_text: AnimationLibrary
 @export var stand_text: AnimationLibrary
@@ -157,6 +168,9 @@ func die() -> void:
 	# pulse the moment the player is dead.
 	if events != null:
 		events.set(&"dying", true)
+
+	if mobile_controls != null:
+		mobile_controls.visible = false
 
 	var standing: bool = is_standing()
 	var player: Node2D = stand_player if standing else phone_player
@@ -382,6 +396,8 @@ func confirm() -> void:
 			Tween.TRANS_ELASTIC if standing else Tween.TRANS_BACK).set_ease(
 			Tween.EASE_IN_OUT)
 
+	_retry(standing)
+
 	if not standing:
 		return
 
@@ -393,6 +409,35 @@ func confirm() -> void:
 			CONFIRM_SECONDS).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
 
 	_sweep_gradient()
+
+
+## ACCEPT while the retry text is looping. On a phone that is a tap: the lane hitboxes are
+## hidden by then, so nothing else is holding the screen.
+func _unhandled_input(event: InputEvent) -> void:
+	if not _dying or _confirmed or not event.is_pressed():
+		return
+	if event is InputEventKey:
+		if (event as InputEventKey).keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+			confirm()
+		return
+	if event is InputEventScreenTouch \
+			or (event is InputEventMouseButton
+				and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT):
+		confirm()
+
+
+## Seconds from confirm() to the level coming back - each form's delay plus the 3.5s its
+## tweens run.
+func retry_seconds(standing: bool) -> float:
+	return (RETRY_DELAY_STANDING if standing else RETRY_DELAY_PHONE) + CONFIRM_SECONDS
+
+
+## Only when this level IS the running scene. A harness instances it as a child of its own
+## scene, and reloading there would throw away the harness instead.
+func _retry(standing: bool) -> void:
+	await get_tree().create_timer(retry_seconds(standing)).timeout
+	if get_tree().current_scene == owner:
+		get_tree().reload_current_scene()
 
 
 ## The last thing tadano-stand.hx's deathConfirm does, and the last thing added to the
