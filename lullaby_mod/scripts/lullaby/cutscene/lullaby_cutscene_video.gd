@@ -39,8 +39,8 @@ extends Node
 ## extrapolación es solo microarquitectura. A 960x432 son ~3ms en el g53 y
 ## ~8.5ms en un A12, cada 1/30s, sin picos.
 ##
-## Dos modos, y la diferencia importa
-## ----------------------------------
+## Tres modos, y la diferencia importa
+## -----------------------------------
 ## CON `live_cutscene`: la escena viva sigue en el árbol y el vídeo se pone
 ## ENCIMA en su propio CanvasLayer. No se le toca el `visible` -el Timeline de
 ## la canción lo anima con una pista y escribir sobre la misma propiedad
@@ -56,6 +56,21 @@ extends Node
 ## nunca. Ahí el vídeo no es una preferencia de calidad, es la cutscene: no hay
 ## `process_mode` que apagar, y `_wanted()` deja de consultar al preset.
 ##
+## SIN `live_cutscene` pero CON `live_fallback_exists`: la escena viva está
+## entera, pero repartida. Es la sesión de fotos de Chimera: catorce clips de
+## `103_stroll` a `116_hexstare` sobre seis nodos de `Sequences`, sin un padre
+## común que apagar - `Sequences` lleva dentro `ReferenceSong`, la referencia de
+## sincronía de la canción, y `SequencePlayer`, que dispara los clips. Ahí no se
+## apaga a nadie el proceso; lo que se ahorra es el pase 3D, con
+## `disable_3d_while_playing`, porque ese tramo iba a 30fps por GPU y no por CPU.
+##
+## Cuándo empieza a dibujarse
+## --------------------------
+## Cuando el reloj llega a `starts_at`, no en `_ready()`. La prelude tiene
+## `starts_at = 0.0` y con ella daba igual; la sesión de fotos empieza en 53.7s y
+## un reproductor arrancado en `_ready()` habría tapado la prelude y el intro
+## desde el primer fotograma de la canción.
+##
 ## Se retira en silencio si no hay vídeo. El `.ogv` lo produce CI, así que un
 ## checkout de desarrollo no lo tiene y la canción tiene que funcionar igual -
 ## mismo criterio que `trance_shaders.gd` cuando el preset le quita el material.
@@ -63,11 +78,48 @@ extends Node
 ## El nodo de la cutscene viva cuyo procesamiento se apaga mientras corre el
 ## vídeo. Su `visible` no se toca (ver arriba).
 ##
-## OPCIONAL. Vacío significa que la cutscene viva ya no está en el árbol porque
-## se retiró - es el caso de Safety Lullaby, donde el vídeo dejó de ser una capa
-## por encima y pasó a ser lo único que hay. Sin nadie a quien apagarle el
-## `process_mode` este nodo sigue haciendo su trabajo: reproducir y sincronizar.
+## OPCIONAL, y vacío puede querer decir dos cosas distintas - las separa
+## `live_fallback_exists`:
+##
+##   * vacío y `live_fallback_exists = false`: la cutscene viva se retiró del
+##     árbol y no hay a qué volver. Safety Lullaby. El preset deja de opinar.
+##   * vacío y `live_fallback_exists = true`: la cutscene viva sigue ahí pero no
+##     hay un solo nodo que apagar. La sesión de fotos de Chimera. El preset
+##     sigue decidiendo.
 @export var live_cutscene: Node
+
+## Que exista una versión viva a la que volver, aunque no haya un solo nodo al
+## que apagarle el `process_mode`.
+##
+## `live_cutscene` hacía dos trabajos a la vez: decir a quién se apaga, y decir
+## si hay algo a lo que caer si el preset dice que no al vídeo. Para la prelude
+## coinciden -un nodo, `Intro`- pero para la sesión de fotos de Chimera no: son
+## catorce clips (`103_stroll` a `116_hexstare`) repartidos por seis nodos de
+## `Sequences`, y no hay un padre común que se pueda apagar sin llevarse por
+## delante `ReferenceSong` -la referencia de sincronía de la canción- y
+## `SequencePlayer`, que es quien dispara los clips.
+##
+## Así que ahí `live_cutscene` va vacío y esto va a `true`: no se apaga a nadie,
+## pero el preset SÍ decide, porque la escena viva sigue estando entera.
+@export var live_fallback_exists: bool = false
+
+## Saltarse el pase 3D del viewport mientras el vídeo tapa la pantalla.
+##
+## No es lo mismo que apagar `process_mode` y para la sesión de fotos es lo
+## único que sirve. Dos razones, las dos medidas:
+##
+##   * Los clips los mueve `SequencePlayer`, que es HERMANO de los nodos que
+##     anima. Apagarle el proceso al nodo destino no impide que un
+##     AnimationPlayer de fuera le siga escribiendo propiedades.
+##   * `104_photographysesh` iba a 30fps con 23.5ms de GPU, 54 draw calls y
+##     26565 primitivas. El cuello es el pase 3D, no la animación.
+##
+## `disable_3d` deja las animaciones corriendo -solo no las dibuja-, que es
+## justo lo que hace falta: en 113.140144s el mando vuelve a la mecánica de
+## heartbeat y la cámara y las poses tienen que estar donde el clip las dejó.
+## Apagar el proceso las habría congelado y el traspaso caería en el sitio
+## equivocado.
+@export var disable_3d_while_playing: bool = false
 
 ## El `.ogv` pre-renderizado. Vacío o inexistente = este nodo se retira.
 @export_file("*.ogv") var video_path: String = ""
@@ -123,6 +175,13 @@ var _handed_back: bool = false
 var _seen_playing: bool = false
 var _seeks: int = 0
 
+## Si la ventana ya se abrió. Hasta entonces el reproductor existe pero ni se ve
+## ni suena.
+var _opened: bool = false
+
+## El `disable_3d` que traía el viewport, para devolverlo tal cual.
+var _was_3d_disabled: bool = false
+
 
 func _ready() -> void:
 	set_process(false)
@@ -167,11 +226,14 @@ func _ready() -> void:
 	#     preset dentro del árbol     -> size=(1920, 1080)
 	_player.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	if live_cutscene != null:
-		_live_mode = live_cutscene.process_mode
-		live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED
-
-	_player.play()
+	# Montado pero CERRADO. La primera versión llamaba a play() aquí mismo, y con
+	# `starts_at = 0.0` -la prelude, el único caso que había- eso era correcto.
+	#
+	# Con la sesión de fotos de Chimera deja de serlo: su frame 0 cae en 53.7s, y
+	# un reproductor que arranca en `_ready()` dibuja su primer fotograma sobre la
+	# prelude y sobre el intro, cincuenta y tres segundos antes de que le toque.
+	# La ventana la abre `_process()` cuando el reloj llega.
+	_layer.visible = false
 	set_process(true)
 
 
@@ -182,7 +244,7 @@ func _ready() -> void:
 ## calidad, es la cutscene. Dejar que el preset lo apagase ahí no daría la
 ## versión bonita, daría treinta segundos de pantalla vacía.
 func _wanted() -> bool:
-	if live_cutscene == null:
+	if live_cutscene == null and not live_fallback_exists:
 		return true
 
 	var settings: Object = Engine.get_singleton(&"Settings") if Engine.has_singleton(&"Settings") else null
@@ -213,13 +275,25 @@ func _process(_delta: float) -> void:
 	if finish <= 0.0:
 		finish = starts_at + _player.get_stream_length()
 
+	# Pasado el final se devuelve el mando aunque nunca se llegara a abrir. Pasa
+	# cuando alguien sitúa el reloj más allá de la ventana - el harness lo hace
+	# con `desde=`, y una repetición tras morir podría hacerlo también.
+	if here >= finish:
+		_hand_back()
+		return
+
+	if not _opened:
+		if here < starts_at:
+			return
+		_open(here)
+
 	# El reloj manda. `is_playing()` es solo la red por si el vídeo se acaba
 	# antes de tiempo, y solo cuenta DESPUÉS de haberlo visto reproducir: en un
 	# servidor de vídeo que no decodifica (headless, un banco) arranca en false
 	# y sin este cerrojo el nodo devolvería el mando en el primer frame.
 	if _player.is_playing():
 		_seen_playing = true
-	if here >= finish or (_seen_playing and not _player.is_playing()):
+	if _seen_playing and not _player.is_playing():
 		_hand_back()
 		return
 
@@ -229,6 +303,32 @@ func _process(_delta: float) -> void:
 	if absf(_player.stream_position - want) > max_drift:
 		_seeks += 1
 		_player.stream_position = want
+
+
+## Abre la ventana: muestra el vídeo, lo sitúa y calla lo que tape.
+##
+## Se sitúa con `stream_position` en vez de arrancar en cero porque el reloj
+## puede llegar ya empezado - el primer fotograma en que `here >= starts_at`
+## puede caer perfectamente a mitad de la ventana si la escena se montó con el
+## reloj adelantado.
+func _open(here: float) -> void:
+	_opened = true
+	_layer.visible = true
+	_player.play()
+
+	var want: float = here - starts_at
+	if want > 0.0:
+		_player.stream_position = want
+
+	if live_cutscene != null:
+		_live_mode = live_cutscene.process_mode
+		live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED
+
+	if disable_3d_while_playing:
+		var vp: Viewport = get_viewport()
+		if vp != null:
+			_was_3d_disabled = vp.disable_3d
+			vp.disable_3d = true
 
 
 ## Devuelve el mando a la escena viva y se apaga.
@@ -250,7 +350,20 @@ func _hand_back() -> void:
 	_handed_back = true
 	set_process(false)
 
-	if is_instance_valid(live_cutscene):
+	# Solo si la ventana llegó a abrirse. Por el camino de "el reloj ya iba
+	# pasado" no se apagó nada, y escribir `false` a ciegas le pisaría el ajuste
+	# a quien lo tuviera puesto por su cuenta.
+	if _opened and disable_3d_while_playing:
+		var vp: Viewport = get_viewport()
+		if vp != null:
+			vp.disable_3d = _was_3d_disabled
+
+	# Tambien solo si se abrio, y por lo mismo: `_live_mode` se captura en
+	# `_open()`, asi que por el camino de "el reloj ya iba pasado" todavia vale
+	# INHERIT y restaurarlo le pisaria a la cutscene su modo authoreado. Lo
+	# encontro test_cutscene_video.gd, que monta el arbol de verdad; leyendo el
+	# codigo no se veia.
+	if _opened and is_instance_valid(live_cutscene):
 		live_cutscene.process_mode = _live_mode
 
 	if _player != null:

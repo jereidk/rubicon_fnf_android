@@ -104,9 +104,22 @@ func _wiring_checks() -> void:
 	_check(settings.contains("graphics_prefer_cutscene_video"),
 		"...con prefijo graphics_, que es lo que lo persiste")
 
-	# La trampa del `visible`.
-	_check(not code.contains("live_cutscene.visible") and not code.contains(".visible = "),
+	# La trampa del `visible`. Se prohíbe escribirlo en la CUTSCENE, no en
+	# cualquier sitio: el componente sí escribe `_layer.visible`, que es su
+	# propio CanvasLayer, para tener el vídeo montado y callado hasta que el
+	# reloj llegue a `starts_at`. La primera versión de esta comprobación
+	# prohibía `.visible = ` a secas y se disparaba con eso, que es un falso
+	# positivo - esa capa es suya y no la anima ninguna pista.
+	_check(not code.contains("live_cutscene.visible"),
 		"el componente NO escribe visible en la cutscene (pelearía con la pista)")
+	var visibles: PackedStringArray = []
+	for line: String in code.split("\n"):
+		if line.contains(".visible = ") and not line.strip_edges().begins_with("#"):
+			if not line.contains("_layer.visible = "):
+				visibles.append(line.strip_edges())
+	_check(visibles.is_empty(),
+		"...y el único visible que toca es el de su propia capa%s"
+			% ("" if visibles.is_empty() else " - NO: " + ", ".join(visibles)))
 	_check(code.contains("live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED"),
 		"...apaga el process_mode, que es donde está el coste medido")
 
@@ -454,8 +467,17 @@ func _behaviour_checks() -> void:
 	# --- 3. Con preset y fichero: sustituye.
 	var on := _mount(script, FIXTURE, true)
 	_check(_video_players(on.node) == 1, "con preset y fichero: hay un reproductor")
+
+	# La ventana la abre el RELOJ, no `_ready()`. Antes de que nadie ponga el
+	# reloj en marcha, el vídeo está montado y callado y la cutscene sigue viva.
+	_check(on.live.process_mode == Node.PROCESS_MODE_PAUSABLE,
+		"...pero sin reloj en marcha no se ha abierto: la cutscene sigue procesando")
+
+	on.clock.play(&"linea")
+	on.clock.seek(0.0, true)
+	on.node.call("_process", 0.016)
 	_check(on.live.process_mode == Node.PROCESS_MODE_DISABLED,
-		"...y la cutscene deja de procesar")
+		"...y al llegar el reloj a starts_at, la cutscene deja de procesar")
 	_check(on.live.visible, "...pero sigue visible: el nodo no le toca esa propiedad")
 
 	# Y que el reproductor OCUPE la pantalla. Un Control al que se le escriben
