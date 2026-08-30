@@ -335,6 +335,11 @@ Three things that bit while building this:
 - **Animania's `tutorial` chart has zero notes** in all three difficulties. Do not go
   hunting for why nobody sings in it: there is nothing to sing. Use `bopeebo` to exercise
   singing and the camera.
+- **EVERY stage has a `.hx` that overrides its JSON**, at `scripts/stages/<name>.hx`. This
+  port only knew about phoneCallStreet's and did not go looking for the rest until
+  serviceEnterance drew an opaque pink sheet over the whole song - its script tweens that
+  prop's alpha 1<->0.5 on a pingpong, and without it the stage is invisible. Read the `.hx`
+  before believing the JSON. Their FlxBackdrops, shaders and ambience are NOT ported.
 - **A stage prop's `alpha` and `blend` are easy to miss** because most props carry neither.
   mainStageAmTake's two vignettes carry both - `alpha: 0` on one, `alpha: 0.8` plus
   `blend: multiply` on the other - and ignoring them drew two opaque sheets at zIndex 317,

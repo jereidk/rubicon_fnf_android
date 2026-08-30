@@ -46,6 +46,6 @@ func _process(delta: float) -> void:
 			var aim: Vector2 = camera.get(&"position_interpolate_target")
 			if _seen.is_empty() or not _seen[-1].is_equal_approx(aim):
 				_seen.append(aim)
-	if _elapsed > 22.0:
+	if _elapsed > 31.0:
 		print("OUT la camara apunto a %d sitios: %s" % [_seen.size(), _seen])
 		_pending = true

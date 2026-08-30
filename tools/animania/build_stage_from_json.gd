@@ -157,6 +157,8 @@ func _init() -> void:
 			prop["name"], sprite.position.x, sprite.position.y, sprite.scale.x,
 			int(prop.get("zIndex", 0))])
 
+	_apply_script_tweens(root, stage_name)
+
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	var packed := PackedScene.new()
 	packed.pack(root)
@@ -198,3 +200,62 @@ func _place(node: Node2D, prop: Dictionary) -> void:
 				% [prop["name"], blend])
 			return
 	node.material = material
+
+
+## What a stage's `.hx` does to its props on top of the JSON.
+##
+## EVERY stage has one - `scripts/stages/<name>.hx` - and this port did not go looking for
+## them until dadbattle came out with a pink sheet over the whole screen. The JSON is not
+## the whole truth for any stage; phoneCallStreet's builder knew that and the generic one
+## did not.
+##
+## Only the prop tweens are here. The scripts also add FlxBackdrops in code (the drifting
+## mists), drive shaders and play ambience, and none of that is ported - it is written down
+## rather than half-done.
+const SCRIPT_TWEENS := {
+	# serviceEnterance.hx:174
+	#   FlxTween.tween(getNamedProp("fgRedOverlay"), {alpha: 0.5}, 2,
+	#       {ease: FlxEase.sineInOut, type: 4});
+	# type 4 is PINGPONG, so the red breathes between the JSON's alpha of 1 and 0.5 instead
+	# of sitting at full - the difference between a wash you can see through and one you
+	# cannot.
+	"serviceEnterance": [["FgRedOverlay", 1.0, 0.5, 2.0]],
+}
+
+
+func _apply_script_tweens(root: Node2D, stage_name: String) -> void:
+	if not SCRIPT_TWEENS.has(stage_name):
+		return
+	var player := AnimationPlayer.new()
+	player.name = "ScriptTweens"
+	root.add_child(player)
+	player.owner = root
+	var library := AnimationLibrary.new()
+	var first := StringName()
+
+	for entry: Array in SCRIPT_TWEENS[stage_name]:
+		var target: Node = root.get_node_or_null(String(entry[0]))
+		if target == null:
+			print("OUT tween de script sin prop: %s" % entry[0])
+			continue
+		var animation := Animation.new()
+		# There and back: FlxTween's PINGPONG runs the duration each way.
+		animation.length = float(entry[3]) * 2.0
+		animation.loop_mode = Animation.LOOP_LINEAR
+		var track: int = animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track, NodePath("%s:modulate:a" % entry[0]))
+		# sineInOut, sampled - the same reason the camera baker samples its eases.
+		for i: int in 33:
+			var t: float = float(i) / 32.0
+			var eased: float = 0.5 - 0.5 * cos(t * TAU)
+			animation.track_insert_key(track, t * animation.length,
+				lerpf(float(entry[1]), float(entry[2]), eased))
+		var clip := StringName(String(entry[0]).to_snake_case())
+		library.add_animation(clip, animation)
+		if String(first).is_empty():
+			first = clip
+		print("OUT tween de script: %s alpha %.2f<->%.2f cada %.1fs" % [
+			entry[0], entry[1], entry[2], entry[3]])
+
+	player.add_animation_library(&"", library)
+	player.autoplay = first
