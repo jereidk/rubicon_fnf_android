@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://dw6rxxoftwwaq"
+path="res://.godot/imported/gf_focus_face.png-9675c9734672ea12d01b8ef00ed4ab6e.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/sprites/gf_focus_face.png"
+dest_files=["res://.godot/imported/gf_focus_face.png-9675c9734672ea12d01b8ef00ed4ab6e.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

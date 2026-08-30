@@ -42,6 +42,7 @@
 [ext_resource type="Script" uid="uid://bk8alxtg2qxnl" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="35"]
 [ext_resource type="Script" uid="uid://dk0ffxu4bdk3c" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_position_setter.gd" id="36"]
 [ext_resource type="Script" uid="uid://bcy0fvr2gilvq" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="37"]
+[ext_resource type="PackedScene" uid="uid://dumkk6b1pu8xk" path="res://lullaby_mod/songs/safety_lullaby/scenes/intro.tscn" id="38"]
 [ext_resource type="PackedScene" uid="uid://bnlpg0u8h00jk" path="res://lullaby_mod/resources/funkin/songs/global/mechanics/mch_pendulum.tscn" id="39"]
 [ext_resource type="Script" uid="uid://dpaagofnwlljw" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="40"]
 [ext_resource type="Resource" uid="uid://j32cuffex60x" path="res://lullaby_mod/songs/safety_lullaby/data/chart_safety_lullaby_ply.tres" id="41"]
@@ -158,19 +159,19 @@ tracks/6/keys = {
 tracks/7/type = "value"
 tracks/7/imported = false
 tracks/7/enabled = true
-tracks/7/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position_interpolate_target")
+tracks/7/path = NodePath("../IntroCutscene:visible")
 tracks/7/interp = 1
 tracks/7/loop_wrap = true
 tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(960, 540)]
+"values": [true]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
 tracks/8/enabled = true
-tracks/8/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position")
+tracks/8/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position_interpolate_target")
 tracks/8/interp = 1
 tracks/8/loop_wrap = true
 tracks/8/keys = {
@@ -182,55 +183,55 @@ tracks/8/keys = {
 tracks/9/type = "value"
 tracks/9/imported = false
 tracks/9/enabled = true
-tracks/9/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_target")
+tracks/9/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position")
 tracks/9/interp = 1
 tracks/9/loop_wrap = true
 tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(0.82499987, 0.82499987)]
+"values": [Vector2(960, 540)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom")
+tracks/10/path = NodePath("../IntroCutscene/Scene/Camera2D:enabled")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0.825, 0.825)]
+"update": 1,
+"values": [false]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
 tracks/11/enabled = true
-tracks/11/path = NodePath("../Environment/HypnoEnd:singing_should_sing")
+tracks/11/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_target")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Vector2(0.82499987, 0.82499987)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
 tracks/12/enabled = true
-tracks/12/path = NodePath("../Environment/HypnoEnd:dancing_should_dance")
+tracks/12/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom")
 tracks/12/interp = 1
 tracks/12/loop_wrap = true
 tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Vector2(0.825, 0.825)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
 tracks/13/enabled = true
-tracks/13/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconCameraBumper:enabled")
+tracks/13/path = NodePath("../Environment/HypnoEnd:singing_should_sing")
 tracks/13/interp = 1
 tracks/13/loop_wrap = true
 tracks/13/keys = {
@@ -242,7 +243,7 @@ tracks/13/keys = {
 tracks/14/type = "value"
 tracks/14/imported = false
 tracks/14/enabled = true
-tracks/14/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_enabled")
+tracks/14/path = NodePath("../Environment/HypnoEnd:dancing_should_dance")
 tracks/14/interp = 1
 tracks/14/loop_wrap = true
 tracks/14/keys = {
@@ -254,7 +255,7 @@ tracks/14/keys = {
 tracks/15/type = "value"
 tracks/15/imported = false
 tracks/15/enabled = true
-tracks/15/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position_interpolate_enabled")
+tracks/15/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconCameraBumper:enabled")
 tracks/15/interp = 1
 tracks/15/loop_wrap = true
 tracks/15/keys = {
@@ -266,55 +267,55 @@ tracks/15/keys = {
 tracks/16/type = "value"
 tracks/16/imported = false
 tracks/16/enabled = true
-tracks/16/path = NodePath("../Environment/EndBG/Glow:modulate")
+tracks/16/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_enabled")
 tracks/16/interp = 1
 tracks/16/loop_wrap = true
 tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.49, 0.009799991, 0.19387661, 0.5411765)]
+"update": 1,
+"values": [true]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
 tracks/17/enabled = true
-tracks/17/path = NodePath("../Environment/HypnoEnd:position")
+tracks/17/path = NodePath("../Environment/RubiconInterpolatedCamera2D:position_interpolate_enabled")
 tracks/17/interp = 1
 tracks/17/loop_wrap = true
 tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(1005, 3420.0002)]
+"update": 1,
+"values": [true]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
 tracks/18/enabled = true
-tracks/18/path = NodePath("../Environment/HypnoEnd/Sprite:self_modulate")
+tracks/18/path = NodePath("../Environment/EndBG/Glow:modulate")
 tracks/18/interp = 1
 tracks/18/loop_wrap = true
 tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [Color(0.49, 0.009799991, 0.19387661, 0.5411765)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
 tracks/19/enabled = true
-tracks/19/path = NodePath("../Environment/HypnoEnd:scale")
+tracks/19/path = NodePath("../Environment/HypnoEnd:position")
 tracks/19/interp = 1
 tracks/19/loop_wrap = true
 tracks/19/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(1.4, 1.4)]
+"values": [Vector2(1005, 3420.0002)]
 }
 tracks/20/type = "value"
 tracks/20/imported = false
 tracks/20/enabled = true
-tracks/20/path = NodePath("../Environment/HypnoEnd/Sprite/Pendulum:modulate")
+tracks/20/path = NodePath("../Environment/HypnoEnd/Sprite:self_modulate")
 tracks/20/interp = 1
 tracks/20/loop_wrap = true
 tracks/20/keys = {
@@ -326,91 +327,91 @@ tracks/20/keys = {
 tracks/21/type = "value"
 tracks/21/imported = false
 tracks/21/enabled = true
-tracks/21/path = NodePath("../Environment/EndBG/Glow:position")
+tracks/21/path = NodePath("../Environment/HypnoEnd:scale")
 tracks/21/interp = 1
 tracks/21/loop_wrap = true
 tracks/21/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(407, 627.5)]
+"values": [Vector2(1.4, 1.4)]
 }
 tracks/22/type = "value"
 tracks/22/imported = false
 tracks/22/enabled = true
-tracks/22/path = NodePath("../Environment/EndBG/Glow:scale")
+tracks/22/path = NodePath("../Environment/HypnoEnd/Sprite/Pendulum:modulate")
 tracks/22/interp = 1
 tracks/22/loop_wrap = true
 tracks/22/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(30.250002, 17.078123)]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/23/type = "value"
 tracks/23/imported = false
 tracks/23/enabled = true
-tracks/23/path = NodePath("../Environment/EndBG:modulate")
+tracks/23/path = NodePath("../Environment/EndBG/Glow:position")
 tracks/23/interp = 1
 tracks/23/loop_wrap = true
 tracks/23/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [Vector2(407, 627.5)]
 }
 tracks/24/type = "value"
 tracks/24/imported = false
 tracks/24/enabled = true
-tracks/24/path = NodePath("../Environment/EndBG/EndCamera:position")
+tracks/24/path = NodePath("../Environment/EndBG/Glow:scale")
 tracks/24/interp = 1
 tracks/24/loop_wrap = true
 tracks/24/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(404, 626)]
+"values": [Vector2(30.250002, 17.078123)]
 }
 tracks/25/type = "value"
 tracks/25/imported = false
 tracks/25/enabled = true
-tracks/25/path = NodePath("../Environment/EndBG/EndCamera:zoom")
+tracks/25/path = NodePath("../Environment/EndBG:modulate")
 tracks/25/interp = 1
 tracks/25/loop_wrap = true
 tracks/25/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(1, 1)]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/26/type = "value"
 tracks/26/imported = false
 tracks/26/enabled = true
-tracks/26/path = NodePath("../Environment/EndBG/EndCamera:enabled")
+tracks/26/path = NodePath("../Environment/EndBG/EndCamera:position")
 tracks/26/interp = 1
 tracks/26/loop_wrap = true
 tracks/26/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Vector2(404, 626)]
 }
 tracks/27/type = "value"
 tracks/27/imported = false
 tracks/27/enabled = true
-tracks/27/path = NodePath("../UILayer/GameUI/DefaultHUD:modulate")
+tracks/27/path = NodePath("../Environment/EndBG/EndCamera:zoom")
 tracks/27/interp = 1
 tracks/27/loop_wrap = true
 tracks/27/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [Vector2(1, 1)]
 }
 tracks/28/type = "value"
 tracks/28/imported = false
 tracks/28/enabled = true
-tracks/28/path = NodePath("../Environment/SafetyLullabyGameoverModule:skip_intro")
+tracks/28/path = NodePath("../Environment/EndBG/EndCamera:enabled")
 tracks/28/interp = 1
 tracks/28/loop_wrap = true
 tracks/28/keys = {
@@ -422,139 +423,139 @@ tracks/28/keys = {
 tracks/29/type = "value"
 tracks/29/imported = false
 tracks/29/enabled = true
-tracks/29/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:position_enabled")
+tracks/29/path = NodePath("../UILayer/GameUI/DefaultHUD:modulate")
 tracks/29/interp = 1
 tracks/29/loop_wrap = true
 tracks/29/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/30/type = "value"
 tracks/30/imported = false
 tracks/30/enabled = true
-tracks/30/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
+tracks/30/path = NodePath("../Environment/SafetyLullabyGameoverModule:skip_intro")
 tracks/30/interp = 1
 tracks/30/loop_wrap = true
 tracks/30/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [&""]
+"values": [false]
 }
 tracks/31/type = "value"
 tracks/31/imported = false
 tracks/31/enabled = true
-tracks/31/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:modulate")
+tracks/31/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:position_enabled")
 tracks/31/interp = 1
 tracks/31/loop_wrap = true
 tracks/31/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
+"update": 1,
+"values": [false]
 }
 tracks/32/type = "value"
 tracks/32/imported = false
 tracks/32/enabled = true
-tracks/32/path = NodePath("../Environment/HypnoSafety:dancing_should_dance")
+tracks/32/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
 tracks/32/interp = 1
 tracks/32/loop_wrap = true
 tracks/32/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [&""]
 }
 tracks/33/type = "value"
 tracks/33/imported = false
 tracks/33/enabled = true
-tracks/33/path = NodePath("../Environment/Lyrics:initial_position")
+tracks/33/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:modulate")
 tracks/33/interp = 1
 tracks/33/loop_wrap = true
 tracks/33/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(0, 0)]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/34/type = "value"
 tracks/34/imported = false
 tracks/34/enabled = true
-tracks/34/path = NodePath("../Environment/Lyrics:move_distance")
+tracks/34/path = NodePath("../Environment/HypnoSafety:dancing_should_dance")
 tracks/34/interp = 1
 tracks/34/loop_wrap = true
 tracks/34/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, 0)]
+"update": 1,
+"values": [true]
 }
 tracks/35/type = "value"
 tracks/35/imported = false
 tracks/35/enabled = true
-tracks/35/path = NodePath("../Environment/Lyrics:lifetime")
+tracks/35/path = NodePath("../Environment/Lyrics:initial_position")
 tracks/35/interp = 1
 tracks/35/loop_wrap = true
 tracks/35/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [2.5]
+"values": [Vector2(0, 0)]
 }
 tracks/36/type = "value"
 tracks/36/imported = false
 tracks/36/enabled = true
-tracks/36/path = NodePath("../Environment/Lyrics:text")
+tracks/36/path = NodePath("../Environment/Lyrics:move_distance")
 tracks/36/interp = 1
 tracks/36/loop_wrap = true
 tracks/36/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": ["*add text*"]
+"update": 0,
+"values": [Vector2(0, 0)]
 }
 tracks/37/type = "value"
 tracks/37/imported = false
 tracks/37/enabled = true
-tracks/37/path = NodePath("../Environment/Lyrics:centered")
+tracks/37/path = NodePath("../Environment/Lyrics:lifetime")
 tracks/37/interp = 1
 tracks/37/loop_wrap = true
 tracks/37/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [2.5]
 }
 tracks/38/type = "value"
 tracks/38/imported = false
 tracks/38/enabled = true
-tracks/38/path = NodePath("../Environment/GF/Trance:gf_is_calm")
+tracks/38/path = NodePath("../Environment/Lyrics:text")
 tracks/38/interp = 1
 tracks/38/loop_wrap = true
 tracks/38/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": ["*add text*"]
 }
 tracks/39/type = "value"
 tracks/39/imported = false
 tracks/39/enabled = true
-tracks/39/path = NodePath("../Environment/Lyrics:modulate")
+tracks/39/path = NodePath("../Environment/Lyrics:centered")
 tracks/39/interp = 1
 tracks/39/loop_wrap = true
 tracks/39/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 0)]
+"update": 1,
+"values": [true]
 }
 tracks/40/type = "value"
 tracks/40/imported = false
 tracks/40/enabled = true
-tracks/40/path = NodePath("../Environment/GF:dancing_should_dance")
+tracks/40/path = NodePath("../Environment/GF/Trance:gf_is_calm")
 tracks/40/interp = 1
 tracks/40/loop_wrap = true
 tracks/40/keys = {
@@ -566,130 +567,154 @@ tracks/40/keys = {
 tracks/41/type = "value"
 tracks/41/imported = false
 tracks/41/enabled = true
-tracks/41/path = NodePath("../Environment/GF:singing_should_sing")
+tracks/41/path = NodePath("../Environment/Lyrics:modulate")
 tracks/41/interp = 1
 tracks/41/loop_wrap = true
 tracks/41/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
 }
 tracks/42/type = "value"
 tracks/42/imported = false
 tracks/42/enabled = true
-tracks/42/path = NodePath("../Environment/HypnoSafety/MainLight:texture_scale")
+tracks/42/path = NodePath("../Environment/GF:dancing_should_dance")
 tracks/42/interp = 1
 tracks/42/loop_wrap = true
 tracks/42/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [2.0]
+"update": 1,
+"values": [true]
 }
 tracks/43/type = "value"
 tracks/43/imported = false
 tracks/43/enabled = true
-tracks/43/path = NodePath("../Environment/Alley/BG/BgLight:modulate")
+tracks/43/path = NodePath("../Environment/GF:singing_should_sing")
 tracks/43/interp = 1
 tracks/43/loop_wrap = true
 tracks/43/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
+"update": 1,
+"values": [true]
 }
 tracks/44/type = "value"
 tracks/44/imported = false
 tracks/44/enabled = true
-tracks/44/path = NodePath("../UILayer/GameUI/Pendulum:pendulum_y_offset")
+tracks/44/path = NodePath("../Environment/HypnoSafety/MainLight:texture_scale")
 tracks/44/interp = 1
 tracks/44/loop_wrap = true
 tracks/44/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [2.0]
 }
 tracks/45/type = "value"
 tracks/45/imported = false
 tracks/45/enabled = true
-tracks/45/path = NodePath("../LullabyPendulumServer:linear_rotation_ratio")
+tracks/45/path = NodePath("../Environment/Alley/BG/BgLight:modulate")
 tracks/45/interp = 1
 tracks/45/loop_wrap = true
 tracks/45/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/46/type = "value"
 tracks/46/imported = false
 tracks/46/enabled = true
-tracks/46/path = NodePath("../UILayer/GameUI/DefaultHUD/ScoreContainer/HealthBar/Bar/IconPath/Follower/LeftIcon:sprite_frames")
+tracks/46/path = NodePath("../UILayer/GameUI/Pendulum:pendulum_y_offset")
 tracks/46/interp = 1
 tracks/46/loop_wrap = true
 tracks/46/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("4")]
+"update": 0,
+"values": [0.0]
 }
 tracks/47/type = "value"
 tracks/47/imported = false
 tracks/47/enabled = true
-tracks/47/path = NodePath("../Environment/HypnoSafety/MainLight:modulate")
+tracks/47/path = NodePath("../LullabyPendulumServer:linear_rotation_ratio")
 tracks/47/interp = 1
 tracks/47/loop_wrap = true
 tracks/47/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 1)]
+"values": [0.0]
 }
 tracks/48/type = "value"
 tracks/48/imported = false
 tracks/48/enabled = true
-tracks/48/path = NodePath("../Environment/HypnoSafety/MainLight:energy")
+tracks/48/path = NodePath("../UILayer/GameUI/DefaultHUD/ScoreContainer/HealthBar/Bar/IconPath/Follower/LeftIcon:sprite_frames")
 tracks/48/interp = 1
 tracks/48/loop_wrap = true
 tracks/48/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.31]
+"update": 1,
+"values": [ExtResource("4")]
 }
 tracks/49/type = "value"
 tracks/49/imported = false
 tracks/49/enabled = true
-tracks/49/path = NodePath("../Environment/HypnoSafety/MainLight:color")
+tracks/49/path = NodePath("../Environment/HypnoSafety/MainLight:modulate")
 tracks/49/interp = 1
 tracks/49/loop_wrap = true
 tracks/49/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(0.961983, 0.8266328, 0.884364, 1)]
+"values": [Color(1, 1, 1, 1)]
 }
 tracks/50/type = "value"
 tracks/50/imported = false
 tracks/50/enabled = true
-tracks/50/path = NodePath("../Environment/Alley/BG/BgLight:energy")
+tracks/50/path = NodePath("../Environment/HypnoSafety/MainLight:energy")
 tracks/50/interp = 1
 tracks/50/loop_wrap = true
 tracks/50/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.75]
+"values": [0.31]
 }
 tracks/51/type = "value"
 tracks/51/imported = false
 tracks/51/enabled = true
-tracks/51/path = NodePath("../ScuiguileLayer/SquiggleLayer:material:shader_parameter/WAVE_STRENGTH")
+tracks/51/path = NodePath("../Environment/HypnoSafety/MainLight:color")
 tracks/51/interp = 1
 tracks/51/loop_wrap = true
 tracks/51/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.961983, 0.8266328, 0.884364, 1)]
+}
+tracks/52/type = "value"
+tracks/52/imported = false
+tracks/52/enabled = true
+tracks/52/path = NodePath("../Environment/Alley/BG/BgLight:energy")
+tracks/52/interp = 1
+tracks/52/loop_wrap = true
+tracks/52/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.75]
+}
+tracks/53/type = "value"
+tracks/53/imported = false
+tracks/53/enabled = true
+tracks/53/path = NodePath("../ScuiguileLayer/SquiggleLayer:material:shader_parameter/WAVE_STRENGTH")
+tracks/53/interp = 1
+tracks/53/loop_wrap = true
+tracks/53/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
@@ -930,377 +955,377 @@ tracks/17/keys = {
 tracks/18/type = "value"
 tracks/18/imported = false
 tracks/18/enabled = true
-tracks/18/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_target")
+tracks/18/path = NodePath("../IntroCutscene/Scene/Camera2D:enabled")
 tracks/18/interp = 0
 tracks/18/loop_wrap = true
 tracks/18/keys = {
+"times": PackedFloat32Array(0, 31.533333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [true, false]
+}
+tracks/19/type = "value"
+tracks/19/imported = false
+tracks/19/enabled = true
+tracks/19/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_target")
+tracks/19/interp = 0
+tracks/19/loop_wrap = true
+tracks/19/keys = {
 "times": PackedFloat32Array(0, 30.958334, 158.56667),
 "transitions": PackedFloat32Array(0, 0, 1),
 "update": 1,
 "values": [Vector2(0.825, 0.825), Vector2(0.775, 0.775), Vector2(1, 1)]
 }
-tracks/19/type = "value"
-tracks/19/imported = false
-tracks/19/enabled = true
-tracks/19/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom")
-tracks/19/interp = 0
-tracks/19/loop_wrap = true
-tracks/19/keys = {
+tracks/20/type = "value"
+tracks/20/imported = false
+tracks/20/enabled = true
+tracks/20/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom")
+tracks/20/interp = 0
+tracks/20/loop_wrap = true
+tracks/20/keys = {
 "times": PackedFloat32Array(0.20833333, 31.166666),
 "transitions": PackedFloat32Array(0, 1),
 "update": 1,
 "values": [Vector2(0.825, 0.825), Vector2(0.8333535, 0.8333535)]
 }
-tracks/20/type = "value"
-tracks/20/imported = false
-tracks/20/enabled = true
-tracks/20/path = NodePath("../Environment/HypnoEnd:singing_should_sing")
-tracks/20/interp = 0
-tracks/20/loop_wrap = true
-tracks/20/keys = {
-"times": PackedFloat32Array(0, 159.03334, 184.76666),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [false, true, false]
-}
-tracks/21/type = "animation"
+tracks/21/type = "value"
 tracks/21/imported = false
 tracks/21/enabled = true
-tracks/21/path = NodePath("../Environment/HypnoEnd/AnimationPlayer")
-tracks/21/interp = 1
+tracks/21/path = NodePath("../Environment/HypnoEnd:singing_should_sing")
+tracks/21/interp = 0
 tracks/21/loop_wrap = true
 tracks/21/keys = {
-"clips": PackedStringArray("laugh"),
-"times": PackedFloat32Array(184.76666)
-}
-tracks/22/type = "value"
-tracks/22/imported = false
-tracks/22/enabled = true
-tracks/22/path = NodePath("../Environment/HypnoEnd:dancing_should_dance")
-tracks/22/interp = 0
-tracks/22/loop_wrap = true
-tracks/22/keys = {
 "times": PackedFloat32Array(0, 159.03334, 184.76666),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
+}
+tracks/22/type = "animation"
+tracks/22/imported = false
+tracks/22/enabled = true
+tracks/22/path = NodePath("../Environment/HypnoEnd/AnimationPlayer")
+tracks/22/interp = 1
+tracks/22/loop_wrap = true
+tracks/22/keys = {
+"clips": PackedStringArray("laugh"),
+"times": PackedFloat32Array(184.76666)
 }
 tracks/23/type = "value"
 tracks/23/imported = false
 tracks/23/enabled = true
-tracks/23/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconCameraBumper:enabled")
+tracks/23/path = NodePath("../Environment/HypnoEnd:dancing_should_dance")
 tracks/23/interp = 0
 tracks/23/loop_wrap = true
 tracks/23/keys = {
-"times": PackedFloat32Array(0, 33.733334, 159.03334),
-"transitions": PackedFloat32Array(0, 0, 1),
+"times": PackedFloat32Array(0, 159.03334, 184.76666),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
 }
 tracks/24/type = "value"
 tracks/24/imported = false
 tracks/24/enabled = true
-tracks/24/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_enabled")
+tracks/24/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconCameraBumper:enabled")
 tracks/24/interp = 0
 tracks/24/loop_wrap = true
 tracks/24/keys = {
+"times": PackedFloat32Array(0, 33.733334, 159.03334),
+"transitions": PackedFloat32Array(0, 0, 1),
+"update": 0,
+"values": [false, true, false]
+}
+tracks/25/type = "value"
+tracks/25/imported = false
+tracks/25/enabled = true
+tracks/25/path = NodePath("../Environment/RubiconInterpolatedCamera2D:zoom_interpolate_enabled")
+tracks/25/interp = 0
+tracks/25/loop_wrap = true
+tracks/25/keys = {
 "times": PackedFloat32Array(0, 159.03334),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/25/type = "value"
-tracks/25/imported = false
-tracks/25/enabled = true
-tracks/25/path = NodePath("../Environment/EndBG/Glow:modulate")
-tracks/25/interp = 1
-tracks/25/loop_wrap = true
-tracks/25/keys = {
+tracks/26/type = "value"
+tracks/26/imported = false
+tracks/26/enabled = true
+tracks/26/path = NodePath("../Environment/EndBG/Glow:modulate")
+tracks/26/interp = 1
+tracks/26/loop_wrap = true
+tracks/26/keys = {
 "times": PackedFloat32Array(159.03334, 188.1),
 "transitions": PackedFloat32Array(2, 1),
 "update": 0,
 "values": [Color(0.49, 0.009799991, 0.19387661, 0), Color(0.49, 0.009799991, 0.19387661, 0.5411765)]
 }
-tracks/26/type = "value"
-tracks/26/imported = false
-tracks/26/enabled = true
-tracks/26/path = NodePath("../Environment/HypnoEnd:position")
-tracks/26/interp = 1
-tracks/26/loop_wrap = true
-tracks/26/keys = {
+tracks/27/type = "value"
+tracks/27/imported = false
+tracks/27/enabled = true
+tracks/27/path = NodePath("../Environment/HypnoEnd:position")
+tracks/27/interp = 1
+tracks/27/loop_wrap = true
+tracks/27/keys = {
 "times": PackedFloat32Array(182.1, 193.13333),
 "transitions": PackedFloat32Array(-2.6390157, 1),
 "update": 0,
 "values": [Vector2(1005, 3420.0002), Vector2(1001, 3214)]
 }
-tracks/27/type = "value"
-tracks/27/imported = false
-tracks/27/enabled = true
-tracks/27/path = NodePath("../Environment/HypnoEnd/Sprite:self_modulate")
-tracks/27/interp = 1
-tracks/27/loop_wrap = true
-tracks/27/keys = {
+tracks/28/type = "value"
+tracks/28/imported = false
+tracks/28/enabled = true
+tracks/28/path = NodePath("../Environment/HypnoEnd/Sprite:self_modulate")
+tracks/28/interp = 1
+tracks/28/loop_wrap = true
+tracks/28/keys = {
 "times": PackedFloat32Array(184.1, 189.16667),
 "transitions": PackedFloat32Array(2, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
-tracks/28/type = "value"
-tracks/28/imported = false
-tracks/28/enabled = true
-tracks/28/path = NodePath("../Environment/HypnoEnd:scale")
-tracks/28/interp = 1
-tracks/28/loop_wrap = true
-tracks/28/keys = {
+tracks/29/type = "value"
+tracks/29/imported = false
+tracks/29/enabled = true
+tracks/29/path = NodePath("../Environment/HypnoEnd:scale")
+tracks/29/interp = 1
+tracks/29/loop_wrap = true
+tracks/29/keys = {
 "times": PackedFloat32Array(182.1, 193.13333),
 "transitions": PackedFloat32Array(-2.6390157, 1),
 "update": 0,
 "values": [Vector2(1.4, 1.4), Vector2(1.05, 1.05)]
 }
-tracks/29/type = "value"
-tracks/29/imported = false
-tracks/29/enabled = true
-tracks/29/path = NodePath("../Environment/HypnoEnd/Sprite/Pendulum:modulate")
-tracks/29/interp = 1
-tracks/29/loop_wrap = true
-tracks/29/keys = {
+tracks/30/type = "value"
+tracks/30/imported = false
+tracks/30/enabled = true
+tracks/30/path = NodePath("../Environment/HypnoEnd/Sprite/Pendulum:modulate")
+tracks/30/interp = 1
+tracks/30/loop_wrap = true
+tracks/30/keys = {
 "times": PackedFloat32Array(188.91667, 193.04167),
 "transitions": PackedFloat32Array(-2, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
-tracks/30/type = "value"
-tracks/30/imported = false
-tracks/30/enabled = true
-tracks/30/path = NodePath("../Environment/EndBG/Glow:position")
-tracks/30/interp = 1
-tracks/30/loop_wrap = true
-tracks/30/keys = {
-"times": PackedFloat32Array(182.1, 198),
-"transitions": PackedFloat32Array(1.1, 1),
-"update": 0,
-"values": [Vector2(407, 627.5), Vector2(407, 514)]
-}
 tracks/31/type = "value"
 tracks/31/imported = false
 tracks/31/enabled = true
-tracks/31/path = NodePath("../Environment/EndBG/Glow:scale")
+tracks/31/path = NodePath("../Environment/EndBG/Glow:position")
 tracks/31/interp = 1
 tracks/31/loop_wrap = true
 tracks/31/keys = {
 "times": PackedFloat32Array(182.1, 198),
 "transitions": PackedFloat32Array(1.1, 1),
 "update": 0,
-"values": [Vector2(30.250002, 17.078123), Vector2(24.2, 13.662)]
+"values": [Vector2(407, 627.5), Vector2(407, 514)]
 }
 tracks/32/type = "value"
 tracks/32/imported = false
 tracks/32/enabled = true
-tracks/32/path = NodePath("../Environment/EndBG:modulate")
+tracks/32/path = NodePath("../Environment/EndBG/Glow:scale")
 tracks/32/interp = 1
 tracks/32/loop_wrap = true
 tracks/32/keys = {
+"times": PackedFloat32Array(182.1, 198),
+"transitions": PackedFloat32Array(1.1, 1),
+"update": 0,
+"values": [Vector2(30.250002, 17.078123), Vector2(24.2, 13.662)]
+}
+tracks/33/type = "value"
+tracks/33/imported = false
+tracks/33/enabled = true
+tracks/33/path = NodePath("../Environment/EndBG:modulate")
+tracks/33/interp = 1
+tracks/33/loop_wrap = true
+tracks/33/keys = {
 "times": PackedFloat32Array(191.86667, 197),
 "transitions": PackedFloat32Array(-2, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(0, 0, 0, 1)]
 }
-tracks/33/type = "value"
-tracks/33/imported = false
-tracks/33/enabled = true
-tracks/33/path = NodePath("../Environment/EndBG/EndCamera:position")
-tracks/33/interp = 1
-tracks/33/loop_wrap = true
-tracks/33/keys = {
-"times": PackedFloat32Array(159.03334, 182.1, 198),
-"transitions": PackedFloat32Array(1, 1.1, 1),
-"update": 0,
-"values": [Vector2(404, 626), Vector2(404, 626), Vector2(405, 513)]
-}
 tracks/34/type = "value"
 tracks/34/imported = false
 tracks/34/enabled = true
-tracks/34/path = NodePath("../Environment/EndBG/EndCamera:zoom")
+tracks/34/path = NodePath("../Environment/EndBG/EndCamera:position")
 tracks/34/interp = 1
 tracks/34/loop_wrap = true
 tracks/34/keys = {
 "times": PackedFloat32Array(159.03334, 182.1, 198),
 "transitions": PackedFloat32Array(1, 1.1, 1),
 "update": 0,
-"values": [Vector2(1, 1), Vector2(1, 1), Vector2(1.38, 1.38)]
+"values": [Vector2(404, 626), Vector2(404, 626), Vector2(405, 513)]
 }
 tracks/35/type = "value"
 tracks/35/imported = false
 tracks/35/enabled = true
-tracks/35/path = NodePath("../Environment/EndBG/EndCamera:enabled")
+tracks/35/path = NodePath("../Environment/EndBG/EndCamera:zoom")
 tracks/35/interp = 1
 tracks/35/loop_wrap = true
 tracks/35/keys = {
+"times": PackedFloat32Array(159.03334, 182.1, 198),
+"transitions": PackedFloat32Array(1, 1.1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1, 1), Vector2(1.38, 1.38)]
+}
+tracks/36/type = "value"
+tracks/36/imported = false
+tracks/36/enabled = true
+tracks/36/path = NodePath("../Environment/EndBG/EndCamera:enabled")
+tracks/36/interp = 1
+tracks/36/loop_wrap = true
+tracks/36/keys = {
 "times": PackedFloat32Array(0, 159.03333),
 "transitions": PackedFloat32Array(0, 1),
 "update": 0,
 "values": [false, true]
 }
-tracks/36/type = "value"
-tracks/36/imported = false
-tracks/36/enabled = true
-tracks/36/path = NodePath("../UILayer/GameUI/DefaultHUD:modulate")
-tracks/36/interp = 1
-tracks/36/loop_wrap = true
-tracks/36/keys = {
+tracks/37/type = "value"
+tracks/37/imported = false
+tracks/37/enabled = true
+tracks/37/path = NodePath("../UILayer/GameUI/DefaultHUD:modulate")
+tracks/37/interp = 1
+tracks/37/loop_wrap = true
+tracks/37/keys = {
 "times": PackedFloat32Array(0, 31.533333, 33.733334, 37.7, 158, 159.03334),
 "transitions": PackedFloat32Array(0, -2, 1, 1, -2, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
-tracks/37/type = "value"
-tracks/37/imported = false
-tracks/37/enabled = true
-tracks/37/path = NodePath("../Environment/SafetyLullabyGameoverModule:skip_intro")
-tracks/37/interp = 1
-tracks/37/loop_wrap = true
-tracks/37/keys = {
+tracks/38/type = "value"
+tracks/38/imported = false
+tracks/38/enabled = true
+tracks/38/path = NodePath("../Environment/SafetyLullabyGameoverModule:skip_intro")
+tracks/38/interp = 1
+tracks/38/loop_wrap = true
+tracks/38/keys = {
 "times": PackedFloat32Array(0.033333335, 159.03334),
 "transitions": PackedFloat32Array(0, 1),
 "update": 0,
 "values": [false, true]
 }
-tracks/38/type = "value"
-tracks/38/imported = false
-tracks/38/enabled = true
-tracks/38/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:position_enabled")
-tracks/38/interp = 0
-tracks/38/loop_wrap = true
-tracks/38/keys = {
+tracks/39/type = "value"
+tracks/39/imported = false
+tracks/39/enabled = true
+tracks/39/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:position_enabled")
+tracks/39/interp = 0
+tracks/39/loop_wrap = true
+tracks/39/keys = {
 "times": PackedFloat32Array(0, 31.533333, 159.03334),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [false, true, false]
 }
-tracks/39/type = "value"
-tracks/39/imported = false
-tracks/39/enabled = true
-tracks/39/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
-tracks/39/interp = 0
-tracks/39/loop_wrap = true
-tracks/39/keys = {
+tracks/40/type = "value"
+tracks/40/imported = false
+tracks/40/enabled = true
+tracks/40/path = NodePath("../Environment/RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
+tracks/40/interp = 0
+tracks/40/loop_wrap = true
+tracks/40/keys = {
 "times": PackedFloat32Array(0, 31.533333, 35.5, 44.866665, 56.3, 67.63333, 78.833336, 90.166664, 101.5, 117.375, 124.13333, 141.03334),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 1,
 "values": [&"", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player"]
 }
-tracks/40/type = "value"
-tracks/40/imported = false
-tracks/40/enabled = true
-tracks/40/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:modulate")
-tracks/40/interp = 0
-tracks/40/loop_wrap = true
-tracks/40/keys = {
+tracks/41/type = "value"
+tracks/41/imported = false
+tracks/41/enabled = true
+tracks/41/path = NodePath("../PauseMenu/PauseMenu/RightSide/Sprite:modulate")
+tracks/41/interp = 0
+tracks/41/loop_wrap = true
+tracks/41/keys = {
 "times": PackedFloat32Array(0, 31.533333),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(0, 0, 0, 1), Color(0.9026485, 0.9026485, 0.90264845, 1)]
 }
-tracks/41/type = "value"
-tracks/41/imported = false
-tracks/41/enabled = true
-tracks/41/path = NodePath("../Environment/Lyrics:text")
-tracks/41/interp = 0
-tracks/41/loop_wrap = true
-tracks/41/keys = {
+tracks/42/type = "value"
+tracks/42/imported = false
+tracks/42/enabled = true
+tracks/42/path = NodePath("../Environment/Lyrics:text")
+tracks/42/interp = 0
+tracks/42/loop_wrap = true
+tracks/42/keys = {
 "times": PackedFloat32Array(0, 33.625, 35.125, 36.5, 37.833332, 39.208332, 40.416668, 42.208332, 43.708332, 44.25, 56.3, 57.375, 58.666668, 59.708332, 61.156487, 61.708332, 63.041668, 64.458336, 66.08333, 78.66706, 80.291664, 81.708336, 82.66668, 83.25, 84.083336, 84.875, 85.62499, 87.083336, 88.458336, 89.291664, 101.541664, 103.125, 104, 105.375, 107, 108.708336, 109.583336, 111.958336, 112.791664, 124.12015, 125.833336, 128.125, 130.125, 132.25, 134.5, 136.54167, 138.20833, 139.75, 159.95833, 162.45833, 166.25, 168.875, 171.20833, 176.70833, 178.58333, 180.33333, 181.58333),
 "transitions": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 "update": 0,
 "values": ["Sample Text", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Come little Girlfriend", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Come with me", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Your [color=#4f426b]friend[color=#ffffff7f] is waiting", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Steadily...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]The night has come", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]What's left is me", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]To show how happy", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]You ", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f] can be.", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]You and I", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Yes, let us run...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]With Hypno", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]You will have such", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=f98d97]fun!", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Now come along", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Come, little one", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffff5a ease=1.0][color=#ffffff7f]Just gaze into my", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ff00655a ease=1.0][color=#ff00657f]PENDULUM...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]Now now, little Girlfriend", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]Why do you fight me?", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]Hypno only wants this", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]night,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]One night,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]please...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]I mean no harm,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]No intention to be frightening,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]You'll find that the pendulum,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Can be quite", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ff00657f]ENLIGHTENING...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]You prickle upon Hypno's resolve,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Yes, it's true.", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]As did your little [color=#4f426b]friend[color=#ffffff7f],", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]I spoke to him too.", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]I led him away, far away,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]He never knew...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]That Hypno ultimately led him,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]To his...", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=12][pulse freq=1.1 color=#ff0000a0 ease=1.0][color=#ff00657f]DOOM.", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]So, little Girlfriend,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Please do not squirm,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Soon now, it may be,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]You'll just have to learn:", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]That resisting the power", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Of Hypno's great force,", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]Is the quickest of ways", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0][color=#ffffff7f]To know just", "[wave amp=70.0 freq=3.5][shake rate=20.0 level=10][pulse freq=1.1 color=#ffffffa0 ease=1.0]remorse...", "[shake rate=35.0 level=15][color=#ffffff7f]And finally,", "[shake rate=35.0 level=15][color=#ffffff7f]Now we're together,", "[shake rate=35.0 level=15][color=#ffffff7f]Your mind unraveling,", "[shake rate=35.0 level=15][color=#ffffff7f]At its seams...", "[shake rate=35.0 level=15][color=#ffffff7f]You shall stay with me forever,", "[shake rate=35.0 level=15][color=#ffffff7f]Allowing me,", "[shake rate=35.0 level=15][color=#ffffff7f]To haunt,", "[shake rate=35.0 level=15][color=#ffffff7f]Your,", "[shake rate=35.0 level=15][color=#ff00657f]DREAMS..."]
 }
-tracks/42/type = "value"
-tracks/42/imported = false
-tracks/42/enabled = true
-tracks/42/path = NodePath("../Environment/Lyrics:initial_position")
-tracks/42/interp = 0
-tracks/42/loop_wrap = true
-tracks/42/keys = {
+tracks/43/type = "value"
+tracks/43/imported = false
+tracks/43/enabled = true
+tracks/43/path = NodePath("../Environment/Lyrics:initial_position")
+tracks/43/interp = 0
+tracks/43/loop_wrap = true
+tracks/43/keys = {
 "times": PackedFloat32Array(0, 33.583332, 35, 36.458332, 37.791668, 39.166668, 40.33389, 42.17347, 43.666668, 44.166668, 56.25, 57.333332, 58.58507, 59.638657, 61.02975, 61.625, 62.916668, 64.208336, 65.833336, 78.595726, 80.2054, 81.625, 82.54167, 83.125, 83.98196, 84.74999, 85.541664, 86.958336, 88.291664, 89.125, 101.46662, 103.041664, 103.916664, 105.33084, 106.954285, 108.6306, 109.54805, 111.75, 112.625, 125.70289, 127.99434, 129.94705, 132.09901, 134.375, 136.38277, 138.05652, 139.625, 158.79167),
 "transitions": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 "update": 0,
 "values": [Vector2(168, 520), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 470), Vector2(168, 650), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 470), Vector2(168, 650), Vector2(168, 534.345), Vector2(395, 3450)]
 }
-tracks/43/type = "value"
-tracks/43/imported = false
-tracks/43/enabled = true
-tracks/43/path = NodePath("../Environment/Lyrics:move_distance")
-tracks/43/interp = 0
-tracks/43/loop_wrap = true
-tracks/43/keys = {
+tracks/44/type = "value"
+tracks/44/imported = false
+tracks/44/enabled = true
+tracks/44/path = NodePath("../Environment/Lyrics:move_distance")
+tracks/44/interp = 0
+tracks/44/loop_wrap = true
+tracks/44/keys = {
 "times": PackedFloat32Array(0, 158.79167),
 "transitions": PackedFloat32Array(0, 0),
 "update": 0,
 "values": [Vector2(400, 0), Vector2(0, 0)]
 }
-tracks/44/type = "value"
-tracks/44/imported = false
-tracks/44/enabled = true
-tracks/44/path = NodePath("../Environment/Lyrics:lifetime")
-tracks/44/interp = 0
-tracks/44/loop_wrap = true
-tracks/44/keys = {
+tracks/45/type = "value"
+tracks/45/imported = false
+tracks/45/enabled = true
+tracks/45/path = NodePath("../Environment/Lyrics:lifetime")
+tracks/45/interp = 0
+tracks/45/loop_wrap = true
+tracks/45/keys = {
 "times": PackedFloat32Array(0, 161.79167, 165.625, 167.91667, 170.625, 176.16667, 179.75, 181),
 "transitions": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 1),
 "update": 0,
 "values": [2.5, 3.75, 2.5, 2.0, 5.0, 1.75, 1.4, 3.0]
 }
-tracks/45/type = "value"
-tracks/45/imported = false
-tracks/45/enabled = true
-tracks/45/path = NodePath("../Environment/Lyrics:centered")
-tracks/45/interp = 0
-tracks/45/loop_wrap = true
-tracks/45/keys = {
+tracks/46/type = "value"
+tracks/46/imported = false
+tracks/46/enabled = true
+tracks/46/path = NodePath("../Environment/Lyrics:centered")
+tracks/46/interp = 0
+tracks/46/loop_wrap = true
+tracks/46/keys = {
 "times": PackedFloat32Array(0, 158.7917),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [false, true]
 }
-tracks/46/type = "value"
-tracks/46/imported = false
-tracks/46/enabled = true
-tracks/46/path = NodePath("../Environment/GF/Trance:gf_is_calm")
-tracks/46/interp = 0
-tracks/46/loop_wrap = true
-tracks/46/keys = {
+tracks/47/type = "value"
+tracks/47/imported = false
+tracks/47/enabled = true
+tracks/47/path = NodePath("../Environment/GF/Trance:gf_is_calm")
+tracks/47/interp = 0
+tracks/47/loop_wrap = true
+tracks/47/keys = {
 "times": PackedFloat32Array(0.125, 112),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [true, false]
 }
-tracks/47/type = "value"
-tracks/47/imported = false
-tracks/47/enabled = true
-tracks/47/path = NodePath("../Environment/Lyrics:modulate")
-tracks/47/interp = 1
-tracks/47/loop_wrap = true
-tracks/47/keys = {
+tracks/48/type = "value"
+tracks/48/imported = false
+tracks/48/enabled = true
+tracks/48/path = NodePath("../Environment/Lyrics:modulate")
+tracks/48/interp = 1
+tracks/48/loop_wrap = true
+tracks/48/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Color(1, 1, 1, 1)]
 }
-tracks/48/type = "value"
-tracks/48/imported = false
-tracks/48/enabled = true
-tracks/48/path = NodePath("../Environment/GF:dancing_should_dance")
-tracks/48/interp = 1
-tracks/48/loop_wrap = true
-tracks/48/keys = {
-"times": PackedFloat32Array(31.208334, 33.75),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
-}
 tracks/49/type = "value"
 tracks/49/imported = false
 tracks/49/enabled = true
-tracks/49/path = NodePath("../Environment/GF:singing_should_sing")
+tracks/49/path = NodePath("../Environment/GF:dancing_should_dance")
 tracks/49/interp = 1
 tracks/49/loop_wrap = true
 tracks/49/keys = {
@@ -1309,119 +1334,131 @@ tracks/49/keys = {
 "update": 1,
 "values": [false, true]
 }
-tracks/50/type = "animation"
+tracks/50/type = "value"
 tracks/50/imported = false
 tracks/50/enabled = true
-tracks/50/path = NodePath("../Environment/GF/AnimationPlayer")
+tracks/50/path = NodePath("../Environment/GF:singing_should_sing")
 tracks/50/interp = 1
 tracks/50/loop_wrap = true
 tracks/50/keys = {
-"clips": PackedStringArray("intro"),
-"times": PackedFloat32Array(31.208334)
+"times": PackedFloat32Array(31.208334, 33.75),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
 }
-tracks/51/type = "value"
+tracks/51/type = "animation"
 tracks/51/imported = false
 tracks/51/enabled = true
-tracks/51/path = NodePath("../Environment/Alley/BG/BgLight:modulate")
+tracks/51/path = NodePath("../Environment/GF/AnimationPlayer")
 tracks/51/interp = 1
 tracks/51/loop_wrap = true
 tracks/51/keys = {
+"clips": PackedStringArray("intro"),
+"times": PackedFloat32Array(31.208334)
+}
+tracks/52/type = "value"
+tracks/52/imported = false
+tracks/52/enabled = true
+tracks/52/path = NodePath("../Environment/Alley/BG/BgLight:modulate")
+tracks/52/interp = 1
+tracks/52/loop_wrap = true
+tracks/52/keys = {
 "times": PackedFloat32Array(),
 "transitions": PackedFloat32Array(),
 "update": 0,
 "values": []
 }
-tracks/52/type = "value"
-tracks/52/imported = false
-tracks/52/enabled = true
-tracks/52/path = NodePath("../UILayer/GameUI/Pendulum:pendulum_y_offset")
-tracks/52/interp = 1
-tracks/52/loop_wrap = true
-tracks/52/keys = {
+tracks/53/type = "value"
+tracks/53/imported = false
+tracks/53/enabled = true
+tracks/53/path = NodePath("../UILayer/GameUI/Pendulum:pendulum_y_offset")
+tracks/53/interp = 1
+tracks/53/loop_wrap = true
+tracks/53/keys = {
 "times": PackedFloat32Array(37, 40.083332, 123.166664, 125.791664, 159.125, 159.83333),
 "transitions": PackedFloat32Array(0.84089637, 1, 1, 1.2311444, 1.23, 1),
 "update": 0,
 "values": [0.0, 8.0, 8.0, 30.0, 30.0, 0.0]
 }
-tracks/53/type = "value"
-tracks/53/imported = false
-tracks/53/enabled = true
-tracks/53/path = NodePath("../LullabyPendulumServer:linear_rotation_ratio")
-tracks/53/interp = 1
-tracks/53/loop_wrap = true
-tracks/53/keys = {
+tracks/54/type = "value"
+tracks/54/imported = false
+tracks/54/enabled = true
+tracks/54/path = NodePath("../LullabyPendulumServer:linear_rotation_ratio")
+tracks/54/interp = 1
+tracks/54/loop_wrap = true
+tracks/54/keys = {
 "times": PackedFloat32Array(124, 124.041664, 158.08333, 158.5),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
 "values": [0.0, 0.4, 0.4, 0.0]
 }
-tracks/54/type = "value"
-tracks/54/imported = false
-tracks/54/enabled = true
-tracks/54/path = NodePath("../UILayer/GameUI/DefaultHUD/ScoreContainer/HealthBar/Bar/IconPath/Follower/LeftIcon:sprite_frames")
-tracks/54/interp = 1
-tracks/54/loop_wrap = true
-tracks/54/keys = {
+tracks/55/type = "value"
+tracks/55/imported = false
+tracks/55/enabled = true
+tracks/55/path = NodePath("../UILayer/GameUI/DefaultHUD/ScoreContainer/HealthBar/Bar/IconPath/Follower/LeftIcon:sprite_frames")
+tracks/55/interp = 1
+tracks/55/loop_wrap = true
+tracks/55/keys = {
 "times": PackedFloat32Array(0, 124.333336),
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [ExtResource("4"), ExtResource("7")]
 }
-tracks/55/type = "value"
-tracks/55/imported = false
-tracks/55/enabled = true
-tracks/55/path = NodePath("../Environment/HypnoSafety/MainLight:modulate")
-tracks/55/interp = 1
-tracks/55/loop_wrap = true
-tracks/55/keys = {
+tracks/56/type = "value"
+tracks/56/imported = false
+tracks/56/enabled = true
+tracks/56/path = NodePath("../Environment/HypnoSafety/MainLight:modulate")
+tracks/56/interp = 1
+tracks/56/loop_wrap = true
+tracks/56/keys = {
 "times": PackedFloat32Array(),
 "transitions": PackedFloat32Array(),
 "update": 0,
 "values": []
 }
-tracks/56/type = "value"
-tracks/56/imported = false
-tracks/56/enabled = true
-tracks/56/path = NodePath("../Environment/HypnoSafety/MainLight:energy")
-tracks/56/interp = 1
-tracks/56/loop_wrap = true
-tracks/56/keys = {
+tracks/57/type = "value"
+tracks/57/imported = false
+tracks/57/enabled = true
+tracks/57/path = NodePath("../Environment/HypnoSafety/MainLight:energy")
+tracks/57/interp = 1
+tracks/57/loop_wrap = true
+tracks/57/keys = {
 "times": PackedFloat32Array(72.041664, 112.666664, 113.125, 114.291664, 117.333336),
 "transitions": PackedFloat32Array(0, 1, 1, 1, 1),
 "update": 0,
 "values": [0.31, 0.35, 0.46, 0.46, 0.35]
 }
-tracks/57/type = "value"
-tracks/57/imported = false
-tracks/57/enabled = true
-tracks/57/path = NodePath("../Environment/HypnoSafety/MainLight:color")
-tracks/57/interp = 1
-tracks/57/loop_wrap = true
-tracks/57/keys = {
+tracks/58/type = "value"
+tracks/58/imported = false
+tracks/58/enabled = true
+tracks/58/path = NodePath("../Environment/HypnoSafety/MainLight:color")
+tracks/58/interp = 1
+tracks/58/loop_wrap = true
+tracks/58/keys = {
 "times": PackedFloat32Array(65.916664, 66.458336, 67.625, 68.25, 78.5, 78.91667, 90.25, 92.541664, 112.666664, 113.16667, 114.333336, 117.375),
 "transitions": PackedFloat32Array(-2, 1, 1, 0, 2, 1, 1, 2, -2, 1, 1, 0),
 "update": 0,
 "values": [Color(0.961983, 0.8266328, 0.884364, 1), Color(0.9523702, 0.14184096, 0.49339223, 1), Color(0.9523702, 0.14184096, 0.49339223, 1), Color(0.961983, 0.8266328, 0.884364, 1), Color(0.961983, 0.8266328, 0.884364, 1), Color(0.978527, 0.22880149, 0.5272291, 1), Color(0.9523702, 0.14184096, 0.49339223, 1), Color(0.961983, 0.8266328, 0.884364, 1), Color(0.961983, 0.8266328, 0.884364, 1), Color(0.9523702, 0.14184096, 0.49339223, 1), Color(0.9523702, 0.14184096, 0.49339223, 1), Color(0.961983, 0.8266328, 0.884364, 1)]
 }
-tracks/58/type = "value"
-tracks/58/imported = false
-tracks/58/enabled = true
-tracks/58/path = NodePath("../Environment/Alley/BG/BgLight:energy")
-tracks/58/interp = 1
-tracks/58/loop_wrap = true
-tracks/58/keys = {
+tracks/59/type = "value"
+tracks/59/imported = false
+tracks/59/enabled = true
+tracks/59/path = NodePath("../Environment/Alley/BG/BgLight:energy")
+tracks/59/interp = 1
+tracks/59/loop_wrap = true
+tracks/59/keys = {
 "times": PackedFloat32Array(66.125, 83.541664, 159),
 "transitions": PackedFloat32Array(1.8025012, 1, 1),
 "update": 0,
 "values": [0.75, 0.75, 0.75]
 }
-tracks/59/type = "value"
-tracks/59/imported = false
-tracks/59/enabled = true
-tracks/59/path = NodePath("../ScuiguileLayer/SquiggleLayer:material:shader_parameter/WAVE_STRENGTH")
-tracks/59/interp = 1
-tracks/59/loop_wrap = true
-tracks/59/keys = {
+tracks/60/type = "value"
+tracks/60/imported = false
+tracks/60/enabled = true
+tracks/60/path = NodePath("../ScuiguileLayer/SquiggleLayer:material:shader_parameter/WAVE_STRENGTH")
+tracks/60/interp = 1
+tracks/60/loop_wrap = true
+tracks/60/keys = {
 "times": PackedFloat32Array(0.45833334, 65.125, 66.5, 68.958336, 70.083336, 78.04167, 79.125, 91.083336, 94.125, 112.83333, 113.416664, 116.75, 158.58333, 181.25, 181.70833, 200.83333),
 "transitions": PackedFloat32Array(1, 1, 1, 2, 1, 1, 1, 1, 0, 1, 3.4822013, 0, 0, 1, 1, 1),
 "update": 0,
@@ -1436,6 +1473,18 @@ _data = {
 
 [sub_resource type="Animation" id="Animation_djtvt"]
 length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("IntroCutscene:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
 
 [sub_resource type="AudioStreamSynchronized" id="AudioStreamSynchronized_8f5qh"]
 stream_count = 2
@@ -1448,13 +1497,23 @@ stream_1/volume = 0.0
 resource_name = "change_0"
 length = 32.727
 step = 0.0367
-tracks/0/type = "audio"
+tracks/0/type = "animation"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Timeline/ReferenceSong")
+tracks/0/path = NodePath("IntroCutscene/Timeline")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
+"clips": PackedStringArray("cutscene"),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "audio"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Timeline/ReferenceSong")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
 "clips": [{
 "end_offset": 166.5885,
 "start_offset": 0.0,
@@ -1462,19 +1521,31 @@ tracks/0/keys = {
 }],
 "times": PackedFloat32Array(0)
 }
-tracks/0/use_blend = true
+tracks/1/use_blend = true
 
 [sub_resource type="Animation" id="Animation_b1nsh"]
 resource_name = "change_1"
 length = 166.5927
 step = 0.1136
-tracks/0/type = "audio"
+tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Timeline/ReferenceSong")
-tracks/0/interp = 1
+tracks/0/path = NodePath("IntroCutscene:visible")
+tracks/0/interp = 0
 tracks/0/loop_wrap = true
 tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [false]
+}
+tracks/1/type = "audio"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Timeline/ReferenceSong")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
 "clips": [{
 "end_offset": 0.0,
 "start_offset": 32.7273,
@@ -1482,7 +1553,7 @@ tracks/0/keys = {
 }],
 "times": PackedFloat32Array(0)
 }
-tracks/0/use_blend = true
+tracks/1/use_blend = true
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ljlf5"]
 _data = {
@@ -3663,8 +3734,13 @@ scale = Vector2(0.8000001, 0.8000001)
 position = Vector2(1178.0001, 540.00006)
 scale = Vector2(0.8, 0.8)
 
-[node name="IntroVideo" type="Node" parent="." unique_id=1734829105 node_paths=PackedStringArray("clock")]
+[node name="IntroCutscene" parent="." unique_id=2077829061 instance=ExtResource("38")]
+visible = true
+position = Vector2(1283, 245)
+
+[node name="IntroVideo" type="Node" parent="." unique_id=1734829105 node_paths=PackedStringArray("live_cutscene", "clock")]
 script = ExtResource("63")
+live_cutscene = NodePath("../IntroCutscene")
 video_path = "res://lullaby_mod/songs/safety_lullaby/video/intro.ogv"
 clock = NodePath("../Clock/AnimationPlayer")
 starts_at = 0.0

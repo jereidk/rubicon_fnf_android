@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://tnudddq6jd0y"
+path="res://.godot/imported/pendulum_drop_lights.png-ab2f36ed053902048f71c731c3d75ca0.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/bgs/pendulum_drop_lights.png"
+dest_files=["res://.godot/imported/pendulum_drop_lights.png-ab2f36ed053902048f71c731c3d75ca0.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

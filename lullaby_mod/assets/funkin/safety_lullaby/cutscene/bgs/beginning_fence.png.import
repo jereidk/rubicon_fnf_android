@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://dnq70l7kvwm6m"
+path="res://.godot/imported/beginning_fence.png-09083e1d31e7afbb1fa83af5ee4b828b.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/bgs/beginning_fence.png"
+dest_files=["res://.godot/imported/beginning_fence.png-09083e1d31e7afbb1fa83af5ee4b828b.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false

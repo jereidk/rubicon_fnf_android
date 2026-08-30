@@ -69,18 +69,7 @@ def rel(p):
 
 
 def main():
-    args = sys.argv[1:]
-    # Con `--con-recursos` tambien se listan los .tres y .tscn que nadie alcanza,
-    # no solo el arte. Hace falta para vaciar una carpeta entera: un SpriteFrames
-    # huerfano sigue "referenciando" sus PNG, asi que si se borran las imagenes y
-    # se deja el .tres, lo que queda es un recurso roto en vez de una carpeta
-    # limpia. Fuera de ese caso estorba, porque casi todo .tres vive colgado de
-    # una escena y la lista se llena de ruido.
-    global LEAF
-    if "--con-recursos" in args:
-        args.remove("--con-recursos")
-        LEAF = LEAF + (".tres", ".tscn")
-    only = [a.rstrip("/") for a in args]
+    only = [a.rstrip("/") for a in sys.argv[1:]]
 
     all_files = list(walk_files())
     on_disk = {rel(p): p for p in all_files}
@@ -175,30 +164,12 @@ def main():
         if r in reached or r in named:
             model_dirs.add(r.rsplit("/", 1)[0] + "/")
 
-    # --- 5. los atlas de Adobe Animate.
-    #
-    # `spritemap1.png` lo nombra `spritemap1.json`, que a su vez cuelga de un
-    # `Animation.json` en la misma carpeta, y ninguno de los dos escribe una ruta
-    # res://. Sin esto el informe acusaba de muertos a los 3.67 MB de
-    # `characters/hypno_world` y a los 2.66 MB de `characters/gf`, que son la
-    # animacion de hipnosis de GF: arte muy vivo.
-    def animate_atlas(r):
-        base = r.rsplit("/", 1)
-        if len(base) != 2:
-            return False
-        folder, name = base
-        stem = name.rsplit(".", 1)[0]
-        return (folder + "/" + stem + ".json") in on_disk \
-            and (folder + "/Animation.json") in on_disk
-
     def code_reaches(r):
         if r in named:
             return True
         if any(r.startswith(d) for d in named_dirs):
             return True
-        if any(r.startswith(d) for d in model_dirs):
-            return True
-        return animate_atlas(r)
+        return any(r.startswith(d) for d in model_dirs)
 
     # --- el veredicto, solo sobre hojas de arte.
     rows = []

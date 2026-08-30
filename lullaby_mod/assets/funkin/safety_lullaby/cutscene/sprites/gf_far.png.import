@@ -1,0 +1,17 @@
+[remap]
+
+importer="lullaby.astc_sprite"
+type="Texture2D"
+uid="uid://d3wsfhcwx8jr6"
+path="res://.godot/imported/gf_far.png-82df46c850c3b4700345ea4e0c636229.res"
+
+[deps]
+
+source_file="res://lullaby_mod/assets/funkin/safety_lullaby/cutscene/sprites/gf_far.png"
+dest_files=["res://.godot/imported/gf_far.png-82df46c850c3b4700345ea4e0c636229.res"]
+
+[params]
+
+compress/block_size=8
+compress/quality=100.0
+mipmaps/generate=false
