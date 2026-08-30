@@ -57,6 +57,29 @@ on:
           Costs 52% more bytes.
         required: false
         default: '60'
+      export_import_cache:
+        description: >-
+          Set to true to also upload .godot/imported as an artifact. It is
+          about 1.1 GB, so this is off by default and is not something a build
+          should carry.
+
+          What it is for: a fresh checkout has no import cache, and building
+          one costs roughly 90 minutes of wall time - the first minutes are the
+          slowest because the largest textures are imported first. A remote
+          session runs in a container that is reclaimed when it ends, so that
+          cost is paid again from zero every session, and a render harness
+          cannot run at all until it is paid: with the cache incomplete the
+          engine still renders, it just renders the 3D house and Hex with no
+          textures, which looks like a lighting problem rather than a missing
+          file.
+
+          CI already pays this cost on every build. This just keeps the result.
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
       cutscene_trim:
         description: >-
           Seconds to drop from the START of the render before encoding. This is
@@ -462,6 +485,17 @@ jobs:
           find .godot/imported -name "*.scn" -size +1M -printf "%s\t%f\n" 2>/dev/null \
             | sort -rn | head -12 \
             | awk -F'\t' '{printf "%8.1f MB  %s\n", $1/1048576, $2}'
+
+      - name: Upload the import cache
+        if: ${{ inputs.export_import_cache == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-import-cache
+          path: .godot/imported
+          # Estos ficheros ya son texturas comprimidas: comprimirlos otra vez
+          # gasta minutos de runner para no quitar casi nada.
+          compression-level: 0
+          retention-days: 5
 
       - name: Harvest precompiled imports and commit them
         if: ${{ inputs.precompile_match != '' }}
