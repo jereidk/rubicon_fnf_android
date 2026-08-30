@@ -1562,30 +1562,22 @@ jobs:
           # the videos - and that all five presets carry the exclusion.
           guard_godot tools/test_video_covered_assets_excluded.gd
 
-          # === Chimera's props write depth
-          # Reported from the device as "a model that shakes and looks broken"
-          # on the right of the frame, in Chimera's live 3D. It is the dresser,
-          # and the cause is that the house glTF exports props1, props2,
-          # propruhhhhhoneofthem and Material.001 as alphaMode BLEND. Their
-          # alpha is binary - decoding the textures out of chimera0.bin, between
-          # 0.29% and 1.43% of pixels sit between 0 and 255, which is the
-          # antialiased edge of a cutout and nothing else. A blended material
-          # does not write depth, so the engine sorts those props per object by
-          # centre distance and the order between two overlapping ones swaps as
-          # the camera moves. props1 is doubleSided on top of that, so one
-          # object's front and back faces blend against each other unordered.
-          # And it is not a judgement call: the PC mod's pck has all seven of
-          # the house's alpha materials as scissor, at threshold 0.21. The two
-          # that kept their alphaCutoff through the glTF re-export (grars 0.214,
-          # trash 0.926) imported correctly; the five that lost it fell to
-          # BLEND, which is what Godot does with no cutoff. A port regression
-          # with a known correct value - see tools/probe_pck_house_materials.gd.
-          # Fixed in chimera_house.gd by name at load, not by editing the glTF -
-          # reimporting the model moves the LightmapGI bake, which is the
-          # failure that blacked the house out for eleven days.
-          # Also the overdraw half of the same defect - a blended surface cannot
-          # early-Z, which is what "37 of 75 Chimera 3D surfaces non-opaque" in
-          # the log analysis was counting.
+          # === Chimera's props keep writing depth across a reimport
+          # Not a live bug, and an earlier version of this comment said it was.
+          # The engine loads the imported .scn, not the .gltf, and our
+          # .godot/imported/chimera.gltf-dfd1139a....scn already has the five
+          # props materials as alpha scissor at 0.21 - read it with
+          # tools/probe_local_house_materials.gd.
+          # What is real is that source and import disagree: chimera.gltf marks
+          # those five alphaMode BLEND with no alphaCutoff, while the two that
+          # kept theirs (grars 0.214, trash 0.926) came in as MASK. Any reimport
+          # would turn the five into alpha blend, which does not write depth, so
+          # the engine would sort them per object and two overlapping props
+          # would swap order as the camera moves. chimera_house.gd neutralises
+          # that at load; this guard checks it neutralises it correctly.
+          # Fixing the glTF itself is the root fix and is deliberately not done:
+          # it forces a reimport, and reimporting moves the LightmapGI bake,
+          # which is the failure that blacked the house out for eleven days.
           guard_godot tools/test_house_props_not_blended.gd
 
           # === Verify the console's boot flag always clears

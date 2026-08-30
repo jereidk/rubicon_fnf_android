@@ -2,34 +2,22 @@ extends SceneTree
 
 ## Los props de la casa de Chimera se dibujan con recorte alfa, no con mezcla.
 ##
-## El glTF de la casa marca cinco materiales `alphaMode: BLEND`. Un material
-## mezclado no escribe profundidad, asi que el motor no lo puede ordenar por
-## pixel y lo ordena por objeto: dos props que se solapan cambian de orden segun
-## se mueve la camara y parpadean, o uno se mete dentro del otro. `props1` es
-## ademas `doubleSided`, con lo que la cara de delante y la de detras del mismo
-## objeto se mezclan sin orden ninguno.
+## NO cubre un fallo vivo. El motor carga el `.scn` importado y no el `.gltf`, y
+## en nuestro `.godot/imported/chimera.gltf-dfd1139a....scn` los cinco materiales
+## de props ya vienen en recorte 0.21 - lo dice `probe_local_house_materials.gd`.
 ##
-## Que eran recorte y no mezcla no es deduccion: lo dice el pck del mod de PC,
-## leido con `tools/probe_pck_house_materials.gd`.
+## Lo que cubre es la divergencia entre fuente e importado. El `chimera.gltf` de
+## este repo marca cinco materiales `alphaMode: BLEND` SIN `alphaCutoff`, y los
+## dos que si lo conservaron (`grars` 0.214, `trash` 0.926) entraron como MASK.
+## Un reimport convertiria esos cinco a mezcla alfa, que no escribe profundidad:
+## el motor no los podria ordenar por pixel, los ordenaria por objeto, y dos
+## props solapados cambiarian de orden segun se mueve la camara. `chimera_house.gd`
+## lo neutraliza al cargar; esto comprueba que lo neutraliza bien.
 ##
-##     material               nuestro  cutoff  doble | ORIGINAL (transp, umbral, cull)
-##     grars                  MASK     0.214   True  | (2, 0.21, 2)
-##     trash                  MASK     0.926   True  | (2, 0.93, 2)
-##     props1                 BLEND    -       True  | (2, 0.21, 2)
-##     props2                 BLEND    -       False | (2, 0.21, 0)
-##     propruhhhhhoneofthem   BLEND    -       False | (2, 0.21, 0)
-##     Material.001           BLEND    -       False | (2, 0.21, 0)
-##     foliage                BLEND    -       False | (2, 0.21, 0)
-##
-## `transparencia = 2` es recorte alfa. En el original los siete lo son. Los dos
-## que conservaron su `alphaCutoff` al reexportar importaron bien; los cinco que
-## lo perdieron cayeron a BLEND, que es lo que hace Godot sin cutoff. Regresion
-## del port, con umbral conocido: 0.21.
-##
-## Se prueba corriendo el `_ready()` de verdad sobre una jerarquia con los
-## materiales tal y como los deja el importador, y no leyendo el codigo, porque
-## lo que hay que demostrar es que el recorrido LLEGA a un material colgado de
-## una malla anidada y que no toca a los que no van en la lista.
+## Se prueba corriendo el `_ready()` de verdad sobre una jerarquia con materiales
+## en mezcla - el estado que produciria ese reimport - y no leyendo el codigo,
+## porque lo que hay que demostrar es que el recorrido LLEGA a un material
+## colgado de una malla anidada y que no toca a los que no van en la lista.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_house_props_not_blended.gd
@@ -57,7 +45,7 @@ func _initialize() -> void:
 	_check(not names.has(&"grars") and not names.has(&"trash"),
 		"grars y trash NO estan: conservaron su alphaCutoff e importaron bien")
 	_check(is_equal_approx(float(script.get_script_constant_map()["SCISSOR_THRESHOLD"]), 0.21),
-		"el umbral es 0.21, el que tienen en el pck del mod de PC")
+		"el umbral es 0.21, el que ya tienen en el .scn importado")
 
 	# Una casa de mentira con la forma que importa: mallas anidadas, un material
 	# de la lista colgando de la mas profunda, y uno que no lo esta.
@@ -83,7 +71,7 @@ func _initialize() -> void:
 	_check(prop_mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR,
 		"props1 pasa a recorte alfa aunque cuelgue de una malla anidada")
 	_check(is_equal_approx(prop_mat.alpha_scissor_threshold, 0.21),
-		"con el umbral 0.21 del original, no con el 0.5 por defecto")
+		"con el umbral 0.21 del .scn, no con el 0.5 por defecto de Godot")
 	_check(prop_mat.alpha_antialiasing_mode == BaseMaterial3D.ALPHA_ANTIALIASING_OFF,
 		"y con el antialias de alfa apagado, igual que ese override")
 

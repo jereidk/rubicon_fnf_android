@@ -1,79 +1,49 @@
 extends Node3D
 
-## Pasa los materiales de props de la casa de mezcla alfa a recorte alfa.
+## Red de seguridad por si alguien reimporta el modelo de la casa.
 ##
-## El glTF marca cinco materiales `alphaMode: BLEND`, y para cuatro de ellos es
-## un error de exportacion, no una decision. Medido sobre el canal alfa de sus
-## texturas (van embebidas en `chimera0.bin`, hay que decodificarlas para verlo):
+## NO arregla nada que este roto hoy, y el comentario que decia lo contrario
+## estaba mal. El motor carga el `.scn` importado, no el `.gltf`, y leyendo
+## nuestro propio `.godot/imported/chimera.gltf-dfd1139a....scn`
+## (`probe_local_house_materials.gd`) los cinco materiales de props ya salen en
+## recorte alfa con umbral 0.21, que es lo correcto:
 ##
-##     material                a=0      a=255   intermedio
-##     props1                31.64%    67.98%     0.39%
-##     props2                22.55%    77.16%     0.29%
-##     propruhhhhhoneofthem  33.64%    64.93%     1.43%
-##     Material.001          52.81%    46.35%     0.83%
+##     grars RECORTE 0.21 | trash RECORTE 0.93 | props1 RECORTE 0.21 cull=2
+##     props2 RECORTE 0.21 | propruhhhhhoneofthem RECORTE 0.21
+##     Material.001 RECORTE 0.21 | foliage RECORTE 0.21
 ##
-## Alfa binario. Ese resto de entre uno y otro son los bordes antialiaseados del
-## recorte y nada mas: no hay una sola superficie semitransparente de verdad en
-## los cuatro.
+## Lo que si es cierto es que la FUENTE y el IMPORTADO no dicen lo mismo. El
+## `chimera.gltf` de este repo marca esos cinco como `alphaMode: BLEND` y sin
+## `alphaCutoff`; los dos que si lo conservaron (`grars` 0.214, `trash` 0.926)
+## entraron como MASK. O sea que el glTF que hay en disco es posterior o distinto
+## al que produjo el `.scn`, y perdio los cutoffs por el camino.
 ##
-## Lo que cuesta tenerlos en BLEND es que un material mezclado **no escribe
-## profundidad**, asi que el motor no puede ordenarlos por pixel y los ordena por
-## objeto, por distancia del centro. Cuando dos props se solapan en pantalla el
-## orden entre ellos cambia segun se mueve la camara, y eso se ve como un
-## parpadeo o como que una cosa se mete dentro de otra. `props1` ademas es
-## `doubleSided`, asi que la cara de delante y la de detras del MISMO objeto se
-## mezclan entre si sin orden: una comoda se pelea con su propio panel trasero.
+## Un reimport - cualquier cosa que invalide `.godot/imported/`, desde borrar la
+## carpeta hasta cambiar un ajuste de importacion - convertiria esos cinco a
+## mezcla alfa, porque es lo que hace Godot con un material que tiene alfa y no
+## tiene umbral. Y un material mezclado no escribe profundidad: no se puede
+## ordenar por pixel, se ordena por objeto, y dos props que se solapan cambian de
+## orden segun se mueve la camara. `props1` ademas es `doubleSided`.
 ##
-## Reportado desde el dispositivo como "un modelo que tiembla y parece roto" a la
-## derecha del encuadre, en la parte 3D en vivo de Chimera, sobre lo que en la
-## captura son tres listones paralelos junto al marco de una ventana - los
-## frentes de cajon de `dresser`, que es prop.
+## Esto lo deja sin importancia: al cargar, cualquiera de esos cinco que venga en
+## mezcla pasa a recorte con el umbral que tiene el .scn de hoy. Mientras nadie
+## reimporte no hace absolutamente nada, y esa es la idea.
 ##
-## Y sale gratis en rendimiento, que es la otra mitad: una superficie mezclada no
-## puede hacer early-Z, o sea que es sobredibujado puro. El analisis del log ya
-## lo tenia contado sin saber que era esto - "37 de 75 superficies 3D de Chimera
-## no opacas".
+## Por nombre de material y no por nodo porque el override por nodo que usa
+## `chimera_house.tscn` necesita saber que superficie de que nodo lleva cada
+## material, y son 59 nodos; el nombre viaja con el material desde el glTF.
 ##
-## Y no hay que deducirlo: el pck del mod de PC contesta la pregunta directa.
-## Montandolo y leyendo su `chimera.gltf` importado (`probe_pck_house_materials.gd`,
-## dos hashes distintos del mismo modelo, valores identicos en los dos):
-##
-##     material               nuestro  cutoff  doble | ORIGINAL (transp, umbral, cull)
-##     grars                  MASK     0.214   True  | (2, 0.21, 2)
-##     trash                  MASK     0.926   True  | (2, 0.93, 2)
-##     props1                 BLEND    -       True  | (2, 0.21, 2)
-##     props2                 BLEND    -       False | (2, 0.21, 0)
-##     propruhhhhhoneofthem   BLEND    -       False | (2, 0.21, 0)
-##     Material.001           BLEND    -       False | (2, 0.21, 0)
-##     foliage                BLEND    -       False | (2, 0.21, 0)
-##
-## `transparencia = 2` es TRANSPARENCY_ALPHA_SCISSOR. En el original los siete
-## son recorte. Los dos que conservaron su `alphaCutoff` al reexportar el glTF
-## importaron bien; los CINCO que lo perdieron cayeron a BLEND, que es lo que
-## hace Godot con un material sin cutoff. O sea que esto es una regresion del
-## port, no una decision de nadie, y el original dice ademas con que umbral:
-## **0.21**, no 0.5.
-##
-## `foliage` entra por eso, aunque tenga un 4.85% de alfa intermedio: en el
-## original es recorte como los demas. Lo que NO se toca es el
-## `surface_material_override` del nodo `green` en `chimera_house.tscn`, que es
-## un material distinto y deliberado - reemplaza tambien la textura - y sigue con
-## su umbral de 0.5.
-##
-## Por nombre de material y no por nodo a proposito: el override por nodo que ya
-## usa la escena necesita saber que superficie de que nodo lleva cada material, y
-## son 59 nodos, mientras que el nombre viaja con el material desde el glTF y
-## cubre a todos los que lo compartan sin enumerarlos. Y por codigo y no editando
-## el .gltf porque tocar el glTF obliga a reimportar el modelo, y reimportarlo
-## mueve el bake de LightmapGI - que es exactamente el fallo que dejo la casa a
-## oscuras once dias.
+## Lo que NO se hace es arreglar el glTF, que seria lo de fondo: tocarlo obliga a
+## reimportar, y reimportar mueve el bake de LightmapGI - el fallo que dejo esta
+## casa a oscuras once dias. Queda anotado como deuda, no como emergencia.
 const ALPHA_SCISSOR_MATERIALS: Array[StringName] = [
 	&"props1", &"props2", &"propruhhhhhoneofthem", &"Material.001", &"foliage",
 ]
 
-## El umbral que tienen en el pck del mod de PC, no uno elegido aqui. Importa
-## cual es: subirlo se come el borde del recorte, y a 0.5 la vegetacion y los
-## detalles finos salen mas delgados de lo que su autor los dejo.
+## El umbral que ya tienen los cinco en el `.scn` importado. Importa cual es:
+## subirlo se come el borde del recorte, y a 0.5 - el defecto de Godot, y lo que
+## este fichero puso primero por error - la vegetacion y los detalles finos
+## saldrian mas delgados de lo que su autor los dejo.
 const SCISSOR_THRESHOLD := 0.21
 
 
