@@ -799,6 +799,24 @@ jobs:
           # capsules, which is not what ten pairs cost.
           guard_godot tools/test_shop_raycast_writes.gd
 
+          # === Verify drift correction cannot loop
+          # A Theora seek walks back through the file in 512 KB blocks looking
+          # for the previous keyframe. Tightening max_drift to 0.05 to cure an
+          # audible desync closed a loop - seek, longer frame, more drift,
+          # another seek - and the device log measured the component's region at
+          # PhotoshootVideo=23.31ms average against the ~3.1ms decoding
+          # 960x540 costs. The ceiling does not depend on picking a good
+          # threshold.
+          guard_godot tools/test_video_seek_ceiling.gd
+
+          # === Verify the pause menu sleeps its children, not itself
+          # 37 of 37 nodes processing behind a closed menu, because the script
+          # node needs process_mode = ALWAYS to hear the pause key while the
+          # tree is paused and its children inherit it. Disabling the script
+          # node instead would save the same and leave the game unpausable,
+          # with no error anywhere.
+          guard_godot tools/test_pause_children_sleep.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F

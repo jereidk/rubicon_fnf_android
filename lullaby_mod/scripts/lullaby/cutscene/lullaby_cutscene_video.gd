@@ -145,6 +145,25 @@ extends Node
 ## que los dos derivan juntos.
 @export var max_drift: float = 0.25
 
+## Cuanto hay que esperar entre dos correcciones, pase lo que pase.
+##
+## El techo que faltaba, y lo que costo descubrirlo: bajar `max_drift` de 0.25 a
+## 0.05 para curar una desincronia audible metio un bucle. Un seek cuesta, el
+## seek alarga el fotograma, el fotograma largo genera mas deriva, la deriva
+## dispara otro seek. La region del componente en el log del dispositivo llego a
+##
+##     PhotoshootVideo=23.31/11.52
+##
+## 23.31 ms de MEDIA sobre 927 fotogramas, cuando decodificar 960x540 son ~3.1ms
+## por la formula medida en este mismo fichero. Siete veces el coste, y el
+## docstring de `max_drift` ya avisaba de que corregir por fotograma seria peor
+## que la deriva.
+##
+## Con un techo el bucle no puede cerrarse: por muy mal que vaya el fotograma,
+## no se paga mas de un seek por segundo. La deriva entre correcciones se ve;
+## el bucle se nota mucho mas.
+@export var min_seek_interval: float = 1.0
+
 ## En qué capa se dibuja el vídeo. Tiene que quedar por encima de la cutscene y
 ## por debajo del HUD.
 ##
@@ -174,6 +193,9 @@ var _live_mode: int = Node.PROCESS_MODE_INHERIT
 var _handed_back: bool = false
 var _seen_playing: bool = false
 var _seeks: int = 0
+
+## Posicion del reloj en la ultima correccion. Negativo = ninguna todavia.
+var _last_seek_at: float = -1.0
 
 ## Si la ventana ya se abrió. Hasta entonces el reproductor existe pero ni se ve
 ## ni suena.
@@ -300,9 +322,21 @@ func _process(_delta: float) -> void:
 	var want: float = here - starts_at
 	if want < 0.0:
 		return
-	if absf(_player.stream_position - want) > max_drift:
+	if absf(_player.stream_position - want) > max_drift and _seek_allowed():
 		_seeks += 1
+		_last_seek_at = here
 		_player.stream_position = want
+
+
+## Si ha pasado bastante desde la ultima correccion.
+##
+## Se mide con el RELOJ de la cancion y no con el de pared: es el mismo que
+## decide la deriva, y usar dos relojes distintos para decidir y para frenar es
+## como se cuelan los bucles.
+func _seek_allowed() -> bool:
+	if _last_seek_at < 0.0:
+		return true
+	return absf(clock.current_animation_position - _last_seek_at) >= min_seek_interval
 
 
 ## Abre la ventana: muestra el vídeo, lo sitúa y calla lo que tape.

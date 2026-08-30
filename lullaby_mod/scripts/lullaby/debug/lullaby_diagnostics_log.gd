@@ -4277,12 +4277,21 @@ func _entry(kind: String, detail: String) -> void:
 		# medio/pico en milisegundos, ordenado por el medio. El pico es el
 		# fotograma que gano el record de script_max; el medio cubre los %d
 		# fotogramas desde la linea anterior.
+		# Los LOCALES que el censo ya calculo, no los miembros.
+		#
+		# `_script_peak_usec` se pone a cero doscientas lineas mas arriba, en el
+		# mismo sitio donde se limpian los demas acumuladores del intervalo, asi
+		# que leerlo aqui daba 0.00 en las veintiocho lineas del primer log que
+		# lo llevaba. El censo se salva porque lo captura antes; esta linea no lo
+		# hacia.
+		#
+		# Y `peak_rest_ms` en vez de restar a mano: solo salen notes= y chars=,
+		# porque lanes=, bounds= y pump= se miden DENTRO del total de notas y
+		# restarlas otra vez quitaria los mismos microsegundos dos y tres veces.
+		# La version anterior de esta linea las restaba todas.
 		_file.store_line("[%9.2fs] %-10s n=%d script_max=%.2fms rest=%.2fms | %s" % [
 			seconds, "REGIONS", _probe_frames,
-			float(_script_peak_usec) / 1000.0,
-			float(maxi(0, _script_peak_usec - _peak_note_usec - _peak_lane_usec
-				- _peak_bounds_usec - _peak_pump_usec - _peak_char_usec)) / 1000.0,
-			_regions_text()])
+			script_peak_ms, peak_rest_ms, _regions_text()])
 		# Igual que churn= y anim2d=: cada linea cubre el intervalo desde la
 		# anterior, no desde que arranco la sesion.
 		for i: int in _probe_acc.size():

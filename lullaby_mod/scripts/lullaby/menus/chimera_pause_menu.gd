@@ -15,6 +15,40 @@ const SHAKY_CAMERA_SCENE: PackedScene = preload("res://addons/mrminimal_camera_s
 var _camera_3d: Camera3D
 var _shaky_camera: Node3D
 
+
+func _ready() -> void :
+	# Los hijos, dormidos hasta que haga falta el menu.
+	_set_children_processing(paused)
+
+
+## Enciende o apaga el procesado de los hijos, sin tocar el de este nodo.
+##
+## Este nodo lleva `process_mode = ALWAYS` en la escena, y tiene que llevarlo:
+## `_input()` es quien detecta la tecla de pausa, y cuando el menu esta abierto
+## el arbol entero esta en `get_tree().paused = true`, asi que cualquier otro
+## modo lo dejaria sordo. El problema es que sus treinta y siete hijos HEREDAN
+## ese ALWAYS y procesan durante toda la cancion con el menu cerrado.
+##
+## Lo dijo la instrumentacion de regiones en el log del dispositivo:
+##
+##     ChimeraPause=0.36/0.61  37/37 ocultos
+##
+## Treinta y siete de treinta y siete, invisibles y corriendo. No es mucho -
+## entre 0.36 y 1.02 ms - pero es todo desperdicio, y el menu de pausa no hace
+## nada mientras nadie lo abre.
+##
+## Se apagan los HIJOS y no este nodo, que es la distincion entera: apagarlo a
+## el dejaria el juego sin poder pausarse.
+##
+## Y se decide por `paused`, no por `visible`: este script nunca escribe su
+## propia visibilidad -la enciende otra cosa- asi que colgarse de ella seria
+## adivinar. `paused` lo pone `_input()` y lo quita `resume()`, y no hay un
+## tercer sitio.
+func _set_children_processing(on: bool) -> void :
+	var mode: int = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	for child: Node in get_children():
+		child.process_mode = mode
+
 func resume() -> void :
 	music.stop()
 	release_focus()
@@ -24,6 +58,7 @@ func resume() -> void :
 
 	get_tree().paused = false
 	paused = false
+	_set_children_processing(false)
 
 func restart() -> void :
 	music.stop()
@@ -56,6 +91,10 @@ func _input(event: InputEvent) -> void :
 
 	tree.paused = true
 	paused = true
+	# Antes de tocarles nada: lo que viene debajo escribe `no_exit_text.visible`
+	# y `exit_button.focus_mode`, y un nodo con el proceso apagado no reaccionaria
+	# a ninguna de las dos.
+	_set_children_processing(true)
 
 	if level and level.metadata.title.to_lower() == "chimera":
 		var allow_exit: bool = true
