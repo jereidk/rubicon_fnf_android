@@ -98,7 +98,7 @@ tracks/1/keys = {
 }
 
 [sub_resource type="Animation" id="Animation_7vd1v"]
-length = 0.416666679084301
+length = 0.2083333395421505
 loop_mode = 1
 step = 0.041666668
 tracks/0/type = "animation"
@@ -241,7 +241,7 @@ _data = {
 &"sing_up": SubResource("Animation_p4q7e")
 }
 
-[node name="komi_stand" type="Node2D" unique_id=704483622 node_paths=PackedStringArray("animation_player")]
+[node name="komi_stand" type="Node2D" unique_id=332666247 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_kk8p3")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
@@ -261,15 +261,15 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1753940047]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=74305284]
 position = Vector2(-134.5, -670)
 sprite_frames = ExtResource("2_q3xma")
 animation = &"idle"
 centered = false
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=262538690]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=1103750716]
 libraries/ = ExtResource("3_jbmlm")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1944985862]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=858034747]
 libraries/ = SubResource("AnimationLibrary_dc3ht")
 autoplay = &"dance_idle"

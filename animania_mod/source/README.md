@@ -1081,21 +1081,57 @@ either — and that handover is also what the phone form's camera slide and retr
 on, so it carries a callback rather than only swapping animations.
 
 Only the phone form *has* a `death_loop` (4.208s, against `first_death`'s 4.125s). The
-standing form has none, and neither does komi-stand's `game_over`: both hold their last
-frame, which is precisely what `tadano-stand.hx` does by returning on `deathLoop`.
+standing form has none, which is precisely what `tadano-stand.hx` does by returning on
+`deathLoop`. komi-stand does have one — see below.
+
+### The confirm is not one thing
+
+`deathConfirm` is different in the two forms, and this port ran the standing one's numbers
+for both until it was read properly. `tadano-stand.hx` raises the camera 350 over 3.5s on a
+0.2 delay with `elasticInOut`, cancels the panels' slide and sends them to −300 and
+`FlxG.width − 100`, and drops a curtain. `tadano.hx` cancels the slide it started on
+`deathLoop` and raises the same 350 over the same 3.5s but on a **0.8** delay with
+`backInOut` — and has neither panels nor curtain.
+
+The curtain is the last thing added to the substate, so it draws over everything, the retry
+text included:
+
+    var g = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height * 2.25,
+        [FlxColor.BLACK, FlxColor.BLACK, FlxColor.TRANSPERENT]);
+    g.screenCenter(FlxAxes.X); g.scrollFactor.set(); g.y = -(FlxG.height * 2);
+    FlxTween.tween(g, {y: 0}, 3.5, {ease: FlxEase.backIn});
+
+Three colours spread evenly over a sprite two and a quarter screens tall — black for the
+first half, fading out over the second — coming to rest at `y = 0`, where the screen only
+ever sees that solid first half. It is a curtain drawn as a fade.
+
+### frameIndices count the ATLAS's frames
+
+komi-stand's `gameOver-loop` is `frameIndices: [6, 7, 8, 9, 10]` of the `komigameover`
+prefix with `looped: true`, and Funkin hands over to `<name>-loop` when `<name>` ends. It
+was not being built at all, so komi froze on her last frame.
+
+Building it is not a matter of taking frames 6..10, though: the sparrow importer dedups
+runs of identical frames into one held longer, and `komigameover` goes from **100** frames
+in the XML to **50** held for two each. Indices taken against the imported list are neither
+the right pictures nor the right length — done that way it came out 0.417s instead of
+0.208s. What is exact is to key one frame per ATLAS frame, each showing whichever imported
+frame covers it by running duration; the timing is then the mod's whatever the dedup did.
+`build_character_scenes.gd` takes a window as a third element of a character's animation
+table and does this.
 
 ### What it does not do
 
-**Retry.** There is no pause menu, no game-over scene and no song select on this branch to
-go back to, so `confirm()` plays the confirm beat — the text's `confirm` label, the camera
-pulling up 350, the panels sliding further out, the end music — and stops. Whatever drives
-the flow later calls it and does its own transition.
+**Retrying the way the mod does.** Funkin's `GameOverSubState.update` ends the confirm by
+building a `StickerSubState` and going back into `PlayState` through it, and there is no
+sticker transition here — so the port reloads the level instead, after each form's confirm
+delay plus the 3.5s its tweens run. The standing form's own curtain is black by then and
+covers the swap; the phone form's confirm has no curtain, so there the reload is visible.
+That is a gap, not a choice.
 
-Nor the confirm's black gradient sweep, and nor komi-stand's `gameOver-loop`: the JSON gives
-it as `frameIndices: [6, 7, 8, 9, 10]`, a five-frame subset, and the sparrow importer's
-frame-duration dedup renumbers frames, so those indices no longer address what they were
-written against. Both stand characters hold their death animation's last frame instead of
-breathing on it.
+The input into it *is* new rather than ported: ACCEPT while the retry text loops, which on a
+phone is a tap. The death hides the lane hitboxes to let that tap through — they are not
+part of the HUD the death sends away, and a dead player cannot hit notes anyway.
 
 ### A guard that walks the song has to autoplay
 

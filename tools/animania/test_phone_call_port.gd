@@ -1322,6 +1322,12 @@ func _check_death() -> void:
 				&"game_over_loop")
 			_check(komi_loop.loop_mode == Animation.LOOP_LINEAR,
 				"de pie: game_over_loop de komi no hace bucle")
+			# Five ATLAS frames at 24fps. The importer dedups komigameover from 100 frames
+			# to 50 held for two each, so taking 6..10 against the imported list gives the
+			# wrong pictures AND twice the length - which is what it did at first.
+			_check(is_equal_approx(komi_loop.length, 5.0 / 24.0),
+				"de pie: game_over_loop de komi dura %.3fs y son 5 cuadros a 24fps"
+					% komi_loop.length)
 
 		# The lane hitboxes are not part of the HUD the death sends away, and while they
 		# are up they eat the tap that retries - so the death hides them.

@@ -385,14 +385,34 @@ func _root_library(clips: Dictionary, offsets: Dictionary, player_path: NodePath
 ## One animation over a WINDOW of another clip's frames, looping - a character JSON's
 ## `frameIndices` with `looped: true`. Added to the sprite library beside the clip it cuts
 ## from, so the sprite player and the root library both see it.
+##
+## The window counts the ATLAS's frames, and the importer does not keep those: it dedups
+## runs of identical frames into one held longer, and komi's `komigameover` goes from 100
+## frames in the XML to 50 held for two each. So indices 6..10 taken against the imported
+## list are neither the right pictures nor the right length - which is exactly what this
+## did on the first pass, and came out 0.417s instead of 0.208s.
+##
+## What is exact is to key one frame per ATLAS frame, each showing whichever imported frame
+## covers it: the timing is then the mod's whatever the dedup did.
 func _window(frames: SpriteFrames, library: AnimationLibrary, basename: String,
 		clip: StringName, window: Vector2i) -> StringName:
 	var name := StringName("%s_loop" % clip)
+	# Dropped rather than skipped if it is already there. The library is a saved resource,
+	# so a previous run's version is loaded with it - and returning early on that is how a
+	# rebuild reports success while changing nothing, which is what happened here on the
+	# first pass and left the wrong 0.417s animation in place.
 	if library.has_animation(name):
-		return name
+		library.remove_animation(name)
 
 	var source: Animation = library.get_animation(clip)
 	var sprite_clip: String = String(clip).trim_prefix("%s_" % basename)
+
+	# Atlas frame -> imported frame, by running duration.
+	var covers: PackedInt32Array = []
+	for i: int in frames.get_frame_count(sprite_clip):
+		for _held: int in maxi(1, int(round(frames.get_frame_duration(sprite_clip, i)))):
+			covers.append(i)
+
 	var animation := Animation.new()
 	animation.step = source.step
 	animation.loop_mode = Animation.LOOP_LINEAR
@@ -408,15 +428,15 @@ func _window(frames: SpriteFrames, library: AnimationLibrary, basename: String,
 	animation.value_track_set_update_mode(frame_track, Animation.UPDATE_DISCRETE)
 	animation.track_set_interpolation_type(frame_track, Animation.INTERPOLATION_NEAREST)
 
-	var elapsed: float = 0.0
-	var last: int = mini(window.y, frames.get_frame_count(sprite_clip) - 1)
-	for i: int in range(window.x, last + 1):
-		animation.track_insert_key(frame_track, elapsed * animation.step, i)
-		elapsed += frames.get_frame_duration(sprite_clip, i)
-	animation.length = maxf(elapsed * animation.step, animation.step)
+	var last: int = mini(window.y, covers.size() - 1)
+	for k: int in range(window.x, last + 1):
+		animation.track_insert_key(
+			frame_track, float(k - window.x) * animation.step, covers[k])
+	animation.length = maxf(float(last - window.x + 1) * animation.step, animation.step)
 
 	library.add_animation(name, animation)
-	print("OUT %s cuadros %d..%d, %.3fs" % [name, window.x, last, animation.length])
+	print("OUT %s atlas %d..%d -> importados %d..%d, %.3fs" % [
+		name, window.x, last, covers[window.x], covers[last], animation.length])
 	return name
 
 
