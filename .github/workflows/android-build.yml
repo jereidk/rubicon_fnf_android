@@ -1544,6 +1544,24 @@ jobs:
           # exactly what makes deleting it look like a free win.
           guard_godot tools/test_cutscene_assets_kept.gd
 
+          # === ...and that Chimera's covered art ships nowhere while staying here
+          # The comment above is about DELETING, and still holds. This is the
+          # other move: leave the art in the repo, keep it out of the APK. Two
+          # directories under serena/ - back_up and intro - are only ever drawn
+          # by clips that fall entirely inside one of Chimera's two video
+          # windows, and both video nodes carry disable_3d_while_playing. That
+          # is 30.15 MB of imported textures the player can never see.
+          # Excluding a resource the scene still references leaves the property
+          # null on load, which is harmless for a covered AnimatedSprite and a
+          # crash if anyone dereferences it, so the guard proves the whole chain:
+          # only sng_chimera.tscn references those files, no script names the
+          # nodes that carry them, and every live clip that touches those
+          # subtrees (103_stroll, 117_heartbeat, jumpscare, running_away, start)
+          # writes them :visible = false and nothing else. It also pins that the
+          # files stay in the repo - the render harness needs them live to remake
+          # the videos - and that all five presets carry the exclusion.
+          guard_godot tools/test_video_covered_assets_excluded.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
