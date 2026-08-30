@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/pause/buttons/Restart.png" id="1_ynvbc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mrseb"]
+atlas = ExtResource("1_ynvbc")
+region = Rect2(1, 1, 331, 143)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6aayu"]
+atlas = ExtResource("1_ynvbc")
+region = Rect2(1, 145, 331, 143)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mrseb")
+}],
+"loop": 1,
+"name": &"restart basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6aayu")
+}],
+"loop": 1,
+"name": &"restart white",
+"speed": 24.0
+}]

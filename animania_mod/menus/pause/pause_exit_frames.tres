@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/pause/buttons/Exit.png" id="1_3138w"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1808x"]
+atlas = ExtResource("1_3138w")
+region = Rect2(1, 1, 230, 130)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t7axa"]
+atlas = ExtResource("1_3138w")
+region = Rect2(1, 132, 230, 130)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1808x")
+}],
+"loop": 1,
+"name": &"exit basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t7axa")
+}],
+"loop": 1,
+"name": &"exit white",
+"speed": 24.0
+}]

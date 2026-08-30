@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="Exit.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="exit basic0000" x="1" y="1" width="230" height="130"/>
+	<SubTexture name="exit white0000" x="1" y="132" width="230" height="130"/>
+</TextureAtlas>

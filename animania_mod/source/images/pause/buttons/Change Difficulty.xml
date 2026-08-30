@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="Change Difficulty.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="change difficulty basic0000" x="1" y="1" width="353" height="207"/>
+	<SubTexture name="change difficulty white0000" x="1" y="209" width="353" height="207"/>
+</TextureAtlas>

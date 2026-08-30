@@ -54,6 +54,7 @@ const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 
 const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
 ## The lane hitboxes. A song scene owns them; nothing else does.
+const PAUSE_MENU := "res://animania_mod/menus/pause/pause_menu.tscn"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 ## What a device run settled on: low enough not to be a slab, high enough to find.
 const MOBILE_CONTROLS_OPACITY := 0.4
@@ -208,6 +209,14 @@ func _init() -> void:
 	# up they eat the tap that retries. Wired here rather than in _build_death because that
 	# runs before these exist.
 	_root.get_node("DeathSequence").mobile_controls = controls
+
+	# The pause menu, which is what makes a song leavable at all. It is its own CanvasLayer
+	# on layer 40 - above the HUD and above the mobile controls - and it runs while the tree
+	# is paused, which is how it stops the chart, the notes, the characters and the audio in
+	# one move instead of five.
+	var pause: Node = load(PAUSE_MENU).instantiate()
+	pause.name = "PauseMenu"
+	_root.add_child(pause)
 
 	_bake_camera_events(instrumental.get_length())
 

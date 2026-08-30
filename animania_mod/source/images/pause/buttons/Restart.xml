@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="Restart.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="restart basic0000" x="1" y="1" width="331" height="143"/>
+	<SubTexture name="restart white0000" x="1" y="145" width="331" height="143"/>
+</TextureAtlas>

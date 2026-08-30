@@ -266,6 +266,31 @@ func _init() -> void:
 
 	_check(root.has_node("DebugOverlay"), "falta el overlay de debug")
 
+	# The pause menu, which is what makes a song leavable at all. Until it existed the only
+	# way out of a song was killing the app.
+	var pause: Node = level.get_node("PauseMenu")
+	_check(not pause.is_open(), "la pausa no tendria que estar abierta al empezar")
+	pause.open()
+	await process_frame
+	# `paused` is a property of the tree, and this harness IS the tree.
+	_check(pause.is_open() and paused, "abrir la pausa tendria que parar el arbol")
+	# It has to keep running while everything else is stopped, or nothing could close it.
+	_check(pause.process_mode == Node.PROCESS_MODE_WHEN_PAUSED,
+		"la pausa se para con el resto y no se podria cerrar")
+	# The walk, while it is open - change_option is deaf when it is not.
+	pause.change_option(2, false)
+	_check(String(pause.OPTIONS[pause._selected]) == "change_difficulty",
+		"la lista de la pausa no camina")
+	# A blocked option says "not yet" and stays put instead of going nowhere silently.
+	pause.confirm()
+	await process_frame
+	_check(pause.is_open(), "change_difficulty no tendria que hacer nada todavia")
+	# `resume` is the first option, and confirming it closes the pause and lets go.
+	pause.change_option(-2, false)
+	pause.confirm()
+	await process_frame
+	_check(not pause.is_open() and not paused, "reanudar tendria que soltar el arbol")
+
 	# And dying leads back into the song. The mod goes through a StickerSubState and there
 	# is none here, so the level reloads - which only works when the level IS the running
 	# scene, and this is the only place that is true.

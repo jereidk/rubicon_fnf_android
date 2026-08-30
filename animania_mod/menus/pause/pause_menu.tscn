@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://animania_mod/menus/pause/pause_menu.gd" id="1_5ki34"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/pause/menuleft.png" id="2_uclmc"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_resume_frames.tres" id="3_1uug1"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_restart_frames.tres" id="4_48ku4"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_change_difficulty_frames.tres" id="5_7n0df"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_options_frames.tres" id="6_8d2gd"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_exit_frames.tres" id="7_g20xf"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/music/breakfast/breakfast-phonecall.ogg" id="8_u23ue"]
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=859432915 node_paths=PackedStringArray("dim", "buttons", "sfx", "music")]
+layer = 40
+script = ExtResource("1_5ki34")
+dim = NodePath("Dim")
+buttons = NodePath("Buttons")
+sfx = NodePath("Sfx")
+music = NodePath("Music")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=974019232]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="Sprite2D" parent="." unique_id=1942018420]
+position = Vector2(0, -18)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_uclmc")
+centered = false
+
+[node name="Buttons" type="Node2D" parent="." unique_id=623250956]
+
+[node name="Resume" type="AnimatedSprite2D" parent="Buttons" unique_id=1938239149]
+position = Vector2(260, 300)
+scale = Vector2(0.82500005, 0.82500005)
+sprite_frames = ExtResource("3_1uug1")
+animation = &"resume basic"
+metadata/prefix = "resume"
+metadata/hitbox = Rect2(-121.68751, -56.512505, 243.37502, 113.02501)
+
+[node name="Restart" type="AnimatedSprite2D" parent="Buttons" unique_id=224956972]
+position = Vector2(260, 450)
+scale = Vector2(0.82500005, 0.82500005)
+sprite_frames = ExtResource("4_48ku4")
+animation = &"restart basic"
+metadata/prefix = "restart"
+metadata/hitbox = Rect2(-136.5375, -58.987503, 273.075, 117.975006)
+
+[node name="ChangeDifficulty" type="AnimatedSprite2D" parent="Buttons" unique_id=1912829432]
+position = Vector2(260, 600)
+scale = Vector2(0.82500005, 0.82500005)
+sprite_frames = ExtResource("5_7n0df")
+animation = &"change difficulty basic"
+metadata/prefix = "change difficulty"
+metadata/hitbox = Rect2(-145.6125, -85.387505, 291.225, 170.77501)
+
+[node name="Options" type="AnimatedSprite2D" parent="Buttons" unique_id=81997623]
+position = Vector2(260, 750)
+scale = Vector2(0.82500005, 0.82500005)
+sprite_frames = ExtResource("6_8d2gd")
+animation = &"options basic"
+metadata/prefix = "options"
+metadata/hitbox = Rect2(-47.025, -44.550003, 94.05, 89.100006)
+
+[node name="Exit" type="AnimatedSprite2D" parent="Buttons" unique_id=1838708089]
+position = Vector2(260, 900)
+scale = Vector2(0.82500005, 0.82500005)
+sprite_frames = ExtResource("7_g20xf")
+animation = &"exit basic"
+metadata/prefix = "exit"
+metadata/hitbox = Rect2(-94.87501, -53.625004, 189.75002, 107.25001)
+
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=594920600]
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=401895662]
+stream = ExtResource("8_u23ue")
+bus = &"Music"

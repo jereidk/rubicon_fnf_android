@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/pause/buttons/Change Difficulty.png" id="1_m3m8m"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y3ej5"]
+atlas = ExtResource("1_m3m8m")
+region = Rect2(1, 1, 353, 207)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tqns0"]
+atlas = ExtResource("1_m3m8m")
+region = Rect2(1, 209, 353, 207)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y3ej5")
+}],
+"loop": 1,
+"name": &"change difficulty basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tqns0")
+}],
+"loop": 1,
+"name": &"change difficulty white",
+"speed": 24.0
+}]

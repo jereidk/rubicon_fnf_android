@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/pause/buttons/Resume.png" id="1_mbvp1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hkvb1"]
+atlas = ExtResource("1_mbvp1")
+region = Rect2(1, 1, 295, 137)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_apv7u"]
+atlas = ExtResource("1_mbvp1")
+region = Rect2(1, 139, 295, 137)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hkvb1")
+}],
+"loop": 1,
+"name": &"resume basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_apv7u")
+}],
+"loop": 1,
+"name": &"resume white",
+"speed": 24.0
+}]
