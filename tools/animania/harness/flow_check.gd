@@ -102,6 +102,14 @@ func _init() -> void:
 	var first: Node2D = story_menu.titles.get_child(0)
 	_check(story_menu.week_at(first.position) == 0,
 		"tocar el titulo tendria que dar con la semana")
+	# The touch branch itself, called directly - see the note on the pause's below.
+	var story_tap := InputEventScreenTouch.new()
+	story_tap.pressed = true
+	story_tap.position = story_menu.titles.get_child(2).position
+	story_menu._unhandled_input(story_tap)
+	_check(story_menu._selected == 2,
+		"el toque no selecciona en story: sigue en %d" % story_menu._selected)
+	story_menu.change_week(-2, false)
 	# Only meaningful while no listed week is playable, which is the state today - and it
 	# checks that first, because confirming a week that IS built would change the scene out
 	# from under the rest of this walk.
@@ -277,7 +285,30 @@ func _init() -> void:
 	# It has to keep running while everything else is stopped, or nothing could close it.
 	_check(pause.process_mode == Node.PROCESS_MODE_WHEN_PAUSED,
 		"la pausa se para con el resto y no se podria cerrar")
-	# The walk, while it is open - change_option is deaf when it is not.
+	# Touch, end to end and not just the hitbox lookup: a real InputEventScreenTouch has to
+	# reach the pause and land on an option. The lane hitboxes are the risk here - they sit
+	# on the same screen and eat taps - but they stop processing when the tree pauses and
+	# the pause menu does not, so the pause is the only thing listening.
+	var exit_button: Node2D = pause.buttons.get_child(4)
+	_check(pause.option_at(exit_button.position) == 4,
+		"tocar exit tendria que dar con exit")
+	_check(pause.option_at(Vector2(1700.0, 80.0)) == -1,
+		"el fondo de la pausa no es una opcion")
+	# The handler is called directly rather than pushed through the viewport: headless runs
+	# on the dummy display server and it does not dispatch input, so push_input() proves
+	# nothing here (neither a touch nor a click reaches _unhandled_input). What this DOES
+	# check is the port's own path - the touch branch, _touch, option_at and the selection.
+	# Whether the event arrives at all is the engine's job and only the device can say.
+	var tap := InputEventScreenTouch.new()
+	tap.pressed = true
+	tap.position = exit_button.position
+	pause._unhandled_input(tap)
+	_check(pause._selected == 4,
+		"el toque no selecciona en la pausa: sigue en %d" % pause._selected)
+
+	# The walk, while it is open - change_option is deaf when it is not. Back to the top
+	# first, since the tap above moved the selection.
+	pause.change_option(-pause._selected, false)
 	pause.change_option(2, false)
 	_check(String(pause.OPTIONS[pause._selected]) == "change_difficulty",
 		"la lista de la pausa no camina")
