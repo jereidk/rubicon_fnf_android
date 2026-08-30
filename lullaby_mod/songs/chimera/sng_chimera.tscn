@@ -15364,6 +15364,7 @@ volume_db = -2.4474702
 [node name="PreludeVideo" type="Node" parent="." unique_id=785039701 node_paths=PackedStringArray("live_cutscene", "clock")]
 script = ExtResource("304")
 live_cutscene = NodePath("../Intro")
+disable_3d_while_playing = true
 video_path = "res://lullaby_mod/songs/chimera/video/prelude.ogv"
 clock = NodePath("../RubiconLevelClock/AnimationPlayer")
 starts_at = 0.0

@@ -4091,6 +4091,22 @@ func _entry(kind: String, detail: String) -> void:
 	var peak_rest_ms: float = maxf(0.0, script_peak_ms - peak_note_ms - peak_char_ms)
 	var peak_chars: int = _peak_chars
 	_script_peak_usec = 0
+	# El reparto por region va CON el pico al que pertenece.
+	#
+	# Se quedaba sin limpiar, y como el pico se reinicia en cada `_entry()` -que
+	# incluye SPIKE, BLACKOUT y cada aviso- pero `_peak_regions` solo se
+	# sobrescribe cuando se bate el record, los dos se desincronizaban: el "pico"
+	# acababa siendo el reparto de un fotograma cualquiera, el primero que
+	# superase cero despues del reinicio.
+	#
+	# Se veia en el primer log que llevo esto, con ocho casos donde el MEDIO
+	# supera al PICO, que no puede pasar:
+	#
+	#     SecondPhaseFlag=17.86/1.86    SongDebugger=15.33/3.45
+	#
+	# Limpiando aqui, la columna del pico vuelve a significar "el peor fotograma
+	# desde la linea anterior", que es lo mismo que dice `script_max` al lado.
+	_peak_regions.clear()
 	_peak_self_usec = 0
 	_peak_seq = "-"
 	_peak_players = 0
