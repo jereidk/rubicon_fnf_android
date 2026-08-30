@@ -284,6 +284,10 @@ Recorded so the next person does not go looking for a bug that is not there.
 - **Freeplay's `TVBACK` and `TVNOISE`** — texture budget, see above.
 - **The main menu's mouse furniture** — `newsButton`, `musicSocial`, `socialButtons`,
   `updateCameraScroll` (mouse parallax), `spawnHelpMouseText`. All inert on Android.
+- **The credits' character.** The roll is there - all 36 people and their roles, out of the
+  mod's own `data/credits.json` - but not the portraits, the typed-out text with its
+  per-entry speed and pitch and its embedded `<img>` tags, the social buttons or the
+  stickers. Those want the mod's bitmap fonts, which the port does not have yet.
 - **The retry's `StickerSubState`.** Funkin returns to `PlayState` through a sticker
   transition; the port reloads the level instead and says so at the point of use.
 

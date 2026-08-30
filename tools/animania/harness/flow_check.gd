@@ -129,6 +129,23 @@ func _init() -> void:
 	story_menu.queue_free()
 	await process_frame
 
+	# Credits: 36 entries straight out of the mod's own credits.json, and the same touch
+	# shape as every other list here.
+	var credits: Node = load(
+		"res://animania_mod/menus/credits/credits_menu.tscn").instantiate()
+	root.add_child(credits)
+	await process_frame
+	_check(credits.entry_count() == 36,
+		"credits tendria que traer 36 entradas y trae %d" % credits.entry_count())
+	var row_tap := InputEventScreenTouch.new()
+	row_tap.pressed = true
+	row_tap.position = credits.rows.position + credits.rows.get_child(3).position
+	credits._unhandled_input(row_tap)
+	_check(credits._selected == 3,
+		"el toque no selecciona en credits: sigue en %d" % credits._selected)
+	credits.queue_free()
+	await process_frame
+
 	# The walk skips the three blocked buttons rather than stopping on them.
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
 		"el menu no empieza en storymode")

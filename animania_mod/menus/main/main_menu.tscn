@@ -14,7 +14,7 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_leafs_frames.tres" id="12_msg4d"]
 [ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg" id="13_cmbxy"]
 
-[node name="MainMenu" type="Node2D" unique_id=528888955 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
+[node name="MainMenu" type="Node2D" unique_id=9149689 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
 script = ExtResource("1_ond0l")
 buttons = NodePath("Buttons")
 sfx = NodePath("Sfx")
@@ -24,22 +24,22 @@ curtain_up = NodePath("BlackLineUp")
 curtain_down = NodePath("BlackLineDown")
 dude = NodePath("Dude")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=755935253]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1928245820]
 position = Vector2(960, 540)
 
-[node name="Background" type="Sprite2D" parent="." unique_id=855580957]
+[node name="Background" type="Sprite2D" parent="." unique_id=1909026279]
 position = Vector2(0, -20.946716)
 scale = Vector2(1.4201183, 1.4201183)
 texture = ExtResource("2_45fl5")
 centered = false
 
-[node name="ButtonsBack" type="Sprite2D" parent="." unique_id=881409916]
+[node name="ButtonsBack" type="Sprite2D" parent="." unique_id=1071386837]
 position = Vector2(465, -13.5)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("3_ahvaq")
 centered = false
 
-[node name="Dude" type="AnimatedSprite2D" parent="." unique_id=1074582110]
+[node name="Dude" type="AnimatedSprite2D" parent="." unique_id=775440654]
 position = Vector2(-106.50887, 298.5799)
 scale = Vector2(1.5621302, 1.5621302)
 sprite_frames = ExtResource("4_53ajg")
@@ -47,9 +47,9 @@ animation = &"caramel"
 autoplay = "caramel"
 centered = false
 
-[node name="Buttons" type="Node2D" parent="." unique_id=1468497790]
+[node name="Buttons" type="Node2D" parent="." unique_id=1859204021]
 
-[node name="Storymode" type="Node2D" parent="Buttons" unique_id=896475068]
+[node name="Storymode" type="Node2D" parent="Buttons" unique_id=1274204767]
 position = Vector2(1075.0295, -11.005888)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -72,11 +72,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Storymode" unique_id=624307048]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Storymode" unique_id=1937031391]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_storymode_basic"
 
-[node name="Shop" type="Node2D" parent="Buttons" unique_id=990602544]
+[node name="Shop" type="Node2D" parent="Buttons" unique_id=87005721]
 position = Vector2(1662.9586, -11.005888)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -99,11 +99,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Shop" unique_id=2023758411]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Shop" unique_id=1947137926]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_shop_basic"
 
-[node name="Freeplay" type="Node2D" parent="Buttons" unique_id=566683140]
+[node name="Freeplay" type="Node2D" parent="Buttons" unique_id=452926722]
 position = Vector2(1075.0295, 206.27222)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -126,11 +126,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Freeplay" unique_id=114412391]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Freeplay" unique_id=1833602175]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_freeplay_basic"
 
-[node name="Website" type="Node2D" parent="Buttons" unique_id=1751551918]
+[node name="Website" type="Node2D" parent="Buttons" unique_id=118474617]
 position = Vector2(1075.0295, 405.08878)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -153,11 +153,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Website" unique_id=489662151]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Website" unique_id=378662286]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_website_basic"
 
-[node name="Options" type="Node2D" parent="Buttons" unique_id=1968035592]
+[node name="Options" type="Node2D" parent="Buttons" unique_id=1346488026]
 position = Vector2(1076.4497, 596.80475)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -180,11 +180,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Options" unique_id=2131580586]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Options" unique_id=1379076773]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_options_basic"
 
-[node name="Credits" type="Node2D" parent="Buttons" unique_id=1686547346]
+[node name="Credits" type="Node2D" parent="Buttons" unique_id=829331954]
 position = Vector2(1336.3313, 596.80475)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -207,11 +207,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Credits" unique_id=1583597821]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Credits" unique_id=1694153509]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_credits_basic"
 
-[node name="Awards" type="Node2D" parent="Buttons" unique_id=139129253]
+[node name="Awards" type="Node2D" parent="Buttons" unique_id=765529785]
 position = Vector2(1076.4497, 799.88165)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -234,11 +234,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Awards" unique_id=235794983]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Awards" unique_id=213296566]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_awards_basic"
 
-[node name="Exit" type="Node2D" parent="Buttons" unique_id=847518217]
+[node name="Exit" type="Node2D" parent="Buttons" unique_id=302383055]
 position = Vector2(1336.3313, 799.88165)
 scale = Vector2(1.4201183, 1.4201183)
 script = ExtResource("5_k3maf")
@@ -261,11 +261,11 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Exit" unique_id=942472781]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Exit" unique_id=984032344]
 libraries/ = ExtResource("8_u8mjm")
 autoplay = &"menu_buttons_exit_basic"
 
-[node name="ShopLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1625331892]
+[node name="ShopLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1235450574]
 position = Vector2(1667.2189, 6.74559)
 scale = Vector2(1.4201183, 1.4201183)
 sprite_frames = ExtResource("9_fs0ch")
@@ -273,7 +273,7 @@ animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="WebsiteLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1277889347]
+[node name="WebsiteLock" type="AnimatedSprite2D" parent="Buttons" unique_id=530511649]
 position = Vector2(1369.7041, 384.49707)
 scale = Vector2(1.4201183, 1.4201183)
 sprite_frames = ExtResource("9_fs0ch")
@@ -281,7 +281,7 @@ animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="AwardsLock" type="AnimatedSprite2D" parent="Buttons" unique_id=2066360337]
+[node name="AwardsLock" type="AnimatedSprite2D" parent="Buttons" unique_id=79243882]
 position = Vector2(1075.7396, 784.97046)
 scale = Vector2(1.4201183, 1.4201183)
 sprite_frames = ExtResource("9_fs0ch")
@@ -289,28 +289,28 @@ animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="Seasonal" type="Node2D" parent="." unique_id=711203170]
+[node name="Seasonal" type="Node2D" parent="." unique_id=274055917]
 script = ExtResource("10_sa1r4")
 snow_frames = ExtResource("11_l8ddx")
 leaf_frames = ExtResource("12_msg4d")
 
-[node name="Music" type="AudioStreamPlayer" parent="." unique_id=624934007]
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=321471833]
 stream = ExtResource("13_cmbxy")
 autoplay = true
 bus = &"Music"
 
-[node name="BlackLineUp" type="ColorRect" parent="." unique_id=925955187]
+[node name="BlackLineUp" type="ColorRect" parent="." unique_id=287182696]
 offset_left = -240.0
 offset_right = 2160.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="BlackLineDown" type="ColorRect" parent="." unique_id=1601178017]
+[node name="BlackLineDown" type="ColorRect" parent="." unique_id=14673568]
 offset_left = -240.0
 offset_right = 2160.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1188864787]
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1773367982]

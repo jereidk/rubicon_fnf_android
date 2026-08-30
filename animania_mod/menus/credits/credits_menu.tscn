@@ -1,0 +1,741 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://animania_mod/menus/credits/credits_menu.gd" id="1_p0kec"]
+
+[node name="CreditsMenu" type="Node2D" unique_id=1648192690 node_paths=PackedStringArray("rows", "sfx")]
+script = ExtResource("1_p0kec")
+rows = NodePath("Rows")
+sfx = NodePath("Sfx")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=655222661]
+position = Vector2(960, 540)
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=279803360]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.07, 0.06, 0.11, 1)
+
+[node name="Rows" type="Node2D" parent="." unique_id=1325969902]
+
+[node name="Row0" type="Node2D" parent="Rows" unique_id=1315509706]
+position = Vector2(560, 0)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row0" unique_id=787194679]
+offset_top = -26.0
+offset_right = 58.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "KerSive"
+
+[node name="Roles" type="Label" parent="Rows/Row0" unique_id=1832345532]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 612.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "director, artist, animator"
+
+[node name="Row1" type="Node2D" parent="Rows" unique_id=404486013]
+position = Vector2(560, 78)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row1" unique_id=564500755]
+offset_top = -26.0
+offset_right = 91.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "d4rkwinged"
+
+[node name="Roles" type="Label" parent="Rows/Row1" unique_id=656920205]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 697.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "director, artist, animator, composer"
+
+[node name="Row2" type="Node2D" parent="Rows" unique_id=694054817]
+position = Vector2(560, 156)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row2" unique_id=1061151670]
+offset_top = -26.0
+offset_right = 12.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "G"
+
+[node name="Roles" type="Label" parent="Rows/Row2" unique_id=1534496414]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 824.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "director, artist, animator, video editor, sound design"
+
+[node name="Row3" type="Node2D" parent="Rows" unique_id=1108944976]
+position = Vector2(560, 234)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row3" unique_id=1936204484]
+offset_top = -26.0
+offset_right = 61.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "naisonji"
+
+[node name="Roles" type="Label" parent="Rows/Row3" unique_id=942990476]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 634.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "co-director, artist, animator"
+
+[node name="Row4" type="Node2D" parent="Rows" unique_id=1956566298]
+position = Vector2(560, 312)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row4" unique_id=1016576140]
+offset_top = -26.0
+offset_right = 73.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "pursnake"
+
+[node name="Roles" type="Label" parent="Rows/Row4" unique_id=2119906118]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 622.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "co-director, coder, charter"
+
+[node name="Row5" type="Node2D" parent="Rows" unique_id=1113557296]
+position = Vector2(560, 390)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row5" unique_id=1541916534]
+offset_top = -26.0
+offset_right = 69.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "simnstar"
+
+[node name="Roles" type="Label" parent="Rows/Row5" unique_id=203444123]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 787.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "co-director, composer, sound design, translator"
+
+[node name="Row6" type="Node2D" parent="Rows" unique_id=1359155616]
+position = Vector2(560, 468)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row6" unique_id=1257314537]
+offset_top = -26.0
+offset_right = 61.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "redar13"
+
+[node name="Roles" type="Label" parent="Rows/Row6" unique_id=1804662768]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 464.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "coder"
+
+[node name="Row7" type="Node2D" parent="Rows" unique_id=591321424]
+position = Vector2(560, 546)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row7" unique_id=1544587329]
+offset_top = -26.0
+offset_right = 93.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "bruhleebert"
+
+[node name="Roles" type="Label" parent="Rows/Row7" unique_id=655357745]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 497.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "composer"
+
+[node name="Row8" type="Node2D" parent="Rows" unique_id=1223784231]
+position = Vector2(560, 624)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row8" unique_id=1933264835]
+offset_top = -26.0
+offset_right = 49.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "tomsk"
+
+[node name="Roles" type="Label" parent="Rows/Row8" unique_id=889674170]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row9" type="Node2D" parent="Rows" unique_id=172592468]
+position = Vector2(560, 702)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row9" unique_id=63117668]
+offset_top = -26.0
+offset_right = 59.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "jackocd"
+
+[node name="Roles" type="Label" parent="Rows/Row9" unique_id=673245782]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 513.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "video editor"
+
+[node name="Row10" type="Node2D" parent="Rows" unique_id=1779806013]
+position = Vector2(560, 780)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row10" unique_id=827729619]
+offset_top = -26.0
+offset_right = 40.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "Geka"
+
+[node name="Roles" type="Label" parent="Rows/Row10" unique_id=413532588]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 542.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist, animator"
+
+[node name="Row11" type="Node2D" parent="Rows" unique_id=1216840894]
+position = Vector2(560, 858)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row11" unique_id=446072604]
+offset_top = -26.0
+offset_right = 61.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "joadash"
+
+[node name="Roles" type="Label" parent="Rows/Row11" unique_id=1580354269]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 542.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist, animator"
+
+[node name="Row12" type="Node2D" parent="Rows" unique_id=850387926]
+position = Vector2(560, 936)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row12" unique_id=958746704]
+offset_top = -26.0
+offset_right = 54.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "DiasSir"
+
+[node name="Roles" type="Label" parent="Rows/Row12" unique_id=577200980]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row13" type="Node2D" parent="Rows" unique_id=135431934]
+position = Vector2(560, 1014)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row13" unique_id=503649937]
+offset_top = -26.0
+offset_right = 81.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "LancExists"
+
+[node name="Roles" type="Label" parent="Rows/Row13" unique_id=497413649]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row14" type="Node2D" parent="Rows" unique_id=676849467]
+position = Vector2(560, 1092)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row14" unique_id=272831062]
+offset_top = -26.0
+offset_right = 36.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "unm"
+
+[node name="Roles" type="Label" parent="Rows/Row14" unique_id=785718886]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row15" type="Node2D" parent="Rows" unique_id=99259228]
+position = Vector2(560, 1170)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row15" unique_id=1460440866]
+offset_top = -26.0
+offset_right = 43.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "bugai"
+
+[node name="Roles" type="Label" parent="Rows/Row15" unique_id=1715317526]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row16" type="Node2D" parent="Rows" unique_id=858644947]
+position = Vector2(560, 1248)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row16" unique_id=198309150]
+offset_top = -26.0
+offset_right = 93.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "Akira Gotoh"
+
+[node name="Roles" type="Label" parent="Rows/Row16" unique_id=1532211441]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row17" type="Node2D" parent="Rows" unique_id=709262493]
+position = Vector2(560, 1326)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row17" unique_id=17414985]
+offset_top = -26.0
+offset_right = 93.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "Kibanewfnd"
+
+[node name="Roles" type="Label" parent="Rows/Row17" unique_id=1648443789]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row18" type="Node2D" parent="Rows" unique_id=1300896770]
+position = Vector2(560, 1404)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row18" unique_id=631320686]
+offset_top = -26.0
+offset_right = 61.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "Jasmine"
+
+[node name="Roles" type="Label" parent="Rows/Row18" unique_id=97465738]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 547.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist, translator"
+
+[node name="Row19" type="Node2D" parent="Rows" unique_id=951729887]
+position = Vector2(560, 1482)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row19" unique_id=353788386]
+offset_top = -26.0
+offset_right = 72.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "Mio OwO"
+
+[node name="Roles" type="Label" parent="Rows/Row19" unique_id=666734984]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row20" type="Node2D" parent="Rows" unique_id=1017184825]
+position = Vector2(560, 1560)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row20" unique_id=2010808790]
+offset_top = -26.0
+offset_right = 48.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "sector"
+
+[node name="Roles" type="Label" parent="Rows/Row20" unique_id=1182938271]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 464.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "coder"
+
+[node name="Row21" type="Node2D" parent="Rows" unique_id=764436713]
+position = Vector2(560, 1638)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row21" unique_id=707749752]
+offset_top = -26.0
+offset_right = 80.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "anvisoreal"
+
+[node name="Roles" type="Label" parent="Rows/Row21" unique_id=496815608]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 497.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "composer"
+
+[node name="Row22" type="Node2D" parent="Rows" unique_id=1063304568]
+position = Vector2(560, 1716)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row22" unique_id=551172926]
+offset_top = -26.0
+offset_right = 84.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "ethanfirith"
+
+[node name="Roles" type="Label" parent="Rows/Row22" unique_id=984159841]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 462.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "artist"
+
+[node name="Row23" type="Node2D" parent="Rows" unique_id=2003331309]
+position = Vector2(560, 1794)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row23" unique_id=1069504258]
+offset_top = -26.0
+offset_right = 59.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "cosmos"
+
+[node name="Roles" type="Label" parent="Rows/Row23" unique_id=1583932834]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 513.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "video editor"
+
+[node name="Row24" type="Node2D" parent="Rows" unique_id=890905780]
+position = Vector2(560, 1872)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row24" unique_id=1342852076]
+offset_top = -26.0
+offset_right = 105.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "MarkedAman"
+
+[node name="Roles" type="Label" parent="Rows/Row24" unique_id=268571634]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 513.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "video editor"
+
+[node name="Row25" type="Node2D" parent="Rows" unique_id=1629234568]
+position = Vector2(560, 1950)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row25" unique_id=1529902205]
+offset_top = -26.0
+offset_right = 71.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "nocticola"
+
+[node name="Roles" type="Label" parent="Rows/Row25" unique_id=1439941099]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 513.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "video editor"
+
+[node name="Row26" type="Node2D" parent="Rows" unique_id=402436095]
+position = Vector2(560, 2028)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row26" unique_id=1024178139]
+offset_top = -26.0
+offset_right = 99.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "lazygoobster"
+
+[node name="Roles" type="Label" parent="Rows/Row26" unique_id=484511093]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 505.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "voice actor"
+
+[node name="Row27" type="Node2D" parent="Rows" unique_id=692043026]
+position = Vector2(560, 2106)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row27" unique_id=431586263]
+offset_top = -26.0
+offset_right = 89.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "NicoisNXXT"
+
+[node name="Roles" type="Label" parent="Rows/Row27" unique_id=2112999856]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 590.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "composer, voice actor"
+
+[node name="Row28" type="Node2D" parent="Rows" unique_id=32774322]
+position = Vector2(560, 2184)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row28" unique_id=245743263]
+offset_top = -26.0
+offset_right = 39.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "elliot"
+
+[node name="Roles" type="Label" parent="Rows/Row28" unique_id=432090811]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 505.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "voice actor"
+
+[node name="Row29" type="Node2D" parent="Rows" unique_id=653286964]
+position = Vector2(560, 2262)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row29" unique_id=1744511951]
+offset_top = -26.0
+offset_right = 20.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "bb"
+
+[node name="Roles" type="Label" parent="Rows/Row29" unique_id=691222695]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 505.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "voice actor"
+
+[node name="Row30" type="Node2D" parent="Rows" unique_id=1173926627]
+position = Vector2(560, 2340)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row30" unique_id=339203062]
+offset_top = -26.0
+offset_right = 46.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "okuto"
+
+[node name="Roles" type="Label" parent="Rows/Row30" unique_id=843778975]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 498.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "translator"
+
+[node name="Row31" type="Node2D" parent="Rows" unique_id=939565409]
+position = Vector2(560, 2418)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row31" unique_id=609305524]
+offset_top = -26.0
+offset_right = 95.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "funkin news"
+
+[node name="Roles" type="Label" parent="Rows/Row31" unique_id=1467852321]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 565.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "thanks for support"
+
+[node name="Row32" type="Node2D" parent="Rows" unique_id=717641978]
+position = Vector2(560, 2496)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row32" unique_id=950352433]
+offset_top = -26.0
+offset_right = 54.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "special"
+
+[node name="Roles" type="Label" parent="Rows/Row32" unique_id=719654374]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 565.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "thanks for support"
+
+[node name="Row33" type="Node2D" parent="Rows" unique_id=267808692]
+position = Vector2(560, 2574)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row33" unique_id=471324674]
+offset_top = -26.0
+offset_right = 54.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "special"
+
+[node name="Roles" type="Label" parent="Rows/Row33" unique_id=1820755434]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 565.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "thanks for support"
+
+[node name="Row34" type="Node2D" parent="Rows" unique_id=193111327]
+position = Vector2(560, 2652)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row34" unique_id=1461490922]
+offset_top = -26.0
+offset_right = 69.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "supports"
+
+[node name="Roles" type="Label" parent="Rows/Row34" unique_id=2029199005]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 565.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "thanks for support"
+
+[node name="Row35" type="Node2D" parent="Rows" unique_id=579656288]
+position = Vector2(560, 2730)
+metadata/hitbox = Rect2(-30, -34, 1100, 68)
+
+[node name="Name" type="Label" parent="Rows/Row35" unique_id=1719603905]
+offset_top = -26.0
+offset_right = 69.0
+offset_bottom = -3.0
+theme_override_font_sizes/font_size = 40
+text = "supports"
+
+[node name="Roles" type="Label" parent="Rows/Row35" unique_id=1692169990]
+offset_left = 420.0
+offset_top = -18.0
+offset_right = 565.0
+offset_bottom = 5.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.72, 0.68, 0.85, 1)
+text = "thanks for support"
+
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1538796222]

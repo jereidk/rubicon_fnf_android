@@ -6,8 +6,9 @@ extends Node2D
 
 const STORY := "res://animania_mod/menus/story/story_menu.tscn"
 const PAUSE := "res://animania_mod/menus/pause/pause_menu.tscn"
+const CREDITS := "res://animania_mod/menus/credits/credits_menu.tscn"
 
-var _shots: Array[String] = ["story", "pause"]
+var _shots: Array[String] = ["story", "pause", "credits"]
 var _at: int = 0
 var _current: Node
 var _frames: int = 0
@@ -26,6 +27,10 @@ func _open() -> void:
 	_frames = 0
 	if _shots[_at] == "story":
 		_current = load(STORY).instantiate()
+		add_child(_current)
+		return
+	if _shots[_at] == "credits":
+		_current = load(CREDITS).instantiate()
 		add_child(_current)
 		return
 	_current = load(PAUSE).instantiate()

@@ -1,0 +1,408 @@
+[
+	{
+		"name": "KerSive",
+		"pict": "tetatet",
+		"textScale": 0.8,
+		"textSpeed": 30,
+		"text": "Animania took my best years <img src='menus/credits/temp-texts/sob' offsetY=12.5 scale='1.075' fitHeight><\/img>",
+		"social": {
+			"youtube": "https://www.youtube.com/@kersiveshrimp",
+			"x": "https://x.com/KerSive0_0"
+		},
+		"roles": ["director", "artist", "animator"]
+	},
+	{
+		"name": "d4rkwinged",
+		"pict": "hello-neighbor-67",
+		"text": "herlp\n\n\n\n\n\n\n\n\n\n<img src='menus/credits/pictures/hello-neighbor-67' fitHeight scale=2.5\/>",
+		"textSpeed": 2,
+		"textPitch": 0.8,
+		"stickerOffset": [14, -10],
+		"social": {
+			"youtube": "https://www.youtube.com/@d4rkwinged",
+			"x": "https://x.com/d4rkwinged",
+			"soundcloud": "https://soundcloud.com/dark-winged-24288577"
+		},
+		"roles": ["director", "artist", "animator", "composer"]
+	},
+	{
+		"name": "G",
+		"pict": "charlie",
+		"pixelName": true,
+		"pixelSticker": true,
+		"social": {
+			"youtube": "https://www.youtube.com/@G3hreebad",
+			"x": "https://x.com/G3HREEyay"
+		},
+		"stickerOffset": [0, -10],
+		"text": "roflmaokek69",
+		"roles": [
+			"director",
+			"artist",
+			"animator",
+			"video editor",
+			"sound design"
+		]
+	},
+	{
+		"name": "naisonji",
+		"pict": "pear",
+		"textScale": 0.9,
+		"stickerOffset": [0, -5],
+		"social": {
+			"youtube": "https://www.youtube.com/@naisonji11",
+			"x": "https://x.com/naisonji",
+			"newgrounds": "https://naisonji11.newgrounds.com/"
+		},
+		"text": "we will never get what we desires",
+		"roles": ["co-director", "artist", "animator"]
+	},
+	{
+		"name": "pursnake",
+		"pict": "jesu",
+		"textScale": 0.7,
+		"text": "If two heads are better then one,\n\n\n\n\n\n\n\nthree must be ever better...??",
+		"social": {
+			"youtube": "https://www.youtube.com/@pursnake",
+			"x": "https://x.com/PurSnake"
+		},
+		"roles": ["co-director", "coder", "charter"]
+	},
+	{
+		"name": "simnstar",
+		"stickerOffset": [0, -8],
+		"pict": "rockyum",
+		"social": {
+			"x": "https://x.com/simnstar",
+			"youtube": "https://www.youtube.com/@simnstar",
+			"soundcloud": "https://soundcloud.com/simnsnd"
+		},
+		"text": "If you like my work here\ni have more like it\non my socials!",
+		"roles": ["co-director", "composer", "sound design", "translator"]
+	},
+	{
+		"name": "redar13",
+		"stickerOffset": [0, -9],
+		"pict": "everyday",
+		"social": {
+			"x": "https://x.com/Redar13176784"
+		},
+		"text": "What if You\nWanted to go to Heaven\nBut god said\nNull Object Reference",
+		"roles": ["coder"]
+	},
+	{
+		"name": "bruhleebert",
+		"pict": "hell",
+		"textScale": 1.2,
+		"stickerOffset": [0, -10],
+		"social": {
+			"youtube": "https://www.youtube.com/@leebert",
+			"x": "https://x.com/Bruh_Leebert",
+			"soundcloud": "https://soundcloud.com/user-812005192-899672170"
+		},
+		"text": "Insert some references with the words \"Ad Nihilum\"",
+		"roles": ["composer"]
+	},
+	{
+		"name": "tomsk",
+		"pict": "miauu",
+		"stickerOffset": [15, -10],
+		"social": {
+			"youtube": "https://www.youtube.com/@tomsklovesneko",
+			"x": "https://x.com/Tomsklovesneko"
+		},
+		"text": "Jyanpol Huinya\ntext text text\n\n\n\n\n\n\nburka",
+		"roles": ["artist"]
+	},
+	{
+		"name": "jackocd",
+		"pict": "miau",
+		"textScale": 0.7,
+		"stickerOffset": [0, 0],
+		"social": {},
+		"text": "Mmhm\n\nMonster Energy is\nthe reasonwhy 86% of my work exists\nAlso hi Ludmi, your husband did this!",
+		"roles": ["video editor"]
+	},
+	{
+		"name": "Geka",
+		"textScale": 0.9,
+		"pict": "photo_2026-07-23_12-16-21",
+		"stickerOffset": [0, -10],
+		"text": "Just silly artist :D\nW-wait, what are you  NO, NOOOO\n\n\n\n\n\n\nDammit...",
+		"social": {
+			"x": "https://x.com/gka_geka",
+			"youtube": "https://youtube.com/@gka_art?si=xm-Tz86tlIfhy3FU"
+		},
+		"roles": ["artist", "animator"]
+	},
+	{
+		"name": "joadash",
+		"textScale": 0.6,
+		"pict": "53b8daaa91e14b64623702886285ecb8",
+		"text": "Uhh yeah i guess this is a pretty cool mod...\nHey check this cool image down below lol",
+		"social": {
+			"x": "https://x.com/joadash_",
+			"newgrounds": "https://joadash.newgrounds.com/"
+		},
+		"roles": ["artist", "animator"]
+	},
+	{
+		"name": "DiasSir",
+		"pict": "diass",
+		"textScale": 0.7,
+		"stickerOffset": [0, -10],
+		"social": {
+			"x": "https://x.com/DiasSir21 "
+		},
+		"text": "Creating concepts for ANIMANIA!\nis like building large churchkhelas,\nremember my words.",
+		"roles": ["artist"]
+	},
+	{
+		"name": "LancExists",
+		"pict": "lancy",
+		"textScale": 0.9,
+		"social": {
+			"youtube": "https://www.youtube.com/@lancexists",
+			"x": "https://x.com/LancExists"
+		},
+		"text": "I drew like two or\nthree things for this,\nbut I'm still glad to be here lol.\nHope y'all enjoy the mod!.",
+		"roles": ["artist"]
+	},
+	{
+		"name": "unm",
+		"pict": "reze_photkay",
+		"stickerOffset": [-2, 20],
+		"social": {
+			"x": "https://x.com/MoruMagman"
+		},
+		"text": "this society\nis a bunch of idiots",
+		"roles": ["artist"]
+	},
+	{
+		"name": "bugai",
+		"stickerOffset": [-30, 15],
+		"pict": "bugaio",
+		"textScale": 0.6,
+		"social": {
+			"x": "https://x.com/Bugai2007"
+		},
+		"text": "my back hurts",
+		"textSpeed": 10,
+		"roles": ["artist"]
+	},
+	{
+		"name": "Akira Gotoh",
+		"stickerOffset": [10, 0],
+		"pict": "wha",
+		"social": {
+			"x": "https://x.com/akiraarts0"
+		},
+		"text": "I LOVE BUNNIES SO MUCH, HELP ME I'M ARRRRRRRRGHHHHH!!!!!!!!!!!\nhi",
+		"roles": ["artist"]
+	},
+	{
+		"name": "Kibanewfnd",
+		"textScale": 0.6,
+		"pict": "kibb",
+		"stickerOffset": [0, -5],
+		"text": "Watzefuk mazafak gyes s s fak",
+		"social": {
+			"x": "https://x.com/kibanwd1"
+		},
+		"roles": ["artist"]
+	},
+	{
+		"name": "Jasmine",
+		"textScale": 0.6,
+		"pict": "bald",
+		"stickerOffset": [10, -15],
+		"text": "Added me in Animania credit!!!!\nI was so happy to work at animania!\nTy so much arigatoo!!",
+		"social": {
+			"x": "https://x.com/jasmine_525ml?s=11&t=wG2XIjRYyslNBnBVKAjfJg"
+		},
+		"roles": ["artist", "translator"]
+	},
+	{
+		"name": "Mio OwO",
+		"pict": "mioo",
+		"pixelPic": true,
+		"social": {
+			"x": "https://x.com/m1o_failure"
+		},
+		"text": "The cute one!",
+		"roles": ["artist"]
+	},
+	{
+		"name": "sector",
+		"pict": "sector",
+		"stickerOffset": [0, -10],
+		"textScale": 0.6,
+		"social": {
+			"x": "https://x.com/sectorrrb?s=11"
+		},
+		"text": "meowmeowmeowmeowmeowmeow\n\n\nfnf mobile guy\n\njoined animania to make a macos port",
+		"roles": ["coder"]
+	},
+	{
+		"name": "anvisoreal",
+		"pict": "anvv",
+		"textScale": 0.8,
+		"text": "thanks for the opportunity to work on this!\n\n\n\nKURWA ANJIIMmANJiAAAAAAA",
+		"stickerOffset": [0, -10],
+		"social": {
+			"youtube": "https://www.youtube.com/@anvisoreal",
+			"x": "https://x.com/anvisoreal",
+			"soundcloud": "https://soundcloud.com/anvisoreal",
+			"newgrounds": "https://anvisoreal.newgrounds.com/"
+		},
+		"roles": ["composer"]
+	},
+	{
+		"name": "ethanfirith",
+		"stickerOffset": [0, 5],
+		"pict": "ehta",
+		"social": {
+			"youtube": "https://ethanfirith.newgrounds.com/",
+			"x": "https://x.com/ethan_firith"
+		},
+		"text": "Real Emo only consists\nof the dc Emotional\nHardcore scene and\nthe late 90s Screamo\nscene. What is known\nby Midwest Emo is\nnothing but Alternative\nRock with questionable\nreal emo influence.\nWhen people try to\nargue that bands like My\nChemical Romance are not real emo,\nwhile saying that Sunny\nDay Real Estate is, I\ncant help not to cringe because they are just as fake emo as My Chemical Romance (plus the pretentiousness). Real emo sounds ENERGETIC, POWERFUL and somewhat HATEFUL. Fake emo is weak, self pity and a failed attempt to direct energy and emotion into music. Some examples of REAL EMO are Pg 99, Rites of Spring, Cap n Jazz (the only real emo band from the midwest scene) and Loma Prieta. Some examples of FAKE EMO are American Football, My Chemical Romance and Mineral EMO BELONGS TO HARDCORE NOT TO INDIE, POP PUNK, ALT ROCK OR ANY OTHER MAINSTREAM GENRE",
+		"roles": ["artist"]
+	},
+	{
+		"name": "cosmos",
+		"pict": "KOKO",
+		"stickerOffset": [0, -10],
+		"textScale": 1,
+		"text": "<img src='menus/credits/temp-texts/cosmos' offsetY=150.5 scale='2.5' fitHeight><\/img>",
+		"social": {
+			"youtube": "https://www.youtube.com/@IntoTheCosmos",
+			"x": "https://x.com/FnfCosmos",
+			"newgrounds": "https://cleancosmos.newgrounds.com/"
+		},
+		"roles": ["video editor"]
+	},
+	{
+		"name": "MarkedAman",
+		"stickerOffset": [0, -10],
+		"pict": "aman",
+		"textScale": 0.6,
+		"social": {
+			"youtube": "https://www.youtube.com/@MarkedAman",
+			"x": "https://x.com/markedaman"
+		},
+		"text": "whats good yo im here too",
+		"roles": ["video editor"]
+	},
+	{
+		"name": "nocticola",
+		"stickerOffset": [-10, -10],
+		"textScale": 0.6,
+		"social": {
+			"youtube": "https://www.youtube.com/channel/UCqdAZi4WqQbM27OpXJR4skA",
+			"x": "https://x.com/Nocticola_1"
+		},
+		"text": "nocticola \nnocticola",
+		"roles": ["video editor"]
+	},
+	{
+		"name": "lazygoobster",
+		"pict": "gooobbb",
+		"stickerOffset": [0, -5],
+		"social": {
+			"x": "https://x.com/LazyGoobster",
+			"newgrounds": "https://lazygoobster.newgrounds.com/",
+			"youtube": "https://www.youtube.com/@LazyGoobster"
+		},
+		"text": "Hip Hip Hooray!\nSo Joyous!",
+		"roles": ["voice actor"]
+	},
+	{
+		"name": "NicoisNXXT",
+		"stickerOffset": [0, 0],
+		"pict": "nicoss",
+		"textScale": 0.75,
+		"social": {
+			"youtube": "https://youtube.com/@nicoisnxxt?si=4VRYcCDeR7rWqAAu"
+		},
+		"text": "Chud and chad are the same,\nthe only thing that changes is u",
+		"roles": ["composer", "voice actor"]
+	},
+	{
+		"name": "elliot",
+		"stickerOffset": [0, 5],
+		"pict": "shiny",
+		"text": "I love video games\nand my girlfriend",
+		"social": {
+			"youtube": "https://www.youtube.com/@amothfurry"
+		},
+		"roles": ["voice actor"]
+	},
+	{
+		"name": "bb",
+		"pict": "bb",
+		"stickerOffset": [0, -5],
+		"text": "Do it for her",
+		"social": {
+			"x": "https://x.com/SBA2468"
+		},
+		"roles": ["voice actor"]
+	},
+	{
+		"name": "okuto",
+		"stickerOffset": [0, -20],
+		"pict": "oku",
+		"social": {
+			"x": "https://x.com/FnfOkuto"
+		},
+		"text": "No Japanish alphabet\nsorry\n\n - PurSnake :(",
+		"roles": ["translator"]
+	},
+	{
+		"name": "funkin news",
+		"stickerOffset": [5, -10],
+		"textScale": 0.7,
+		"text": "wait, if daddy dearest has a kid... that means... daddy dearest...  \n\nmy man<img src='menus/credits/temp-texts/joy' offsetY=12.5 scale='1.075' fitHeight><\/img><img src='menus/credits/temp-texts/100' offsetY=12.5 scale='1.075' fitHeight><\/img><img src='menus/credits/temp-texts/handshake' offsetY=12.5 scale='1.075' fitHeight><\/img>",
+		"textSpeed": 10,
+		"textPitch": 0.6,
+		"social": {
+			"x": "https://x.com/News_Funkin"
+		},
+		"pict": "funkyNN",
+		"roles": ["thanks for support"]
+	},
+	{
+		"name": "special",
+		"sticker": "thanks",
+		"instReveal": true,
+		"textScale": 0.5,
+		"text": "\n\nSpecial thanks:\nJuztexd, Makit, Silvie, BillFox,\nSea of onix, Jamobronx3,\nFunkin' News, Osakana, Psenkos,\nZee, Double L(winner lil art), Funnt,\nGenderDruid420, Levi_Kun, Katuri,\nMellow, Astrogalaxy, MaxPlayer,\nNima, KennyTheLyr1c1st\nFlashu, Furo, Az989, Dare, ItzRanbins",
+		"roles": ["thanks for support"]
+	},
+	{
+		"name": "special",
+		"stickerOffset": [0, -10],
+		"sticker": "youtubers",
+		"instReveal": true,
+		"textScale": 0.5,
+		"text": "\n\nYouTube special thanks:\nCommunityGame, Penkaru, CoolBoy Conundrum,\nMarlonTheAssassin, Kalail, Gegcoin,\nDenkin, MakeItLookEZ, Jeremiah Senpai,\nMatt Does VODs, Dwanko,\nUNLIMITED HEALTH - THE BACKUP,\nJAETGYC, FilipinaKos, StickyBM,\nZoroLive, StrikebreakerWaves",
+		"roles": ["thanks for support"]
+	},
+	{
+		"name": "supports",
+		"stickerOffset": [0, -10],
+		"sticker": "kofi",
+		"instReveal": true,
+		"textScale": 0.5,
+		"text": "\n\n\nKofi: Kolo, GaXamillion, Mellow,\nAtlasGamer27, xAidqnx, Frostex, Beno, Kabila_05,\nSharky, Hunter, Glacia, Twilight",
+		"roles": ["thanks for support"]
+	},
+	{
+		"name": "supports",
+		"stickerOffset": [0, -10],
+		"sticker": "boosty",
+		"instReveal": true,
+		"textScale": 0.5,
+		"text": "\n\n\nBoosty: w.ll, Хеля, Zeronin, <img src='menus/credits/temp-texts/coldgame' offsetY=12.5 scale='1.075' fitHeight><\/img>,\nSonovirk, RiuDianami, <img src='menus/credits/temp-texts/helya' offsetY=1.5 scale='0.75' fitHeight><\/img>, GlebDX, GIV, <img src='menus/credits/temp-texts/klarp' offsetY=15 scale='1.075' fitHeight><\/img>,\nGet, Kaloglot, davi9.kk, GoshaCher360,\nonly one :p, NiStov",
+		"roles": ["thanks for support"]
+	}
+]
