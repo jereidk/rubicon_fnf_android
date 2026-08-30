@@ -1,0 +1,5413 @@
+[gd_resource type="Resource" script_class="RubiChart" format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart.gd" id="1_7h53r"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_scroll_velocity.gd" id="2_2myx4"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_section.gd" id="3_yt0ju"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_row.gd" id="4_psb73"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/chart/rubichart_note.gd" id="5_wxl1x"]
+
+[sub_resource type="Resource" id="Resource_cgdj5"]
+script = ExtResource("2_2myx4")
+
+[sub_resource type="Resource" id="Resource_fqtnc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_bjfam"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fqtnc")])
+
+[sub_resource type="Resource" id="Resource_whu2e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_spswi"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_whu2e")])
+
+[sub_resource type="Resource" id="Resource_5itfx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_v78ar"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5itfx")])
+
+[sub_resource type="Resource" id="Resource_318c7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_dsh24"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_318c7")])
+
+[sub_resource type="Resource" id="Resource_u3a8j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_syq7p"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_u3a8j")])
+
+[sub_resource type="Resource" id="Resource_1yms6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_3mcva"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1yms6")])
+
+[sub_resource type="Resource" id="Resource_s6eve"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_erjxo"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_s6eve")])
+
+[sub_resource type="Resource" id="Resource_wkee8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_q230x"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wkee8")])
+
+[sub_resource type="Resource" id="Resource_8ff1y"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_p4lkl"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8ff1y")])
+
+[sub_resource type="Resource" id="Resource_vaxud"]
+script = ExtResource("3_yt0ju")
+measure = 1
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_bjfam"), SubResource("Resource_spswi"), SubResource("Resource_v78ar"), SubResource("Resource_dsh24"), SubResource("Resource_syq7p"), SubResource("Resource_3mcva"), SubResource("Resource_erjxo"), SubResource("Resource_q230x"), SubResource("Resource_p4lkl")])
+
+[sub_resource type="Resource" id="Resource_tpiou"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_vxq1g"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tpiou")])
+
+[sub_resource type="Resource" id="Resource_dixiv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_nf4f4"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dixiv")])
+
+[sub_resource type="Resource" id="Resource_dm831"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_gocju"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dm831")])
+
+[sub_resource type="Resource" id="Resource_r07hk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_frkwv"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_r07hk")])
+
+[sub_resource type="Resource" id="Resource_5krkr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_kvg18"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5krkr")])
+
+[sub_resource type="Resource" id="Resource_uy02k"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"beatbox"
+
+[sub_resource type="Resource" id="Resource_siit2"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uy02k")])
+
+[sub_resource type="Resource" id="Resource_x0q2p"]
+script = ExtResource("3_yt0ju")
+measure = 3
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_vxq1g"), SubResource("Resource_nf4f4"), SubResource("Resource_gocju"), SubResource("Resource_frkwv"), SubResource("Resource_kvg18"), SubResource("Resource_siit2")])
+
+[sub_resource type="Resource" id="Resource_xw1fb"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_5dsm8"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xw1fb")])
+
+[sub_resource type="Resource" id="Resource_c27r1"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_5mdun"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_c27r1")])
+
+[sub_resource type="Resource" id="Resource_5yj1l"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_fp4pe"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5yj1l")])
+
+[sub_resource type="Resource" id="Resource_137b3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_jeq5j"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_137b3")])
+
+[sub_resource type="Resource" id="Resource_kwgyq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_vumui"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kwgyq")])
+
+[sub_resource type="Resource" id="Resource_nhbf4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_b8ato"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nhbf4")])
+
+[sub_resource type="Resource" id="Resource_rkb2m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_ngu0p"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rkb2m")])
+
+[sub_resource type="Resource" id="Resource_f4jce"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rkb2m")])
+
+[sub_resource type="Resource" id="Resource_d477u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_ab6ma"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d477u")])
+
+[sub_resource type="Resource" id="Resource_ckpfb"]
+script = ExtResource("4_psb73")
+offset = 31
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d477u")])
+
+[sub_resource type="Resource" id="Resource_mtrmf"]
+script = ExtResource("3_yt0ju")
+measure = 5
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_5dsm8"), SubResource("Resource_5mdun"), SubResource("Resource_fp4pe"), SubResource("Resource_jeq5j"), SubResource("Resource_vumui"), SubResource("Resource_b8ato"), SubResource("Resource_ngu0p"), SubResource("Resource_f4jce"), SubResource("Resource_ab6ma"), SubResource("Resource_ckpfb")])
+
+[sub_resource type="Resource" id="Resource_oe3ky"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_fnv7k"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oe3ky")])
+
+[sub_resource type="Resource" id="Resource_jn6eu"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oe3ky")])
+
+[sub_resource type="Resource" id="Resource_7c4t8"]
+script = ExtResource("3_yt0ju")
+measure = 6
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_fnv7k"), SubResource("Resource_jn6eu")])
+
+[sub_resource type="Resource" id="Resource_h5jrk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_jxrc0"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_h5jrk")])
+
+[sub_resource type="Resource" id="Resource_f6ydp"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_dv6no"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_f6ydp")])
+
+[sub_resource type="Resource" id="Resource_n8bhn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_vh2pr"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_n8bhn")])
+
+[sub_resource type="Resource" id="Resource_gvi7b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_yl45u"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gvi7b")])
+
+[sub_resource type="Resource" id="Resource_elw5m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_bm5qb"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_elw5m")])
+
+[sub_resource type="Resource" id="Resource_u6xuc"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_elw5m")])
+
+[sub_resource type="Resource" id="Resource_5p3ut"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_0v3a2"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5p3ut")])
+
+[sub_resource type="Resource" id="Resource_55fum"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_ft76p"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_55fum")])
+
+[sub_resource type="Resource" id="Resource_0dh37"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_55fum")])
+
+[sub_resource type="Resource" id="Resource_14s3a"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_lag11"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_14s3a")])
+
+[sub_resource type="Resource" id="Resource_0vwto"]
+script = ExtResource("3_yt0ju")
+measure = 7
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_jxrc0"), SubResource("Resource_dv6no"), SubResource("Resource_vh2pr"), SubResource("Resource_yl45u"), SubResource("Resource_bm5qb"), SubResource("Resource_u6xuc"), SubResource("Resource_0v3a2"), SubResource("Resource_ft76p"), SubResource("Resource_0dh37"), SubResource("Resource_lag11")])
+
+[sub_resource type="Resource" id="Resource_d0dj5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_388qf"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d0dj5")])
+
+[sub_resource type="Resource" id="Resource_1uaqe"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_80iug"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1uaqe")])
+
+[sub_resource type="Resource" id="Resource_tcafg"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_diih3"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tcafg")])
+
+[sub_resource type="Resource" id="Resource_uk47r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_8ktgv"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uk47r")])
+
+[sub_resource type="Resource" id="Resource_xpitb"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_t565c"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xpitb")])
+
+[sub_resource type="Resource" id="Resource_io4qr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_yus7n"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_io4qr")])
+
+[sub_resource type="Resource" id="Resource_wh6gq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_1nnjf"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wh6gq")])
+
+[sub_resource type="Resource" id="Resource_76kyw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_rikv3"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_76kyw")])
+
+[sub_resource type="Resource" id="Resource_85w5n"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_cerfq"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_85w5n")])
+
+[sub_resource type="Resource" id="Resource_ss11h"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_riacf"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ss11h")])
+
+[sub_resource type="Resource" id="Resource_p86xn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_4re8f"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_p86xn")])
+
+[sub_resource type="Resource" id="Resource_ur1sh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_kt78f"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ur1sh")])
+
+[sub_resource type="Resource" id="Resource_2yhox"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ur1sh")])
+
+[sub_resource type="Resource" id="Resource_uip7v"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_juacu"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uip7v")])
+
+[sub_resource type="Resource" id="Resource_mnd3j"]
+script = ExtResource("3_yt0ju")
+measure = 9
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_388qf"), SubResource("Resource_80iug"), SubResource("Resource_diih3"), SubResource("Resource_8ktgv"), SubResource("Resource_t565c"), SubResource("Resource_yus7n"), SubResource("Resource_1nnjf"), SubResource("Resource_rikv3"), SubResource("Resource_cerfq"), SubResource("Resource_riacf"), SubResource("Resource_4re8f"), SubResource("Resource_kt78f"), SubResource("Resource_2yhox"), SubResource("Resource_juacu")])
+
+[sub_resource type="Resource" id="Resource_ee6io"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_mk2s0"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ee6io")])
+
+[sub_resource type="Resource" id="Resource_xgwmf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ee6io")])
+
+[sub_resource type="Resource" id="Resource_qd3do"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_rkvky"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qd3do")])
+
+[sub_resource type="Resource" id="Resource_v1a8p"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_13850"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_06c02"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v1a8p"), SubResource("Resource_13850")])
+
+[sub_resource type="Resource" id="Resource_4g4mm"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v1a8p")])
+
+[sub_resource type="Resource" id="Resource_42o6g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_mkje5"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_42o6g")])
+
+[sub_resource type="Resource" id="Resource_53d87"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_42o6g")])
+
+[sub_resource type="Resource" id="Resource_utsqh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_2wiem"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_utsqh")])
+
+[sub_resource type="Resource" id="Resource_a2b2f"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_utsqh")])
+
+[sub_resource type="Resource" id="Resource_lht7m"]
+script = ExtResource("3_yt0ju")
+measure = 10
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_mk2s0"), SubResource("Resource_xgwmf"), SubResource("Resource_rkvky"), SubResource("Resource_06c02"), SubResource("Resource_4g4mm"), SubResource("Resource_mkje5"), SubResource("Resource_53d87"), SubResource("Resource_2wiem"), SubResource("Resource_a2b2f")])
+
+[sub_resource type="Resource" id="Resource_gftuh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_qbbcf"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gftuh")])
+
+[sub_resource type="Resource" id="Resource_e8an5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_ai1kf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_e8an5")])
+
+[sub_resource type="Resource" id="Resource_j2hif"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_121vu"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_j2hif")])
+
+[sub_resource type="Resource" id="Resource_608iq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_s5rmi"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_608iq")])
+
+[sub_resource type="Resource" id="Resource_vcd0e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_dec56"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vcd0e")])
+
+[sub_resource type="Resource" id="Resource_6bjp4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_8ok2o"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6bjp4")])
+
+[sub_resource type="Resource" id="Resource_dbthx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_h6mvl"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dbthx")])
+
+[sub_resource type="Resource" id="Resource_d1c8i"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_aivdq"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d1c8i")])
+
+[sub_resource type="Resource" id="Resource_7jooj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_ce62d"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7jooj")])
+
+[sub_resource type="Resource" id="Resource_itg1s"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_j1t6w"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_itg1s")])
+
+[sub_resource type="Resource" id="Resource_vu24o"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_yim7a"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vu24o")])
+
+[sub_resource type="Resource" id="Resource_o3ksw"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vu24o")])
+
+[sub_resource type="Resource" id="Resource_xpvk6"]
+script = ExtResource("3_yt0ju")
+measure = 11
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_qbbcf"), SubResource("Resource_ai1kf"), SubResource("Resource_121vu"), SubResource("Resource_s5rmi"), SubResource("Resource_dec56"), SubResource("Resource_8ok2o"), SubResource("Resource_h6mvl"), SubResource("Resource_aivdq"), SubResource("Resource_ce62d"), SubResource("Resource_j1t6w"), SubResource("Resource_yim7a"), SubResource("Resource_o3ksw")])
+
+[sub_resource type="Resource" id="Resource_6k1jl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_fux36"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6k1jl")])
+
+[sub_resource type="Resource" id="Resource_v3sig"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6k1jl")])
+
+[sub_resource type="Resource" id="Resource_ntbg0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_hunnt"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ntbg0")])
+
+[sub_resource type="Resource" id="Resource_hu7xt"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ntbg0")])
+
+[sub_resource type="Resource" id="Resource_c06gh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_511el"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_c06gh")])
+
+[sub_resource type="Resource" id="Resource_giw6w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_0gohm"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_giw6w")])
+
+[sub_resource type="Resource" id="Resource_eq0ue"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_u7pvy"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eq0ue")])
+
+[sub_resource type="Resource" id="Resource_5xvq7"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eq0ue")])
+
+[sub_resource type="Resource" id="Resource_hnrkm"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_eg0do"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hnrkm")])
+
+[sub_resource type="Resource" id="Resource_puswq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_5qk8f"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_puswq")])
+
+[sub_resource type="Resource" id="Resource_88o41"]
+script = ExtResource("3_yt0ju")
+measure = 12
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_fux36"), SubResource("Resource_v3sig"), SubResource("Resource_hunnt"), SubResource("Resource_hu7xt"), SubResource("Resource_511el"), SubResource("Resource_0gohm"), SubResource("Resource_u7pvy"), SubResource("Resource_5xvq7"), SubResource("Resource_eg0do"), SubResource("Resource_5qk8f")])
+
+[sub_resource type="Resource" id="Resource_rmv0w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_1lr53"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rmv0w")])
+
+[sub_resource type="Resource" id="Resource_t4ac8"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rmv0w")])
+
+[sub_resource type="Resource" id="Resource_d2723"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_e141e"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d2723")])
+
+[sub_resource type="Resource" id="Resource_kwn4q"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_sjrha"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kwn4q")])
+
+[sub_resource type="Resource" id="Resource_iawq2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_uqskg"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_iawq2")])
+
+[sub_resource type="Resource" id="Resource_tfvgh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_cngn1"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tfvgh")])
+
+[sub_resource type="Resource" id="Resource_20lxj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_lbxuy"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_20lxj")])
+
+[sub_resource type="Resource" id="Resource_3hpi7"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_20lxj")])
+
+[sub_resource type="Resource" id="Resource_g8dhk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_o1mvf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_fgn6u"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_g8dhk"), SubResource("Resource_o1mvf")])
+
+[sub_resource type="Resource" id="Resource_bgsli"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 12
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_o1mvf")])
+
+[sub_resource type="Resource" id="Resource_kgr2j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_118xu"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kgr2j")])
+
+[sub_resource type="Resource" id="Resource_wu28a"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_1k0pm"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wu28a")])
+
+[sub_resource type="Resource" id="Resource_fdp6x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_xauk8"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fdp6x")])
+
+[sub_resource type="Resource" id="Resource_gpbvi"]
+script = ExtResource("3_yt0ju")
+measure = 13
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_1lr53"), SubResource("Resource_t4ac8"), SubResource("Resource_e141e"), SubResource("Resource_sjrha"), SubResource("Resource_uqskg"), SubResource("Resource_cngn1"), SubResource("Resource_lbxuy"), SubResource("Resource_3hpi7"), SubResource("Resource_fgn6u"), SubResource("Resource_bgsli"), SubResource("Resource_118xu"), SubResource("Resource_1k0pm"), SubResource("Resource_xauk8")])
+
+[sub_resource type="Resource" id="Resource_hh36t"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_838ha"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hh36t")])
+
+[sub_resource type="Resource" id="Resource_pifd6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_c23nh"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pifd6")])
+
+[sub_resource type="Resource" id="Resource_03xs3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_16g1c"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_03xs3")])
+
+[sub_resource type="Resource" id="Resource_hspgo"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_r10b7"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hspgo")])
+
+[sub_resource type="Resource" id="Resource_wb3by"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_e0e6y"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wb3by")])
+
+[sub_resource type="Resource" id="Resource_cerav"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ach0b"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cerav")])
+
+[sub_resource type="Resource" id="Resource_67e8x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_sfej4"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_67e8x")])
+
+[sub_resource type="Resource" id="Resource_0gka0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_tndru"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_0gka0")])
+
+[sub_resource type="Resource" id="Resource_bv6em"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_63hg7"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bv6em")])
+
+[sub_resource type="Resource" id="Resource_x5gfp"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_jaawh"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_x5gfp")])
+
+[sub_resource type="Resource" id="Resource_q11a2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_e2emg"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q11a2")])
+
+[sub_resource type="Resource" id="Resource_gmwyc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_702lb"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gmwyc")])
+
+[sub_resource type="Resource" id="Resource_avhxe"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qx5fo"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_avhxe")])
+
+[sub_resource type="Resource" id="Resource_msb05"]
+script = ExtResource("3_yt0ju")
+measure = 14
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_838ha"), SubResource("Resource_c23nh"), SubResource("Resource_16g1c"), SubResource("Resource_r10b7"), SubResource("Resource_e0e6y"), SubResource("Resource_ach0b"), SubResource("Resource_sfej4"), SubResource("Resource_tndru"), SubResource("Resource_63hg7"), SubResource("Resource_jaawh"), SubResource("Resource_e2emg"), SubResource("Resource_702lb"), SubResource("Resource_qx5fo")])
+
+[sub_resource type="Resource" id="Resource_bhdxt"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_avhxe")])
+
+[sub_resource type="Resource" id="Resource_l2eap"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_cuisj"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_l2eap")])
+
+[sub_resource type="Resource" id="Resource_oba5n"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_87xbw"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oba5n")])
+
+[sub_resource type="Resource" id="Resource_iqs67"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_ft1ua"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_iqs67")])
+
+[sub_resource type="Resource" id="Resource_4h35n"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_dj4h1"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4h35n")])
+
+[sub_resource type="Resource" id="Resource_a1f0f"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_4mo2w"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a1f0f")])
+
+[sub_resource type="Resource" id="Resource_i4nx3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_dy82m"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i4nx3")])
+
+[sub_resource type="Resource" id="Resource_34ok6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_qywyb"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_34ok6")])
+
+[sub_resource type="Resource" id="Resource_i2bhf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_30mhj"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i2bhf")])
+
+[sub_resource type="Resource" id="Resource_hnp2f"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i2bhf")])
+
+[sub_resource type="Resource" id="Resource_wy32b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_36x38"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wy32b")])
+
+[sub_resource type="Resource" id="Resource_jxo82"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_rbaqe"]
+script = ExtResource("4_psb73")
+offset = 27
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jxo82")])
+
+[sub_resource type="Resource" id="Resource_q1r4m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_2puix"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q1r4m")])
+
+[sub_resource type="Resource" id="Resource_wbfib"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q1r4m")])
+
+[sub_resource type="Resource" id="Resource_rggjs"]
+script = ExtResource("3_yt0ju")
+measure = 15
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_bhdxt"), SubResource("Resource_cuisj"), SubResource("Resource_87xbw"), SubResource("Resource_ft1ua"), SubResource("Resource_dj4h1"), SubResource("Resource_4mo2w"), SubResource("Resource_dy82m"), SubResource("Resource_qywyb"), SubResource("Resource_30mhj"), SubResource("Resource_hnp2f"), SubResource("Resource_36x38"), SubResource("Resource_rbaqe"), SubResource("Resource_2puix"), SubResource("Resource_wbfib")])
+
+[sub_resource type="Resource" id="Resource_3jjcm"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_hs0kr"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3jjcm")])
+
+[sub_resource type="Resource" id="Resource_eanpj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_dd0iw"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eanpj")])
+
+[sub_resource type="Resource" id="Resource_g4tsr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_3vh2a"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_g4tsr")])
+
+[sub_resource type="Resource" id="Resource_70ie3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_asbs2"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_70ie3")])
+
+[sub_resource type="Resource" id="Resource_ri0vs"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_xof0k"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ri0vs")])
+
+[sub_resource type="Resource" id="Resource_fcduo"]
+script = ExtResource("3_yt0ju")
+measure = 16
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_hs0kr"), SubResource("Resource_dd0iw"), SubResource("Resource_3vh2a"), SubResource("Resource_asbs2"), SubResource("Resource_xof0k")])
+
+[sub_resource type="Resource" id="Resource_5flgv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_io5od"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5flgv")])
+
+[sub_resource type="Resource" id="Resource_or1dj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_eidxb"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_or1dj")])
+
+[sub_resource type="Resource" id="Resource_mpgos"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_sjph3"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_mpgos")])
+
+[sub_resource type="Resource" id="Resource_m8sr1"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_ybgr7"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_m8sr1")])
+
+[sub_resource type="Resource" id="Resource_u46l4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_wxdxb"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_u46l4")])
+
+[sub_resource type="Resource" id="Resource_3nh6h"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_u46l4")])
+
+[sub_resource type="Resource" id="Resource_ukijx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_mimxb"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ukijx")])
+
+[sub_resource type="Resource" id="Resource_y2q40"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_khncu"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_y2q40")])
+
+[sub_resource type="Resource" id="Resource_5hc2y"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_y2q40")])
+
+[sub_resource type="Resource" id="Resource_umi68"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_kwduc"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_umi68")])
+
+[sub_resource type="Resource" id="Resource_vfsye"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_umi68")])
+
+[sub_resource type="Resource" id="Resource_0h0t7"]
+script = ExtResource("3_yt0ju")
+measure = 17
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_io5od"), SubResource("Resource_eidxb"), SubResource("Resource_sjph3"), SubResource("Resource_ybgr7"), SubResource("Resource_wxdxb"), SubResource("Resource_3nh6h"), SubResource("Resource_mimxb"), SubResource("Resource_khncu"), SubResource("Resource_5hc2y"), SubResource("Resource_kwduc"), SubResource("Resource_vfsye")])
+
+[sub_resource type="Resource" id="Resource_ybrmg"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ivktl"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ybrmg")])
+
+[sub_resource type="Resource" id="Resource_hsunx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_4jqky"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hsunx")])
+
+[sub_resource type="Resource" id="Resource_hsmsi"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_32sur"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hsmsi")])
+
+[sub_resource type="Resource" id="Resource_oeems"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_2fgnf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oeems")])
+
+[sub_resource type="Resource" id="Resource_1vw6j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_nusnd"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1vw6j")])
+
+[sub_resource type="Resource" id="Resource_niuk8"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1vw6j")])
+
+[sub_resource type="Resource" id="Resource_i026r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_1xfyi"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i026r")])
+
+[sub_resource type="Resource" id="Resource_7x4ns"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i026r")])
+
+[sub_resource type="Resource" id="Resource_t8hlf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_j5dxv"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_t8hlf")])
+
+[sub_resource type="Resource" id="Resource_lnq3e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_73jn6"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lnq3e")])
+
+[sub_resource type="Resource" id="Resource_wje88"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_h0hab"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wje88")])
+
+[sub_resource type="Resource" id="Resource_bcq8n"]
+script = ExtResource("3_yt0ju")
+measure = 18
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_ivktl"), SubResource("Resource_4jqky"), SubResource("Resource_32sur"), SubResource("Resource_2fgnf"), SubResource("Resource_nusnd"), SubResource("Resource_niuk8"), SubResource("Resource_1xfyi"), SubResource("Resource_7x4ns"), SubResource("Resource_j5dxv"), SubResource("Resource_73jn6"), SubResource("Resource_h0hab")])
+
+[sub_resource type="Resource" id="Resource_1tfxk"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wje88")])
+
+[sub_resource type="Resource" id="Resource_ffmjf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_e0i48"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ffmjf")])
+
+[sub_resource type="Resource" id="Resource_hjo0b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_xnhts"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hjo0b")])
+
+[sub_resource type="Resource" id="Resource_vnr4x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_i6ged"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vnr4x")])
+
+[sub_resource type="Resource" id="Resource_vr4pi"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_ok0qm"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vr4pi")])
+
+[sub_resource type="Resource" id="Resource_3w4m2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_1s8uu"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3w4m2")])
+
+[sub_resource type="Resource" id="Resource_uv36e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_dbxwa"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uv36e")])
+
+[sub_resource type="Resource" id="Resource_ndfax"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_2jppd"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ndfax")])
+
+[sub_resource type="Resource" id="Resource_q5s0t"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_g8xqr"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q5s0t")])
+
+[sub_resource type="Resource" id="Resource_0qsur"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_wqjvx"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_0qsur")])
+
+[sub_resource type="Resource" id="Resource_05dee"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_pbst7"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_05dee")])
+
+[sub_resource type="Resource" id="Resource_droch"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_grxsd"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_droch")])
+
+[sub_resource type="Resource" id="Resource_2p5wy"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_droch")])
+
+[sub_resource type="Resource" id="Resource_jajjh"]
+script = ExtResource("3_yt0ju")
+measure = 19
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_1tfxk"), SubResource("Resource_e0i48"), SubResource("Resource_xnhts"), SubResource("Resource_i6ged"), SubResource("Resource_ok0qm"), SubResource("Resource_1s8uu"), SubResource("Resource_dbxwa"), SubResource("Resource_2jppd"), SubResource("Resource_g8xqr"), SubResource("Resource_wqjvx"), SubResource("Resource_pbst7"), SubResource("Resource_grxsd"), SubResource("Resource_2p5wy")])
+
+[sub_resource type="Resource" id="Resource_nc1gd"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_ljlca"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nc1gd")])
+
+[sub_resource type="Resource" id="Resource_v1r5k"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_i3k6f"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v1r5k")])
+
+[sub_resource type="Resource" id="Resource_243ce"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_q3tg0"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_243ce")])
+
+[sub_resource type="Resource" id="Resource_tgwpi"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_i0qkc"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tgwpi")])
+
+[sub_resource type="Resource" id="Resource_uvbj7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_sdmbg"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uvbj7")])
+
+[sub_resource type="Resource" id="Resource_1bq0o"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uvbj7")])
+
+[sub_resource type="Resource" id="Resource_eeygd"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_c8whq"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eeygd")])
+
+[sub_resource type="Resource" id="Resource_klr1r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_timol"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_klr1r")])
+
+[sub_resource type="Resource" id="Resource_lkwxx"]
+script = ExtResource("3_yt0ju")
+measure = 21
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_ljlca"), SubResource("Resource_i3k6f"), SubResource("Resource_q3tg0"), SubResource("Resource_i0qkc"), SubResource("Resource_sdmbg"), SubResource("Resource_1bq0o"), SubResource("Resource_c8whq"), SubResource("Resource_timol")])
+
+[sub_resource type="Resource" id="Resource_jl35j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_asimn"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jl35j")])
+
+[sub_resource type="Resource" id="Resource_a6qm1"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_qujos"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a6qm1")])
+
+[sub_resource type="Resource" id="Resource_c1h1u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_yjq5s"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_c1h1u")])
+
+[sub_resource type="Resource" id="Resource_ewebo"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_241ji"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ewebo")])
+
+[sub_resource type="Resource" id="Resource_8di5h"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_5x6y4"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8di5h")])
+
+[sub_resource type="Resource" id="Resource_gmrkq"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8di5h")])
+
+[sub_resource type="Resource" id="Resource_qsdnt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_2amvc"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qsdnt")])
+
+[sub_resource type="Resource" id="Resource_xxye3"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qsdnt")])
+
+[sub_resource type="Resource" id="Resource_sysgw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_50tqr"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sysgw")])
+
+[sub_resource type="Resource" id="Resource_5de6b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_2v221"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5de6b")])
+
+[sub_resource type="Resource" id="Resource_byspr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_h3rq5"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_byspr")])
+
+[sub_resource type="Resource" id="Resource_t8rl1"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_byspr")])
+
+[sub_resource type="Resource" id="Resource_nvpw2"]
+script = ExtResource("3_yt0ju")
+measure = 22
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_asimn"), SubResource("Resource_qujos"), SubResource("Resource_yjq5s"), SubResource("Resource_241ji"), SubResource("Resource_5x6y4"), SubResource("Resource_gmrkq"), SubResource("Resource_2amvc"), SubResource("Resource_xxye3"), SubResource("Resource_50tqr"), SubResource("Resource_2v221"), SubResource("Resource_h3rq5"), SubResource("Resource_t8rl1")])
+
+[sub_resource type="Resource" id="Resource_erboc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_fxtg3"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_erboc")])
+
+[sub_resource type="Resource" id="Resource_xr32x"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_erboc")])
+
+[sub_resource type="Resource" id="Resource_jdh0e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_nycyv"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jdh0e")])
+
+[sub_resource type="Resource" id="Resource_b4y5u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_naurq"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b4y5u")])
+
+[sub_resource type="Resource" id="Resource_bgmff"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_1syyq"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bgmff")])
+
+[sub_resource type="Resource" id="Resource_1w1o7"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bgmff")])
+
+[sub_resource type="Resource" id="Resource_lamaq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_pnebm"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lamaq")])
+
+[sub_resource type="Resource" id="Resource_3jlbk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_h6old"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3jlbk")])
+
+[sub_resource type="Resource" id="Resource_6mqil"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_qg3n8"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6mqil")])
+
+[sub_resource type="Resource" id="Resource_2btiy"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6mqil")])
+
+[sub_resource type="Resource" id="Resource_iovhi"]
+script = ExtResource("3_yt0ju")
+measure = 23
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_fxtg3"), SubResource("Resource_xr32x"), SubResource("Resource_nycyv"), SubResource("Resource_naurq"), SubResource("Resource_1syyq"), SubResource("Resource_1w1o7"), SubResource("Resource_pnebm"), SubResource("Resource_h6old"), SubResource("Resource_qg3n8"), SubResource("Resource_2btiy")])
+
+[sub_resource type="Resource" id="Resource_7mraq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_4ptot"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7mraq")])
+
+[sub_resource type="Resource" id="Resource_t1ax7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_61p0f"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_t1ax7")])
+
+[sub_resource type="Resource" id="Resource_oeqo8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_58h2r"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oeqo8")])
+
+[sub_resource type="Resource" id="Resource_a4qiy"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_sxij4"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a4qiy")])
+
+[sub_resource type="Resource" id="Resource_1xfne"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_drrxl"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1xfne")])
+
+[sub_resource type="Resource" id="Resource_hiqgv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_pteae"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hiqgv")])
+
+[sub_resource type="Resource" id="Resource_x2bmq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_1cxdy"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_x2bmq")])
+
+[sub_resource type="Resource" id="Resource_tvfq7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_pfhnu"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tvfq7")])
+
+[sub_resource type="Resource" id="Resource_dnobs"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_wvo5c"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dnobs")])
+
+[sub_resource type="Resource" id="Resource_46kwb"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dnobs")])
+
+[sub_resource type="Resource" id="Resource_jdutf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_2csi5"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jdutf")])
+
+[sub_resource type="Resource" id="Resource_jpu4v"]
+script = ExtResource("3_yt0ju")
+measure = 24
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_4ptot"), SubResource("Resource_61p0f"), SubResource("Resource_58h2r"), SubResource("Resource_sxij4"), SubResource("Resource_drrxl"), SubResource("Resource_pteae"), SubResource("Resource_1cxdy"), SubResource("Resource_pfhnu"), SubResource("Resource_wvo5c"), SubResource("Resource_46kwb"), SubResource("Resource_2csi5")])
+
+[sub_resource type="Resource" id="Resource_0bhaq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_djj32"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_0bhaq")])
+
+[sub_resource type="Resource" id="Resource_y75gy"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_jqpmw"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_y75gy")])
+
+[sub_resource type="Resource" id="Resource_cv7jd"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_pi04m"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cv7jd")])
+
+[sub_resource type="Resource" id="Resource_m60hp"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_smbo1"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_m60hp")])
+
+[sub_resource type="Resource" id="Resource_7dj7g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_b5224"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7dj7g")])
+
+[sub_resource type="Resource" id="Resource_80mrx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_obm5f"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_80mrx")])
+
+[sub_resource type="Resource" id="Resource_2r6jn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_140ji"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2r6jn")])
+
+[sub_resource type="Resource" id="Resource_1ywy0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_immr6"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1ywy0")])
+
+[sub_resource type="Resource" id="Resource_johun"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_8ppj2"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_johun")])
+
+[sub_resource type="Resource" id="Resource_5sj5u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_0uhmd"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5sj5u")])
+
+[sub_resource type="Resource" id="Resource_7ctgh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_02ay8"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7ctgh")])
+
+[sub_resource type="Resource" id="Resource_qcncb"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_rwaue"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_hndjj"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qcncb"), SubResource("Resource_rwaue")])
+
+[sub_resource type="Resource" id="Resource_en3js"]
+script = ExtResource("4_psb73")
+offset = 27
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rwaue")])
+
+[sub_resource type="Resource" id="Resource_66kr7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_3xj4n"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_66kr7")])
+
+[sub_resource type="Resource" id="Resource_xg16a"]
+script = ExtResource("3_yt0ju")
+measure = 25
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_djj32"), SubResource("Resource_jqpmw"), SubResource("Resource_pi04m"), SubResource("Resource_smbo1"), SubResource("Resource_b5224"), SubResource("Resource_obm5f"), SubResource("Resource_140ji"), SubResource("Resource_immr6"), SubResource("Resource_8ppj2"), SubResource("Resource_0uhmd"), SubResource("Resource_02ay8"), SubResource("Resource_hndjj"), SubResource("Resource_en3js"), SubResource("Resource_3xj4n")])
+
+[sub_resource type="Resource" id="Resource_fnrjv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_uuv57"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fnrjv")])
+
+[sub_resource type="Resource" id="Resource_ahycu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_pph0x"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ahycu")])
+
+[sub_resource type="Resource" id="Resource_4s6n1"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_dfjxs"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4s6n1")])
+
+[sub_resource type="Resource" id="Resource_yyi70"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_3fupg"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_yyi70")])
+
+[sub_resource type="Resource" id="Resource_n7v5u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_4xne0"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_n7v5u")])
+
+[sub_resource type="Resource" id="Resource_48w4g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_1pwcb"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_48w4g")])
+
+[sub_resource type="Resource" id="Resource_pp6rb"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+
+[sub_resource type="Resource" id="Resource_x1jtd"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pp6rb")])
+
+[sub_resource type="Resource" id="Resource_ebny5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_2woqu"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ebny5")])
+
+[sub_resource type="Resource" id="Resource_yf0on"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+
+[sub_resource type="Resource" id="Resource_xflyg"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_yf0on")])
+
+[sub_resource type="Resource" id="Resource_wuaq2"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_yf0on")])
+
+[sub_resource type="Resource" id="Resource_amrvf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"erect-up"
+
+[sub_resource type="Resource" id="Resource_1tdmh"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_amrvf")])
+
+[sub_resource type="Resource" id="Resource_qsr5i"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_amrvf")])
+
+[sub_resource type="Resource" id="Resource_bco8w"]
+script = ExtResource("3_yt0ju")
+measure = 26
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_uuv57"), SubResource("Resource_pph0x"), SubResource("Resource_dfjxs"), SubResource("Resource_3fupg"), SubResource("Resource_4xne0"), SubResource("Resource_1pwcb"), SubResource("Resource_x1jtd"), SubResource("Resource_2woqu"), SubResource("Resource_xflyg"), SubResource("Resource_wuaq2"), SubResource("Resource_1tdmh"), SubResource("Resource_qsr5i")])
+
+[sub_resource type="Resource" id="Resource_u616j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_q5odr"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_u616j")])
+
+[sub_resource type="Resource" id="Resource_s5ftp"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_jbu6o"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_s5ftp")])
+
+[sub_resource type="Resource" id="Resource_flsx4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_mwc0e"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_flsx4")])
+
+[sub_resource type="Resource" id="Resource_4u7fk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qo4rq"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4u7fk")])
+
+[sub_resource type="Resource" id="Resource_kiwm7"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4u7fk")])
+
+[sub_resource type="Resource" id="Resource_2lti2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_v1qn3"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2lti2")])
+
+[sub_resource type="Resource" id="Resource_tm8js"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_v6sm0"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tm8js")])
+
+[sub_resource type="Resource" id="Resource_6xevj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_8i8ml"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6xevj")])
+
+[sub_resource type="Resource" id="Resource_g0slg"]
+script = ExtResource("3_yt0ju")
+measure = 28
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_q5odr"), SubResource("Resource_jbu6o"), SubResource("Resource_mwc0e"), SubResource("Resource_qo4rq"), SubResource("Resource_kiwm7"), SubResource("Resource_v1qn3"), SubResource("Resource_v6sm0"), SubResource("Resource_8i8ml")])
+
+[sub_resource type="Resource" id="Resource_le0b6"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6xevj")])
+
+[sub_resource type="Resource" id="Resource_2nq3x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i55uf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2nq3x")])
+
+[sub_resource type="Resource" id="Resource_b27sc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fvlrg"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b27sc")])
+
+[sub_resource type="Resource" id="Resource_efdvn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_bmcpb"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_efdvn")])
+
+[sub_resource type="Resource" id="Resource_ws0sr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qb6gm"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ws0sr")])
+
+[sub_resource type="Resource" id="Resource_fkd8l"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_wfp1i"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fkd8l")])
+
+[sub_resource type="Resource" id="Resource_3qtce"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_af4gj"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3qtce")])
+
+[sub_resource type="Resource" id="Resource_wes1y"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_jqtra"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wes1y")])
+
+[sub_resource type="Resource" id="Resource_pwx6o"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_l16vo"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pwx6o")])
+
+[sub_resource type="Resource" id="Resource_4fh17"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pwx6o")])
+
+[sub_resource type="Resource" id="Resource_2fiux"]
+script = ExtResource("3_yt0ju")
+measure = 29
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_le0b6"), SubResource("Resource_i55uf"), SubResource("Resource_fvlrg"), SubResource("Resource_bmcpb"), SubResource("Resource_qb6gm"), SubResource("Resource_wfp1i"), SubResource("Resource_af4gj"), SubResource("Resource_jqtra"), SubResource("Resource_l16vo"), SubResource("Resource_4fh17")])
+
+[sub_resource type="Resource" id="Resource_nhw4m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_tgmeg"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nhw4m")])
+
+[sub_resource type="Resource" id="Resource_lc8vk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_dcgvg"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lc8vk")])
+
+[sub_resource type="Resource" id="Resource_mukoi"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_1chqj"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_mukoi")])
+
+[sub_resource type="Resource" id="Resource_b0ix6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_pktxp"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b0ix6")])
+
+[sub_resource type="Resource" id="Resource_iqeao"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b0ix6")])
+
+[sub_resource type="Resource" id="Resource_wqrun"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_8dki6"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wqrun")])
+
+[sub_resource type="Resource" id="Resource_o2o24"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_214wp"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_o2o24")])
+
+[sub_resource type="Resource" id="Resource_n55ry"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_0osay"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_n55ry")])
+
+[sub_resource type="Resource" id="Resource_4v7hd"]
+script = ExtResource("3_yt0ju")
+measure = 30
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_tgmeg"), SubResource("Resource_dcgvg"), SubResource("Resource_1chqj"), SubResource("Resource_pktxp"), SubResource("Resource_iqeao"), SubResource("Resource_8dki6"), SubResource("Resource_214wp"), SubResource("Resource_0osay")])
+
+[sub_resource type="Resource" id="Resource_b5lhy"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_n55ry")])
+
+[sub_resource type="Resource" id="Resource_kuw8m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_po4gr"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kuw8m")])
+
+[sub_resource type="Resource" id="Resource_sgb2w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_2psxh"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sgb2w")])
+
+[sub_resource type="Resource" id="Resource_v2waj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_n05ni"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v2waj")])
+
+[sub_resource type="Resource" id="Resource_fyguq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ftt5h"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fyguq")])
+
+[sub_resource type="Resource" id="Resource_nwpjn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_egt3n"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nwpjn")])
+
+[sub_resource type="Resource" id="Resource_rt4qh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_2rig7"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rt4qh")])
+
+[sub_resource type="Resource" id="Resource_eronl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_so88r"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eronl")])
+
+[sub_resource type="Resource" id="Resource_bnv43"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_eronl")])
+
+[sub_resource type="Resource" id="Resource_75s7t"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_e4jjh"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_75s7t")])
+
+[sub_resource type="Resource" id="Resource_y60qh"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_75s7t")])
+
+[sub_resource type="Resource" id="Resource_mj6wp"]
+script = ExtResource("3_yt0ju")
+measure = 31
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_b5lhy"), SubResource("Resource_po4gr"), SubResource("Resource_2psxh"), SubResource("Resource_n05ni"), SubResource("Resource_ftt5h"), SubResource("Resource_egt3n"), SubResource("Resource_2rig7"), SubResource("Resource_so88r"), SubResource("Resource_bnv43"), SubResource("Resource_e4jjh"), SubResource("Resource_y60qh")])
+
+[sub_resource type="Resource" id="Resource_mbq8h"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fqwy1"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_mbq8h")])
+
+[sub_resource type="Resource" id="Resource_46j67"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fkfdc"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_46j67")])
+
+[sub_resource type="Resource" id="Resource_20q3i"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_hxoiq"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_20q3i")])
+
+[sub_resource type="Resource" id="Resource_dgxan"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_vs4os"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dgxan")])
+
+[sub_resource type="Resource" id="Resource_syq2q"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_cvlla"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_syq2q")])
+
+[sub_resource type="Resource" id="Resource_oycna"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_syq2q")])
+
+[sub_resource type="Resource" id="Resource_jml0j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_alaxr"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jml0j")])
+
+[sub_resource type="Resource" id="Resource_7okxt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_3tdte"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7okxt")])
+
+[sub_resource type="Resource" id="Resource_s2ti7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_6jryo"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_s2ti7")])
+
+[sub_resource type="Resource" id="Resource_mlbsw"]
+script = ExtResource("3_yt0ju")
+measure = 32
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_fqwy1"), SubResource("Resource_fkfdc"), SubResource("Resource_hxoiq"), SubResource("Resource_vs4os"), SubResource("Resource_cvlla"), SubResource("Resource_oycna"), SubResource("Resource_alaxr"), SubResource("Resource_3tdte"), SubResource("Resource_6jryo")])
+
+[sub_resource type="Resource" id="Resource_446ea"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_rgquc"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_446ea")])
+
+[sub_resource type="Resource" id="Resource_q0ghe"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_81og5"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q0ghe")])
+
+[sub_resource type="Resource" id="Resource_pn6xa"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_us22h"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pn6xa")])
+
+[sub_resource type="Resource" id="Resource_4bkm2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_o2agf"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4bkm2")])
+
+[sub_resource type="Resource" id="Resource_petkc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_mmk62"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_petkc")])
+
+[sub_resource type="Resource" id="Resource_qi6cu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_uv7jo"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qi6cu")])
+
+[sub_resource type="Resource" id="Resource_tchpx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_einq6"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tchpx")])
+
+[sub_resource type="Resource" id="Resource_lfjw8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_p2dxw"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lfjw8")])
+
+[sub_resource type="Resource" id="Resource_wf08x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_2ukwm"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wf08x")])
+
+[sub_resource type="Resource" id="Resource_tjqa4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ti6pm"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tjqa4")])
+
+[sub_resource type="Resource" id="Resource_p1al6"]
+script = ExtResource("3_yt0ju")
+measure = 33
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_rgquc"), SubResource("Resource_81og5"), SubResource("Resource_us22h"), SubResource("Resource_o2agf"), SubResource("Resource_mmk62"), SubResource("Resource_uv7jo"), SubResource("Resource_einq6"), SubResource("Resource_p2dxw"), SubResource("Resource_2ukwm"), SubResource("Resource_ti6pm")])
+
+[sub_resource type="Resource" id="Resource_rj03b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_4m7w2"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rj03b")])
+
+[sub_resource type="Resource" id="Resource_y1hve"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i7s12"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_y1hve")])
+
+[sub_resource type="Resource" id="Resource_gl85b"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_y1hve")])
+
+[sub_resource type="Resource" id="Resource_sbo2k"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_gavoi"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sbo2k")])
+
+[sub_resource type="Resource" id="Resource_ocoj2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_gdumd"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ocoj2")])
+
+[sub_resource type="Resource" id="Resource_7njge"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_p11at"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7njge")])
+
+[sub_resource type="Resource" id="Resource_ymv1p"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7njge")])
+
+[sub_resource type="Resource" id="Resource_ctref"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_hbexk"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ctref")])
+
+[sub_resource type="Resource" id="Resource_o581v"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_kwkw1"]
+script = ExtResource("4_psb73")
+offset = 17
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_o581v")])
+
+[sub_resource type="Resource" id="Resource_r0g3e"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_o581v")])
+
+[sub_resource type="Resource" id="Resource_kri23"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ugghg"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kri23")])
+
+[sub_resource type="Resource" id="Resource_lkyrw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_fvidc"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lkyrw")])
+
+[sub_resource type="Resource" id="Resource_3ctfv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_2mgha"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3ctfv")])
+
+[sub_resource type="Resource" id="Resource_7t22p"]
+script = ExtResource("3_yt0ju")
+measure = 34
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_4m7w2"), SubResource("Resource_i7s12"), SubResource("Resource_gl85b"), SubResource("Resource_gavoi"), SubResource("Resource_gdumd"), SubResource("Resource_p11at"), SubResource("Resource_ymv1p"), SubResource("Resource_hbexk"), SubResource("Resource_kwkw1"), SubResource("Resource_r0g3e"), SubResource("Resource_ugghg"), SubResource("Resource_fvidc"), SubResource("Resource_2mgha")])
+
+[sub_resource type="Resource" id="Resource_0nn7f"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3ctfv")])
+
+[sub_resource type="Resource" id="Resource_hn5ri"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_xsyui"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hn5ri")])
+
+[sub_resource type="Resource" id="Resource_v48ef"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_fw2cm"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v48ef")])
+
+[sub_resource type="Resource" id="Resource_itkw5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ijkuv"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_itkw5")])
+
+[sub_resource type="Resource" id="Resource_wmllr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_3rcdv"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wmllr")])
+
+[sub_resource type="Resource" id="Resource_lg728"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_pqlg6"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lg728")])
+
+[sub_resource type="Resource" id="Resource_f7tfe"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_bnf6j"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_f7tfe")])
+
+[sub_resource type="Resource" id="Resource_2qkg3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ktqh4"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2qkg3")])
+
+[sub_resource type="Resource" id="Resource_7vkty"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_grupw"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7vkty")])
+
+[sub_resource type="Resource" id="Resource_smn80"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7vkty")])
+
+[sub_resource type="Resource" id="Resource_b7hwi"]
+script = ExtResource("3_yt0ju")
+measure = 35
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_0nn7f"), SubResource("Resource_xsyui"), SubResource("Resource_fw2cm"), SubResource("Resource_ijkuv"), SubResource("Resource_3rcdv"), SubResource("Resource_pqlg6"), SubResource("Resource_bnf6j"), SubResource("Resource_ktqh4"), SubResource("Resource_grupw"), SubResource("Resource_smn80")])
+
+[sub_resource type="Resource" id="Resource_b8xbh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_0y47a"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_k2qx1"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b8xbh"), SubResource("Resource_0y47a")])
+
+[sub_resource type="Resource" id="Resource_yq0wt"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_0y47a")])
+
+[sub_resource type="Resource" id="Resource_x708y"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_mj51e"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_x708y")])
+
+[sub_resource type="Resource" id="Resource_oo004"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_gpocf"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oo004")])
+
+[sub_resource type="Resource" id="Resource_hk87r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ll2fc"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hk87r")])
+
+[sub_resource type="Resource" id="Resource_aoudh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_lhw6h"]
+script = ExtResource("4_psb73")
+offset = 17
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_aoudh")])
+
+[sub_resource type="Resource" id="Resource_piryf"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_aoudh")])
+
+[sub_resource type="Resource" id="Resource_sjvl8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ai83g"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sjvl8")])
+
+[sub_resource type="Resource" id="Resource_5k65w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_vxaye"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_frurr"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5k65w"), SubResource("Resource_vxaye")])
+
+[sub_resource type="Resource" id="Resource_alfu6"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vxaye")])
+
+[sub_resource type="Resource" id="Resource_ed2nw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ibism"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ed2nw")])
+
+[sub_resource type="Resource" id="Resource_ulask"]
+script = ExtResource("3_yt0ju")
+measure = 36
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_k2qx1"), SubResource("Resource_yq0wt"), SubResource("Resource_mj51e"), SubResource("Resource_gpocf"), SubResource("Resource_ll2fc"), SubResource("Resource_lhw6h"), SubResource("Resource_piryf"), SubResource("Resource_ai83g"), SubResource("Resource_frurr"), SubResource("Resource_alfu6"), SubResource("Resource_ibism")])
+
+[sub_resource type="Resource" id="Resource_qvorv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_wnxvj"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_qvorv")])
+
+[sub_resource type="Resource" id="Resource_lyvtu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fi8xf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lyvtu")])
+
+[sub_resource type="Resource" id="Resource_olyse"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_j4iuh"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_olyse")])
+
+[sub_resource type="Resource" id="Resource_lv58e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_2m6h7"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lv58e")])
+
+[sub_resource type="Resource" id="Resource_ju8eg"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_rgp5s"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ju8eg")])
+
+[sub_resource type="Resource" id="Resource_7k8pm"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_scwfw"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7k8pm")])
+
+[sub_resource type="Resource" id="Resource_a0pai"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_8y3yb"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a0pai")])
+
+[sub_resource type="Resource" id="Resource_43x2l"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_5vhfv"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_43x2l")])
+
+[sub_resource type="Resource" id="Resource_ime8b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_5ybor"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ime8b")])
+
+[sub_resource type="Resource" id="Resource_iwn5w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_mfngo"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_iwn5w")])
+
+[sub_resource type="Resource" id="Resource_pw647"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_dqgwj"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pw647")])
+
+[sub_resource type="Resource" id="Resource_4swgg"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_xbs1r"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4swgg")])
+
+[sub_resource type="Resource" id="Resource_37ky0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i54iv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_axrys"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_37ky0"), SubResource("Resource_i54iv")])
+
+[sub_resource type="Resource" id="Resource_t6m1d"]
+script = ExtResource("4_psb73")
+offset = 10
+quant = 12
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_i54iv")])
+
+[sub_resource type="Resource" id="Resource_ww0ga"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_4tf1i"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_ioxb3"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ww0ga"), SubResource("Resource_4tf1i")])
+
+[sub_resource type="Resource" id="Resource_8y6eb"]
+script = ExtResource("3_yt0ju")
+measure = 37
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_wnxvj"), SubResource("Resource_fi8xf"), SubResource("Resource_j4iuh"), SubResource("Resource_2m6h7"), SubResource("Resource_rgp5s"), SubResource("Resource_scwfw"), SubResource("Resource_8y3yb"), SubResource("Resource_5vhfv"), SubResource("Resource_5ybor"), SubResource("Resource_mfngo"), SubResource("Resource_dqgwj"), SubResource("Resource_xbs1r"), SubResource("Resource_axrys"), SubResource("Resource_t6m1d"), SubResource("Resource_ioxb3")])
+
+[sub_resource type="Resource" id="Resource_xpn7w"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_clr2r"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xpn7w")])
+
+[sub_resource type="Resource" id="Resource_udwco"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_at7m8"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_udwco")])
+
+[sub_resource type="Resource" id="Resource_4iw5y"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_xaidf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4iw5y")])
+
+[sub_resource type="Resource" id="Resource_7fvlj"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i3q4l"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7fvlj")])
+
+[sub_resource type="Resource" id="Resource_ppprr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qdnv1"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ppprr")])
+
+[sub_resource type="Resource" id="Resource_4jma4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_wf21y"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4jma4")])
+
+[sub_resource type="Resource" id="Resource_oogak"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ekbgj"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oogak")])
+
+[sub_resource type="Resource" id="Resource_87aw2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qbqmv"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_87aw2")])
+
+[sub_resource type="Resource" id="Resource_488ja"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_rx5ox"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_488ja")])
+
+[sub_resource type="Resource" id="Resource_p3gk8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_aoem6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_uf68v"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_p3gk8"), SubResource("Resource_aoem6")])
+
+[sub_resource type="Resource" id="Resource_7rd1h"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_73qfx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_3hb38"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_7rd1h"), SubResource("Resource_73qfx")])
+
+[sub_resource type="Resource" id="Resource_4jky5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_esaoe"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4jky5")])
+
+[sub_resource type="Resource" id="Resource_8qrju"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_x2vyf"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8qrju")])
+
+[sub_resource type="Resource" id="Resource_06oma"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_44ub7"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_06oma")])
+
+[sub_resource type="Resource" id="Resource_r25og"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_qeqyo"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_wgyn8"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_r25og"), SubResource("Resource_qeqyo")])
+
+[sub_resource type="Resource" id="Resource_8wqm4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_xwx6e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_snjek"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8wqm4"), SubResource("Resource_xwx6e")])
+
+[sub_resource type="Resource" id="Resource_uwc4b"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_6dfbe"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uwc4b")])
+
+[sub_resource type="Resource" id="Resource_v0hin"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_3ac4w"]
+script = ExtResource("4_psb73")
+offset = 31
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v0hin")])
+
+[sub_resource type="Resource" id="Resource_es5ri"]
+script = ExtResource("3_yt0ju")
+measure = 38
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_clr2r"), SubResource("Resource_at7m8"), SubResource("Resource_xaidf"), SubResource("Resource_i3q4l"), SubResource("Resource_qdnv1"), SubResource("Resource_wf21y"), SubResource("Resource_ekbgj"), SubResource("Resource_qbqmv"), SubResource("Resource_rx5ox"), SubResource("Resource_uf68v"), SubResource("Resource_3hb38"), SubResource("Resource_esaoe"), SubResource("Resource_x2vyf"), SubResource("Resource_44ub7"), SubResource("Resource_wgyn8"), SubResource("Resource_snjek"), SubResource("Resource_6dfbe"), SubResource("Resource_3ac4w")])
+
+[sub_resource type="Resource" id="Resource_ixght"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_860i1"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ixght")])
+
+[sub_resource type="Resource" id="Resource_1oab0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+
+[sub_resource type="Resource" id="Resource_lxb0a"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1oab0")])
+
+[sub_resource type="Resource" id="Resource_40c2c"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_m4v2r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_6snf6"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_40c2c"), SubResource("Resource_m4v2r")])
+
+[sub_resource type="Resource" id="Resource_ygq3x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_bta7i"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ygq3x")])
+
+[sub_resource type="Resource" id="Resource_d5sb7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_nfk0l"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_d5sb7")])
+
+[sub_resource type="Resource" id="Resource_47okw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_usn5v"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_47okw")])
+
+[sub_resource type="Resource" id="Resource_fxot4"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_knedg"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_k5q1u"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fxot4"), SubResource("Resource_knedg")])
+
+[sub_resource type="Resource" id="Resource_cc5pl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_svqub"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cc5pl")])
+
+[sub_resource type="Resource" id="Resource_e7pj4"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cc5pl")])
+
+[sub_resource type="Resource" id="Resource_egjv8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_xvi5g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_ewgn6"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_egjv8"), SubResource("Resource_xvi5g")])
+
+[sub_resource type="Resource" id="Resource_g2gbw"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_egjv8")])
+
+[sub_resource type="Resource" id="Resource_v3r3l"]
+script = ExtResource("3_yt0ju")
+measure = 39
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_860i1"), SubResource("Resource_lxb0a"), SubResource("Resource_6snf6"), SubResource("Resource_bta7i"), SubResource("Resource_nfk0l"), SubResource("Resource_usn5v"), SubResource("Resource_k5q1u"), SubResource("Resource_svqub"), SubResource("Resource_e7pj4"), SubResource("Resource_ewgn6"), SubResource("Resource_g2gbw")])
+
+[sub_resource type="Resource" id="Resource_nuswt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_my7jt"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nuswt")])
+
+[sub_resource type="Resource" id="Resource_ouf76"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nuswt")])
+
+[sub_resource type="Resource" id="Resource_um0rf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_7njir"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_um0rf")])
+
+[sub_resource type="Resource" id="Resource_w2dpm"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_pkbj7"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_w2dpm")])
+
+[sub_resource type="Resource" id="Resource_a6xso"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_x2d3p"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_xx8fu"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a6xso"), SubResource("Resource_x2d3p")])
+
+[sub_resource type="Resource" id="Resource_45jex"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_onfja"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_45jex")])
+
+[sub_resource type="Resource" id="Resource_nlc3g"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_45jex")])
+
+[sub_resource type="Resource" id="Resource_wg18t"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_0yafu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_r2bdt"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wg18t"), SubResource("Resource_0yafu")])
+
+[sub_resource type="Resource" id="Resource_q8jrr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_5rfsu"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q8jrr")])
+
+[sub_resource type="Resource" id="Resource_fx4ig"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_6nop5"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fx4ig")])
+
+[sub_resource type="Resource" id="Resource_wyhcl"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fx4ig")])
+
+[sub_resource type="Resource" id="Resource_ve0pq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_1r3kv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_67bmb"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ve0pq"), SubResource("Resource_1r3kv")])
+
+[sub_resource type="Resource" id="Resource_8r7o3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_4yjuj"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8r7o3")])
+
+[sub_resource type="Resource" id="Resource_x4v0l"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8r7o3")])
+
+[sub_resource type="Resource" id="Resource_ocobq"]
+script = ExtResource("3_yt0ju")
+measure = 40
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_my7jt"), SubResource("Resource_ouf76"), SubResource("Resource_7njir"), SubResource("Resource_pkbj7"), SubResource("Resource_xx8fu"), SubResource("Resource_onfja"), SubResource("Resource_nlc3g"), SubResource("Resource_r2bdt"), SubResource("Resource_5rfsu"), SubResource("Resource_6nop5"), SubResource("Resource_wyhcl"), SubResource("Resource_67bmb"), SubResource("Resource_4yjuj"), SubResource("Resource_x4v0l")])
+
+[sub_resource type="Resource" id="Resource_uqm2k"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ajm0f"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uqm2k")])
+
+[sub_resource type="Resource" id="Resource_vekrj"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_uqm2k")])
+
+[sub_resource type="Resource" id="Resource_2u3o7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_70fk4"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2u3o7")])
+
+[sub_resource type="Resource" id="Resource_csief"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_jjjlk"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_csief")])
+
+[sub_resource type="Resource" id="Resource_vffyl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_b34ex"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ouy3q"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vffyl"), SubResource("Resource_b34ex")])
+
+[sub_resource type="Resource" id="Resource_2blmk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_ghxr4"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2blmk")])
+
+[sub_resource type="Resource" id="Resource_sex8j"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2blmk")])
+
+[sub_resource type="Resource" id="Resource_w563v"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_hhbpn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_53duv"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_w563v"), SubResource("Resource_hhbpn")])
+
+[sub_resource type="Resource" id="Resource_a2jk2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_uc2tt"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a2jk2")])
+
+[sub_resource type="Resource" id="Resource_lmndc"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_ddqn1"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lmndc")])
+
+[sub_resource type="Resource" id="Resource_jijb3"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lmndc")])
+
+[sub_resource type="Resource" id="Resource_hjbjm"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_cy1g5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_1gcqx"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hjbjm"), SubResource("Resource_cy1g5")])
+
+[sub_resource type="Resource" id="Resource_cfge2"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_4q40s"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cfge2")])
+
+[sub_resource type="Resource" id="Resource_7lu12"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_cfge2")])
+
+[sub_resource type="Resource" id="Resource_q78og"]
+script = ExtResource("3_yt0ju")
+measure = 41
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_ajm0f"), SubResource("Resource_vekrj"), SubResource("Resource_70fk4"), SubResource("Resource_jjjlk"), SubResource("Resource_ouy3q"), SubResource("Resource_ghxr4"), SubResource("Resource_sex8j"), SubResource("Resource_53duv"), SubResource("Resource_uc2tt"), SubResource("Resource_ddqn1"), SubResource("Resource_jijb3"), SubResource("Resource_1gcqx"), SubResource("Resource_4q40s"), SubResource("Resource_7lu12")])
+
+[sub_resource type="Resource" id="Resource_vlgg3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_xfn7d"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vlgg3")])
+
+[sub_resource type="Resource" id="Resource_jvxsy"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_wine4"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jvxsy")])
+
+[sub_resource type="Resource" id="Resource_3tm2h"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_a05m3"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3tm2h")])
+
+[sub_resource type="Resource" id="Resource_28yfr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_0pj03"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_28yfr")])
+
+[sub_resource type="Resource" id="Resource_oyfqf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ycj0i"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oyfqf")])
+
+[sub_resource type="Resource" id="Resource_1ift0"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_gxn0l"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1ift0")])
+
+[sub_resource type="Resource" id="Resource_ui46m"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_bl8yu"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ui46m")])
+
+[sub_resource type="Resource" id="Resource_jxpcq"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_p5tm0"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jxpcq")])
+
+[sub_resource type="Resource" id="Resource_mj60u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_u41ke"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_mj60u")])
+
+[sub_resource type="Resource" id="Resource_nxroh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_w4yfa"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nxroh")])
+
+[sub_resource type="Resource" id="Resource_gndvf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_hc3tv"]
+script = ExtResource("4_psb73")
+offset = 17
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gndvf")])
+
+[sub_resource type="Resource" id="Resource_qturb"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gndvf")])
+
+[sub_resource type="Resource" id="Resource_a4t04"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_2yapu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_a0aq0"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a4t04"), SubResource("Resource_2yapu")])
+
+[sub_resource type="Resource" id="Resource_jf4ky"]
+script = ExtResource("4_psb73")
+offset = 25
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2yapu")])
+
+[sub_resource type="Resource" id="Resource_ynh64"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_igtke"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_efkhd"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ynh64"), SubResource("Resource_igtke")])
+
+[sub_resource type="Resource" id="Resource_0gv1n"]
+script = ExtResource("3_yt0ju")
+measure = 42
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_xfn7d"), SubResource("Resource_wine4"), SubResource("Resource_a05m3"), SubResource("Resource_0pj03"), SubResource("Resource_ycj0i"), SubResource("Resource_gxn0l"), SubResource("Resource_bl8yu"), SubResource("Resource_p5tm0"), SubResource("Resource_u41ke"), SubResource("Resource_w4yfa"), SubResource("Resource_hc3tv"), SubResource("Resource_qturb"), SubResource("Resource_a0aq0"), SubResource("Resource_jf4ky"), SubResource("Resource_efkhd")])
+
+[sub_resource type="Resource" id="Resource_td6p8"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_igtke")])
+
+[sub_resource type="Resource" id="Resource_oxcbl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fk1fe"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oxcbl")])
+
+[sub_resource type="Resource" id="Resource_e71ig"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_xff4w"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_e71ig")])
+
+[sub_resource type="Resource" id="Resource_gwynw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_mhjce"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_gwynw")])
+
+[sub_resource type="Resource" id="Resource_030ag"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_frvqm"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_030ag")])
+
+[sub_resource type="Resource" id="Resource_6spnd"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_lyb3b"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6spnd")])
+
+[sub_resource type="Resource" id="Resource_tbn2g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_nki0i"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tbn2g")])
+
+[sub_resource type="Resource" id="Resource_kce3r"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_kuiu5"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kce3r")])
+
+[sub_resource type="Resource" id="Resource_oo6y5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_mgl6b"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_oo6y5")])
+
+[sub_resource type="Resource" id="Resource_tdi4i"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_6aai0"]
+script = ExtResource("4_psb73")
+offset = 19
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tdi4i")])
+
+[sub_resource type="Resource" id="Resource_wmfka"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_n7d63"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wmfka")])
+
+[sub_resource type="Resource" id="Resource_a2y5i"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wmfka")])
+
+[sub_resource type="Resource" id="Resource_v5xrt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"solotime"
+
+[sub_resource type="Resource" id="Resource_3t4kf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_f44d8"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_v5xrt"), SubResource("Resource_3t4kf")])
+
+[sub_resource type="Resource" id="Resource_jwcik"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_dkfiv"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jwcik")])
+
+[sub_resource type="Resource" id="Resource_p44ym"]
+script = ExtResource("4_psb73")
+offset = 31
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jwcik")])
+
+[sub_resource type="Resource" id="Resource_u2nab"]
+script = ExtResource("3_yt0ju")
+measure = 43
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_td6p8"), SubResource("Resource_fk1fe"), SubResource("Resource_xff4w"), SubResource("Resource_mhjce"), SubResource("Resource_frvqm"), SubResource("Resource_lyb3b"), SubResource("Resource_nki0i"), SubResource("Resource_kuiu5"), SubResource("Resource_mgl6b"), SubResource("Resource_6aai0"), SubResource("Resource_n7d63"), SubResource("Resource_a2y5i"), SubResource("Resource_f44d8"), SubResource("Resource_dkfiv"), SubResource("Resource_p44ym")])
+
+[sub_resource type="Resource" id="Resource_vcabr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_0oya3"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vcabr")])
+
+[sub_resource type="Resource" id="Resource_frr88"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vcabr")])
+
+[sub_resource type="Resource" id="Resource_q5513"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_bruey"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_q5513")])
+
+[sub_resource type="Resource" id="Resource_a6mbo"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_d2hff"]
+script = ExtResource("4_psb73")
+offset = 23
+quant = 32
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a6mbo")])
+
+[sub_resource type="Resource" id="Resource_c4728"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_p3tv7"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_c4728")])
+
+[sub_resource type="Resource" id="Resource_upw0n"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_y3cop"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_upw0n")])
+
+[sub_resource type="Resource" id="Resource_04f57"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_wuhms"]
+script = ExtResource("4_psb73")
+offset = 57
+quant = 64
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_04f57")])
+
+[sub_resource type="Resource" id="Resource_h6rwr"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 1
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_04f57")])
+
+[sub_resource type="Resource" id="Resource_jpqx1"]
+script = ExtResource("3_yt0ju")
+measure = 44
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_0oya3"), SubResource("Resource_frr88"), SubResource("Resource_bruey"), SubResource("Resource_d2hff"), SubResource("Resource_p3tv7"), SubResource("Resource_y3cop"), SubResource("Resource_wuhms"), SubResource("Resource_h6rwr")])
+
+[sub_resource type="Resource" id="Resource_8vnwr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_ddoxt"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8vnwr")])
+
+[sub_resource type="Resource" id="Resource_f12ia"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_456q0"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_f12ia")])
+
+[sub_resource type="Resource" id="Resource_6amw6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ja06w"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6amw6")])
+
+[sub_resource type="Resource" id="Resource_13jph"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_uchqh"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_13jph")])
+
+[sub_resource type="Resource" id="Resource_rpiiw"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_uqhip"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rpiiw")])
+
+[sub_resource type="Resource" id="Resource_rf5fv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_belxb"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rf5fv")])
+
+[sub_resource type="Resource" id="Resource_xffd5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_tocs2"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xffd5")])
+
+[sub_resource type="Resource" id="Resource_wec8y"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_ef71y"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wec8y")])
+
+[sub_resource type="Resource" id="Resource_7iboe"]
+script = ExtResource("3_yt0ju")
+measure = 45
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_ddoxt"), SubResource("Resource_456q0"), SubResource("Resource_ja06w"), SubResource("Resource_uchqh"), SubResource("Resource_uqhip"), SubResource("Resource_belxb"), SubResource("Resource_tocs2"), SubResource("Resource_ef71y")])
+
+[sub_resource type="Resource" id="Resource_at3ye"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"erect-up"
+
+[sub_resource type="Resource" id="Resource_i22sf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_at3ye")])
+
+[sub_resource type="Resource" id="Resource_74abk"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_at3ye")])
+
+[sub_resource type="Resource" id="Resource_3qdst"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_5ycbv"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_3qdst")])
+
+[sub_resource type="Resource" id="Resource_dw73e"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"erect-up"
+
+[sub_resource type="Resource" id="Resource_65mdr"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dw73e")])
+
+[sub_resource type="Resource" id="Resource_s8beu"]
+script = ExtResource("4_psb73")
+offset = 27
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dw73e")])
+
+[sub_resource type="Resource" id="Resource_w8ftn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_qpthk"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_w8ftn")])
+
+[sub_resource type="Resource" id="Resource_ncy4l"]
+script = ExtResource("3_yt0ju")
+measure = 46
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_i22sf"), SubResource("Resource_74abk"), SubResource("Resource_5ycbv"), SubResource("Resource_65mdr"), SubResource("Resource_s8beu"), SubResource("Resource_qpthk")])
+
+[sub_resource type="Resource" id="Resource_6jhm6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+
+[sub_resource type="Resource" id="Resource_6jt55"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_6jhm6")])
+
+[sub_resource type="Resource" id="Resource_nm10a"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_u58te"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nm10a")])
+
+[sub_resource type="Resource" id="Resource_a24q8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_gpwi0"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a24q8")])
+
+[sub_resource type="Resource" id="Resource_rrcln"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_7femf"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rrcln")])
+
+[sub_resource type="Resource" id="Resource_k7wkl"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_qrxb4"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_k7wkl")])
+
+[sub_resource type="Resource" id="Resource_lp34j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_0te3i"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_lp34j")])
+
+[sub_resource type="Resource" id="Resource_p3syh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_u1njo"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_p3syh")])
+
+[sub_resource type="Resource" id="Resource_ly4ad"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_dxwad"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ly4ad")])
+
+[sub_resource type="Resource" id="Resource_f0btx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_4rvic"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_f0btx")])
+
+[sub_resource type="Resource" id="Resource_f5wlf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_634dc"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_f5wlf")])
+
+[sub_resource type="Resource" id="Resource_ou4hf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ema8y"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ou4hf")])
+
+[sub_resource type="Resource" id="Resource_g2gby"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_8h3dg"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_g2gby")])
+
+[sub_resource type="Resource" id="Resource_oebtt"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_g2gby")])
+
+[sub_resource type="Resource" id="Resource_dpydt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_ctk6q"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dpydt")])
+
+[sub_resource type="Resource" id="Resource_yobn7"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_dpydt")])
+
+[sub_resource type="Resource" id="Resource_xjrca"]
+script = ExtResource("3_yt0ju")
+measure = 47
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_6jt55"), SubResource("Resource_u58te"), SubResource("Resource_gpwi0"), SubResource("Resource_7femf"), SubResource("Resource_qrxb4"), SubResource("Resource_0te3i"), SubResource("Resource_u1njo"), SubResource("Resource_dxwad"), SubResource("Resource_4rvic"), SubResource("Resource_634dc"), SubResource("Resource_ema8y"), SubResource("Resource_8h3dg"), SubResource("Resource_oebtt"), SubResource("Resource_ctk6q"), SubResource("Resource_yobn7")])
+
+[sub_resource type="Resource" id="Resource_2cxnr"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_x7n81"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_2cxnr")])
+
+[sub_resource type="Resource" id="Resource_ala62"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_n078t"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_8gij4"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ala62"), SubResource("Resource_n078t")])
+
+[sub_resource type="Resource" id="Resource_3xu1g"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_n078t")])
+
+[sub_resource type="Resource" id="Resource_sf05x"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_4tlnx"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sf05x")])
+
+[sub_resource type="Resource" id="Resource_64ypy"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_fh5lt"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_64ypy")])
+
+[sub_resource type="Resource" id="Resource_kmn7l"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_fa4mq"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kmn7l")])
+
+[sub_resource type="Resource" id="Resource_86y72"]
+script = ExtResource("4_psb73")
+offset = 13
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kmn7l")])
+
+[sub_resource type="Resource" id="Resource_kovi3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_01ki1"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_kovi3")])
+
+[sub_resource type="Resource" id="Resource_p5f2j"]
+script = ExtResource("3_yt0ju")
+measure = 48
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_x7n81"), SubResource("Resource_8gij4"), SubResource("Resource_3xu1g"), SubResource("Resource_4tlnx"), SubResource("Resource_fh5lt"), SubResource("Resource_fa4mq"), SubResource("Resource_86y72"), SubResource("Resource_01ki1")])
+
+[sub_resource type="Resource" id="Resource_fe61d"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_5gt6g"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_fe61d")])
+
+[sub_resource type="Resource" id="Resource_bc42o"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_ilxqk"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bc42o")])
+
+[sub_resource type="Resource" id="Resource_j0oy5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_t4hr6"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_j0oy5")])
+
+[sub_resource type="Resource" id="Resource_xtq4d"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_y06i4"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xtq4d")])
+
+[sub_resource type="Resource" id="Resource_34u0p"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_rtoc1"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_34u0p")])
+
+[sub_resource type="Resource" id="Resource_ryffn"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_a78lp"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ryffn")])
+
+[sub_resource type="Resource" id="Resource_vafxh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_le1kw"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vafxh")])
+
+[sub_resource type="Resource" id="Resource_5433k"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_1pnbp"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5433k")])
+
+[sub_resource type="Resource" id="Resource_tises"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_8x2it"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_tises")])
+
+[sub_resource type="Resource" id="Resource_de5yt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_pgmri"]
+script = ExtResource("4_psb73")
+offset = 9
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_de5yt")])
+
+[sub_resource type="Resource" id="Resource_u5kb8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_w3qfi"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_u5kb8")])
+
+[sub_resource type="Resource" id="Resource_a1fll"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_svy2t"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_a1fll")])
+
+[sub_resource type="Resource" id="Resource_c8ww7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_4wug8"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_c8ww7")])
+
+[sub_resource type="Resource" id="Resource_ckgp1"]
+script = ExtResource("3_yt0ju")
+measure = 49
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_5gt6g"), SubResource("Resource_ilxqk"), SubResource("Resource_t4hr6"), SubResource("Resource_y06i4"), SubResource("Resource_rtoc1"), SubResource("Resource_a78lp"), SubResource("Resource_le1kw"), SubResource("Resource_1pnbp"), SubResource("Resource_8x2it"), SubResource("Resource_pgmri"), SubResource("Resource_w3qfi"), SubResource("Resource_svy2t"), SubResource("Resource_4wug8")])
+
+[sub_resource type="Resource" id="Resource_8l5ge"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_3e85n"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8l5ge")])
+
+[sub_resource type="Resource" id="Resource_olgh3"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i7hkk"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_olgh3")])
+
+[sub_resource type="Resource" id="Resource_8wm83"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_omxd1"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8wm83")])
+
+[sub_resource type="Resource" id="Resource_4u68b"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8wm83")])
+
+[sub_resource type="Resource" id="Resource_rptyv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_nl4tb"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rptyv")])
+
+[sub_resource type="Resource" id="Resource_yij2a"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rptyv")])
+
+[sub_resource type="Resource" id="Resource_jdw8a"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_bc80b"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jdw8a")])
+
+[sub_resource type="Resource" id="Resource_a7lmk"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_jdw8a")])
+
+[sub_resource type="Resource" id="Resource_c3df8"]
+script = ExtResource("3_yt0ju")
+measure = 50
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_3e85n"), SubResource("Resource_i7hkk"), SubResource("Resource_omxd1"), SubResource("Resource_4u68b"), SubResource("Resource_nl4tb"), SubResource("Resource_yij2a"), SubResource("Resource_bc80b"), SubResource("Resource_a7lmk")])
+
+[sub_resource type="Resource" id="Resource_vexvu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_a0wl6"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_vexvu")])
+
+[sub_resource type="Resource" id="Resource_wa8mv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_n84rg"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_wa8mv")])
+
+[sub_resource type="Resource" id="Resource_xsc3f"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_jt4yy"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_xsc3f")])
+
+[sub_resource type="Resource" id="Resource_sqid7"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_83rqf"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_sqid7")])
+
+[sub_resource type="Resource" id="Resource_hj5q8"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_ceo14"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_hj5q8")])
+
+[sub_resource type="Resource" id="Resource_4kmw6"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"blush"
+
+[sub_resource type="Resource" id="Resource_nylah"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4kmw6")])
+
+[sub_resource type="Resource" id="Resource_nn0kt"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_5hk6w"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_nn0kt")])
+
+[sub_resource type="Resource" id="Resource_ee5k5"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_v0t70"]
+script = ExtResource("4_psb73")
+offset = 2
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_ee5k5")])
+
+[sub_resource type="Resource" id="Resource_4f7uv"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_vfo0j"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_4f7uv")])
+
+[sub_resource type="Resource" id="Resource_o70tp"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_8tvn0"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_o70tp")])
+
+[sub_resource type="Resource" id="Resource_s510v"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_yoh3j"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_s510v")])
+
+[sub_resource type="Resource" id="Resource_bjxux"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_6ikam"]
+script = ExtResource("4_psb73")
+offset = 15
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bjxux")])
+
+[sub_resource type="Resource" id="Resource_cg61o"]
+script = ExtResource("3_yt0ju")
+measure = 51
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_a0wl6"), SubResource("Resource_n84rg"), SubResource("Resource_jt4yy"), SubResource("Resource_83rqf"), SubResource("Resource_ceo14"), SubResource("Resource_nylah"), SubResource("Resource_5hk6w"), SubResource("Resource_v0t70"), SubResource("Resource_vfo0j"), SubResource("Resource_8tvn0"), SubResource("Resource_yoh3j"), SubResource("Resource_6ikam")])
+
+[sub_resource type="Resource" id="Resource_b4a1u"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_qc26g"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_lo5cl"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_b4a1u"), SubResource("Resource_qc26g")])
+
+[sub_resource type="Resource" id="Resource_8qekh"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_sdis2"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_8qekh")])
+
+[sub_resource type="Resource" id="Resource_bi4qf"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_72cvx"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_5rgbb"]
+script = ExtResource("4_psb73")
+offset = 1
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_bi4qf"), SubResource("Resource_72cvx")])
+
+[sub_resource type="Resource" id="Resource_rdnjk"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_lcgk1"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rdnjk")])
+
+[sub_resource type="Resource" id="Resource_h152n"]
+script = ExtResource("4_psb73")
+offset = 17
+quant = 32
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rdnjk")])
+
+[sub_resource type="Resource" id="Resource_548yu"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_nsada"]
+script = ExtResource("4_psb73")
+offset = 5
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_548yu")])
+
+[sub_resource type="Resource" id="Resource_1fo5f"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"fresh"
+
+[sub_resource type="Resource" id="Resource_42x3y"]
+script = ExtResource("4_psb73")
+offset = 11
+quant = 16
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1fo5f")])
+
+[sub_resource type="Resource" id="Resource_5m0ik"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane0"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_i7u01"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 4
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_5m0ik")])
+
+[sub_resource type="Resource" id="Resource_rq1ah"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane1"
+type = &"mom"
+
+[sub_resource type="Resource" id="Resource_1owlo"]
+script = ExtResource("4_psb73")
+offset = 7
+quant = 8
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_rq1ah")])
+
+[sub_resource type="Resource" id="Resource_heas0"]
+script = ExtResource("3_yt0ju")
+measure = 52
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_lo5cl"), SubResource("Resource_sdis2"), SubResource("Resource_5rgbb"), SubResource("Resource_lcgk1"), SubResource("Resource_h152n"), SubResource("Resource_nsada"), SubResource("Resource_42x3y"), SubResource("Resource_i7u01"), SubResource("Resource_1owlo")])
+
+[sub_resource type="Resource" id="Resource_1k7ne"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane3"
+type = &"noAnimation"
+
+[sub_resource type="Resource" id="Resource_pno1j"]
+script = ExtResource("5_wxl1x")
+id = "mania_lane2"
+type = &"noAnimation"
+
+[sub_resource type="Resource" id="Resource_ylvjk"]
+script = ExtResource("4_psb73")
+quant = 1
+starts = Array[ExtResource("5_wxl1x")]([SubResource("Resource_1k7ne"), SubResource("Resource_pno1j")])
+
+[sub_resource type="Resource" id="Resource_cr8sw"]
+script = ExtResource("4_psb73")
+offset = 3
+quant = 16
+ends = Array[ExtResource("5_wxl1x")]([SubResource("Resource_pno1j")])
+
+[sub_resource type="Resource" id="Resource_1vepo"]
+script = ExtResource("3_yt0ju")
+measure = 53
+rows = Array[ExtResource("4_psb73")]([SubResource("Resource_ylvjk"), SubResource("Resource_cr8sw")])
+
+[resource]
+script = ExtResource("1_7h53r")
+sections = Array[ExtResource("3_yt0ju")]([SubResource("Resource_vaxud"), SubResource("Resource_x0q2p"), SubResource("Resource_mtrmf"), SubResource("Resource_7c4t8"), SubResource("Resource_0vwto"), SubResource("Resource_mnd3j"), SubResource("Resource_lht7m"), SubResource("Resource_xpvk6"), SubResource("Resource_88o41"), SubResource("Resource_gpbvi"), SubResource("Resource_msb05"), SubResource("Resource_rggjs"), SubResource("Resource_fcduo"), SubResource("Resource_0h0t7"), SubResource("Resource_bcq8n"), SubResource("Resource_jajjh"), SubResource("Resource_lkwxx"), SubResource("Resource_nvpw2"), SubResource("Resource_iovhi"), SubResource("Resource_jpu4v"), SubResource("Resource_xg16a"), SubResource("Resource_bco8w"), SubResource("Resource_g0slg"), SubResource("Resource_2fiux"), SubResource("Resource_4v7hd"), SubResource("Resource_mj6wp"), SubResource("Resource_mlbsw"), SubResource("Resource_p1al6"), SubResource("Resource_7t22p"), SubResource("Resource_b7hwi"), SubResource("Resource_ulask"), SubResource("Resource_8y6eb"), SubResource("Resource_es5ri"), SubResource("Resource_v3r3l"), SubResource("Resource_ocobq"), SubResource("Resource_q78og"), SubResource("Resource_0gv1n"), SubResource("Resource_u2nab"), SubResource("Resource_jpqx1"), SubResource("Resource_7iboe"), SubResource("Resource_ncy4l"), SubResource("Resource_xjrca"), SubResource("Resource_p5f2j"), SubResource("Resource_ckgp1"), SubResource("Resource_c3df8"), SubResource("Resource_cg61o"), SubResource("Resource_heas0"), SubResource("Resource_1vepo")])
+scroll_velocities = Array[ExtResource("2_2myx4")]([SubResource("Resource_cgdj5")])

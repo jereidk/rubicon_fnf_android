@@ -1,0 +1,55 @@
+{
+	"version": "2.2.3",
+	"songName": "Fresh",
+	"artist": "Leebert, d4rkwinged",
+	"charter": "PurSnake, d4rkwinged",
+	"divisions": 96,
+	"looped": false,
+	"diskName": "fresh",
+	"freeplayLayer": "dad",
+	"diskOffsets": [0, 0],
+	"offsets": {
+		"instrumental": 0,
+		"altInstrumentals": {},
+		"vocals": {},
+		"altVocals": {}
+	},
+	"playData": {
+		"songVariations": [],
+		"difficulties": ["easy", "normal", "hard"],
+		"characters": {
+			"player": "bf",
+			"girlfriend": "gf",
+			"opponent": "dad",
+			"instrumental": "",
+			"altInstrumentals": [],
+			"opponentVocal": "dad",
+			"playerVocal": "bf"
+		},
+		"stage": "mainStageAmTake",
+		"noteStyle": "amtake-base",
+		"ratings": {
+			"easy": 5,
+			"normal": 7,
+			"hard": 8
+		},
+		"previewStart": 0,
+		"album": "expansionMini",
+		"previewEnd": 0
+	},
+	"playerSkin": "bf-standart",
+	"girlfriendSkin": "gf-standart",
+	"weekName": "WEEK1",
+	"generatedBy": "Friday Night Funkin': Animania! - v0.5.1 DEVELOPER",
+	"timeFormat": "ms",
+	"timeChanges": [
+		{
+			"t": 0,
+			"b": 0,
+			"bpm": 120,
+			"n": 4,
+			"d": 4,
+			"bt": [4, 4, 4, 4]
+		}
+	]
+}

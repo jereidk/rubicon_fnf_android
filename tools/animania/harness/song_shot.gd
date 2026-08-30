@@ -5,7 +5,7 @@
 #       --path . res://tools/animania/harness/song_shot.tscn
 extends Node2D
 
-const SONG := "res://songs/bopeebo/bopeebo.tscn"
+const SONG := "res://songs/fresh/fresh.tscn"
 
 var _level: Node
 var _pending: bool = false
