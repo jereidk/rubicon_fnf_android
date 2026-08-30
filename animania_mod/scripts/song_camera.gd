@@ -23,6 +23,10 @@ extends Node
 ## 60fps - which as a half-life is about 0.0135s per 1% and works out to this. The bump is
 ## a fraction of the resting zoom so it does not depend on what that zoom is.
 @export var bpm: float = 100.0
+## Off when the chart authors its own camera events: those are baked onto the clock and
+## write the same two properties every frame, so leaving this on has the two of them
+## fighting over the camera. dadbattle authors 98 of them.
+@export var follows_singer: bool = true
 const BUMP_EVERY_BEATS := 4
 const BUMP := 0.015
 const BUMP_DECAY := 6.0
@@ -40,7 +44,8 @@ func _process(delta: float) -> void:
 	if camera == null:
 		return
 
-	_follow()
+	if follows_singer:
+		_follow()
 
 	# Back toward the resting zoom, frame-rate independently.
 	var fade: float = exp(-BUMP_DECAY * delta)

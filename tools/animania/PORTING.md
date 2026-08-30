@@ -342,6 +342,16 @@ Three things that bit while building this:
 - **A prop that says `animType: sparrow` may still be a bare PNG** with no atlas beside it
   (the wall, the posters, the floor, the vignettes). Fall back to drawing it whole rather
   than skipping it.
+- **A chart's camera events are most of what a song looks like.** dadbattle authors 98 of
+  them (42 focus moves, 40 zooms, angles, shakes, bars); ignoring them leaves the camera
+  sitting still for the whole song, which is what "it is missing a LOT" turned out to mean.
+  `song_camera_events.gd` bakes them for any song - phone-call keeps its own baker, which
+  hardcodes 152 BPM and carries that song's script beats. Funkin measures an event's
+  `duration` in STEPS (a sixteenth of a beat), not seconds, and the event's x/y are
+  world-space so they are NOT scaled by the 1.5.
+- **Two things must not drive the camera at once.** With events baked onto the clock, the
+  follow-the-singer fallback writes the same two properties every frame and they fight -
+  so the builder turns it off for a song whose chart has events.
 - **A note controller with a chart and no Lane children draws nothing.** It reads on screen
   as "the strumlines are off-frame".
 

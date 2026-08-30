@@ -149,6 +149,21 @@ func _init() -> void:
 			"tutorial: %s sin level_note_controller, no baila ni canta" % who)
 	_check(tutorial.get_node_or_null("SongCamera") != null,
 		"tutorial: sin camara de cancion no sigue a quien canta")
+	# A chart with camera events has them BAKED onto the clock's scene animation, and the
+	# follow-the-singer fallback is off so the two do not write the same two properties
+	# every frame. dadbattle authors 98 events - without this it sat still for the song.
+	var battle: Node = load("res://songs/dadbattle/dadbattle.tscn").instantiate()
+	root.add_child(battle)
+	await process_frame
+	var scene: Animation = battle.get_node("RubiconLevelClock").animation_player \
+		.get_animation(&"scene")
+	_check(scene.get_track_count() >= 2,
+		"dadbattle: la camara del chart no esta horneada (%d pistas)"
+			% scene.get_track_count())
+	_check(not battle.get_node("SongCamera").follows_singer,
+		"dadbattle: el seguidor sigue puesto y peleara con el chart")
+	battle.queue_free()
+	await process_frame
 	tutorial.queue_free()
 	await process_frame
 	for i: int in range(2, week_playable.size()):

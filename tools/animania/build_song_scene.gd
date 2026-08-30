@@ -47,6 +47,7 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 
 var _root: Node2D
 var _song_id: String
+var _scene_animation: Animation
 
 
 func _init() -> void:
@@ -88,6 +89,7 @@ func _init() -> void:
 	var library := AnimationLibrary.new()
 	var scene_animation := Animation.new()
 	scene_animation.length = instrumental.get_length()
+	_scene_animation = scene_animation
 	library.add_animation(&"scene", scene_animation)
 	library.add_animation(&"RESET", Animation.new())
 	clock_player.add_animation_library(&"", library)
@@ -128,6 +130,7 @@ func _init() -> void:
 	var ui: Dictionary = _build_ui(difficulty)
 	var where: Dictionary = stage.get_meta(&"characters", {})
 	_place_cast(stage, cast_names, where, ui)
+	var camera_zoom: float = float(stage.get_meta(&"camera_zoom", 1.0)) * FUNKIN_TO_RUBICON
 	_build_camera(where, cast_names, float(stage.get_meta(&"camera_zoom", 1.0)))
 
 	# The camera work a chart does not ask for: follow whoever sings, bump on the beat.
@@ -143,8 +146,9 @@ func _init() -> void:
 		"Stage/%s" % String(cast_names.get("opponent", "")).to_pascal_case().replace("-", ""))
 	# The tempo map's first entry, which is the song's own bpm.
 	var changes: Array = meta.get("timeChanges", [])
-	song_camera.bpm = float((changes[0] as Dictionary).get("bpm", 100.0)) \
+	var song_bpm: float = float((changes[0] as Dictionary).get("bpm", 100.0)) \
 		if not changes.is_empty() else 100.0
+	song_camera.bpm = song_bpm
 	print("OUT camara: bpm=%.1f sigue a %s y %s" % [song_camera.bpm,
 		song_camera.player, song_camera.opponent])
 
@@ -152,6 +156,28 @@ func _init() -> void:
 	health.note_controller = ui["Player"]
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
+
+	# The chart's camera performance. dadbattle authors 98 events - 42 focus moves, 40
+	# zooms, angles, shakes and bars - and a level that ignores them sits still through the
+	# whole song. phone-call has its own baker; this is the general one.
+	var chart_path: String = "%s/%s/%s-chart.json" % [SOURCE, _song_id, _song_id]
+	var chart: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(chart_path))
+	var events: Array = chart.get("events", [])
+	if not events.is_empty():
+		var focus_points: Dictionary = {}
+		for entry: Array in [[0, "Player"], [1, "Opponent"], [2, "Girlfriend"]]:
+			var point: Node2D = _root.get_node_or_null("%sCameraPoint" % entry[1])
+			if point != null:
+				focus_points[entry[0]] = point.position
+		var baker: RefCounted = load(
+			"res://tools/animania/song_camera_events.gd").new(
+				focus_points, camera_zoom, song_bpm)
+		baker.build(events, instrumental.get_length(), _scene_animation)
+		# The chart owns the camera now; the fallback would write the same two properties
+		# every frame and the two would fight.
+		song_camera.follows_singer = false
+		print("OUT la camara la manda el chart, no el seguidor")
 
 	var controls: Node = load(MOBILE_CONTROLS).instantiate()
 	controls.name = "MobileControls"
