@@ -176,6 +176,21 @@ const PANIC_FACTOR := 10.0
 ## has always ended this way - so the change is when it lands, not whether.
 const DEADLINE_SECONDS := 15.0
 
+## How long the sweep may keep going after the last node is revealed, to visit
+## poses the reveal ran out of frames for. See `_sweep_tail()`.
+##
+## Three seconds because that is what the coverage is worth on the numbers we
+## have. Chimera reveals in 30 frames and has 82 poses, so the tail owes 52
+## frames; the non-spike frames in that same window average about 32ms, which
+## puts an uneventful tail at well under two seconds. A tail that does run out of
+## budget is one where the frames were not uneventful - it found pipelines - and
+## then three seconds of loading screen bought three seconds that were going to
+## be paid mid-song instead.
+##
+## Scenes whose sweep already completes (the shop covers its 7 poses four times
+## over) never enter the tail at all, so this cannot make a good run longer.
+const SWEEP_TAIL_SECONDS := 3.0
+
 var _started_msec: int = 0
 
 ## When the deadline actually starts counting: the first _process, not the
@@ -235,12 +250,61 @@ var _finished: bool = false
 var _sweep_poses: Array[Transform3D] = []
 var _sweep_cursor: int = 0
 
+## Where each source animation's poses start inside `_sweep_poses`, in the order
+## they were appended. `precache`'s own keys are group 0; every entry of
+## `extra_sweep_animations` that contributed anything is a group after it.
+##
+## Kept because the groups are not interchangeable: each one is a distinct camera
+## *journey* through the scene, and a sequence with none of its poses visited is
+## a sequence that compiles its pipelines in-song. See `_sweep_order`.
+var _sweep_groups: PackedInt32Array = []
+
+## The order the poses are actually served in: round-robin across the groups
+## rather than straight through the array.
+##
+## The order used to be the append order, on the reasoning written above
+## `_serve_sweep_pose()`: "there are always more revealing frames than poses, and
+## stopping at the end would leave the tail parked". That is true of the shop and
+## false of Chimera, and the device log says so in one line:
+##
+##     precache finished (15840ms, 72 nodos) barrido=82 poses ... extra=30 frames
+##
+## `barrido` is how many poses were collected and `extra` is how many frames
+## served one, so Chimera collects 82 poses and gets 30 frames to show them. Walk
+## them in order and the cursor stops at index 29. Counted off the scene, the
+## groups are:
+##
+##     precache 15 | 104_photographysesh 4 | 122_fall 13 | 107_turnaround 16
+##     101_prelude 16 | 121_closetrunout 4 | 103_stroll 5 | 102_intro 2
+##     114_hexapproach 7
+##
+## Index 29 lands two poses short of the end of `122_fall`. So `107_turnaround`,
+## `101_prelude`, `121_closetrunout`, `103_stroll`, `102_intro` and
+## `114_hexapproach` were swept from *no* viewpoint at all - six of the eight
+## sequences that were added to this export precisely because they stall, and two
+## of them (`121_closetrunout`, `114_hexapproach`) are named in the comment above
+## as sequences whose stall this mechanism exists to prevent. It never reached
+## them.
+##
+## Round-robin fixes the part that is fixable for free. Frames are the scarce
+## resource and no ordering creates more of them, but 30 frames spread across
+## nine groups give every sequence three or four viewpoints instead of giving two
+## sequences all of them and six sequences none. `_sweep_tail()` handles the
+## other half - spending a bounded number of extra frames to finish the list.
+##
+## A scene with a single group (the shop, 7 poses from `precache` alone) gets
+## exactly the array it had before, in the same order.
+var _sweep_order: PackedInt32Array = []
+
 ## How many revealing frames this has served a sweep pose on. Reported at
 ## handover: zero means the mechanism never ran, which is the failure the
 ## 2026-08-24 device log caught (`extra=0 frames` on the run whose four extra
 ## sequences were the point of collecting them - the serve used to wait for
 ## the starved sweep animation to finish, and it never did in time).
 var _sweep_extra_frames: int = 0
+
+## When the post-reveal tail started counting, 0 until it does. See `_sweep_tail()`.
+var _sweep_tail_msec: int = 0
 var _revealed_at_anim_end: int = -1
 
 ## The lights and lightmaps left switched on, so the log can say whether the
@@ -408,6 +472,8 @@ func _collect_sweep_poses() -> void:
 	if rot_track >= 0:
 		count = mini(count, anim.track_get_key_count(rot_track))
 
+	if count > 0:
+		_sweep_groups.append(_sweep_poses.size())
 	for i in count:
 		var origin: Vector3 = anim.track_get_key_value(pos_track, i)
 		var basis := Basis.IDENTITY
@@ -427,6 +493,7 @@ func _collect_sweep_poses() -> void:
 		anim.track_set_enabled(rot_track, false)
 
 	_collect_extra_sweep_poses()
+	_build_sweep_order()
 
 ## Folds `extra_sweep_animations` into `_sweep_poses` - see the export's own
 ## comment for why. Runs after the precache's own poses so a scene with none
@@ -469,6 +536,10 @@ func _collect_extra_sweep_poses() -> void:
 		if rot_track >= 0:
 			count = mini(count, anim.track_get_key_count(rot_track))
 
+		# Before the append, and only when this animation actually contributes,
+		# so a group boundary always points at a pose that exists.
+		if count > 0:
+			_sweep_groups.append(_sweep_poses.size())
 		for i in count:
 			var origin: Vector3 = anim.track_get_key_value(pos_track, i)
 			var basis := Basis.IDENTITY
@@ -476,19 +547,91 @@ func _collect_extra_sweep_poses() -> void:
 				basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
 			_sweep_poses.append(Transform3D(basis, origin))
 
+## Lays out the visit order: one pose from each group, then the next from each,
+## until every pose is placed. See `_sweep_order` for what this is worth.
+##
+## Every pose appears exactly once, so the permutation is total - what changes is
+## which ones a truncated run gets to, not which ones exist. With one group it
+## degenerates to the identity, which is what keeps the shop's behaviour
+## unchanged.
+func _build_sweep_order() -> void:
+	_sweep_order.clear()
+	var total: int = _sweep_poses.size()
+	if total == 0:
+		return
+	if _sweep_groups.size() <= 1:
+		for i in total:
+			_sweep_order.append(i)
+		return
+
+	# Group g runs from _sweep_groups[g] to the next start (or the end).
+	var round_index: int = 0
+	while _sweep_order.size() < total:
+		for g in _sweep_groups.size():
+			var start: int = _sweep_groups[g]
+			var end: int = total if g + 1 >= _sweep_groups.size() else _sweep_groups[g + 1]
+			if start + round_index < end:
+				_sweep_order.append(start + round_index)
+		round_index += 1
+
 ## Puts the camera at the next sweep pose, for the frame that is about to draw
 ## whatever the reveal just switched on.
 ##
 ## Called on every revealing frame, from the first one: the animation no longer
 ## owns this transform, because _collect_sweep_poses() disables its two camera
-## tracks as it lifts them. Cycling matters - there are always more revealing
-## frames than poses, and stopping at the end would leave the tail parked.
+## tracks as it lifts them.
+##
+## Cycling past the end still matters for a scene with more frames than poses -
+## the shop gets about four laps of its seven - and it is also the reason
+## `_sweep_cursor` is not clamped: `_sweep_covered()` reads it to tell "went
+## round again" from "never got there", which is the whole question this file
+## was wrong about.
 func _serve_sweep_pose() -> void:
 	if _sweep_poses.is_empty():
 		return
-	transform = _sweep_poses[_sweep_cursor % _sweep_poses.size()]
+	# Built here rather than only at collection, so the order can never be stale
+	# with respect to the poses. Two callers fill `_sweep_poses` and one of them
+	# is a test harness; a serve that silently did nothing because nobody called
+	# the builder is a worse failure than an extra size comparison per frame, and
+	# it is the failure this arrangement had for exactly one commit.
+	if _sweep_order.size() != _sweep_poses.size():
+		_build_sweep_order()
+	transform = _sweep_poses[_sweep_order[_sweep_cursor % _sweep_order.size()]]
 	_sweep_cursor += 1
 	_sweep_extra_frames += 1
+
+## How many distinct poses have been served. Saturates at the list size, because
+## a second lap visits nothing new.
+func _sweep_covered() -> int:
+	return mini(_sweep_cursor, _sweep_order.size())
+
+## Keeps sweeping for a bounded moment after the last node is revealed, to reach
+## poses the reveal did not have frames for. Then hands over.
+##
+## The other half of the problem `_sweep_order` describes. Round-robin decides
+## *which* poses 30 frames get to; it cannot conjure a 31st frame, and Chimera
+## needs 82. These frames are the cheapest this camera will ever run - the scene
+## is fully revealed and there is nothing left to switch on, so all a frame does
+## is draw an already-drawn scene from a new angle. The only ones that cost
+## anything are the ones that find a pipeline nobody had compiled yet, which is
+## the entire reason this file exists; paying for those here is paying for them
+## instead of mid-song.
+##
+## Bounded, because "cheap" is a claim about this scene and not a guarantee, and
+## because the loading screen is up for every millisecond of it.
+func _sweep_tail() -> void:
+	# finish_preload() and not _try_finish(): _try_finish() is the one that
+	# refuses while the sweep is short, and these two branches are the sweep
+	# being done and the sweep being out of time.
+	if _sweep_covered() >= _sweep_order.size():
+		finish_preload()
+		return
+	if _sweep_tail_msec == 0:
+		_sweep_tail_msec = Time.get_ticks_msec()
+	elif Time.get_ticks_msec() - _sweep_tail_msec >= int(SWEEP_TAIL_SECONDS * 1000.0):
+		finish_preload()
+		return
+	_serve_sweep_pose()
 
 ## Classes that are VisualInstance3D but must stay on through the reveal.
 ##
@@ -657,7 +800,7 @@ func _process(_delta: float) -> void:
 		return
 
 	if _revealed >= _hidden.size():
-		_try_finish()
+		_sweep_tail()
 		return
 
 	if _budget_msec > 0 \
@@ -669,7 +812,11 @@ func _process(_delta: float) -> void:
 			_animation_progress(),
 		])
 		_reveal(_hidden.size() - _revealed)
-		_try_finish()
+		# Straight to the end, skipping `_sweep_tail()`. The tail is time well
+		# spent on a run that is going fine and the worst possible thing to hand
+		# a run that has just blown a fifteen second budget - the deadline exists
+		# to stop exactly this scene from taking longer, not to earn it more.
+		finish_preload()
 		return
 
 	# A reveal is paid for by the draw that follows this frame, not by the
@@ -802,7 +949,23 @@ func _animation_progress() -> String:
 ## the animation can run out before the reveal does.
 func _try_finish() -> void:
 	if _revealed >= _hidden.size():
+		# And not while the sweep still has poses it has never visited. This is
+		# the guard `_on_animation_finished` needs: the reveal finishing is what
+		# used to end the whole pass, and on Chimera it finishes with 52 of 82
+		# viewpoints unseen. `_sweep_tail()` owns the ending from here, and it
+		# calls finish_preload() directly so this cannot refuse it.
+		if _sweep_covered() < _sweep_order.size() and _sweep_tail_has_time():
+			return
 		finish_preload()
+
+## Whether the tail is still owed frames. True before it starts - 0 means "not
+## begun", not "began at boot", and reading it as elapsed time would let an
+## animation that finishes on the same frame as the reveal end the pass before
+## the tail ever got one.
+func _sweep_tail_has_time() -> bool:
+	if _sweep_tail_msec == 0:
+		return true
+	return Time.get_ticks_msec() - _sweep_tail_msec < int(SWEEP_TAIL_SECONDS * 1000.0)
 
 func finish_preload(_anim: StringName = &"") -> void :
 	if _finished:
@@ -822,10 +985,19 @@ func finish_preload(_anim: StringName = &"") -> void :
 	# starting an animation - worth distinguishing from an animation that
 	# genuinely finished in under a millisecond.
 	if _started_msec > 0:
-		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses revelado_al_fin_anim=%d/%d extra=%d frames anim=%s" % [
+		# `vistas` is the number this line was missing and the reason the coverage
+		# hole went unnoticed for as long as it did: `barrido` says how many poses
+		# were *collected* and `extra` how many frames served one, and reading the
+		# two as if they matched is what hid `extra=30 frames` against
+		# `barrido=82 poses`. vistas=30/82 says it in one place.
+		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses en %d grupos vistas=%d/%d revelado_al_fin_anim=%d/%d extra=%d frames cola=%dms anim=%s" % [
 			animation_name, Time.get_ticks_msec() - _started_msec, _hidden.size(),
-			_sweep_poses.size(), _revealed_at_anim_end, _hidden.size(),
-			_sweep_extra_frames, _animation_progress(),
+			_sweep_poses.size(), _sweep_groups.size(),
+			_sweep_covered(), _sweep_order.size(),
+			_revealed_at_anim_end, _hidden.size(),
+			_sweep_extra_frames,
+			0 if _sweep_tail_msec == 0 else Time.get_ticks_msec() - _sweep_tail_msec,
+			_animation_progress(),
 		])
 
 	# This is the moment the boot is provably survivable. The sweep exists to

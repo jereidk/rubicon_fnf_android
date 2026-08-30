@@ -903,6 +903,21 @@ jobs:
           # fresh log's pipe= on these four sequences is what confirms it.
           guard_godot tools/test_preload_extra_sweep.gd
 
+          # === ...and that the sweep actually REACHES the sequences it folded
+          # The step above proves the eight sequences are collected. It does not
+          # prove any of them is served, and on Chimera six of the eight never
+          # were: 82 poses collected, 30 revealing frames to show them, served in
+          # append order, so the cursor stopped two poses short of the end of
+          # 122_fall and 107_turnaround onward got nothing - including
+          # 121_closetrunout and 114_hexapproach, two of the four stalls the
+          # export above exists to fix. Both numbers are in one line of the
+          # device log (barrido=82 poses ... extra=30 frames), which is why it
+          # read as healthy for as long as it did. Round-robin across the source
+          # animations now, plus a bounded tail after the reveal. This guard runs
+          # the real order and asserts the prefix property, and pins the old
+          # behaviour (3 groups of 9) so the regression cannot come back quietly.
+          guard_godot tools/test_sweep_covers_every_sequence.gd
+
           # === The other half of the same stall: the lights, and their order
           # The viewpoints alone did not do it. The lighting state is part of
           # the pipeline key, so a sweep run with the sequence's lights off
