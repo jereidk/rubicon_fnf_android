@@ -2,28 +2,34 @@ extends SceneTree
 
 ## Los props de la casa de Chimera se dibujan con recorte alfa, no con mezcla.
 ##
-## El glTF de la casa marca cinco materiales `alphaMode: BLEND`. Cuatro de ellos
-## tienen alfa BINARIO - lo unico que hay entre 0 y 255 son los bordes
-## antialiaseados del recorte:
+## El glTF de la casa marca cinco materiales `alphaMode: BLEND`. Un material
+## mezclado no escribe profundidad, asi que el motor no lo puede ordenar por
+## pixel y lo ordena por objeto: dos props que se solapan cambian de orden segun
+## se mueve la camara y parpadean, o uno se mete dentro del otro. `props1` es
+## ademas `doubleSided`, con lo que la cara de delante y la de detras del mismo
+## objeto se mezclan sin orden ninguno.
 ##
-##     material                a=0      a=255   intermedio
-##     props1                31.64%    67.98%     0.39%
-##     props2                22.55%    77.16%     0.29%
-##     propruhhhhhoneofthem  33.64%    64.93%     1.43%
-##     Material.001          52.81%    46.35%     0.83%
+## Que eran recorte y no mezcla no es deduccion: lo dice el pck del mod de PC,
+## leido con `tools/probe_pck_house_materials.gd`.
 ##
-## Un material mezclado no escribe profundidad, asi que el motor no lo puede
-## ordenar por pixel y lo ordena por objeto. Dos props que se solapan cambian de
-## orden segun se mueve la camara: parpadean, o uno se mete dentro del otro.
-## `props1` es ademas `doubleSided`, con lo que la cara de delante y la de detras
-## del mismo objeto se mezclan sin orden ninguno.
+##     material               nuestro  cutoff  doble | ORIGINAL (transp, umbral, cull)
+##     grars                  MASK     0.214   True  | (2, 0.21, 2)
+##     trash                  MASK     0.926   True  | (2, 0.93, 2)
+##     props1                 BLEND    -       True  | (2, 0.21, 2)
+##     props2                 BLEND    -       False | (2, 0.21, 0)
+##     propruhhhhhoneofthem   BLEND    -       False | (2, 0.21, 0)
+##     Material.001           BLEND    -       False | (2, 0.21, 0)
+##     foliage                BLEND    -       False | (2, 0.21, 0)
+##
+## `transparencia = 2` es recorte alfa. En el original los siete lo son. Los dos
+## que conservaron su `alphaCutoff` al reexportar importaron bien; los cinco que
+## lo perdieron cayeron a BLEND, que es lo que hace Godot sin cutoff. Regresion
+## del port, con umbral conocido: 0.21.
 ##
 ## Se prueba corriendo el `_ready()` de verdad sobre una jerarquia con los
 ## materiales tal y como los deja el importador, y no leyendo el codigo, porque
 ## lo que hay que demostrar es que el recorrido LLEGA a un material colgado de
-## una malla anidada y que no toca a los que no van en la lista - `foliage` entre
-## ellos, que si tiene borde suave (4.85% intermedio) y ya lleva su propio
-## override en `chimera_house.tscn`.
+## una malla anidada y que no toca a los que no van en la lista.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_house_props_not_blended.gd
@@ -46,10 +52,12 @@ func _initialize() -> void:
 		_finish()
 		return
 	var names: Array = Array(listed)
-	for wanted in ["props1", "props2", "propruhhhhhoneofthem", "Material.001"]:
+	for wanted in ["props1", "props2", "propruhhhhhoneofthem", "Material.001", "foliage"]:
 		_check(names.has(StringName(wanted)), "%s esta en la lista" % wanted)
-	_check(not names.has(&"foliage"),
-		"foliage NO esta: tiene borde suave de verdad y ya lleva override propio")
+	_check(not names.has(&"grars") and not names.has(&"trash"),
+		"grars y trash NO estan: conservaron su alphaCutoff e importaron bien")
+	_check(is_equal_approx(float(script.get_script_constant_map()["SCISSOR_THRESHOLD"]), 0.21),
+		"el umbral es 0.21, el que tienen en el pck del mod de PC")
 
 	# Una casa de mentira con la forma que importa: mallas anidadas, un material
 	# de la lista colgando de la mas profunda, y uno que no lo esta.
@@ -59,7 +67,7 @@ func _initialize() -> void:
 
 	var prop: MeshInstance3D = _mesh_with("props1")
 	deep.add_child(prop)
-	var leaves: MeshInstance3D = _mesh_with("foliage")
+	var leaves: MeshInstance3D = _mesh_with("wall")
 	root.add_child(leaves)
 	var unnamed: MeshInstance3D = _mesh_with("")
 	root.add_child(unnamed)
@@ -74,14 +82,14 @@ func _initialize() -> void:
 	var prop_mat: BaseMaterial3D = prop.mesh.surface_get_material(0)
 	_check(prop_mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR,
 		"props1 pasa a recorte alfa aunque cuelgue de una malla anidada")
-	_check(is_equal_approx(prop_mat.alpha_scissor_threshold, 0.5),
-		"con umbral 0.5, el mismo que el override de foliage de la escena")
+	_check(is_equal_approx(prop_mat.alpha_scissor_threshold, 0.21),
+		"con el umbral 0.21 del original, no con el 0.5 por defecto")
 	_check(prop_mat.alpha_antialiasing_mode == BaseMaterial3D.ALPHA_ANTIALIASING_OFF,
 		"y con el antialias de alfa apagado, igual que ese override")
 
 	var leaf_mat: BaseMaterial3D = leaves.mesh.surface_get_material(0)
 	_check(leaf_mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
-		"foliage se queda en mezcla: no es de los que se tocan")
+		"un material opaco de la casa (wall) no se toca")
 	var plain_mat: BaseMaterial3D = unnamed.mesh.surface_get_material(0)
 	_check(plain_mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
 		"un material sin nombre tampoco se toca")

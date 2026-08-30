@@ -1574,11 +1574,15 @@ jobs:
           # centre distance and the order between two overlapping ones swaps as
           # the camera moves. props1 is doubleSided on top of that, so one
           # object's front and back faces blend against each other unordered.
+          # And it is not a judgement call: the PC mod's pck has all seven of
+          # the house's alpha materials as scissor, at threshold 0.21. The two
+          # that kept their alphaCutoff through the glTF re-export (grars 0.214,
+          # trash 0.926) imported correctly; the five that lost it fell to
+          # BLEND, which is what Godot does with no cutoff. A port regression
+          # with a known correct value - see tools/probe_pck_house_materials.gd.
           # Fixed in chimera_house.gd by name at load, not by editing the glTF -
           # reimporting the model moves the LightmapGI bake, which is the
-          # failure that blacked the house out for eleven days. foliage stays
-          # blended: 4.85% intermediate alpha is a real soft edge, and it
-          # already carries its own scissor override in chimera_house.tscn.
+          # failure that blacked the house out for eleven days.
           # Also the overdraw half of the same defect - a blended surface cannot
           # early-Z, which is what "37 of 75 Chimera 3D surfaces non-opaque" in
           # the log analysis was counting.

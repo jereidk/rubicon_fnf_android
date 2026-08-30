@@ -34,10 +34,31 @@ extends Node3D
 ## lo tenia contado sin saber que era esto - "37 de 75 superficies 3D de Chimera
 ## no opacas".
 ##
-## `foliage` NO entra. Es el quinto BLEND y tiene un 4.85% de alfa intermedio -
-## hojas de borde suave -, y ademas ya lleva su propio override de recorte en
-## `chimera_house.tscn`, que es de donde sale el patron que se usa aqui
-## (`transparency = 2`, umbral 0.5, antialias de alfa apagado).
+## Y no hay que deducirlo: el pck del mod de PC contesta la pregunta directa.
+## Montandolo y leyendo su `chimera.gltf` importado (`probe_pck_house_materials.gd`,
+## dos hashes distintos del mismo modelo, valores identicos en los dos):
+##
+##     material               nuestro  cutoff  doble | ORIGINAL (transp, umbral, cull)
+##     grars                  MASK     0.214   True  | (2, 0.21, 2)
+##     trash                  MASK     0.926   True  | (2, 0.93, 2)
+##     props1                 BLEND    -       True  | (2, 0.21, 2)
+##     props2                 BLEND    -       False | (2, 0.21, 0)
+##     propruhhhhhoneofthem   BLEND    -       False | (2, 0.21, 0)
+##     Material.001           BLEND    -       False | (2, 0.21, 0)
+##     foliage                BLEND    -       False | (2, 0.21, 0)
+##
+## `transparencia = 2` es TRANSPARENCY_ALPHA_SCISSOR. En el original los siete
+## son recorte. Los dos que conservaron su `alphaCutoff` al reexportar el glTF
+## importaron bien; los CINCO que lo perdieron cayeron a BLEND, que es lo que
+## hace Godot con un material sin cutoff. O sea que esto es una regresion del
+## port, no una decision de nadie, y el original dice ademas con que umbral:
+## **0.21**, no 0.5.
+##
+## `foliage` entra por eso, aunque tenga un 4.85% de alfa intermedio: en el
+## original es recorte como los demas. Lo que NO se toca es el
+## `surface_material_override` del nodo `green` en `chimera_house.tscn`, que es
+## un material distinto y deliberado - reemplaza tambien la textura - y sigue con
+## su umbral de 0.5.
 ##
 ## Por nombre de material y no por nodo a proposito: el override por nodo que ya
 ## usa la escena necesita saber que superficie de que nodo lleva cada material, y
@@ -47,11 +68,13 @@ extends Node3D
 ## mueve el bake de LightmapGI - que es exactamente el fallo que dejo la casa a
 ## oscuras once dias.
 const ALPHA_SCISSOR_MATERIALS: Array[StringName] = [
-	&"props1", &"props2", &"propruhhhhhoneofthem", &"Material.001",
+	&"props1", &"props2", &"propruhhhhhoneofthem", &"Material.001", &"foliage",
 ]
 
-## El mismo umbral que el override de `foliage` que ya hay en la escena.
-const SCISSOR_THRESHOLD := 0.5
+## El umbral que tienen en el pck del mod de PC, no uno elegido aqui. Importa
+## cual es: subirlo se come el borde del recorte, y a 0.5 la vegetacion y los
+## detalles finos salen mas delgados de lo que su autor los dejo.
+const SCISSOR_THRESHOLD := 0.21
 
 
 func _ready() -> void:
