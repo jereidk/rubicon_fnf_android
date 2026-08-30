@@ -26,7 +26,22 @@ extends Control
 @export var video_player: VideoStreamPlayer
 
 
+## Terminada la secuencia de muerte, Chimera vuelve a empezar. Desde 0.
+##
+## `has_died` es lo único que hace algo a LullabyIntroSkipModule: con la bandera
+## puesta, el módulo salta el reloj de la canción a un punto más adelante en
+## cuanto la escena carga. Chimera lo tenía en 19.3s, así que morir y reintentar
+## se saltaba el preludio - y esta secuencia de muerte existe precisamente para
+## devolverte al principio, no a la mitad.
+##
+## Se limpia AQUÍ además de haber quitado el nodo de la canción porque la
+## bandera es GLOBAL: dejarla puesta al salir de Chimera hace que la siguiente
+## canción que se juegue se salte SU intro sin que nadie haya muerto en ella.
+##
+## `deaths` NO se toca: es estática a propósito, y es lo que hace que la
+## siguiente muerte enseñe el step siguiente.
 func _on_gameover_finished() -> void :
+	LullabyGameoverModule.has_died = false
 	get_tree().change_scene_to_file("uid://k26b7med2dat")
 
 

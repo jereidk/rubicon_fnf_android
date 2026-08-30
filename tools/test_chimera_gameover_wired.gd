@@ -93,6 +93,7 @@ func _initialize() -> void:
 				"" if missing.is_empty() else " - FALTAN " + ", ".join(missing)])
 
 	_video_checks()
+	_restart_checks()
 
 	# Y que el modulo se queje en vez de callarse, que es lo que dejo pasar esto
 	# durante todo el port.
@@ -173,6 +174,57 @@ func _video_checks() -> void:
 		"el vídeo arranca en la misma llamada que la animacion, y antes que ella")
 	_check(not body.contains("await"),
 		"...sin await por medio, o los dos dejan de salir en el mismo fotograma")
+
+
+## Morir en Chimera devuelve al principio de la cancion. Siempre.
+##
+## Esa es la razon de ser de esta secuencia, y habia dos cosas que la rompian.
+##
+## La primera: `LullabyIntroSkipModule` solo hace algo cuando
+## `LullabyGameoverModule.has_died` esta puesta - o sea, EXACTAMENTE en el
+## reintento tras morir, que es el unico caso que existe. Chimera lo tenia
+## cableado a 19.3s, asi que la secuencia de muerte terminaba y la cancion
+## arrancaba pasado el preludio. El modulo se fue de Chimera, y ademas el
+## gameover limpia la bandera al volver, porque es global: dejarla puesta hace
+## que la SIGUIENTE cancion se salte su intro sin que nadie haya muerto en ella.
+##
+## La segunda es mas fina y solo afectaba a step_3. Los steps 1-3 dibujan su
+## muerte con un vídeo que arranca el Timer, y el Timer de estas escenas no fija
+## `wait_time`, asi que usa el defecto de Godot: un segundo. step_3 llevaba
+## ademas `autoplay = &"animation"`, o sea que su animacion empezaba al cargar la
+## escena y el vídeo un segundo despues. Un segundo de desfase en una animacion
+## de muerte de diez.
+##
+## step_4 SI lleva autoplay y esta bien: no usa `video_player`, sus dos clips los
+## arrancan pistas de metodo dentro de la propia animacion, asi que animacion y
+## vídeo salen del mismo reloj. De ahi que la regla se compruebe como una
+## relacion -quien tiene vídeo no hace autoplay- y no como "ninguno hace
+## autoplay", que habria dado rojo sobre algo correcto.
+func _restart_checks() -> void:
+	var song: String = _read(SONG)
+	_check(not song.contains("IntroSkipModule"),
+		"Chimera no trae modulo de salto de intro, que solo actua tras morir")
+	_check(not song.contains("intro_skip_module.gd"),
+		"...ni su script")
+
+	var over: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd")
+	var body: String = _code_only(_func_body(over, "_on_gameover_finished"))
+	_check(body.contains("LullabyGameoverModule.has_died = false"),
+		"y el gameover limpia has_died al volver, para no ensuciar otra cancion")
+	_check(body.contains("change_scene_to_file"),
+		"...y vuelve a la cancion")
+
+	# Y la relacion entre autoplay y vídeo, step por step.
+	for step: int in [0, 1, 2, 3, 4]:
+		var text: String = FileAccess.get_file_as_string(
+			"res://lullaby_mod/songs/chimera/scenes/step_%d.tscn" % step)
+		if text.is_empty():
+			continue
+		var has_video: bool = text.contains("video_player = ")
+		var autoplays: bool = text.contains('autoplay = &"animation"')
+		_check(not (has_video and autoplays),
+			"step_%d: no arranca la animacion sola teniendo vídeo que sincronizar" % step)
 
 
 ## Cuenta las referencias de `path` y de todo lo que estas alcanzan, anotando

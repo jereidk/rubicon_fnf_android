@@ -11,7 +11,6 @@
 [ext_resource type="AudioStream" uid="uid://cljx43pv7j6y" path="res://lullaby_mod/resources/audio/sfx/chimera/sfx_snap_photo.ogg" id="8"]
 [ext_resource type="Script" uid="uid://bj5gjax38b4ia" path="res://lullaby_mod/scripts/lullaby/lullaby_vocal_muter.gd" id="9"]
 [ext_resource type="AudioStream" uid="uid://dlp627el1mfh5" path="res://lullaby_mod/resources/audio/sfx/game/sfx_miss.tres" id="10"]
-[ext_resource type="Script" uid="uid://ced11qxpiyooc" path="res://lullaby_mod/scripts/lullaby/intro_skip_module.gd" id="11"]
 [ext_resource type="Script" uid="uid://dyisqrg0pakny" path="res://lullaby_mod/scripts/lullaby/lullaby_level_song.gd" id="12"]
 [ext_resource type="AudioStream" uid="uid://d15kfwp6nhk6t" path="res://lullaby_mod/songs/chimera/resources/mus_chimera_inst.ogg" id="13"]
 [ext_resource type="AudioStream" uid="uid://ub0ghiuwelr" path="res://lullaby_mod/songs/chimera/resources/mus_chimera_voc.ogg" id="14"]
@@ -13826,15 +13825,6 @@ metadata/_custom_type_script = "uid://bj5gjax38b4ia"
 stream = ExtResource("10")
 volume_db = -4.0
 pitch_scale = 0.97116315
-
-[node name="IntroSkipModule" type="Node" parent="." unique_id=2140615119 node_paths=PackedStringArray("skips")]
-script = ExtResource("11")
-skips = {
-NodePath("../RubiconLevelClock/AnimationPlayer"): 19.3,
-NodePath("../Sequences/SequencePlayer"): 15.8,
-NodePath("../RubiconLevelSong/Inst"): 16.3
-}
-metadata/_custom_type_script = "uid://ced11qxpiyooc"
 
 [node name="RubiconLevelSong" type="Node" parent="." unique_id=731061412 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
 script = ExtResource("12")
