@@ -201,10 +201,21 @@ func _chimera_window_checks(scene: String) -> void:
 	var starts: float = _number(block, "starts_at = ")
 	var ends: float = _number(block, "ends_at = ")
 
-	_check("[chimera] el video suelta el mando justo cuando arranca 117_heartbeat"
-		+ " (%.6f)" % float(at.get("117_heartbeat", -1.0)),
-		at.has("117_heartbeat")
-			and absf(ends - float(at["117_heartbeat"])) < 0.001)
+	# NUNCA pasado el arranque de la mecanica, y no necesariamente justo ahi.
+	#
+	# La primera version exigia que `ends_at` fuese exactamente el instante de
+	# `117_heartbeat`. Jugandolo se vio por que eso estaba mal: los ultimos 2.17s
+	# del render eran un fotograma congelado -el movimiento se acaba en 57.30 de
+	# los 59.47- asi que el video se quedaba quieto, soltaba el mando, y la
+	# escena viva reproducia el movimiento de verdad. En pantalla eso es la misma
+	# cosa dos veces seguidas.
+	#
+	# Se corto el video ahi y la ventana con el. Lo que hay que garantizar no es
+	# que termine EN la mecanica, sino que no la pise: pasarse significa tapar
+	# con video una mecanica que ya esta corriendo debajo.
+	_check("[chimera] el video no pisa 117_heartbeat (%.3f <= %.6f)"
+		% [ends, float(at.get("117_heartbeat", -1.0))],
+		at.has("117_heartbeat") and ends <= float(at["117_heartbeat"]) + 0.001)
 
 	_check("[chimera] y ya esta puesto antes de que empiece 104_photographysesh"
 		+ " (%.6f)" % float(at.get("104_photographysesh", -1.0)),

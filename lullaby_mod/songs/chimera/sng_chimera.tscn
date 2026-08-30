@@ -15377,7 +15377,8 @@ disable_3d_while_playing = true
 video_path = "res://lullaby_mod/songs/chimera/video/photoshoot.ogv"
 clock = NodePath("../RubiconLevelClock/AnimationPlayer")
 starts_at = 53.7
-ends_at = 113.140144
+ends_at = 111.0
+max_drift = 0.05
 canvas_layer = 0
 
 [connection signal="body_entered" from="Camera3D/Player" to="Sequences/EscapingMechanic" method="_on_player_body_entered"]
