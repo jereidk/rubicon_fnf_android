@@ -1,0 +1,430 @@
+import funkin.graphics.video.FunkinVideoSprite;
+import funkin.data.event.SongEventRegistry;
+import flixel.util.FlxGradient;
+import funkin.graphics.extra.FunkinAttachedSprite;
+import flixel.addons.display.FlxRuntimeShader;
+import funkin.graphics.shaders.DropShadowShader;
+
+import funkin.effects.FunkinTrail;
+
+var fuckingGrad = "
+#pragma header
+
+uniform float cutoff;
+uniform float fadeSize;
+uniform vec3 gradientColor;
+uniform float gradientAlpha;
+
+void main()
+{
+    vec2 uv = openfl_TextureCoordv;
+    vec4 tex = flixel_texture2D(bitmap, uv);
+
+    if (tex.a <= 0.0 || uv.x < cutoff - 5.0)
+        discard;
+
+    float visibility = 1.0 - smoothstep(cutoff, cutoff + fadeSize, uv.x);
+
+    float a = tex.a * visibility * gradientAlpha;
+
+    gl_FragColor = vec4(gradientColor * a, a);
+}
+";
+
+
+var godlight = "
+#pragma header
+
+uniform float iTime;
+uniform vec2 resolution;
+uniform vec3 rayColor;
+
+float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed)
+{
+    vec2 sourceToCoord = coord - raySource;
+    float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
+
+    return clamp(
+        (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
+        (0.30 + 0.20 * cos(-cosAngle * seedB + iTime * speed)),
+        0.0,
+        1.0
+    ) *
+    clamp(
+        (resolution.x - length(sourceToCoord)) / resolution.x,
+        0.5,
+        1.0
+    );
+}
+
+void main()
+{
+    vec2 uv = openfl_TextureCoordv;
+
+    vec2 coord = vec2(
+        uv.x * resolution.x,
+        (1.0 - uv.y) * resolution.y
+    );
+
+    vec2 rayPos1 = vec2(
+        resolution.x * 0.2,
+        resolution.y * 1.5
+    );
+
+    vec2 rayRefDir1 = normalize(vec2(1.0, -0.116));
+
+    vec2 rayPos2 = vec2(
+        resolution.x * 0.3,
+        resolution.y * 1.6
+    );
+
+    vec2 rayRefDir2 = normalize(vec2(1.0, 0.241));
+
+    vec4 rays1 = vec4(1.0) *
+        rayStrength(
+            rayPos1,
+            rayRefDir1,
+            coord,
+            36.2214,
+            21.11349,
+            1.5
+        );
+
+    vec4 rays2 = vec4(1.0) *
+        rayStrength(
+            rayPos2,
+            rayRefDir2,
+            coord,
+            22.39910,
+            18.0234,
+            1.1
+        );
+
+	vec4 rays = rays1 * 0.5 + rays2 * 0.4;
+
+	float brightness = 1.0 - coord.y / resolution.y;
+
+	rays.rgb *= rayColor;
+
+	float contrast = 2.0;
+	rays.rgb = (rays.rgb - 0.5) * contrast + 0.5;
+	rays.rgb = clamp(rays.rgb, 0.0, 1.0);
+
+float spriteAlpha = flixel_texture2D(bitmap, uv).a;
+
+rays.rgb *= spriteAlpha;
+gl_FragColor = vec4(rays.rgb, spriteAlpha);
+}
+";
+
+function onCreate()
+{
+	if (isChartingMode) return;
+		skipCountDown = true;
+}
+
+var dangerMult = 1.0;
+
+var vid:FlxVideoSprite;
+
+var dadYYPos = -100;
+
+var suckBar:FunkinAttachedSprite;
+
+var godRaysSpr;
+
+function onCreatePost()
+{
+	opponentStrumline.changeMode(true, 1.15);
+	//opponentStrumline.blend = 0;
+	opponentStrumline.downScroll = true;
+	opponentStrumline.camera = camGame;
+
+	if (Preferences.downscroll)
+		dadYYPos = -600;
+
+	remove(opponentStrumline, false);
+	currentStage.add(opponentStrumline);
+	opponentStrumline.zIndex = currentStage.getDad().zIndex - 2;
+
+	currentStage.refresh();
+
+	if (currentDifficulty == "hard")
+		Modchart.set("tanWave", .35, "player");
+
+	Modchart.set("alpha", 0, "opponent");
+	if (!Preferences.lowQuality)
+	{
+		Modchart.set("tipToe", 0.1, "opponent");
+		Modchart.setField("tipToe", "amplitude", 13, "opponent");
+		Modchart.set("zigzag", 0.05, "opponent");
+
+		Modchart.set("tipsy", .25, "opponent");
+		Modchart.setField("tipsy", "amplitude", 30, "opponent");
+		Modchart.setField("tipsy", "period", 1, "opponent");
+
+
+		Modchart.set("xOffset", -200, "opponent");
+		Modchart.set("yOffset", dadYYPos - 50, "opponent");
+		Modchart.easeBeat("alpha", 0.5, 31, .5, Conductor.instance.bpm, FlxEase.quadOut, "opponent");
+		Modchart.easeBeat("yOffset", dadYYPos, 31, .5, Conductor.instance.bpm, FlxEase.circOut, "opponent");
+
+	}
+
+	var cols = ["left", "down", "up", "right"];
+	for (col in cols)
+	{
+		var index = cols.indexOf(col);
+
+		Modchart.set("shake", 0.05, "opponent", [col]);
+
+		Modchart.set("yOffset", 50, "player", [col]);
+		Modchart.set("alpha", 0, "player", [col]);
+
+		Modchart.easeBeat("alpha", 1, 37 + 0.2 * index, 1, Conductor.instance.bpm, FlxEase.quadOut, "player", [col]);
+		Modchart.easeBeat("yOffset", 0, 37 + 0.2 * index, 1, Conductor.instance.bpm, FlxEase.circOut, "player", [col]);
+	}
+
+	Modchart.set("xOffset", 50, "player");
+	Modchart.easeBeat("xOffset", 0, 37, 2, Conductor.instance.bpm, FlxEase.circOut, "player");
+
+	vid = new FunkinVideoSprite();
+	vid.bitmap.volumeAdjust = 0;
+	vid.load(Paths.videos("DADBATTLE_SOLOTIME_CUTSCENE"));
+	vid.scrollFactor.set();
+	vid.camera = camUnerHud;
+	vid.bitmap.onFormatSetup.add(() -> {
+		vid.setGraphicSize(FlxG.width, FlxG.height);
+		vid.updateHitbox();
+		vid.screenCenter();
+	});
+	vid.preload();
+	vid.zIndex = 0;
+	add(vid);
+
+	currentStage.getBoyfriend().idleSuffix = "-angry";
+	refresh();
+
+	healthBarGroup.alpha = 0;
+
+	var e = SongEventRegistry.getEvent("CinematicBars");
+	e.upperBar.visible = true;
+	e.upperBar.y = -FlxG.height/2 + 40;
+	e.bottombar.visible = true;
+	e.bottombar.y = FlxG.height - 40;
+
+	if (Preferences.shaders)
+	{
+		suckBar = new FunkinAttachedSprite();
+		suckBar.loadGraphic(Paths.image("ui/healthbar/WHITEBAR"));
+		suckBar.zIndex = 805;
+		suckBar.objToAttach = healthBar.leftBar;
+		suckBar.attachFunc = obj -> {
+			suckBar.x = obj.x;
+			suckBar.y = obj.y - 2;
+		}
+		suckBar.flipY = Preferences.downscroll;
+		healthBar.insert(2, suckBar);
+		healthBar.refresh();
+
+		dangerShader = new FlxRuntimeShader(fuckingGrad);
+		dangerShader.setFloat("cutoff", 0.5);  
+		dangerShader.setFloat("fadeSize", 0.5); 
+		dangerShader.setFloatArray("gradientColor", [1.0, 0.0, 0.0]);
+		dangerShader.setFloat("gradientAlpha", 1.0);
+
+		suckBar.shader = dangerShader;
+
+		currentStage.getNamedProp("holygrad").alpha = 0;
+	
+		godRaysShader = new FlxRuntimeShader(godlight);
+		godRaysShader.setFloatArray("rayColor", [1.3, 1.2, 0.9]);
+
+		godRaysSpr = new FunkinSprite();
+		godRaysSpr.makeSolidColor(FlxG.width * 1.5, FlxG.height, FlxColor.BLACK);
+		godRaysSpr.scrollFactor.set(1, 0);
+		godRaysSpr.screenCenter();
+		godRaysSpr.zIndex = currentStage.getNamedProp("holygrad").zIndex - 2;
+		godRaysShader.setFloatArray("resolution", [godRaysSpr.width, godRaysSpr.height]);
+		currentStage.add(godRaysSpr);
+		godRaysSpr.shader = godRaysShader;
+		godRaysSpr.blend = 0;
+		godRaysSpr.alpha = 0; //.1;
+		godRaysSpr.zoomFactor = 0;
+	}
+}
+
+var dangerShader;
+var godRaysShader;
+
+function onPause()
+{
+	if (vid.visible)
+		vid.pause();
+}
+
+function onResume()
+{
+	if (vid.visible)
+		vid.resume();
+}
+
+var funnyA:Float = -300;
+function onUpdatePost(e)
+{
+	if (!inIdle && currentStage.getDad().animation.curAnim.name.indexOf("idle") != -1 && !Preferences.lowQuality)
+	{
+		inIdle = true;
+		Modchart.ease("xOffset", -200, Conductor.instance.songPosition, 250, FlxEase.circOut, "opponent");
+		Modchart.ease("yOffset", dadYYPos + (currentStage.getDad().idleSuffix  == "" ? 0 : -50 ), Conductor.instance.songPosition, 250, FlxEase.circOut, "opponent");
+
+		var cols = ["left", "down", "up", "right"];
+		for (col in cols)
+			Modchart.set("shake", 0.05, "opponent", [col]);
+	}
+
+	if (Preferences.shaders)
+	{
+		funnyA += e * healthLerp;
+		dangerShader.setFloat("cutoff", 1 - (healthLerp / 2));
+		dangerShader.setFloat("fadeSize", (healthLerp / 2) * .9);
+		dangerShader.setFloat("gradientAlpha", Math.cos(FlxEase.sineInOut(funnyA)));
+
+		godRaysShader.setFloat("iTime", FlxG.game.ticks / 1000);
+	}
+}
+
+var inIdle = true;
+function onOpponentNoteHit(note, sus, event)
+{
+	if (Preferences.lowQuality)
+		return;
+
+	var xx = -200;
+	var yy = dadYYPos;
+	
+	if (health > .1)
+	{
+		health -= (!sus ? 0.0125 : (0.075 * FlxG.elapsed)) * (currentStage.getBoyfriend().idleSuffix == "" ? 1 : Math.max(1, health * .85));
+	}
+
+	if(!sus)
+	{
+		inIdle = false;
+		switch (note.direction)
+		{
+			case 0: xx -= 25;
+			case 1: yy += 20;
+			case 2: yy -= 45;
+			case 3: xx += 35;
+		}
+
+		var cols = ["left", "down", "up", "right"];
+		for (col in cols)
+			Modchart.set("shake", 0.05, "opponent", [col]);
+
+		Modchart.set("shake", 0.75, "opponent", [cols[note.direction]]);
+
+		Modchart.ease("xOffset", xx, Conductor.instance.songPosition, 100, FlxEase.circOut, "opponent");
+		Modchart.ease("yOffset", yy, Conductor.instance.songPosition, 100, FlxEase.circOut, "opponent");
+	}
+		
+}
+
+function onBeatHit(curBeat)
+{
+	if (curBeat > 283 && curBeat % 2 == 0)
+	{
+		Modchart.set("scale", 1.1, "player");
+		Modchart.ease("scale", 0.95, Conductor.instance.songPosition, Conductor.instance.beatLengthMs, FlxEase.sineOut, "player");
+	}
+
+	if (curBeat == 31)
+	{
+		FlxTween.tween(healthBarGroup, {alpha: 1}, .75, {ease: FlxEase.backOut, onComplete: _ -> healthBarGroup.useRenderTexture = false});
+	}
+
+	if (curBeat == 223)
+	{
+		Modchart.easeBeat("alpha", 0, 223, 1, Conductor.instance.bpm, FlxEase.circOut, "player");
+		if (vid != null)
+		{
+			vid.stop();
+			FlxTween.tween(timeBar, {alpha: 0}, 1, {ease: FlxEase.sineIn});
+			vid.visible = true;
+			vid.bitmap.time = 0;
+			vid.bitmap.volumeAdjust = 0;
+			vid.play();
+			vid.antialiasing = true;
+			healthBarGroup.visible = false;
+			//var targetTime = Conductor.instance.songPosition;
+			//vid.vSynsPos = () -> Math.floor(Conductor.instance.songPosition - targetTime);
+			disableKeys = true;
+			FlxTimer.wait(.15, () -> vocals.playerVolume = 1);
+			
+			vid.bitmap.onEndReached.add(() -> {
+				vid.kill();
+				vid.destroy();
+				camGame.flash();
+				healthBarGroup.visible = true;
+				disableKeys = false;
+				currentStage.getBoyfriend().idleSuffix = "";
+				FlxTween.cancelTweensOf(currentStage.getNamedProp("fgRedOverlay"));
+				FlxTween.tween(currentStage.getNamedProp("fgRedOverlay"), {alpha: 0}, 8, {startDelay: 1, ease: FlxEase.sineInOut});
+				currentStage.getDad().idleSuffix = "-alt";
+
+				if (Preferences.shaders)
+				{
+					FlxTween.tween(currentStage.getNamedProp("holygrad"), {alpha: 0.6}, 3, {startDelay: 2, ease: FlxEase.sineInOut});
+					FlxTween.tween(godRaysSpr, {alpha: 0.1}, 3, {startDelay: 2, ease: FlxEase.sineInOut});
+
+					FlxTween.tween(currentStage.getNamedProp("holygrad"), {alpha: 0}, 6, {startDelay: 20.75, ease: FlxEase.sineInOut});
+					FlxTween.tween(godRaysSpr, {alpha: 0}, 6, {startDelay: 20.75, ease: FlxEase.sineInOut});
+				}
+
+				Modchart.ease("tipsy", .65, Conductor.instance.songPosition + 500, 6500, FlxEase.circOut, "player");
+				Modchart.ease("tanWave", .65, Conductor.instance.songPosition + 500, 6500, FlxEase.circOut, "player");
+				Modchart.setField("tipsy", "amplitude", 16, "player");
+				Modchart.setField("tipsy", "period", 2, "player");
+
+				FlxTween.tween(timeBar, {alpha: 0.8}, 1, {ease: FlxEase.sineOut});
+			});
+		}
+	}
+
+	if (curBeat > 222 && curBeat < 250)
+		vocals.playerVolume = 1;
+
+	if (curBeat == 284)
+		Modchart.easeBeat("alpha", 1, 284, 1.75, Conductor.instance.bpm, FlxEase.sineInOut, "player");
+
+
+	if (curBeat == 384) //384
+	{
+		var whereWeGo = Preferences.downscroll ? 30 : -30;
+		Modchart.easeBeat("alpha", 0, 384, 1, Conductor.instance.bpm, FlxEase.sineIn, "player");
+		Modchart.easeBeat("yOffset", whereWeGo, 384, 1, Conductor.instance.bpm, FlxEase.sineIn, "player");
+
+		healthBarGroup.useRenderTexture = true;
+		FlxTween.tween(healthBarGroup, {y: healthBarGroup.y + 50, alpha: 0}, .6, {ease: FlxEase.sineIn, onComplete: _ -> {
+			healthBarGroup.visible = false;
+		}});
+
+		FlxTween.tween(timeBar, {alpha: 0}, 1, {ease: FlxEase.sineIn});
+	}
+
+
+	if (curBeat == 392) //384
+	{
+		var screeeen = new FunkinSprite();
+		screeeen.makeGraphic(1, 1, FlxColor.BLACK);
+		screeeen.scale.set(2000, 2000);
+		screeeen.screenCenter();
+		screeeen.camera = camOther;
+		screeeen.alpha = 0;
+		add(screeeen);
+
+		FlxTween.tween(screeeen, {alpha: 1}, 2.5, {ease: FlxEase.sineOut});
+	}
+}
+

@@ -1,0 +1,71 @@
+
+import funkin.play.PlayState;
+import flixel.addons.display.FlxRuntimeShader;
+import openfl.filters.ShaderFilter;
+import funkin.Paths;
+import openfl.utils.Assets;
+import funkin.util.tools.ShaderResizeFix;
+
+var chromShader:ChromaticAberrationShader;
+var chromChangeTween:FlxTween;
+function onCreate()
+{
+	setGlobal("chromaEffect", chromaEffect);
+
+	if (!Preferences.shaders)
+		return;
+
+	chromShader = new FlxRuntimeShader(Assets.getText(Paths.frag('chromaticAbberation')));
+	chromShader.setFloat("strength", .1);
+	camGame.addShader(chromShader);
+	//camHUD.addShader(chromShader);
+}
+
+function onResume()
+{
+	if (!Preferences.shaders)
+		return;
+	ShaderResizeFix.fixSpritesShadersSizes();
+}
+
+function onUpdatePost(e)
+{
+	if (!Preferences.shaders)
+		return;
+	chromShader.setFloat("strength", currentStage.getNamedProp("fgRedOverlay").alpha / 8);
+}
+
+function onEvent(event) {
+	if (!Preferences.shaders)
+		return;
+	if (event.eventKind == "Blank")
+	{
+		switch(event.getString("value1").toLowerCase())
+		{
+			case "chroma":
+				chromaEffect(event.getFloat("value2"), event.getFloat("value3"), event.getString("value4"));
+		}
+	}
+}
+
+function onGameOver()
+{
+	if (!Preferences.shaders)
+		return;
+	camGame.filters = [];
+}
+
+function chromaEffect(strength:Float, time:Float, easeStr:String)
+{
+	if (!Preferences.shaders)
+		return;
+
+	if (chromChangeTween != null)
+		chromChangeTween.cancel();
+
+	final easeFunction:Null<Float->Float> = Reflect.field(FlxEase, easeStr);
+	if (time <= 0)
+		chromShader.setFloat("strength", strength);
+	else
+		chromChangeTween = FlxTween.num(chromShader.getFloat("strength"), strength, time, {ease: easeFunction ?? FlxEase.smootherStepOut}, (stng:Float) -> chromShader.setFloat("strength", stng));
+}

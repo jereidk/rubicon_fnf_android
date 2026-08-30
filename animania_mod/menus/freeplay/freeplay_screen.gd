@@ -19,6 +19,15 @@ const SONGS: Array[Dictionary] = [
 		"disk": "phone call",
 		"scene": "res://songs/phone-call/phone_call.tscn",
 	},
+	{
+		# Its chart, audio and scripts are in the repo and converted; its three characters
+		# and its stage are not built yet, so the scene does not exist and confirm() gives
+		# it the locked sound. That is the honest state and it needs no special case: the
+		# disk is here, it is selectable, and it says "not yet".
+		"id": "dadbattle",
+		"disk": "dadbattle",
+		"scene": "res://songs/dadbattle/dadbattle.tscn",
+	},
 ]
 
 ## changeSelection plays `freeplay/song switch` through FunkinSound.playOnce at 0.4.

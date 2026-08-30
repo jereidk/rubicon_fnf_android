@@ -1,0 +1,148 @@
+import flixel.addons.display.FlxRuntimeShader;
+import funkin.data.character.CharacterRegistry;
+import funkin.play.character.CharacterType;
+
+var bfRef = null;
+var dadRef = null;
+
+var refShader = "
+#pragma header
+
+uniform float iTime;
+
+uniform float bend;
+uniform float rightBend;
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec3 applyHue(vec3 aColor, float aHue)
+{
+    float angle = radians(aHue);
+    vec3 k = vec3(0.57735, 0.57735, 0.57735);
+    float cosAngle = cos(angle);
+    return aColor * cosAngle + cross(k, aColor) * sin(angle) + k * dot(k, aColor) * (1.0 - cosAngle);
+}
+
+vec3 applyHSBCEffect(vec3 color)
+{
+    color = applyHue(color, -26.0);
+    return color;
+}
+
+void main()
+{
+    vec2 uv = openfl_TextureCoordv;
+
+    float x = uv.x * 2.0 - 1.0;
+
+    float centerCurve = 1.0 - x * x;
+
+    float rightCurve = smoothstep(0.0, 1.0, uv.x);
+    rightCurve *= rightCurve;
+
+    uv.y -= centerCurve * bend;
+    uv.y -= rightCurve * rightBend;
+
+    vec4 color = flixel_texture2D(bitmap, uv);
+
+    if (color.a < 0.01)
+        discard;
+
+    uv.y += sin((uv.x * 56.0) + iTime * 3.0) * 0.011;
+
+    vec4 refl = flixel_texture2D(bitmap, uv);
+
+    vec2 px = 1.0 / openfl_TextureSize;
+    vec4 blur = vec4(0.0);
+
+    blur += flixel_texture2D(bitmap, uv + vec2(-6.0 * px.x, 0.0));
+    blur += flixel_texture2D(bitmap, uv + vec2(-3.0 * px.x, 0.0));
+    blur += refl * 2.0;
+    blur += flixel_texture2D(bitmap, uv + vec2(3.0 * px.x, 0.0));
+    blur += flixel_texture2D(bitmap, uv + vec2(6.0 * px.x, 0.0));
+
+    refl = blur / 6.0;
+    refl.rgb *= 0.45;
+
+    float lum = dot(refl.rgb, vec3(0.299, 0.587, 0.114));
+    float sparkle = step(0.995, rand(floor(uv * 350.0) + floor(iTime * 8.0))) * smoothstep(0.55, 1.0, lum);
+
+    refl.rgb += vec3(sparkle * 0.45);
+
+    float visibility = smoothstep(0.6, 1.0, uv.y);
+    float a = refl.a * visibility;
+
+    refl.rgb = applyHSBCEffect(refl.rgb / max(refl.a, 0.0001)) * refl.a;
+
+    gl_FragColor = vec4(refl.rgb * a, a);
+}";
+
+var reflectionShaderDad = null;
+var reflectionShaderBf = null;
+
+function onCreatePost()
+{
+	if (!Preferences.shaders)
+		return;
+
+	bfRef = CharacterRegistry.fetchCharacter(currentStage.getBoyfriend().characterId);
+	bfRef.characterId += "-ref";
+	currentStage.addCharacter(bfRef, CharacterType.OTHER);
+	currentStage.applyCharacterData(bfRef, CharacterType.BF);
+	bfRef.zIndex = currentStage.getBoyfriend().zIndex - 1;
+	bfRef.flipX = false;
+	bfRef.flipY = true;
+	bfRef.useRenderTexture = true;
+	bfRef.scale.y = 0.75;
+	bfRef.x -= 25;
+	bfRef.y += bfRef.height / 1.27;
+	bfRef.skew.x = -5;
+
+
+	//dadRef
+
+	dadRef = CharacterRegistry.fetchCharacter(currentStage.getDad().characterId);
+	dadRef.characterId += "-ref";
+	currentStage.addCharacter(dadRef, CharacterType.OTHER);
+	currentStage.applyCharacterData(dadRef, CharacterType.DAD);
+	dadRef.zIndex = currentStage.getDad().zIndex - 1;
+	currentStage.refresh();
+	dadRef.x -= 45; 
+	dadRef.flipX = false;
+	dadRef.flipY = true;
+	dadRef.useRenderTexture = true;
+	dadRef.skew.y = -11;
+	dadRef.scale.y = 0.75;
+	dadRef.y += dadRef.height / 1.3;
+	dadRef.objToAttach = currentStage.getDad();
+	dadRef.attachFunc = obj ->
+	{
+		if (dadRef.idleSuffix != obj.idleSuffix) dadRef.idleSuffix = obj.idleSuffix;
+		if (dadRef.holdTimer != obj.holdTimer) dadRef.holdTimer = obj.holdTimer;
+	};
+	dadRef.skew.x = -7;
+
+
+	reflectionShaderDad = new FlxRuntimeShader(refShader);	
+	reflectionShaderBf = new FlxRuntimeShader(refShader);
+	reflectionShaderDad.setFloat("bend", 0.1);
+	reflectionShaderDad.setFloat("rightBend", 0.11);
+
+	reflectionShaderBf.setFloat("bend", 0.05);
+	reflectionShaderBf.setFloat("rightBend", 0.0);
+	dadRef.shader = reflectionShaderDad;
+	bfRef.shader = reflectionShaderBf;
+}
+
+var ugh = 0;
+function onUpdatePost(e)
+{
+	if (!Preferences.shaders)
+		return;
+
+	reflectionShaderDad.setFloat("iTime", ugh += e);
+	reflectionShaderBf.setFloat("iTime", ugh);
+}

@@ -185,8 +185,14 @@ func _init() -> void:
 	_check_controls("freeplay", 0)
 
 	# The disks are freeplay's controls on a phone, the way the buttons are the menu's.
-	var disk: Node2D = freeplay.disks.get_child(0)
-	_check(freeplay.disk_at(disk.position) == 0,
+	# Found by its `index` meta and NOT by child order: the carousel reorders children so
+	# the selected disk draws on top, so once there is more than one song get_child(0) is
+	# whichever disk happens to be furthest back.
+	var disk: Node2D = null
+	for child: Node2D in freeplay.disks.get_children():
+		if int(child.get_meta(&"index")) == 0:
+			disk = child
+	_check(disk != null and freeplay.disk_at(disk.position) == 0,
 		"tocar el disco tendria que dar con el disco")
 	_check(freeplay.disk_at(Vector2(120.0, 900.0)) == -1,
 		"la cama de freeplay no es un disco")

@@ -166,6 +166,18 @@ scene, and a guard can print "todo OK" having skipped the section that would hav
 Guards therefore count their checks (`MIN_CHECKS`), and builders should be read for
 `SCRIPT ERROR` in the output, not just for the success line.
 
+**A builder that suddenly takes minutes is an ERROR, not slowness.** The erroring function
+is abandoned before its `quit()`, so the SceneTree never exits and the run hangs to the
+timeout. The usual cause is vendoring a new asset and not importing it — `load()` returns
+null, the builder dies, and you wait 400 seconds to find out. So:
+
+```bash
+run --headless --path . --import            # ALWAYS, right after vendoring anything
+```
+
+And do not pipe a builder's output through `grep` until it has succeeded once: the grep
+throws away the very error you need. Read the tail of the raw output instead.
+
 **Godot drops a `connect()` without `CONNECT_PERSIST` when a scene is packed.**
 
 **Set `layout_mode`/`size` on a Control before `position`**, or the position is lost.
@@ -263,3 +275,37 @@ Recorded so the next person does not go looking for a bug that is not there.
   `updateCameraScroll` (mouse parallax), `spawnHelpMouseText`. All inert on Android.
 - **The retry's `StickerSubState`.** Funkin returns to `PlayState` through a sticker
   transition; the port reloads the level instead and says so at the point of use.
+
+---
+
+## 9. Dadbattle: where it stands
+
+Started, not finished. What is **in the repo and done**:
+
+- `animania_mod/source/songs/dadbattle/` — the V-Slice chart and metadata, the three song
+  scripts (`chromaticAbberation`, `reflections`, `saygex`), `dadbattle.hx`, and the
+  **converted** Rubicon charts: `Meta.tres` plus `dadbattle-{easy,normal,hard}_{Player,
+  Opponent}.tres`. Three difficulties where phone-call had one — the first chart to
+  exercise that path. Rebuild with `tools/animania/build_dadbattle_chart.gd`.
+- `songs/dadbattle/` — `Inst.ogg`, `Voices-bf.ogg`, `Voices-dad.ogg` (21 MB; the `-easy`
+  and `-normal` bf vocal variants were left out until a difficulty selector exists).
+- Its disk art, and an entry in freeplay's `SONGS`. The scene does not exist yet, so
+  `confirm()` gives it the locked sound — no special case needed.
+
+What is **left**, in the order it has to happen:
+
+1. **Three characters, all Adobe Animate atlases** (`build_adobe_character.gd`, not the
+   sparrow path): `bf` is `multianimateatlas` at `shared:characters/amtake/bf/bf-classic`
+   with **51** animations; `gf` is `animateatlas` at `.../gf/gf-standart`, 23; `dad-beast`
+   is `.../dad/BEAST_DEAREST`, 19. This is the long pole by a wide margin.
+2. **The `serviceEnterance` stage** — `assets/data/stages/serviceEnterance.json`, through
+   `build_stage_scene.gd`.
+3. **The note style is `amtake-base`**, which the port already has from phone-call.
+4. **The level scene.** `build_level_scene.gd` is written for phone-call specifically — the
+   camera baking, the events script and the death sequence are all its. Generalising it is
+   part of this step, not an afterthought.
+5. Point freeplay's `dadbattle` entry at the scene once it exists. Nothing else changes.
+
+The metadata to work from: player `bf`, girlfriend `gf`, opponent `dad-beast`, opponent
+vocals `dad`, stage `serviceEnterance`, note style `amtake-base`, album `expansionMini`,
+difficulties easy/normal/hard.

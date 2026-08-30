@@ -1,0 +1,59 @@
+{
+	"version": "2.2.3",
+	"songName": "DadBattle",
+	"artist": "Leebert",
+	"charter": "PurSnake",
+	"divisions": 96,
+	"looped": false,
+
+	"diskName": "dadbattle",
+	"freeplayLayer": "dad",
+	"diskOffsets": [30, 28],
+	"weekName": "WEEK1",
+	"playerSkin": "bf-standart",
+	"girlfriendSkin": "gf-standart",
+
+	"offsets": {
+		"instrumental": 0,
+		"altInstrumentals": {},
+		"vocals": {
+			"bf": 0,
+			"dad": 0
+		}
+	},
+	"playData": {
+		"songVariations": [],
+		"difficulties": ["easy", "normal", "hard"],
+
+		"characters": {
+			"player": "bf",
+			"girlfriend": "gf",
+			"opponent": "dad-beast",
+			"opponentVocal": "dad",
+			"instrumental": "",
+			"altInstrumentals": []
+		},
+		"stage": "serviceEnterance",
+		"noteStyle": "amtake-base",
+		"ratings": {
+			"easy": 7,
+			"normal": 9,
+			"hard": 11
+		},
+		"album": "expansionMini",
+		"previewStart": 0,
+		"previewEnd": 0
+	},
+	"generatedBy": "Friday Night Funkin': Animania! - v0.6.0 DEVELOPER",
+	"timeFormat": "ms",
+	"timeChanges": [
+		{
+			"t": 0,
+			"b": 0,
+			"bpm": 180,
+			"n": 4,
+			"d": 4,
+			"bt": [4, 4, 4, 4]
+		}
+	]
+}
