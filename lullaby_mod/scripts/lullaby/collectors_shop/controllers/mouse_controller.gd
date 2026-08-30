@@ -56,8 +56,29 @@ var colliding: = false
 ## consulting can_interact: _input() does not either, so an area with it false
 ## still fires today. Saying "unavailable" about something that would in fact
 ## fire would be the button lying about the game rather than describing it.
+## Set by a prop that owns the confirm itself and does not go through this
+## raycast, for as long as it owns it.
+##
+## `prp_sign.gd` is the case this exists for, and it was unplayable on touch
+## without it. The shop/talk chooser handles its own `_input()` and turns its
+## focus area off (`focus_area_center.input_ray_pickable = !enabled`), but it
+## leaves the shop in FOCUSED - not BUSY - so `should_cast_ray` stays true and
+## `_can_ray_cast()` says yes. The getter below then answered `colliding`, which
+## during the chooser is whatever the ray from the last tap happens to hit:
+## normally nothing. So `confirm_is_available` went false, and the overlay's OK
+## button - wired to it through `AcceptButton.visible_source` - disappeared.
+##
+## On desktop that costs nothing, because a real left-click is a confirm event
+## on its own. On touch the OK button is the ONLY source of one:
+## `_is_confirm_event()` requires an `InputEventAction` or a gamepad button
+## there, precisely so the emulated mouse click every tap produces cannot
+## confirm things. No button, no action, no way to pick shop or talk at all.
+var confirm_owned_by_prop: bool = false
+
 var confirm_is_available: bool:
 	get:
+		if confirm_owned_by_prop:
+			return true
 		if not _can_ray_cast():
 			return true
 		return colliding and can_click

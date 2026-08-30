@@ -51,6 +51,29 @@ var mesh_mat: StandardMaterial3D
 var options: Array[String] = ["shop", "talk"]
 
 var _selector_target_position: Vector3 = Vector3.ZERO
+
+## La posicion suavizada, SIN el balanceo, del selector y del propio cartel.
+##
+## El balanceo se sumaba encima de `position` cada fotograma y el lerp del
+## fotograma siguiente partia de ese resultado, asi que no era un balanceo: era
+## una acumulacion amortiguada, y donde se estabiliza depende de a cuantos fps
+## vaya el juego. Con el lerp rapido del selector (`selector_lerp_speed`) el
+## coeficiente vale 0.74 a 60fps y 0.93 a 30, o sea que la misma amplitud se
+## queda ~26% mas grande a 60. Con el cartel apagado, que usa `delta / 10.0`, el
+## coeficiente es 0.013 a 60fps y 0.027 a 30: el balanceo sale multiplicado por
+## 75 en un caso y por 37 en el otro, el doble de desplazamiento a 60fps que a
+## 30. En un movil que no sostiene 60 el cartel flota en otro sitio.
+##
+## Separandolo, el lerp trabaja sobre una base limpia y el balanceo es un
+## desplazamiento absoluto de la posicion, que es lo que siempre quiso ser.
+var _selector_base: Vector3 = Vector3.INF
+var _sign_base: Vector3 = Vector3.INF
+
+## El balanceo del cartel de este fotograma, como desplazamiento absoluto sobre
+## `_sign_base`. Se calcula donde se calculaba (dentro de `enabled`) y se aplica
+## abajo, donde esta el lerp.
+var _sign_sway: Vector3 = Vector3.ZERO
+
 var _sick_tween: Tween = null
 var _sick_tween_progress: float = 0
 var _in_menu: bool = false
@@ -71,6 +94,9 @@ func _ready() -> void :
 
 	if selector_model != null:
 		_selector_target_position = selector_model.position
+		_selector_base = selector_model.position
+
+	_sign_base = position
 
 	_update_visual()
 
@@ -79,6 +105,10 @@ func _ready() -> void :
 
 func _process(delta: float) -> void :
 	focus_area_center.input_ray_pickable = !enabled;
+
+	# Antes del return de abajo: sin selector el cartel esta mal montado, pero
+	# dejarse el confirm cedido seria peor que no cederlo.
+	shop.mouse_controller.confirm_owned_by_prop = is_choosing_option
 
 	if selector_model == null:
 		return
@@ -115,22 +145,35 @@ func _process(delta: float) -> void :
 			elif Input.is_action_just_pressed("ui_up"):
 				_move_selection(-1)
 
-		selector_model.position = selector_model.position.lerp(
+		# Suavizado sobre la base limpia, balanceo sumado despues como
+		# desplazamiento absoluto. Ver `_selector_base`: sumandolo sobre
+		# `position` se acumulaba, y donde acababa dependia de los fps.
+		if _selector_base == Vector3.INF:
+			_selector_base = selector_model.position
+
+		_selector_base = _selector_base.lerp(
 			_selector_target_position,
 			1.0 - pow(0.0003, delta * selector_lerp_speed)
 		)
 
-		selector_model.position.x += sin(elapsed_time) * 0.0002 + sin(elapsed_time / 2) * 0.0001
-		selector_model.position.y += cos(elapsed_time) * 0.0001 + sin(elapsed_time / 2) * 0.0001
-		selector_model.position.z += sin(elapsed_time) * 5e-05 + cos(elapsed_time / 2) * 0.0001
+		selector_model.position = _selector_base + Vector3(
+			sin(elapsed_time) * 0.0002 + sin(elapsed_time / 2) * 0.0001,
+			cos(elapsed_time) * 0.0001 + sin(elapsed_time / 2) * 0.0001,
+			sin(elapsed_time) * 5e-05 + cos(elapsed_time / 2) * 0.0001
+		)
 
 		selector_model.rotation.x = sin(elapsed_time) * 0.03
 		selector_model.rotation.z = cos(elapsed_time) * 0.025
 
 		if lerp_movement:
-			position.x += sin(elapsed_time * 0.8) * 0.0003 + sin(elapsed_time / 2) * 0.0001
-			position.y += cos(elapsed_time * 0.8) * 0.0003
+			_sign_sway = Vector3(
+				sin(elapsed_time * 0.8) * 0.0003 + sin(elapsed_time / 2) * 0.0001,
+				cos(elapsed_time * 0.8) * 0.0003,
+				0.0
+			)
 	else:
+		_sign_sway = Vector3.ZERO
+
 		if Input.is_action_just_released("ui_cancel") and _sick_tween != null:
 			_sick_tween.custom_step(999)
 			_sick_tween.kill()
@@ -143,10 +186,14 @@ func _process(delta: float) -> void :
 		if in_override:
 			lerp_pos = override_lerp_pos
 
-		position = position.lerp(
-			lerp_pos, 
+		if _sign_base == Vector3.INF:
+			_sign_base = position
+
+		_sign_base = _sign_base.lerp(
+			lerp_pos,
 			1.0 - pow(0.0003, delta * selector_lerp_speed if enabled else delta / 10.0)
 		)
+		position = _sign_base + _sign_sway
 
 		var start_rot_lerp: bool = false;
 
@@ -225,7 +272,11 @@ func _select_option():
 
 	shop.stop_voiceline()
 
-	selector_model.position.x += 0.01
+	# A la base y no a `position`: el balanceo reescribe `position` entera cada
+	# fotograma, asi que sumarlo ahi se perdia en el siguiente.
+	if _selector_base == Vector3.INF:
+		_selector_base = selector_model.position
+	_selector_base.x += 0.01
 	confirm_snd.play(0)
 	_pulse_glow()
 
@@ -248,6 +299,24 @@ func _pulse_glow() -> void :
 
 func _update_visual() -> void :
 	if not enabled:
+		set_hover_option("")
+		return
+
+	# El indice -1 significa "nada elegido", y en GDScript `options[-1]` NO es un
+	# error: devuelve el ULTIMO elemento, o sea "talk".
+	#
+	# `sequence_sign_intro` escribe `current_option_index = -1` en t=0 y
+	# `enabled = true` en t=2, y el setter de `enabled` llama aqui. Asi que al
+	# entrar al selector se encendia "talk" y el selector se iba a
+	# `talk_position` con el indice todavia en -1 - que es justo lo que
+	# `_input()` mira para NO dejar confirmar. Una opcion encendida que no se
+	# podia elegir.
+	#
+	# Con raton no se notaba: el primer hover lo corrige en el acto. En tactil no
+	# hay hover, lo corrige el bloque `touch_driven` de `_process()` un fotograma
+	# despues y poniendo 0, asi que lo que se ve es "talk" encendiendose y
+	# saltando solo a "shop".
+	if current_option_index < 0 or current_option_index >= options.size():
 		set_hover_option("")
 		return
 
@@ -312,3 +381,10 @@ func enter_submenu(is_exiting: bool = false):
 		0.0 if is_exiting else 1.0, 
 		sign_offscreen_anim_time
 	)
+
+
+## Devuelve el confirm al soltar la escena, o el boton OK quedaria forzado a
+## visible para quien venga despues.
+func _exit_tree() -> void :
+	if shop != null and shop.mouse_controller != null:
+		shop.mouse_controller.confirm_owned_by_prop = false

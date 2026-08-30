@@ -1036,6 +1036,33 @@ jobs:
           # for - the tap never reached _unhandled_input.
           guard_godot tools/test_aim_field.gd
 
+          # === The counter's shop/talk chooser works on touch
+          # Three defects in one moment: the camera focuses on the Collector and
+          # the sign comes up to pick between buying cartridges and talking.
+          # 1. Unconfirmable on mobile. On touch the ONLY source of a confirm is
+          #    the overlay's OK button - _is_confirm_event() demands an
+          #    InputEventAction or a gamepad button precisely so the emulated
+          #    mouse click Android fires on every tap cannot confirm by itself.
+          #    That button takes its visibility from confirm_is_available, which
+          #    answered off the raycast. The chooser bypasses the raycast but
+          #    leaves the shop FOCUSED, not BUSY, so should_cast_ray stayed true
+          #    and the answer became `colliding` - normally nothing. No button,
+          #    no action, prp_sign._input() never fired. Invisible on desktop,
+          #    where a real click is a confirm on its own.
+          # 2. Wrong option lit. options[-1] in GDScript is not an error, it
+          #    returns the last element - "talk". sequence_sign_intro writes
+          #    current_option_index = -1 then enabled = true, and the setter
+          #    calls _update_visual(), which indexed without checking. It lit
+          #    "talk" with the index still at -1, which is exactly what _input()
+          #    reads to refuse the confirm.
+          # 3. Frame-rate-dependent drift. position += sin(...) each frame with
+          #    the next frame's lerp starting from that result is not a sway,
+          #    it is a damped accumulation: with the sign disabled the lerp
+          #    coefficient is 0.013 at 60fps and 0.027 at 30, so twice the
+          #    displacement at 60 as at 30. On a phone that does not hold 60 the
+          #    sign floats somewhere else.
+          guard_godot tools/test_sign_chooser_touch.gd
+
           # === Verify no translation lost a placeholder or a tag
           # A missing translation falls back to English and is harmless. One
           # that dropped a %d does not: the score screen's format strings
