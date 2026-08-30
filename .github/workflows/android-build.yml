@@ -772,6 +772,15 @@ jobs:
           # empty at exactly the moment it was collected for.
           guard_godot tools/test_memory_sampler.gd
 
+          # === Verify the region probes attribute to the subtree that spends
+          # The whole rest= split rests on one engine behaviour: a probe hung
+          # as the last child runs after the subtree before it. If that stopped
+          # holding the split would not be imprecise, it would be false -
+          # charging one subtree for another's cost. rest= has already misled
+          # this project once, when most of it turned out to be the instrument
+          # itself, so this one is measured against real burns.
+          guard_godot tools/test_script_regions.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F

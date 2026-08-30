@@ -545,6 +545,107 @@ class _ScriptTail extends Node:
 			return
 		log_node._close_script_bracket(Time.get_ticks_usec())
 
+
+## Un punto de control dentro de la escena, para partir `rest=` por subarbol.
+##
+## `rest=` es el paso de proceso menos lo que tiene nombre, y en Chimera son 31
+## de 32 ms. Los contadores que ya hay -notas, carriles, limites, pump,
+## personajes- suman 2.4 ms entre todos, o sea que lo que cuesta no es nada de
+## lo que alguien penso en medir. Un numero asi no se ataja adivinando: hay que
+## poder decir QUE subarbol.
+##
+## Como: Godot llama `_process` en orden de arbol dentro de la misma
+## `process_priority`, y todo el juego esta en la 0. Asi que una sonda colgada
+## como ULTIMO hijo de un nodo de primer nivel corre despues de todos sus
+## hermanos anteriores y de sus subarboles enteros. La diferencia entre dos
+## sondas consecutivas es lo que costo lo que hay entre ellas.
+##
+## Por que no vale `process_priority` para esto, que seria mas limpio: ordena
+## ANTES que el arbol, asi que solo sirve para abrir y cerrar el corchete
+## -que es justo lo que ya hacen este nodo y `_ScriptTail`- y no para partirlo.
+##
+## Se cuelgan de la escena y mueren con ella. Un subarbol con el proceso
+## apagado -lo que le hace `LullabyCutsceneVideo` a su cutscene- no estampa, y
+## eso se distingue de "costo cero" porque el hueco se reporta como `-`.
+class _ScriptProbe extends Node:
+	var log_node: Node
+	var slot: int = -1
+
+	func _process(_delta: float) -> void:
+		if log_node != null:
+			log_node._stamp_probe(slot, Time.get_ticks_usec())
+
+
+## Nombre de cada region y el instante en que su sonda corrio este fotograma.
+##
+## -1 = no corrio, que NO es lo mismo que cero: un subarbol en
+## PROCESS_MODE_DISABLED no estampa.
+var _probe_names: PackedStringArray = []
+var _probe_at: PackedInt64Array = []
+
+## El reparto por region del fotograma que gano el record, en microsegundos.
+var _peak_regions: PackedInt64Array = []
+
+
+func _stamp_probe(slot: int, now_usec: int) -> void:
+	if slot >= 0 and slot < _probe_at.size():
+		_probe_at[slot] = now_usec
+
+
+## Cuelga una sonda al final de cada hijo de primer nivel de la escena.
+##
+## Solo de los que tienen algo que medir: un nodo sin descendientes con
+## `_process` no puede aportar a `rest=`, y una sonda por cada uno solo alargaria
+## la linea.
+func _install_probes(scene: Node) -> void:
+	_probe_names.clear()
+	_probe_at.clear()
+	if scene == null:
+		return
+
+	for child: Node in scene.get_children():
+		if child is _ScriptProbe:
+			continue
+		if not _has_processing(child):
+			continue
+		var probe := _ScriptProbe.new()
+		probe.name = "DiagProbe_%s" % child.name
+		probe.log_node = self
+		probe.slot = _probe_names.size()
+		_probe_names.append(child.name)
+		_probe_at.append(-1)
+		child.add_child(probe)
+
+
+## Si algo de este subarbol puede correr GDScript por fotograma.
+func _has_processing(node: Node) -> bool:
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n.is_processing() or n.is_physics_processing():
+			return true
+		for c: Node in n.get_children():
+			stack.append(c)
+	return false
+
+
+## El reparto del fotograma pico, listo para escribir.
+func _regions_text() -> String:
+	if _peak_regions.is_empty():
+		return "-"
+	var rows: Array = []
+	for i: int in _peak_regions.size():
+		rows.append([_peak_regions[i], _probe_names[i] if i < _probe_names.size() else "?"])
+	rows.sort_custom(func(a, b): return a[0] > b[0])
+	var out: PackedStringArray = []
+	for row: Array in rows.slice(0, 6):
+		if row[0] < 0:
+			out.append("%s=-" % row[1])
+		elif row[0] >= 100:
+			out.append("%s=%.2f" % [row[1], row[0] / 1000.0])
+	return " ".join(out) if not out.is_empty() else "(todo <0.1ms)"
+
+
 func _close_script_bracket(now_usec: int) -> void:
 	_script_usec = now_usec - _script_begin_usec
 
@@ -592,6 +693,21 @@ func _close_script_bracket(now_usec: int) -> void:
 	_peak_pump_usec = RubiconLevelNoteHandler.frame_pump_usec
 	_peak_char_usec = RubiconCharacter.frame_process_usec
 	_peak_chars = RubiconCharacter.frame_process_count
+
+	# El reparto por region del MISMO fotograma, no de otro. Cada sonda estampo
+	# cuando le toco; la region de una sonda es lo que va desde la anterior que
+	# de verdad corrio -o desde la apertura del corchete- hasta ella.
+	_peak_regions.resize(_probe_at.size())
+	var prev: int = _script_begin_usec
+	for i: int in _probe_at.size():
+		var at: int = _probe_at[i]
+		if at < 0:
+			# No corrio: subarbol con el proceso apagado. Se marca y no se le
+			# imputa el hueco a la region siguiente por error.
+			_peak_regions[i] = -1
+			continue
+		_peak_regions[i] = maxi(0, at - prev)
+		prev = at
 
 ## While a load is in flight, its path and which progress checkpoints have
 ## already been reported. A SCENE_IN of 18726ms says the load is the problem
@@ -1083,6 +1199,13 @@ func _process(delta: float) -> void:
 	# node has the lowest process_priority in the tree, so everything else
 	# that runs this frame runs after this line.
 	_script_begin_usec = Time.get_ticks_usec()
+
+	# Y se borran las marcas del fotograma anterior, en el mismo sitio y por la
+	# misma razon: si una sonda no corre este fotograma su hueco tiene que salir
+	# como `-`, no como la marca vieja, que daria una region negativa o un
+	# reparto inventado.
+	for i: int in _probe_at.size():
+		_probe_at[i] = -1
 
 	# Wall clock, not delta.
 	#
@@ -1841,7 +1964,12 @@ func _collect_blackout_watch() -> void:
 	_process_nodes = 0
 	var scene: Node = get_tree().current_scene if is_inside_tree() else null
 	if scene == null:
+		_probe_names.clear()
+		_probe_at.clear()
+		_peak_regions.clear()
 		return
+
+	_peak_regions.clear()
 
 	var materials_seen: Dictionary = {}
 	var stack: Array[Node] = [scene]
@@ -1911,6 +2039,13 @@ func _collect_blackout_watch() -> void:
 		_surface_count, _alpha_surface_count, _material_count,
 		_skeleton_count, _skeleton_bones,
 	])
+
+	# DESPUES del recuento, no antes: una sonda define `_process`, asi que Godot
+	# le enciende el procesado sola y se contaria a si misma en _process_nodes.
+	_install_probes(scene)
+	_entry("PROBES", "%d regiones instaladas en %s: %s" % [
+		_probe_names.size(), _current_scene_name(),
+		", ".join(_probe_names) if not _probe_names.is_empty() else "ninguna"])
 
 ## Times the same shot three ways and writes GPUSPLIT.
 ##
@@ -4041,6 +4176,26 @@ func _entry(kind: String, detail: String) -> void:
 		int(Performance.get_monitor(Performance.PHYSICS_3D_COLLISION_PAIRS)),
 		_current_scene_name(),
 	])
+
+	# Quien se come rest=, por subarbol, del MISMO fotograma que gano el record.
+	#
+	# En linea aparte y no dentro del formato de arriba a proposito: esa cadena
+	# ya lleva noventa argumentos posicionales y meter uno mas en medio es la
+	# clase de cambio que desplaza los demas sin que nada avise.
+	#
+	# Se ordena por coste y se cortan las regiones por debajo de 0.1ms, que solo
+	# alargarian la linea. Un `-` es un subarbol que NO estampo: proceso apagado,
+	# no coste cero.
+	# Solo en los censos. `_entry()` escribe una linea por CADA entrada -errores,
+	# avisos, cambios de escena- y colgar esto de todas ellas duplicaria el log
+	# para repetir el mismo reparto.
+	if kind.begins_with("CENSUS") and not _probe_names.is_empty():
+		_file.store_line("[%9.2fs] %-10s script_max=%.2fms rest=%.2fms | %s" % [
+			seconds, "REGIONS",
+			float(_script_peak_usec) / 1000.0,
+			float(maxi(0, _script_peak_usec - _peak_note_usec - _peak_lane_usec
+				- _peak_bounds_usec - _peak_pump_usec - _peak_char_usec)) / 1000.0,
+			_regions_text()])
 	# Counts, not rates, and cleared here so each line covers the interval
 	# since the previous one - same contract as churn= and anim2d=. idle= is
 	# deliberately not cleared: it is a timestamp, not a tally.
