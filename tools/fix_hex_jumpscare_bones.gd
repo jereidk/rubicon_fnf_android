@@ -38,21 +38,24 @@ const HEX := "res://lullaby_mod/assets/funkin/chimera/models/hex/hex.tscn"
 const LIBRARY := "res://lullaby_mod/resources/animations/hex/hex_misc_anim_library.res"
 const ANIM := &"jumpscare_short"
 
-## El uid que la libreria traia. Se conserva escrito porque el intento de
-## preservarlo NO funciono y conviene que conste.
+## Sobre el uid de la libreria, que esta herramienta NO puede preservar
+## -----------------------------------------------------------------------
+## Guardar la libreria le cambia el uid, y no hay forma de evitarlo desde aqui.
+## ResourceSaver escribe el que ResourceFormatSaverBinary saca de
+## `get_resource_id_for_path()`, que consulta el cache de uid del proyecto antes
+## que nada; poner el mapeo con `ResourceUID.add_id()` justo antes de guardar
+## llega tarde. Se probo dos veces y salio el mismo valor nuevo las dos, o sea
+## que no es aleatorio: viene del cache que la primera pasada ya habia escrito.
 ##
-## ResourceSaver escribe el uid que ResourceFormatSaverBinary saca de
-## `get_resource_id_for_path()`, y esa funcion consulta el cache de uid del
-## proyecto antes que nada. Poner el mapeo con ResourceUID.add_id() justo antes
-## de guardar llega tarde: el fichero salio con `uid://hy20gd3ren0rr` las dos
-## veces que se probo - el mismo valor, o sea que no es aleatorio, viene del
-## cache que la primera pasada ya habia escrito.
+## Hubo un bloque aqui que lo intentaba igualmente. Se quito, y no solo por estar
+## muerto: forzaba el uid ANTERIOR, que desde que se corrio no lo referencia ya
+## nadie, asi que volver a correr la herramienta lo habria reintroducido contra
+## un fichero que apunta a otro sitio.
 ##
-## Como el unico que referenciaba esta libreria era hex.tscn -comprobado por
-## texto y tambien decodificando todos los .res del arbol-, se actualizo ahi el
-## uid en vez de pelearse con el cache. Si esta herramienta se vuelve a correr y
-## el uid cambia otra vez, hay que actualizar hex.tscn igual.
-const OLD_UID := "uid://ccbuccrfnilgm"
+## Lo que se hace en su lugar es lo unico que funciono: como el unico que
+## referencia esta libreria es hex.tscn -comprobado por texto y decodificando
+## todos los .res del arbol-, se actualiza ahi. Por eso al terminar se imprime el
+## uid resultante, que es el que hay que dejar en hex.tscn si vuelve a cambiar.
 
 
 func _initialize() -> void:
@@ -111,20 +114,6 @@ func _initialize() -> void:
 		quit(0)
 		return
 
-	# El uid, ANTES de guardar y no como adorno.
-	#
-	# ResourceSaver escribe en la cabecera el uid que ResourceUID tenga para esa
-	# ruta, y si no tiene ninguno GENERA UNO NUEVO. Sin esto el fichero salio con
-	# `uid://hy20gd3ren0rr` mientras hex.tscn seguia pidiendo
-	# `uid://ccbuccrfnilgm`: Godot cae entonces a la ruta de texto, que aqui es
-	# correcta, pero deja el aviso "invalid UID" y una referencia que solo
-	# aguanta mientras nadie mueva el fichero.
-	var keep: int = ResourceUID.text_to_id(OLD_UID)
-	if ResourceUID.has_id(keep):
-		ResourceUID.set_id(keep, LIBRARY)
-	else:
-		ResourceUID.add_id(keep, LIBRARY)
-
 	# FLAG_COMPRESS porque asi estaba: el fichero es `RSCC` y no hay razon para
 	# devolverlo al triple de tamaño.
 	var err: int = ResourceSaver.save(library, LIBRARY, ResourceSaver.FLAG_COMPRESS)
@@ -133,6 +122,20 @@ func _initialize() -> void:
 		quit(1)
 		return
 	print("OUT guardado %s" % LIBRARY)
+
+	# El uid que le ha quedado, que es lo que hay que llevar a hex.tscn.
+	#
+	# Guardar se lo cambia y no se puede impedir (ver la cabecera). Lo unico util
+	# es DECIRLO: si esto no coincide con el `uid=` del ext_resource de hex.tscn,
+	# Godot cae a la ruta de texto, que aqui es correcta, pero deja el aviso
+	# "invalid UID" y una referencia que solo aguanta mientras nadie mueva el
+	# fichero.
+	var now: int = ResourceLoader.get_resource_uid(LIBRARY)
+	if now == ResourceUID.INVALID_ID:
+		print("OUT uid resultante: (ninguno registrado)")
+	else:
+		print("OUT uid resultante: %s" % ResourceUID.id_to_text(now))
+	print("OUT   si hex.tscn no lo tiene en su ext_resource, actualizalo ahi")
 	quit(0)
 
 
