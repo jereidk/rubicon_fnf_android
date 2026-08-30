@@ -30,7 +30,7 @@ const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 ## The titles are a vertical list that scrolls under a fixed selection. Placed rather than
 ## read: StoryMenu is compiled and its layout was not recovered, so this is the classic
 ## Funkin shape - the chosen week in the middle, the rest above and below it.
-const TITLE_CENTRE := Vector2(960.0, 400.0)
+const TITLE_CENTRE := Vector2(960.0, 540.0)
 const TITLE_SPACING := 180.0
 const TITLE_ALPHA_OFF := 0.6
 

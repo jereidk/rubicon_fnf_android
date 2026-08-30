@@ -198,8 +198,16 @@ place a scene *change* is exercised, which is why it catches things an instanced
 harness cannot.
 
 The one-off harnesses in `tools/animania/harness/` render a moment so it can be looked at:
-`menu_shot`, `freeplay_shot`, `death_shot`, `level_shot`, `health_bar_shot`, `lane_glow`,
-`standup_frame`, `opening_shot`, `sing_sheet`, `measure_character`, `measure_title`.
+`menu_shot`, `menus_shot` (story and pause), `freeplay_shot`, `death_shot`, `level_shot`,
+`health_bar_shot`, `lane_glow`, `standup_frame`, `opening_shot`, `sing_sheet`,
+`measure_character`, `measure_title`.
+
+**Render every screen you build, before saying it is done.** Passing guards say a screen
+*works*; only a render says it *looks right*. Two screens went in on guards alone and the
+first render of them found the story list sitting well above centre. It costs one command.
+
+A harness that shoots the pause menu has to set `process_mode = PROCESS_MODE_ALWAYS` on
+itself: the pause pauses the tree, and a harness that stops with it never takes the picture.
 
 ### Harness traps
 
