@@ -1562,6 +1562,28 @@ jobs:
           # the videos - and that all five presets carry the exclusion.
           guard_godot tools/test_video_covered_assets_excluded.gd
 
+          # === Chimera's props write depth
+          # Reported from the device as "a model that shakes and looks broken"
+          # on the right of the frame, in Chimera's live 3D. It is the dresser,
+          # and the cause is that the house glTF exports props1, props2,
+          # propruhhhhhoneofthem and Material.001 as alphaMode BLEND. Their
+          # alpha is binary - decoding the textures out of chimera0.bin, between
+          # 0.29% and 1.43% of pixels sit between 0 and 255, which is the
+          # antialiased edge of a cutout and nothing else. A blended material
+          # does not write depth, so the engine sorts those props per object by
+          # centre distance and the order between two overlapping ones swaps as
+          # the camera moves. props1 is doubleSided on top of that, so one
+          # object's front and back faces blend against each other unordered.
+          # Fixed in chimera_house.gd by name at load, not by editing the glTF -
+          # reimporting the model moves the LightmapGI bake, which is the
+          # failure that blacked the house out for eleven days. foliage stays
+          # blended: 4.85% intermediate alpha is a real soft edge, and it
+          # already carries its own scissor override in chimera_house.tscn.
+          # Also the overdraw half of the same defect - a blended surface cannot
+          # early-Z, which is what "37 of 75 Chimera 3D surfaces non-opaque" in
+          # the log analysis was counting.
+          guard_godot tools/test_house_props_not_blended.gd
+
           # === Verify the console's boot flag always clears
           # booting gates back_out, home_button, gallery_button and
           # cartridges_enter_label, and its only clear used to require a frame
