@@ -576,6 +576,30 @@ func _build_death(health: Node, song: Node) -> void:
 	retry_player.name = "AnimationPlayer"
 	retry.add_child(retry_player)
 
+	# The curtain deathConfirm wipes down, added LAST so it draws over the retry text - which
+	# is where tadano-stand.hx adds it too. FlxGradient spreads three colours evenly, so the
+	# stops are 0, 0.5 and 1 over a sprite two and a quarter screens tall.
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray([Color.BLACK, Color.BLACK, Color(0.0, 0.0, 0.0, 0.0)])
+	var ramp_texture := GradientTexture2D.new()
+	ramp_texture.gradient = ramp
+	ramp_texture.fill_from = Vector2.ZERO
+	ramp_texture.fill_to = Vector2(0.0, 1.0)
+	ramp_texture.width = 1
+	ramp_texture.height = 512
+	var gradient := TextureRect.new()
+	gradient.name = "Gradient"
+	gradient.texture = ramp_texture
+	gradient.stretch_mode = TextureRect.STRETCH_SCALE
+	gradient.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gradient.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gradient.visible = false
+	layer.add_child(gradient)
+	gradient.set(&"layout_mode", 0)
+	gradient.size = Vector2(1920.0, 1080.0 * 2.25)
+	gradient.position = Vector2(0.0, -1080.0 * 2.0)
+
 	var sequence: Node = _add(_root, Node.new(), "DeathSequence", DEATH_SCRIPT)
 	sequence.health_module = health
 	sequence.song = song
@@ -587,6 +611,7 @@ func _build_death(health: Node, song: Node) -> void:
 	sequence.right_panel = panels["RightPanel"]
 	sequence.retry_text = retry
 	sequence.retry_player = retry_player
+	sequence.gradient = gradient
 	sequence.phone_player = _root.find_child("Tadano", true, false)
 	sequence.phone_opponent = _root.find_child("Komi", true, false)
 	sequence.stand_player = _root.find_child("TadanoStand", true, false)

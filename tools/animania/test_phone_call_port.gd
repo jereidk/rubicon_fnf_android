@@ -1314,6 +1314,26 @@ func _check_death() -> void:
 			_check(opponent.animation_player.current_animation == &"game_over",
 				"de pie: komi tendria que estar en game_over")
 
+		# deathConfirm is NOT the same in the two forms, and this port ran the standing
+		# one's numbers for both. Only tadano-stand.hx slides the panels and drops the
+		# black curtain; tadano.hx just raises the camera, on its own delay and ease.
+		var gradient: Control = level.get_node("Death/Gradient")
+		var panel_at: float = level.get_node("Death/LeftPanel").position.x
+		_check(not gradient.visible, "%s: la cortina no tendria que verse aun" % form)
+		sequence.confirm()
+		await process_frame
+		_check(gradient.visible == standing,
+			"%s: la cortina se ve %s" % [form, gradient.visible])
+		if standing:
+			_check(is_equal_approx(gradient.position.y, -2160.0),
+				"de pie: la cortina empieza en %.0f" % gradient.position.y)
+			_check(is_equal_approx(gradient.size.y, 1080.0 * 2.25),
+				"de pie: la cortina mide %.0f de alto" % gradient.size.y)
+		else:
+			_check(is_equal_approx(
+					level.get_node("Death/LeftPanel").position.x, panel_at),
+				"al telefono los paneles no tendrian que moverse")
+
 		_drop(level)
 		await process_frame
 

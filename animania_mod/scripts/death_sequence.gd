@@ -101,6 +101,9 @@ const SCREEN := Vector2(1920.0, 1080.0)
 @export var stand_player: Node2D
 @export var stand_opponent: Node2D
 
+## The black curtain the standing form's confirm wipes down. Screen space, like its
+## scrollFactor.set().
+@export var gradient: Control
 ## The retry text has one atlas per form.
 @export var phone_text: AnimationLibrary
 @export var stand_text: AnimationLibrary
@@ -352,10 +355,17 @@ func _process(delta: float) -> void:
 
 ## deathConfirm. Whatever drives the retry calls this and then does its own transition -
 ## there is no game-over scene on this branch to transition to.
+##
+## The two forms differ here, and this used to run the standing form's numbers for both.
+## tadano-stand.hx raises the camera 350 over 3.5s on a 0.2 delay with elasticInOut, slides
+## the panels and drops the gradient; tadano.hx cancels the slide it started on deathLoop
+## and raises the same 350 over the same 3.5s but on a 0.8 delay with backInOut, and has
+## neither panels nor gradient.
 func confirm() -> void:
 	if not _dying or _confirmed:
 		return
 	_confirmed = true
+	var standing: bool = is_standing()
 
 	if retry_player != null:
 		retry_player.play(&"confirm")
@@ -365,10 +375,15 @@ func confirm() -> void:
 		confirm_music.play()
 
 	if camera != null:
-		create_tween().tween_property(camera, "position_interpolate_target:y",
+		var rise: Tween = create_tween()
+		rise.tween_property(camera, "position_interpolate_target:y",
 			camera.position_interpolate_target.y + CONFIRM_CAMERA_RISE * FUNKIN_TO_RUBICON,
-			CONFIRM_SECONDS).set_delay(0.2).set_trans(Tween.TRANS_ELASTIC).set_ease(
+			CONFIRM_SECONDS).set_delay(0.2 if standing else 0.8).set_trans(
+			Tween.TRANS_ELASTIC if standing else Tween.TRANS_BACK).set_ease(
 			Tween.EASE_IN_OUT)
+
+	if not standing:
+		return
 
 	for entry: Array in [[left_panel, PANEL_CONFIRM * FUNKIN_TO_RUBICON],
 			[right_panel, SCREEN.x - 100.0 * FUNKIN_TO_RUBICON]]:
@@ -376,6 +391,28 @@ func confirm() -> void:
 			continue
 		create_tween().tween_property(entry[0], "position:x", float(entry[1]),
 			CONFIRM_SECONDS).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
+
+	_sweep_gradient()
+
+
+## The last thing tadano-stand.hx's deathConfirm does, and the last thing added to the
+## substate, so it draws over everything including the retry text:
+##
+##     var g = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height * 2.25,
+##         [FlxColor.BLACK, FlxColor.BLACK, FlxColor.TRANSPERENT]);
+##     g.screenCenter(FlxAxes.X); g.scrollFactor.set(); g.y = -(FlxG.height * 2);
+##     FlxTween.tween(g, {y: 0}, 3.5, {ease: FlxEase.backIn});
+##
+## Three colours over a sprite two and a quarter screens tall, so black for the first half
+## and fading out over the second - and it comes to rest at y = 0, where the screen only
+## ever sees that solid first half. It is a curtain, drawn as a fade.
+func _sweep_gradient() -> void:
+	if gradient == null:
+		return
+	gradient.visible = true
+	gradient.position = Vector2(gradient.position.x, -SCREEN.y * 2.0)
+	create_tween().tween_property(gradient, "position:y", 0.0,
+		CONFIRM_SECONDS).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 
 
 ## GameOverSubState aims at the dying character plus its own death cameraOffsets, and zooms

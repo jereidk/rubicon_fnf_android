@@ -15,11 +15,15 @@ const LEVEL := "res://songs/phone-call/phone_call.tscn"
 ## runs another 3.5.
 const SETTLE := 6.5
 const PHONE_SETTLE := 8.5
+## deathConfirm's tweens all run 3.5s; this is late enough that the curtain has landed.
+const CONFIRM_SETTLE := 3.8
 
 var _level: Node
 var _standing: bool = false
 var _elapsed: float = 0.0
 var _shot: bool = false
+var _confirming: bool = false
+var _confirm_at: float = 0.0
 
 
 func _ready() -> void:
@@ -59,6 +63,18 @@ func _process(delta: float) -> void:
 		return
 
 	_elapsed += delta
+	if _confirming:
+		if _elapsed < _confirm_at:
+			return
+		_shot = true
+		var curtain: Control = _level.get_node("Death/Gradient")
+		get_viewport().get_texture().get_image().save_png("user://death_confirm.png")
+		print("OUT confirm   cortina y=%.0f de %.0f -> %s" % [
+			curtain.position.y, curtain.size.y,
+			ProjectSettings.globalize_path("user://death_confirm.png")])
+		get_tree().quit()
+		return
+
 	if _elapsed < (SETTLE if _standing else PHONE_SETTLE):
 		return
 
@@ -77,4 +93,9 @@ func _process(delta: float) -> void:
 	if not _standing:
 		_start(true)
 		return
-	get_tree().quit()
+
+	# And the standing form's confirm, whose curtain is the last thing this sequence does.
+	_level.get_node("DeathSequence").confirm()
+	_confirm_at = _elapsed + CONFIRM_SETTLE
+	_shot = false
+	_confirming = true
