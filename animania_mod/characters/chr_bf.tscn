@@ -296,7 +296,7 @@ _data = {
 &"sing_up": SubResource("Animation_je08u")
 }
 
-[node name="bf" type="Node2D" unique_id=1520932915 node_paths=PackedStringArray("animation_player")]
+[node name="bf" type="Node2D" unique_id=601417701 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_ptbqy")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
@@ -317,16 +317,16 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=308083962]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=840293010]
 position = Vector2(-155, -343)
 script = ExtResource("2_fptaw")
 symbol = "render/BF IDLE"
 centered = false
 atlases = Array[ExtResource("3_qtyi2")]([ExtResource("4_kjbjq")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1732293863]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1934386560]
 libraries/ = ExtResource("5_nqspi")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=75366481]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=76457313]
 libraries/ = SubResource("AnimationLibrary_i6qys")
 autoplay = &"dance_idle"

@@ -79,6 +79,12 @@ func _build_week1_characters() -> void:
 		"dance_idle", "sing_left", "sing_down", "sing_up", "sing_right",
 	], 8, true)
 
+	# dad-beast, dadbattle's opponent. The scene is chr_dad_beast so the level builder's
+	# `who.replace("-", "_")` finds it from the metadata's `dad-beast`.
+	_build_adobe_character("dad_beast", Vector2(355.5, 808.0), "DAD IDLE", [
+		"dance_idle", "sing_left", "sing_down", "sing_up", "sing_right",
+	], 8, true)
+
 	# gf has no miss art at all - she never misses - so miss_* fall back to the sing
 	# animations, which is what Funkin does when `<anim>miss` is absent.
 	_build_adobe_character("gf", Vector2(184.5, 436.0), "EVERYTHING/GF/anims/GF DANCE LEFT",

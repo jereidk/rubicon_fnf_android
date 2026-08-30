@@ -1,0 +1,163 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/skybox.png" id="1_symsj"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_hjy6s"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_myu4d"]
+[ext_resource type="Resource" path="res://animania_mod/stages/city_far_atlas.tres" id="4_p2nbg"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/stages/city_far_library.tres" id="5_n8qus"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/bg_mist.png" id="6_dasom"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/stages/bg_cars_assets_frames.tres" id="7_j5b0b"]
+[ext_resource type="Resource" path="res://animania_mod/stages/pillar_atlas.tres" id="8_7jk5p"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/stages/pillar_library.tres" id="9_6v8dl"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/bg.png" id="10_l7j6e"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/vending_machine_lights.png" id="11_nbq42"]
+[ext_resource type="Resource" path="res://animania_mod/stages/rain_spritemap_atlas.tres" id="12_i1ma7"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/stages/rain_spritemap_library.tres" id="13_nkrcf"]
+[ext_resource type="Resource" path="res://animania_mod/stages/fg_boxes_atlas.tres" id="14_vqq3x"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/stages/fg_boxes_library.tres" id="15_jy7kj"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/fg_mist.png" id="16_tw5bp"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/bottom_overlay.png" id="17_f3ww3"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/red_stuff.png" id="18_og3vs"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/holygrad.png" id="19_qdnxd"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rq8vw"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_tyyaj"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_j4j2k"]
+blend_mode = 3
+
+[node name="ServiceEnterance" type="Node2D" unique_id=82524045]
+metadata/characters = {
+"bf": {
+"cameraOffsets": [-250.0, -200.0],
+"position": [1110.0, 900.0],
+"stageCamera": [650.0, 375.0],
+"zIndex": 22.0
+},
+"dad": {
+"cameraOffsets": [100.0, -150.0],
+"position": [130.0, 885.0],
+"stageCamera": [350.0, 350.0],
+"zIndex": 23.0
+},
+"gf": {
+"cameraOffsets": [0.0, -50.0],
+"position": [1870.0, 490.0],
+"zIndex": -19.0
+}
+}
+metadata/camera_zoom = 0.46
+
+[node name="Skybox" type="Sprite2D" parent="." unique_id=976954032]
+position = Vector2(-1250, -750)
+texture = ExtResource("1_symsj")
+centered = false
+metadata/scroll = [0.5, 0.5]
+
+[node name="SkyboxCity" type="Node2D" parent="." unique_id=1785952882]
+position = Vector2(-1700, -1300)
+script = ExtResource("2_hjy6s")
+symbol = "city far"
+centered = false
+atlases = Array[ExtResource("3_myu4d")]([ExtResource("4_p2nbg")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="SkyboxCity" unique_id=1945426287]
+libraries/ = ExtResource("5_n8qus")
+autoplay = &"city_far_loop"
+
+[node name="BgMist1" type="Sprite2D" parent="." unique_id=1276359411]
+modulate = Color(1, 1, 1, 0.4)
+material = SubResource("CanvasItemMaterial_rq8vw")
+position = Vector2(-1400, -50)
+texture = ExtResource("6_dasom")
+centered = false
+metadata/scroll = [0.8, 0.8]
+
+[node name="PhillyCars2" type="AnimatedSprite2D" parent="." unique_id=1479765571]
+modulate = Color(1, 1, 1, 0.5)
+position = Vector2(0, 250)
+sprite_frames = ExtResource("7_j5b0b")
+animation = &"car"
+autoplay = "car"
+
+[node name="Bulbb" type="Node2D" parent="." unique_id=197806179]
+position = Vector2(-1320, -350)
+script = ExtResource("2_hjy6s")
+symbol = "pillar"
+centered = false
+atlases = Array[ExtResource("3_myu4d")]([ExtResource("8_7jk5p")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Bulbb" unique_id=870226211]
+libraries/ = ExtResource("9_6v8dl")
+autoplay = &"pillar_loop"
+
+[node name="PhillyCars" type="AnimatedSprite2D" parent="." unique_id=1999692409]
+position = Vector2(0, 250)
+sprite_frames = ExtResource("7_j5b0b")
+animation = &"car"
+autoplay = "car"
+
+[node name="StageBg" type="Sprite2D" parent="." unique_id=853209169]
+position = Vector2(-1595, -1580)
+texture = ExtResource("10_l7j6e")
+centered = false
+metadata/scroll = [0.95, 0.95]
+
+[node name="VendingLight" type="Sprite2D" parent="." unique_id=356412679]
+material = SubResource("CanvasItemMaterial_tyyaj")
+position = Vector2(1370, -205)
+texture = ExtResource("11_nbq42")
+centered = false
+metadata/scroll = [0.95, 0.95]
+
+[node name="Rain" type="Node2D" parent="." unique_id=852509402]
+position = Vector2(-1650, 270)
+script = ExtResource("2_hjy6s")
+symbol = "rain spritemap"
+centered = false
+atlases = Array[ExtResource("3_myu4d")]([ExtResource("12_i1ma7")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Rain" unique_id=2128370632]
+libraries/ = ExtResource("13_nkrcf")
+autoplay = &"rain_spritemap_loop"
+
+[node name="FgBoxes" type="Node2D" parent="." unique_id=973834213]
+position = Vector2(400, 520)
+script = ExtResource("2_hjy6s")
+symbol = "ass"
+centered = false
+atlases = Array[ExtResource("3_myu4d")]([ExtResource("14_vqq3x")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="FgBoxes" unique_id=1719112633]
+libraries/ = ExtResource("15_jy7kj")
+autoplay = &"fg_boxes_loop"
+
+[node name="FgMist" type="Sprite2D" parent="." unique_id=1549382416]
+position = Vector2(-1450, 500)
+texture = ExtResource("16_tw5bp")
+centered = false
+metadata/scroll = [1.2, 1.2]
+
+[node name="FgOverlay" type="Sprite2D" parent="." unique_id=985160778]
+material = SubResource("CanvasItemMaterial_j4j2k")
+position = Vector2(-1500, 500)
+scale = Vector2(1, 1.25)
+texture = ExtResource("17_f3ww3")
+centered = false
+metadata/scroll = [1.0, 1.0]
+
+[node name="FgRedOverlay" type="Sprite2D" parent="." unique_id=1704133671]
+position = Vector2(-2400, -250)
+texture = ExtResource("18_og3vs")
+centered = false
+metadata/scroll = [1.1, 1.1]
+
+[node name="Holygrad" type="Sprite2D" parent="." unique_id=548893749]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(-500, -200)
+texture = ExtResource("19_qdnxd")
+centered = false
+metadata/scroll = [0.0, 0.0]

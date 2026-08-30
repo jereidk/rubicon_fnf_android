@@ -58,7 +58,8 @@ func _init() -> void:
 		# the vendored tree mirrors the mod's under images/stages.
 		var relative: String = String(prop["assetPath"]).trim_prefix("stages/")
 		var asset: String = "%s/%s.png" % [ART, relative]
-		if not ResourceLoader.exists(asset):
+		if String(prop.get("animType", "")) != "animateatlas" \
+				and not ResourceLoader.exists(asset):
 			print("OUT %-20s SIN ARTE (%s)" % [prop["name"], asset])
 			continue
 
@@ -66,8 +67,44 @@ func _init() -> void:
 		# animations at all and just want frame 0; the ones that do - the curtains, the
 		# smoke, the lights - get an AnimatedSprite2D. Drawing the raw PNG instead puts the
 		# entire spritesheet on the stage, which is what the first pass of this did.
-		var frames: SpriteFrames = null
 		var animations: Array = prop.get("animations", [])
+
+		# An Adobe prop is a gdanimate AnimateSymbol, the same as an Adobe character - the
+		# atlas and its library are built by build_adobe_character.gd and the prop's
+		# `prefix` is the symbol to show. serviceEnterance has four of them: the far city,
+		# a pillar, the foreground boxes and the rain.
+		if String(prop.get("animType", "")) == "animateatlas":
+			var basename: String = relative.get_file().to_snake_case()
+			var atlas_path: String = "%s/%s_atlas.tres" % [OUT_DIR, basename]
+			if not ResourceLoader.exists(atlas_path):
+				print("OUT %-20s sin atlas Adobe (%s)" % [prop["name"], atlas_path])
+				continue
+			var symbol := AnimateSymbol.new()
+			symbol.name = String(prop["name"]).to_pascal_case()
+			symbol.atlases = [load(atlas_path)] as Array[AnimateAtlas]
+			symbol.atlas_index = 0
+			symbol.centered = false
+			symbol.symbol = String((animations[0] as Dictionary).get("prefix", "")) \
+				if not animations.is_empty() else ""
+			_place(symbol, prop)
+			root.add_child(symbol)
+			symbol.owner = root
+			var player := AnimationPlayer.new()
+			player.name = "AnimationPlayer"
+			player.add_animation_library(&"", load("%s/%s_library.tres" % [OUT_DIR, basename]))
+			symbol.add_child(player)
+			player.owner = root
+			var clip := StringName("%s_loop" % basename)
+			if player.has_animation(clip):
+				player.get_animation_library(&"").get_animation(clip).loop_mode = \
+					Animation.LOOP_LINEAR
+				player.autoplay = clip
+			built += 1
+			print("OUT %-20s adobe '%s' (%.0f, %.0f) z=%d" % [prop["name"], symbol.symbol,
+				symbol.position.x, symbol.position.y, int(prop.get("zIndex", 0))])
+			continue
+
+		var frames: SpriteFrames = null
 		if String(prop.get("animType", "")) == "sparrow":
 			var built_frames: String = "%s/%s_frames.tres" % [
 				OUT_DIR, relative.get_file().to_snake_case()]

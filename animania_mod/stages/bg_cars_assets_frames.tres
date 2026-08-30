@@ -1,0 +1,43 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/bg_cars_assets.png" id="1_ry4y8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jacok"]
+atlas = ExtResource("1_ry4y8")
+region = Rect2(0, 0, 499, 252)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vv1o1"]
+atlas = ExtResource("1_ry4y8")
+region = Rect2(509, 0, 438, 203)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hajtp"]
+atlas = ExtResource("1_ry4y8")
+region = Rect2(0, 262, 458, 196)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t77wr"]
+atlas = ExtResource("1_ry4y8")
+region = Rect2(468, 262, 293, 234)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jacok")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vv1o1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hajtp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t77wr")
+}],
+"loop": 1,
+"name": &"car",
+"speed": 24.0
+}]

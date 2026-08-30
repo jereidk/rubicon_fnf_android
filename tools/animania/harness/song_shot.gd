@@ -5,7 +5,7 @@
 #       --path . res://tools/animania/harness/song_shot.tscn
 extends Node2D
 
-const SONG := "res://songs/fresh/fresh.tscn"
+const SONG := "res://songs/dadbattle/dadbattle.tscn"
 
 var _level: Node
 var _pending: bool = false
@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed >= _next_sample:
 		_next_sample += 1.0
-		for who: String in ["Bf", "Dad"]:
+		for who: String in ["Bf", "DadBeast"]:
 			var c: Node2D = _level.get_node_or_null("Stage/%s" % who)
 			if c != null:
 				print("OUT %.0fs %-3s %s" % [_elapsed, who,

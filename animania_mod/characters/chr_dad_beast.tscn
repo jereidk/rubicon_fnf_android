@@ -1,12 +1,12 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_yw3bb"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_q8qnc"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_d6tk4"]
-[ext_resource type="Resource" path="res://animania_mod/characters/dad_atlas.tres" id="4_p68u5"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/dad_library.tres" id="5_cvlpn"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_wanmy"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_86cgx"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_i4h16"]
+[ext_resource type="Resource" path="res://animania_mod/characters/dad_beast_atlas.tres" id="4_vbd51"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/characters/dad_beast_library.tres" id="5_48mee"]
 
-[sub_resource type="Animation" id="Animation_kwogj"]
+[sub_resource type="Animation" id="Animation_m8djt"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -21,8 +21,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_vnc7f"]
-length = 0.625
+[sub_resource type="Animation" id="Animation_8apta"]
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -31,7 +30,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("dad_dance_idle"),
+"clips": PackedStringArray("dad_beast_dance_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -47,8 +46,8 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_c6dde"]
-length = 0.625
+[sub_resource type="Animation" id="Animation_3t827"]
+length = 0.5833333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -57,7 +56,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("dad_sing_down"),
+"clips": PackedStringArray("dad_beast_sing_down"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -73,8 +72,8 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_x4hca"]
-length = 0.625
+[sub_resource type="Animation" id="Animation_gqvmh"]
+length = 0.5833333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -83,7 +82,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("dad_sing_left"),
+"clips": PackedStringArray("dad_beast_sing_left"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -99,8 +98,8 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_rsbhf"]
-length = 0.625
+[sub_resource type="Animation" id="Animation_46mjm"]
+length = 0.5833333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -109,7 +108,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("dad_sing_right"),
+"clips": PackedStringArray("dad_beast_sing_right"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -125,8 +124,8 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_r4yvl"]
-length = 0.625
+[sub_resource type="Animation" id="Animation_03hg4"]
+length = 0.5833333333333334
 step = 0.041666668
 tracks/0/type = "animation"
 tracks/0/imported = false
@@ -135,7 +134,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("dad_sing_up"),
+"clips": PackedStringArray("dad_beast_sing_up"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -151,18 +150,18 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_o7oie"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_v5gd8"]
 _data = {
-&"RESET": SubResource("Animation_kwogj"),
-&"dance_idle": SubResource("Animation_vnc7f"),
-&"sing_down": SubResource("Animation_c6dde"),
-&"sing_left": SubResource("Animation_x4hca"),
-&"sing_right": SubResource("Animation_rsbhf"),
-&"sing_up": SubResource("Animation_r4yvl")
+&"RESET": SubResource("Animation_m8djt"),
+&"dance_idle": SubResource("Animation_8apta"),
+&"sing_down": SubResource("Animation_3t827"),
+&"sing_left": SubResource("Animation_gqvmh"),
+&"sing_right": SubResource("Animation_46mjm"),
+&"sing_up": SubResource("Animation_03hg4")
 }
 
-[node name="dad" type="Node2D" unique_id=1750729216 node_paths=PackedStringArray("animation_player")]
-script = ExtResource("1_yw3bb")
+[node name="dad_beast" type="Node2D" unique_id=1557601654 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_wanmy")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
 singing_repeat_loop_point = 0.08333333333333333
@@ -182,16 +181,16 @@ animations = Dictionary[StringName, StringName]({
 })
 dancing_animations = Array[StringName]([&"dance_idle"])
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=870213845]
-position = Vector2(-200, -775)
-script = ExtResource("2_q8qnc")
-symbol = "EVERYTHING/RENDER/anims/Idle"
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=2030568889]
+position = Vector2(-355.5, -808)
+script = ExtResource("2_86cgx")
+symbol = "DAD IDLE"
 centered = false
-atlases = Array[ExtResource("3_d6tk4")]([ExtResource("4_p68u5")])
+atlases = Array[ExtResource("3_i4h16")]([ExtResource("4_vbd51")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=183619828]
-libraries/ = ExtResource("5_cvlpn")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1874784300]
+libraries/ = ExtResource("5_48mee")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=971999939]
-libraries/ = SubResource("AnimationLibrary_o7oie")
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=825664872]
+libraries/ = SubResource("AnimationLibrary_v5gd8")
 autoplay = &"dance_idle"

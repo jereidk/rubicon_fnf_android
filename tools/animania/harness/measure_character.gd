@@ -17,6 +17,7 @@ const SCENES := {
 	"bf": "res://animania_mod/characters/chr_bf.tscn",
 	"gf": "res://animania_mod/characters/chr_gf.tscn",
 	"dad": "res://animania_mod/characters/chr_dad.tscn",
+	"dad_beast": "res://animania_mod/characters/chr_dad_beast.tscn",
 }
 const PAD := Vector2(1400, 1400)
 

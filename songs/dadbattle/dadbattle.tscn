@@ -1,0 +1,285 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1_i46bb"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/dadbattle/Meta.tres" id="2_5ml4w"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3_yjyey"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_song.gd" id="4_tdne6"]
+[ext_resource type="AudioStream" path="res://songs/dadbattle/Inst.ogg" id="5_tbab6"]
+[ext_resource type="AudioStream" path="res://songs/dadbattle/Voices-dad.ogg" id="6_1acql"]
+[ext_resource type="AudioStream" path="res://songs/dadbattle/Voices-bf.ogg" id="7_tdat4"]
+[ext_resource type="PackedScene" path="res://animania_mod/stages/stg_service_enterance.tscn" id="8_dpk5i"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_dad_beast.tscn" id="9_xibiv"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="10_v2o62"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_gf.tscn" id="11_8618j"]
+[ext_resource type="PackedScene" path="res://animania_mod/characters/chr_bf.tscn" id="12_chuoi"]
+[ext_resource type="PackedScene" path="res://addons/rubicon/resources/levels/ui/default/Judgment.tscn" id="13_a0dfo"]
+[ext_resource type="PackedScene" path="res://animania_mod/ui/health_bar.tscn" id="14_7bwjc"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="15_vsddk"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/dadbattle/dadbattle-normal_Opponent.tres" id="16_7112g"]
+[ext_resource type="Resource" path="res://animania_mod/songs/phone_call_note_overrides.tres" id="17_s8exj"]
+[ext_resource type="PackedScene" path="res://animania_mod/notestyle/Lane.tscn" id="18_k434c"]
+[ext_resource type="Resource" path="res://animania_mod/source/songs/dadbattle/dadbattle-normal_Player.tres" id="19_mvjsp"]
+[ext_resource type="Resource" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="20_lc5j2"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="21_33kvu"]
+[ext_resource type="Script" path="res://animania_mod/scripts/song_camera.gd" id="22_jl3un"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="23_1rkr6"]
+[ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="24_m2brx"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="25_s8ehy"]
+[ext_resource type="PackedScene" path="res://animania_mod/menus/pause/pause_menu.tscn" id="26_xbd1o"]
+[ext_resource type="Script" path="res://animania_mod/menus/pause/pause_menu.gd" id="27_ur6qj"]
+
+[sub_resource type="Animation" id="Animation_rwo4n"]
+
+[sub_resource type="Animation" id="Animation_1epmf"]
+length = 133.66518
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tyhpb"]
+_data = {
+&"RESET": SubResource("Animation_rwo4n"),
+&"scene": SubResource("Animation_1epmf")
+}
+
+[node name="Dadbattle" type="Node2D" unique_id=2114403459]
+script = ExtResource("1_i46bb")
+metadata = ExtResource("2_5ml4w")
+
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=796641581]
+script = ExtResource("3_yjyey")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=197661296]
+callback_mode_discrete = 2
+libraries/ = SubResource("AnimationLibrary_tyhpb")
+autoplay = &"scene"
+
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=2102406828 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+script = ExtResource("4_tdne6")
+audio_players = [NodePath("Instrumental"), NodePath("VoicesDad"), NodePath("VoicesBf")]
+sync_reference_player = NodePath("Instrumental")
+
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1582993529]
+stream = ExtResource("5_tbab6")
+bus = &"Music"
+
+[node name="VoicesDad" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1092353234]
+stream = ExtResource("6_1acql")
+bus = &"Music"
+
+[node name="VoicesBf" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=468326677]
+stream = ExtResource("7_tdat4")
+bus = &"Music"
+
+[node name="Stage" parent="." unique_id=82524045 instance=ExtResource("8_dpk5i")]
+
+[node name="DadBeast" type="Node2D" parent="Stage" unique_id=1557601654 node_paths=PackedStringArray("animation_player", "level_note_controller") instance=ExtResource("9_xibiv")]
+position = Vector2(130, 885)
+script = ExtResource("10_v2o62")
+animation_player = NodePath("RootAnimationPlayer")
+level_note_controller = NodePath("../../UILayer/UI/Opponent")
+singing_sing_to_dance_interval = 8
+singing_repeat_loop_point = 0.08333333333333333
+dancing_measure_step = 0.25
+dancing_force_dance = false
+dancing_animations = Array[StringName]([&"dance_idle"])
+transition_update_queued_animations = true
+animations = Dictionary[StringName, StringName]({
+&"miss_down": &"sing_down",
+&"miss_left": &"sing_left",
+&"miss_right": &"sing_right",
+&"miss_up": &"sing_up",
+&"sing_down": &"sing_down",
+&"sing_left": &"sing_left",
+&"sing_right": &"sing_right",
+&"sing_up": &"sing_up"
+})
+dancing_animations = Array[StringName]([&"dance_idle"])
+
+[node name="Gf" type="Node2D" parent="Stage" unique_id=578515900 node_paths=PackedStringArray("animation_player", "level_note_controller") instance=ExtResource("11_8618j")]
+position = Vector2(1870, 490)
+script = ExtResource("10_v2o62")
+animation_player = NodePath("RootAnimationPlayer")
+level_note_controller = NodePath("../../UILayer/UI/Opponent")
+singing_sing_to_dance_interval = 6
+singing_repeat_loop_point = 0.08333333333333333
+dancing_measure_step = 0.25
+dancing_force_dance = false
+dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
+transition_update_queued_animations = true
+animations = Dictionary[StringName, StringName]({
+&"miss_down": &"sing_down",
+&"miss_left": &"sing_left",
+&"miss_right": &"sing_right",
+&"miss_up": &"sing_up",
+&"sing_down": &"sing_down",
+&"sing_left": &"sing_left",
+&"sing_right": &"sing_right",
+&"sing_up": &"sing_up"
+})
+dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
+
+[node name="Bf" type="Node2D" parent="Stage" unique_id=601417701 node_paths=PackedStringArray("animation_player", "level_note_controller") instance=ExtResource("12_chuoi")]
+position = Vector2(1110, 900)
+script = ExtResource("10_v2o62")
+animation_player = NodePath("RootAnimationPlayer")
+level_note_controller = NodePath("../../UILayer/UI/Player")
+singing_sing_to_dance_interval = 8
+singing_repeat_loop_point = 0.08333333333333333
+dancing_measure_step = 0.25
+dancing_force_dance = false
+dancing_animations = Array[StringName]([&"dance_idle"])
+transition_update_queued_animations = true
+animations = Dictionary[StringName, StringName]({
+&"miss_down": &"miss_down",
+&"miss_left": &"miss_left",
+&"miss_right": &"miss_right",
+&"miss_up": &"miss_up",
+&"sing_down": &"sing_down",
+&"sing_left": &"sing_left",
+&"sing_right": &"sing_right",
+&"sing_up": &"sing_up"
+})
+dancing_animations = Array[StringName]([&"dance_idle"])
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1774610997]
+layer = 2
+
+[node name="UI" type="Control" parent="UILayer" unique_id=1636305978]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Judgment" parent="UILayer/UI" unique_id=1516120155 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("13_a0dfo")]
+layout_mode = 1
+level_note_controller = NodePath("../Player")
+
+[node name="HealthBar" parent="UILayer/UI" unique_id=1517628594 node_paths=PackedStringArray("health_module") instance=ExtResource("14_7bwjc")]
+layout_mode = 0
+health_module = NodePath("../../../RubiconHealthModule")
+
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=190577853]
+anchors_preset = 0
+anchor_left = 0.25
+anchor_top = 1.0
+anchor_right = 0.25
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("15_vsddk")
+chart = ExtResource("16_7112g")
+note_overrides = ExtResource("17_s8exj")
+autoplay = true
+
+[node name="Lane" parent="UILayer/UI/Opponent" unique_id=990823892 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = -240.0
+offset_right = -240.0
+lane_autoplay_hit_lingers = true
+
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=1707499762 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = -80.0
+offset_right = -80.0
+lane_id = 1
+lane_autoplay_hit_lingers = true
+
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=410924441 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = 80.0
+offset_right = 80.0
+lane_id = 2
+lane_autoplay_hit_lingers = true
+
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=813499198 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = 240.0
+offset_right = 240.0
+lane_id = 3
+lane_autoplay_hit_lingers = true
+
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=614945196]
+anchors_preset = 0
+anchor_left = 0.75
+anchor_top = 1.0
+anchor_right = 0.75
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("15_vsddk")
+chart = ExtResource("19_mvjsp")
+note_overrides = ExtResource("17_s8exj")
+inputs = ExtResource("20_lc5j2")
+
+[node name="Lane" parent="UILayer/UI/Player" unique_id=684875243 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = -240.0
+offset_right = -240.0
+
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=1157819318 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = -80.0
+offset_right = -80.0
+lane_id = 1
+
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=2118817521 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = 80.0
+offset_right = 80.0
+lane_id = 2
+
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=758891682 instance=ExtResource("18_k434c")]
+layout_mode = 1
+offset_left = 240.0
+offset_right = 240.0
+lane_id = 3
+
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=1997197741]
+position = Vector2(860, 700)
+
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=1846086122]
+position = Vector2(230, 735)
+
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1741104681]
+position = Vector2(1870, 440)
+
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=1195172928]
+position = Vector2(545, 717.5)
+zoom = Vector2(0.69, 0.69)
+script = ExtResource("21_33kvu")
+position_interpolate_target = Vector2(545, 717.5)
+zoom_interpolate_target = Vector2(0.69, 0.69)
+
+[node name="SongCamera" type="Node" parent="." unique_id=97917570 node_paths=PackedStringArray("camera", "player", "opponent", "player_point", "opponent_point", "clock")]
+script = ExtResource("22_jl3un")
+camera = NodePath("../RubiconInterpolatedCamera2D")
+player = NodePath("../Stage/Bf")
+opponent = NodePath("../Stage/DadBeast")
+player_point = NodePath("../PlayerCameraPoint")
+opponent_point = NodePath("../OpponentCameraPoint")
+clock = NodePath("../RubiconLevelClock")
+bpm = 180.0
+
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=966301438 node_paths=PackedStringArray("note_controller")]
+script = ExtResource("23_1rkr6")
+note_controller = NodePath("../UILayer/UI/Player")
+starting_health = 50.0
+starting_health = 50.0
+
+[node name="MobileControls" type="CanvasLayer" parent="." unique_id=71386634 instance=ExtResource("24_m2brx")]
+layer = 15
+script = ExtResource("25_s8ehy")
+opacity = 0.4
+
+[node name="PauseMenu" type="CanvasLayer" parent="." unique_id=859432915 node_paths=PackedStringArray("dim", "buttons", "sfx", "music") instance=ExtResource("26_xbd1o")]
+layer = 40
+script = ExtResource("27_ur6qj")
+dim = NodePath("Dim")
+buttons = NodePath("Buttons")
+sfx = NodePath("Sfx")
+music = NodePath("Music")
+
+[editable path="Stage"]
+[editable path="UILayer/UI/HealthBar"]
