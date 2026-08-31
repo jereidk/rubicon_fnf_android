@@ -812,11 +812,26 @@ func _process(_delta: float) -> void:
 			_animation_progress(),
 		])
 		_reveal(_hidden.size() - _revealed)
-		# Straight to the end, skipping `_sweep_tail()`. The tail is time well
-		# spent on a run that is going fine and the worst possible thing to hand
-		# a run that has just blown a fifteen second budget - the deadline exists
-		# to stop exactly this scene from taking longer, not to earn it more.
-		finish_preload()
+		# Y a la cola, no directo al final.
+		#
+		# Esto llamaba a `finish_preload()` aqui, con el argumento de que un pase
+		# que acaba de reventar quince segundos es el ultimo al que darle mas
+		# tiempo. Sonaba prudente y dejaba la cola en codigo muerto: Chimera agota
+		# el plazo SIEMPRE, asi que la unica escena para la que se escribio la
+		# cola era la unica que nunca la corria. El log del dispositivo
+		# (10226-4fe0a6db) lo dice en dos numeros de la misma linea:
+		#
+		#     agoto el plazo con 59/72 revelados (16022ms de barrido)
+		#     finished ... barrido=40 poses en 5 grupos vistas=32/40 cola=0ms
+		#
+		# 32 de 40. Ocho puntos de vista sin visitar, que es exactamente lo que
+		# este mecanismo existe para evitar, en la ruta que mas lo necesita.
+		#
+		# Y lo que cuesta esta acotado por partida doble: la cola tiene su propio
+		# presupuesto (`SWEEP_TAIL_SECONDS`), y sus fotogramas son los de despues
+		# del revelado - no queda nada que encender, solo dibujar desde otro
+		# angulo. Ocho de esos son decimas, no segundos.
+		_sweep_tail()
 		return
 
 	# A reveal is paid for by the draw that follows this frame, not by the

@@ -151,6 +151,18 @@ func _initialize() -> void:
 		"con las 6 poses vistas entrega en el acto")
 	tail.free()
 
+	# La ruta del plazo vencido TAMBIEN pasa por la cola. Esto es lo que el log
+	# 10226-4fe0a6db pillo: Chimera agota el plazo siempre, esa ruta llamaba a
+	# `finish_preload()` directa, y la cola quedaba en codigo muerto justo en la
+	# escena para la que se escribio - `vistas=32/40 cola=0ms`.
+	var f := FileAccess.open(CAMERA, FileAccess.READ)
+	var code: String = "" if f == null else f.get_as_text()
+	var at: int = code.find("agoto el plazo")
+	var after: String = code.substr(at, 1600) if at >= 0 else ""
+	_check(at >= 0, "sigue existiendo la rama del plazo vencido")
+	_check(after.contains("_sweep_tail()"),
+		"y va a la cola en vez de entregar directa")
+
 	# La cola tampoco puede quedarse: si su presupuesto ya vencio, entrega.
 	var spent: Node = script.new()
 	_load_groups(spent, [3, 3])
