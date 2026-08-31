@@ -245,8 +245,15 @@ func _restart_checks() -> void:
 	var body: String = _code_only(_func_body(over, "_on_gameover_finished"))
 	_check(body.contains("LullabyGameoverModule.has_died = false"),
 		"y el gameover limpia has_died al volver, para no ensuciar otra cancion")
-	_check(body.contains("change_scene_to_file"),
-		"...y vuelve a la cancion")
+	# La intencion es "vuelve a la cancion", y antes se comprobaba buscando
+	# `change_scene_to_file`. Eso fijaba el MECANISMO en vez de la intencion, y
+	# se rompio en cuanto el mecanismo mejoro: esa llamada destruia la escena
+	# vieja y cargaba la nueva a la vez, y el log 10229-33620adb lo midio como
+	# 11.843ms clavados con 100 pipelines fallando. Ahora se comprueba que
+	# vuelva, sin decir por que puerta - el ORDEN lo fija
+	# test_teardown_before_load.gd, que es de quien es ese trabajo.
+	_check(body.contains("k26b7med2dat"),
+		"...y vuelve a la cancion, por el uid de sng_chimera")
 
 	# Y la relacion entre autoplay y vídeo, step por step.
 	for step: int in [0, 1, 2, 3, 4]:

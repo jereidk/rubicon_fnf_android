@@ -40,9 +40,35 @@ extends Control
 ##
 ## `deaths` NO se toca: es estática a propósito, y es lo que hace que la
 ## siguiente muerte enseñe el step siguiente.
+##
+## Y la vuelta va por SceneChanger, no por change_scene_to_file().
+##
+## El log del dispositivo (10229-33620adb) mide la asimetría sin lugar a dudas:
+## entrar al gameover cuesta 371ms y volver de él cuesta 11.843ms, clavados, con
+## la VRAM subiendo +184MB antes de bajar. Solo la vuelta pasaba por la ruta
+## cruda, y `change_scene_to_file()` destruye la escena vieja y carga la nueva a
+## la vez - exactamente el solape que SceneChanger existe para evitar, y cuyo
+## arreglo allí bajó este mismo parón de 9-11s a 4s.
+##
+## Dentro de esos 11.8 segundos el motor crea 123 pipelines y **100 fallan**:
+##
+##     ERROR Couldn't create Vulkan graphics pipelines (VkResult error -13). (x100)
+##           rendering_device_driver_vulkan.cpp:6237 render_pipeline_create
+##
+## Una pipeline que falla cuesta el intento, no se guarda en ninguna caché y se
+## vuelve a intentar la siguiente vez. Por eso morir y reintentar paga el precio
+## entero cada vez, y por eso la tienda llegó a costar más en su segunda carga
+## que en la primera.
+##
+## `end_manually = true` no es opcional, y es la mitad menos obvia del arreglo:
+## lullaby_preload_camera.gd arranca con `if !SceneChanger.awaiting_manual_end:
+## finish_preload(); return`, así que con false se salta el precache ENTERO. La
+## vuelta tras morir entraba a Chimera sin precalentar una sola pipeline, que es
+## la otra razón de que fallaran cien. Es el mismo tercer parámetro que
+## lullaby_debug_menu.gd pasa para esta canción y solo para esta.
 func _on_gameover_finished() -> void :
 	LullabyGameoverModule.has_died = false
-	get_tree().change_scene_to_file("uid://k26b7med2dat")
+	SceneChanger.change_to("uid://k26b7med2dat", &"hypno", true)
 
 
 func _on_animation_player_animation_finished(_anim_name: StringName) -> void :

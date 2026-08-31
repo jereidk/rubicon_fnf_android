@@ -67,7 +67,48 @@ func _initialize() -> void:
 	_check(header.contains("func ") and not header.contains("-> void :\n\tpass"),
 		"la funcion que lo hace sigue existiendo")
 
+	_gameover_returns_through_changer()
 	_finish()
+
+
+## Los caminos que VUELVEN a una cancion pasan por SceneChanger.
+##
+## Todo el orden que fija esta prueba vive dentro de SceneChanger.change_to().
+## Una llamada cruda a change_scene_to_file() no lo tiene: destruye la escena
+## vieja y carga la nueva a la vez, que es el solape que esto existe para evitar.
+##
+## Chimera era la ultima que quedaba en la ruta cruda, y el log del dispositivo
+## (10229-33620adb) mide la asimetria: entrar al gameover 371ms, volver de el
+## 11.843ms clavados, con 123 pipelines creadas y CIEN fallando con
+## VkResult -13. Monochrome y Safety Lullaby ya iban por SceneChanger, las dos
+## con un comentario explicando por que - o sea que esto es alinear Chimera con
+## lo que el resto del codigo ya hacia, no un patron nuevo.
+##
+## El tercer parametro se comprueba aparte y no es cosmetico: con
+## `end_manually` en false, lullaby_preload_camera.gd se salta el precache
+## ENTERO en su primera linea, asi que la vuelta entraba a Chimera sin
+## precalentar una sola pipeline. Esa es la otra mitad de por que fallaban cien.
+func _gameover_returns_through_changer() -> void:
+	var path := "res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd"
+	var code: String = _strip_comments(FileAccess.get_file_as_string(path))
+	if not _check(not code.is_empty(), "chimera_gameover.gd se lee"):
+		return
+
+	var fn_at: int = code.find("func _on_gameover_finished(")
+	if not _check(fn_at >= 0, "sigue existiendo _on_gameover_finished"):
+		return
+	var body: String = code.substr(fn_at)
+	var next: int = body.find("\nfunc ")
+	if next > 0:
+		body = body.substr(0, next)
+
+	_check(not body.contains("change_scene_to_file("),
+		"la vuelta a Chimera ya no usa change_scene_to_file")
+	_check(body.contains("SceneChanger.change_to("),
+		"la vuelta a Chimera pasa por SceneChanger")
+	# `true` explicito: sin el, el precache no corre y no se precalienta nada.
+	_check(body.contains(", true)"),
+		"y pide end_manually, sin el cual la precarga se salta entera")
 
 
 func _finish() -> void:
