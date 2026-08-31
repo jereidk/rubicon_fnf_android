@@ -790,6 +790,25 @@ jobs:
           # over=5.1x with NTSC and Rain both at alpha 0.
           guard_godot tools/test_effect_rect_stays_muted.gd
 
+          # === The shop's fade rect stops drawing while it is transparent
+          # Godot does not cull a CanvasItem for being transparent - it
+          # rasterises and alpha-blends it anyway. UI/BlackScreenThingy is a
+          # full-screen ColorRect at color.a = 0, and the census names it the
+          # top overdraw contributor in all five shop samples of device log
+          # 10226-4fe0a6db:
+          #   over=2.2x(n=11 top=UI/BlackScreenThingy@1.0x)
+          #   relleno=[UI/BlackScreenThingy@1.00x a=0.00, ...]
+          # Same defect as UILayer/NTSC@1.00x a=0.00 in Chimera, whose fix took
+          # that entry's overdraw from 5.1x to 2.1x.
+          # It is switched off with `visible`, which is only correct because no
+          # track animates that property on this node - the three that touch it
+          # animate :color. On the NTSC rect the opposite was true and writing
+          # `visible` fought four tracks, which is how a bug that read green got
+          # in. The guard pins that premise: if anyone ever animates
+          # BlackScreenThingy:visible, this approach stops being correct and
+          # nothing else would notice.
+          guard_godot tools/test_shop_black_rect_hides.gd
+
           # === Verify the shop's raycast is not rewritten every physics step
           # target_position and collision_mask both dirty the RayCast3D and
           # re-register it with PhysicsServer3D, so writing them unchanged
