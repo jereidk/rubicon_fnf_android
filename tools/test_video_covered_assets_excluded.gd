@@ -1,38 +1,34 @@
 extends SceneTree
 
-## Los sprites que solo se ven bajo un video se quedan fuera del APK - y siguen
-## en el repo.
+## NADIE excluye del APK un recurso que una escena empaquetada sigue
+## referenciando.
 ##
-## Chimera dibuja dos de sus cutscenes con video pre-renderizado. Los sprites 3D
-## y 2D que esas cutscenes usaban siguen en la escena (hacen falta: el harness de
-## render los necesita en vivo para volver a hacer el video, y las secuencias no
-## se pueden quitar porque son SubResources del propio .tscn y la pista de clips
-## del reloj las despacha por nombre), pero el jugador no los ve nunca. Van al
-## `exclude_filter`, no a la papelera.
+## Este guard existia para lo contrario: aprobaba excluir los sprites que tapan
+## los videos de Chimera, y su razonamiento era que ningun script los
+## desreferencia, asi que la propiedad se quedaria en null y un AnimatedSprite
+## tapado con `sprite_frames = null` no dibuja nada. Se construyo la build, y
+## Chimera no arranco:
 ##
-## Dos directorios, 19 MB de fuente:
+##     ERROR Can't load dependency: '.../serena/back_up/spr_back_up_2.png'
+##           resource_format_binary.cpp:444 parse_variant
+##     ERROR Failed loading resource: .../export-...-sng_chimera.scn
+##           resource_loader.cpp:317 _load
 ##
-##     serena/back_up   3 png   12.82 MB
-##     serena/intro    13 files  6.25 MB
+## El fallo no es una desreferencia desde codigo. Es que **el cargador de
+## escenas resuelve cada `ExtResource` al construir la escena**: si uno no esta
+## en el .pck, `parse_variant` falla y la escena ENTERA no carga. Nunca se llega
+## a tener una propiedad en null que nadie mire. Probar "ningun script lo toca"
+## no dice absolutamente nada sobre esto.
 ##
-## Excluir un recurso que la escena sigue referenciando deja la propiedad en
-## `null` al cargar. Eso es inofensivo para un AnimatedSprite que ademas esta
-## tapado, y es un crash si alguien lo desreferencia. Por eso lo que se prueba
-## aqui no es "sobran", es la CADENA ENTERA que hace que sobrar sea seguro:
+## Asi que la regla es la de arriba, sin matices: mientras la escena lleve el
+## `ExtResource`, el fichero viaja. Excluirlo solo seria seguro quitando tambien
+## la referencia de la escena, que es otro trabajo y con otro riesgo.
 ##
-##   1. Cada fichero de esos dos directorios solo lo referencia
-##      `sng_chimera.tscn` (o un .tres hermano del mismo directorio). Ningun
-##      script hace load()/preload() de ninguno.
-##   2. Ningun script menciona por ruta los nodos que los llevan.
-##   3. Los clips que tocan esos nodos fuera de las ventanas de video les
-##      escriben `visible = false` y nada mas: ni los encienden, ni les cambian
-##      `animation`, ni les leen un frame.
-##
-## El punto 3 es el que hace la diferencia entre "parece huerfano" y "esta
-## probado". `SerenaJumpscared` lo toca `103_stroll`, que es 3D en vivo, y
-## `SerenaTakingPictures` lo tocan `117_heartbeat`, `jumpscare` y `running_away`,
-## tambien en vivo - leyendo solo la lista de clips esto parecia inseguro. Lo
-## unico que le escriben es el apagado.
+## Lo que si sigue siendo cierto, y queda anotado porque costo medirlo: esos dos
+## directorios son 30.15 MB de texturas importadas que el jugador no ve nunca,
+## porque los clips que las dibujan caen enteros bajo una ventana de video con
+## `disable_3d_while_playing`. El ahorro es real; la via para cogerlo no es el
+## `exclude_filter`.
 ##
 ## Run with:
 ##   godot --headless --path . --script tools/test_video_covered_assets_excluded.gd
@@ -55,8 +51,10 @@ const LIVE_TOUCHES: Dictionary = {
 	"SerenaCamera": [],
 }
 
-## Nombres de nodo que ningun script puede mencionar por ruta: si uno aparece en
-## codigo, alguien puede desreferenciar el recurso ausente.
+## Nombres de nodo que ningun script menciona por ruta. Se comprueba todavia,
+## pero que quede claro lo que vale: NO es lo que hace segura una exclusion. Eso
+## fue justo el error - el cargador de escenas resuelve el ExtResource antes de
+## que ningun script llegue a mirar nada.
 const NODE_NAMES: Array[String] = [
 	"SerenaJumpscared", "SerenaShock", "SerenaTakingPictures", "SerenaWalkingOut",
 	"SerenaCine2D", "serenacamera", "CameraFlash", "CameraRise",
@@ -74,11 +72,11 @@ func _initialize() -> void:
 
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
-		print("todo OK - lo que tapa el video no viaja en el APK, y sigue en el repo")
+		print("todo OK - nada que la escena referencia esta excluido del APK")
 	quit(1 if _failures > 0 else 0)
 
 
-## Los cuatro presets excluyen los dos directorios.
+## Ningun preset excluye un directorio que sng_chimera.tscn referencia.
 func _preset_checks() -> void:
 	var cfg: String = _read(PRESETS)
 	if not _check(not cfg.is_empty(), "export_presets.cfg se lee"):
@@ -90,11 +88,8 @@ func _preset_checks() -> void:
 			continue
 		filters += 1
 		for dir in EXCLUDED_DIRS:
-			_check(line.contains("%s/*" % dir),
-				"preset %d excluye %s" % [filters, dir.get_file()])
-	# Cinco: Android Debug, iOS, Android Release, Linux y Windows Desktop. Se
-	# cuenta para que añadir un preset nuevo sin la exclusion falle aqui en vez
-	# de irse callado a un APK.
+			_check(not line.contains("%s/*" % dir),
+				"preset %d NO excluye %s - la escena lo referencia" % [filters, dir.get_file()])
 	_check(filters == 5, "siguen siendo cinco presets (%d)" % filters)
 
 
@@ -121,7 +116,9 @@ func _repo_reference_checks() -> void:
 			"ningun script nombra %s%s" % [name, "" if hits.is_empty() else " (%s)" % ", ".join(hits)])
 
 
-## Lo que hace segura la exclusion: los clips en vivo solo apagan esos nodos.
+## Los clips en vivo solo apagan esos nodos. Quedo del analisis original y se
+## mantiene porque sigue siendo el dato que haria falta si algun dia se quita la
+## referencia de la escena - pero por si solo NO autoriza a excluir nada.
 func _live_touch_checks() -> void:
 	var scene: String = _read(CHIMERA)
 	var lib: String = _section(scene, '[sub_resource type="AnimationLibrary" id="AnimationLibrary_mao22"]')
@@ -147,7 +144,7 @@ func _live_touch_checks() -> void:
 func _still_in_repo_checks() -> void:
 	for dir in EXCLUDED_DIRS:
 		_check(DirAccess.dir_exists_absolute("res://%s" % dir),
-			"%s sigue en el repo - el harness de render lo necesita en vivo" % dir.get_file())
+			"%s sigue en el repo" % dir.get_file())
 
 
 func _files_in(dir: String) -> PackedStringArray:
