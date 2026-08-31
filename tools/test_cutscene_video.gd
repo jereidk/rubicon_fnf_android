@@ -110,15 +110,23 @@ func _wiring_checks() -> void:
 	# reloj llegue a `starts_at`. La primera versión de esta comprobación
 	# prohibía `.visible = ` a secas y se disparaba con eso, que es un falso
 	# positivo - esa capa es suya y no la anima ninguna pista.
-	_check(not code.contains("live_cutscene.visible"),
-		"el componente NO escribe visible en la cutscene (pelearía con la pista)")
+	# El componente SI apaga ahora el dibujado de la cutscene, y eso cambio a
+	# proposito: `Intro/ColorRect2` es un ColorRect opaco de pantalla completa con
+	# shader que se dibujaba bajo el video en todos los censos del prelude del log
+	# 10226-4fe0a6db (`over=2.1x`). Lo que esta prueba defiende ya no es "no lo
+	# toca", es que lo toca BIEN: guardando el valor y devolviendolo solo si nadie
+	# escribio encima, que es lo que evita la pelea con las pistas. La mecanica la
+	# cubre test_cutscene_hides_live.gd; aqui solo se fija que no vuelva un
+	# `visible = true` a ciegas.
+	_check(not code.contains("live_cutscene.visible = true"),
+		"nunca escribe un visible = true a ciegas en la cutscene")
 	var visibles: PackedStringArray = []
 	for line: String in code.split("\n"):
 		if line.contains(".visible = ") and not line.strip_edges().begins_with("#"):
-			if not line.contains("_layer.visible = "):
+			if not line.contains("_layer.visible = ") and not line.contains("canvas.visible"):
 				visibles.append(line.strip_edges())
 	_check(visibles.is_empty(),
-		"...y el único visible que toca es el de su propia capa%s"
+		"...y los únicos visible que toca son el de su capa y el de la cutscene%s"
 			% ("" if visibles.is_empty() else " - NO: " + ", ".join(visibles)))
 	_check(code.contains("live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED"),
 		"...apaga el process_mode, que es donde está el coste medido")
@@ -478,7 +486,10 @@ func _behaviour_checks() -> void:
 	on.node.call("_process", 0.016)
 	_check(on.live.process_mode == Node.PROCESS_MODE_DISABLED,
 		"...y al llegar el reloj a starts_at, la cutscene deja de procesar")
-	_check(on.live.visible, "...pero sigue visible: el nodo no le toca esa propiedad")
+	# Y deja de dibujarse, que es media optimizacion por si sola: un CanvasItem
+	# con el proceso apagado sigue rasterizando igual.
+	_check(not on.live.visible,
+		"...y tambien deja de dibujarse, no solo de procesar")
 
 	# Y que el reproductor OCUPE la pantalla. Un Control al que se le escriben
 	# las anclas antes de tener padre se queda en (0,0): existe, reproduce y no

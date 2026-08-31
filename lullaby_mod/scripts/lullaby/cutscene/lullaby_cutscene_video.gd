@@ -42,12 +42,24 @@ extends Node
 ## Tres modos, y la diferencia importa
 ## -----------------------------------
 ## CON `live_cutscene`: la escena viva sigue en el árbol y el vídeo se pone
-## ENCIMA en su propio CanvasLayer. No se le toca el `visible` -el Timeline de
-## la canción lo anima con una pista y escribir sobre la misma propiedad
-## pelearía con ella, la trampa que `settings.gd` ya documenta para las
-## Light2D-, solo el `process_mode`, que es lo que de verdad cuesta. Queda el
-## relleno de la cutscene tapada como desperdicio consciente. Así entró esto en
-## ec9aee1, cuando el preset todavía podía elegir la escena viva.
+## ENCIMA en su propio CanvasLayer. Se le apaga el `process_mode` Y el `visible`.
+##
+## El `visible` no se tocaba, y el relleno de la cutscene tapada se daba por
+## desperdicio consciente para no pelearse con las pistas que animan esa misma
+## propiedad -la trampa que `settings.gd` documenta para las Light2D-. El log
+## 10226-4fe0a6db puso precio a ese desperdicio, en todos los censos del prelude:
+##
+##     over=2.1x  relleno=[PreludeVideo/...VideoStreamPlayer@1.00x,
+##                         Intro/ColorRect2@1.00x, ...]
+##
+## `Intro/ColorRect2` es un ColorRect de 1957x1103 -pantalla entera y de sobra-,
+## negro OPACO y con un ShaderMaterial encima: una pasada de shader a pantalla
+## completa por fotograma, debajo de un vídeo que la tapa del todo. Duplicaba el
+## overdraw del tramo él solo.
+##
+## Se apaga guardando el valor y devolviéndolo SOLO si nadie lo cambió mientras
+## tanto, que es lo que hace segura la pelea con las pistas: si otra escribe,
+## gana ella y este apaño deja de aplicarse. Degrada en vez de corromper.
 ##
 ## SIN `live_cutscene`: la escena viva ya no está. Es el caso de Safety
 ## Lullaby desde que se midió que ningún preset la elegía - los cuatro ponen
@@ -75,8 +87,8 @@ extends Node
 ## checkout de desarrollo no lo tiene y la canción tiene que funcionar igual -
 ## mismo criterio que `trance_shaders.gd` cuando el preset le quita el material.
 
-## El nodo de la cutscene viva cuyo procesamiento se apaga mientras corre el
-## vídeo. Su `visible` no se toca (ver arriba).
+## El nodo de la cutscene viva a la que se le apaga el proceso Y el dibujado
+## mientras corre el vídeo (ver arriba).
 ##
 ## OPCIONAL, y vacío puede querer decir dos cosas distintas - las separa
 ## `live_fallback_exists`:
@@ -190,6 +202,10 @@ extends Node
 var _player: VideoStreamPlayer = null
 var _layer: CanvasLayer = null
 var _live_mode: int = Node.PROCESS_MODE_INHERIT
+
+## El `visible` que traia la cutscene viva al abrir el video, para devolverselo.
+## Ver `_open()` y `_hand_back()`.
+var _live_visible: bool = true
 var _handed_back: bool = false
 var _seen_playing: bool = false
 var _seeks: int = 0
@@ -358,6 +374,24 @@ func _open(here: float) -> void:
 		_live_mode = live_cutscene.process_mode
 		live_cutscene.process_mode = Node.PROCESS_MODE_DISABLED
 
+		# Y que ademas deje de DIBUJARSE, que es otra cosa. `process_mode` para
+		# los `_process`; un CanvasItem apagado sigue rasterizando igual.
+		#
+		# Chimera lo tenia medido en cada censo del log 10226-4fe0a6db mientras
+		# sonaba el prelude:
+		#
+		#     over=2.1x  relleno=[PreludeVideo/...VideoStreamPlayer@1.00x,
+		#                         Intro/ColorRect2@1.00x, ...]
+		#
+		# `Intro/ColorRect2` es un ColorRect de 1957x1103 - pantalla entera y de
+		# sobra - negro OPACO y con un ShaderMaterial encima. O sea una pasada de
+		# shader a pantalla completa, cada fotograma, debajo de un video que la
+		# tapa por completo. Duplicaba el overdraw del tramo el solo.
+		var canvas := live_cutscene as CanvasItem
+		if canvas != null:
+			_live_visible = canvas.visible
+			canvas.visible = false
+
 	if disable_3d_while_playing:
 		var vp: Viewport = get_viewport()
 		if vp != null:
@@ -399,6 +433,22 @@ func _hand_back() -> void:
 	# codigo no se veia.
 	if _opened and is_instance_valid(live_cutscene):
 		live_cutscene.process_mode = _live_mode
+
+		# El `visible` se devuelve SOLO si nadie lo ha tocado mientras tanto.
+		#
+		# `Intro:visible` lo escriben pistas de `101_prelude`, `102_intro`,
+		# `103_stroll` y `RESET`. Hoy ninguna resuelve - el log las lleva como
+		# `couldn't resolve track: '../Intro:visible'` - pero si alguna vuelve a
+		# hacerlo y enciende la cutscene a mitad de ventana, reponer aqui el valor
+		# de `_open()` la apagaria contra lo que la pista pidio.
+		#
+		# Comprobando que sigue en `false` el fallo se degrada en vez de corromper:
+		# si otro escribio, se respeta y este apaño simplemente deja de aplicarse.
+		# Es el mismo criterio de `_restore_forced_lights()` en
+		# lullaby_preload_camera.gd, y por la misma razon.
+		var canvas := live_cutscene as CanvasItem
+		if canvas != null and not canvas.visible:
+			canvas.visible = _live_visible
 
 	if _player != null:
 		_player.stop()

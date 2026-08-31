@@ -1514,6 +1514,24 @@ jobs:
           # fichero hacia atras en bloques de 512 KB buscando el keyframe.
           guard_godot tools/test_cutscene_video.gd
 
+          # === The covered cutscene stops drawing, not just processing
+          # process_mode stops _process; a CanvasItem with it off still
+          # rasterises. Every census of Chimera's prelude in device log
+          # 10226-4fe0a6db carried the cost:
+          #   over=2.1x relleno=[PreludeVideo/...VideoStreamPlayer@1.00x,
+          #                      Intro/ColorRect2@1.00x, ...]
+          # Intro/ColorRect2 is a 1957x1103 ColorRect - full screen and then
+          # some - opaque black with a ShaderMaterial on it: a full-screen
+          # shader pass every frame, under a video that covers it completely.
+          # It doubled the section's overdraw on its own.
+          # The header used to say the visible was deliberately left alone to
+          # avoid fighting the tracks that animate Intro:visible. It is now
+          # saved on open and restored only if nobody wrote it meanwhile, so a
+          # track that turns it on mid-window wins and the optimisation simply
+          # stops applying - degrade, not corrupt. Same rule as
+          # _restore_forced_lights() in lullaby_preload_camera.gd.
+          guard_godot tools/test_cutscene_hides_live.gd
+
           # === "Sombras: off" tiene que apagar tambien shadow_enabled
           # Apagar sombras pone el atlas direccional a cero -global, no del
           # viewport- y la pantalla de resultados tiene un DirectionalLight3D
