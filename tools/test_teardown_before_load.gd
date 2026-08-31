@@ -28,7 +28,11 @@ var _checks: int = 0
 
 
 func _initialize() -> void:
-	var code: String = FileAccess.get_file_as_string(CHANGER)
+	# Sin comentarios: la busqueda es textual, y el fichero MENCIONA
+	# `load_threaded_request()` en la documentacion de USE_SUB_THREADS, muy por
+	# encima de donde lo llama. Buscando sobre el fichero crudo, `request_at`
+	# caia en esa mencion y esta prueba se declaraba rota por una linea de prosa.
+	var code: String = _strip_comments(FileAccess.get_file_as_string(CHANGER))
 	if not _check(not code.is_empty(), "el scene changer se lee"):
 		_finish()
 		return
@@ -81,3 +85,14 @@ func _check(ok: bool, what: String) -> bool:
 		_failures += 1
 		printerr("  FALLO %s" % what)
 	return ok
+
+
+## Fuera las lineas de comentario, para que una mencion en prosa no se confunda
+## con una llamada.
+func _strip_comments(code: String) -> String:
+	var out: PackedStringArray = []
+	for line: String in code.split("\n"):
+		if line.strip_edges().begins_with("#"):
+			continue
+		out.append(line)
+	return "\n".join(out)

@@ -827,6 +827,29 @@ jobs:
           # up would cost ten seconds again with no error anywhere.
           guard_godot tools/test_teardown_before_load.gd
 
+          # === ...and that its dependencies load in parallel
+          # load_threaded_request()'s third parameter, use_sub_threads, defaults
+          # to false: Chimera's 348 dependencies resolved one after another on a
+          # single pool thread, on an eight-core phone.
+          # The teardown fix above was right and only half the story. It took
+          # Chimera's stall from 9-11s to 4s, and device log 10226-4fe0a6db
+          # still carries the whole signature:
+          #   50.0% at 11384ms deps=196/348 status=in_progress
+          #   50.0% at 14407ms deps=196/348 status=in_progress
+          #   50.0% at 15412ms deps=233/348 +chimera_house.tscn +mdl_chimera_camera.gltf
+          # Four seconds with the counter frozen, then 37 dependencies landing
+          # at once, with the batch named.
+          # The named risk: with sub-threads Godot may call a custom
+          # ResourceFormatLoader from several threads. The only one here is
+          # RubiChartFileLoader and it is stateless, which the guard pins - if
+          # that stops being true the option stops being safe and nobody would
+          # otherwise notice. What remains is Godot's own support for the flag,
+          # which has a history; USE_SUB_THREADS is a const precisely so turning
+          # it off is one line.
+          # Unverified on device. What says it worked is the LOADING counter no
+          # longer sitting on one number for seconds.
+          guard_godot tools/test_threaded_load_parallel.gd
+
           # === Verify F only appears while navigating console sections
           # F switches the cartridge, which means something only while moving
           # between the console's sections - and that is the only place the F

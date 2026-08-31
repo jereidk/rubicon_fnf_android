@@ -11,6 +11,18 @@ signal scene_change_finished(path: String)
 	&"hypno": preload("res://lullaby_mod/resources/loading/load_hypno.tscn")
 }
 
+## Si las dependencias de una escena pueden cargarse en paralelo.
+##
+## Es el tercer parametro de `load_threaded_request()` y su defecto es `false`.
+## Ver la llamada, que lleva la evidencia del log: el contador de dependencias se
+## queda fijo en 196/348 durante cuatro segundos y salta a 233 de golpe con el
+## lote de modelos .gltf.
+##
+## Constante y no `@export` a proposito: es un interruptor de riesgo, no un
+## ajuste. Si aparece un cuelgue de carga se pone a `false` aqui y se vuelve al
+## comportamiento por defecto de Godot en una linea.
+const USE_SUB_THREADS := true
+
 var _is_loading: bool = false
 var _current_loader: LullabyLoadingScreen
 var _watching_path: String
@@ -131,7 +143,38 @@ func change_to(path: String, loading_screen: StringName, end_manually: bool = fa
 	# Before the request, so the count is of what is cached from here on and
 	# not of whatever the outgoing scene happened to leave behind.
 	_collect_direct_deps(_watching_path)
-	ResourceLoader.load_threaded_request(_watching_path)
+
+	# `use_sub_threads = true`, que es el tercer parametro y por defecto va en
+	# false: las dependencias se cargan EN SERIE, en un solo hilo del pool, en un
+	# telefono de ocho nucleos.
+	#
+	# El parrafo de arriba culpaba del paron al solape entre destruir la escena
+	# vieja y pedir la nueva, y acerto a medias - los dos `process_frame` bajaron
+	# el paron de Chimera de 9-11s a 4s. Pero el log 10226-4fe0a6db conserva la
+	# firma entera:
+	#
+	#     50.0% at 11384ms deps=196/348 status=in_progress
+	#     50.0% at 12391ms deps=196/348 status=in_progress
+	#     50.0% at 13392ms deps=196/348 status=in_progress
+	#     50.0% at 14407ms deps=196/348 status=in_progress
+	#     50.0% at 15412ms deps=233/348 +chimera_house.tscn +mdl_chimera_camera.gltf
+	#                                   +tex_chimera_sky.png +house_outside.png
+	#
+	# El contador clavado en 196 durante cuatro segundos y saltando a 233 de
+	# golpe, con los nombres del lote a la vista. Son 37 dependencias que se
+	# resuelven una detras de otra pudiendo ir a la vez.
+	#
+	# El riesgo con nombre: con sub-hilos Godot puede llamar a un
+	# ResourceFormatLoader propio desde varios hilos. El unico que hay aqui es
+	# `RubiChartFileLoader`, y es stateless - ni un miembro, todo en locales, un
+	# FileAccess por llamada -, asi que por ahi no hay nada que romper. Lo que
+	# queda es el propio soporte de Godot, que historicamente ha dado problemas
+	# con esta opcion; si aparece un cuelgue de carga, este parametro es lo
+	# primero que hay que quitar, y quitarlo es volver a la firma por defecto.
+	#
+	# Sin verificar en el dispositivo. Lo que dice si funciono es que el contador
+	# de `LOADING` deje de quedarse fijo en un numero durante segundos.
+	ResourceLoader.load_threaded_request(_watching_path, "", USE_SUB_THREADS)
 	_is_loading = true
 	awaiting_manual_end = end_manually
 
