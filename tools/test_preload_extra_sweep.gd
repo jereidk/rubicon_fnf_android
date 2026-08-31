@@ -45,7 +45,7 @@ extends SceneTree
 
 const SCRIPT_PATH := "res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd"
 const CHIMERA_PATH := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
-## La lista era de ocho y ahora es de cuatro. Las cinco que faltan
+## La lista era de ocho. Las cinco que faltan
 ## (`101_prelude`, `102_intro`, `104_photographysesh`, `107_turnaround`,
 ## `114_hexapproach`) caen enteras dentro de la ventana de uno de los dos videos
 ## de Chimera, y los dos llevan `disable_3d_while_playing`, asi que el pase 3D no
@@ -54,8 +54,24 @@ const CHIMERA_PATH := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
 ## video del photoshoot devuelve el mando, a los 111.0s, a media reproduccion del
 ## clip. Ese reparto lo comprueba `test_sweep_skips_video_windows.gd`
 ## derivandolo de la escena; aqui solo se fija el resultado.
+##
+## Ordenada por el PEOR FOTOGRAMA MEDIDO en el dispositivo, del log
+## 10226-4fe0a6db, que es la primera vez que se pueden atribuir los picos a una
+## secuencia y a un numero de pipelines:
+##
+##     103_stroll         200.4ms  pipe+12
+##     116_hexstare       120.4ms  pipe+17
+##     120_closetpicture   60.2ms  pipe+14
+##     117_heartbeat       59.7ms  pipe+6
+##     122_fall            59.2ms  pipe+8
+##     121_closetrunout    sin pico en este log
+##
+## `120_closetpicture` y `117_heartbeat` entran ahora: entre las dos compilan 20
+## pipelines y provocan dos picos, y aportan UNA pose cada una - con round-robin
+## un grupo de una sola pose queda cubierto en la primera vuelta.
 const EXPECTED_SEQUENCES := [
-	&"122_fall", &"121_closetrunout", &"103_stroll", &"116_hexstare",
+	&"103_stroll", &"116_hexstare", &"120_closetpicture", &"117_heartbeat",
+	&"122_fall", &"121_closetrunout",
 ]
 
 var _failures: int = 0
