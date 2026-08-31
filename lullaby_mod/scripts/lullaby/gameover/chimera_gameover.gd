@@ -50,6 +50,22 @@ func _on_animation_player_animation_finished(_anim_name: StringName) -> void :
 
 
 func _on_timer_timeout() -> void :
+	# Fuera del árbol no se reproduce nada.
+	#
+	# `_on_gameover_finished()` justo arriba hace `change_scene_to_file()`, que
+	# retira esta escena; un `timeout` que ya estaba encolado llega después, con
+	# el nodo ya fuera del árbol, y el motor lo rechaza en rojo. Del .error del
+	# dispositivo (10226-4fe0a6db), a los 311.76s - cuatro décimas antes del
+	# desmontaje que el log mide como `vram_delta=-168.0MB`:
+	#
+	#     ERROR Playback can only happen when a node is inside the scene tree
+	#           audio_stream_player_internal.cpp:145 play_basic
+	#
+	# Salir aquí no cambia nada cuando la escena sí está montada: es exactamente
+	# el caso que el motor ya rechazaba, solo que sin el error.
+	if not is_inside_tree():
+		return
+
 	# Antes que la animación y sin await por medio, para que los dos arranquen
 	# en el mismo fotograma. Es la única sincronización que existe entre el
 	# vídeo y la escena.

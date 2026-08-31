@@ -209,7 +209,21 @@ func reset_timer() -> void :
 	if verbose:
 		print("Reset Timer at time: %s, Beating rate: %s" % [str(beating_timer), str(beating_rate)])
 
-var vignette_tween = create_tween()
+## El tween del viñeteado, creado cuando de verdad hay algo que animar.
+##
+## Estaba escrito como `var vignette_tween = create_tween()`, o sea un
+## inicializador de miembro: creaba un Tween al construirse el nodo, sin un solo
+## Tweener dentro. Godot arranca los Tween ligados por su cuenta, y uno vacio se
+## queja - el .error del dispositivo (10226-4fe0a6db) lo trae con el nodo y todo:
+##
+##     ERROR Tween (bound to /root/Scene/Sequences/SerenaHeartbeat/Heart/
+##           HeartbeatController): started with no Tweeners.
+##           tween.cpp:366 step
+##
+## Y ademas sobraba: abajo se reasigna con un tween de verdad en cuanto hay un
+## latido. El del inicializador nacia, se quejaba y se tiraba sin usarse.
+var vignette_tween: Tween = null
+
 func heart_beat() -> void :
 	has_beaten = true
 
@@ -224,7 +238,10 @@ func heart_beat() -> void :
 		if not vignette:
 			return
 
-		if vignette_tween.is_running():
+		# `!= null` primero: el primer latido llega antes de que exista ninguno.
+		# Es la otra mitad de quitar el `create_tween()` del inicializador - sin
+		# esto, el arreglo del aviso cambiaria un error por un crash.
+		if vignette_tween != null and vignette_tween.is_running():
 			vignette_tween.kill()
 		vignette.modulate.a = snappedf(1 - beating_rate, 0.01)
 		vignette_tween = create_tween()

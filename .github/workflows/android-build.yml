@@ -1512,6 +1512,26 @@ jobs:
           # sumidero no toca FileAccess (llega desde el hilo del ResourceLoader).
           guard_godot tools/test_error_log.gd
 
+          # === Three lifecycle errors the device log carried all port
+          # None of them is visible while playing, which is why they lasted.
+          # All three from 10226-4fe0a6db, all the same family - work arriving
+          # at the wrong point in a node's life:
+          # 1. mch_crawling._on_player_body_entered() runs inside the physics
+          #    step and reaches switch_to_gameover(), which changes scene - so
+          #    it tears down every CollisionObject while the physics server is
+          #    still walking them. The engine says so outright: "will cause
+          #    undesired behavior. Remove with call_deferred() instead."
+          # 2. heartbeat_controller had `var vignette_tween = create_tween()`
+          #    as a member initialiser: a Tween built at construction with no
+          #    Tweeners, which Godot starts by itself and then complains about.
+          #    It was also redundant - reassigned with a real one on the first
+          #    beat.
+          # 3. chimera_gameover's timer fires after the change_scene_to_file()
+          #    beside it, with the node already out of the tree, and play()
+          #    is refused. It lands at 311.76s, four tenths before the teardown
+          #    the log measures as vram_delta=-168.0MB.
+          guard_godot tools/test_error_log_regressions.gd
+
           # === Los cuatro bugs que encontro el primer fichero .error
           # El dispositivo llevaba lanzandolos desde siempre y nada podia
           # verlos; en cuanto OS.add_logger() estuvo puesto, una sesion los

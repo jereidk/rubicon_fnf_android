@@ -709,9 +709,28 @@ func stop_path_tween() -> void :
 	_path_tween = null
 
 
-func _on_player_body_entered(body: Node3D) -> void :
-
-	check_completion()
+## Hex alcanza a Serena durante el gateo.
+##
+## Diferido, y no por estilo. Esto llega desde `body_entered`, o sea desde dentro
+## del paso de fisica, y `check_completion()` acaba llamando a
+## `switch_to_gameover()`, que cambia de escena - o sea que destruye el nivel
+## entero y con el todos sus CollisionObject, mientras el servidor de fisica esta
+## a mitad de recorrerlos. El motor lo dice con todas las letras en el .error del
+## dispositivo (10226-4fe0a6db):
+##
+##     ERROR Removing a CollisionObject node during a physics callback is not
+##           allowed and will cause undesired behavior. Remove with
+##           call_deferred() instead.
+##           collision_object_3d.cpp:119 _notification
+##
+## `call_deferred` lo mueve al final del fotograma, que es justo lo que pide el
+## mensaje: la escena se desmonta cuando el paso de fisica ya ha terminado.
+##
+## Lo que costaba dejarlo asi no es visible ni reproducible a mano - es
+## comportamiento indefinido dentro del servidor de fisica en el momento de
+## morir -, y por eso lleva todo el port sin que nadie lo notara.
+func _on_player_body_entered(_body: Node3D) -> void :
+	check_completion.call_deferred()
 
 func _on_settings_changed() -> void :
 	if Settings._level_note_inputs:
