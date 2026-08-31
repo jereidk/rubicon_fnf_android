@@ -50,6 +50,7 @@ class _Burner extends Node:
 
 
 func _initialize() -> void:
+	_tail_checks()
 	var script: GDScript = load(LOG)
 	if not _check(script != null, "el script de diagnostico carga"):
 		_finish()
@@ -183,6 +184,44 @@ func _hidden_checks(script: GDScript) -> void:
 
 	raiz.free()
 	log_node.free()
+
+
+## El tramo de despues de la ultima sonda se acumula y se reporta.
+##
+## Era el punto ciego: el bucle camina de sonda en sonda, asi que lo que va de la
+## ultima al cierre del corchete no se le imputaba a nadie y caia entero en
+## `rest=`. El log 10226-4fe0a6db lo enseño sin poder nombrarlo:
+##
+##     REGIONS n=1696 script_max=19.06ms rest=17.64ms | (todo <0.1ms)
+##
+## Todas las regiones bajo 0.1ms y 17.64ms sin dueño. Ahi vive todo lo que se
+## cuelgue de la escena DESPUES de `_install_probes()` - que corre una sola vez,
+## al cargar - y ordene por detras del ultimo hijo con sonda. El CanvasLayer que
+## `LullabyCutsceneVideo` crea en caliente es justo eso.
+func _tail_checks() -> void:
+	var f := FileAccess.open(LOG, FileAccess.READ)
+	var code: String = "" if f == null else f.get_as_text()
+
+	_check(code.contains("_probe_tail_acc += maxi(0, now_usec - walk)"),
+		"el tramo final se acumula, en vez de caer en rest")
+	_check(code.contains("_peak_tail = maxi(0"),
+		"y tambien se reparte en el fotograma del record")
+
+	# Sin umbral y siempre presente: esconderla tras un `<0.1ms` seria repetir el
+	# error que hizo falta un log entero para leer.
+	var at: int = code.find("func _regions_text(")
+	var next: int = code.find("\nfunc ", at + 1)
+	var body: String = "" if at < 0 else code.substr(at, -1 if next < 0 else next - at)
+	_check(body.contains("(cola)="),
+		"la cola se escribe con nombre propio en la linea")
+	_check(not body.contains('"(todo <0.1ms)"'),
+		"y ya no existe el `(todo <0.1ms)` que ocultaba justo esto")
+	_check(body.contains("tail_text if rest_text.is_empty()"),
+		"se escribe aunque no haya ninguna otra region que superara el umbral")
+
+	# Y que se reinicie con el resto, o cada linea acumularia desde el arranque.
+	_check(code.contains("_probe_tail_acc = 0"),
+		"se reinicia por intervalo, como _probe_acc")
 
 
 func _finish() -> void:

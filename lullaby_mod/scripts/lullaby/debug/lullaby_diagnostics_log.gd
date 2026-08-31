@@ -586,6 +586,26 @@ var _probe_at: PackedInt64Array = []
 ## El reparto por region del fotograma que gano el record, en microsegundos.
 var _peak_regions: PackedInt64Array = []
 
+## Lo que va DESPUES de la ultima sonda, hasta que `_ScriptTail` cierra el
+## corchete. Es la mitad del reparto que faltaba, y es donde estaba todo.
+##
+## El bucle que acumula las regiones camina de sonda en sonda, asi que el ultimo
+## tramo -de la ultima sonda al cierre- no se le imputaba a nadie y caia entero
+## en `rest=`. El log 10226-4fe0a6db lo dejo a la vista sin poder nombrarlo:
+##
+##     REGIONS n=1696 script_max=19.06ms rest=17.64ms | (todo <0.1ms)
+##
+## Todas las regiones por debajo de 0.1ms y 17.64ms sin dueno. No salia en
+## ninguna region porque no estaba DENTRO de ninguna.
+##
+## Que vive ahi: cualquier nodo colgado de la escena DESPUES de que
+## `_install_probes()` corriera -que es una sola vez, al cargar- y que ordene por
+## detras del ultimo hijo con sonda. El CanvasLayer que `LullabyCutsceneVideo`
+## crea en caliente es exactamente eso, y el censo lo ensena como
+## `delta=[CanvasLayer+2]`.
+var _probe_tail_acc: int = 0
+var _peak_tail: int = 0
+
 ## Lo mismo acumulado sobre todos los fotogramas del intervalo, para poder
 ## distinguir un pico de un coste constante.
 ##
@@ -627,6 +647,8 @@ func _install_probes(scene: Node) -> void:
 	_probe_acc.clear()
 	_probe_procn.clear()
 	_probe_hidden.clear()
+	_probe_tail_acc = 0
+	_peak_tail = 0
 	_probe_frames = 0
 	if scene == null:
 		return
@@ -709,7 +731,17 @@ func _regions_text() -> String:
 			hid = " %d proc" % row[3]
 		out.append("%s=%.2f/%.2f%s" % [
 			row[2], float(row[0]) / 1000.0, float(row[1]) / 1000.0, hid])
-	return " ".join(out) if not out.is_empty() else "(todo <0.1ms)"
+	# La cola SIEMPRE se escribe, valga lo que valga, y va la primera.
+	#
+	# Es la region que nadie medía, asi que ponerla detras de un umbral seria
+	# repetir el error: `(todo <0.1ms)` con `rest=17.64ms` fue exactamente la
+	# linea que hizo falta un log entero para interpretar.
+	var tail_avg: float = 0.0
+	if _probe_frames > 0:
+		tail_avg = float(_probe_tail_acc) / float(_probe_frames) / 1000.0
+	var tail_text: String = "(cola)=%.2f/%.2f" % [tail_avg, float(_peak_tail) / 1000.0]
+	var rest_text: String = " ".join(out)
+	return tail_text if rest_text.is_empty() else "%s %s" % [tail_text, rest_text]
 
 
 func _close_script_bracket(now_usec: int) -> void:
@@ -728,6 +760,9 @@ func _close_script_bracket(now_usec: int) -> void:
 				continue
 			_probe_acc[i] += maxi(0, mark - walk)
 			walk = mark
+		# Y el tramo que faltaba: de la ultima sonda al cierre del corchete.
+		# Ver `_probe_tail_acc`.
+		_probe_tail_acc += maxi(0, now_usec - walk)
 
 	# The record is kept on the frame minus this node's own share, not on the
 	# frame. self= exists because rest= was the largest number in this log and
@@ -788,6 +823,9 @@ func _close_script_bracket(now_usec: int) -> void:
 			continue
 		_peak_regions[i] = maxi(0, at - prev)
 		prev = at
+
+	# El mismo tramo final, para el fotograma del record.
+	_peak_tail = maxi(0, (_script_begin_usec + _script_usec) - prev)
 
 ## While a load is in flight, its path and which progress checkpoints have
 ## already been reported. A SCENE_IN of 18726ms says the load is the problem
@@ -4312,6 +4350,7 @@ func _entry(kind: String, detail: String) -> void:
 		# anterior, no desde que arranco la sesion.
 		for i: int in _probe_acc.size():
 			_probe_acc[i] = 0
+		_probe_tail_acc = 0
 		_probe_frames = 0
 	# Counts, not rates, and cleared here so each line covers the interval
 	# since the previous one - same contract as churn= and anim2d=. idle= is
