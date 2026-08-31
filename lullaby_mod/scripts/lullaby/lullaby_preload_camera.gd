@@ -296,6 +296,43 @@ var _sweep_groups: PackedInt32Array = []
 ## exactly the array it had before, in the same order.
 var _sweep_order: PackedInt32Array = []
 
+## De que animacion sale cada pose, y en que instante suyo. Paralelos a
+## `_sweep_poses`, indice a indice.
+##
+## Existen porque mover la camara no era suficiente, y el log del dispositivo
+## (10228-eac917aa) lo demuestra: `103_stroll` y `116_hexstare` estan las dos en
+## `extra_sweep_animations`, el barrido informo `vistas=42/42`, y aun asi al
+## llegar a ellas jugando se congelo 191ms y 575ms compilando 12 y 16 pipelines.
+##
+## El motivo esta en el desglose del propio log: lo que se compilaba tarde era
+## casi todo `spec+N`, o sea variantes por CONDICIONES DE RENDER - cuantas luces
+## tocan la superficie, con que estado se dibuja. Eso no depende de donde mira la
+## camara sino de que tiene encendido la secuencia en ese instante, y copiar sus
+## claves de posicion nunca encendia nada.
+##
+## Asi que ahora la pose viaja con su animacion y su tiempo, y al servirla se
+## busca ese instante de verdad. El coste en fotogramas es cero: son los mismos
+## fotogramas de barrido que ya se servian, solo que ahora dibujan la escena que
+## la pose pretendia mirar.
+var _sweep_anim: Array[StringName] = []
+var _sweep_time: PackedFloat32Array = []
+
+## Las pistas apagadas mientras dura el barrido, para devolverlas al terminar.
+##
+## Buscar dentro de una secuencia aplica sus pistas, y entre ellas hay llamadas a
+## metodos, audio y sub-animaciones. Dispararlas durante la carga seria peor que
+## el problema que se arregla: sonidos sueltos, mecanicas arrancadas antes de
+## tiempo. Solo interesan las de valor, que son las que deciden que se dibuja.
+var _muted_tracks: Array = []
+
+## El valor que cada propiedad tenia antes de que el barrido la tocara.
+##
+## `:visible` se deja fuera a proposito: de esa es duena la maquinaria de
+## ocultar/revelar de este mismo fichero, y devolversela aqui seria pelearse con
+## `_reveal()` por quien escribe la ultima.
+var _captured: Array = []
+var _sweep_seeks: int = 0
+
 ## How many revealing frames this has served a sweep pose on. Reported at
 ## handover: zero means the mechanism never ran, which is the failure the
 ## 2026-08-24 device log caught (`extra=0 frames` on the run whose four extra
@@ -480,6 +517,11 @@ func _collect_sweep_poses() -> void:
 		if rot_track >= 0:
 			basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
 		_sweep_poses.append(Transform3D(basis, origin))
+		# Las poses propias no piden ningun seek: esta animacion ya la reproduce
+		# _ready(). Se rellenan igual para que los tres arrays sigan indexandose
+		# con el mismo entero, que es lo que _serve_sweep_pose() da por hecho.
+		_sweep_anim.append(&"")
+		_sweep_time.append(0.0)
 
 	# The camera is served from _process from the first revealing frame, so the
 	# animation must stop driving it - a value track writes its property every
@@ -540,12 +582,58 @@ func _collect_extra_sweep_poses() -> void:
 		# so a group boundary always points at a pose that exists.
 		if count > 0:
 			_sweep_groups.append(_sweep_poses.size())
+			_prepare_extra_animation(anim)
 		for i in count:
 			var origin: Vector3 = anim.track_get_key_value(pos_track, i)
 			var basis := Basis.IDENTITY
 			if rot_track >= 0:
 				basis = Basis.from_euler(anim.track_get_key_value(rot_track, i))
 			_sweep_poses.append(Transform3D(basis, origin))
+			# El instante de ESTA clave, no el indice: es lo que hace que la
+			# escena que se dibuja sea la que la pose pretendia mirar.
+			_sweep_anim.append(extra_name)
+			_sweep_time.append(anim.track_get_key_time(pos_track, i))
+
+## Deja una secuencia en condiciones de ser buscada durante la carga: calla lo
+## que no debe dispararse y apunta el valor previo de lo que si se va a mover.
+func _prepare_extra_animation(anim: Animation) -> void:
+	var root: Node = null
+	if extra_sweep_player.root_node != NodePath():
+		root = extra_sweep_player.get_node_or_null(extra_sweep_player.root_node)
+	if root == null:
+		root = extra_sweep_player
+
+	for i in anim.get_track_count():
+		var kind: int = anim.track_get_type(i)
+
+		# Metodos, audio y sub-animaciones: apagar y anotar para devolverlas.
+		# Un seek las cruzaria igual que las cruza el reloj de la cancion.
+		if kind == Animation.TYPE_METHOD or kind == Animation.TYPE_AUDIO \
+				or kind == Animation.TYPE_ANIMATION:
+			if anim.track_is_enabled(i):
+				anim.track_set_enabled(i, false)
+				_muted_tracks.append([anim, i])
+			continue
+
+		if kind != Animation.TYPE_VALUE:
+			continue
+
+		var np: NodePath = anim.track_get_path(i)
+		var prop: String = np.get_concatenated_subnames()
+		# Ver `_captured`: la visibilidad tiene otro dueno en este fichero.
+		if prop == "" or prop == "visible":
+			continue
+
+		var target: Node = root.get_node_or_null(NodePath(np.get_concatenated_names()))
+		if target == null:
+			continue
+		var before: Variant = target.get_indexed(NodePath(prop))
+		# null == la propiedad no existe. Son las pistas que el propio motor ya
+		# reporta como irresolubles en el log; anotarlas seria escribir null
+		# encima de algo al restaurar.
+		if before == null:
+			continue
+		_captured.append([target, NodePath(prop), before])
 
 ## Lays out the visit order: one pose from each group, then the next from each,
 ## until every pose is placed. See `_sweep_order` for what this is worth.
@@ -596,14 +684,53 @@ func _serve_sweep_pose() -> void:
 	# it is the failure this arrangement had for exactly one commit.
 	if _sweep_order.size() != _sweep_poses.size():
 		_build_sweep_order()
-	transform = _sweep_poses[_sweep_order[_sweep_cursor % _sweep_order.size()]]
+	var idx: int = _sweep_order[_sweep_cursor % _sweep_order.size()]
+	transform = _sweep_poses[idx]
+	_seek_sweep_scene(idx)
 	_sweep_cursor += 1
 	_sweep_extra_frames += 1
+
+## Pone la escena en el instante del que salio la pose, para que el fotograma que
+## viene dibuje lo que esa secuencia enciende y no el vacio de la carga.
+##
+## Es la mitad que faltaba. Sin esto la camara viajaba a la posicion correcta y
+## miraba a una escena que no tenia nada puesto, asi que las combinaciones de
+## material, luces y estado que la secuencia usa de verdad nunca se dibujaban - y
+## el driver las compilaba luego, en juego, con la cancion sonando.
+func _seek_sweep_scene(idx: int) -> void:
+	if extra_sweep_player == null or idx >= _sweep_anim.size():
+		return
+	var wanted: StringName = _sweep_anim[idx]
+	if wanted == &"":
+		return
+	if not extra_sweep_player.has_animation(wanted):
+		return
+
+	# play() para que la animacion quede asignada, seek() para colocarla, pause()
+	# para que no siga avanzando sola entre fotograma y fotograma del barrido.
+	# Con la misma animacion ya asignada, play() conserva la posicion y el seek
+	# manda, asi que repetirlo por pose no rebobina nada.
+	extra_sweep_player.play(wanted)
+	extra_sweep_player.seek(_sweep_time[idx], true)
+	extra_sweep_player.pause()
+	_sweep_seeks += 1
 
 ## How many distinct poses have been served. Saturates at the list size, because
 ## a second lap visits nothing new.
 func _sweep_covered() -> int:
 	return mini(_sweep_cursor, _sweep_order.size())
+
+## Cuantas poses PODRIAN pedir un seek: las que salen de una secuencia extra.
+##
+## El denominador de `seeks` en el log. Las poses de la animacion propia no
+## cuentan porque esa ya la reproduce _ready(); meterlas haria que la cifra
+## nunca llegase a su total y pareciera rota estando bien.
+func _seekable_poses() -> int:
+	var n: int = 0
+	for name: StringName in _sweep_anim:
+		if name != &"":
+			n += 1
+	return n
 
 ## Keeps sweeping for a bounded moment after the last node is revealed, to reach
 ## poses the reveal did not have frames for. Then hands over.
@@ -982,10 +1109,41 @@ func _sweep_tail_has_time() -> bool:
 		return true
 	return Time.get_ticks_msec() - _sweep_tail_msec < int(SWEEP_TAIL_SECONDS * 1000.0)
 
+## Devuelve la escena y las animaciones al estado que tenian antes del barrido.
+##
+## Idempotente y tolerante: se llama desde finish_preload(), que a su vez tiene
+## varios caminos de entrada, y uno de ellos ni siquiera llego a barrer nada.
+func _restore_swept_scene() -> void:
+	if extra_sweep_player != null and extra_sweep_player.is_playing():
+		extra_sweep_player.stop()
+
+	for entry: Array in _captured:
+		var target: Node = entry[0]
+		if is_instance_valid(target):
+			target.set_indexed(entry[1], entry[2])
+	_captured.clear()
+
+	# Las pistas se devuelven SIEMPRE, aunque la restauracion de arriba fallara:
+	# la PackedScene se comparte entre visitas, asi que una pista de metodo que
+	# se quedara apagada dejaria la secuencia muda para el resto de la partida y
+	# en la siguiente entrada a la escena.
+	for entry: Array in _muted_tracks:
+		var anim: Animation = entry[0]
+		if anim != null:
+			anim.track_set_enabled(entry[1], true)
+	_muted_tracks.clear()
+
+
 func finish_preload(_anim: StringName = &"") -> void :
 	if _finished:
 		return
 	_finished = true
+
+	# Antes del reveal: deshacer lo que el barrido movio, para que la escena que
+	# se entrega sea la del segundo cero de la cancion y no el ultimo instante
+	# que se busco. La visibilidad no entra aqui - de esa es duena la linea de
+	# abajo - asi que las dos no se pisan.
+	_restore_swept_scene()
 
 	# Anything still hidden gets its visibility back even on the paths that
 	# skip the reveal, or the scene hands over with holes in it.
@@ -1005,10 +1163,16 @@ func finish_preload(_anim: StringName = &"") -> void :
 		# were *collected* and `extra` how many frames served one, and reading the
 		# two as if they matched is what hid `extra=30 frames` against
 		# `barrido=82 poses`. vistas=30/82 says it in one place.
-		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses en %d grupos vistas=%d/%d revelado_al_fin_anim=%d/%d extra=%d frames cola=%dms anim=%s" % [
+		# `seeks` es la cifra que faltaba, y es la leccion de la anterior: `vistas`
+		# decia 42/42 mientras dos de las secuencias barridas seguian compilando
+		# pipelines en juego, porque contaba poses visitadas y no escenas puestas.
+		# Una pose sin seek es una camara mirando al vacio. Con las dos juntas se
+		# ve de un vistazo si el barrido esta haciendo su trabajo o solo viajando.
+		_mark("preload camera '%s' finished (%dms, %d nodos) barrido=%d poses en %d grupos vistas=%d/%d seeks=%d/%d revelado_al_fin_anim=%d/%d extra=%d frames cola=%dms anim=%s" % [
 			animation_name, Time.get_ticks_msec() - _started_msec, _hidden.size(),
 			_sweep_poses.size(), _sweep_groups.size(),
 			_sweep_covered(), _sweep_order.size(),
+			_sweep_seeks, _seekable_poses(),
 			_revealed_at_anim_end, _hidden.size(),
 			_sweep_extra_frames,
 			0 if _sweep_tail_msec == 0 else Time.get_ticks_msec() - _sweep_tail_msec,

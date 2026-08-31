@@ -2108,7 +2108,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(0),
 "update": 0,
-"values": [&"Backing_Up_Shot-"]
+"values": [&"Headphones_Fall-"]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -3193,7 +3193,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [&"YoMamaCrawls"]
+"values": [&"CrawlL"]
 }
 
 [sub_resource type="Animation" id="Animation_mw72u"]
@@ -4304,10 +4304,10 @@ tracks/10/path = NodePath("SerenaTakingPictures/SerenaCinematics:animation")
 tracks/10/interp = 0
 tracks/10/loop_wrap = true
 tracks/10/keys = {
-"times": PackedFloat32Array(0, 2.2083333, 4.375, 6.5416117, 8.5),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"times": PackedFloat32Array(0, 2.2083333, 4.375, 6.5416117),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
-"values": [&"serena picture 1", &"serena picture 2", &"serena picture 3", &"serena picture 4", &"Serena Walking"]
+"values": [&"serena picture 1", &"serena picture 2", &"serena picture 3", &"serena picture 4"]
 }
 tracks/11/type = "value"
 tracks/11/imported = false

@@ -38,6 +38,7 @@ extends SceneTree
 ## Run with:
 ##   godot --headless --path . --script tools/test_error_log_regressions.gd
 
+const CHIMERA := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
 const CRAWL := "res://lullaby_mod/resources/funkin/songs/chimera/mch_crawling.gd"
 const HEART := "res://lullaby_mod/scripts/lullaby/mechanics/chimera/heartbeat_controller.gd"
 const OVER := "res://lullaby_mod/scripts/lullaby/gameover/chimera_gameover.gd"
@@ -79,10 +80,79 @@ func _initialize() -> void:
 	_check(guard_at >= 0 and play_at >= 0 and guard_at < play_at,
 		"y lo comprueba ANTES de reproducir, que es lo unico que sirve")
 
+	# 4
+	_animation_names_exist()
+
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
-		print("todo OK - los tres errores del ciclo de vida estan cerrados")
+		print("todo OK - los errores del log del dispositivo estan cerrados")
 	quit(1 if _failures > 0 else 0)
+
+
+## Ningun track puede pedirle a un sprite una animacion que su SpriteFrames no
+## tiene.
+##
+## Del log del dispositivo, dos veces y en dos formas:
+##
+##     ERROR Animation 'Serena Walking' doesn't exist.
+##           sprite_frames.cpp:72 get_frame_count
+##     ERROR There is no animation with name ''.
+##           animated_sprite_2d.cpp:585 set_animation
+##
+## El primero salia de la ultima clave de `taking_pictures`, en t=8.5 de una
+## animacion que mide exactamente 8.5: se aplicaba en el instante final y dejaba
+## al AnimatedSprite3D sin fotograma que dibujar. Que fuera un solo fotograma es
+## la razon de que nadie lo viera jugando mientras llenaba el .error en cada
+## pasada. Y la propiedad se quedaba puesta con el nombre roto, asi que cualquier
+## cosa que volviera a enseñar ese nodo sin re-lanzar la secuencia desde cero lo
+## enseñaba en blanco.
+##
+## Se comprueba resolviendo de verdad -cargar la escena, seguir el NodePath,
+## mirar el SpriteFrames- en vez de buscar la cadena "Serena Walking". Un guard
+## textual solo cierra el caso que ya paso; este cierra la familia, y el nombre
+## vacio del segundo error tambien cae aqui.
+func _animation_names_exist() -> void:
+	var packed: PackedScene = load(CHIMERA)
+	if not _check(packed != null, "sng_chimera.tscn carga"):
+		return
+	var root: Node = packed.instantiate()
+	if not _check(root != null, "y se instancia"):
+		return
+
+	var bad: PackedStringArray = []
+	var seen: int = 0
+	for player: AnimationPlayer in root.find_children("*", "AnimationPlayer", true, false):
+		var base: Node = player.get_node_or_null(player.root_node)
+		if base == null:
+			base = player
+		for anim_name: StringName in player.get_animation_list():
+			var anim: Animation = player.get_animation(anim_name)
+			if anim == null:
+				continue
+			for i in anim.get_track_count():
+				if anim.track_get_type(i) != Animation.TYPE_VALUE:
+					continue
+				var np: NodePath = anim.track_get_path(i)
+				if np.get_concatenated_subnames() != "animation":
+					continue
+				var target: Node = base.get_node_or_null(
+					NodePath(np.get_concatenated_names()))
+				if target == null or not ("sprite_frames" in target):
+					continue
+				var frames: SpriteFrames = target.get("sprite_frames")
+				if frames == null:
+					continue
+				for k in anim.track_get_key_count(i):
+					seen += 1
+					var wanted: StringName = anim.track_get_key_value(i, k)
+					if not frames.has_animation(wanted):
+						bad.append("%s/%s clave %d pide '%s'"
+							% [player.name, anim_name, k, wanted])
+
+	_check(seen > 0, "hay claves de :animation que revisar (%d)" % seen)
+	_check(bad.is_empty(), "todas existen en su SpriteFrames%s"
+		% ("" if bad.is_empty() else " - " + ", ".join(bad)))
+	root.free()
 
 
 ## Fuera las lineas de comentario, para que una cita no cuente como codigo.
