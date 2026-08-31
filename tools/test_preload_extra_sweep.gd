@@ -1,31 +1,7 @@
 extends SceneTree
 
-## The extra-sweep-poses mechanism: the camera visits each named sequence's own
-## viewpoints during loading, AND the scene is seeked to the instant each
-## viewpoint came from, so the frame draws what that sequence turns on.
-##
-## That second half was added after the 2026-08-31 device log (10228-eac917aa)
-## showed the first half was not enough. `103_stroll` and `116_hexstare` are
-## BOTH in extra_sweep_animations, the handover printed `vistas=42/42`, and the
-## game still froze 191ms and 575ms on reaching them, compiling 12 and 16
-## pipelines. The log's own breakdown says why: what compiled late was almost
-## all `spec+N`, specialization variants keyed on RENDER CONDITIONS - how many
-## lights reach a surface, what state it draws with. Those follow from what the
-## sequence has switched on, not from where the camera stands, and copying a
-## sequence's position keys never switched anything on.
-##
-## So the invariant this file used to pin - "never touches visibility or
-## lighting" - is deliberately gone. Seeking a sequence applies its `:visible`
-## tracks, and that IS the fix. What replaces it is narrower, and is what
-## actually keeps the mechanism safe:
-##
-##   * capture/restore skips `visible`, because the hide/reveal machinery in
-##     the same file owns that property and two writers would fight;
-##   * method, audio and sub-animation tracks are muted for the sweep and
-##     restored afterwards, or a seek fires sound effects and starts mechanics
-##     during the loading screen;
-##   * the restore runs BEFORE the reveal in finish_preload(), so the scene
-##     handed over is the song's second zero and not the last instant seeked.
+## The extra-sweep-poses mechanism, and that it stays confined to camera
+## viewpoints - never touches visibility or lighting.
 ##
 ## `122_fall@6.8s` still costs `frame=1911.7ms` for `spec+8` with RAM/VRAM
 ## flat - a pipeline-compile stall - and three more sequences show the same
@@ -118,49 +94,18 @@ func _static_checks() -> void:
 	var source: String = _read(SCRIPT_PATH)
 	var code: String = _strip_comments(source)
 
+	# La invariante de seguridad: este mecanismo no puede escribir visible ni
+	# tocar KEEP_VISIBLE/_hide_everything. Se comprueba que la funcion nueva
+	# no contenga esas palabras, no solo que exista.
 	var fn_at: int = code.find("func _collect_extra_sweep_poses(")
 	_check(fn_at >= 0, "_collect_extra_sweep_poses existe")
-
-	# El barrido ahora SI pone la escena, asi que las invariantes son otras.
-	# Ver la cabecera de este fichero para por que cambiaron.
-	var prep_at: int = code.find("func _prepare_extra_animation(")
-	_check(prep_at >= 0, "_prepare_extra_animation existe")
-	if prep_at >= 0:
-		var prep: String = code.substr(prep_at)
-		prep = prep.substr(0, prep.find("\nfunc "))
-		# Capturar `visible` seria pelearse con _reveal() por quien escribe
-		# la ultima. Se salta explicitamente, y eso es lo que se fija.
-		_check(prep.contains('prop == "visible"'),
-			"la captura se salta visible, que tiene otro dueno")
-		_check(prep.contains("Animation.TYPE_METHOD")
-				and prep.contains("Animation.TYPE_AUDIO")
-				and prep.contains("Animation.TYPE_ANIMATION"),
-			"metodos, audio y sub-animaciones se callan durante el barrido")
-		_check(prep.contains("track_set_enabled") and prep.contains("_muted_tracks.append"),
-			"y quedan anotadas para devolverlas")
-
-	var rest_at: int = code.find("func _restore_swept_scene(")
-	_check(rest_at >= 0, "_restore_swept_scene existe")
-	if rest_at >= 0:
-		var rest: String = code.substr(rest_at)
-		rest = rest.substr(0, rest.find("\nfunc "))
-		_check(rest.contains("track_set_enabled(entry[1], true)"),
-			"la restauracion vuelve a encender las pistas calladas")
-		_check(rest.contains("set_indexed"),
-			"y devuelve los valores capturados")
-
-	# El orden importa: restaurar DESPUES del reveal volveria a esconder cosas.
-	var fin_at: int = code.find("func finish_preload(")
-	_check(fin_at >= 0, "finish_preload existe")
-	if fin_at >= 0:
-		var fin: String = code.substr(fin_at)
-		var restore_call: int = fin.find("_restore_swept_scene()")
-		var reveal_call: int = fin.find("_reveal(")
-		_check(restore_call >= 0 and reveal_call >= 0 and restore_call < reveal_call,
-			"finish_preload restaura antes de revelar")
-
-	_check(code.contains("_seek_sweep_scene(idx)"),
-		"servir una pose tambien coloca la escena en su instante")
+	if fn_at >= 0:
+		var fn_body: String = code.substr(fn_at)
+		fn_body = fn_body.substr(0, fn_body.find("\nfunc "))
+		_check(not fn_body.contains(".visible"),
+			"_collect_extra_sweep_poses no escribe ninguna propiedad visible")
+		_check(not fn_body.contains("KEEP_VISIBLE") and not fn_body.contains("_hide_everything"),
+			"_collect_extra_sweep_poses no toca el mecanismo de ocultar/revelar")
 
 	_check(code.contains("extra_sweep_player: AnimationPlayer"),
 		"extra_sweep_player es una referencia de nodo separada")
