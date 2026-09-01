@@ -15,3 +15,4 @@ dest_files=["res://.godot/imported/prp_candles_misc_textures.png-87fbf7cbad6245b
 compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false
+resize/max_size=0

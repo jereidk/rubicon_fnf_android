@@ -15,3 +15,4 @@ dest_files=["res://.godot/imported/intro_4.png-d8bc998bb8f3074cb0a270bec553cee1.
 compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false
+resize/max_size=0
