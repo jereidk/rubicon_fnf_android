@@ -55,6 +55,21 @@ func _initialize() -> void:
 		"ninguna textura con regiones lleva resize/max_size%s"
 			% ("" if offenders.is_empty() else ": " + ", ".join(offenders)))
 
+	# Y los mipmaps, que son el mismo fallo por otra puerta.
+	#
+	# Un nivel de mip promedia texeles vecinos, y en una hoja troceada los
+	# vecinos de una region son la region de al lado: al alejarse, un fotograma
+	# empieza a mostrar pedazos del siguiente. No da error, se ve como halos y
+	# bordes sucios, y es exactamente el mismo desastre silencioso que
+	# redimensionar - por eso vive en la misma prueba y no en una aparte.
+	var mipped: PackedStringArray = []
+	for path: String in regioned:
+		if _mipmaps_on(path):
+			mipped.append(path)
+
+	_check(mipped.is_empty(),
+		"ni mipmaps%s" % ("" if mipped.is_empty() else ": " + ", ".join(mipped)))
+
 	# Y al reves: que la opcion se este usando de verdad en alguna parte. Una
 	# prueba que solo comprueba una ausencia pasa en verde el dia que alguien
 	# borra la opcion entera.
@@ -166,6 +181,21 @@ func _max_size_of(texture_path: String) -> int:
 	if cfg.load(import_path) != OK:
 		return 0
 	return int(cfg.get_value("params", "resize/max_size", 0))
+
+
+## Solo cuenta para los importadores ASTC de este proyecto. El importador de
+## texturas del motor genera mipmaps para cosas que no son hojas troceadas y no
+## es asunto de esta prueba.
+func _mipmaps_on(texture_path: String) -> bool:
+	var import_path: String = texture_path + ".import"
+	if not FileAccess.file_exists(import_path):
+		return false
+	var cfg := ConfigFile.new()
+	if cfg.load(import_path) != OK:
+		return false
+	if not str(cfg.get_value("remap", "importer", "")).begins_with("lullaby."):
+		return false
+	return bool(cfg.get_value("params", "mipmaps/generate", false))
 
 
 ## El contenido de las comillas que siguen a `key` en `line`.
