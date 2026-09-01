@@ -165,13 +165,14 @@ func _node_block(scene: String, path: String) -> String:
 	return scene.substr(head, (tail - head) if tail > head else -1)
 
 
-func _check(ok: bool, what: String) -> void:
+func _check(ok: bool, what: String) -> bool:
 	_checks += 1
 	if ok:
 		print("  ok   %s" % what)
 	else:
 		_failures += 1
 		printerr("  FALLO %s" % what)
+	return ok
 
 
 func _read(path: String) -> String:
