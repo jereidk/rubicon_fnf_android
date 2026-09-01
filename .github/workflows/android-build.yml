@@ -1015,6 +1015,19 @@ jobs:
           # fotogramas despues. Corre contra la tienda de verdad.
           guard_godot tools/test_precache_hides_2d.gd
 
+          # === resize/max_size no puede tocar una textura con regiones
+          # Los dos importadores ASTC RELLENAN en vez de redimensionar porque
+          # reescalar deja las regiones de un atlas -escritas en pixeles exactos
+          # del original- apuntando todas ligeramente mal. Eso rompio la intro
+          # de espaldas de Gold y afecto en silencio a 28 texturas, sin dar un
+          # solo error. `resize/max_size` reabre esa puerta a proposito: es la
+          # unica palanca contra la carga en frio (los mismos 460 recursos de la
+          # tienda cuestan 45.856ms en frio y 5.998ms en caliente, o sea que son
+          # bytes saliendo de la flash, y ya estan en ASTC 8x8). Esto fija donde
+          # NO puede entrar. El caso vivo es coin.png, troceada por coin.tres en
+          # region = Rect2(0, 0, 304, 290) y catorce hermanas.
+          guard_godot tools/test_resize_never_breaks_atlases.gd
+
           # === Safety Lullaby's pendulum has to stay tappable when the HUD goes
           # The hitbox followed DefaultHUD's modulate, which is right for a HUD
           # element and wrong for the only input a touch device has. The song's

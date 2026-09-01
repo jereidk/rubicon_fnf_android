@@ -80,6 +80,10 @@ func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]
 		{"name": "compress/block_size", "default_value": 4},
 		{"name": "compress/quality", "default_value": 100.0},
 		{"name": "mipmaps/generate", "default_value": true},
+		# El lado largo, acotado. 0 = no tocar. Gemela de la de
+		# astc_sprite_import; alli esta el porque y la trampa de los atlas, que
+		# aqui no aplica porque esto solo entra en mapas normales de modelos 3D.
+		{"name": "resize/max_size", "default_value": 0},
 	]
 
 
@@ -102,6 +106,17 @@ func _import(source_file: String, save_path: String, options: Dictionary, _platf
 		push_error("astc_normal_map: failed to load %s (%s)" % [source_file, err])
 		return err
 	img.convert(Image.FORMAT_RGBA8)
+
+	# Antes de generar los mips, para que los mips salgan del tamaño final y no
+	# se tire el trabajo del nivel 0.
+	var max_size: int = int(options.get("resize/max_size", 0))
+	var longest: int = maxi(img.get_width(), img.get_height())
+	if max_size > 0 and longest > max_size:
+		var factor: float = float(max_size) / float(longest)
+		img.resize(
+			maxi(1, int(round(float(img.get_width()) * factor))),
+			maxi(1, int(round(float(img.get_height()) * factor))),
+			Image.INTERPOLATE_LANCZOS)
 
 	var w := img.get_width()
 	var h := img.get_height()

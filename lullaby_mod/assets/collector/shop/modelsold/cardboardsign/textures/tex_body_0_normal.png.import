@@ -15,3 +15,4 @@ dest_files=["res://.godot/imported/tex_body_0_normal.png-4743d668132e33967dcabae
 compress/block_size=8
 compress/quality=100.0
 mipmaps/generate=false
+resize/max_size=1024

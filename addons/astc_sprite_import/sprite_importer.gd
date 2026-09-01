@@ -91,6 +91,10 @@ func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]
 		{"name": "compress/block_size", "default_value": 8},
 		{"name": "compress/quality", "default_value": 100.0}, # EXHAUSTIVE: slower, runs on the CI runner rather than locally
 		{"name": "mipmaps/generate", "default_value": true},
+		# 0 = no tocar, que es lo que hacia este importador antes de existir esta
+		# opcion y lo que sigue haciendo en los 432 ficheros que no la ponen. Ver
+		# el bloque de _import() para por que el defecto tiene que ser ese.
+		{"name": "resize/max_size", "default_value": 0},
 	]
 
 
@@ -138,6 +142,36 @@ func _import(source_file: String, save_path: String, options: Dictionary, _platf
 			push_error("astc_sprite: failed to load %s (%s)" % [source_file, err])
 			return err
 	img.convert(Image.FORMAT_RGBA8)
+
+	# El lado largo, acotado. Apagado salvo que un .import lo pida.
+	#
+	# La entrada en frio a la tienda cuesta 45.856ms y en caliente 5.998ms, con
+	# los mismos 460 recursos y los mismos bytes: los cuarenta segundos de
+	# diferencia son sacarlos de la flash, y por eso el unico camino a una carga
+	# rapida es leer menos. De los ~71,5MB que la tienda lee, 104MB/2 son
+	# texturas de este importador y ya estan en ASTC 8x8, que es el bloque mas
+	# barato que 4.7 tiene - la compresion no da mas, la resolucion si.
+	#
+	# APAGADO POR DEFECTO, y esa no es prudencia generica: veinte lineas mas
+	# abajo esta la razon por la que este importador RELLENA en vez de
+	# redimensionar. Un atlas lleva sus regiones en un .json en pixeles exactos
+	# del original, y reescalarlo las deja todas apuntando ligeramente mal - es
+	# lo que rompio la intro de espaldas de Gold en Monochrome y afecto en
+	# silencio a 28 texturas. Encender esto sobre una hoja de sprites vuelve a
+	# meter ese fallo por la puerta de atras.
+	#
+	# Donde SI vale: mapas PBR de modelos 3D. Van por UV en 0-1, no tienen
+	# regiones que puedan quedar mal, y a media escala de render sobre 1600x720
+	# nadie distingue una rugosidad de 2048 de una de 1024. En la tienda son 23
+	# ficheros y 20,5MB de 59,4MB.
+	var max_size: int = int(options.get("resize/max_size", 0))
+	var longest: int = maxi(img.get_width(), img.get_height())
+	if max_size > 0 and longest > max_size:
+		var factor: float = float(max_size) / float(longest)
+		img.resize(
+			maxi(1, int(round(float(img.get_width()) * factor))),
+			maxi(1, int(round(float(img.get_height()) * factor))),
+			Image.INTERPOLATE_LANCZOS)
 
 	var w := img.get_width()
 	var h := img.get_height()
