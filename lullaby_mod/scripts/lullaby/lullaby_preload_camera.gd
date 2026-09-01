@@ -724,6 +724,39 @@ const KEEP_VISIBLE: Array[StringName] = [&"Light3D", &"LightmapGI"]
 ## Takes the root rather than reading get_parent(), so it can be exercised
 ## without this node being in a tree - putting it in one runs _ready(), which
 ## on any path that is not a real scene change frees the camera on the spot.
+## Esconde la escena para que el revelado a plazos la vuelva a encender.
+##
+## Y el 2D tambien, no solo los VisualInstance3D. Esto empezo siendo una pasada
+## puramente 3D y el log 10232-4a0da0d1 (moto g53, instalacion en frio) mide lo
+## que se dejaba fuera, en el fotograma que va desde que esta funcion termina
+## hasta el primer _process de la camara:
+##
+##     [66.35s] precache started   pipe=58    2d=8/270/73     3d=0/0/0
+##     [77.24s] ready+drawn        pipe=149   2d=31/2398/110  3d=0/0/0
+##
+## Diez segundos y nueve decimas, +91 pipelines, y el pase 3D dibujando CERO
+## objetos las dos veces - porque los 116 nodos 3D estaban escondidos y
+## funcionaba. Las 89 pipelines `surf` de ese fotograma son de los 37 canvas
+## items nuevos: la UI, que esta pasada no escondia, no repartia y no barria.
+## Se compilaban todas juntas en el unico fotograma que nadie controla, el
+## primer dibujo de la escena.
+##
+## Que el coste sea de compilar y no de dibujar lo dice el mismo log dos
+## fotogramas mas tarde, y no deja lugar a duda:
+##
+##     [83.21s] SPIKE  cpu_render=9371.44ms  gpu=8.01ms  pipe=235 (+86 surf)
+##
+## Nueve segundos y medio de CPU en el hilo de render con la GPU a ocho
+## milisegundos. Es el driver compilando SPIR-V, y en frio cada `surf` sale a
+## ~110ms en vez de los ~11ms que cuesta en caliente. Meter el 2D en el
+## reparto no abarata ni una: las paga el mismo controlador de lotes que el
+## 3D, a fotogramas acotados en vez de en uno de once segundos.
+##
+## Un CanvasItem escondido por su padre sigue con `visible` a true en local, y
+## la pila de abajo es DFS con el padre visitado antes que sus hijos, asi que
+## `_hidden` los guarda en ese orden y el revelado los enciende en ese orden.
+## Un hijo revelado antes que su padre no se dibujaria, no compilaria nada, y
+## apareceria de golpe al revelar al padre - que es el vertido otra vez, en 2D.
 func _hide_everything(from: Node = null) -> void:
 	var scene: Node = from if from != null else get_parent()
 	if scene == null:
@@ -733,6 +766,8 @@ func _hide_everything(from: Node = null) -> void:
 	# the scene is still as it shipped. The order of _hidden is unchanged -
 	# it is the same walk, just drained afterwards - and the reveal depends on
 	# that order.
+	var animated: Dictionary = _nodes_with_animated_visibility(scene)
+
 	var to_hide: Array[Node] = []
 	var stack: Array[Node] = [scene]
 	while not stack.is_empty():
@@ -742,6 +777,8 @@ func _hide_everything(from: Node = null) -> void:
 				_kept_lit.append(node)
 			else:
 				to_hide.append(node)
+		elif node is CanvasItem and node.visible and not animated.has(node):
+			to_hide.append(node)
 		for child in node.get_children():
 			stack.append(child)
 
@@ -750,6 +787,51 @@ func _hide_everything(from: Node = null) -> void:
 	for node in to_hide:
 		node.visible = false
 		_hidden.append(node)
+
+## Nodos cuya visibilidad conduce una animacion de la escena, como claves de un
+## Dictionary para poder preguntar por identidad y no por ruta.
+##
+## El revelado solo pone `visible = true`, y solo sobre nodos que estaban
+## visibles al esconderlos, asi que el estado final es el mismo que si esta
+## pasada no existiera - `finish_preload()` revela lo que quede. Lo que no
+## cubre ese argumento es una animacion que APAGUE algo mientras el precache
+## corre: su fotograma clave ya paso, el revelado lo vuelve a encender, y nadie
+## lo apaga otra vez.
+##
+## Solo se aplica al 2D. La escena de la tienda tiene seis pistas `:visible` en
+## total y una sola es 2D (`UI/CameraShader`); las otras cinco son 3D y llevan
+## desde el principio pisadas por esta pasada sin que nadie haya reportado
+## nada. Extender la exencion al 3D cambiaria un camino que funciona sin una
+## medida que lo pida, que es justo lo que este fichero lleva un mes pagando.
+func _nodes_with_animated_visibility(scene: Node) -> Dictionary:
+	var out: Dictionary = {}
+	var stack: Array[Node] = [scene]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		if not (node is AnimationPlayer):
+			continue
+		var player: AnimationPlayer = node
+		# El nodo contra el que se resuelven las rutas de las pistas, que no
+		# tiene por que ser el AnimationPlayer: `root_node` es un NodePath
+		# relativo a el y por defecto vale `..`.
+		var base: Node = player.get_node_or_null(player.root_node)
+		if base == null:
+			continue
+		for name: StringName in player.get_animation_list():
+			var anim: Animation = player.get_animation(name)
+			if anim == null:
+				continue
+			for track: int in anim.get_track_count():
+				var path: NodePath = anim.track_get_path(track)
+				if path.get_subname_count() != 1 \
+						or path.get_subname(0) != &"visible":
+					continue
+				var target: Node = base.get_node_or_null(NodePath(path.get_concatenated_names()))
+				if target != null:
+					out[target] = true
+	return out
 
 ## Whether this node defines the scene's lighting rather than drawing into it.
 ##

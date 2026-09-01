@@ -1003,6 +1003,18 @@ jobs:
           # order, and that the mechanism stays at the RenderingServer.
           guard_godot tools/test_lit_precache.gd
 
+          # === El precache reparte el 2D, no solo el 3D
+          # `_hide_everything()` fue un mes una pasada solo de VisualInstance3D,
+          # y el log 10232-4a0da0d1 (moto g53, en frio) mide lo que dejaba
+          # fuera: entre que esa funcion termina y el primer _process de la
+          # camara van 10,9 segundos y +91 pipelines, con el pase 3D dibujando
+          # 3d=0/0/0 las dos veces - la mitad 3D estaba escondida y funcionaba.
+          # Las 89 `surf` son de los 37 canvas items nuevos, la UI, compilada
+          # entera en el unico fotograma que nadie reparte. Que sea compilar y
+          # no dibujar lo cierra `cpu_render=9371.44ms` con `gpu=8.01ms` dos
+          # fotogramas despues. Corre contra la tienda de verdad.
+          guard_godot tools/test_precache_hides_2d.gd
+
           # === Safety Lullaby's pendulum has to stay tappable when the HUD goes
           # The hitbox followed DefaultHUD's modulate, which is right for a HUD
           # element and wrong for the only input a touch device has. The song's
