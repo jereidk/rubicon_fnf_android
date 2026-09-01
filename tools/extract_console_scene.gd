@@ -34,11 +34,25 @@ extends SceneTree
 ##   godot --headless --path . --script tools/extract_console_scene.gd
 
 const SHOP := "res://lullaby_mod/rooms/env_collector_shop.tscn"
-const NODE_PATH := "Viewports/ConsoleSubViewport/Console"
-const OUT := "res://lullaby_mod/resources/console/console_shop.tscn"
+
+## Que sacar y adonde. Argumentos por linea de comandos para que el segundo
+## subarbol no cueste una copia del fichero: la consola fue el primero, el
+## kollectadex el segundo, y el procedimiento es el mismo.
+##   godot --headless --path . --script tools/extract_console_scene.gd -- \
+##       Viewports/KollectadexSubViewport/Kollectadex \
+##       res://lullaby_mod/resources/kollectadex/kollectadex_shop.tscn
+const DEFAULT_NODE_PATH := "Viewports/ConsoleSubViewport/Console"
+const DEFAULT_OUT := "res://lullaby_mod/resources/console/console_shop.tscn"
 
 
 func _initialize() -> void:
+	var node_path: String = DEFAULT_NODE_PATH
+	var out_path: String = DEFAULT_OUT
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() >= 2:
+		node_path = args[0]
+		out_path = args[1]
+
 	var packed: PackedScene = load(SHOP)
 	if packed == null:
 		printerr("no se pudo cargar la tienda")
@@ -46,9 +60,9 @@ func _initialize() -> void:
 		return
 	var shop: Node = packed.instantiate()
 
-	var console: Node = shop.get_node_or_null(NodePath(NODE_PATH))
+	var console: Node = shop.get_node_or_null(NodePath(node_path))
 	if console == null:
-		printerr("no existe %s en la tienda" % NODE_PATH)
+		printerr("no existe %s en la tienda" % node_path)
 		quit(1)
 		return
 
@@ -94,12 +108,12 @@ func _initialize() -> void:
 		quit(1)
 		return
 
-	err = ResourceSaver.save(out, OUT)
+	err = ResourceSaver.save(out, out_path)
 	if err != OK:
-		printerr("no se pudo guardar %s: %d" % [OUT, err])
+		printerr("no se pudo guardar %s: %d" % [out_path, err])
 		quit(1)
 		return
-	print("guardado   : %s" % OUT)
+	print("guardado   : %s" % out_path)
 	print("todo OK - mismos nodos, mismas clases, mismas rutas")
 	quit(0)
 

@@ -1,0 +1,858 @@
+[gd_scene format=3]
+
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/mus/mus_kollectadex.ogg" id="1_j8vtp"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_kollectadex_select.wav" id="2_0c8ev"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_kollectadex_deny.wav" id="3_cf3yo"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_kollectadex_switch.wav" id="4_a7tgi"]
+[ext_resource type="AudioStream" path="res://lullaby_mod/resources/audio/sfx/shop/kollectadex/sfx_close_kollectadex.ogg" id="5_hac5t"]
+[ext_resource type="Theme" path="res://lullaby_mod/resources/kollectadex/kollectadex_theme.tres" id="6_yvomn"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex/kollectadex.gd" id="7_d38nu"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/back.png" id="8_05oyv"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/back_pkm.png" id="9_ukg1y"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/grid.png" id="10_d2emi"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="11_wyf04"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/main.png" id="12_ppq7s"]
+[ext_resource type="PackedScene" path="res://lullaby_mod/resources/kollectadex/kollectadex_entry.tscn" id="13_yl3vg"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex/kollectadex_entry.gd" id="14_vrvr2"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_hypno_sprite.png" id="15_6g5dt"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/selected.png" id="16_etpsp"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/unselected.png" id="17_i13ki"]
+[ext_resource type="FontFile" path="res://lullaby_mod/resources/fonts/fnt_pokemon_bw.otf" id="18_emsfy"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_girlfriend_sprite.png" id="19_g72v5"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_boyfriend_sprite.png" id="20_ijflg"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold_sprite.png" id="21_uup5n"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_unown_sprite.png" id="22_2n7fg"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_celebi_sprite.png" id="23_0pweo"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_serena_sprite.png" id="24_sma6r"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_chimera_sprite.png" id="25_meevr"]
+[ext_resource type="Texture2D" path="res://lullaby_mod/assets/menus/kollectadex/info.png" id="26_548ig"]
+
+[sub_resource type="GDScript" id="GDScript_ygxh2"]
+script/source = "@tool
+extends VBoxContainer
+
+## `EditorInterface` es un identificador que SOLO existe en el binario del
+## editor. Nombrarlo hace que el script entero falle al parsear en un build
+## exportado - no la funcion, el script - asi que ni change_child_index ni
+## _enter_tree llegan a existir siquiera. El .error del dispositivo lo traia
+## dos veces por arranque:
+##
+##     Parse Error: Identifier \"EditorInterface\" not declared in the current scope.
+##     kollectadex.tscn::GDScript_ygxh2:8 y :21
+##
+## Engine.get_singleton() lo pide por cadena, que no se resuelve al parsear.
+
+@export var pokedex_base:Control
+
+func _editor_interface() -> Object:
+	if not Engine.has_singleton(&\"EditorInterface\"):
+		return null
+	return Engine.get_singleton(&\"EditorInterface\")
+
+func _ready() -> void:
+	if Engine.is_editor_hint():
+		var editor: Object = _editor_interface()
+		if editor != null:
+			editor.get_selection().connect(\"selection_changed\", _entry_selected_in_editor)
+	connect(\"child_order_changed\", change_child_index)
+
+func _enter_tree() -> void:
+	change_child_index()
+
+func change_child_index() -> void:
+	pass
+	#for child:Node in get_children():
+		#if child is Control and child.index != null:
+			#child.index = child.get_index() + 1
+
+func _entry_selected_in_editor():
+	var editor: Object = _editor_interface()
+	if editor == null:
+		return
+	var selected_nodes:Array[Node] = editor.get_selection().get_selected_nodes()
+	if selected_nodes.size() != 1 or selected_nodes.is_empty():
+		return
+
+	var selected_node:Node = selected_nodes[0]
+	if selected_node is KollectadexEntry:
+		selected_node.grab_focus()
+		pokedex_base.change_dex(selected_node)
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_84lis"]
+font = ExtResource("18_emsfy")
+font_size = 64
+font_color = Color(0.9372549, 0.9764706, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_hifhw"]
+font_size = 128
+
+[sub_resource type="LabelSettings" id="LabelSettings_ns7jw"]
+font_size = 48
+
+[sub_resource type="LabelSettings" id="LabelSettings_fi0p8"]
+font_size = 48
+
+[node name="Kollectadex" type="Control" unique_id=1133883574]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 12.0
+offset_right = 2.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_horizontal_guides_ = [76.0, 1004.0]
+metadata/_edit_vertical_guides_ = [340.0, 1580.0]
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=494434619]
+stream = ExtResource("1_j8vtp")
+volume_db = -80.0
+
+[node name="Select" type="AudioStreamPlayer" parent="." unique_id=1692246828]
+stream = ExtResource("2_0c8ev")
+volume_db = -3.0
+
+[node name="SelectFailed" type="AudioStreamPlayer" parent="." unique_id=1342991883]
+stream = ExtResource("3_cf3yo")
+volume_db = -6.4
+
+[node name="Switch" type="AudioStreamPlayer" parent="." unique_id=1593999071]
+stream = ExtResource("4_a7tgi")
+volume_db = -80.0
+max_polyphony = 3
+
+[node name="Close" type="AudioStreamPlayer" parent="." unique_id=139823199]
+stream = ExtResource("5_hac5t")
+volume_db = -6.0
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1644510700]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -619.9999
+offset_top = -464.0
+offset_right = 619.9999
+offset_bottom = 464.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Kollectadex" type="Control" parent="PanelContainer" unique_id=1463152541 node_paths=PackedStringArray("sequences", "focus_left_area", "kollectadex_anims", "inputs_container", "character_sprite", "character_name", "character_subtitle", "collection_label", "music", "switch_sound", "select_sound", "select_failed_sound", "close_sound", "side_panel", "side_name", "side_info", "side_collectors_info")]
+texture_filter = 1
+layout_mode = 2
+theme = ExtResource("6_yvomn")
+script = ExtResource("7_d38nu")
+sequences = NodePath("")
+focus_left_area = NodePath("")
+kollectadex_anims = NodePath("")
+inputs_container = NodePath("over/VBoxContainer")
+character_sprite = NodePath("CenterContainer/character")
+character_name = NodePath("name")
+character_subtitle = NodePath("subtitle")
+collection_label = NodePath("collection_information")
+music = NodePath("../../Music")
+switch_sound = NodePath("../../Switch")
+select_sound = NodePath("../../Select")
+select_failed_sound = NodePath("../../SelectFailed")
+close_sound = NodePath("../../Close")
+side_panel = NodePath("information_tab")
+side_name = NodePath("information_tab/name")
+side_info = NodePath("information_tab/info")
+side_collectors_info = NodePath("information_tab/collectors_info")
+
+[node name="background" type="TextureRect" parent="PanelContainer/Kollectadex" unique_id=1953827737]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_05oyv")
+
+[node name="pokeball" type="TextureRect" parent="PanelContainer/Kollectadex" unique_id=676527458]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 16.907207
+offset_top = 65.29208
+offset_right = 26.907227
+offset_bottom = 15.292114
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(78.75, 91)
+texture = ExtResource("9_ukg1y")
+stretch_mode = 5
+
+[node name="Parallax2D" type="Parallax2D" parent="PanelContainer/Kollectadex" unique_id=804931141]
+repeat_size = Vector2(512, 452)
+autoscroll = Vector2(16, 16)
+repeat_times = 4
+
+[node name="grid" type="Sprite2D" parent="PanelContainer/Kollectadex/Parallax2D" unique_id=1018325608]
+modulate = Color(1, 1, 1, 0.2901961)
+position = Vector2(256, 346)
+scale = Vector2(4, 4)
+texture = ExtResource("10_d2emi")
+
+[node name="CenterContainer" type="CenterContainer" parent="PanelContainer/Kollectadex" unique_id=329254683]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.252
+anchor_right = 0.54200006
+anchor_bottom = 0.827
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="character" type="TextureRect" parent="PanelContainer/Kollectadex/CenterContainer" unique_id=1028967528]
+custom_minimum_size = Vector2(460, 525)
+layout_mode = 2
+texture = ExtResource("11_wyf04")
+stretch_mode = 5
+
+[node name="over" type="TextureRect" parent="PanelContainer/Kollectadex" unique_id=1683984762]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("12_ppq7s")
+metadata/_edit_lock_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/Kollectadex/over" unique_id=421725276 node_paths=PackedStringArray("pokedex_base")]
+layout_mode = 0
+offset_left = 689.0
+offset_top = 127.0
+offset_right = 1223.0
+offset_bottom = 935.0
+theme_override_constants/separation = 16
+script = SubResource("GDScript_ygxh2")
+pokedex_base = NodePath("../..")
+
+[node name="Hypno" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=2128174787 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Hypno"
+character_image = ExtResource("15_6g5dt")
+character_subtitle = "The Hypnosis Pokemon"
+character_desc = "The forest’s incredulous myth thought impossible. Victims are lulled away by the deeply polished pendulum. When it is very hungry, it puts humans it meets to sleep, then it feasts on their dreams.
+"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 1
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" unique_id=586756950]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" unique_id=1401713211]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Hypno/HBoxContainer" unique_id=2117220109]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "001"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Hypno/HBoxContainer" unique_id=1709426570]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Hypno"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Girlfriend" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=1178324718 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55.39)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Girlfriend"
+character_image = ExtResource("19_g72v5")
+character_subtitle = "The Resilient Trainer"
+character_desc = "Daughter to the greatest musical trainers beyond the farthest reaches of Kanto. Mentally resilient despite first impressions. Forever searching for her loved one, the remnants of his ever distant voice echo in the dark.
+"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 2
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" unique_id=1948719963]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" unique_id=1067511064]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend/HBoxContainer" unique_id=1698259961]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "002"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend/HBoxContainer" unique_id=2134129398]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Girlfriend"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Boyfriend" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=1266609280 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Boyfriend"
+character_image = ExtResource("20_ijflg")
+character_subtitle = "The Singing Trainer"
+character_desc = "A rising star now rotted. He joins the residents of Mt Silver at its peak. Some say his voice still echoes in the quietest reaches of the town. Musical prowess persists despite the half digested cranium. His voice now commandeered for something new.
+"
+unlock_song = &"monochrome"
+seen_on = "Monochrome"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" unique_id=710189321]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" unique_id=463052539]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend/HBoxContainer" unique_id=907046318]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "003"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend/HBoxContainer" unique_id=2090660345]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Boyfriend"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Gold" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=535830674 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Gold"
+character_image = ExtResource("21_uup5n")
+character_subtitle = "The Husked One"
+character_desc = "The promised young challenger's devotion reverberates through his body. Mt Silver's most compelling young victim. His voice echoes pleas from within the Mount's choir of spirits, reaching out to a town long deserted. 
+"
+unlock_song = &"monochrome"
+seen_on = "Monochrome"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 4
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Gold" unique_id=1181177559]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Gold" unique_id=1086806354]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Gold/HBoxContainer" unique_id=1326642007]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "004"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Gold/HBoxContainer" unique_id=2069925938]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Gold"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GoldNM" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=850290582 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Gold No More"
+character_image = ExtResource("11_wyf04")
+character_subtitle = "The Husked One"
+character_desc = "The floating, desparate remainder of a once bright star. All that was once voiced is now lost elsewhere; a desperate voice now replaced with the amplified cries of the ravished."
+unlock_song = &"monochrome"
+seen_on = "Monochrome"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 5
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" unique_id=1579746627]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" unique_id=1842634203]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM/HBoxContainer" unique_id=615401955]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "005"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM/HBoxContainer" unique_id=43643447]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Gold No More"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Unowns" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=1939768001 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Unowns"
+character_image = ExtResource("22_2n7fg")
+character_subtitle = "The Vulture Pokemon"
+character_desc = "Vultures disguised as ancient writing. It is unknown which came first, the writing or these Unowns. Harmless if by their lonesome, dangerous in clumps. The unascended versions of something greater. Nests have been found anywhere dark, warm, and suitable for sustenance. Caves, corpses, basements. 
+"
+unlock_song = &"monochrome"
+seen_on = "Monochrome"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 6
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" unique_id=509841195]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" unique_id=1160337840]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Unowns/HBoxContainer" unique_id=1101199222]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "006"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Unowns/HBoxContainer" unique_id=1927787524]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Unowns"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Celebi" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=55370041 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Celebi"
+character_image = ExtResource("23_0pweo")
+character_subtitle = "The Loyal Pokemon"
+character_desc = "It is thought that Celebi's song forever echoes within it, promising a brightly shining future to all who hear it. A beacon of light once loyal to their trainer, now faithful to another.
+"
+unlock_song = &"monochrome"
+seen_on = "Monochrome"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 7
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" unique_id=1249034114]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" unique_id=728027837]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Celebi/HBoxContainer" unique_id=117587882]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "007"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Celebi/HBoxContainer" unique_id=1240451070]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Celebi"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Serena" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=380962937 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Serena"
+character_image = ExtResource("24_sma6r")
+character_subtitle = "The Aspiring Trainer"
+character_desc = "Twenty year old performer and accomplished Queen of Kalos. Had recently taken up photography in an effort to satiate her desire for new sights and challenging trainers. Broken camera and photographs featuring her were found in an abandoned farmhouse's field. Missing."
+unlock_song = &"chimera"
+seen_on = "Chimera"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 8
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/Serena" unique_id=514482019]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/Serena" unique_id=446589627]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Serena/HBoxContainer" unique_id=1201734592]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "008"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/Serena/HBoxContainer" unique_id=1971265075]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Serena"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HexManiac" type="Control" parent="PanelContainer/Kollectadex/over/VBoxContainer" unique_id=692466816 node_paths=PackedStringArray("reference_focus_indicator", "reference_number_label", "reference_name_label") instance=ExtResource("13_yl3vg")]
+custom_minimum_size = Vector2(0, 55)
+layout_mode = 2
+focus_mode = 2
+script = ExtResource("14_vrvr2")
+character_name = "Hex Maniac"
+character_image = ExtResource("25_meevr")
+character_subtitle = "The Yurei"
+character_desc = "Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show! Hello! Will you sing with me? How kind of you to show!"
+unlock_song = &"chimera"
+seen_on = "Chimera"
+focus_texture_selected = ExtResource("16_etpsp")
+focus_texture_unselected = ExtResource("17_i13ki")
+reference_focus_indicator = NodePath("TextureRect")
+reference_number_label = NodePath("HBoxContainer/Number")
+reference_name_label = NodePath("HBoxContainer/Name")
+index = 9
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" unique_id=1491211004]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.5
+offset_right = 559.0
+offset_bottom = 23.5
+grow_vertical = 2
+texture = ExtResource("17_i13ki")
+stretch_mode = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" unique_id=537089257]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 56.0
+offset_top = -12.0
+offset_right = 372.0
+offset_bottom = 76.0
+theme_override_constants/separation = 12
+
+[node name="Number" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac/HBoxContainer" unique_id=1198999362]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "009"
+label_settings = SubResource("LabelSettings_84lis")
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac/HBoxContainer" unique_id=801397912]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Hex Maniac"
+label_settings = SubResource("LabelSettings_84lis")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="name" type="Label" parent="PanelContainer/Kollectadex" unique_id=1936896133]
+layout_mode = 1
+offset_left = 1.0
+offset_top = 49.0
+offset_right = 617.0
+offset_bottom = 145.0
+theme_override_font_sizes/font_size = 128
+text = "Gold NM"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="subtitle" type="Label" parent="PanelContainer/Kollectadex" unique_id=2146668466]
+layout_mode = 1
+offset_top = 180.0
+offset_right = 616.0
+offset_bottom = 228.0
+theme_override_font_sizes/font_size = 64
+text = "The Husked One"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="collection_information" type="Label" parent="PanelContainer/Kollectadex" unique_id=1020733636]
+layout_mode = 1
+offset_left = 60.0
+offset_top = 808.0
+offset_right = 624.0
+offset_bottom = 907.0
+theme_override_constants/line_spacing = 0
+theme_override_font_sizes/font_size = 64
+text = "Seen On: Monochrome
+Collected: 000 / 000"
+clip_text = true
+
+[node name="information_tab" type="TextureRect" parent="PanelContainer/Kollectadex" unique_id=102592499]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 848.0
+offset_right = 848.0012
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("26_548ig")
+metadata/_edit_lock_ = true
+
+[node name="name" type="Label" parent="PanelContainer/Kollectadex/information_tab" unique_id=450526730]
+layout_mode = 1
+offset_left = 496.0
+offset_top = 112.0
+offset_right = 1136.0
+offset_bottom = 208.0
+text = "Gold NM"
+label_settings = SubResource("LabelSettings_hifhw")
+horizontal_alignment = 1
+clip_text = true
+
+[node name="info" type="Label" parent="PanelContainer/Kollectadex/information_tab" unique_id=549216474]
+layout_mode = 1
+offset_left = 505.0
+offset_top = 275.0
+offset_right = 1135.0
+offset_bottom = 596.0
+text = "The floating, desparate remainder of a once bright star. All that was once voiced is now lost elsewhere; a desperate voice now replaced with the amplified cries of the ravished."
+label_settings = SubResource("LabelSettings_ns7jw")
+autowrap_mode = 3
+clip_text = true
+
+[node name="collectors_info" type="Label" parent="PanelContainer/Kollectadex/information_tab" unique_id=1003724346]
+layout_mode = 1
+offset_left = 505.0
+offset_top = 663.895
+offset_right = 1132.9999
+offset_bottom = 914.0
+text = "????????????????????????"
+label_settings = SubResource("LabelSettings_fi0p8")
+autowrap_mode = 3
+clip_text = true
+
+[node name="LeftBorder" type="ColorRect" parent="." unique_id=471311010]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.124
+anchor_bottom = 1.0
+offset_left = -64.0
+color = Color(0, 0, 0, 1)
+
+[node name="RightBorder" type="ColorRect" parent="." unique_id=77588957]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.155
+anchor_bottom = 1.0
+offset_left = 1681.0
+offset_right = 1682.0
+color = Color(0, 0, 0, 1)
+
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" to="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" to="PanelContainer/Kollectadex/over/VBoxContainer/Hypno" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" to="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" to="PanelContainer/Kollectadex/over/VBoxContainer/Girlfriend" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" to="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" to="PanelContainer/Kollectadex/over/VBoxContainer/Boyfriend" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Gold" to="PanelContainer/Kollectadex/over/VBoxContainer/Gold" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Gold" to="PanelContainer/Kollectadex/over/VBoxContainer/Gold" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" to="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" to="PanelContainer/Kollectadex/over/VBoxContainer/GoldNM" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" to="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" to="PanelContainer/Kollectadex/over/VBoxContainer/Unowns" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" to="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" to="PanelContainer/Kollectadex/over/VBoxContainer/Celebi" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/Serena" to="PanelContainer/Kollectadex/over/VBoxContainer/Serena" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/Serena" to="PanelContainer/Kollectadex/over/VBoxContainer/Serena" method="_on_focus_exited"]
+[connection signal="focus_entered" from="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" to="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" method="_on_focus_entered"]
+[connection signal="focus_exited" from="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" to="PanelContainer/Kollectadex/over/VBoxContainer/HexManiac" method="_on_focus_exited"]

@@ -158,7 +158,7 @@
 [ext_resource type="PackedScene" uid="uid://b8cux1jom7v3x" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186"]
 [ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console_deferred_loader.gd" id="188"]
-[ext_resource type="PackedScene" uid="uid://bxk04pmofwax3" path="res://lullaby_mod/resources/kollectadex/kollectadex.tscn" id="190"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex_deferred_loader.gd" id="190"]
 [ext_resource type="Texture2D" uid="uid://dqytnrnleytio" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191"]
 [ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
 [ext_resource type="Script" uid="uid://btrjxrci3pbix" path="res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.gd" id="193"]
@@ -11576,39 +11576,14 @@ disable_3d = true
 handle_input_locally = false
 size = Vector2i(1240, 928)
 
-[node name="Kollectadex" parent="Viewports/KollectadexSubViewport" unique_id=1133883574 instance=ExtResource("190")]
-
-[node name="Music" parent="Viewports/KollectadexSubViewport/Kollectadex" index="0" unique_id=494434619]
-volume_db = -80.0
-autoplay = false
-
-[node name="Switch" parent="Viewports/KollectadexSubViewport/Kollectadex" index="3" unique_id=1593999071]
-volume_db = -80.0
-
-[node name="Kollectadex" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer" parent_id_path=PackedInt32Array(1133883574, 1644510700) index="0" unique_id=1463152541 node_paths=PackedStringArray("sequences", "focus_left_area", "kollectadex_anims")]
-sequences = NodePath("../../../../../Sequences")
-focus_left_area = NodePath("../../../../../Environment/Areas/FocusAreaLeft")
-kollectadex_anims = NodePath("../../../../../Environment/shop_base/KollectadexOffset/prp_kollectadex/AnimationPlayer")
-
-[node name="character" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex/CenterContainer" parent_id_path=PackedInt32Array(1133883574, 329254683) index="0" unique_id=1028967528]
-custom_minimum_size = Vector2(460, 525)
-texture = ExtResource("191")
-
-[node name="name" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex" index="5" unique_id=1936896133]
-text = "Gold NM"
-
-[node name="subtitle" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex" index="6" unique_id=2146668466]
-text = "The Husked One"
-
-[node name="collection_information" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex" index="7" unique_id=1020733636]
-text = "Seen On: Monochrome
-Collected: 000 / 000"
-
-[node name="name" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex/information_tab" parent_id_path=PackedInt32Array(1133883574, 102592499) index="0" unique_id=450526730]
-text = "Gold NM"
-
-[node name="info" parent="Viewports/KollectadexSubViewport/Kollectadex/PanelContainer/Kollectadex/information_tab" parent_id_path=PackedInt32Array(1133883574, 102592499) index="1" unique_id=549216474]
-text = "The floating, desparate remainder of a once bright star. All that was once voiced is now lost elsewhere; a desperate voice now replaced with the amplified cries of the ravished."
+[node name="KollectadexLoader" type="Node" parent="Viewports/KollectadexSubViewport" node_paths=PackedStringArray("focus_area", "touch_controls", "sequences", "focus_left_area", "kollectadex_anims", "mixer_root")]
+script = ExtResource("190")
+focus_area = NodePath("../../../Environment/Areas/FocusKollectadex")
+touch_controls = NodePath("../../../UI/Control/TouchControls")
+sequences = NodePath("../../../Sequences")
+focus_left_area = NodePath("../../../Environment/Areas/FocusAreaLeft")
+kollectadex_anims = NodePath("../../../Environment/shop_base/KollectadexOffset/prp_kollectadex/AnimationPlayer")
+mixer_root = NodePath("../../..")
 
 [node name="SidemenuSubViewport" type="SubViewport" parent="Viewports" unique_id=164176958]
 size = Vector2i(480, 960)

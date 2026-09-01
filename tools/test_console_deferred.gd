@@ -97,17 +97,53 @@ func _initialize() -> void:
 		_check(node is Control, "y su raiz sigue siendo un Control")
 		node.free()
 
+	_kollectadex(text)
+
 	# 6. Y la tienda sigue instanciando.
 	var shop_packed: PackedScene = load(SHOP)
 	if _check(shop_packed != null, "la tienda se carga"):
 		var shop: Node = shop_packed.instantiate()
 		_check(shop.get_node_or_null(^"Viewports/ConsoleSubViewport/ConsoleLoader") != null,
-			"y trae el cargador montado")
+			"y trae el cargador de la consola")
 		_check(shop.get_node_or_null(^"Viewports/ConsoleSubViewport/Console") == null,
 			"pero NO la consola, que es el objetivo")
+		_check(shop.get_node_or_null(^"Viewports/KollectadexSubViewport/KollectadexLoader") != null,
+			"y el del kollectadex")
+		_check(shop.get_node_or_null(^"Viewports/KollectadexSubViewport/Kollectadex") == null,
+			"pero NO el kollectadex")
 		shop.free()
 
 	_finish()
+
+
+## El kollectadex, diferido igual pero con dos cables en vez de cinco.
+##
+## Los dos apuntan al Control de DENTRO, `PanelContainer/Kollectadex`, no al
+## nodo que se monta, y uno de ellos es `TouchControls.force_active_source4` -
+## la entrada tactil, la unica del dispositivo. Un nulo ahi no da error: deja de
+## reconocer que el menu esta abierto y los gestos van al sitio equivocado.
+func _kollectadex(text: String) -> void:
+	const SRC := "res://lullaby_mod/resources/kollectadex/kollectadex.tscn"
+	const PACKED := "res://lullaby_mod/resources/kollectadex/kollectadex_shop.tscn"
+
+	_check(not text.contains(SRC), "la tienda ya no referencia kollectadex.tscn")
+	_check(text.contains('[node name="KollectadexLoader" type="Node" parent="Viewports/KollectadexSubViewport"'),
+		"su cargador cuelga de KollectadexSubViewport")
+	for wire: String in ["focus_area", "touch_controls", "kollectadex_anims"]:
+		_check(text.contains("%s = NodePath(" % wire),
+			"...con %s enganchado" % wire)
+	_check(text.contains("Viewports/KollectadexSubViewport/Kollectadex"),
+		"y las pistas siguen nombrando la ruta que reproduce")
+
+	_check(ResourceLoader.exists(PACKED), "kollectadex_shop.tscn existe")
+	var packed: PackedScene = load(PACKED)
+	if _check(packed != null, "y se carga"):
+		var node: Node = packed.instantiate()
+		# 70 al extraerlo; suelo por si crece, alarma si pierde una rama.
+		_check(_count(node) >= 60, "entero (%d nodos)" % _count(node))
+		_check(node.get_node_or_null(^"PanelContainer/Kollectadex") != null,
+			"y con el Control interior al que apuntan los dos cables")
+		node.free()
 
 
 func _count(root: Node) -> int:
