@@ -157,7 +157,7 @@
 [ext_resource type="PackedScene" uid="uid://d4iktkl0k0rli" path="res://lullaby_mod/assets/collector/shop/models/prp_chimera_photos.gltf" id="185"]
 [ext_resource type="PackedScene" uid="uid://b8cux1jom7v3x" path="res://lullaby_mod/assets/collector/shop/models/prp_candles.gltf" id="186"]
 [ext_resource type="SpriteFrames" uid="uid://bs1sww2hsfbsb" path="res://lullaby_mod/assets/collector/shop/candle_fire.res" id="187"]
-[ext_resource type="PackedScene" uid="uid://dpnrx427b1ijy" path="res://lullaby_mod/resources/console/console.tscn" id="188"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/console_deferred_loader.gd" id="188"]
 [ext_resource type="PackedScene" uid="uid://bxk04pmofwax3" path="res://lullaby_mod/resources/kollectadex/kollectadex.tscn" id="190"]
 [ext_resource type="Texture2D" uid="uid://dqytnrnleytio" path="res://lullaby_mod/assets/menus/kollectadex/characters/kol_gold2_sprite.png" id="191"]
 [ext_resource type="PackedScene" uid="uid://cvva03481wweq" path="res://lullaby_mod/resources/collector_shop/cartridge_bag_sidepanel.tscn" id="192"]
@@ -11562,149 +11562,14 @@ anisotropic_filtering_level = 0
 positional_shadow_atlas_size = 0
 size = Vector2i(640, 480)
 
-[node name="Console" parent="Viewports/ConsoleSubViewport" unique_id=523863700 node_paths=PackedStringArray("shop", "sequences", "focus_right_area") instance=ExtResource("188")]
-modulate = Color(0, 0, 0, 1)
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -715.0
-offset_top = -224.0
-offset_right = 725.0
-offset_bottom = 856.0
-scale = Vector2(0.45, 0.41)
+[node name="ConsoleLoader" type="Node" parent="Viewports/ConsoleSubViewport" node_paths=PackedStringArray("shop", "sequences", "focus_right_area", "viewport_gate", "console_sfx", "mixer_root")]
+script = ExtResource("188")
 shop = NodePath("../../..")
 sequences = NodePath("../../../Sequences")
 focus_right_area = NodePath("../../../Environment/Areas/FocusAreaRight")
-
-[node name="Cylinder" parent="Viewports/ConsoleSubViewport/Console/console_bg/Control/SubViewportContainer/SubViewport/Background/Empty_002" parent_id_path=PackedInt32Array(523863700, 1358787594, 1042043012) index="0" unique_id=369268423]
-transform = Transform3D(0.74067694, -0.5828888, 0.33355615, 0.4103444, -0.00030571394, -0.911723, 0.53163576, 0.8123189, 0.23900394, 0, 0.076004, -1.0565209)
-"blend_shapes/Key 1" = 0.0
-"blend_shapes/Key 2" = 0.0
-"blend_shapes/Key 3" = 0.0
-
-[node name="Cylinder_001" parent="Viewports/ConsoleSubViewport/Console/console_bg/Control/SubViewportContainer/SubViewport/Background/Empty_002" parent_id_path=PackedInt32Array(523863700, 1358787594, 1042043012) index="1" unique_id=111319064]
-transform = Transform3D(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.011871863, 0.13639519, -1.0565209)
-
-[node name="Plane" parent="Viewports/ConsoleSubViewport/Console/console_bg/Control/SubViewportContainer/SubViewport/Background" parent_id_path=PackedInt32Array(523863700, 1358787594, 1761828415) index="3" unique_id=36772842]
-transform = Transform3D(1.1302181, -0.43097726, 0.23902915, 0.42150488, 1.1552178, 0.0898634, -0.25536224, -0.0006596005, 1.2062588, -1.8717215, -3.251376, -4.821794)
-
-[node name="Plane_002" parent="Viewports/ConsoleSubViewport/Console/console_bg/Control/SubViewportContainer/SubViewport/Background" parent_id_path=PackedInt32Array(523863700, 1358787594, 1761828415) index="4" unique_id=533904800]
-transform = Transform3D(-1.1679024, -0.38367632, 0.09524212, -0.39451936, 1.1122848, -0.35699847, -0.025170928, 0.3686262, 1.1763301, 4.8959904, 0.10935402, -6.850069)
-surface_material_override/0 = null
-
-[node name="Startup" parent="Viewports/ConsoleSubViewport/Console/console_bg" parent_id_path=PackedInt32Array(523863700, 1358787594) index="1" unique_id=1129390565]
-volume_db = -5.288
-bus = &"Music"
-
-[node name="TabContainer" parent="Viewports/ConsoleSubViewport/Console" index="2" unique_id=598360180 node_paths=PackedStringArray("bind_label")]
-bind_label = NodePath("Home/FakeButtons/Cartridges/BindLabel")
-
-[node name="Home" parent="Viewports/ConsoleSubViewport/Console/TabContainer" index="1" unique_id=900037686]
-visible = false
-
-[node name="Camera3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport" parent_id_path=PackedInt32Array(523863700, 552864082) index="0" unique_id=1939433281]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.39565086, 0.6677685, 2.8882399)
-
-[node name="Skeleton3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_credits/UI_Icons" parent_id_path=PackedInt32Array(523863700, 755808480, 279618588) index="0" unique_id=719129384]
-bones/0/rotation = Quaternion(0.70710677, -2.2197248e-07, -2.2197248e-07, 0.70710677)
-bones/2/position = Vector3(3.2047474e-31, 0.24647142, 4.919084e-25)
-bones/2/rotation = Quaternion(-3.486704e-23, 4.4505063e-07, 4.8694735e-27, 1)
-bones/3/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/5/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/6/rotation = Quaternion(1.7105398e-08, -9.2683585e-08, 0.37820917, 0.92572016)
-bones/7/rotation = Quaternion(9.393995e-08, 2.8074703e-07, -0.3782092, 0.92572016)
-bones/12/position = Vector3(-3.2109104e-30, 0.28541344, -4.9368777e-24)
-bones/12/rotation = Quaternion(1, -2.1504722e-23, -3.1391644e-07, 6.970196e-23)
-bones/13/rotation = Quaternion(1, -4.3018015e-23, -4.371139e-08, -6.971063e-23)
-bones/14/position = Vector3(-5.661335e-24, -5.9604645e-08, -4.2886764e-23)
-bones/14/rotation = Quaternion(4.7773003e-08, 0.70710677, -0.70710677, -3.0908623e-08)
-bones/15/rotation = Quaternion(0.70710665, -8.4321945e-09, 8.432193e-09, 0.7071069)
-
-[node name="Skeleton3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_training/UI_Icons" parent_id_path=PackedInt32Array(523863700, 2019872166, 2115493042) index="0" unique_id=1938917430]
-bones/0/position = Vector3(0, 0, 0)
-bones/0/rotation = Quaternion(0.70710677, -2.2197248e-07, -2.2197248e-07, 0.70710677)
-bones/2/position = Vector3(3.2047474e-31, 0.24647142, 4.919084e-25)
-bones/2/rotation = Quaternion(-3.486704e-23, 4.4505063e-07, 4.8694735e-27, 1)
-bones/2/scale = Vector3(1, 0.99999994, 1)
-bones/3/position = Vector3(2.4565622e-29, -0.020402819, 3.7696024e-23)
-bones/3/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/4/rotation = Quaternion(-6.7762636e-21, 2.842171e-14, 0, 1)
-bones/5/position = Vector3(2.4565622e-29, -0.020402819, 3.7696024e-23)
-bones/5/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/6/rotation = Quaternion(1.7105398e-08, -9.2683585e-08, 0.37820917, 0.92572016)
-bones/7/rotation = Quaternion(9.393995e-08, 2.8074703e-07, -0.3782092, 0.92572016)
-bones/8/position = Vector3(2.1508786e-29, 0.013247669, 3.3004912e-23)
-bones/9/position = Vector3(0, -0.033650488, 3.4129634e-30)
-bones/9/rotation = Quaternion(-3.1554436e-30, 0, -1.5046328e-36, 1)
-bones/10/position = Vector3(-0.17639951, -0.033650488, 3.4129634e-30)
-bones/10/rotation = Quaternion(-3.1554436e-30, 0, 0, 1)
-bones/11/position = Vector3(0.17639951, -0.033650488, 3.4129634e-30)
-bones/11/rotation = Quaternion(-3.1554436e-30, 0, 0, 1)
-bones/12/position = Vector3(-3.2109104e-30, 0.28541344, -4.9368777e-24)
-bones/12/rotation = Quaternion(1, -2.1504722e-23, -3.1391644e-07, 6.970196e-23)
-bones/13/rotation = Quaternion(1, -4.3018015e-23, -4.371139e-08, -6.971063e-23)
-bones/14/position = Vector3(-5.661335e-24, -5.9604645e-08, -4.2886764e-23)
-bones/14/rotation = Quaternion(4.7773003e-08, 0.70710677, -0.70710677, -3.0908623e-08)
-bones/15/rotation = Quaternion(0.70710665, -8.4321945e-09, 8.432193e-09, 0.7071069)
-bones/15/scale = Vector3(1, 0.99999994, 0.99999994)
-
-[node name="Skeleton3D" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons" parent_id_path=PackedInt32Array(523863700, 420123907, 2020827812) index="0" unique_id=1373844525]
-bones/0/position = Vector3(0, 0, 0)
-bones/0/rotation = Quaternion(0.70710677, -2.2197248e-07, -2.2197248e-07, 0.70710677)
-bones/2/position = Vector3(3.2047474e-31, 0.24647142, 4.919084e-25)
-bones/2/rotation = Quaternion(-3.486704e-23, 4.4505063e-07, 4.8694735e-27, 1)
-bones/2/scale = Vector3(1, 0.99999994, 1)
-bones/3/position = Vector3(2.4565622e-29, -0.020402819, 3.7696024e-23)
-bones/3/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/4/rotation = Quaternion(-6.7762636e-21, 2.842171e-14, 0, 1)
-bones/5/position = Vector3(2.4565622e-29, -0.020402819, 3.7696024e-23)
-bones/5/rotation = Quaternion(-3.485173e-23, 3.2584134e-07, 8.835082e-28, 1)
-bones/6/rotation = Quaternion(1.7105398e-08, -9.2683585e-08, 0.37820917, 0.92572016)
-bones/7/rotation = Quaternion(9.393995e-08, 2.8074703e-07, -0.3782092, 0.92572016)
-bones/8/position = Vector3(2.1508786e-29, 0.013247669, 3.3004912e-23)
-bones/9/position = Vector3(0, -0.033650488, 3.4129634e-30)
-bones/9/rotation = Quaternion(-3.1554436e-30, 0, -1.5046328e-36, 1)
-bones/10/position = Vector3(-0.17639951, -0.033650488, 3.4129634e-30)
-bones/10/rotation = Quaternion(-3.1554436e-30, 0, 0, 1)
-bones/11/position = Vector3(0.17639951, -0.033650488, 3.4129634e-30)
-bones/11/rotation = Quaternion(-3.1554436e-30, 0, 0, 1)
-bones/12/position = Vector3(-3.2109104e-30, 0.28541344, -4.9368777e-24)
-bones/12/rotation = Quaternion(1, -2.1504722e-23, -3.1391644e-07, 6.970196e-23)
-bones/13/rotation = Quaternion(1, -4.3018015e-23, -4.371139e-08, -6.971063e-23)
-bones/14/position = Vector3(-5.661335e-24, -5.9604645e-08, -4.2886764e-23)
-bones/14/rotation = Quaternion(4.7773003e-08, 0.70710677, -0.70710677, -3.0908623e-08)
-bones/15/rotation = Quaternion(0.70710665, -8.4321945e-09, 8.432193e-09, 0.7071069)
-bones/15/scale = Vector3(1, 0.99999994, 0.99999994)
-
-[node name="Bone" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/IconSubViewport/SubViewport/ui_cartridge/UI_Icons/Skeleton3D" index="1" unique_id=709325847]
-transform = Transform3D(1, -9.724537e-27, 2.3841841e-07, -3.6418317e-19, 0.99999994, 4.0914803e-13, -2.3841841e-07, -6.9734073e-23, 1, 5.551115e-17, 0.24647142, 4.919084e-25)
-
-[node name="Cartridges" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Home/FakeButtons" parent_id_path=PackedInt32Array(523863700, 1369873948) index="4" unique_id=182424156 node_paths=PackedStringArray("bag_area", "handler")]
-bag_area = NodePath("../../../../../../../Environment/Areas/FocusCartridgeBag")
-handler = NodePath("../../../../../../../CartridgeBag/CartridgeBagHandler")
-
-[node name="SettingsSubmenu" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox" parent_id_path=PackedInt32Array(523863700, 467561537) index="1" unique_id=2018747834]
-current_tab = 0
-
-[node name="Downscroll" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" parent_id_path=PackedInt32Array(523863700, 415661431) index="8" unique_id=187182708]
-is_activated = null
-
-[node name="GhostTapping" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" parent_id_path=PackedInt32Array(523863700, 415661431) index="9" unique_id=93099427]
-is_activated = null
-
-[node name="BabyMode" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox/SettingsSubmenu/Gameplay" parent_id_path=PackedInt32Array(523863700, 415661431) index="10" unique_id=2041249697]
-is_activated = null
-
-[node name="FlashingLights" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox/SettingsSubmenu/Visuals" parent_id_path=PackedInt32Array(523863700, 1649986475) index="5" unique_id=1526687835]
-is_activated = null
-
-[node name="Misc" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Settings/PortraitBox/SettingsSubmenu" index="3" unique_id=740240314]
-visible = false
-
-[node name="EnterLabel" parent="Viewports/ConsoleSubViewport/Console/TabContainer/Cartridges" parent_id_path=PackedInt32Array(523863700, 1033664902) index="3" unique_id=1856591640 node_paths=PackedStringArray("collector_shop")]
-collector_shop = NodePath("../../../../../..")
+viewport_gate = NodePath("../../../Environment/Areas/TvViewportDisabler")
+console_sfx = NodePath("../../../Environment/shop_base/prp_console/ConsoleSFX")
+mixer_root = NodePath("../../..")
 
 [node name="KollectadexSubViewport" type="SubViewport" parent="Viewports" unique_id=1435016183]
 disable_3d = true
@@ -11847,7 +11712,6 @@ mouse_controller = NodePath("../../../MouseController")
 [connection signal="screen_exited" from="Environment/Areas/TvLightDisabler" to="Environment/shop_base/prp_tv/TVLight" method="hide"]
 [connection signal="screen_entered" from="Environment/Areas/RegisterDisabler" to="Environment/shop_base/prp_register" method="show"]
 [connection signal="screen_exited" from="Environment/Areas/RegisterDisabler" to="Environment/shop_base/prp_register" method="hide"]
-[connection signal="play_sound" from="Viewports/ConsoleSubViewport/Console" to="Environment/shop_base/prp_console/ConsoleSFX" method="_on_console_play_sound"]
 
 [editable path="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items/Monochrome"]
 [editable path="UI/Control/BriefcaseHUD/Panel/Background/ScrollContainer/Items/Chimera"]

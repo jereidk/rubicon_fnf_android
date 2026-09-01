@@ -1028,6 +1028,18 @@ jobs:
           # region = Rect2(0, 0, 304, 290) y catorce hermanas.
           guard_godot tools/test_resize_never_breaks_atlases.gd
 
+          # === La tienda entra sin la consola
+          # console.tscn eran 102 de los 399 recursos de la tienda y 376ms de
+          # sus 1353ms de dependencias directas, y nada de eso esta en pantalla
+          # hasta cruzar la habitacion hasta el televisor. Fuera, la escena baja
+          # a 306 recursos y de 2039ms a 1258ms de carga en escritorio - que es
+          # el eje que importa, porque audit_load_time.gd mide la tienda 1,6x
+          # mas pesada que Safety Lullaby aqui y 13x mas lenta en el telefono:
+          # el coste que domina es por recurso, no por byte. Esto vigila las
+          # cinco formas de deshacerlo en silencio, empezando por volver a
+          # poner la instancia.
+          guard_godot tools/test_console_deferred.gd
+
           # === Safety Lullaby's pendulum has to stay tappable when the HUD goes
           # The hitbox followed DefaultHUD's modulate, which is right for a HUD
           # element and wrong for the only input a touch device has. The song's
