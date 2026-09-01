@@ -112,7 +112,31 @@ func queue_error(error_type: int, where: String, message: String) -> void:
 	_lock.unlock()
 
 
+## Cada cuanto se vuelcan los recuentos exactos sin esperar a _close().
+##
+## _close() ya escribe la seccion de repeticiones, y en Android casi nunca corre
+## porque el SO se lleva el proceso - su propio comentario lo dice. El resultado
+## medido: en los CATORCE .error guardados de un mes no hay un solo total, y lo
+## unico que queda sobre cuantas veces fallo algo son los avisos de escalada,
+## que salen en potencias de diez.
+##
+## Eso hizo que `VkResult -13 (x100)` se leyera como "cien pipelines fallan".
+## No dice eso: dice que la cuenta llego a cien y no llego a mil, o sea algo
+## entre 100 y 999. Sobre el fotograma de 22,5s de Chimera esa horquilla es un
+## precio por fallo de entre 225ms y 22ms - dos diagnosticos distintos - y sin
+## el numero exacto no hay forma de saber si un arreglo del -13 sirvio.
+const TOTALS_EVERY_SECONDS := 60.0
+
+## Cuenta minima para salir en el volcado. Lo que paso una sola vez ya tiene su
+## linea propia mas arriba en el fichero.
+const TOTALS_MIN_COUNT := 2
+
+var _next_totals_msec: int = 0
+
+
 func _process(_delta: float) -> void:
+	_dump_totals_if_due()
+
 	if _pending.is_empty():
 		return
 
@@ -126,6 +150,42 @@ func _process(_delta: float) -> void:
 		_record(item["type"], item["where"], item["message"])
 	if _file != null:
 		_file.flush()
+	_writing = false
+
+
+## Los recuentos exactos, cada minuto, para no depender de un cierre limpio.
+##
+## Solo escribe si hay algo repetido, asi que una sesion sana no paga ni una
+## linea. Lleva marca de tiempo como todo lo demas para poder cruzarlo con el
+## .log: la diferencia entre dos volcados dice cuantas veces fallo algo DENTRO
+## de esa ventana, que es lo que hace falta para atribuirlo a una escena en vez
+## de a la sesion entera.
+func _dump_totals_if_due() -> void:
+	var now: int = Time.get_ticks_msec()
+	if _next_totals_msec == 0:
+		_next_totals_msec = now + int(TOTALS_EVERY_SECONDS * 1000.0)
+		return
+	if now < _next_totals_msec:
+		return
+	_next_totals_msec = now + int(TOTALS_EVERY_SECONDS * 1000.0)
+
+	if _file == null:
+		return
+	var lines: Array[String] = []
+	for key: String in _seen:
+		if _seen[key] >= TOTALS_MIN_COUNT:
+			lines.append("%8d x  %s" % [_seen[key], key.replace("|", "  ")])
+	if lines.is_empty():
+		return
+	lines.sort()
+	# `_writing` alrededor de la escritura, como en _process: `queue_error()`
+	# lo mira para no reentrar mientras este fichero esta tocando el disco, y
+	# un error levantado desde aqui dentro se perderia en vez de corromper.
+	_writing = true
+	_file.store_line("[%8.2fs] TOTALES" % (float(now) / 1000.0))
+	for line: String in lines:
+		_file.store_line("          %s" % line)
+	_file.flush()
 	_writing = false
 
 
