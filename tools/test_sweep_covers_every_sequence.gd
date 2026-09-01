@@ -157,17 +157,7 @@ func _initialize() -> void:
 		"con las 6 poses vistas entrega en el acto")
 	tail.free()
 
-	# La ruta del plazo vencido TAMBIEN pasa por la cola. Esto es lo que el log
-	# 10226-4fe0a6db pillo: Chimera agota el plazo siempre, esa ruta llamaba a
-	# `finish_preload()` directa, y la cola quedaba en codigo muerto justo en la
-	# escena para la que se escribio - `vistas=32/40 cola=0ms`.
-	var f := FileAccess.open(CAMERA, FileAccess.READ)
-	var code: String = "" if f == null else f.get_as_text()
-	var at: int = code.find("agoto el plazo")
-	var after: String = code.substr(at, 1600) if at >= 0 else ""
-	_check(at >= 0, "sigue existiendo la rama del plazo vencido")
-	_check(after.contains("_sweep_tail()"),
-		"y va a la cola en vez de entregar directa")
+	_deadline_does_not_dump(script)
 
 	# La cola tampoco puede quedarse: si su presupuesto ya vencio, entrega.
 	var spent: Node = script.new()
@@ -192,6 +182,85 @@ func _initialize() -> void:
 
 	cam.free()
 	_finish()
+
+
+## El plazo vencido apaga lo opcional y NO vuelca el revelado.
+##
+## Lo que habia aqui antes comprobaba, leyendo el codigo, que la rama del plazo
+## llamaba a `_sweep_tail()`. Esa rama tambien hacia
+## `_reveal(_hidden.size() - _revealed)` justo encima, y eso es lo que el log
+## 10232-4a0da0d1 (moto g53, instalacion en frio) acabo costando en la tienda:
+##
+##     [92.72s] agoto el plazo con 22/116 revelados
+##     [92.73s] precache finished (26379ms)   pipe=245
+##     [120.13s] SUMMARY worst=27512.2ms      pipe=299
+##
+## Noventa y cuatro nodos en un fotograma, 54 pipelines, 27,5 SEGUNDOS - y
+## despues de que `_sweep_tail()` entregara la escena, o sea con la pantalla de
+## carga ya retirada. El total de pipelines es fijo (una pipeline solo existe
+## cuando algo se dibuja con ella), asi que el plazo nunca pudo abaratar el
+## pase: solo elegia donde se pagaba, y elegia el peor de los dos sitios.
+##
+## Se comprueba CORRIENDO `_process`, no leyendo el fichero. Lo que hay que
+## demostrar es cuantos nodos se encienden en el fotograma del vencimiento, y
+## eso un `find()` sobre el codigo no lo sabe - la version anterior de esta
+## comprobacion pasaba en verde con el volcado dentro.
+func _deadline_does_not_dump(script: GDScript) -> void:
+	var consts: Dictionary = script.get_script_constant_map()
+	var max_batch: int = int(consts["MAX_BATCH"])
+
+	var hidden: Array[Node] = []
+	for i: int in 60:
+		var n := Node3D.new()
+		n.visible = false
+		hidden.append(n)
+
+	var late: Node = script.new()
+	_load_groups(late, [3])
+	late.call("_build_sweep_order")
+	late.set("_hidden", hidden)
+	late.set("_revealed", 0)
+	late.set("_started_msec", Time.get_ticks_msec())
+	late.set("_measured_first_frame", true)
+	late.set("_last_frame_usec", Time.get_ticks_usec())
+	# Plazo de cero: cualquier lectura de reloj lo vence. Falsear `_budget_msec`
+	# hacia el pasado no vale - en headless `Time.get_ticks_msec()` vale unos
+	# pocos miles, restarle quince segundos da negativo, y la rama empieza por
+	# `_budget_msec > 0`. Asi se declaraba en verde sin entrar nunca.
+	late.set("_budget_msec", Time.get_ticks_msec())
+	late.set("_deadline_msec", 0)
+
+	late.call("_process", 0.016)
+
+	_check(bool(late.get("_over_deadline")),
+		"el plazo vencido se marca")
+	var revealed: int = int(late.get("_revealed"))
+	_check(revealed > 0 and revealed <= max_batch,
+		"y revela un LOTE, no los 60 de golpe (revelados=%d, tope %d)" % [revealed, max_batch])
+	_check(not bool(late.get("_finished")),
+		"y no entrega la escena con nodos por revelar")
+	# El barrido es lo que si se apaga: mover la camara a poses nuevas es coste
+	# opcional sobre un pase que ya se paso de presupuesto.
+	_check(int(late.get("_sweep_extra_frames")) == 0,
+		"el barrido deja de servir poses pasado el plazo")
+
+	# Y sigue avanzando en los fotogramas siguientes, en vez de quedarse quieto.
+	late.set("_last_frame_usec", Time.get_ticks_usec())
+	late.call("_process", 0.016)
+	_check(int(late.get("_revealed")) > revealed,
+		"y el revelado sigue avanzando fotograma a fotograma tras el plazo")
+
+	# Revelado del todo: entrega sin arrancar la cola, que es tiempo extra de
+	# pantalla de carga sobre un pase que ya se paso.
+	late.set("_revealed", hidden.size())
+	late.call("_process", 0.016)
+	_check(bool(late.get("_finished")),
+		"revelado del todo, entrega en el acto")
+	_check(int(late.get("_sweep_tail_msec")) == 0,
+		"sin arrancar la cola, que es mas pantalla de carga sobre un pase vencido")
+
+	for n: Node in hidden:
+		n.free()
 
 
 ## Rellena `_sweep_poses` y `_sweep_groups` como lo harian los dos colectores.

@@ -169,12 +169,46 @@ const PANIC_FACTOR := 10.0
 ## deadline. Fifteen cuts thirty seconds off the worst case and cannot touch a
 ## good one, which finishes in under half of it.
 ##
-## What the shorter deadline costs is real and worth naming: whatever is still
-## hidden is revealed on one frame, so a run that would have paced 69 nodes over
-## the next thirty seconds now draws them together. That frame is expensive.
-## It is also the frame that was going to happen at 45s anyway - the deadline
-## has always ended this way - so the change is when it lands, not whether.
+## The deadline stops the SWEEP. It does not dump the reveal.
+##
+## It used to do both: on expiry it called `_reveal(_hidden.size() - _revealed)`
+## and drew everything left on one frame, on the argument that that frame was
+## going to happen anyway and this only changed when it landed. The device log
+## of 2026-08-31 (10232-4a0da0d1, moto g53, cold install) prices that argument
+## and it does not hold:
+##
+##     [92.72s] agoto el plazo con 22/116 revelados
+##     [92.73s] precache finished (26379ms)   pipe=245
+##     [120.13s] SUMMARY worst=27512.2ms      pipe=299
+##
+## Ninety-four nodes on one frame, 54 pipelines, and **27.5 seconds** in a
+## single frame - landing AFTER the loading screen was taken down, because the
+## expiry path handed the scene over on the way out. The total pipeline cost is
+## fixed (see the header: in 4.7 a pipeline only exists once something is drawn
+## with it), so the deadline never had the power to make the pass cheaper. All
+## it decides is where the cost is paid, and it was choosing the worst of the
+## two places: out of a paced loading screen and into one dead frame, on the
+## scene whose own batch controller says twenty lines down that "Android calls
+## an app that stops answering input for five seconds unresponsive, and a crash
+## on entering the shop is already on the record for this scene".
+##
+## So expiry now only sets `_over_deadline`, which stops `_serve_sweep_pose()`
+## and the tail - the two things that are genuinely optional - and lets the
+## paced reveal run to the end. A run that overruns is a longer loading screen,
+## which is the failure mode a loading screen is for. It is never again a
+## frozen game.
 const DEADLINE_SECONDS := 15.0
+
+## El plazo en milisegundos, en una variable y no en la constante, para que una
+## prueba headless pueda vencerlo sin esperar quince segundos de reloj.
+##
+## No es un ajuste: nada del juego lo escribe, y el unico valor con el que se
+## envia es DEADLINE_SECONDS. Existe porque la alternativa era falsear
+## `_budget_msec` hacia el pasado, y eso no se puede: `Time.get_ticks_msec()`
+## vale unos pocos miles al arrancar en headless, restarle el plazo da negativo,
+## y la rama empieza por `_budget_msec > 0`. La comprobacion se declaraba en
+## verde sin haber entrado nunca en la rama que dice medir.
+var _deadline_msec: int = int(DEADLINE_SECONDS * 1000.0)
 
 ## How long the sweep may keep going after the last node is revealed, to visit
 ## poses the reveal ran out of frames for. See `_sweep_tail()`.
@@ -217,6 +251,13 @@ var _revealed: int = 0
 var _batch: int = FIRST_BATCH
 var _anim_done: bool = false
 var _finished: bool = false
+
+## Latched when DEADLINE_SECONDS runs out, so the mark is printed once.
+##
+## From here the reveal keeps its pacing and everything optional stops: no more
+## sweep poses, and no tail once the reveal lands. See DEADLINE_SECONDS for the
+## 27.5-second frame this replaced.
+var _over_deadline: bool = false
 
 ## The sweep's own keyframes, lifted out of the animation at _ready and served
 ## by _process instead - one per revealing frame, cycling, from the first
@@ -800,39 +841,43 @@ func _process(_delta: float) -> void:
 		return
 
 	if _revealed >= _hidden.size():
-		_sweep_tail()
+		# Sin cola cuando ya se agoto el plazo. La cola sirve para visitar poses
+		# que el revelado no tuvo fotogramas para alcanzar, y es barata porque
+		# corre con la escena entera ya encendida - pero es tiempo EXTRA de
+		# pantalla de carga, y un pase que ya se paso del plazo es exactamente
+		# aquel al que no hay que darle mas.
+		if _over_deadline:
+			finish_preload()
+		else:
+			_sweep_tail()
 		return
 
+	# El plazo apaga lo opcional. No vuelca el revelado.
+	#
+	# Sin `return` y sin `_reveal(todo lo que queda)`: se marca una vez, se
+	# levanta la bandera, y se cae al lote de abajo como cualquier otro
+	# fotograma. Lo unico que cambia a partir de aqui es que el barrido deja de
+	# servir poses y la cola no corre.
+	#
+	# Lo que habia antes revelaba de golpe lo que quedara y llamaba a
+	# `_sweep_tail()`, que entrega la escena en cuanto se le acaba su propio
+	# presupuesto. En la tienda en frio eso fueron 94 nodos en un fotograma de
+	# 27,5 segundos, y encima despues de retirar la pantalla de carga. Ver
+	# DEADLINE_SECONDS para los numeros; el motivo por el que no se puede
+	# "ahorrar" ese coste esta en la cabecera del fichero: en 4.7 una pipeline
+	# solo existe cuando algo se dibuja con ella, asi que el total es fijo y lo
+	# unico elegible es si se paga a plazos con la pantalla de carga puesta o de
+	# una vez con el juego ya entregado.
 	if _budget_msec > 0 \
-			and Time.get_ticks_msec() - _budget_msec >= int(DEADLINE_SECONDS * 1000.0):
+			and not _over_deadline \
+			and Time.get_ticks_msec() - _budget_msec >= _deadline_msec:
+		_over_deadline = true
 		_mark("preload camera '%s' agoto el plazo con %d/%d revelados (%dms de barrido, %dms desde el escondite) anim=%s" % [
 			animation_name, _revealed, _hidden.size(),
 			Time.get_ticks_msec() - _budget_msec,
 			Time.get_ticks_msec() - _started_msec,
 			_animation_progress(),
 		])
-		_reveal(_hidden.size() - _revealed)
-		# Y a la cola, no directo al final.
-		#
-		# Esto llamaba a `finish_preload()` aqui, con el argumento de que un pase
-		# que acaba de reventar quince segundos es el ultimo al que darle mas
-		# tiempo. Sonaba prudente y dejaba la cola en codigo muerto: Chimera agota
-		# el plazo SIEMPRE, asi que la unica escena para la que se escribio la
-		# cola era la unica que nunca la corria. El log del dispositivo
-		# (10226-4fe0a6db) lo dice en dos numeros de la misma linea:
-		#
-		#     agoto el plazo con 59/72 revelados (16022ms de barrido)
-		#     finished ... barrido=40 poses en 5 grupos vistas=32/40 cola=0ms
-		#
-		# 32 de 40. Ocho puntos de vista sin visitar, que es exactamente lo que
-		# este mecanismo existe para evitar, en la ruta que mas lo necesita.
-		#
-		# Y lo que cuesta esta acotado por partida doble: la cola tiene su propio
-		# presupuesto (`SWEEP_TAIL_SECONDS`), y sus fotogramas son los de despues
-		# del revelado - no queda nada que encender, solo dibujar desde otro
-		# angulo. Ocho de esos son decimas, no segundos.
-		_sweep_tail()
-		return
 
 	# A reveal is paid for by the draw that follows this frame, not by the
 	# reveal itself, so the only honest reading is how the last frame went.
@@ -887,7 +932,13 @@ func _process(_delta: float) -> void:
 	# animation, starved on multi-second frames, never finished before the
 	# reveal did, the gate never opened, and the log line says `extra=0 frames`
 	# - zero extra poses served on the run the mechanism was built for.
-	_serve_sweep_pose()
+	#
+	# Y no despues del plazo: mover la camara a una pose nueva puede encontrar
+	# pipelines que nadie habia compilado, que es justo lo que se le pide - pero
+	# es coste OPCIONAL sobre un pase que ya se paso de presupuesto, y desde
+	# aqui el unico trabajo que queda por hacer es terminar de revelar.
+	if not _over_deadline:
+		_serve_sweep_pose()
 
 func _reveal(count: int) -> void:
 	var target: int = mini(_revealed + count, _hidden.size())

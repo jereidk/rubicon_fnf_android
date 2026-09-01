@@ -223,9 +223,13 @@ func _handover_checks() -> void:
 	var proc_body: String = _func_body(code, "_process")
 	_check(proc_body.contains("_budget_msec = Time.get_ticks_msec()"),
 		"el presupuesto arranca en el primer _process")
-	_check(proc_body.contains("Time.get_ticks_msec() - _budget_msec >= int(DEADLINE_SECONDS"),
+	# `_deadline_msec` y no `int(DEADLINE_SECONDS * 1000.0)`: el plazo vive ahora
+	# en una variable, para que test_sweep_covers_every_sequence.gd pueda
+	# vencerlo sin esperar quince segundos de reloj. Lo que esta linea fija es
+	# contra QUE se mide - `_budget_msec`, el primer _process - y eso no cambia.
+	_check(proc_body.contains("Time.get_ticks_msec() - _budget_msec >= _deadline_msec"),
 		"...y el plazo se mide contra el, no contra el escondite")
-	_check(not proc_body.contains("Time.get_ticks_msec() - _started_msec >= int(DEADLINE_SECONDS"),
+	_check(not proc_body.contains("Time.get_ticks_msec() - _started_msec >= _deadline_msec"),
 		"...ya no contra _started_msec, que incluye el arbol bloqueado")
 
 	# Y la instrumentacion que contesta por que una animacion de 1s no terminaba.
