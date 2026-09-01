@@ -97,6 +97,7 @@ func _initialize() -> void:
 		_check(node is Control, "y su raiz sigue siendo un Control")
 		node.free()
 
+	_every_reference_is_rewired(text)
 	_kollectadex(text)
 
 	# 6. Y la tienda sigue instanciando.
@@ -114,6 +115,53 @@ func _initialize() -> void:
 		shop.free()
 
 	_finish()
+
+
+## Cada NodePath que apuntaba al Console tiene que estar reenganchado.
+##
+## Esta comprobacion existe porque la primera version del cargador reengancho
+## dos de SEIS. Las otras cuatro -FocusConsole.console,
+## FocusPowerConsole.console, TouchControls.force_active_source y
+## SwitchCartridgeButton.visible_source- se quedaron nulas, y ninguna levanta un
+## error: la consola deja de abrirse desde su area y la entrada tactil, que es
+## la unica del dispositivo, pierde de vista que hay un menu delante.
+##
+## No las lista. Las CUENTA sobre el .tscn, que es lo unico que no se olvida al
+## crecer la escena: si manana alguien engancha un septimo nodo a la consola, el
+## numero sube aqui y el guard cae hasta que el cargador lo cubra. Una lista
+## escrita a mano habria pasado en verde exactamente igual que la primera vez.
+func _every_reference_is_rewired(text: String) -> void:
+	# Los NodePath del .tscn hacia la consola, sin las pistas de animacion: esas
+	# las arregla clear_caches() y no un reenganche.
+	var referenced: PackedStringArray = []
+	for line: String in text.split("\n"):
+		if line.begins_with("tracks/") or not line.contains("ConsoleSubViewport/Console"):
+			continue
+		if not line.contains("NodePath("):
+			continue
+		var eq: int = line.find(" = ")
+		if eq <= 0:
+			continue
+		referenced.append(line.substr(0, eq))
+
+	_check(referenced.size() >= 6,
+		"la escena sigue teniendo los NodePath hacia la consola (%d: %s)"
+			% [referenced.size(), ", ".join(referenced)])
+
+	# Y el cargador tiene que escribir cada una de esas propiedades.
+	var loader: String = FileAccess.get_file_as_string(LOADER)
+	var missing: PackedStringArray = []
+	for prop: String in referenced:
+		if not loader.contains('"%s"' % prop):
+			missing.append(prop)
+	_check(missing.is_empty(),
+		"y el cargador reengancha todas%s"
+			% ("" if missing.is_empty() else " - FALTAN: " + ", ".join(missing)))
+
+	# La ruta de Credits, escrita mal en la primera version y sin forma de
+	# notarlo: el viewport anidado simplemente no se apagaba nunca.
+	_check(loader.contains("TabContainer/Credits/CurrentlySelected/SubViewportContainer"),
+		"y la ruta de Credits es la que el .tscn tenia, no la recordada")
 
 
 ## El kollectadex, diferido igual pero con dos cables en vez de cinco.
@@ -134,6 +182,28 @@ func _kollectadex(text: String) -> void:
 			"...con %s enganchado" % wire)
 	_check(text.contains("Viewports/KollectadexSubViewport/Kollectadex"),
 		"y las pistas siguen nombrando la ruta que reproduce")
+
+	# La misma cuenta que para la consola, por el mismo motivo: aqui tambien hay
+	# un `TouchControls` de por medio y aqui tambien los cables apuntan a un nodo
+	# interior, asi que olvidarse de uno se ve igual de poco.
+	var referenced: PackedStringArray = []
+	for line: String in text.split("\n"):
+		if line.begins_with("tracks/") or not line.contains("KollectadexSubViewport/Kollectadex"):
+			continue
+		if not line.contains("NodePath("):
+			continue
+		var eq: int = line.find(" = ")
+		if eq > 0:
+			referenced.append(line.substr(0, eq))
+	var loader: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex_deferred_loader.gd")
+	var missing: PackedStringArray = []
+	for prop: String in referenced:
+		if not loader.contains('"%s"' % prop):
+			missing.append(prop)
+	_check(missing.is_empty(),
+		"su cargador reengancha los %d NodePath que le apuntan%s"
+			% [referenced.size(), "" if missing.is_empty() else " - FALTAN: " + ", ".join(missing)])
 
 	_check(ResourceLoader.exists(PACKED), "kollectadex_shop.tscn existe")
 	var packed: PackedScene = load(PACKED)

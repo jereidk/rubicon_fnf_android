@@ -29,8 +29,11 @@ extends Node
 ## antes de sacarla, porque cada uno es una forma distinta de romperse en
 ## silencio:
 ##
-##   1. `console` en el script de la tienda - ya tolera null en sus tres usos,
-##      que es lo que hace viable todo esto.
+##   1. SEIS NodePath exportados que apuntaban al Console. La primera version de
+##      este fichero reengancho dos y dio la lista por cerrada; los otros cuatro
+##      estan enumerados sobre sus @export mas abajo. Ninguno da error al
+##      faltar - la consola simplemente deja de abrirse y el tacto se
+##      desorienta. El guard los cuenta ahora sobre el .tscn en vez de fiarse.
 ##   2. `shop`, `sequences` y `focus_right_area`, exports de la consola que
 ##      apuntan FUERA de ella. Un NodePath exportado se resuelve al instanciar,
 ##      cuando el nodo aun no esta en el arbol, asi que llegan nulos siempre.
@@ -38,8 +41,8 @@ extends Node
 ##      consola y son lo que apaga sus SubViewport anidados.
 ##   4. La conexion `play_sound` -> ConsoleSFX._on_console_play_sound, la unica
 ##      de las trece del .tscn que tocaba la consola.
-##   5. Las ocho pistas de animacion que la nombran. AnimationMixer cachea rutas
-##      y no recachea porque aparezca un nodo, asi que hay que decirselo.
+##   5. Las pistas de animacion que la nombran. AnimationMixer cachea rutas y no
+##      recachea porque aparezca un nodo, asi que hay que decirselo.
 
 ## La escena empaquetada por tools/extract_console_scene.gd.
 ##
@@ -61,6 +64,25 @@ const NODE_NAME := &"Console"
 @export var focus_right_area: Node
 @export var viewport_gate: Node
 @export var console_sfx: Node
+
+## Los OTROS cuatro que tenian un NodePath exportado hacia el Console.
+##
+## La primera version de este fichero reengancho `CollectorShop.console` y el
+## gate, y dio por cerrada la lista. Eran seis. Contadas sobre el .tscn con las
+## pistas de animacion descartadas, las que faltaban son estas cuatro, y
+## ninguna habria dado un error - solo dejan de funcionar:
+##
+##   FocusConsole.console               el area que ABRE la consola
+##   FocusPowerConsole.console          el area del boton de encendido
+##   TouchControls.force_active_source  la entrada tactil, la unica que hay
+##   SwitchCartridgeButton.visible_source  se muestra segun la consola
+##
+## Todas apuntan al Console entero y todas guardan la propiedad `console` menos
+## la ultima, asi que van con su nombre al lado en vez de asumirlo.
+@export var focus_console: Node
+@export var focus_power_console: Node
+@export var touch_controls: Node
+@export var switch_cartridge_button: Node
 
 ## La raiz desde la que buscar AnimationMixer a los que vaciar la cache.
 ##
@@ -102,7 +124,7 @@ func _process(_delta: float) -> void:
 		_mount(packed)
 
 
-## Monta la consola y rehace los cinco cables.
+## Monta la consola y rehace todos los cables.
 func _mount(packed: PackedScene) -> void:
 	var host: Node = get_parent()
 	if host == null or host.has_node(NodePath(NODE_NAME)):
@@ -119,8 +141,11 @@ func _mount(packed: PackedScene) -> void:
 
 	host.add_child(console)
 
-	if shop != null and "console" in shop:
-		shop.set("console", console)
+	_assign(shop, "console", console)
+	_assign(focus_console, "console", console)
+	_assign(focus_power_console, "console", console)
+	_assign(touch_controls, "force_active_source", console)
+	_assign(switch_cartridge_button, "visible_source", console)
 
 	if console_sfx != null and console_sfx.has_method("_on_console_play_sound") \
 			and console.has_signal("play_sound") \
@@ -140,8 +165,12 @@ func _mount(packed: PackedScene) -> void:
 
 
 ## `nested_containers` del gate son SubViewportContainer que viven DENTRO de la
-## consola, asi que se resuelven aqui y no en el .tscn. Las rutas son las dos
-## que el propio gate documenta: el fondo y los iconos de la pestana Home.
+## consola, asi que se resuelven aqui y no en el .tscn. Son TRES y estan
+## copiadas del array que el .tscn tenia antes de sacar la consola, no de la
+## memoria: la primera version puso `TabContainer/Credits/CreditsSubViewport`
+## de cabeza y la real es `TabContainer/Credits/CurrentlySelected/
+## SubViewportContainer`, con lo que ese viewport anidado no se habria apagado
+## nunca y nadie se habria enterado.
 func _rewire_gate(console: Node) -> void:
 	if viewport_gate == null or not is_instance_valid(viewport_gate):
 		return
@@ -151,7 +180,7 @@ func _rewire_gate(console: Node) -> void:
 	for path: String in [
 		"console_bg/Control/SubViewportContainer",
 		"TabContainer/Home/IconSubViewport",
-		"TabContainer/Credits/CreditsSubViewport",
+		"TabContainer/Credits/CurrentlySelected/SubViewportContainer",
 	]:
 		var node: Node = console.get_node_or_null(NodePath(path))
 		if node is Control:
@@ -172,7 +201,7 @@ func _clear_mixer_caches(root: Node) -> void:
 
 
 func _assign(node: Node, prop: String, value: Node) -> void:
-	if value != null and prop in node:
+	if node != null and is_instance_valid(node) and value != null and prop in node:
 		node.set(prop, value)
 
 
