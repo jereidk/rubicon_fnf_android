@@ -239,10 +239,18 @@ func _deadline_does_not_dump(script: GDScript) -> void:
 		"y revela un LOTE, no los 60 de golpe (revelados=%d, tope %d)" % [revealed, max_batch])
 	_check(not bool(late.get("_finished")),
 		"y no entrega la escena con nodos por revelar")
-	# El barrido es lo que si se apaga: mover la camara a poses nuevas es coste
-	# opcional sobre un pase que ya se paso de presupuesto.
-	_check(int(late.get("_sweep_extra_frames")) == 0,
-		"el barrido deja de servir poses pasado el plazo")
+	# El barrido SIGUE sirviendo poses pasado el plazo.
+	#
+	# Un commit lo apago aqui, con el argumento de que mover la camara es coste
+	# opcional sobre un pase que ya se paso de presupuesto, y el log
+	# 10234-c93facec lo desmintio por los dos lados: la cobertura de Chimera
+	# cayo de `vistas=32/40` a `vistas=15/42` - veintisiete angulos sin barrer,
+	# compilando en mitad de la cancion - y no ahorro nada, porque servir una
+	# pose es escribir un Transform3D y los 22,5 segundos de aquel fotograma
+	# eran cien pipelines fallando con VkResult -13.
+	_check(int(late.get("_sweep_extra_frames")) > 0,
+		"el barrido sigue sirviendo poses pasado el plazo (%d)"
+			% int(late.get("_sweep_extra_frames")))
 
 	# Y sigue avanzando en los fotogramas siguientes, en vez de quedarse quieto.
 	late.set("_last_frame_usec", Time.get_ticks_usec())

@@ -144,7 +144,32 @@ const FIRST_BATCH := 1
 
 ## Ceiling, so a scene full of cheap nodes still cannot put every remaining
 ## pipeline on one frame.
-const MAX_BATCH := 64
+##
+## Sesenta y cuatro cuando el conjunto eran ~116 nodos 3D. Con el 2D dentro son
+## 267 en Chimera y 469 en la tienda, y el log del dispositivo 10234-c93facec
+## mide lo que ese techo deja pasar - un fotograma, dentro del precache de
+## Chimera:
+##
+##     [496.33s] rend2d=12/378/41   pipe=982   objs=43
+##     [519.62s] rend2d=13/542/123  pipe=984   objs=127   vram_delta=+0.0MB
+##
+## VEINTIDOS SEGUNDOS Y MEDIO, ochenta y dos canvas items encendidos, y DOS
+## pipelines creadas. Las que costaron el tiempo son las que no aparecen en
+## `pipe` porque fallaron: `VkResult error -13 (x100)` tres segundos despues.
+## Un pipeline que falla paga el intento entero del driver y no deja nada.
+##
+## Ochenta y dos con el techo en sesenta y cuatro no es una contradiccion, es el
+## matiz que el 2D trajo: `_batch` cuenta entradas de `_hidden`, y revelar UNA
+## que sea un contenedor enciende de golpe todo su subarbol, que ya venia con
+## `visible = true` en local. En 3D una entrada era una malla; en 2D puede ser
+## una rama entera.
+##
+## A ocho, lo peor que un fotograma ciego puede costar son ocho entradas, y el
+## precio es contar frames: la tienda necesita al menos 59 y Chimera 34, a ~16ms
+## cuando son baratos, o sea alrededor de un segundo mas de pantalla de carga
+## sobre pases que ya duran seis. Contra veintidos segundos y medio no hay
+## comparacion que hacer.
+const MAX_BATCH := 8
 
 ## Past this multiple of the budget, the batch drops straight to one instead of
 ## halving. See the branch that uses it.
@@ -1015,12 +1040,26 @@ func _process(_delta: float) -> void:
 	# reveal did, the gate never opened, and the log line says `extra=0 frames`
 	# - zero extra poses served on the run the mechanism was built for.
 	#
-	# Y no despues del plazo: mover la camara a una pose nueva puede encontrar
-	# pipelines que nadie habia compilado, que es justo lo que se le pide - pero
-	# es coste OPCIONAL sobre un pase que ya se paso de presupuesto, y desde
-	# aqui el unico trabajo que queda por hacer es terminar de revelar.
-	if not _over_deadline:
-		_serve_sweep_pose()
+	# Y TAMBIEN despues del plazo. Esto estuvo un commit apagandose al vencer,
+	# con el argumento de que mover la camara es coste opcional sobre un pase
+	# que ya se paso de presupuesto. El log 10234-c93facec dice que el argumento
+	# era falso por los dos lados. La cobertura cayo:
+	#
+	#     antes   finished ... vistas=32/40
+	#     con el  finished ... vistas=15/42
+	#
+	# Quince puntos de vista de cuarenta y dos, o sea que veintisiete angulos de
+	# Chimera se quedaron sin barrer y compilan su pipeline en mitad de la
+	# cancion, que es literalmente lo unico que este fichero existe para evitar.
+	# Y no ahorro nada a cambio: los treinta y dos segundos posteriores al plazo
+	# crearon 38 pipelines, con un solo fotograma llevandose 22,5s de ellos por
+	# los -13 que fallaban. Servir una pose es escribir un Transform3D; no
+	# estaba ahi el tiempo.
+	#
+	# Lo que el plazo si sigue apagando es la COLA, que son fotogramas extra
+	# despues de que el revelado termine. Eso si es tiempo que se puede no
+	# gastar, y tiene su propio presupuesto aparte.
+	_serve_sweep_pose()
 
 func _reveal(count: int) -> void:
 	var target: int = mini(_revealed + count, _hidden.size())
