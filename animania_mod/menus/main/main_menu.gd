@@ -289,6 +289,7 @@ func _process(delta: float) -> void:
 	if camera != null:
 		camera.zoom = Vector2.ONE * (ZOOM_REST
 			+ (camera.zoom.x - ZOOM_REST) * exp(-ZOOM_DECAY * delta))
+	_update_camera_scroll(delta)
 
 	if music == null or not music.playing:
 		return
@@ -414,6 +415,57 @@ func _play(path: String) -> void:
 		return
 	sfx.stream = stream
 	sfx.play()
+
+
+## updateCameraScroll. Slow camera drift for parallax feel.
+## From the binary's updateCameraScroll method.
+const SCROLL_DRIFT_SPEED := 30.0
+const SCROLL_LERP := 0.02
+var _scroll_target := Vector2.ZERO
+
+
+func _update_camera_scroll(delta: float) -> void:
+	if camera == null:
+		return
+	var time: float = music.get_playback_position() if music != null else 0.0
+	_scroll_target.x = sin(time * 0.3) * SCROLL_DRIFT_SPEED
+	_scroll_target.y = cos(time * 0.2) * SCROLL_DRIFT_SPEED * 0.5
+	camera.offset = camera.offset.lerp(_scroll_target, SCROLL_LERP)
+
+
+## toggleSocialButtons / showSocialButtons / hideSocialButtons.
+## From the binary's social button visibility system.
+func _show_social() -> void:
+	var social := get_node_or_null("SocialButtons")
+	if social != null:
+		social.visible = true
+
+
+func _hide_social() -> void:
+	var social := get_node_or_null("SocialButtons")
+	if social != null:
+		social.visible = false
+
+
+func _toggle_social() -> void:
+	var social := get_node_or_null("SocialButtons")
+	if social != null:
+		social.visible = not social.visible
+
+
+## sortByZ. Sorts children of the Buttons node by z_index.
+## From the binary's sortByZ method.
+func _sort_by_z() -> void:
+	if buttons == null:
+		return
+	var ch: Array[Node] = []
+	for child: Node in buttons.get_children():
+		ch.append(child)
+	ch.sort_custom(func(a: Node, b: Node) -> bool:
+		return a.z_index < b.z_index)
+	for i: int in ch.size():
+		buttons.move_child(ch[i], i)
+
 
 
 func _unhandled_input(event: InputEvent) -> void:
