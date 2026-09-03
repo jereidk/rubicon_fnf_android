@@ -37,23 +37,13 @@ const SLIDE_SECONDS := 1.35
 @export var bumper: Node
 @export var flash: ColorRect
 @export var fade_rect: ColorRect
-@export var hud_up: Array[Node] = []
-@export var hud_down: Array[Node] = []
 @export var cover: ColorRect
 @export var intro_text: AnimatedSprite2D
-@export var hud_root: Control
 @export var script_bars: CanvasItem
-
-## ─── State ──────────────────────────────────────────────────────────────────
-var _hud_rest: Vector2 = Vector2.ONE
-var _hud_tween: Tween
-var _intro_tween: Tween
 
 
 func _ready() -> void:
 	super()
-	if hud != null:
-		_hud_rest = hud.scale
 	setup_opening(cover, intro_text, INTRO_TEXT_SCALE)
 
 
@@ -64,15 +54,7 @@ func _get_stage_zoom() -> float:
 ## ─── Per-frame ──────────────────────────────────────────────────────────────
 func _process(delta: float) -> void:
 	super(delta)
-	if hud == null:
-		return
-	if _hud_tween != null and _hud_tween.is_running():
-		centre_hud(hud)
-		return
-	if hud.scale.is_equal_approx(_hud_rest):
-		return
-	hud.scale = hud.scale.lerp(_hud_rest, minf(1.0, 3.0 * delta))
-	centre_hud(hud)
+	# HUD scale decay is now handled by the base class.
 
 
 ## ─── Beat choreography ──────────────────────────────────────────────────────
@@ -96,28 +78,18 @@ func opening() -> void:
 	setup_opening(cover, intro_text, INTRO_TEXT_SCALE)
 	if hud_root != null:
 		hud_root.modulate.a = 0.0
-	if player_lanes != null:
-		player_lanes.position.x = _lane_homes[&"player"].x + SCREEN_WIDTH * FUNKIN_TO_RUBICON
-		player_lanes.modulate.a = 0.0
-	if opponent_lanes != null:
-		opponent_lanes.position.x = _lane_homes[&"opponent"].x + SCREEN_WIDTH * FUNKIN_TO_RUBICON
-		opponent_lanes.modulate.a = 0.0
+	park_lanes_offscreen()
 	set_keys_enabled(false)
 
 
 ## ─── Intro text ─────────────────────────────────────────────────────────────
 func intro_show_text() -> void:
-	if not first_time(&"intro_show_text"):
-		return
-	if intro_text == null:
+	if not first_time(&"intro_show_text") or intro_text == null:
 		return
 	intro_text.visible = true
-	intro_text.scale = Vector2.ONE * INTRO_TEXT_SCALE
 	var frame: Texture2D = intro_text.sprite_frames.get_frame_texture(
 		intro_text.animation, 0)
-	if frame != null:
-		intro_text.position = (Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)
-			- frame.get_size() * INTRO_TEXT_SCALE) * 0.5
+	centre_text_on_screen(intro_text, frame, INTRO_TEXT_SCALE)
 	if _intro_tween != null:
 		_intro_tween.kill()
 	_intro_tween = create_tween()
@@ -137,7 +109,7 @@ func intro_reveal() -> void:
 	fade_cover(cover, 1.25)
 
 
-## ─── HUD in/out ─────────────────────────────────────────────────────────────
+## ─── HUD ────────────────────────────────────────────────────────────────────
 func hud_in() -> void:
 	if not first_time(&"hud_in"):
 		return

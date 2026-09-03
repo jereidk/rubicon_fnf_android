@@ -52,12 +52,22 @@ var _lane_homes: Dictionary[StringName, Vector2] = {}
 ## Beat guard: true the first time a named beat fires, false forever after.
 var _ran: Dictionary[StringName, bool] = {}
 
+## HUD scale state: captured at _ready, restored every frame via lerp.
+## Any song can punch() the HUD and it will ease back automatically.
+var _hud_rest: Vector2 = Vector2.ONE
+var _hud_tween: Tween
+var hud_root: Control
+var hud_up: Array[Node] = []
+var hud_down: Array[Node] = []
+
 
 func _ready() -> void:
 	if player_lanes != null:
 		_lane_homes[&"player"] = player_lanes.position
 	if opponent_lanes != null:
 		_lane_homes[&"opponent"] = opponent_lanes.position
+	if hud != null:
+		_hud_rest = hud.scale
 	if clock != null and clock.has_signal(&"beat_change"):
 		clock.beat_change.connect(_on_beat)
 	# Connect lane hit signals for camera nudge.
@@ -83,6 +93,14 @@ func _process(delta: float) -> void:
 		1.0 - pow(NUDGE_PRECISION, delta / NUDGE_SECONDS))
 	if camera != null:
 		camera.position_interpolate_offset = shake + _nudge
+
+	# HUD scale auto-decay: after a punch, ease back to rest.
+	if hud != null:
+		if _hud_tween != null and _hud_tween.is_running():
+			centre_hud(hud)
+		elif not hud.scale.is_equal_approx(_hud_rest):
+			hud.scale = hud.scale.lerp(_hud_rest, minf(1.0, 3.0 * delta))
+			centre_hud(hud)
 
 
 ## ─── Camera helpers ─────────────────────────────────────────────────────────
@@ -228,6 +246,36 @@ func tween_hud_out(nodes: Array[Node], distance: float, delay: float,
 			.set_ease(Tween.EASE_IN)
 		tween.tween_property(node, "modulate:a", 0.0,
 			duration).set_delay(delay)
+
+
+## ─── HUD helpers (extended) ───────────────────────────────────────────────
+## Fade nodes in (e.g. hud_root + player_lanes appearing together).
+func fade_in_nodes(nodes: Array[Node], duration: float = 0.35) -> void:
+	for node: Node in nodes:
+		if node != null and node is CanvasItem:
+			create_tween().tween_property(node, "modulate:a", 1.0, duration)
+
+
+## Hide lanes offscreen (opening sequence).
+func park_lanes_offscreen(distance: float = 0.0) -> void:
+	if distance == 0.0:
+		distance = SCREEN_WIDTH * FUNKIN_TO_RUBICON
+	for entry: Array in [[&"player", player_lanes], [&"opponent", opponent_lanes]]:
+		var lanes: Control = entry[1]
+		if lanes == null or not _lane_homes.has(entry[0]):
+			continue
+		lanes.position.x = _lane_homes[entry[0]].x + distance
+		lanes.modulate.a = 0.0
+
+
+## Position text centred on screen from a frame texture.
+func centre_text_on_screen(node: Node2D, texture: Texture2D,
+		scale: float = 1.0) -> void:
+	if node == null or texture == null:
+		return
+	node.scale = Vector2.ONE * scale
+	node.position = (Vector2(SCREEN_WIDTH, SCREEN_HEIGHT)
+		- texture.get_size() * scale) * 0.5
 
 
 ## ─── Beat guard ─────────────────────────────────────────────────────────────
