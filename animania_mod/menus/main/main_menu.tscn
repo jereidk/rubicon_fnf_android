@@ -12,8 +12,17 @@
 [ext_resource type="Script" path="res://animania_mod/menus/main/menu_seasonal.gd" id="10_sa1r4"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_snow_frames.tres" id="11_l8ddx"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_leafs_frames.tres" id="12_msg4d"]
+[ext_resource type="Script" path="res://animania_mod/menus/main/menu_visualizer.gd" id="vis_script"]
 [ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg" id="13_cmbxy"]
+[ext_resource type="Shader" path="res://animania_mod/shaders/bgMenu.gdshader" id="bg_shader"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menuTransparent.png" id="bg_transparent"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/music_social.png" id="social_tex"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/music_social_buttons.png" id="social_btn_tex"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/music_social_lines.png" id="social_lines_tex"]
 
+[sub_resource type="ShaderMaterial" id="bgMenu_mat"]
+shader = ExtResource("bg_shader")
+shader_parameter/bg_texture = ExtResource("bg_transparent")
 [node name="MainMenu" type="Node2D" unique_id=9149689 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
 script = ExtResource("1_ond0l")
 buttons = NodePath("Buttons")
@@ -32,6 +41,12 @@ position = Vector2(0, -20.946716)
 scale = Vector2(1.4201183, 1.4201183)
 texture = ExtResource("2_45fl5")
 centered = false
+
+material = SubResource("bgMenu_mat")
+[node name="Visualizer" type="Node2D" parent="."]
+position = Vector2(200, 540)
+scale = Vector2(1.0, 1.0)
+script = ExtResource("vis_script")
 
 [node name="ButtonsBack" type="Sprite2D" parent="." unique_id=1071386837]
 position = Vector2(465, -13.5)
@@ -294,6 +309,22 @@ script = ExtResource("10_sa1r4")
 snow_frames = ExtResource("11_l8ddx")
 leaf_frames = ExtResource("12_msg4d")
 
+[node name="SocialButtons" type="Node2D" parent="."]
+position = Vector2(1700, 800)
+
+[node name="MusicSocial" type="Sprite2D" parent="SocialButtons"]
+texture = ExtResource("social_tex")
+centered = false
+
+[node name="MusicSocialButtons" type="Sprite2D" parent="SocialButtons"]
+position = Vector2(0, 1024)
+texture = ExtResource("social_btn_tex")
+centered = false
+
+[node name="MusicSocialLines" type="Sprite2D" parent="SocialButtons"]
+position = Vector2(-100, 1024)
+texture = ExtResource("social_lines_tex")
+centered = false
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=321471833]
 stream = ExtResource("13_cmbxy")
 autoplay = true

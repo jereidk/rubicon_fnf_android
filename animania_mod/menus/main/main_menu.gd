@@ -162,6 +162,8 @@ var _exit_offset := Vector2.ZERO
 
 
 func _ready() -> void:
+	if music != null:
+		music.add_to_group("menu_music")
 	_refresh()
 	_start_intro()
 
