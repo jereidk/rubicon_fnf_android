@@ -460,3 +460,115 @@ func swap_characters(new_cast: Dictionary[StringName, Node],
 ## Override in subclass for per-song beat choreography.
 func _on_beat() -> void:
 	pass
+
+
+## ═════════════════════════════════════════════════════════════════════════════
+## SECTION: AnimaniaModule global gameplay (combo, ratings, opponent splash)
+## These run for EVERY song, not just phone-call.
+## ═════════════════════════════════════════════════════════════════════════════
+
+## ─── Combo tracking ─────────────────────────────────────────────────────────
+## Every player hit increments curNoteCombo; misses and breaks reset it.
+## When the combo is high enough and few notes remain, spawnCombo() awards
+## a bonus score and resets both counters.
+var _cur_note_combo: int = 0
+var _score_combo: int = 0
+
+## Minimum combo to show the Full Combo sprite.
+const COMBO_SPRITE_MIN := 7
+## Minimum combo to show the combo number digits.
+const COMBO_DIGITS_MIN := 15
+
+## Combo bonus score formula: round(curNoteCombo * (scoreCombo / 150)).
+## Called when the player switches focus away from bf (phone-call specific
+## trigger) OR when a miss/break happens.
+
+
+## ─── Opponent splash ────────────────────────────────────────────────────────
+## Opponent notes have a 60% chance to splash AND drain 0.85% health.
+## This is AnimaniaModule.spawnOpponentSplash.
+func opponent_splash(lanes_node: Control, note_index: int,
+		note_data: Array, health_module: Node) -> void:
+	if lanes_node == null:
+		return
+	var index: int = int(note_index)
+	if index < 0 or index >= note_data.size() or note_data[index] == null:
+		return
+	# Skip banned kinds.
+	var note_type: String = String(note_data[index].type)
+	if _is_banned(note_type):
+		return
+	# 60% chance.
+	if randf() > OPPONENT_SPLASH_CHANCE:
+		return
+	# Health drain: 0.85% of max health.
+	if health_module != null and health_module.has_method("get_health"):
+		var current: float = health_module.get_health()
+		health_module.set_health(current - 0.0085)
+
+
+func _is_banned(note_type: String) -> bool:
+	for kind: StringName in BANNED_NOTEKINDS:
+		if String(kind) == note_type:
+			return true
+	return false
+
+
+## ─── Focus change (doDiffFocus) ─────────────────────────────────────────────
+## When the camera switches from bf to dad/gf, reset camera offset and
+## optionally trigger a combo popup.
+var _cur_focus: String = ""
+var _cur_focus_old: String = ""
+
+func update_focus(player_id: int) -> void:
+	_cur_focus = ["bf", "dad", "gf"][player_id] if player_id < 3 else "bf"
+	if _cur_focus_old != _cur_focus:
+		if _cur_focus_old == "bf" and _cur_focus in ["dad", "gf"]:
+			_spawn_combo_on_switch()
+		if camera != null:
+			camera.position_interpolate_offset = Vector2.ZERO
+		_cur_focus_old = _cur_focus
+
+
+## Override in subclass if you need a visual popup on focus switch.
+func _spawn_combo_on_switch() -> void:
+	pass
+
+
+## ─── Note hit/miss hooks ────────────────────────────────────────────────────
+## Call these from the note handler's signals.
+## Returns the rating name ("sick", "good", "bad", "miss") for display.
+func on_player_hit(lane_id: int, rating_name: String, score: int) -> void:
+	_cur_note_combo += 1
+	_score_combo += score
+
+
+func on_player_miss() -> void:
+	_cur_note_combo = 0
+	_score_combo = 0
+
+
+## ─── Combo bonus (spawnCombo) ───────────────────────────────────────────────
+## Awards bonus score and resets counters. Call when focus switches or
+## at natural breakpoints.
+func award_combo_bonus(note_controller: Node) -> void:
+	if _cur_note_combo <= COMBO_SPRITE_MIN:
+		return
+	if note_controller == null:
+		return
+	var bonus: int = roundi(_cur_note_combo * (_score_combo / 150.0))
+	if note_controller.has_method("set"):
+		note_controller.performance_score_value += maxi(0, bonus - roundi(_score_combo / 150.0))
+	_score_combo = 0
+	_cur_note_combo = 0
+
+
+## ─── Full Combo sprite beat pulse ───────────────────────────────────────────
+## On every beat, if the FC sprite is visible, pulse it.
+## The sprite itself is song-specific (different textures per mod).
+func pulse_fc_sprite(sprite: Sprite2D) -> void:
+	if sprite == null or not sprite.visible:
+		return
+	sprite.scale = Vector2.ONE * 0.825
+	create_tween().tween_property(sprite, "scale",
+		Vector2.ONE * 0.9, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
