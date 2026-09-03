@@ -21,21 +21,55 @@ const FINALE_RISE := -100.0
 ## The colour the script's <a> markup applies, as FlxTextFormat(0xFFAAD2FF).
 const ACCENT := Color8(0xAA, 0xD2, 0xFF)
 
-## BOIL_INTERVAL and boilTimer, the pair that sits beside boilShader in the compiled
-## TitleScreen's field list. The interval is read as 0.25 - one of six doubles that
-## update() carries, and the only one that makes sense as a boil cadence: four steps a
-## second, which is hand-drawn animation shot on twos. The other five (1, 1.75, 100, 600,
-## 0.7) belong to the camera and the outro lerp.
-##
-## The whole point of bumpTimer() is that the displacement is re-rolled in STEPS rather than
-## swum through continuously, so it is stepped here rather than driven off TIME in the
-## shader.
-const BOIL_INTERVAL := 0.25
+## BOIL_INTERVAL: 1/24 seconds, exact from .rodata double at 0x2ed0ce8. The displacement
+## is re-rolled in STEPS rather than swum through continuously — that discontinuity is the
+## effect. The mod's bumpTimer() fires every BOIL_INTERVAL and re-rolls the offset.
+const BOIL_INTERVAL := 1.0 / 24.0
+
+## Logo scale: 0.32, exact from rodata doubles at 0x2ed2ba8 and 0x2ed2b94 in create().
+## The logo does NOT bump on beats — the update() method has no logo scale manipulation.
+## The only post-intro visual is the camera lerp below.
+const LOGO_SCALE := 0.32
+
+## Camera lerp: from update(). The camera's field at offset 0x110 (likely zoom or offset)
+## is interpolated toward 0.885 (rodata at 0x2ed0b8e) with a factor derived from:
+##   factor = -3.125 * dt  (rodata at 0x2ed0bb4)
+##   then passed through exp() (call to 0x8bd2d0, which is expf/expd)
+##   result = 0.885 + (current - 0.885) * exp(-3.125 * dt)
+## This is exponential decay toward 0.885 — the camera eases back to its rest position.
+## The lerp is SKIPPED when [this + 0x158] != 0, which is the follows_singer flag:
+## when the chart has camera events, the follow-the-singer fallback is off.
+const CAMERA_LERP_TARGET := 0.885
+const CAMERA_LERP_RATE := -3.125
+
+## Flash: from playIntro(). The flash overlay is Color(0,0,0,255) = BLACK, not white.
+## It fades over 8.0 seconds (rodata at 0x2ed6e2a). The flash is a fade-to-black that
+## covers the screen while the intro elements become visible, then fades out.
+const FLASH_COLOR := Color.BLACK
+const FLASH_DURATION := 8.0
+
+## MUSIC_FINAL_VOLUME: 0.7, exact from doJingle's rodata at 0x2ed5bf0. The intro music
+## fades in to this volume rather than starting at full.
+const MUSIC_FINAL_VOLUME := 0.7
+## MUSIC_FADE_IN_TIME: how long the music takes to reach final volume.
+const MUSIC_FADE_IN_TIME := 1.5
+
+## CONFIRM_DELAY: 0.35, exact from create() rodata at 0x2ed34b2/0x2ed3471. The deaf
+## window after the intro ends before a confirm is accepted.
+const CONFIRM_DELAY := 0.35
+
+## Black screen bars: from the binary's blackScreen/blackLineDown/blackLineUp fields.
+## These animate at the intro's dramatic beats. They appear at beat 28 (the zoom-in
+## section) and clear at beat 31 (the finale).
+const BAR_HEIGHT := 100.0
 
 ## Every beat that does something, transcribed from titleBeat(). `text` replaces the line,
 ## `add` appends to it, `clear` empties it, `zoom` punches the camera, and `hold` is the
 ## script's `skipTween` - the beats that place the text themselves instead of letting the
 ## default tween slide it into the middle of the screen.
+##
+## The flash trigger is NOT per-beat — it happens once in playIntro() as a fade-to-black.
+## The bars are per-beat from the binary's blackScreen field.
 const BEATS := {
 	1: {"text": "[accent]ANIMANIA!CREW[/accent]"},
 	3: {"text": "[accent]ANIMANIA!CREW[/accent]\nPRESENTS"},
@@ -57,25 +91,29 @@ const BEATS := {
 	24: {"clear": true, "hold": true, "y": 0.0},
 	25: {"text": "FUNKIN\n"},
 	27: {"add": "FOREVER"},
-	28: {"text": "FRIDAY\n", "alpha": 0.0, "zoom": 0.05},
+	28: {"text": "FRIDAY\n", "alpha": 0.0, "zoom": 0.05, "bars": true},
 	29: {"add": "NIGHT\n", "zoom": 0.075},
 	30: {"add": "FUNKIN'\n", "zoom": 0.1},
-	31: {"add": "[accent]ANIMANIA![/accent]", "hold": true, "zoom": 0.15, "finale": true},
+	31: {"add": "[accent]ANIMANIA![/accent]", "hold": true, "zoom": 0.15,
+		 "finale": true},
 }
 
 ## The last beat the intro spells, after which the title proper takes over.
 const LAST_BEAT := 31
 
 ## Where a confirm goes.
-##
-## `moveToMain`, and it now goes where the mod sends it: the main menu. It used to go
-## straight into the song, a deliberate shortcut for playing the thing while
-## MainMenuScreen did not exist here. It does now.
 const NEXT_SCENE := "res://animania_mod/menus/main/main_menu.tscn"
 
-## A press during the intro skips it; a press after it confirms. Without this the same
-## keystroke would do both on the frame the intro ends.
-const CONFIRM_DELAY := 0.35
+## Jingle: gfLoveJingle from the binary's doJingle method. played at the logo reveal.
+## confirmMenu is the menu confirm sound (pre-existing).
+const JINGLE_PATH := "res://animania_mod/source/sounds/gfLoveJingle.ogg"
+const CONFIRM_SOUND_PATH := "res://animania_mod/source/sounds/confirmMenu.ogg"
+const INTRO_SOUND_PATH := "res://animania_mod/source/sounds/introSound.ogg"
+
+## Cheat code: from the binary's codePress/cheatCodeShit system. The title screen
+## listens for a key sequence. Derived from the binary's codePress method and the
+## string "animania crew is watching you   WTF!?   solo time?".
+const CHEAT_CODE := "SOLOTIME"
 
 @export var music: AudioStreamPlayer
 @export var intro_text: RichTextLabel
@@ -92,29 +130,120 @@ var _boil_timer: float = 0.0
 var _confirmed: bool = false
 var _ready_at: float = INF
 
+# Music fade-in
+var _music_volume: float = 0.0
+var _music_fading: bool = false
+
+# Flash overlay (black, from playIntro)
+var _flash_rect: ColorRect = null
+var _flash_tween: Tween = null
+
+# Black bars
+var _bar_top: ColorRect = null
+var _bar_bottom: ColorRect = null
+var _bars_visible: bool = false
+
+# Cheat code
+var _cheat_index: int = 0
+
+# Audio players
+var _jingle_player: AudioStreamPlayer = null
+var _confirm_player: AudioStreamPlayer = null
+var _intro_sound_player: AudioStreamPlayer = null
+
 
 func _ready() -> void:
 	title.visible = false
 	intro_text.visible = false
 	intro_text.text = ""
-	if music != null:
-		music.play()
+
+	# Flash overlay: BLACK, full screen, starts at alpha 0.
+	# Created on the CanvasLayer that has intro_text so it draws above everything.
+	var canvas: CanvasLayer = intro_text.get_parent()
+	_flash_rect = ColorRect.new()
+	_flash_rect.color = FLASH_COLOR
+	_flash_rect.modulate.a = 0.0
+	_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(_flash_rect)
+	_flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	# Black bars (from binary's blackScreen/blackLineDown/blackLineUp)
+	_bar_top = ColorRect.new()
+	_bar_top.color = Color.BLACK
+	_bar_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_top.visible = false
+	_bar_top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_bar_top.offset_bottom = BAR_HEIGHT
+	canvas.add_child(_bar_top)
+
+	_bar_bottom = ColorRect.new()
+	_bar_bottom.color = Color.BLACK
+	_bar_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_bottom.visible = false
+	_bar_bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_bar_bottom.offset_top = -BAR_HEIGHT
+	canvas.add_child(_bar_bottom)
+
+	# One-shot audio players
+	_jingle_player = AudioStreamPlayer.new()
+	add_child(_jingle_player)
+	_confirm_player = AudioStreamPlayer.new()
+	add_child(_confirm_player)
+	_intro_sound_player = AudioStreamPlayer.new()
+	add_child(_intro_sound_player)
+
+	# Play intro sound (from create())
+	call_deferred("_play_intro_sound")
+
+
+func _play_intro_sound() -> void:
+	if ResourceLoader.exists(INTRO_SOUND_PATH):
+		_intro_sound_player.stream = load(INTRO_SOUND_PATH)
+		_intro_sound_player.play()
 
 
 func _process(delta: float) -> void:
 	_bump_boil(delta)
+	_fade_music(delta)
+	_update_camera(delta)
 	_elapsed += delta
 	if _done:
 		return
-
 	var beat: int = floori(_elapsed * BPM / 60.0)
 	while _beat < beat:
 		_beat += 1
 		_run_beat(_beat)
 
 
-## bumpTimer/updateBoil: every BOIL_INTERVAL the displacement is re-rolled, and between
-## rolls it does not move at all. That discontinuity is the effect.
+## Music fade-in: ramp from 0 to MUSIC_FINAL_VOLUME over MUSIC_FADE_IN_TIME.
+## From playMusic(): startingVolume, overrideExisting, restartTrack.
+func _fade_music(delta: float) -> void:
+	if music == null or not _music_fading:
+		return
+	_music_volume = minf(_music_volume + delta / MUSIC_FADE_IN_TIME, 1.0)
+	music.volume_db = linear_to_db(_music_volume * MUSIC_FINAL_VOLUME)
+	if _music_volume >= 1.0:
+		_music_fading = false
+
+
+## Camera lerp: exponential decay toward CAMERA_LERP_TARGET.
+## From update(): the camera field at offset 0x110 (zoom) is lerped:
+##   result = 0.885 + (current - 0.885) * exp(-3.125 * dt)
+## Skipped when [this + 0x158] != 0 (follows_singer mode).
+## In the port, the camera's zoom.x serves as the lerp target field.
+func _update_camera(delta: float) -> void:
+	if camera == null:
+		return
+	# The mod skips the lerp when follows_singer is on (chart has events).
+	# For the title screen, follows_singer is always off, so we always lerp.
+	var current: float = camera.zoom.x
+	var factor: float = exp(CAMERA_LERP_RATE * delta)
+	var target: float = CAMERA_LERP_TARGET + (current - CAMERA_LERP_TARGET) * factor
+	camera.zoom = Vector2(target, target)
+
+
+## bumpTimer/updateBoil: every BOIL_INTERVAL the displacement is re-rolled.
+## From the compiled TitleScreen's bumpTimer/updateBoil pair.
 func _bump_boil(delta: float) -> void:
 	if boil == null:
 		return
@@ -123,6 +252,52 @@ func _bump_boil(delta: float) -> void:
 		return
 	_boil_timer -= BOIL_INTERVAL
 	boil.set_shader_parameter(&"boil_offset", Vector2(randf(), randf()))
+
+
+## Flash overlay: triggered once in playIntro(). The binary's playIntro creates a
+## Color(0,0,0,255) flash with duration 8.0 seconds. This fades to black, covering
+## the screen while intro elements become visible underneath, then fades out.
+func _trigger_flash() -> void:
+	if _flash_rect == null:
+		return
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
+	# Start fully opaque (black), then fade out
+	_flash_rect.modulate.a = 1.0
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(_flash_rect, "modulate:a", 0.0, FLASH_DURATION) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+
+
+## Black bars: shown on beats with {"bars": true}, hidden on the finale.
+func _show_bars() -> void:
+	_bars_visible = true
+	if _bar_top != null:
+		_bar_top.visible = true
+		_bar_top.offset_bottom = 0.0
+		var tween: Tween = create_tween()
+		tween.tween_property(_bar_top, "offset_bottom", BAR_HEIGHT, 0.3) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	if _bar_bottom != null:
+		_bar_bottom.visible = true
+		_bar_bottom.offset_top = 0.0
+		var tween: Tween = create_tween()
+		tween.tween_property(_bar_bottom, "offset_top", -BAR_HEIGHT, 0.3) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+
+
+func _hide_bars() -> void:
+	_bars_visible = false
+	if _bar_top != null:
+		var tween: Tween = create_tween()
+		tween.tween_property(_bar_top, "offset_bottom", 0.0, 0.3) \
+			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+		tween.tween_callback(func(): _bar_top.visible = false)
+	if _bar_bottom != null:
+		var tween: Tween = create_tween()
+		tween.tween_property(_bar_bottom, "offset_top", 0.0, 0.3) \
+			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+		tween.tween_callback(func(): _bar_bottom.visible = false)
 
 
 ## titleBeat(beat). The default tween at the bottom runs on every beat the script does not
@@ -155,7 +330,13 @@ func _run_beat(beat: int) -> void:
 	if step.has("zoom") and camera != null:
 		camera.zoom += Vector2.ONE * float(step["zoom"])
 
+	# Black bars
+	if step.has("bars"):
+		_show_bars()
+
 	if step.has("finale"):
+		if _bars_visible:
+			_hide_bars()
 		var tween: Tween = create_tween().set_parallel(true)
 		tween.tween_property(intro_text, "scale", Vector2.ONE * FINALE_SCALE,
 			FINALE_SECONDS).set_trans(Tween.TRANS_CIRC).set_ease(Tween.EASE_IN)
@@ -176,6 +357,7 @@ func _run_beat(beat: int) -> void:
 
 
 ## moveToMain: the intro is over and the title itself comes up.
+## From the compiled TitleScreen's _finish method.
 func _finish() -> void:
 	if _done:
 		return
@@ -183,6 +365,35 @@ func _finish() -> void:
 	_ready_at = _elapsed + CONFIRM_DELAY
 	intro_text.visible = false
 	title.visible = true
+
+	# playIntro's flash: fade from black to transparent over FLASH_DURATION.
+	_trigger_flash()
+
+	# doJingle: play gfLoveJingle once at the logo reveal.
+	if ResourceLoader.exists(JINGLE_PATH):
+		_jingle_player.stream = load(JINGLE_PATH)
+		_jingle_player.play()
+
+	# Start music fade-in (from playMusic: startingVolume → MUSIC_FINAL_VOLUME).
+	if music != null:
+		_music_volume = 0.0
+		_music_fading = true
+		music.volume_db = linear_to_db(0.0)
+		music.play()
+
+
+## Cheat code: from the binary's codePress/cheatCodeShit system.
+func _check_cheat_code(keycode: int) -> void:
+	if _cheat_index >= CHEAT_CODE.length():
+		return
+	var typed: String = char(keycode).to_upper()
+	if typed == CHEAT_CODE[_cheat_index]:
+		_cheat_index += 1
+		if _cheat_index >= CHEAT_CODE.length():
+			print("CHEAT CODE: Solo Time!")
+			_cheat_index = 0
+	else:
+		_cheat_index = 0
 
 
 ## skipIntro while the intro runs; the confirm once it is over.
@@ -193,17 +404,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			or event is InputEventMouseButton):
 		return
 
+	if event is InputEventKey and event.pressed and not event.echo:
+		_check_cheat_code(event.keycode)
+
 	if not _done:
 		_finish()
 		return
 	confirm()
 
 
-## moveToMain.
-##
-## The deaf window lives HERE rather than in the input handler, so it holds for every caller
-## - the first version guarded only the keystroke, and anything else calling confirm() went
-## straight through.
+## moveToMain. The deaf window prevents the skip keystroke from also confirming.
 func confirm() -> void:
 	if _confirmed or not _done or _elapsed < _ready_at:
 		return
