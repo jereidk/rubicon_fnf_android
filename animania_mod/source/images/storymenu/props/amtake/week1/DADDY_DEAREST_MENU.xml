@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="DADDY_DEAREST_MENU_2.png">
+	<!-- Created with Adobe Animate version 22.0.7.214 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="dad confirm0000" x="373" y="809" width="360" height="763" frameX="-12" frameY="-11" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0001" x="373" y="809" width="360" height="763" frameX="-12" frameY="-11" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0002" x="3" y="809" width="367" height="770" frameX="-13" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0003" x="3" y="809" width="367" height="770" frameX="-13" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0004" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0005" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0006" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0007" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0008" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0009" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0010" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0011" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0012" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0013" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad confirm0014" x="1511" y="3" width="368" height="770" frameX="-12" frameY="-4" frameWidth="368" frameHeight="770"/>
+	<SubTexture name="dad idle0000" x="1131" y="3" width="377" height="784" frameX="-11" frameY="11" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0001" x="1131" y="3" width="377" height="784" frameX="-11" frameY="11" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0002" x="1508" y="790" width="375" height="780" frameX="-11" frameY="7" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0003" x="1508" y="790" width="375" height="780" frameX="-11" frameY="7" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0004" x="1131" y="790" width="374" height="790" frameX="-10" frameY="17" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0005" x="1131" y="790" width="374" height="790" frameX="-10" frameY="17" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0006" x="3" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0007" x="3" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0008" x="379" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0009" x="379" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0010" x="755" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0011" x="755" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0012" x="379" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+	<SubTexture name="dad idle0013" x="379" y="3" width="373" height="803" frameX="-10" frameY="30" frameWidth="378" frameHeight="803"/>
+</TextureAtlas>

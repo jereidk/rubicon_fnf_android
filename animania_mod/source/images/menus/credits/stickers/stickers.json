@@ -1,0 +1,46 @@
+{
+	"name": "AniCredits",
+	"artist": "KerSive",
+	"stickers": {
+		"devs": [
+			"akira gotoh",
+			"anvisoreal",
+			"bb",
+			"boosty",
+			"bruhleebert",
+			"bugai",
+			"cosmos",
+			"d4rkwinged",
+			"diassir",
+			"elliot",
+			"ethanfirith",
+			"funkin news",
+			"g",
+			"geka",
+			"jackocd",
+			"jasmine",
+			"joadash",
+			"kersive",
+			"kibanewfnd",
+			"lancexists",
+			"lazygoobster",
+			"markedaman",
+			"mio owo",
+			"naisonji",
+			"nicoisnxxt",
+			"nima",
+			"nocticola",
+			"okuto",
+			"pursnake",
+			"redar13",
+			"simnstar",
+			"thanks",
+			"tomsk",
+			"unm",
+			"youtubers"
+		]
+	},
+	"stickerPacks": {
+	  "all": ["devs"]
+	}
+}

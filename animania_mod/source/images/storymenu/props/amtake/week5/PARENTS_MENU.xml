@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="PARENTS_MENU.png">
+	<!-- Created with Adobe Animate version 22.0.7.214 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="parents confirm0000" x="887" y="918" width="875" height="856" frameX="0" frameY="-27" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0001" x="2657" y="901" width="875" height="883" frameX="0" frameY="0" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0002" x="1772" y="910" width="873" height="883" frameX="0" frameY="0" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0003" x="1772" y="910" width="873" height="883" frameX="0" frameY="0" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0004" x="2657" y="2" width="882" height="897" frameX="0" frameY="14" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0005" x="2657" y="2" width="882" height="897" frameX="0" frameY="14" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0006" x="1772" y="2" width="883" height="906" frameX="0" frameY="23" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0007" x="1772" y="2" width="883" height="906" frameX="0" frameY="23" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0008" x="887" y="2" width="883" height="914" frameX="0" frameY="31" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0009" x="887" y="2" width="883" height="914" frameX="0" frameY="31" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0010" x="2" y="2" width="883" height="915" frameX="0" frameY="32" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0011" x="2" y="2" width="883" height="915" frameX="0" frameY="32" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0012" x="2" y="919" width="883" height="845" frameX="0" frameY="-38" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents confirm0013" x="2" y="919" width="883" height="845" frameX="0" frameY="-38" frameWidth="883" frameHeight="915"/>
+	<SubTexture name="parents idle0000" x="2" y="2613" width="877" height="837" frameX="0" frameY="-10" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0001" x="2" y="2613" width="877" height="837" frameX="0" frameY="-10" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0002" x="1764" y="2623" width="880" height="826" frameX="0" frameY="-21" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0003" x="1764" y="2623" width="880" height="826" frameX="0" frameY="-21" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0004" x="881" y="2623" width="881" height="830" frameX="0" frameY="-17" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0005" x="881" y="2623" width="881" height="830" frameX="0" frameY="-17" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0006" x="2647" y="1786" width="882" height="841" frameX="0" frameY="-6" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0007" x="2647" y="1786" width="882" height="841" frameX="0" frameY="-6" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0008" x="2" y="1766" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0009" x="2" y="1766" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0010" x="886" y="1776" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0011" x="886" y="1776" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0012" x="2" y="1766" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+	<SubTexture name="parents idle0013" x="2" y="1766" width="882" height="845" frameX="0" frameY="-2" frameWidth="882" frameHeight="845"/>
+</TextureAtlas>

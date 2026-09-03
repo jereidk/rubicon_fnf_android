@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="diff-selector.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="difficulty arrow0000" x="1" y="1" width="33" height="17" frameX="0" frameY="0" frameWidth="17" frameHeight="33" rotated="true"/>
+	<SubTexture name="difficulty arrow0001" x="1" y="1" width="33" height="17" frameX="0" frameY="0" frameWidth="17" frameHeight="33" rotated="true"/>
+	<SubTexture name="difficulty arrow0002" x="1" y="36" width="31" height="16" frameX="0" frameY="-1" frameWidth="17" frameHeight="33" rotated="true"/>
+	<SubTexture name="difficulty arrow0003" x="1" y="36" width="31" height="16" frameX="0" frameY="-1" frameWidth="17" frameHeight="33" rotated="true"/>
+	<SubTexture name="difficulty arrow0004" x="1" y="19" width="32" height="16" frameX="0" frameY="0" frameWidth="17" frameHeight="33" rotated="true"/>
+	<SubTexture name="difficulty arrow0005" x="1" y="19" width="32" height="16" frameX="0" frameY="0" frameWidth="17" frameHeight="33" rotated="true"/>
+</TextureAtlas>

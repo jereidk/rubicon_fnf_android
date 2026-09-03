@@ -264,7 +264,8 @@ layout_mode = 1
 level_note_controller = NodePath("../Player")
 
 [node name="HealthBar" parent="UILayer/UI" unique_id=1517628594 node_paths=PackedStringArray("health_module") instance=ExtResource("14_cpb1l")]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 health_module = NodePath("../../../RubiconHealthModule")
 
 [node name="Opponent" type="Control" parent="UILayer/UI" unique_id=1759512977]

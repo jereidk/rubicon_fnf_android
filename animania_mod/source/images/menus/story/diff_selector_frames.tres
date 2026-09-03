@@ -1,0 +1,42 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/story/diff-selector.png" id="1_atlas"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0001"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 1, 33, 17)
+margin = Rect2(0, 0, -16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0002"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 1, 33, 17)
+margin = Rect2(0, 0, -16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0003"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 36, 31, 16)
+margin = Rect2(0, 0, -14, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0004"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 36, 31, 16)
+margin = Rect2(0, 0, -14, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0005"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 19, 32, 16)
+margin = Rect2(0, 0, -15, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0006"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1, 19, 32, 16)
+margin = Rect2(0, 0, -15, 17)
+filter_clip = true
+
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_0001")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_0002")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_0003")}], "loop": 1, "name": &"idle", "speed": 24.0}, {"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_0004")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_0005")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_0006")}], "loop": 0, "name": &"press", "speed": 24.0}]

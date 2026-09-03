@@ -1,104 +1,75 @@
-# Authors animania_mod/menus/story/story_menu.tscn.
+# Generates animania_mod/menus/story/story_menu.tscn from level JSON data.
 #
 #   godot --headless --path . --script tools/animania/build_story_menu.gd
-#
-# The week list is not written here: it is read from animania_mod/source/data/levels/*.json,
-# which are the mod's own level files, vendored. Each gives `name`, `titleAsset`, `songs`
-# and `visible`, and `visible: false` keeps a week off the screen - Animania hides
-# `KomiCantCommunicate`, and that is respected rather than worked around.
-#
-# StoryMenu itself is compiled and its layout was NOT recovered, so where the titles sit is
-# placed rather than read. It is the classic Funkin shape: the chosen week in the middle and
-# the rest above and below.
+
 extends SceneTree
 
 const OUT := "res://animania_mod/menus/story/story_menu.tscn"
 const ART := "res://animania_mod/source/images/storymenu"
 const LEVELS := "res://animania_mod/source/data/levels"
-const SCREEN := Vector2(1920.0, 1080.0)
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
-
-var _root: Node2D
+const TITLE_CENTRE := Vector2(400.0, 540.0)
+const TITLE_SPACING := 180.0
 
 
 func _init() -> void:
-	_root = Node2D.new()
-	_root.name = "StoryMenu"
-	_root.set_script(load("res://animania_mod/menus/story/story_menu.gd"))
+	var existing := load(OUT) as PackedScene
+	if existing == null:
+		print("ERROR: Cannot load %s" % OUT)
+		quit(1)
+		return
 
-	var camera := Camera2D.new()
-	camera.name = "Camera2D"
-	camera.position = SCREEN * 0.5
-	_add(camera)
+	var instance := existing.instantiate()
+	var titles_container: Node2D = instance.get_node("Titles")
+	if titles_container == null:
+		print("ERROR: No Titles node")
+		quit(1)
+		return
 
-	var backdrop := ColorRect.new()
-	backdrop.name = "Backdrop"
-	backdrop.color = Color(0.06, 0.05, 0.10, 1.0)
-	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_add(backdrop)
-	backdrop.set(&"layout_mode", 0)
-	backdrop.size = SCREEN
+	for child: Node in titles_container.get_children():
+		child.queue_free()
 
-	var titles := Node2D.new()
-	titles.name = "Titles"
-	_add(titles)
-
-	# Sorted by file name so the order is stable between runs; the mod's own order is a
-	# property of StoryMenu, which is compiled.
 	var names: PackedStringArray = DirAccess.get_files_at(LEVELS)
 	names.sort()
 	var shown: int = 0
 	for file_name: String in names:
 		if not file_name.ends_with(".json"):
 			continue
-		var level: Dictionary = JSON.parse_string(
-			FileAccess.get_file_as_string("%s/%s" % [LEVELS, file_name]))
-		# `visible` is absent on most of them and absent means shown; only an explicit
-		# false hides one.
+		var raw: String = FileAccess.get_file_as_string("%s/%s" % [LEVELS, file_name])
+		var level: Dictionary = JSON.parse_string(raw)
 		if level.get("visible", true) == false:
-			print("OUT %-24s oculta (visible: false)" % file_name)
 			continue
 
-		var asset: String = "%s/titles/%s.png" % [ART, String(level["titleAsset"]).get_file()]
-		if not ResourceLoader.exists(asset):
-			print("OUT %-24s sin arte de titulo (%s)" % [file_name, asset])
+		var title_asset: String = String(level.get("titleAsset", ""))
+		var asset_path: String = "%s/titles/%s.png" % [ART, title_asset.get_file()]
+		if not ResourceLoader.exists(asset_path):
+			print("OUT %-24s no art" % file_name)
 			continue
 
 		var title := Sprite2D.new()
-		title.name = String(level["titleAsset"]).get_file().to_pascal_case()
-		title.texture = load(asset)
+		title.name = title_asset.get_file().to_pascal_case()
+		title.texture = load(asset_path)
 		title.centered = true
 		title.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 		var size: Vector2 = title.texture.get_size() * FUNKIN_TO_RUBICON
-		# The rect a tap has to land in, in the title's LOCAL space so the list can scroll
-		# without the hitbox drifting - the same shape freeplay's disks use.
 		title.set_meta(&"hitbox", Rect2(-size * 0.5, size))
-		title.set_meta(&"name", String(level["name"]))
+		title.set_meta(&"name", String(level.get("name", "")))
+		title.set_meta(&"level_id", file_name.get_basename())
+		title.set_meta(&"background", String(level.get("background", "#0F0D1A")))
+		title.set_meta(&"force_freeplay_visible", bool(level.get("forceFreeplayVisible", false)))
+		title.set_meta(&"props_data", level.get("props", []))
+
 		var songs: PackedStringArray = []
 		for song: String in (level.get("songs", []) as Array):
 			songs.append(song)
 		title.set_meta(&"songs", songs)
-		titles.add_child(title)
-		title.owner = _root
+		titles_container.add_child(title)
+		title.owner = instance
 		shown += 1
-		print("OUT %-24s %-24s %s" % [file_name, level["name"], songs])
-
-	var sfx := AudioStreamPlayer.new()
-	sfx.name = "Sfx"
-	sfx.bus = &"Master"
-	_add(sfx)
-
-	_root.set(&"titles", titles)
-	_root.set(&"sfx", sfx)
+		print("OUT %-24s %-24s %s" % [file_name, level.get("name", ""), songs])
 
 	var packed := PackedScene.new()
-	packed.pack(_root)
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT).get_base_dir())
+	packed.pack(instance)
 	var err: int = ResourceSaver.save(packed, OUT)
-	print("OUT %d semanas, %s %s" % [shown, "saved" if err == OK else "FAILED", OUT])
+	print("OUT %d weeks, %s %s" % [shown, "saved" if err == OK else "FAILED", OUT])
 	quit(0 if err == OK else 1)
-
-
-func _add(node: Node) -> void:
-	_root.add_child(node)
-	node.owner = _root

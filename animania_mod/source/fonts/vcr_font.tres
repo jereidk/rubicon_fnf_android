@@ -1,0 +1,5 @@
+[gd_resource type="FontFile" format=3]
+
+[resource]
+data = "VCR OSD Mono Cyr.ttf"
+fallbacks = []
