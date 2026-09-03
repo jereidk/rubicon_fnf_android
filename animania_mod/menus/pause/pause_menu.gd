@@ -104,12 +104,20 @@ func confirm() -> void:
 			close()
 		"restart":
 			_leaving = true
-			# The tree has to come back before the reload, or the new scene starts paused.
+			# Apply blur transition like Animania
+			if MusicFilter.instance:
+				MusicFilter.instance.apply_song_end_filter(0.2)
 			get_tree().paused = false
+			await get_tree().create_timer(0.1).timeout
 			get_tree().reload_current_scene()
 		"exit":
 			_leaving = true
+			# Apply blur + filter transition like Animania
+			if MusicFilter.instance:
+				MusicFilter.instance.apply_song_end_filter(0.3)
 			get_tree().paused = false
+			# Small delay for the filter to take effect
+			await get_tree().create_timer(0.15).timeout
 			get_tree().change_scene_to_file(FREEPLAY)
 
 

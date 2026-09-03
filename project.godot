@@ -42,6 +42,7 @@ project/assembly_name="RubiconFNF"
 enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
 [autoload]
+MusicFilter="*res://animania_mod/scripts/music_filter.gd"
 
 DebugOverlay="*res://animania_mod/scripts/debug_overlay.gd"
 

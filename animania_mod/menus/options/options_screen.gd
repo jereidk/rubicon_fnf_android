@@ -234,6 +234,9 @@ func _load_music() -> void:
 		if stream:
 			sfx.stream = stream
 			sfx.play()
+	# Reset music filters for options
+	if MusicFilter.instance:
+		MusicFilter.instance.reset()
 
 
 # ─── Sub-menu navigation ──────────────────────────────────────────────────
@@ -345,6 +348,9 @@ func _exit_to_menu() -> void:
 		return
 	is_transitioning = true
 	_play(SOUND_CONFIRM)
+	# Apply blur + filter transition like Animania
+	if MusicFilter.instance:
+		MusicFilter.instance.apply_song_end_filter(0.3)
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
 	tw.set_trans(Tween.TRANS_CUBIC)

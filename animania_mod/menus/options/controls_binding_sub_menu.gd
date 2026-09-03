@@ -97,6 +97,7 @@ var wow_bg: ColorRect
 # ─── Lifecycle ────────────────────────────────────────────────────────────
 
 func _ready() -> void:
+	_init_music_filter()
 	_build_ui()
 	_create_category_display()
 	_create_memo_box()
@@ -168,6 +169,13 @@ func _build_ui() -> void:
 	wow_bg.visible = false
 	wow_bg.z_index = 5
 	add_child(wow_bg)
+
+
+func _init_music_filter() -> void:
+	# Apply the Animania music filter setup (LOWPASS, GAIN, REVERB effects)
+	if MusicFilter.instance:
+		MusicFilter.instance.reset()
+		MusicFilter.instance.set_lowpass(18000.0, 0.6)
 
 
 func _create_category_display() -> void:

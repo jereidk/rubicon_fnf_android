@@ -42,6 +42,9 @@ var _beat: int = -1
 func _ready() -> void:
 	if camera != null:
 		_rest_zoom = camera.zoom
+	# Reset music filters when entering a song
+	if MusicFilter.instance:
+		MusicFilter.instance.reset()
 
 
 func _process(delta: float) -> void:
