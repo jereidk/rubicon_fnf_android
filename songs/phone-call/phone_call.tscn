@@ -532,7 +532,7 @@ bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade_rect", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "script_bars", "player_point", "opponent_point")]
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "clock", "cover", "intro_text", "script_bars", "player_lanes", "opponent_lanes", "player_point", "opponent_point", "hud_root_node", "hud_up_nodes", "hud_down_nodes")]
 script = ExtResource("26_dpvpa")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
@@ -548,14 +548,12 @@ stand_cast = {
 &"dad": NodePath("../Stage/KomiStand")
 }
 stage = NodePath("../Stage")
-flash = NodePath("../Overlays/White")
-fade_rect = NodePath("../Overlays/Black")
-hud_up = [NodePath("../UILayer/UI/HealthBar")]
-hud_down = [NodePath("../UILayer/UI/Opponent"), NodePath("../UILayer/UI/Player")]
+hud_root_node = NodePath("../UILayer/UI")
+hud_up_nodes = [NodePath("../UILayer/UI/HealthBar")]
+hud_down_nodes = [NodePath("../UILayer/UI/Opponent"), NodePath("../UILayer/UI/Player")]
 clock = NodePath("../RubiconLevelClock")
 cover = NodePath("../Stage/ScreenSpace/IntroCover")
 intro_text = NodePath("../Stage/ScreenSpace/IntroText")
-hud_root = NodePath("../UILayer/UI")
 player_lanes = NodePath("../UILayer/UI/Player")
 opponent_lanes = NodePath("../UILayer/UI/Opponent")
 script_bars = NodePath("../CinematicBars/ScriptBars")
@@ -642,6 +640,9 @@ expand_mode = 1
 script = ExtResource("33_loyuv")
 health_module = NodePath("../RubiconHealthModule")
 song = NodePath("../RubiconLevelSongModule")
+hud_root_node = NodePath("../UILayer/UI")
+hud_up_nodes = [NodePath("../UILayer/UI/HealthBar")]
+hud_down_nodes = [NodePath("../UILayer/UI/Opponent"), NodePath("../UILayer/UI/Player")]
 clock = NodePath("../RubiconLevelClock")
 camera = NodePath("../RubiconInterpolatedCamera2D")
 events = NodePath("../PhoneCallEvents")
