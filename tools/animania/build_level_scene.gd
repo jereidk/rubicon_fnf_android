@@ -52,7 +52,7 @@ const HEALTH_BAR := "res://animania_mod/ui/health_bar.tscn"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 const INPUT_MAP := "res://addons/rubicon_mania/resources/default_input_map.tres"
 
-const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events.gd"
+const EVENTS_SCRIPT := "res://animania_mod/scripts/phone_call_events_refactored.gd"
 ## The lane hitboxes. A song scene owns them; nothing else does.
 const PAUSE_MENU := "res://animania_mod/menus/pause/pause_menu.tscn"
 const MOBILE_CONTROLS := "res://addons/rubicon_mobile_controls/mobile_controls.tscn"

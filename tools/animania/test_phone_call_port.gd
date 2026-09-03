@@ -605,7 +605,7 @@ func _check_camera_events() -> void:
 	# case 168's `FlxTween.tween(tad, {x: tad.x + 800}, 1.35)`, taken from the events script
 	# so the slide and the camera cannot disagree about it.
 	var slide_constants: Dictionary = load(
-		"res://animania_mod/scripts/phone_call_events.gd").get_script_constant_map()
+		"res://animania_mod/scripts/phone_call_events_refactored.gd").get_script_constant_map()
 	var SLIDE_DISTANCE: float = float(slide_constants["SLIDE_DISTANCE"])
 	var SLIDE_DONE_TIME: float = 168.0 * 60.0 / 152.0 \
 		+ float(slide_constants["SLIDE_SECONDS"])

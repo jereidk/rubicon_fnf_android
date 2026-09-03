@@ -84,7 +84,7 @@ const BOB_AMPLITUDE := 15.0 * 1920.0 / 1280.0
 const BOP_EVERY_STEPS := 16
 const BOP_SCALE := 0.2
 ## How fast the bop decays. Funkin lerps it out over roughly a beat; this is the same
-## per-second factor the HUD punch in phone_call_events.gd uses, for one decay in the port.
+## per-second factor the HUD punch in phone_call_events_refactored.gd uses, for one decay in the port.
 const BOP_DECAY := 3.0
 
 ## The ladder, in order. Every adjacent pair has a transition animation in the atlas and no
