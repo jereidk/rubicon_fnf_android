@@ -7,6 +7,14 @@ extends Node2D
 ## the next key pressed becomes the new binding.
 
 # ─── Constants ─────────────────────────────────────────────────────────────
+## The MusicFilter autoload, reached through its script rather than by the
+## autoload's name. Godot does not register autoloads under `--script`, so a
+## script that names one fails to COMPILE for every builder and guard in
+## tools/animania/ — which is how the level builder silently dropped this
+## script from the packed scene. `instance` is a static the autoload sets on
+## itself in _ready, so this is the same object at runtime.
+const MusicFilterScript := preload("res://animania_mod/scripts/music_filter.gd")
+
 
 const SCREEN := Vector2(1920.0, 1080.0)
 const SOUND_SWITCH := "res://animania_mod/source/sounds/animania/menu/menu_switch.ogg"
@@ -173,9 +181,9 @@ func _build_ui() -> void:
 
 func _init_music_filter() -> void:
 	# Apply the Animania music filter setup (LOWPASS, GAIN, REVERB effects)
-	if MusicFilter.instance:
-		MusicFilter.instance.reset()
-		MusicFilter.instance.set_lowpass(18000.0, 0.6)
+	if MusicFilterScript.instance:
+		MusicFilterScript.instance.reset()
+		MusicFilterScript.instance.set_lowpass(18000.0, 0.6)
 
 
 func _create_category_display() -> void:
@@ -251,7 +259,7 @@ func _build_controls() -> void:
 	# Get current category
 	if current_category_index >= CATEGORY_NAMES.size():
 		current_category_index = 0
-	var cat_name := CATEGORY_NAMES[current_category_index]
+	var cat_name: String = CATEGORY_NAMES[current_category_index]
 	current_bindings = CATEGORIES[cat_name]
 
 	# Update category label

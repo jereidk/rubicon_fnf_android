@@ -107,9 +107,13 @@ func _init() -> void:
 	story_tap.pressed = true
 	story_tap.position = story_menu.titles.get_child(2).position
 	story_menu._unhandled_input(story_tap)
-	_check(story_menu._selected == 2,
-		"el toque no selecciona en story: sigue en %d" % story_menu._selected)
-	story_menu.change_week(-2, false)
+	# selected_level/change_level, not _selected/change_week: the story menu was
+	# rewritten in 68073da and renamed both, and this guard was never brought
+	# along - it has been dying on the old names ever since. The assertions
+	# themselves are unchanged.
+	_check(story_menu.selected_level == 2,
+		"el toque no selecciona en story: sigue en %d" % story_menu.selected_level)
+	story_menu.change_level(-2, false)
 	# BASIC RHYTHM is `tutorial`, and tutorial is built now - so story mode leads
 	# somewhere. The check moved with it: the first week has to have a playable first song,
 	# and the others (DADDY DEAREST, RED SNOW) still must not, because their songs are not

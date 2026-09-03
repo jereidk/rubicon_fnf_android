@@ -435,7 +435,7 @@ func _update_data_stuff(force: bool) -> void:
 func _do_intro_anim() -> void:
 	# Start with the TV off and the overlay dark.
 	if tv_sprite != null:
-		tv_sprite.playing = false
+		tv_sprite.stop()
 	if dark_overlay != null:
 		dark_overlay.modulate.a = 1.0
 
@@ -451,7 +451,7 @@ func _do_intro_anim() -> void:
 	# Start the TV animation after a brief delay.
 	if tv_sprite != null:
 		await get_tree().create_timer(0.3).timeout
-		tv_sprite.playing = true
+		tv_sprite.play()
 
 	# After the intro duration, mark it done.
 	await get_tree().create_timer(INTRO_DURATION).timeout
@@ -475,7 +475,7 @@ func _handle_exit() -> void:
 
 	# Play the TV-off effect.
 	if tv_sprite != null:
-		tv_sprite.playing = false
+		tv_sprite.stop()
 
 	# Tween the dark overlay to opaque.
 	if dark_overlay != null:

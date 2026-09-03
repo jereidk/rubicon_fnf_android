@@ -107,7 +107,7 @@ func _create_background() -> void:
 func _create_buttons() -> void:
 	# Create difficulty buttons based on the week data
 	# For now, create standard difficulty buttons
-	var difficulties := ["easy", "normal", "hard"]
+	var difficulties: Array[String] = ["easy", "normal", "hard"]
 	var button_spacing := 120.0
 	var start_y := SCREEN.y * 0.4
 

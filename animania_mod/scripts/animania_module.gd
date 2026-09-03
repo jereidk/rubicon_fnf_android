@@ -1,12 +1,24 @@
+class_name AnimaniaModule
 extends Node
-## Global Animania gameplay module — runs for every song.
+## Animania's gameplay module — one per level, for every song.
 ##
 ## Ported from AnimaniaModule.hx: the Module that intercepts PlayState
 ## and injects Animania's HUD, combo tracking, camera nudge, opponent
 ## splash, rating popups, and focus-change logic.
 ##
-## This is an autoload (first in the list) so it captures errors from
-## all other autoloads and scripts.
+## It is a `class_name`, NOT an autoload, and song_events.gd owns the
+## instance. Two reasons, and both were learned the hard way:
+##
+##   - Godot does not register autoloads under `--script`, which is how
+##     every builder in tools/animania/ and both guards run. A level
+##     script that names an autoload fails to COMPILE there, so the
+##     builder cannot set its exports and the guard instantiates a bare
+##     Node whose chart methods do not exist. That is the same
+##     "Node::snap_camera: Method not found" the device reports.
+##   - Its lifetime is the level's, like the Module it is ported from.
+##     An autoload outlives the scene, so first_time() guards and the
+##     combo counter would survive a death retry and the song would
+##     replay with its whole intro already spent.
 
 ## ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -77,6 +89,11 @@ var _lane_homes: Dictionary[StringName, Vector2] = {}
 
 ## Full Combo sprite (set per-song if the mod uses one).
 var _fc_sprite: Sprite2D
+
+## True from the moment the player dies. onBeatHit opens with
+## `if (isPlayerDying) return`, which is what stops the strumline pulse.
+## death_sequence.gd sets it; reset() clears it.
+var dying: bool = false
 
 
 ## ─── Per-frame ──────────────────────────────────────────────────────────────

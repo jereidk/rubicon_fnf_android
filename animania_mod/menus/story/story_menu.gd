@@ -155,14 +155,14 @@ func _process(delta: float) -> void:
 
 # ─── Static methods ───────────────────────────────────────────────────────
 
-static func remember_selection() -> void:
+func remember_selection() -> void:
 	if not _remembered_level_id.is_empty():
 		current_level_id = _remembered_level_id
 	if not _remembered_difficulty.is_empty():
 		current_difficulty_id = _remembered_difficulty
 
 
-static func store_selection() -> void:
+func store_selection() -> void:
 	_remembered_level_id = current_level_id
 	_remembered_difficulty = current_difficulty_id
 
@@ -358,16 +358,28 @@ func _unhandled_input(event: InputEvent) -> void:
 			_touch((event as InputEventScreenTouch).position)
 
 
-func _touch(at: Vector2) -> void:
+## Which week's title covers a screen point, or -1. flow_check asks for this
+## by name; the touch handler below is its only other caller, so the hit test
+## lives here once instead of being spelled out in both.
+func week_at(at: Vector2) -> int:
+	if titles == null:
+		return -1
 	for i: int in week_count():
 		var title: Node2D = titles.get_child(i)
 		var hitbox: Rect2 = title.get_meta(&"hitbox", Rect2())
 		if hitbox.has_point(at - title.position):
-			if i == selected_level:
-				select_level()
-			else:
-				change_level(i - selected_level)
-			return
+			return i
+	return -1
+
+
+func _touch(at: Vector2) -> void:
+	var i: int = week_at(at)
+	if i < 0:
+		return
+	if i == selected_level:
+		select_level()
+	else:
+		change_level(i - selected_level)
 
 
 # ─── getDifficultiesFull (from binary) ───────────────────────────────────
@@ -583,7 +595,7 @@ func update_background(bg_color: String) -> void:
 	_animate_background(color)
 
 
-func force_update_background(bg_color: Dynamic, duration: int = 1) -> void:
+func force_update_background(bg_color: Variant, duration: int = 1) -> void:
 	if bg_color is String:
 		update_background(bg_color)
 

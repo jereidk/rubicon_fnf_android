@@ -16,6 +16,14 @@ extends CanvasLayer
 ## The options, in the order the mod's own button folder gives them. `change_difficulty`
 ## and `options` have art but nowhere to go in this port, so they say "not yet" the same way
 ## a freeplay disk without a scene does.
+## The MusicFilter autoload, reached through its script rather than by the
+## autoload's name. Godot does not register autoloads under `--script`, so a
+## script that names one fails to COMPILE for every builder and guard in
+## tools/animania/ — which is how the level builder silently dropped this
+## script from the packed scene. `instance` is a static the autoload sets on
+## itself in _ready, so this is the same object at runtime.
+const MusicFilterScript := preload("res://animania_mod/scripts/music_filter.gd")
+
 const OPTIONS: PackedStringArray = [
 	"resume", "restart", "change_difficulty", "options", "exit",
 ]
@@ -105,16 +113,16 @@ func confirm() -> void:
 		"restart":
 			_leaving = true
 			# Apply blur transition like Animania
-			if MusicFilter.instance:
-				MusicFilter.instance.apply_song_end_filter(0.2)
+			if MusicFilterScript.instance:
+				MusicFilterScript.instance.apply_song_end_filter(0.2)
 			get_tree().paused = false
 			await get_tree().create_timer(0.1).timeout
 			get_tree().reload_current_scene()
 		"exit":
 			_leaving = true
 			# Apply blur + filter transition like Animania
-			if MusicFilter.instance:
-				MusicFilter.instance.apply_song_end_filter(0.3)
+			if MusicFilterScript.instance:
+				MusicFilterScript.instance.apply_song_end_filter(0.3)
 			get_tree().paused = false
 			# Small delay for the filter to take effect
 			await get_tree().create_timer(0.15).timeout

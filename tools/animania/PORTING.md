@@ -139,6 +139,17 @@ These are settled and must not be re-litigated.
 Everything in `animania_mod/` and `songs/` is **generated**. Never hand-edit a `.tscn` or a
 `.tres` — edit the builder in `tools/animania/` and re-run it.
 
+This has now cost real time twice, so here is what it looks like when it goes wrong.
+`phone_call.tscn`'s events exports were renamed BY HAND to match a script rewrite. The
+rename dropped `flash` and `fade_rect` entirely, so the song's closing fade was dead;
+it added three exports to `DeathSequence`, which does not declare them; and it left
+`build_level_scene.gd` writing the old names, so the builder could no longer reproduce
+the scene it was supposed to own. Separately, `story_menu.tscn` carried a hand-written
+`PackedFloat32Array([-225, -190])` — the inner array literal is valid GDScript but a
+**parse error in the .tscn format**, and it took the whole story menu down on the
+device. Godot's own serializer writes `PackedFloat32Array(-225, -190)` and never
+produces the broken form; only a human does.
+
 ```bash
 G=/tmp/godot_bin/Godot_v4.7.1-stable_linux.x86_64      # not on PATH; re-download if gone
 run() { timeout 400 xvfb-run -a --server-args="-screen 0 1920x1080x24" "$G" "$@"; }
@@ -151,6 +162,51 @@ run --headless --path . --script tools/animania/build_title_scene.gd
 ```
 
 Rendering needs a real driver: add `--rendering-driver opengl3` and drop `--headless`.
+
+### Autoloads are invisible to every builder and guard
+
+Godot does **not register autoloads under `--script`**, which is how every
+builder in `tools/animania/` and both guards run. A script that names one there
+fails to **compile** — `Identifier not found: AnimaniaModule` — and the failure
+cascades in a way that is easy to misread:
+
+- The builder cannot `load()` the level's scripts, so it cannot set their
+  exports. It still prints `OUT saved`, having packed a scene with the scripts
+  missing.
+- The guard instantiates a bare `Node` whose chart methods do not exist, and
+  the device then reports exactly
+  `Error calling deferred method: 'Node::snap_camera': Method not found.`
+
+So shared gameplay goes behind a **`class_name`**, never an autoload identifier.
+`AnimaniaModule` is a class_name for this reason, and `song_events.gd` owns the
+instance — which also means its lifetime is the level's, so `first_time()`
+guards and the combo counter cannot survive a death retry.
+
+Where an autoload has to stay (`MusicFilter`), reach its statics through a
+**preloaded const** instead of its name:
+
+```gdscript
+const MusicFilterScript := preload("res://animania_mod/scripts/music_filter.gd")
+if MusicFilterScript.instance:
+	MusicFilterScript.instance.reset()
+```
+
+Same object at runtime, and it compiles under `--script`.
+
+**After adding a `class_name`, re-run `--import`.** The global class cache is
+written by the import, and until it is the new name does not resolve: you get
+`Could not resolve class "res://.../song_events.gd"` from every script that
+extends it, which reads like a broken file rather than a stale cache.
+
+### The guards never put the level in the tree
+
+Both guards drive the level from a `SceneTree` script's `_init()`, where `root`
+is not yet in the tree. An instantiated level therefore **never enters it**, so
+neither `_enter_tree()` nor `_ready()` ever fires. Anything a chart event needs
+has to be built in `_init()` or wired lazily on first access — `song_events.gd`
+does both: the module is constructed in `_init` and reads this node's exports
+the first time `module` is touched. Wiring it from `_ready` instead leaves the
+module holding nulls, every chart event no-ops, and the guard passes on nothing.
 
 ### Builder traps
 
@@ -189,9 +245,34 @@ throws away the very error you need. Read the tail of the raw output instead.
 Two, and both must pass before any commit:
 
 ```bash
-run --headless --path . --script tools/animania/test_phone_call_port.gd   # ~870 checks
+run --headless --path . --script tools/animania/test_phone_call_port.gd   # 853 checks
 run --headless --path . --script tools/animania/harness/flow_check.gd     # the whole flow
 ```
+
+**Know the baseline before you read a result.** "The guard fails" is not news
+here; what matters is whether it fails MORE than it did. Measured on 4.7.1:
+
+| commit | result |
+| --- | --- |
+| `9cea727` — last one where `song_events.gd` parsed | 853 run, **26 fail** |
+| `58efadd`, `c54f5e4` | 643 run — duplicate `fade_in_nodes`, parse error |
+| `5f8f6a7` (the autoload restructure) | 646 run — autoload unresolvable |
+| this commit | 853 run, **23 fail** |
+
+The 23 are the port's unfinished work — character swap, lane fly-in, strumline
+pulse, the standing death — not a regression. To compare against an older
+commit, use a worktree and give it its own import rather than checking out over
+your tree:
+
+```bash
+git worktree add /tmp/baseline <commit>
+cp -a .godot /tmp/baseline/.godot        # then re-import: the class cache is yours, not its
+$G --headless --path /tmp/baseline --import
+```
+
+Do **not** try it with `git stash` + `git checkout <commit> -- .`: the checkout
+writes the old tree into the INDEX too, and popping the stash then conflicts
+against work that is only in the stash. Recovering costs more than the worktree.
 
 `flow_check` walks title → main menu → freeplay → song, and the death retry. It is the only
 place a scene *change* is exercised, which is why it catches things an instanced-scene

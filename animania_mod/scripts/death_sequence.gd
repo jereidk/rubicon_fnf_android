@@ -166,8 +166,12 @@ func die() -> void:
 
 	# onBeatHit opens with `if (isPlayerDying) return`, which is what stops the strumline
 	# pulse the moment the player is dead.
+	# `dying` lives on the level's AnimaniaModule now. It goes through the
+	# events node so this script needs no handle on the module. The old
+	# events.set(&"dying", true) silently did nothing once the property moved:
+	# Object.set() on a property that does not exist is not an error.
 	if events != null:
-		events.set(&"dying", true)
+		events.set_dying(true)
 
 	if mobile_controls != null:
 		mobile_controls.visible = false

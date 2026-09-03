@@ -12,6 +12,14 @@ extends Node
 
 ## Funkin's camera lerps toward the focus point rather than cutting. The interpolated
 ## camera already eases, so this only has to move the TARGET.
+## The MusicFilter autoload, reached through its script rather than by the
+## autoload's name. Godot does not register autoloads under `--script`, so a
+## script that names one fails to COMPILE for every builder and guard in
+## tools/animania/ — which is how the level builder silently dropped this
+## script from the packed scene. `instance` is a static the autoload sets on
+## itself in _ready, so this is the same object at runtime.
+const MusicFilterScript := preload("res://animania_mod/scripts/music_filter.gd")
+
 @export var camera: Camera2D
 @export var player: Node2D
 @export var opponent: Node2D
@@ -43,8 +51,8 @@ func _ready() -> void:
 	if camera != null:
 		_rest_zoom = camera.zoom
 	# Reset music filters when entering a song
-	if MusicFilter.instance:
-		MusicFilter.instance.reset()
+	if MusicFilterScript.instance:
+		MusicFilterScript.instance.reset()
 
 
 func _process(delta: float) -> void:

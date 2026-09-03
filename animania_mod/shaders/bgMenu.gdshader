@@ -18,7 +18,7 @@ void fragment() {
 	uv -= vec2(0.5, 0.5 * aspect_ratio);
 
 	float rot = radians(-30.0 - TIME);
-	mat2 rotation_matrix = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
+	mat2 rotation_matrix = mat2(vec2(cos(rot), -sin(rot)), vec2(sin(rot), cos(rot)));
 	uv = rotation_matrix * uv;
 
 	vec2 scaled_uv = 20.0 * uv;

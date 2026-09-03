@@ -42,7 +42,6 @@ project/assembly_name="Animania"
 enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
 [autoload]
-AnimaniaModule="*res://animania_mod/scripts/animania_module.gd"
 ErrorLog="*res://animania_mod/scripts/debug/animania_error_log.gd"
 MusicFilter="*res://animania_mod/scripts/music_filter.gd"
 

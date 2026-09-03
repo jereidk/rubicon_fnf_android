@@ -812,8 +812,9 @@ func _build_camera() -> void:
 	events.stand_cast = stand_map
 	events.stage = _root.get_node("Stage")
 	var overlays: Dictionary = _build_overlays()
-	events.flash = overlays["flash"]
-	events.fade = overlays["fade"]
+	# flash_rect, not flash: `flash` is the chart event method on song_events.gd.
+	events.flash_rect = overlays["flash"]
+	events.fade_rect = overlays["fade"]
 
 	# The opening. The cover goes INSIDE the stage's screen-space layer rather than in the
 	# level's overlays, because Funkin gives blackScreenSpr zIndex 5999 - above overlay-all
@@ -827,6 +828,11 @@ func _build_camera() -> void:
 	events.player_lanes = _root.get_node("UILayer/UI/Player")
 	events.opponent_lanes = _root.get_node("UILayer/UI/Opponent")
 	events.script_bars = _root.get_node("CinematicBars/ScriptBars")
+	# Phone-call bakes its bars onto value tracks, so these are unused here.
+	# They are wired anyway: song_events.gd exposes show/hide_cinematic_bars
+	# as chart events and a song that calls them needs the pair.
+	events.bar_top = _root.get_node("CinematicBars/Top")
+	events.bar_bottom = _root.get_node("CinematicBars/Bottom")
 	events.player_point = _root.get_node("PlayerCameraPoint")
 	events.opponent_point = _root.get_node("OpponentCameraPoint")
 

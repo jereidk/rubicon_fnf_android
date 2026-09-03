@@ -26,8 +26,13 @@ func _init() -> void:
 		quit(1)
 		return
 
+	# free(), not queue_free(): the deferred queue is never pumped inside a
+	# --script _init(), so a queue_free'd child is still there when the scene
+	# is packed. The rebuild then APPENDS to the old titles instead of
+	# replacing them, and the menu comes out with every week twice.
 	for child: Node in titles_container.get_children():
-		child.queue_free()
+		titles_container.remove_child(child)
+		child.free()
 
 	var names: PackedStringArray = DirAccess.get_files_at(LEVELS)
 	names.sort()

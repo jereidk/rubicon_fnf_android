@@ -6,6 +6,14 @@ extends Node2D
 ## is a BaseSubMenu subclass with its own options.
 
 # ─── Constants ─────────────────────────────────────────────────────────────
+## The MusicFilter autoload, reached through its script rather than by the
+## autoload's name. Godot does not register autoloads under `--script`, so a
+## script that names one fails to COMPILE for every builder and guard in
+## tools/animania/ — which is how the level builder silently dropped this
+## script from the packed scene. `instance` is a static the autoload sets on
+## itself in _ready, so this is the same object at runtime.
+const MusicFilterScript := preload("res://animania_mod/scripts/music_filter.gd")
+
 
 const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 const SOUND_SWITCH := "res://animania_mod/source/sounds/animania/menu/menu_switch.ogg"
@@ -235,8 +243,8 @@ func _load_music() -> void:
 			sfx.stream = stream
 			sfx.play()
 	# Reset music filters for options
-	if MusicFilter.instance:
-		MusicFilter.instance.reset()
+	if MusicFilterScript.instance:
+		MusicFilterScript.instance.reset()
 
 
 # ─── Sub-menu navigation ──────────────────────────────────────────────────
@@ -349,8 +357,8 @@ func _exit_to_menu() -> void:
 	is_transitioning = true
 	_play(SOUND_CONFIRM)
 	# Apply blur + filter transition like Animania
-	if MusicFilter.instance:
-		MusicFilter.instance.apply_song_end_filter(0.3)
+	if MusicFilterScript.instance:
+		MusicFilterScript.instance.apply_song_end_filter(0.3)
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
 	tw.set_trans(Tween.TRANS_CUBIC)

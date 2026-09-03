@@ -36,7 +36,7 @@ func _ready() -> void:
 	character.get_node("RootAnimationPlayer").active = false
 	_symbol = character.get_node("AnimateSymbol")
 	_symbol.get_node("AnimationPlayer").active = false
-	_symbol.playing = false
+	_symbol.stop()
 	# The character sits around (543, 876) in his own space; pull him into view and shrink
 	# him so a whole 15-frame row fits one capture each.
 	character.position = Vector2(700.0, 1000.0)

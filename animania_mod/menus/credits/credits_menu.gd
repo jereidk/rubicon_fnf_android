@@ -243,7 +243,7 @@ func create_role_sprite(role_name: String) -> Sprite2D:
 
 # ─── setRoles ────────────────────────────────────────────────────────────
 
-func set_roles(roles: Array, extra: Dynamic = null) -> void:
+func set_roles(roles: Array, extra: Variant = null) -> void:
 	# Clear old role sprites
 	for child: Node in grp_roles.get_children():
 		child.queue_free()
@@ -283,7 +283,7 @@ func change_item(amount: int, play_sound: bool = true, animate: bool = true) -> 
 	_apply_sound_effects(play_sound, amount)
 
 
-func _apply_sound_effects(play_sound: bool, direction: Dynamic) -> void:
+func _apply_sound_effects(play_sound: bool, direction: Variant) -> void:
 	if play_sound:
 		play_sound_file(SOUND_SWITCH)
 
@@ -410,7 +410,7 @@ func animate_arrow_press(arrow: Sprite2D) -> void:
 
 # ─── setColorSprite ──────────────────────────────────────────────────────
 
-func set_color_sprite(sprite: Sprite2D, color1: Dynamic, color2: Dynamic) -> void:
+func set_color_sprite(sprite: Sprite2D, color1: Variant, color2: Variant) -> void:
 	if sprite == null:
 		return
 	if color1 is Color:
