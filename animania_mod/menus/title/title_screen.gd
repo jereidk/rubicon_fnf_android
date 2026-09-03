@@ -197,6 +197,13 @@ func _ready() -> void:
 	call_deferred("_play_intro_sound")
 
 
+func _process(delta: float) -> void:
+	_elapsed += delta
+	_update_camera(delta)
+	_bump_boil(delta)
+	_fade_music(delta)
+
+
 func _play_intro_sound() -> void:
 	if ResourceLoader.exists(INTRO_SOUND_PATH):
 		_intro_sound_player.stream = load(INTRO_SOUND_PATH)
