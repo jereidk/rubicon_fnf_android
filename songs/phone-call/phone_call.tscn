@@ -25,7 +25,7 @@
 [ext_resource type="Resource" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_n26ha"]
 [ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="24_hkubo"]
 [ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="25_mhfsn"]
-[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_events.gd" id="26_dpvpa"]
+[ext_resource type="Script" path="res://animania_mod/scripts/phone_call_events_refactored.gd" id="26_dpvpa"]
 [ext_resource type="Script" path="res://animania_mod/scripts/song_subtitles.gd" id="27_snhhd"]
 [ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="28_b0uto"]
 [ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="29_o8niu"]
@@ -532,10 +532,9 @@ bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "script_bars", "player_point", "opponent_point")]
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "hud", "cast", "stand_cast", "stage", "flash", "fade_rect", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "script_bars", "player_point", "opponent_point")]
 script = ExtResource("26_dpvpa")
 camera = NodePath("../RubiconInterpolatedCamera2D")
-bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
 hud = NodePath("../UILayer")
 cast = {
 &"bf": NodePath("../Stage/Tadano"),
@@ -549,7 +548,7 @@ stand_cast = {
 }
 stage = NodePath("../Stage")
 flash = NodePath("../Overlays/White")
-fade = NodePath("../Overlays/Black")
+fade_rect = NodePath("../Overlays/Black")
 hud_up = [NodePath("../UILayer/UI/HealthBar")]
 hud_down = [NodePath("../UILayer/UI/Opponent"), NodePath("../UILayer/UI/Player")]
 clock = NodePath("../RubiconLevelClock")
