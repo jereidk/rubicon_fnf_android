@@ -104,16 +104,17 @@ const LAST_BEAT := 31
 ## Where a confirm goes.
 const NEXT_SCENE := "res://animania_mod/menus/main/main_menu.tscn"
 
-## Jingle: gfLoveJingle from the binary's doJingle method. played at the logo reveal.
-## confirmMenu is the menu confirm sound (pre-existing).
+## Jingle: gfLoveJingle from the binary's doJingle method at 0x2b249a0.
+## Only fires on cheat code completion. confirmMenu is the menu confirm sound.
 const JINGLE_PATH := "res://animania_mod/source/sounds/gfLoveJingle.ogg"
 const CONFIRM_SOUND_PATH := "res://animania_mod/source/sounds/confirmMenu.ogg"
 const INTRO_SOUND_PATH := "res://animania_mod/source/sounds/introSound.ogg"
 
 ## Cheat code: from the binary's codePress/cheatCodeShit system. The title screen
-## listens for a key sequence. Derived from the binary's codePress method and the
-## string "animania crew is watching you   WTF!?   solo time?".
-const CHEAT_CODE := "SOLOTIME"
+## listens for an 8-key arrow sequence stored in .rodata at 0x5ba9a40, memcpy'd
+## into the cheatCodeArray field. Sequence: UP, RIGHT, UP, RIGHT, DOWN, LEFT, DOWN, LEFT.
+const CHEAT_CODE := [KEY_UP, KEY_RIGHT, KEY_UP, KEY_RIGHT,
+	KEY_DOWN, KEY_LEFT, KEY_DOWN, KEY_LEFT]
 
 @export var music: AudioStreamPlayer
 @export var intro_text: RichTextLabel
@@ -369,11 +370,6 @@ func _finish() -> void:
 	# playIntro's flash: fade from black to transparent over FLASH_DURATION.
 	_trigger_flash()
 
-	# doJingle: play gfLoveJingle once at the logo reveal.
-	if ResourceLoader.exists(JINGLE_PATH):
-		_jingle_player.stream = load(JINGLE_PATH)
-		_jingle_player.play()
-
 	# Start music fade-in (from playMusic: startingVolume → MUSIC_FINAL_VOLUME).
 	if music != null:
 		_music_volume = 0.0
@@ -382,15 +378,30 @@ func _finish() -> void:
 		music.play()
 
 
+## doJingle: from the binary's doJingle method at 0x2b249a0. Only fires
+## when the cheat code completes — NOT from the normal title flow.
+## Plays gfLoveJingle (overrideExisting, restartTrack) then confirmMenu
+## at volume 0.7 (MUSIC_FINAL_VOLUME). The flash is fully transparent.
+func _do_jingle() -> void:
+	if ResourceLoader.exists(JINGLE_PATH):
+		_jingle_player.stream = load(JINGLE_PATH)
+		_jingle_player.volume_db = linear_to_db(MUSIC_FINAL_VOLUME)
+		_jingle_player.play()
+	if ResourceLoader.exists(CONFIRM_SOUND_PATH):
+		_confirm_player.stream = load(CONFIRM_SOUND_PATH)
+		_confirm_player.volume_db = linear_to_db(MUSIC_FINAL_VOLUME)
+		_confirm_player.play()
+
+
 ## Cheat code: from the binary's codePress/cheatCodeShit system.
 func _check_cheat_code(keycode: int) -> void:
-	if _cheat_index >= CHEAT_CODE.length():
+	if _cheat_index >= CHEAT_CODE.size():
 		return
-	var typed: String = char(keycode).to_upper()
-	if typed == CHEAT_CODE[_cheat_index]:
+	if keycode == CHEAT_CODE[_cheat_index]:
 		_cheat_index += 1
-		if _cheat_index >= CHEAT_CODE.length():
+		if _cheat_index >= CHEAT_CODE.size():
 			print("CHEAT CODE: Solo Time!")
+			_do_jingle()
 			_cheat_index = 0
 	else:
 		_cheat_index = 0
