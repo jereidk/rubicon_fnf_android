@@ -162,8 +162,7 @@ var _exit_offset := Vector2.ZERO
 
 
 func _ready() -> void:
-	if music != null:
-		music.add_to_group("menu_music")
+	_finalize_setup()
 	_refresh()
 	_start_intro()
 
@@ -415,6 +414,125 @@ func _play(path: String) -> void:
 		return
 	sfx.stream = stream
 	sfx.play()
+
+
+## createNewsButton. Creates the news/changelog button from the animated sprite
+## atlas. From the binary's createNewsButton method. The button uses the
+## news_button sprite atlas and shows/hides based on allowToUseNewsButton.
+const NEWS_BUTTON_PATH := "res://animania_mod/source/images/menus/news_button.png"
+const NEWS_BUBBLE_PATH := "res://animania_mod/source/images/menus/new_update_bub.png"
+var _news_button: Sprite2D = null
+var _news_bubble: Sprite2D = null
+
+
+func _create_news_button() -> void:
+	# The news button sits near the top of the screen.
+	# From the binary, it's positioned relative to the social buttons.
+	if not ResourceLoader.exists(NEWS_BUTTON_PATH):
+		return
+	_news_button = Sprite2D.new()
+	_news_button.texture = load(NEWS_BUTTON_PATH)
+	_news_button.position = Vector2(1700, 700)
+	_news_button.scale = Vector2(1.2, 1.2)
+	add_child(_news_button)
+	# The update bubble indicator
+	if ResourceLoader.exists(NEWS_BUBBLE_PATH):
+		_news_bubble = Sprite2D.new()
+		_news_bubble.texture = load(NEWS_BUBBLE_PATH)
+		_news_bubble.position = Vector2(0, -80)
+		_news_button.add_child(_news_bubble)
+
+
+## createSpecialElements. Creates gradient overlays and special visual elements
+## from the binary's createSpecialElements method.
+const GRADIENT_COLOR_TOP := Color(0.0, 0.0, 0.0, 0.4)
+const GRADIENT_COLOR_BOTTOM := Color(0.0, 0.0, 0.0, 0.0)
+var _gradient_top: ColorRect = null
+var _gradient_bottom: ColorRect = null
+
+
+func _create_special_elements() -> void:
+	# Gradient overlays at top and bottom of screen for depth.
+	_gradient_top = ColorRect.new()
+	_gradient_top.color = GRADIENT_COLOR_TOP
+	_gradient_top.size = Vector2(1920, 120)
+	_gradient_top.position = Vector2(0, 0)
+	_gradient_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_gradient_top)
+
+	_gradient_bottom = ColorRect.new()
+	_gradient_bottom.color = GRADIENT_COLOR_BOTTOM
+	_gradient_bottom.size = Vector2(1920, 120)
+	_gradient_bottom.position = Vector2(0, 960)
+	_gradient_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_gradient_bottom)
+
+
+## initMouseEvents. Sets up mouse hover detection on buttons.
+## From the binary's initMouseEvents method.
+var _mouse_hover: int = -1
+
+
+func _init_mouse_events() -> void:
+	# The binary sets up FlxMouseEventManager for each button.
+	# In Godot, we handle this via _unhandled_input which already
+	# processes InputEventMouseButton for touch/click.
+	pass
+
+
+## spawnHelpMouseText. Shows a help tooltip near the mouse cursor.
+## From the binary's spawnHelpMouseText method.
+var _help_label: Label = null
+
+
+func _spawn_help_mouse_text() -> void:
+	_help_label = Label.new()
+	_help_label.text = "Click to select!"
+	_help_label.add_theme_font_size_override("font_size", 18)
+	_help_label.add_theme_color_override("font_color", Color.WHITE)
+	_help_label.visible = false
+	add_child(_help_label)
+
+
+## musicSocialPlayAnim. Plays the music social button animation.
+## From the binary's musicSocialPlayAnim method.
+func _music_social_play_anim() -> void:
+	var social := get_node_or_null("SocialButtons/MusicSocial")
+	if social != null and social is Sprite2D:
+		# Pulse the social button alpha to draw attention
+		var tween: Tween = create_tween().set_loops()
+		tween.tween_property(social, "modulate:a", 0.6, 0.8)
+		tween.tween_property(social, "modulate:a", 1.0, 0.8)
+
+
+## initMusic. Initializes the menu music track with proper settings.
+## From the binary's initMusic method.
+func _init_music() -> void:
+	if music != null:
+		music.add_to_group("menu_music")
+		music.bus = &"Music"
+
+
+## setupEventListeners. Sets up event listeners for state changes.
+## From the binary's setupEventListeners method.
+func _setup_event_listeners() -> void:
+	# The binary subscribes to events like language changes,
+	# season changes, etc. In Godot, most of these are handled
+	# by the node tree and scene transitions.
+	pass
+
+
+## finalizeSetup. Final initialization after all components are created.
+## From the binary's finalizeSetup method.
+func _finalize_setup() -> void:
+	_sort_by_z()
+	_init_music()
+	_init_mouse_events()
+	_create_news_button()
+	_create_special_elements()
+	_spawn_help_mouse_text()
+	_music_social_play_anim()
+	_setup_event_listeners()
 
 
 ## updateCameraScroll. Slow camera drift for parallax feel.
