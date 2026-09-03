@@ -652,9 +652,15 @@ func create_visualizer() -> void:
 		_visualizer_bars.append(bar)
 		_vis_current.append(0.0)
 
-	# Apply mask if available
-	if bars_viz_mask != null and bars_viz_mask.texture != null:
-		bars_viz_mask.visible = true
+	# visulizatorMask is a MASK, not art: showing it draws an opaque white sheet
+	# over the bottom half of the menu, which is nothing the mod ever displays -
+	# see the reference shot of the real story menu, where no such panel exists.
+	# What it is supposed to clip (the bars, by its name) is NOT measured yet:
+	# StoryMenu is one of the compiled classes, so it needs the binary, and the
+	# mod build is not in this container. Until then it stays hidden, which is
+	# the state the scene ships it in.
+	if bars_viz_mask != null:
+		bars_viz_mask.visible = false
 
 
 func update_visualizer(_delta: float) -> void:
