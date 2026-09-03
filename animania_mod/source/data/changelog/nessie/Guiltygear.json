@@ -1,0 +1,75 @@
+{
+	"sound": "Guiltygear",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 0.03
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 3.71
+		},
+		{
+			"time": 4.4,
+			"finish": true
+		},
+		{
+			"time": 4.61,
+			"anim": "stupid"
+		},
+		{
+			"time": 5.5,
+			"finish": true
+		},
+		{
+			"time": 5.7,
+			"anim": "um actually"
+		},
+		{
+			"idle": true,
+			"time": 6.67
+		},
+		{
+			"time": 7.51,
+			"anim": "heh"
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 8.97
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.9,
+			"text": "One day, one of our project’s Directors, G, played Guilty Gear with PhantomArcade! ",
+			"time": 0.04
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "The game ended in a 2-2 tie",
+			"time": 4.5
+		},
+		{
+			"textSpeed": 1,
+			"text": "Can’t wait to see another round.",
+			"time": 7.35
+		},
+		{
+			"textSpeed": 2.2,
+			"text": "",
+			"time": 8.75
+		}
+	]
+}

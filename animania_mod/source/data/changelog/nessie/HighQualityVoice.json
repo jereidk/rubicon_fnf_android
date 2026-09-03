@@ -1,0 +1,41 @@
+{
+	"sound": "HighQualityVoice",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 0.05
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 2.35
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 3.3
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.75,
+			"text": "Wow my voice is now in high quality after this update!",
+			"time": 0.05
+		},
+		{
+			"textSpeed": 1.15,
+			"text": "",
+			"time": 3.3
+		}
+	]
+}

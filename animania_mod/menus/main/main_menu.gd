@@ -426,15 +426,26 @@ var _news_button: Sprite2D = null
 var _news_bubble: Sprite2D = null
 
 
+var _changelog_sub_state: CanvasLayer = null
+
+
+func _open_changelog() -> void:
+	if _changelog_sub_state != null:
+		return
+	_changelog_sub_state = preload("res://animania_mod/menus/changelog/changelog_sub_state.gd").new()
+	add_child(_changelog_sub_state)
+	_changelog_sub_state.tree_exited.connect(func() -> void: _changelog_sub_state = null)
+
+
 func _create_news_button() -> void:
-	# The news button sits near the top of the screen.
-	# From the binary, it's positioned relative to the social buttons.
+	# The news button sits near the top of screen.
 	if not ResourceLoader.exists(NEWS_BUTTON_PATH):
 		return
 	_news_button = Sprite2D.new()
 	_news_button.texture = load(NEWS_BUTTON_PATH)
 	_news_button.position = Vector2(1700, 700)
 	_news_button.scale = Vector2(1.2, 1.2)
+	_news_button.set_meta("clickable", true)
 	add_child(_news_button)
 	# The update bubble indicator
 	if ResourceLoader.exists(NEWS_BUBBLE_PATH):

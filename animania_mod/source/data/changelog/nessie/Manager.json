@@ -1,0 +1,103 @@
+{
+	"sound": "Manager",
+	"events": [
+		{
+			"time": 0.05,
+			"anim": "normal"
+		},
+		{
+			"idle": false,
+			"time": 3.05,
+			"text": null,
+			"anim": "vineboom",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 3.3,
+			"text": null,
+			"anim": "stupid",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "static",
+			"idle": false,
+			"text": null,
+			"time": 5.65
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "static",
+			"idle": false,
+			"text": null,
+			"time": 5.7
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "static",
+			"idle": false,
+			"text": null,
+			"time": 5.75
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "static",
+			"idle": false,
+			"text": null,
+			"time": 5.8
+		},
+		{
+			"finish": false,
+			"disappear": true,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 6.63
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "sad",
+			"idle": false,
+			"text": null,
+			"time": 7.33
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 9
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.8,
+			"time": 0.05,
+			"text": "Not too long ago I was appointed as a manager of this project, so"
+		},
+		{
+			"textSpeed": 0.4,
+			"time": 3.35,
+			"text": "I'm in here now for the next-"
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "I'm not actually against it.",
+			"time": 7.3
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "",
+			"time": 9
+		}
+	]
+}

@@ -1,0 +1,102 @@
+{
+	"sound": "Monster",
+	"events": [
+		{
+			"time": 0.14,
+			"anim": "normal"
+		},
+		{
+			"time": 1.57,
+			"finish": true
+		},
+		{
+			"time": 1.82,
+			"anim": "heh"
+		},
+		{
+			"idle": false,
+			"anim": null,
+			"text": null,
+			"time": 5,
+			"disappear": false,
+			"finish": true
+		},
+		{
+			"idle": false,
+			"anim": "um actually",
+			"text": null,
+			"time": 5.29,
+			"disappear": false,
+			"finish": false
+		},
+		{
+			"idle": false,
+			"anim": null,
+			"text": null,
+			"time": 9,
+			"disappear": false,
+			"finish": true
+		},
+		{
+			"idle": false,
+			"anim": "heh",
+			"text": null,
+			"time": 9.6,
+			"disappear": false,
+			"finish": false
+		},
+		{
+			"idle": false,
+			"anim": "happy",
+			"text": null,
+			"time": 11.6,
+			"disappear": false,
+			"finish": false
+		},
+		{
+			"idle": true,
+			"time": 13.9,
+			"text": null,
+			"anim": null,
+			"finish": false,
+			"disappear": false
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.8,
+			"text": "",
+			"time": 0
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "At first in week 5",
+			"time": 0.15
+		},
+		{
+			"textSpeed": 0.9,
+			"text": "Monster was supposed to be the same as he is in the original game",
+			"time": 1.75
+		},
+		{
+			"textSpeed": 0.9,
+			"text": "nothing special, but after seeing Evilsk8r’s concept of Winter-Horrorland",
+			"time": 5.25
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "the team decided to try to implement it",
+			"time": 9.2
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "It was just too good to lose",
+			"time": 11.45
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "",
+			"time": 13.4
+		}
+	]
+}

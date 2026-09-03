@@ -1,0 +1,59 @@
+{
+	"sound": "Update",
+	"events": [
+		{
+			"idle": false,
+			"time": 0.1,
+			"text": null,
+			"anim": "normal",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 0.65
+		},
+		{
+			"idle": false,
+			"time": 1,
+			"text": null,
+			"anim": "happy",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 5.3
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.75,
+			"time": 0.1,
+			"text": "Hey!"
+		},
+		{
+			"textSpeed": 0.95,
+			"time": 1,
+			"text": "A new update is available!"
+		},
+		{
+			"textSpeed": 0.85,
+			"time": 2.4,
+			"text": "Press ENTER to open the launcher and update the game"
+		},
+		{
+			"textSpeed": 2.25,
+			"time": 5.7,
+			"text": ""
+		}
+	]
+}

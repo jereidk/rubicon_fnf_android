@@ -1,0 +1,88 @@
+{
+	"sound": "Anime",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 0.05
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "um actually",
+			"idle": false,
+			"text": null,
+			"time": 1.1
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 2.75
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "vineboom",
+			"idle": false,
+			"text": null,
+			"time": 3.45
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 7.35
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "um actually",
+			"idle": false,
+			"text": null,
+			"time": 8.65
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 9.25
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.95,
+			"text": "Little reminder:",
+			"time": 0.05
+		},
+		{
+			"textSpeed": 0.95,
+			"text": "This project is about anime",
+			"time": 1.15
+		},
+		{
+			"textSpeed": 1,
+			"text": "even though AMTake stuff is getting released much earlier than the main story…",
+			"time": 3.45
+		},
+		{
+			"textSpeed": 1,
+			"text": "We got reasons for that, okay?",
+			"time": 7.4
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "",
+			"time": 9.25
+		}
+	]
+}

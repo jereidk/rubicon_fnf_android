@@ -1,0 +1,78 @@
+{
+	"sound": "Support",
+	"events": [
+		{
+			"time": 0.04,
+			"anim": "um actually"
+		},
+		{
+			"idle": false,
+			"time": 1.85,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 2,
+			"text": null,
+			"anim": "normal",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 7.77,
+			"text": null,
+			"anim": "stupid",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": true,
+			"time": 11.45,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.9,
+			"time": 0,
+			"text": ""
+		},
+		{
+			"textSpeed": 0.9,
+			"time": 0.04,
+			"text": "The only way to support the project"
+		},
+		{
+			"textSpeed": 0.85,
+			"time": 2,
+			"text": "is by listening to the OST on streaming platforms"
+		},
+		{
+			"textSpeed": 0.55,
+			"time": 4.65,
+			"text": "such as Spotify, Apple Music, etc. "
+		},
+		{
+			"textSpeed": 1,
+			"time": 7.7,
+			"text": "Or you can just send the team some encouraging words"
+		},
+		{
+			"textSpeed": 0.85,
+			"text": "that also works!",
+			"time": 10
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 11.42,
+			"text": ""
+		}
+	]
+}

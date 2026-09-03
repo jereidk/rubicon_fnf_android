@@ -1,0 +1,72 @@
+{
+	"sound": "Collabs",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "um actually",
+			"idle": false,
+			"text": null,
+			"time": 0.06
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "vineboom",
+			"idle": false,
+			"text": null,
+			"time": 2.15
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "heh",
+			"idle": false,
+			"text": null,
+			"time": 4.95
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "stupid",
+			"idle": false,
+			"text": null,
+			"time": 6.45
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 8.3
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 1.05,
+			"text": "There's a few collabs planned for the mod",
+			"time": 0.1
+		},
+		{
+			"textSpeed": 1.05,
+			"text": "you already know about the Sky one, it's official! ",
+			"time": 2.15
+		},
+		{
+			"textSpeed": 1,
+			"text": "But everything else",
+			"time": 4.95
+		},
+		{
+			"textSpeed": 0.8,
+			"text": "I can't tell yet, sorry!!",
+			"time": 6.45
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "",
+			"time": 8.3
+		}
+	]
+}

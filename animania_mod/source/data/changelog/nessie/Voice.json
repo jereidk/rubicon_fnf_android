@@ -1,0 +1,79 @@
+{
+	"sound": "Voice",
+	"events": [
+		{
+			"time": 0.05,
+			"anim": "normal"
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "vineboom",
+			"idle": false,
+			"text": null,
+			"time": 1.94
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 2.11
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "heh",
+			"idle": false,
+			"text": null,
+			"time": 2.17
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 3.7
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "ehm",
+			"idle": false,
+			"text": null,
+			"time": 4.67
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 7.48
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.75,
+			"text": "I don't have an official voice, but",
+			"time": 0.05
+		},
+		{
+			"textSpeed": 1,
+			"text": "here I'm voiced by LazyGoobster…",
+			"time": 2.25
+		},
+		{
+			"textSpeed": 0.7,
+			"text": "Strangest 4th wall break, honestly..",
+			"time": 4.65
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "",
+			"time": 7.2
+		}
+	]
+}

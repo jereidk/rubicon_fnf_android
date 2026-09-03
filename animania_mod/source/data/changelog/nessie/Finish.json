@@ -1,0 +1,71 @@
+{
+	"sound": "Finish",
+	"events": [
+		{
+			"anim": "happy",
+			"time": 0
+		},
+		{
+			"finish": true,
+			"time": 0.75
+		},
+		{
+			"anim": "normal",
+			"time": 1.1
+		},
+		{
+			"finish": true,
+			"time": 2.23
+		},
+		{
+			"anim": "stupid",
+			"time": 2.5
+		},
+		{
+			"finish": true,
+			"time": 4.28
+		},
+		{
+			"anim": "normal",
+			"time": 4.4
+		},
+		{
+			"anim": "heh",
+			"time": 6
+		},
+		{
+			"finish": true,
+			"time": 6.7
+		},
+		{
+			"anim": "heh",
+			"time": 7
+		},
+		{
+			"idle": true,
+			"time": 7.3
+		}
+	],
+	"subtitles": [
+		{
+			"text": "sosi pisun",
+			"time": 0.1
+		},
+		{
+			"text": "sosi pisun",
+			"time": 1.2
+		},
+		{
+			"text": "sosi pisun",
+			"time": 2.94
+		},
+		{
+			"text": "loh",
+			"time": 5.1
+		},
+		{
+			"text": "",
+			"time": 8.15
+		}
+	]
+}

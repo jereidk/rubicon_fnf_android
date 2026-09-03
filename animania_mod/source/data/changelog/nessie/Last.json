@@ -1,0 +1,67 @@
+{
+	"sound": "Last",
+	"events": [
+		{
+			"time": 0.2,
+			"anim": "stupid"
+		},
+		{
+			"time": 0.92,
+			"finish": true
+		},
+		{
+			"time": 1.08,
+			"anim": "shoked"
+		},
+		{
+			"time": 1.94,
+			"finish": true
+		},
+		{
+			"time": 2.32,
+			"anim": "heh"
+		},
+		{
+			"time": 2.85,
+			"anim": "happy"
+		},
+		{
+			"time": 3.53,
+			"anim": "normal"
+		},
+		{
+			"time": 6.23,
+			"disappear": true
+		}
+	],
+	"subtitles": [
+		{
+			"time": 0.21,
+			"text": "Erm..."
+		},
+		{
+			"time": 1.1,
+			"text": "Ahem..."
+		},
+		{
+			"textSpeed": 1,
+			"time": 2.3,
+			"text": "Alright. That's it!"
+		},
+		{
+			"textSpeed": 0.9,
+			"time": 3.53,
+			"text": "All facts spoken!"
+		},
+		{
+			"textSpeed": 0.8,
+			"time": 4.5,
+			"text": "Sorry, I got nothing more to tell!"
+		},
+		{
+			"textSpeed": 10.8,
+			"time": 6.3,
+			"text": ""
+		}
+	]
+}

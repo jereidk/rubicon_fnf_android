@@ -1,0 +1,59 @@
+{
+	"sound": "Kofi",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 0.05
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 2.75
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 6.45
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 7.7
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.9,
+			"text": "Thanks to everyone who decided to support us on Ko-fi!",
+			"time": 0.05
+		},
+		{
+			"textSpeed": 0.9,
+			"text": "It has helped Simon and d4rkwinged a lot when they needed it the most!",
+			"time": 2.75
+		},
+		{
+			"textSpeed": 1,
+			"text": "We can't thank you enough!",
+			"time": 6.45
+		},
+		{
+			"textSpeed": 1.4,
+			"text": "",
+			"time": 8.2
+		}
+	]
+}

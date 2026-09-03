@@ -1,0 +1,148 @@
+{
+	"sound": "Nessie",
+	"events": [
+		{
+			"anim": "happy",
+			"time": 0.2
+		},
+		{
+			"idle": false,
+			"time": 0.85,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 1.03,
+			"text": null,
+			"anim": "heh",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 3.52,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 3.75,
+			"text": null,
+			"anim": "normal",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 6.97,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 7.14,
+			"text": null,
+			"anim": "stupid",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 11.53,
+			"text": null,
+			"anim": "normal",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 14,
+			"text": null,
+			"anim": "heh",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 17.5,
+			"text": null,
+			"anim": "stupid",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 22,
+			"text": null,
+			"anim": "happy",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": true,
+			"time": 23.55,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.9,
+			"time": 0,
+			"text": ""
+		},
+		{
+			"text": "Fun-fact:",
+			"time": 0.1
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 1.07,
+			"text": "At first my implementation was very rushed"
+		},
+		{
+			"textSpeed": 0.7,
+			"time": 3.8,
+			"text": "it was a quick idea a week before the release.."
+		},
+		{
+			"textSpeed": 0.55,
+			"time": 7.2,
+			"text": "But it got delayed as it usually happens, so"
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 11.4,
+			"text": "they had more time to work on this menu"
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 14,
+			"text": "My creators didn’t even know much about my debut here"
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 17.6,
+			"text": "they thought I'd just be somewhere in the background or something"
+		},
+		{
+			"textSpeed": 1.05,
+			"time": 22,
+			"text": "I hope they're glad to see me here :)"
+		},
+		{
+			"textSpeed": 0.65,
+			"time": 23.55,
+			"text": ""
+		}
+	]
+}

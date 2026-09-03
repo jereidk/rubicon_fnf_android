@@ -1,0 +1,95 @@
+{
+	"sound": "Zhopa",
+	"events": [
+		{
+			"idle": false,
+			"time": 0,
+			"text": null,
+			"anim": "ehm",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"anim": "heh",
+			"time": 0.14
+		},
+		{
+			"anim": "normal",
+			"time": 1.94
+		},
+		{
+			"idle": true,
+			"time": 2.87,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 3.56,
+			"text": null,
+			"anim": "ehm",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 4.94,
+			"text": null,
+			"anim": "azu",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 5.78,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		},
+		{
+			"idle": false,
+			"time": 7.14,
+			"text": null,
+			"anim": "vineboom",
+			"finish": false,
+			"disappear": false
+		},
+		{
+			"idle": true,
+			"time": 7.9,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 1,
+			"time": 0.1,
+			"text": "I was asked to tell you a message from Animania!Crew"
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 3.39,
+			"text": "ahem"
+		},
+		{
+			"textSpeed": 0.75,
+			"text": "'Жопа'",
+			"time": 4.9
+		},
+		{
+			"textSpeed": 0.75,
+			"time": 6.9,
+			"text": " okay?"
+		},
+		{
+			"text": "",
+			"time": 9.15
+		}
+	]
+}

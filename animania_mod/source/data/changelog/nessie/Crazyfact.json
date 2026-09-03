@@ -1,0 +1,114 @@
+{
+	"sound": "Crazyfact",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 0.03
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 6.4
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "happy",
+			"idle": false,
+			"text": null,
+			"time": 6.7
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "normal",
+			"idle": false,
+			"text": null,
+			"time": 8.15
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "vineboom",
+			"idle": false,
+			"text": null,
+			"time": 11.5
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": false,
+			"text": null,
+			"time": 13.7
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "azu",
+			"idle": false,
+			"text": null,
+			"time": 14.4
+		},
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "stupid",
+			"idle": false,
+			"text": null,
+			"time": 15.45
+		},
+		{
+			"finish": true,
+			"disappear": false,
+			"anim": null,
+			"idle": true,
+			"text": null,
+			"time": 17.2
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.85,
+			"text": "Animania!Take was started only because of one person's night dream,",
+			"time": 0.05
+		},
+		{
+			"textSpeed": 0.85,
+			"text": "In which they saw an updated week 5 background",
+			"time": 3.8
+		},
+		{
+			"textSpeed": 1.25,
+			"text": "This person was G!",
+			"time": 6.7
+		},
+		{
+			"textSpeed": 0.7,
+			"text": "At first, the project was supposed to be only about Anime, but now also there’s a “Take” part,",
+			"time": 8.15
+		},
+		{
+			"textSpeed": 1.15,
+			"text": "yeahhh",
+			"time": 14.4
+		},
+		{
+			"textSpeed": 0.9,
+			"text": "It is what it is I guess.",
+			"time": 15.45
+		},
+		{
+			"textSpeed": 1,
+			"text": "",
+			"time": 17.2
+		}
+	]
+}

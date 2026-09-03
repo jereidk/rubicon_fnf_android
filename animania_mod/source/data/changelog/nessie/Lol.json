@@ -1,0 +1,28 @@
+{
+	"sound": "Lol",
+	"events": [
+		{
+			"finish": false,
+			"disappear": false,
+			"anim": "lalala",
+			"idle": false,
+			"text": null,
+			"time": 0
+		},
+		{
+			"idle": true,
+			"time": 4.9,
+			"text": null,
+			"anim": null,
+			"finish": true,
+			"disappear": false
+		}
+	],
+	"subtitles": [
+		{
+			"textSpeed": 0.75,
+			"time": 0,
+			"text": ""
+		}
+	]
+}

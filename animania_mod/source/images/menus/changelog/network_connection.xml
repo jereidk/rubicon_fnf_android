@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="network connection.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="connection0000" x="1" y="1" width="142" height="126"/>
+	<SubTexture name="connection0001" x="1" y="1" width="142" height="126"/>
+	<SubTexture name="connection0002" x="1" y="1" width="142" height="126"/>
+	<SubTexture name="connection0003" x="1" y="1" width="142" height="126"/>
+	<SubTexture name="connection0004" x="1" y="1" width="142" height="126"/>
+	<SubTexture name="connection0005" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0006" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0007" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0008" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0009" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0010" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0011" x="143" y="128" width="141" height="59" frameX="-1" frameY="-67" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0012" x="143" y="128" width="141" height="59" frameX="-1" frameY="-67" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0013" x="143" y="128" width="141" height="59" frameX="-1" frameY="-67" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0014" x="143" y="128" width="141" height="59" frameX="-1" frameY="-67" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0015" x="143" y="128" width="141" height="59" frameX="-1" frameY="-67" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0016" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0017" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0018" x="1" y="128" width="141" height="72" frameX="-1" frameY="-54" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0019" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0020" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+	<SubTexture name="connection0021" x="144" y="1" width="141" height="93" frameX="-1" frameY="-33" frameWidth="142" frameHeight="126" rotated="false"/>
+</TextureAtlas>
