@@ -15,7 +15,7 @@ const SCREEN := Vector2(1920.0, 1080.0)
 const ARROWS_PAD := 40.0
 
 ## Sub-menu names in order, matching the binary's SUBMENUS array.
-const SUBMENUS := ["Options", "Gameplay", "Appearance", "Misc", "Experemental"]
+const SUBMENUS := ["Options", "Gameplay", "Appearance", "Misc", "Experemental", "Controls"]
 
 ## Title image paths for each sub-menu (loaded from menus/options/eng/).
 const TITLE_IMAGES := {
@@ -24,6 +24,7 @@ const TITLE_IMAGES := {
 	"Appearance": "res://animania_mod/source/images/menus/options/eng/appearance-title.png",
 	"Misc": "res://animania_mod/source/images/menus/options/eng/misc-title.png",
 	"Experemental": "res://animania_mod/source/images/menus/options/eng/experemental-title.png",
+	"Controls": "res://animania_mod/source/images/menus/options/eng/options.png",
 }
 
 const EXIT_IMAGE := "res://animania_mod/source/images/menus/options/eng/exit.png"
@@ -276,6 +277,8 @@ func open_new_sub_menu(sub_menu_name: String) -> void:
 			current_sub_menu = _create_misc_sub_menu()
 		"Experemental":
 			current_sub_menu = _create_experemental_sub_menu()
+		"Controls":
+			current_sub_menu = _create_controls_sub_menu()
 
 	if current_sub_menu != null:
 		current_sub_menu.modulate.a = 0.0
@@ -315,6 +318,12 @@ func _create_misc_sub_menu() -> Node2D:
 
 func _create_experemental_sub_menu() -> Node2D:
 	var sub := ExperementalSubMenu.new()
+	sub.options_screen = self
+	return sub
+
+
+func _create_controls_sub_menu() -> Node2D:
+	var sub := ControlsBindingSubMenu.new()
 	sub.options_screen = self
 	return sub
 

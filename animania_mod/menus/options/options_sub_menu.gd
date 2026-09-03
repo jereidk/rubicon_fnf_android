@@ -11,7 +11,7 @@ const SCREEN := Vector2(1920.0, 1080.0)
 const SOUND_SWITCH := "res://animania_mod/source/sounds/animania/menu/menu_switch.ogg"
 const SOUND_CONFIRM := "res://animania_mod/source/sounds/animania/options/confirm.ogg"
 
-const CATEGORIES := ["Gameplay", "Appearance", "Misc", "Experemental"]
+const CATEGORIES := ["Gameplay", "Appearance", "Misc", "Experemental", "Controls"]
 const ITEM_SPACING := 70.0
 const LIST_X := 960.0
 const LIST_Y_START := 300.0
