@@ -532,9 +532,10 @@ bump_every = 1
 bump_interval = 4
 bump_amount = 0.0
 
-[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "hud", "cast", "stand_cast", "stage", "flash", "fade_rect", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "script_bars", "player_point", "opponent_point")]
+[node name="PhoneCallEvents" type="Node" parent="." unique_id=789622748 node_paths=PackedStringArray("camera", "bumper", "hud", "cast", "stand_cast", "stage", "flash", "fade_rect", "hud_up", "hud_down", "clock", "cover", "intro_text", "hud_root", "player_lanes", "opponent_lanes", "script_bars", "player_point", "opponent_point")]
 script = ExtResource("26_dpvpa")
 camera = NodePath("../RubiconInterpolatedCamera2D")
+bumper = NodePath("../RubiconInterpolatedCamera2D/RubiconCameraBumper")
 hud = NodePath("../UILayer")
 cast = {
 &"bf": NodePath("../Stage/Tadano"),

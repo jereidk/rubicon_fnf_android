@@ -1,59 +1,40 @@
 extends "res://animania_mod/scripts/song_events.gd"
 ## Phone-call specific chart events.
 ##
-## Extends song_events.gd with the choreography unique to phone-call:
-## intro sequence, tadano entrance, stand-up swap, HUD in/out, opponent
-## lanes fly-in, strumline pulse, boyfriend slide, and fade-out.
-##
-## All generic AnimaniaModule features (camera nudge, shake, character
-## animation, key disable, etc.) live in the parent.
+## Extends song_events.gd with the choreography unique to phone-call.
+## All generic AnimaniaModule features live in the parent.
 
 ## ─── Phone-call constants ───────────────────────────────────────────────────
 const STAGE_ZOOM := 0.65
-
-## Intro (beats 0-31): cover, title card, HUD arrival.
 const INTRO_FADE_SECONDS := 2.5
 const INTRO_TEXT_SCALE := 0.8
-
-## tadano entrance at beat 13.
 const ENTRANCE_OUT := 380.0
 const ENTRANCE_BACK := 350.0
 const ENTRANCE_SECONDS := 1.45
 const ENTRANCE_SETTLE_SECONDS := 0.5
-
-## HUD zoom-in at beat 31.
 const HUD_IN_SECONDS := 0.35
 const HUD_IN_ZOOM := 1.1
-
-## Strumline pulse every even beat after 232.
 const PULSE_FIRST_BEAT := 232
 const PULSE_FROM := 0.95
 const PULSE_TO_PLAYER := 1.05
 const PULSE_TO_OPPONENT := 1.0
 const LANE_SCALE_PLAYER := 1.0
 const LANE_SCALE_OPPONENT := 0.95
-
-## Opponent lanes fly-in at beat 166.
 const LANES_IN_SECONDS := 1.5
 const LANES_IN_DELAY := 2.0
 const LANES_HALF_ALPHA := 0.5
-
-## HUD tween out at beat 332.
 const HUD_TWEEN_DISTANCE := 250.0
 const HUD_TWEEN_SECONDS := 1.75
 const HUD_TWEEN_DELAY_UP := 0.25
 const HUD_TWEEN_DELAY_DOWN := 0.5
-
-## Flash.
 const FLASH_SECONDS := 1.5
-
-## boyfriend_slide.
 const SLIDE_DISTANCE := 800.0
 const SLIDE_SECONDS := 1.35
 
-## ─── Exports (phone-call specific) ─────────────────────────────────────────
+## ─── Exports ────────────────────────────────────────────────────────────────
 @export var stand_cast: Dictionary[StringName, Node] = {}
 @export var stage: Node2D
+@export var bumper: Node
 @export var flash: ColorRect
 @export var fade_rect: ColorRect
 @export var hud_up: Array[Node] = []
@@ -66,7 +47,6 @@ const SLIDE_SECONDS := 1.35
 ## ─── State ──────────────────────────────────────────────────────────────────
 var _hud_rest: Vector2 = Vector2.ONE
 var _hud_tween: Tween
-var _stood_up: bool = false
 var _intro_tween: Tween
 
 
@@ -74,39 +54,11 @@ func _ready() -> void:
 	super()
 	if hud != null:
 		_hud_rest = hud.scale
-	# _first_time guard for opening — does NOT use first_time() because
-	# opening() assigns absolutely off the homes read in _ready.
-	opening()
+	setup_opening(cover, intro_text, INTRO_TEXT_SCALE)
 
 
 func _get_stage_zoom() -> float:
 	return STAGE_ZOOM
-
-
-## ─── Beat choreography ──────────────────────────────────────────────────────
-func _on_beat() -> void:
-	if dying or clock == null:
-		return
-	var beat: int = floori(clock.time_beat)
-	if beat <= PULSE_FIRST_BEAT or beat % 2 != 0:
-		return
-	var changes: Array[RubiconTimeChange] = clock.get_time_changes()
-	var seconds: float = (RubiconTimeChange.get_millisecond_at_beat(changes, beat + 1)
-		- RubiconTimeChange.get_millisecond_at_beat(changes, beat)) / 1000.0
-	if seconds <= 0.0:
-		return
-	for entry: Array in [
-		[opponent_lanes, PULSE_TO_OPPONENT, LANE_SCALE_OPPONENT],
-		[player_lanes, PULSE_TO_PLAYER, LANE_SCALE_PLAYER],
-	]:
-		var lanes: Control = entry[0]
-		if lanes == null:
-			continue
-		var base: float = float(entry[2])
-		lanes.scale = Vector2.ONE * base * PULSE_FROM
-		create_tween().tween_property(lanes, "scale",
-			Vector2.ONE * base * float(entry[1]),
-			seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 ## ─── Per-frame ──────────────────────────────────────────────────────────────
@@ -123,13 +75,25 @@ func _process(delta: float) -> void:
 	centre_hud(hud)
 
 
-## ─── Opening (onCreatePost) ────────────────────────────────────────────────
+## ─── Beat choreography ──────────────────────────────────────────────────────
+func _on_beat() -> void:
+	if dying or clock == null:
+		return
+	var beat: int = floori(clock.time_beat)
+	if beat <= PULSE_FIRST_BEAT or beat % 2 != 0:
+		return
+	var changes: Array[RubiconTimeChange] = clock.get_time_changes()
+	var seconds: float = (RubiconTimeChange.get_millisecond_at_beat(changes, beat + 1)
+		- RubiconTimeChange.get_millisecond_at_beat(changes, beat)) / 1000.0
+	if seconds <= 0.0:
+		return
+	pulse_strumlines(player_lanes, opponent_lanes, seconds,
+		PULSE_TO_PLAYER, PULSE_TO_OPPONENT, PULSE_FROM)
+
+
+## ─── Opening ────────────────────────────────────────────────────────────────
 func opening() -> void:
-	if cover != null:
-		cover.color = Color(0.0, 0.0, 0.0, 1.0)
-	if intro_text != null:
-		intro_text.visible = false
-		intro_text.modulate.a = 0.0
+	setup_opening(cover, intro_text, INTRO_TEXT_SCALE)
 	if hud_root != null:
 		hud_root.modulate.a = 0.0
 	if player_lanes != null:
@@ -164,35 +128,21 @@ func intro_show_text() -> void:
 func intro_hide_text() -> void:
 	if not first_time(&"intro_hide_text"):
 		return
-	if intro_text == null:
-		return
-	if _intro_tween != null:
-		_intro_tween.kill()
-	_intro_tween = create_tween()
-	_intro_tween.tween_property(intro_text, "modulate:a", 0.0,
-		0.6).set_trans(Tween.TRANS_CIRC).set_ease(Tween.EASE_IN)
+	hide_intro(intro_text, 0.6)
 
 
 func intro_reveal() -> void:
 	if not first_time(&"intro_reveal"):
 		return
-	if cover != null:
-		create_tween().tween_property(cover, "color:a", 0.0,
-			1.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	fade_cover(cover, 1.25)
 
 
 ## ─── HUD in/out ─────────────────────────────────────────────────────────────
 func hud_in() -> void:
 	if not first_time(&"hud_in"):
 		return
-	if hud != null:
-		hud.scale = _hud_rest * HUD_IN_ZOOM
-		centre_hud(hud)
-		_hud_tween = create_tween()
-		_hud_tween.tween_property(hud, "scale", _hud_rest, HUD_IN_SECONDS)
-	for node: CanvasItem in [hud_root, player_lanes]:
-		if node != null:
-			create_tween().tween_property(node, "modulate:a", 1.0, HUD_IN_SECONDS)
+	_hud_tween = hud_zoom_in(hud, _hud_rest, HUD_IN_ZOOM, HUD_IN_SECONDS)
+	fade_in_nodes([hud_root, player_lanes], HUD_IN_SECONDS)
 
 
 func hud_out() -> void:
@@ -207,22 +157,9 @@ func hud_out() -> void:
 func stand_up() -> void:
 	if not first_time(&"stand_up"):
 		return
-	# Swap cast to standing pair.
-	for key: StringName in stand_cast:
-		cast[key] = stand_cast[key]
-	# Swap stage props.
-	if stage != null:
-		_swap_props(stage)
+	swap_characters(stand_cast, stage)
 	if hud_root != null:
 		hud_root.visible = true
-
-
-func _swap_props(node: Node) -> void:
-	for child: Node in node.get_children():
-		if child.name.begins_with("stand-"):
-			child.visible = true
-		elif child.name.begins_with("phone-") or child.name.begins_with("sitting-"):
-			child.visible = false
 
 
 ## ─── Opponent lanes in ──────────────────────────────────────────────────────
@@ -231,26 +168,15 @@ func opponent_lanes_in() -> void:
 		return
 	if opponent_lanes == null or not _lane_homes.has(&"player"):
 		return
-	var tween: Tween = create_tween().set_parallel(true)
-	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(opponent_lanes, "position:x",
-		_lane_homes[&"player"].x, LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
-	tween.tween_property(opponent_lanes, "rotation_degrees", 0.0,
-		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
-	tween.tween_property(opponent_lanes, "modulate:a", LANES_HALF_ALPHA,
-		LANES_IN_SECONDS).set_delay(LANES_IN_DELAY)
+	lanes_fly_in(opponent_lanes, _lane_homes[&"player"].x,
+		LANES_IN_SECONDS, LANES_IN_DELAY, LANES_HALF_ALPHA)
 
 
 ## ─── Boyfriend slide ────────────────────────────────────────────────────────
 func boyfriend_slide() -> void:
 	if not first_time(&"boyfriend_slide"):
 		return
-	var tadano: Node2D = cast.get(&"boyfriend")
-	if tadano == null:
-		return
-	create_tween().tween_property(tadano, "position:x",
-		tadano.position.x + SLIDE_DISTANCE, SLIDE_SECONDS) \
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	character_slide(&"boyfriend", SLIDE_DISTANCE, SLIDE_SECONDS)
 
 
 ## ─── Keys ───────────────────────────────────────────────────────────────────

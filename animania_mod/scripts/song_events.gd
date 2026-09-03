@@ -238,6 +238,177 @@ func first_time(beat: StringName) -> bool:
 	return true
 
 
+
+## ─── Opening (cover + intro text) ──────────────────────────────────────────
+## Many songs start with a black screen and optional title card.
+## Call from _ready or the chart's first beat.
+func setup_opening(cover: ColorRect = null, intro: Node = null,
+		intro_scale: float = 0.8) -> void:
+	if cover != null:
+		cover.color = Color(0.0, 0.0, 0.0, 1.0)
+	if intro != null:
+		intro.visible = false
+		if intro is CanvasItem:
+			intro.modulate.a = 0.0
+
+
+func fade_cover(cover: ColorRect, duration: float) -> void:
+	if cover == null:
+		return
+	create_tween().tween_property(cover, "color:a", 0.0,
+		duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func show_intro(intro: Node, duration: float = 2.5,
+		scale: float = 0.8) -> void:
+	if intro == null or not (intro is CanvasItem):
+		return
+	intro.visible = true
+	if intro is Node2D:
+		intro.scale = Vector2.ONE * scale
+	intro.modulate.a = 0.0
+	create_tween().tween_property(intro, "modulate:a", 1.0,
+		duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func hide_intro(intro: Node, duration: float = 0.6) -> void:
+	if intro == null or not (intro is CanvasItem):
+		return
+	create_tween().tween_property(intro, "modulate:a", 0.0,
+		duration).set_trans(Tween.TRANS_CIRC).set_ease(Tween.EASE_IN)
+
+
+## ─── HUD in (zoom + fade) ──────────────────────────────────────────────────
+## HUD appears zoomed in and eases to rest scale while fading up.
+## Returns the tween so the caller can chain or guard against conflicts.
+func hud_zoom_in(hud_node: CanvasLayer, rest_scale: Vector2,
+		zoom: float = 1.1, duration: float = 0.35) -> Tween:
+	if hud_node == null:
+		return null
+	hud_node.scale = rest_scale * zoom
+	centre_hud(hud_node)
+	var tw := create_tween()
+	tw.tween_property(hud_node, "scale", rest_scale, duration)
+	return tw
+
+
+func fade_in_nodes(nodes: Array[Node], duration: float = 0.35) -> void:
+	for node: Node in nodes:
+		if node != null and node is CanvasItem:
+			create_tween().tween_property(node, "modulate:a", 1.0, duration)
+
+
+## ─── Cinematic bars (letterbox) ────────────────────────────────────────────
+## Top/bottom bars that slide in for dramatic moments.
+func show_bars(top: CanvasItem, bottom: CanvasItem,
+		height: float = 100.0, duration: float = 0.3) -> void:
+	for entry: Array in [[top, -height], [bottom, height]]:
+		var bar: CanvasItem = entry[0]
+		if bar == null:
+			continue
+		bar.visible = true
+		if bar is Control:
+			bar.offset_top = 0.0 if entry[1] < 0 else 0.0
+		create_tween().tween_property(bar, "offset_bottom",
+			float(entry[1]), duration) 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func hide_bars(top: CanvasItem, bottom: CanvasItem,
+		duration: float = 0.3) -> void:
+	for bar: CanvasItem in [top, bottom]:
+		if bar == null:
+			continue
+		create_tween().tween_property(bar, "offset_bottom", 0.0,
+			duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+
+## ─── Flash ──────────────────────────────────────────────────────────────────
+## White or black screen flash. Fades from opaque to transparent.
+func flash_screen(node: ColorRect, color: Color = Color.WHITE,
+		duration: float = 1.5) -> void:
+	if node == null:
+		return
+	node.color = Color(color.r, color.g, color.b, 1.0)
+	create_tween().tween_property(node, "color:a", 0.0, duration)
+
+
+## ─── Camera bop (SetCameraBop) ─────────────────────────────────────────────
+## Changes the bumper's automatic beat-bop rate and strength.
+## `bumper` is RubiconCameraBumper. intensity=0 disables the bop.
+const DEFAULT_BOP := 0.015
+
+func set_bop(bumper: Node, rate: int, intensity: float) -> void:
+	if bumper == null:
+		return
+	bumper.bump_interval = maxi(1, rate)
+	bumper.bump_amount = DEFAULT_BOP * intensity
+	bumper.enabled = intensity > 0.0
+
+
+## ─── Strumline pulse on beat ────────────────────────────────────────────────
+## Both strumlines scale up then ease back, one beat apart.
+## player_scale / opponent_scale are the REST scales (e.g. 1.05, 0.95).
+## from_scale is the attack scale (e.g. 0.95).
+func pulse_strumlines(player_lanes_node: Control,
+		opponent_lanes_node: Control, beat_duration: float,
+		player_scale: float = 1.05, opponent_scale: float = 0.95,
+		from_scale: float = 0.95) -> void:
+	for entry: Array in [
+		[opponent_lanes_node, opponent_scale],
+		[player_lanes_node, player_scale],
+	]:
+		var lanes: Control = entry[0]
+		if lanes == null:
+			continue
+		var base: float = float(entry[1])
+		lanes.scale = Vector2.ONE * base * from_scale
+		create_tween().tween_property(lanes, "scale",
+			Vector2.ONE * base, beat_duration) 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+## ─── Opponent lanes fly-in ──────────────────────────────────────────────────
+## Lanes fly from offscreen, unwind rotation, settle at alpha.
+func lanes_fly_in(lanes: Control, target_x: float,
+		duration: float = 1.5, delay: float = 0.0,
+		alpha: float = 0.5) -> void:
+	if lanes == null:
+		return
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(lanes, "position:x", target_x,
+		duration).set_delay(delay)
+	tween.tween_property(lanes, "rotation_degrees", 0.0,
+		duration).set_delay(delay)
+	tween.tween_property(lanes, "modulate:a", alpha,
+		duration).set_delay(delay)
+
+
+## ─── Character slide ────────────────────────────────────────────────────────
+## Tween a character's x position by a delta.
+func character_slide(target_name: StringName, distance: float,
+		duration: float = 1.35) -> void:
+	var character: Node2D = cast.get(target_name)
+	if character == null:
+		return
+	create_tween().tween_property(character, "position:x",
+		character.position.x + distance, duration) 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## ─── Character swap (mid-song) ─────────────────────────────────────────────
+## Replace cast entries with new character nodes and toggle stage props.
+func swap_characters(new_cast: Dictionary[StringName, Node],
+		stage: Node = null, show_prefix: String = "stand-",
+		hide_prefixes: Array[String] = ["phone-", "sitting-"]) -> void:
+	for key: StringName in new_cast:
+		cast[key] = new_cast[key]
+	if stage != null:
+		for child: Node in stage.get_children():
+			if child.name.begins_with(show_prefix):
+				child.visible = true
+			for hp: String in hide_prefixes:
+				if child.name.begins_with(hp):
+					child.visible = false
+
 ## Override in subclass for per-song beat choreography.
 func _on_beat() -> void:
 	pass
