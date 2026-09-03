@@ -2,6 +2,12 @@ name: Android Build
 
 on:
   workflow_dispatch:
+    inputs:
+      upload_import:
+        description: 'Upload Godot import cache as artifact (for local rendering)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -153,6 +159,17 @@ jobs:
           rm -rf .godot/imported
           $GODOT --headless --import 2>&1
           sleep 5
+
+      - name: Upload Godot import cache
+        if: inputs.upload_import == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-import-cache
+          path: |
+            .godot/imported/
+            .godot/uid_cache.bin
+          retention-days: 7
+          compression-level: 1
 
       - name: Create builds directory
         run: |
