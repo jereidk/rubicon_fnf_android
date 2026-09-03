@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="binding.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="binding0000" x="0" y="0" width="79" height="210" frameX="-178" frameY="-168" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0001" x="79" y="0" width="298" height="274" frameX="-57" frameY="-31" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0002" x="377" y="0" width="379" height="304" frameX="-29" frameY="-16" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0003" x="0" y="304" width="409" height="317" frameX="-6" frameY="-5" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0004" x="409" y="304" width="425" height="331" frameX="-1" frameY="0" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0005" x="0" y="635" width="429" height="304" frameX="0" frameY="-28" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0006" x="429" y="635" width="105" height="169" frameX="-204" frameY="-152" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0007" x="534" y="635" width="114" height="161" frameX="-219" frameY="-165" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0008" x="534" y="635" width="114" height="161" frameX="-219" frameY="-165" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0009" x="648" y="635" width="114" height="159" frameX="-222" frameY="-167" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0010" x="648" y="635" width="114" height="159" frameX="-222" frameY="-167" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0011" x="762" y="635" width="115" height="159" frameX="-223" frameY="-168" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0012" x="762" y="635" width="115" height="159" frameX="-223" frameY="-168" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0013" x="877" y="635" width="115" height="159" frameX="-223" frameY="-168" frameWidth="429" frameHeight="378" rotated="false"/>
+	<SubTexture name="binding0014" x="992" y="635" width="0" height="0" frameX="-174" frameY="-123" frameWidth="429" frameHeight="378" rotated="false"/>
+</TextureAtlas>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="gear.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="gear10000" x="626" y="1" width="204" height="283" frameX="-5" frameY="-18" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10001" x="626" y="1" width="204" height="283" frameX="-5" frameY="-18" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10002" x="423" y="1" width="202" height="299" frameX="0" frameY="-3" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10003" x="423" y="1" width="202" height="299" frameX="0" frameY="-3" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10004" x="1" y="1" width="210" height="302" frameX="0" frameY="0" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10005" x="1" y="1" width="210" height="302" frameX="0" frameY="0" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10006" x="212" y="1" width="210" height="300" frameX="-2" frameY="-4" frameWidth="212" frameHeight="304" rotated="false"/>
+	<SubTexture name="gear10007" x="212" y="1" width="210" height="300" frameX="-2" frameY="-4" frameWidth="212" frameHeight="304" rotated="false"/>
+</TextureAtlas>

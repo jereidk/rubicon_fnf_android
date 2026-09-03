@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="key_bindings.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="down note sign0000" x="2" y="2" width="219" height="221"/>
+	<SubTexture name="fighting sign0000" x="223" y="2" width="219" height="221"/>
+	<SubTexture name="left note sign0000" x="444" y="2" width="214" height="215"/>
+	<SubTexture name="right note sign0000" x="660" y="2" width="215" height="215"/>
+	<SubTexture name="up note sign0000" x="877" y="2" width="207" height="227"/>
+</TextureAtlas>

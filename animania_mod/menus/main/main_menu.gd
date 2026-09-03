@@ -27,6 +27,7 @@ const DESTINATIONS := {
 	"storymode": "res://animania_mod/menus/story/story_menu.tscn",
 	"freeplay": "res://animania_mod/menus/freeplay/freeplay_screen.tscn",
 	"credits": "res://animania_mod/menus/credits/credits_menu.tscn",
+	"options": "res://animania_mod/menus/options/options_screen.tscn",
 }
 
 ## `changeItem(amount:Int, playSound:Bool)`. NOT a direction pair, which is what the two
