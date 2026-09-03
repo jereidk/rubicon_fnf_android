@@ -234,6 +234,21 @@ run --headless --path . --import            # ALWAYS, right after vendoring anyt
 And do not pipe a builder's output through `grep` until it has succeeded once: the grep
 throws away the very error you need. Read the tail of the raw output instead.
 
+**Not every builder owns its whole scene, and re-running one can DELETE work.**
+`build_story_menu.gd` only rebuilds the `Titles` children: it loads the saved
+scene, replaces those, and saves. Everything else in `story_menu.tscn` was put
+there by hand or by an older pass — the chroma-key ShaderMaterial and the
+`easy`/`normal` difficulty textures among it — and a rebuild drops all of it,
+because the builder never writes it back. So "never hand-edit, re-run the
+builder" holds only where the builder actually reproduces the file. Before
+re-running one, diff its output against the committed scene and look at what
+DISAPPEARED, not just at what changed.
+
+**`queue_free()` does nothing inside a `--script` builder.** The deferred queue
+is never pumped, so a child freed that way is still there when the scene is
+packed and the rebuild APPENDS to what it meant to replace — the story menu
+came out with every week twice. Use `remove_child()` + `free()`.
+
 **Godot drops a `connect()` without `CONNECT_PERSIST` when a scene is packed.**
 
 **Set `layout_mode`/`size` on a Control before `position`**, or the position is lost.
