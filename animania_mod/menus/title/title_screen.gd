@@ -202,17 +202,17 @@ func _play_intro_sound() -> void:
 		_intro_sound_player.play()
 
 
-func _process(delta: float) -> void:
-	_bump_boil(delta)
-	_fade_music(delta)
-	_update_camera(delta)
-	_elapsed += delta
-	if _done:
-		return
-	var beat: int = floori(_elapsed * BPM / 60.0)
-	while _beat < beat:
-		_beat += 1
-		_run_beat(_beat)
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## Music fade-in: ramp from 0 to MUSIC_FINAL_VOLUME over MUSIC_FADE_IN_TIME.
