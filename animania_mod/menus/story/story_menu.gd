@@ -45,7 +45,16 @@ const DIFFICULTY_SORT_ORDER := ["easy", "normal", "hard", "erect", "nightmare", 
 
 const SCREEN := Vector2(1920.0, 1080.0)
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
-const TITLE_CENTRE := Vector2(400.0, 540.0)
+## MEASURED from StoryMenu_obj::buildLevelTitles() in the mod binary
+## (0x32e7f60): each LevelTitle is built at (0,0) and then gets
+##     x = (FlxG.width - title.width) * 0.5 - 50
+## which is screenCenter(X) followed by a 50px nudge left. Flixel's x is the
+## LEFT edge and Godot's Sprite2D position is the CENTRE, so the width cancels
+## and the centre lands at 640 - 50 = 590 in Funkin space, whatever the title
+## measures. That is a SCREEN distance, so it takes the x1.5.
+## The y is NOT from here: buildLevelTitles leaves it at 0 and the scroll in
+## update() drives it. TITLE_CENTRE.y and TITLE_SPACING are still unmeasured.
+const TITLE_CENTRE := Vector2((640.0 - 50.0) * FUNKIN_TO_RUBICON, 540.0)
 const TITLE_SPACING := 180.0
 const TITLE_ALPHA_OFF := 0.6
 
@@ -86,6 +95,7 @@ var left_difficulty_arrow: AnimatedSprite2D
 var right_difficulty_arrow: AnimatedSprite2D
 var difficulty_sprite: Sprite2D
 var bars_viz_mask: Sprite2D
+var weeks_blot: Sprite2D
 var bars_viz: Node2D
 var bass_sound: AudioStreamPlayer
 var theme_color_shader: ShaderMaterial
@@ -115,6 +125,7 @@ func _ready() -> void:
 	right_difficulty_arrow = $RightArrow
 	difficulty_sprite = $DifficultySprite
 	bars_viz_mask = $BarsVizMask
+	weeks_blot = $WeeksBlot
 	bars_viz = $BarsViz
 	bass_sound = $BassSound
 	diff_machine = $DiffSelector
@@ -133,6 +144,7 @@ func _ready() -> void:
 	remember_selection()
 	play_menu_music()
 	create_visualizer()
+	_place_weeks_blot()
 	build_level_titles()
 	reposition_titles(false)
 	load_difficulties()
@@ -635,6 +647,15 @@ func funny_music_thing() -> void:
 	else:
 		if _menu_music != null and not _menu_music.playing:
 			play_menu_music()
+
+
+## MEASURED from StoryMenu_obj::create(): the blot is centred with the same
+## idiom as the titles - a *0.5 on (screen width - its own width) and then a
+## -50 - so its centre sits on the same x they do, which is what puts it
+## BEHIND the week names instead of off to the left.
+func _place_weeks_blot() -> void:
+	if weeks_blot != null:
+		weeks_blot.position.x = TITLE_CENTRE.x
 
 
 # ─── Visualizer ───────────────────────────────────────────────────────────
