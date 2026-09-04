@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dec3ba816231"
-path="res://.godot/imported/icon.png-b9f908a0bf8d1a644745913452e5ad3b.ctex"
+uid="uid://dec299816231"
+path="res://.godot/imported/icon-218a8f21d0341157c5674b7649e8624d.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://animania_mod/source/icon.png"
-dest_files=["res://.godot/imported/icon.png-b9f908a0bf8d1a644745913452e5ad3b.ctex"]
+dest_files=["res://.godot/imported/icon-218a8f21d0341157c5674b7649e8624d.ctex"]
 
 [params]
 
