@@ -487,6 +487,22 @@ one check that could never have passed (`root.has_node("DebugOverlay")`, an auto
 `--script` does not register) rewritten to ask `ProjectSettings` instead. An early
 `return` in a guard hides more than it reports.
 
+### The main menu, method by method
+
+With the above done, `MainMenuScreen` is ported end to end. What is deliberately NOT in the
+port, and why, so nobody re-derives it:
+
+| left out | why |
+| --- | --- |
+| `RuntimeRainShader` (autumn) | writing a rain shader from nothing is writing one, not porting it |
+| the emitter's `maxParticles` / `spawnValue` | their `cpp::Variant`s go by reference and the dump does not resolve them |
+| `initMouseEvents`, `setupEventListeners` | the first is `FlxG.mouse.visible` plus a cursor mode, the second is empty. Nothing to port on a touchscreen |
+
+Two details that are easy to miss and both show on screen: `createBlockedButton` **greys the
+button under the padlock** to `0xFFAAAAAA` before adding the lock (0x1806989), and
+`musicSocialPlayAnim` is the method that chooses the OST disc's state — calling it from
+`finalizeSetup`, as this port did, leaves the disc looking permanently hovered.
+
 ### One capture is not the build you have
 
 The mod's own main-menu capture and this 0.6 Linux build **disagree**, and it took a while

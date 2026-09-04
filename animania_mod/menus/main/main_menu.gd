@@ -687,9 +687,10 @@ func _toggle_social() -> void:
 		button.visible = _social_open
 	if _music_social == null or _music_social.sprite_frames == null:
 		return
-	var anim: StringName = &"soundtrack white" if _social_open else &"soundtrack basic"
-	if _music_social.sprite_frames.has_animation(anim):
-		_music_social.play(anim)
+	# Through musicSocialPlayAnim rather than around it: that is the method the mod has for
+	# choosing the disc's state, and leaving it uncalled would make it dead code that only
+	# looks ported.
+	_music_social_play_anim(&"selected" if _social_open else &"basic")
 
 
 ## initMouseEvents. Sets up mouse hover detection on buttons.
@@ -798,10 +799,14 @@ func _spawn_help_mouse_text() -> void:
 ## scale (0x118/0x120). What was here was an endless alpha pulse on a node called
 ## "SocialButtons/MusicSocial", which is neither the name this scene uses nor anything the
 ## mod does.
-func _music_social_play_anim(anim: StringName = &"selected") -> void:
+func _music_social_play_anim(anim: StringName = &"basic") -> void:
 	if _music_social == null or _music_social.sprite_frames == null:
 		return
-	var wanted: StringName = &"soundtrack press" if anim == &"press" else &"soundtrack white"
+	var wanted: StringName = &"soundtrack basic"
+	if anim == &"press":
+		wanted = &"soundtrack press"
+	elif anim == &"selected":
+		wanted = &"soundtrack white"
 	if _music_social.sprite_frames.has_animation(wanted):
 		_music_social.play(wanted)
 

@@ -255,8 +255,15 @@ func _init() -> void:
 	var lock_frames: SpriteFrames = load("%s/menu_lock_frames.tres" % DIR)
 	var lock_animation: StringName = lock_frames.get_animation_names()[0]
 	var lock_size: Vector2 = lock_frames.get_frame_texture(lock_animation, 0).get_size()
+	# createBlockedButton's first line (0x1806989): the button UNDER the lock is greyed to
+	# 0xFFAAAAAA before the padlock goes on it. Without it the three locked entries were as
+	# bright as the four you can actually press.
+	const BLOCKED_TINT := Color(0xAA / 255.0, 0xAA / 255.0, 0xAA / 255.0)
 	for name: String in blocked:
 		var rect: Rect2 = rects[name]
+		var under: Node2D = buttons.get_node_or_null(NodePath(name.capitalize())) as Node2D
+		if under != null:
+			under.modulate = BLOCKED_TINT
 		var lock := AnimatedSprite2D.new()
 		lock.name = "%sLock" % name.capitalize()
 		lock.sprite_frames = lock_frames
