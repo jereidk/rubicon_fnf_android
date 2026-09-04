@@ -374,8 +374,25 @@ down, because the port had three of them missing outright:
   strip they sit on. That the sum lands inside the strip is the check that it is read the
   right way round, and the five URLs in `.rodata` are in the same order as the anons.
 - **createParticles** (0x17fb440) is an `FlxTypedEmitter` at (750, -150) on
-  `menus/particle` — a plain white 100x100 square — with a scale that runs 0.35 down to
-  0.1 and a frequency of 0.09. Identified, not ported.
+  `menus/particle` — a plain white 100x100 square — lifespan 2 to 4, scale running 0.35
+  down to 0.1, a colour range through pink and cyan to white, and `start(false, 0.09)`.
+  Its two `FlxPointRangeBounds.set` calls carry -450/300/0/-300 and -200/-300/300/10, and
+  **which emitter property each of those belongs to is not visible** — the calls go through
+  a field pointer the disassembly does not name, and Flixel's velocity, acceleration and
+  drag all take the same shape. Identified, not ported: an emitter above the screen whose
+  velocities are read onto the wrong property is a worse answer than none.
+- **createBackground** (0x1800500) is `loadTexture`, `screenCenter`, `scrollFactor.set(0.65,
+  0.65)` and then `x -= 75`. **No scale.** The 1352x790 art is drawn at its own size on a
+  1280x720 screen, overhanging 36 a side, and slides 75 left. This port had it scaled to
+  cover, which made it 5% small and lost the 75.
+- **spawnHelpMouseText** (0x1802d10) is a first-run hint: a solid box at (-85, 125) at alpha
+  0.6 sized to the text plus ten, and `"  Use your mouse and keys to navigate and choose!"`
+  in `Inconsolata-Black.ttf` at alpha 0.9 five pixels inside it, both sliding in on quadOut
+  over 1.3s after 1.55s and 1.65s, held for a 7s timer. `finalizeSetup` only spawns it when
+  `Save.instance.animania.seenMainMenuHelp` is unset. The font ships **inside the
+  executable**, not beside it, and is extracted the same way the tracklist's faces were.
+  The box's colour is the one thing here that is not recovered - `makeGraphic` takes it in a
+  register the dump does not resolve - so it is black.
 
 `updateCameraScroll` (0x1804ac0) follows the **mouse**, not a clock:
 `scroll.x = lerp(scroll.x, remapToRange(mouse.x, 0, FlxG.width, -10, 3), elapsed * 3)` and
@@ -546,13 +563,24 @@ came out with every week twice. Use `remove_child()` + `free()`.
 
 ## 5. The guards
 
-Two, and both must pass before any commit:
+Two, and **which one to run depends on what changed** - running both after every edit is
+waste, and running either after every intermediate edit is more waste:
 
 ```bash
-run --headless --path . --script tools/animania/test_phone_call_port.gd   # 853 checks
 run --headless --path . --script tools/animania/harness/flow_check.gd     # the whole flow
+run --headless --path . --script tools/animania/test_phone_call_port.gd   # 853 checks
 ```
 
+- `flow_check` instantiates the menus and walks them, so **any menu, transition or scene
+  change needs it** - once, before the commit, not after every edit.
+- `test_phone_call_port` is about the song: charts, characters, camera events, the death
+  sequence. **Menu work does not touch it**, and running it there proves nothing.
+- Both, only when the change reaches across the two - a scene the flow enters, a shared
+  script, `AnimaniaModule`, the loading screen.
+
+`flow_check` costs about four minutes now, and it did not before: it used to bail at the
+main menu and skip everything after, and now it loads the level scene off its Animate
+atlases like the other guard does. That is the price of it actually running.
 **A run that takes more than ten seconds needs a reason, not patience.** Godot
 itself starts and quits in 0.6s here, so anything longer is the script's own
 work and can be located. Pipe the run through a timestamper and print only the

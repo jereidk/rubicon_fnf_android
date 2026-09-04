@@ -293,12 +293,14 @@ func _process(delta: float) -> void:
 
 	if _intro >= 0.0:
 		_advance_intro(delta)
+		_apply_parallax()
 		return
 
 	if camera != null:
 		camera.zoom = Vector2.ONE * (ZOOM_REST
 			+ (camera.zoom.x - ZOOM_REST) * exp(-ZOOM_DECAY * delta))
 	_update_camera_scroll(delta)
+	_apply_parallax()
 
 	if music == null or not music.playing:
 		return
@@ -511,9 +513,7 @@ func _create_news_button() -> void:
 const MUSIC_SOCIAL_FRAMES := "res://animania_mod/source/images/menus/menu/music_social_frames.tres"
 ## createMusicSocial: scale 0.85 on both axes (0x180e611/0x180e62d), zoomFactor 0.875, and
 ## the animations "soundtrack basic" (idle), "soundtrack white" (selected) and
-## "soundtrack press", all at 24. Where it SITS is off the mod's own capture - the OST disc
-## is centred on (645, 620) of a 1278-wide shot - because createMusicSocial's own placement
-## has not been read yet.
+## "soundtrack press", all at 24.
 const MUSIC_SOCIAL_SCALE := 0.85
 ## createMusicSocial (0x180e0c2/0x180e0dd) creates the disc at world (570, 590) with a
 ## 158x134 frame, so Flixel draws it centred on (649, 657). The mod's capture has that
@@ -525,7 +525,6 @@ const MUSIC_SOCIAL_SCALE := 0.85
 const MUSIC_SOCIAL_WORLD := Vector2(570.0, 590.0)
 const MUSIC_SOCIAL_FRAME := Vector2(158.0, 134.0)
 const WORLD_OFFSET := Vector2(-4.0, -37.0)
-const MUSIC_SOCIAL_CENTRE := Vector2(645.0, 620.0)
 ## menus/menu/music_social_lines at (7.5, 625.35) - the two doubles createMusicSocial loads
 ## right after the disc's scale, first the y then the x, the same order the loading screen's
 ## FunkinSprite calls take. It is a 661x83 strip that runs from the left edge to just short
@@ -693,29 +692,106 @@ func _init_mouse_events() -> void:
 	pass
 
 
-## spawnHelpMouseText. Shows a help tooltip near the mouse cursor.
-## From the binary's spawnHelpMouseText method.
+## spawnHelpMouseText (0x1802d10). The string is the mod's own, out of .rodata, and so is
+## the face: `assets/fonts/Inconsolata-Black.ttf`, which ships inside the executable rather
+## than beside it and is extracted next to the VCR one. "Click to select!" in an 18px
+## default font was this port's invention.
+##
+##     box  = new FunkinSprite(-85, 125); box.makeGraphic(51, 30); box.alpha = 0.6
+##     text = new FlxText(box.x + 5, box.y, FlxG.width, "  Use your mouse ...")
+##     text.alpha = 0.9; text.font = Inconsolata-Black; text.alignment = left
+##     box.setGraphicSize(text.textWidth + 10)                     # 0x18032b2
+##     tween both in, quadOut, 1.3s, after 1.55s and 1.65s        # 0x1803390 / 0x180355a
+##     new FlxTimer().start(7.0, ...)                             # 0x18036f4
+##
+## Both start at x = -85 with a width the text has not been measured for yet, so the only
+## reading that makes those two tweens an entrance rather than an exit is that they slide
+## to the screen edge - the same argument the intro's curtains needed.
+const HELP_TEXT := "  Use your mouse and keys to navigate and choose!"
+const HELP_FONT := "res://animania_mod/source/fonts/Inconsolata-Black.ttf"
+const HELP_POS := Vector2(-85.0, 125.0)
+const HELP_BOX_HEIGHT := 30.0
+const HELP_TEXT_INSET := 5.0
+const HELP_BOX_PAD := 10.0
+const HELP_BOX_ALPHA := 0.6
+const HELP_TEXT_ALPHA := 0.9
+const HELP_DELAY_BOX := 1.55
+const HELP_DELAY_TEXT := 1.65
+const HELP_SLIDE := 1.3
+const HELP_HOLD := 7.0
+const HELP_SIZE := 24
+
+var _help_box: ColorRect = null
 var _help_label: Label = null
 
 
+## finalizeSetup only spawns it when `Save.instance.animania.seenMainMenuHelp` is unset
+## (0x1803cb7) - it is a first-run hint, not furniture. GameOptions is this port's save; the
+## key is read with get_value and compared, NOT with get_bool, because an unknown key comes
+## back null and `bool(null)` is not a conversion GDScript has.
+const HELP_SEEN_KEY := "seenMainMenuHelp"
+
+
 func _spawn_help_mouse_text() -> void:
+	if GameOptions.get_value(HELP_SEEN_KEY) == true:
+		return
+	GameOptions.set_value(HELP_SEEN_KEY, true)
+	var font: Font = load(HELP_FONT) as Font if ResourceLoader.exists(HELP_FONT) else null
+
 	_help_label = Label.new()
-	_help_label.text = "Click to select!"
-	_help_label.add_theme_font_size_override("font_size", 18)
-	_help_label.add_theme_color_override("font_color", Color.WHITE)
-	_help_label.visible = false
+	_help_label.name = "HelpText"
+	_help_label.text = HELP_TEXT
+	_help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_help_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if font != null:
+		_help_label.add_theme_font_override("font", font)
+	_help_label.add_theme_font_size_override("font_size",
+		int(HELP_SIZE * FUNKIN_TO_RUBICON))
+	_help_label.add_theme_color_override("font_color", Color(1, 1, 1, HELP_TEXT_ALPHA))
+
+	_help_box = ColorRect.new()
+	_help_box.name = "HelpBox"
+	_help_box.color = Color(0, 0, 0, HELP_BOX_ALPHA)
+	_help_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_help_box)
 	add_child(_help_label)
 
+	var text_width: float = _help_label.get_theme_font("font").get_string_size(
+		HELP_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1,
+		_help_label.get_theme_font_size("font_size")).x
+	_help_box.size = Vector2(text_width + HELP_BOX_PAD * FUNKIN_TO_RUBICON,
+		HELP_BOX_HEIGHT * FUNKIN_TO_RUBICON)
+	_help_box.position = HELP_POS * FUNKIN_TO_RUBICON
+	_help_label.position = _help_box.position \
+		+ Vector2(HELP_TEXT_INSET * FUNKIN_TO_RUBICON, 0.0)
 
-## musicSocialPlayAnim. Plays the music social button animation.
-## From the binary's musicSocialPlayAnim method.
-func _music_social_play_anim() -> void:
-	var social := get_node_or_null("SocialButtons/MusicSocial")
-	if social != null and social is Sprite2D:
-		# Pulse the social button alpha to draw attention
-		var tween: Tween = create_tween().set_loops()
-		tween.tween_property(social, "modulate:a", 0.6, 0.8)
-		tween.tween_property(social, "modulate:a", 1.0, 0.8)
+	var rest_x: float = 0.0
+	var slide := create_tween().set_parallel(true)
+	slide.tween_property(_help_box, "position:x", rest_x, HELP_SLIDE) \
+		.set_delay(HELP_DELAY_BOX).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	slide.tween_property(_help_label, "position:x",
+		rest_x + HELP_TEXT_INSET * FUNKIN_TO_RUBICON, HELP_SLIDE) \
+		.set_delay(HELP_DELAY_TEXT).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	slide.chain().tween_interval(HELP_HOLD)
+	slide.chain().set_parallel(true)
+	slide.tween_property(_help_box, "position:x", HELP_POS.x * FUNKIN_TO_RUBICON,
+		HELP_SLIDE).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	slide.tween_property(_help_label, "position:x",
+		(HELP_POS.x + HELP_TEXT_INSET) * FUNKIN_TO_RUBICON, HELP_SLIDE) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+
+
+## musicSocialPlayAnim(name, reverse) (0x180fc10). A map of name to frame indices with two
+## entries - "press" and "selected" - and it plays the one asked for, then writes the disc's
+## scale (0x118/0x120). What was here was an endless alpha pulse on a node called
+## "SocialButtons/MusicSocial", which is neither the name this scene uses nor anything the
+## mod does.
+func _music_social_play_anim(anim: StringName = &"selected") -> void:
+	if _music_social == null or _music_social.sprite_frames == null:
+		return
+	var wanted: StringName = &"soundtrack press" if anim == &"press" else &"soundtrack white"
+	if _music_social.sprite_frames.has_animation(wanted):
+		_music_social.play(wanted)
 
 
 ## initMusic. Initializes the menu music track with proper settings.
@@ -752,6 +828,26 @@ const SCROLL_RANGE_X := Vector2(-10.0, 3.0)
 const SCROLL_RANGE_Y := Vector2(-1.0, 1.0)
 const SCROLL_LERP := 3.0
 var _scroll_target := Vector2.ZERO
+
+## Flixel's scrollFactor, which this port had no equivalent for. createBackground gives the
+## background 0.65 (0x18006b0) and MenuDude.makeDude gives the dancer 0.95 (0x4884ca3), so
+## neither of them follows the camera all the way. In Godot the camera moves the whole world
+## by -offset, so a node with factor f gets `offset * (1 - f)` added back.
+const PARALLAX := {"Background": 0.65, "Dude": 0.95}
+var _parallax_base: Dictionary = {}
+
+
+func _apply_parallax() -> void:
+	if camera == null:
+		return
+	for path: String in PARALLAX:
+		var node: Node2D = get_node_or_null(NodePath(path)) as Node2D
+		if node == null:
+			continue
+		if not _parallax_base.has(path):
+			_parallax_base[path] = node.position
+		node.position = Vector2(_parallax_base[path]) \
+			+ camera.offset * (1.0 - float(PARALLAX[path]))
 
 
 ## updateCameraScroll (0x1804ac0), which was a pair of sines off the music's playback

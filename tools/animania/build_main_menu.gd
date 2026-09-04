@@ -55,21 +55,30 @@ func _init() -> void:
 	camera.position = SCREEN * 0.5
 	_add(camera)
 
-	# The background does NOT take the buttons' mapping. createBackground centres it on the
-	# SCREEN at its own size - `x = (FlxG.width - bg.width) * 0.5`, same for y, both through
-	# get_width/get_height and the 0.5 at .rodata 0x59fa5e0 - and then gives it a zoomFactor
-	# so it barely follows the camera at all. The mod's capture has it edge to edge; putting
-	# it through the buttons' 0.903 left a bare strip down the left of the screen. So it
-	# covers, and it is centred.
+	# The background does NOT take the buttons' mapping, and it is not a "cover" either -
+	# that was this builder's guess. createBackground (0x1800500) is four lines:
+	#
+	#     bg.loadTexture("menus/menu/menu background")     # slot 0x448
+	#     bg.x = (FlxG.width  - bg.width)  * 0.5           # 0x1800633
+	#     bg.y = (FlxG.height - bg.height) * 0.5           # 0x1800680
+	#     bg.scrollFactor.set(0.65, 0.65)                  # field 0x70, 0x18006b0
+	#     bg.x -= 75                                       # 0x18006ee
+	#
+	# No scale anywhere: the 1352x790 art is drawn at its own size on a 1280x720 screen, so
+	# it overhangs by 36 a side and 35 top and bottom, and then slides 75 left. Covering it
+	# instead made it 5% too small AND centred, and lost the 75.
+	const BG_PUSH := 75.0
 	var background := Sprite2D.new()
 	background.name = "Background"
 	background.texture = load("%s/menu background.png" % ART)
 	background.centered = false
 	var bg_size: Vector2 = background.texture.get_size()
-	var bg_scale: float = maxf(SCREEN.x / bg_size.x, SCREEN.y / bg_size.y)
-	background.scale = Vector2.ONE * bg_scale
-	background.position = (SCREEN - bg_size * bg_scale) * 0.5
+	background.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	background.position = (SCREEN - bg_size * FUNKIN_TO_RUBICON) * 0.5 \
+		- Vector2(BG_PUSH * FUNKIN_TO_RUBICON, 0.0)
 	_add(background)
+	print("OUT fondo en (%.0f, %.0f) a x%.2f"
+		% [background.position.x, background.position.y, FUNKIN_TO_RUBICON])
 
 	# create() runs createVisualizers between the background and the plate (0x181119b), so
 	# the waveform and the FFT bars sit behind everything else the menu draws. The node was
