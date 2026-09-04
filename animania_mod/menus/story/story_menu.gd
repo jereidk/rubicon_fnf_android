@@ -166,6 +166,7 @@ func _ready() -> void:
 	# After every node reference exists: these read the sprites' own sizes.
 	_size_level_background()
 	_place_boxes()
+	_apply_z_order()
 
 	# Setup chroma key shader material
 	# chroma_key exists for the PROPS, not for the background. The prop art is
@@ -868,7 +869,7 @@ func _place_labels() -> void:
 			_tracks_label.texture = tex
 			_tracks_label.centered = false
 			_tracks_label.scale = Vector2.ONE * FUNKIN_TO_RUBICON
-			_tracks_label.z_index = 21
+			_tracks_label.z_index = Z_TRACKS_LABEL
 			add_child(_tracks_label)
 	if _tracks_label != null and t != Vector2.ZERO:
 		_tracks_label.position = Vector2(0.0, SCREEN.y - t.y) \
@@ -885,19 +886,19 @@ func _place_labels() -> void:
 			_diff_label.texture = at
 			_diff_label.centered = false
 			_diff_label.scale = Vector2.ONE * FUNKIN_TO_RUBICON
-			_diff_label.z_index = 21
+			_diff_label.z_index = Z_DIFF_LABEL
 			add_child(_diff_label)
 	if _diff_label != null:
 		_diff_label.position = DIFF_LABEL_POS * FUNKIN_TO_RUBICON
 	if difficulty_sprite != null:
 		difficulty_sprite.position = DIFF_VALUE_POS * FUNKIN_TO_RUBICON
-		difficulty_sprite.z_index = 22
+		difficulty_sprite.z_index = Z_DIFF_VALUE
 	if left_difficulty_arrow != null:
 		left_difficulty_arrow.position = DIFF_ARROW_L_POS * FUNKIN_TO_RUBICON
-		left_difficulty_arrow.z_index = 22
+		left_difficulty_arrow.z_index = Z_DIFF_VALUE
 	if right_difficulty_arrow != null:
 		right_difficulty_arrow.position = DIFF_ARROW_R_POS * FUNKIN_TO_RUBICON
-		right_difficulty_arrow.z_index = 22
+		right_difficulty_arrow.z_index = Z_DIFF_VALUE
 
 
 func _place_boxes() -> void:
@@ -905,7 +906,7 @@ func _place_boxes() -> void:
 	var d: Vector2 = _sprite_size(week_diff_box)
 	if week_diff_box != null and d != Vector2.ZERO:
 		week_diff_box.position = SCREEN - d * 0.5
-		week_diff_box.z_index = 20
+		week_diff_box.z_index = Z_BOXES
 	var t: Vector2 = _sprite_size(tracks_box)
 	if tracks_box != null and t != Vector2.ZERO:
 		tracks_box.position = Vector2(t.x * 0.5, SCREEN.y - t.y * 0.5)
@@ -921,26 +922,103 @@ func _place_boxes() -> void:
 ##
 ## The tracklist DOES belong to its box; the mod draws localised art for its
 ## header rather than text, so the inset here is by eye against the box.
+## MEASURED off the 1280x720 reference:
+##   LEVEL SCORE  starts at (7, 17), caps 20px tall -> ~28px of VCR
+##   tracklist    starts at (8, 511), ~44px per line, in (229, 102, 132)
+## The port drew both as small default-font Labels in white, which is what made
+## the corners read wrong however well the boxes lined up.
+const TOP_TEXT_POS := Vector2(7.0, 12.0)
+const TOP_TEXT_SIZE := 28
+const TRACKLIST_POS := Vector2(8.0, 505.0)
+const TRACKLIST_SIZE := 40
+const TRACKLIST_COLOR := Color(229.0 / 255.0, 102.0 / 255.0, 132.0 / 255.0)
+const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
+
+
+func _style_label(node: Label, size: int, colour: Color) -> void:
+	if node == null:
+		return
+	var f: Font = load(VCR_FONT) as Font
+	if f != null:
+		node.add_theme_font_override(&"font", f)
+	node.add_theme_font_size_override(&"font_size", int(size * FUNKIN_TO_RUBICON))
+	node.add_theme_color_override(&"font_color", colour)
+
+
 const TOP_TEXT_Y := 10.0
 
 func _follow_boxes() -> void:
-	var top: float = TOP_TEXT_Y * FUNKIN_TO_RUBICON
+	var pos: Vector2 = TOP_TEXT_POS * FUNKIN_TO_RUBICON
 	if score_text != null:
 		score_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		score_text.size = Vector2(SCREEN.x * 0.5, 50.0)
-		score_text.position = Vector2(top, top)
+		score_text.size = Vector2(SCREEN.x * 0.5, 60.0)
+		score_text.position = pos
 		score_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_style_label(score_text, TOP_TEXT_SIZE, Color.WHITE)
 	if level_title_text != null:
 		level_title_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		level_title_text.size = Vector2(SCREEN.x * 0.5 - top, 60.0)
-		level_title_text.position = Vector2(SCREEN.x * 0.5, top)
+		level_title_text.size = Vector2(SCREEN.x * 0.5 - pos.x, 60.0)
+		level_title_text.position = Vector2(SCREEN.x * 0.5, pos.y)
 		level_title_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var t: Vector2 = _sprite_size(tracks_box)
-	if tracklist_text != null and t != Vector2.ZERO:
+		_style_label(level_title_text, TOP_TEXT_SIZE, Color.WHITE)
+	if tracklist_text != null:
 		tracklist_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		tracklist_text.size = Vector2(t.x * 0.8, t.y * 0.5)
-		tracklist_text.position = Vector2(t.x * 0.1, SCREEN.y - t.y * 0.62)
+		tracklist_text.size = Vector2(SCREEN.x * 0.3, SCREEN.y * 0.4)
+		tracklist_text.position = TRACKLIST_POS * FUNKIN_TO_RUBICON
 		tracklist_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_style_label(tracklist_text, TRACKLIST_SIZE, TRACKLIST_COLOR)
+
+
+## MEASURED: create() writes each element's zIndex into field 0x28, and those
+## are the numbers, in construction order:
+##
+##   14  weeks-blot          20  both boxes        30  titles group
+##   16  level background    25  difficulty value  30  difficulty header
+##   18  level props         25  the two arrows    1000  the top texts
+##                           26  tracks header
+##
+## The one that changes the picture is the blot at 14, BELOW the background at
+## 16: the splat is drawn UNDER the level colour, so all that shows of it is the
+## part hanging past the band's lower edge. The port drew it over everything,
+## which is why it read as a big grey slab across the middle instead of the
+## ink blot the mod shows beneath the band.
+##
+## The value and the arrows come from buildDifficultySprite (movl $0x19) and
+## from create() respectively; the titles carry no zIndex of their own and take
+## their group's 30, which is what puts them over the boxes.
+const Z_BLOT := 14
+const Z_BACKGROUND := 16
+const Z_PROPS := 18
+const Z_BOXES := 20
+const Z_DIFF_VALUE := 25
+const Z_TRACKS_LABEL := 26
+const Z_TITLES := 30
+const Z_DIFF_LABEL := 30
+const Z_TOP_TEXT := 1000
+
+
+func _apply_z_order() -> void:
+	if weeks_blot != null:
+		weeks_blot.z_index = Z_BLOT
+	if level_background != null:
+		level_background.z_index = Z_BACKGROUND
+	if has_node("LevelProps"):
+		($LevelProps as Node2D).z_index = Z_PROPS
+	for box: Sprite2D in [week_diff_box, tracks_box]:
+		if box != null:
+			box.z_index = Z_BOXES
+	if titles != null:
+		titles.z_index = Z_TITLES
+	if difficulty_sprite != null:
+		difficulty_sprite.z_index = Z_DIFF_VALUE
+	for arrow: AnimatedSprite2D in [left_difficulty_arrow, right_difficulty_arrow]:
+		if arrow != null:
+			arrow.z_index = Z_DIFF_VALUE
+	for label: Control in [score_text, level_title_text]:
+		if label != null:
+			label.z_index = Z_TOP_TEXT
+	if tracklist_text != null:
+		tracklist_text.z_index = Z_TRACKS_LABEL
 
 
 ## Lays the level colour out as the measured band instead of a full-screen
