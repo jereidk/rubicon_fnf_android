@@ -7,7 +7,13 @@ extends Node2D
 static var _remembered_level_id: String = ""
 static var _remembered_difficulty: String = ""
 
-const BACKGROUND_HEIGHT := 1080.0
+## MEASURED from StoryMenu_obj::__boot() in the mod binary: the static is
+## written with `movl $0x190` at 0x32e9824, so BACKGROUND_HEIGHT is 400 Funkin
+## pixels - a BAND across the middle, not the whole screen. The port had 1080
+## here and painted the level colour edge to edge, which is why the render had
+## no black letterbox above and below the way the mod does.
+## It is a screen distance, so it takes the x1.5.
+const BACKGROUND_HEIGHT := 400.0
 const DEFAULT_BACKGROUND_COLOR := Color(0.06, 0.05, 0.1)
 const FADE_OUT_TIME := 0.35
 
@@ -42,6 +48,11 @@ const DIFFICULTY_TEXTURES := {
 }
 
 const DIFFICULTY_SORT_ORDER := ["easy", "normal", "hard", "erect", "nightmare", "amt"]
+
+## MEASURED from StoryMenu_obj::update() at 0x32f616f: the string is
+## "LEVEL SCORE: {1}", behind the localisation key "story_level_score".
+## The port said "HIGH SCORE:", which is Funkin's wording, not Animania's.
+const SCORE_FORMAT := "LEVEL SCORE: %d"
 
 const SCREEN := Vector2(1920.0, 1080.0)
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
@@ -121,6 +132,7 @@ func _ready() -> void:
 	tracklist_text = $TracklistText
 	mode_text = $ModeText
 	level_background = $LevelBackground
+	_size_level_background()
 	left_difficulty_arrow = $LeftArrow
 	right_difficulty_arrow = $RightArrow
 	difficulty_sprite = $DifficultySprite
@@ -161,7 +173,7 @@ func _process(delta: float) -> void:
 		return
 	high_score_lerp = lerp(high_score_lerp, float(high_score), 12.0 * delta)
 	if score_text != null:
-		score_text.text = "HIGH SCORE: %d" % int(high_score_lerp)
+		score_text.text = SCORE_FORMAT % int(high_score_lerp)
 	update_visualizer(delta)
 
 
@@ -509,7 +521,7 @@ func update_text() -> void:
 	if tracklist_text != null:
 		tracklist_text.text = "\n".join(display_names)
 	if score_text != null:
-		score_text.text = "HIGH SCORE: %d" % high_score
+		score_text.text = SCORE_FORMAT % high_score
 	if mode_text != null:
 		mode_text.text = "In StoryMode"
 
@@ -656,6 +668,18 @@ func funny_music_thing() -> void:
 func _place_weeks_blot() -> void:
 	if weeks_blot != null:
 		weeks_blot.position.x = TITLE_CENTRE.x
+
+
+## Lays the level colour out as the measured band instead of a full-screen
+## fill, centred vertically so what shows above and below it is the black the
+## mod letterboxes with.
+func _size_level_background() -> void:
+	if level_background == null:
+		return
+	var band: float = BACKGROUND_HEIGHT * FUNKIN_TO_RUBICON
+	level_background.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	level_background.size = Vector2(SCREEN.x, band)
+	level_background.position = Vector2(0.0, (SCREEN.y - band) * 0.5)
 
 
 # ─── Visualizer ───────────────────────────────────────────────────────────
