@@ -51,10 +51,24 @@ their objects are compiled.
 
 ### Getting the build
 
-The mod's Linux build is not in this repo (836 MB). The user supplies a URL; it unpacks to
-`/home/user/animania_build`. **The container is ephemeral** — `/home/user` and `/tmp` are
-both lost on recreation. Only committed work survives. sha256 of `animania061-Linux.tar.gz`
-is `22c804dd53b269dd3e9235ea4e2d388d39a51c1d9afe7609d48b1a950aeea677`.
+The mod's Linux build is not in this repo (695 MB on disk as the tarball). The user supplies
+a URL; it unpacks to `/home/user/animania_build`. **The container is ephemeral** —
+`/home/user` and `/tmp` are both lost on recreation. Only committed work survives. sha256 of
+`animania061-Linux.tar.gz` is
+`22c804dd53b269dd3e9235ea4e2d388d39a51c1d9afe7609d48b1a950aeea677`, and the direct URL that
+has worked is `https://pixeldrain.com/api/file/iq5uWdQ8`.
+
+**pixeldrain, Google Drive and GameBanana are blocked by the default egress policy.** The
+cloud environment ships at **Trusted** network access, which allows package registries and
+GitHub and nothing else; every other host gets a 403 at CONNECT, recorded under
+`recentRelayFailures` in `curl -sS "$HTTPS_PROXY/__agentproxy/status"`. Do not try to route
+around it. Either
+- have the user set the environment's **Network access** to Full or Custom — it is in the
+  cloud icon above the message box at claude.ai/code, then the gear on the environment, NOT
+  anywhere in Settings — and note that the network change takes effect in a RUNNING session
+  while environment VARIABLES do not, because those are copied in once at startup; or
+- have them attach the tarball as a GitHub release asset on this repo, which is already how
+  `ref-twgusta` delivered reference material and which the Trusted list allows.
 
 **Running the binary is not allowed** and has been refused repeatedly. Disassembling it and
 reading its assets are fine and are what this port does.
@@ -71,6 +85,11 @@ nm -C --print-size Animania | grep "ClassName_obj::method("
 objdump -d --start-address=0xA --stop-address=0xB -C Animania
 objdump -s --start-address=0xA --stop-address=0xB Animania   # .rodata
 ```
+
+`tools/animania/hxdis.py <start-hex> <size-hex>` does the filtering described below in one
+step: it decodes each rip-relative load as both a NUL-terminated string and a double, prints
+`call` targets demangled, and marks the `movl $0xNNN,0x..(%rsp)` Haxe line numbers. It is
+committed rather than left in the scratchpad because rewriting it each session was waste.
 
 A useful dump filters an address range for: `call` targets, rip-relative loads (decoded as
 both a double and a NUL-terminated string), and stores to `(%rbp)`/`(%rsp)`. Line numbers
