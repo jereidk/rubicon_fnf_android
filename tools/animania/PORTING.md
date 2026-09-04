@@ -189,6 +189,45 @@ check on them passed — in the tree, visible, right region, right position — 
 stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
 modulate.
 
+### A stripped Windows build is still readable: `.pdata` + `_hx_pos`
+
+Animania ships a Linux ELF with its symbols, which is the easy case. Most FNF mods ship a
+Windows `.exe` and most of those are stripped - `nm` and `objdump -t` both answer
+`no symbols`. That is not the end of it. Verified end to end on an unrelated Codename
+Engine mod (131MB PE32+, fully stripped):
+
+1. **`.pdata` gives every function's bounds for free.** A PE64 must carry unwind info, one
+   12-byte `RUNTIME_FUNCTION {start, end, unwind}` per function, and nothing strips it.
+   That mod had **104552** of them. Parse the section straight out of the file:
+   `beg, end, unw = struct.unpack("<III", pdata[i*12:i*12+12])`, plus the image base.
+
+2. **hxcpp writes its own stack-trace table into `.data`, in clear text.** Each method has a
+   48-byte record of six slots:
+
+       +0x00  int    (id)
+       +0x08  ptr -> "funkin.menus.MainMenuState"
+       +0x10  ptr -> "create"
+       +0x18  ptr -> "funkin.menus.MainMenuState.create"
+       +0x20  ptr -> "funkin/menus/MainMenuState.hx"
+       +0x28  int    33            <- the source LINE
+
+   Sweep `.data` on an 8-byte stride, keep every offset whose four pointers land in the
+   image and whose third string is exactly `class + "." + method`, and the table falls out:
+   **40267 records over 3889 classes** in that build. This is *better* than what the ELF
+   gives, because the line number is right there instead of being inferred from the
+   `movl $0xNNN` markers.
+
+3. **Joining the two names the code.** Find the record for the method you want, scan `.text`
+   for the rip-relative `lea` that loads it (`48 8d ?5 <rel32>`, check
+   `text_va + i + 7 + disp`), and look up which `.pdata` range contains that address. That
+   is the function. The per-statement line markers are still there inside it, just written
+   to `[rsp+0x58]` in an MSVC frame rather than to `-0x40(%rbp)` in a GCC one.
+
+Getting the binary out of a 393MB mod zip does not need the zip: the central directory is at
+the END, so a `Range` on the last ~250KB lists all 1835 entries with each one's compressed
+size and local-header offset, and a second `Range` on just the executable's entry plus
+`zlib.decompressobj(-15)` yields it. 82MB instead of 393.
+
 ### `vtslot.py`: name the vtable slot instead of guessing it
 
 `call *0x210(%rax)` is a method call through a vtable, and which method depends
