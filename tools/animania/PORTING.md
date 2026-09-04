@@ -180,6 +180,35 @@ check on them passed — in the tree, visible, right region, right position — 
 stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
 modulate.
 
+### The loading screen
+
+`funkin.ui.transition.LoadingState` at 0x36c7d40 (`create`), 0x36c27a0
+(`updateOnLoadingNoodlePosition`) and 0x36c2c00 (`onLoaded`). It is a SUBSTATE in
+the mod, and a scene of its own here: `animania_mod/menus/loading/`, entered
+through `LoadingScreen.go_to(tree, scene, variant)` — statics, because
+`change_scene_to_file()` takes no arguments. Both the story menu and freeplay go
+through it instead of switching to the song directly.
+
+Godot has no `clipRect`, and it does not need one: a `Sprite2D` with
+`region_enabled` and `centered = false` reveals its strip left to right exactly
+as flixel's does, so the noodle's `region_rect.size.x` IS the progress bar.
+
+Two things about reading `create()` that are worth keeping:
+
+- The FunkinSprite constructor takes its position as two `Dynamic`s, and in the
+  call they land in **rdx = X, rcx = Y** — settled by longNoodle, whose 671.65
+  can only be the y of a 720-tall screen.
+- `setFormat`-style integer arguments ride in the high half of a packed
+  `Null<int>`, so a size of 32 disassembles as `movabs $0x2000000000`. Grepping
+  for `$0x20` finds nothing.
+
+And one that is a warning: **an address you can read is not a field you can
+name.** `create()` writes 0.4 into field 0x260 of three sprites and 0.7 into a
+fourth's. It is not `alpha` — `FlxSprite::set_alpha` writes 0x148 — and no
+`set_*` in FlxObject or FlxSprite touches 0x260 at all. Those four writes are
+left out of the port and written down in the script instead, because a guess at
+what they mean would be a guess that shows on screen.
+
 ---
 
 ## 4. The build loop

@@ -1,0 +1,38 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/loadingScreen/pressEnter.png" id="1_4p1hn"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_paqmg"]
+atlas = ExtResource("1_4p1hn")
+region = Rect2(0, 146, 430, 36)
+margin = Rect2(0, 20, 99, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kh8sg"]
+atlas = ExtResource("1_4p1hn")
+region = Rect2(0, 0, 511, 72)
+margin = Rect2(18, 0, 18, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6ddw3"]
+atlas = ExtResource("1_4p1hn")
+region = Rect2(0, 74, 493, 70)
+margin = Rect2(27, 1, 36, 2)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_paqmg")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_kh8sg")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6ddw3")
+}],
+"loop": 1,
+"name": &"press to start образец ",
+"speed": 24.0
+}]

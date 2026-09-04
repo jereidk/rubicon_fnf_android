@@ -711,7 +711,7 @@ func confirm() -> void:
 
 	# Wait for the animation, then transition.
 	await get_tree().create_timer(0.6).timeout
-	get_tree().change_scene_to_file(String(song["scene"]))
+	LoadingScreen.go_to(get_tree(), String(song["scene"]))
 
 
 func _get_selected_disk() -> Node2D:

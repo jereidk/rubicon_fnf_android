@@ -408,7 +408,10 @@ func _do_select_level(songs: PackedStringArray) -> void:
 		_confirmed = false
 		play_sound_file(SOUND_LOCKED)
 		return
-	get_tree().change_scene_to_file(scene)
+	# Through the loading screen, not straight into the song: the mod puts
+	# LoadingState between the menu and PlayState, and it is where the level's
+	# own drawing (funkin-week1, funkin-wh) gets shown.
+	LoadingScreen.go_to(get_tree(), scene, current_level_id)
 
 
 # ─── getSongsFiltered (from binary) ──────────────────────────────────────
