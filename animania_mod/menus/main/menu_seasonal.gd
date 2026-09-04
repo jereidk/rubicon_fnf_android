@@ -50,13 +50,25 @@ var _timer: float = 0.0
 var _live: int = 0
 
 
-## getCurrentSeason(), month for month.
+## getCurrentSeason() (0x17fe630), branch for branch off Cardinal.currentMonth:
+##
+##     if month > 11:  month == 12 ? "winter" : "summer"     (0x17fe768)
+##     elif month > 8: "autum"                               (0x17fe6b6)
+##     elif month > 1: "summer"                              (0x17fe6be)
+##     else:           "winter"
+##
+## So winter is **December and January only** and FEBRUARY IS SUMMER. That is almost
+## certainly a slip in the mod - `<= 2` was surely meant - but it is what runs, and this
+## port had copied the intention rather than the code: it read `month <= 2` and put
+## February under snow. Ported as written, slip included.
 static func season_of(month: int) -> String:
-	if month > 11 or month <= 2:
-		return "winter"
+	if month > 11:
+		return "winter" if month == 12 else "summer"
 	if month > 8:
 		return "autum"
-	return "summer"
+	if month > 1:
+		return "summer"
+	return "winter"
 
 
 ## The season this node is actually running, honouring the override. main_menu.gd asks for
