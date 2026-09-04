@@ -829,7 +829,69 @@ func _setup_event_listeners() -> void:
 ## a screen further left than it should), and _music_social_play_anim, which plays the
 ## disc's `selected` state - at startup that left the OST disc looking hovered for ever.
 ## musicSocialPlayAnim takes the state to play; it belongs to the toggle, not to setup.
+## createSeasonalEffects (0x1808ab0) does more than drop leaves or snow: it hangs an
+## AdjustColorShader on FlxG.camera, one grade per season, and winter also loads a second
+## music layer and fades it in over the loop.
+##
+##     autum   hue -10  sat -35  contrast  30  brightness -25   (0x1808d70..)
+##     winter  hue  12  sat  -6  contrast  10  brightness  -5   (0x1808fa6..)
+##
+## The autumn branch also adds a RuntimeRainShader (intensity 0.1, scale/200) that
+## updateSeasonalEffects drives at elapsed * 0.2. That one is NOT here: writing a rain
+## shader from nothing is inventing one, and the grade is the part that is measured.
+const SEASON_GRADE := {
+	"autum": {"hue": -10.0, "saturation": -35.0, "contrast": 30.0, "brightness": -25.0},
+	"winter": {"hue": 12.0, "saturation": -6.0, "contrast": 10.0, "brightness": -5.0},
+}
+const GRADE_SHADER := "res://animania_mod/shaders/adjust_color.gdshader"
+## Winter loads animaniaLOOP/bells and tweens its volume 0 -> 1 (0x18090d7 / 0x1809358).
+const WINTER_BELLS := "res://animania_mod/source/music/animaniaLOOP/bells.ogg"
+const BELLS_FADE := 1.0
+
+var _grade: CanvasLayer = null
+var _bells: AudioStreamPlayer = null
+
+
+func _create_seasonal_effects() -> void:
+	var seasonal: Node = get_node_or_null("Seasonal")
+	var season: String = String(seasonal.call("current_season")) if seasonal != null \
+		and seasonal.has_method("current_season") else ""
+	if not SEASON_GRADE.has(season):
+		return
+
+	if ResourceLoader.exists(GRADE_SHADER):
+		var grade: Dictionary = SEASON_GRADE[season] as Dictionary
+		var material := ShaderMaterial.new()
+		material.shader = load(GRADE_SHADER) as Shader
+		for key: String in grade:
+			material.set_shader_parameter(key, float(grade[key]))
+		var rect := ColorRect.new()
+		rect.name = "Grade"
+		rect.material = material
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		# Over everything, because the mod puts it on the CAMERA and the camera draws the
+		# curtains too - a grade under them would leave two unstained black bars.
+		_grade = CanvasLayer.new()
+		_grade.name = "SeasonGrade"
+		_grade.layer = 10
+		_grade.add_child(rect)
+		add_child(_grade)
+
+	if season == "winter" and ResourceLoader.exists(WINTER_BELLS):
+		_bells = AudioStreamPlayer.new()
+		_bells.name = "Bells"
+		_bells.stream = load(WINTER_BELLS)
+		_bells.bus = &"Music"
+		_bells.volume_db = -60.0
+		add_child(_bells)
+		_bells.play()
+		var fade := create_tween()
+		fade.tween_property(_bells, "volume_db", 0.0, BELLS_FADE)
+
+
 func _finalize_setup() -> void:
+	_create_seasonal_effects()
 	_sort_by_z()
 	_init_music()
 	_init_mouse_events()

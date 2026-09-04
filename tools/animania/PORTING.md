@@ -444,6 +444,23 @@ down, because the port had three of them missing outright:
   The box's colour is the one thing here that is not recovered - `makeGraphic` takes it in a
   register the dump does not resolve - so it is black.
 
+**createSeasonalEffects** (0x1808ab0) is not just what falls past the menu. Each season also
+hangs an `AdjustColorShader` on `FlxG.camera` — autumn `hue -10, sat -35, contrast 30,
+brightness -25`, winter `hue 12, sat -6, contrast 10, brightness -5` — and winter loads
+`animaniaLOOP/bells` as a second music layer and tweens its volume 0 to 1. Autumn also adds
+a `RuntimeRainShader` that `updateSeasonalEffects` drives at `elapsed * 0.2`; that one is
+identified and not ported, because writing a rain shader from nothing is writing one.
+
+**And the shader source itself is IN the binary.** Funkin compiles its GLSL at runtime, so
+the fragment shader is a plain string literal:
+
+    strings -n 8 Animania | grep -n "uniform float hue"
+
+gives `applyHueRotate`, `applySaturation`, `applyContrast` and `applyHSBCEffect` character
+for character, magic numbers and `//Just roll with it...` included. Transcribing that beats
+reconstructing Adobe's AdjustColor from documentation, and it is the same trick for any
+other shader the mod uses.
+
 `updateCameraScroll` (0x1804ac0) follows the **mouse**, not a clock:
 `scroll.x = lerp(scroll.x, remapToRange(mouse.x, 0, FlxG.width, -10, 3), elapsed * 3)` and
 the same on y with a range of -1 to 1. The port had a pair of sines off the music's

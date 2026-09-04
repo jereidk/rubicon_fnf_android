@@ -24,8 +24,15 @@ const ALPHA_RANGE := Vector2(0.8, 1.0)
 ## The remaining constant. Read here as how far above the top edge one starts.
 const SPAWN_ABOVE := 75.0
 
-## NOT derived: how many are in the air, and how often one is let go. spawnParticle is
-## called from update() on a timer this port did not recover.
+## createSeasonalEffects builds the emitter from an anon (0x1808b5d) whose fields are
+## `particleName`, `maxParticles`, `scaleMult`, `particleSpritePath` and `spawnValue`. Of
+## those, scaleMult is readable straight off its Variant: 0.75 for autumn's leaves, and it
+## multiplies the range initParticle picks.
+const SCALE_MULT := 0.75
+
+## STILL not derived: how many are in the air and how often one is let go. `maxParticles`
+## and `spawnValue` are in that anon, but their Variants are passed by reference and the
+## dump does not resolve them, so these two stay this port's.
 const POOL := 24
 const SPAWN_INTERVAL := 0.25
 
@@ -52,9 +59,15 @@ static func season_of(month: int) -> String:
 	return "summer"
 
 
-func _ready() -> void:
-	var season: String = season_override if not season_override.is_empty() \
+## The season this node is actually running, honouring the override. main_menu.gd asks for
+## it so the camera grade and the falling art cannot end up disagreeing about the month.
+func current_season() -> String:
+	return season_override if not season_override.is_empty() \
 		else season_of(Time.get_date_dict_from_system().get("month", 1))
+
+
+func _ready() -> void:
+	var season: String = current_season()
 	var frames: SpriteFrames = snow_frames if season == "winter" \
 		else (leaf_frames if season == "autum" else null)
 	if frames == null:
@@ -103,7 +116,7 @@ func _spawn() -> void:
 			continue
 		particle.position = Vector2(randf_range(0.0, area.x), -SPAWN_ABOVE)
 		particle.rotation_degrees = randf_range(0.0, 360.0)
-		particle.scale = Vector2.ONE * randf_range(SCALE_RANGE.x, SCALE_RANGE.y)
+		particle.scale = Vector2.ONE * randf_range(SCALE_RANGE.x, SCALE_RANGE.y) * SCALE_MULT
 		particle.modulate.a = randf_range(ALPHA_RANGE.x, ALPHA_RANGE.y)
 		particle.frame = randi_range(0, maxi(0, particle.sprite_frames.get_frame_count(
 			particle.animation) - 1))
