@@ -836,7 +836,18 @@ func _scale_screen_sprites() -> void:
 ## The difficulty header carries no arithmetic of its own in create(), so it
 ## hangs off its box; the inset here is by eye against the reference shot.
 const TRACKS_LABEL_OFFSET := Vector2(40.0, 15.0)
-const DIFF_LABEL_OFFSET := Vector2(104.0, 155.0)
+
+## Everything in the difficulty corner, MEASURED off the 1280x720 reference
+## rather than hung off the box by eye:
+##   DIFFICULTY: header  top-left (856, 511)
+##   the value (HARD)    centre   (1068, 653)
+##   the two arrows      centres  (956, 656) and (1182, 656)
+## The value and its arrows had stayed at their old scene coordinates when the
+## box moved to the corner, which left them behind it.
+const DIFF_LABEL_POS := Vector2(856.0, 511.0)
+const DIFF_VALUE_POS := Vector2(1068.0, 653.0)
+const DIFF_ARROW_L_POS := Vector2(956.0, 656.0)
+const DIFF_ARROW_R_POS := Vector2(1182.0, 656.0)
 
 const TRACKS_LABEL := "res://animania_mod/source/images/menus/story/eng/tracks.png"
 const DIFF_LABEL := "res://animania_mod/source/images/menus/story/eng/difficulty.png"
@@ -876,9 +887,17 @@ func _place_labels() -> void:
 			_diff_label.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 			_diff_label.z_index = 21
 			add_child(_diff_label)
-	if _diff_label != null and d != Vector2.ZERO:
-		_diff_label.position = Vector2(SCREEN.x - d.x, SCREEN.y - d.y) \
-			+ DIFF_LABEL_OFFSET * FUNKIN_TO_RUBICON
+	if _diff_label != null:
+		_diff_label.position = DIFF_LABEL_POS * FUNKIN_TO_RUBICON
+	if difficulty_sprite != null:
+		difficulty_sprite.position = DIFF_VALUE_POS * FUNKIN_TO_RUBICON
+		difficulty_sprite.z_index = 22
+	if left_difficulty_arrow != null:
+		left_difficulty_arrow.position = DIFF_ARROW_L_POS * FUNKIN_TO_RUBICON
+		left_difficulty_arrow.z_index = 22
+	if right_difficulty_arrow != null:
+		right_difficulty_arrow.position = DIFF_ARROW_R_POS * FUNKIN_TO_RUBICON
+		right_difficulty_arrow.z_index = 22
 
 
 func _place_boxes() -> void:
