@@ -180,14 +180,36 @@ check on them passed — in the tree, visible, right region, right position — 
 stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
 modulate.
 
+### Not all of the mod is compiled
+
+**Before reverse-engineering a screen's behaviour, look for its HScript.** The
+mod ships `assets/scripts/**` AND loose `.script` files under `assets/data/`,
+and the compiled state loads them by name: `LoadingState`'s constructor calls
+`HScriptsHandler.getScript("data/loadingScreen")` at 0x36c6566 and then hands it
+`onLoadParams`, `onCreateBG`, `onUpdate`, `onLoaded` and `onUpdatePost`. The file
+is `assets/data/loadingScreen.script`, it is Haxe source, and it decides which of
+the five loading backgrounds is used and what each one does. That is a table you
+can read in ten seconds against an afternoon of disassembly — and the
+disassembly could not have produced it, because none of it is in the binary.
+
+The tell is in `create()`: a key built as `"loadingScreen/funkin" + this.field0x100`
+where nothing in `create()` ever writes 0x100. A field the function reads but
+never sets comes from somewhere, and `__construct` says where.
+
 ### The loading screen
 
 `funkin.ui.transition.LoadingState` at 0x36c7d40 (`create`), 0x36c27a0
-(`updateOnLoadingNoodlePosition`) and 0x36c2c00 (`onLoaded`). It is a SUBSTATE in
+(`updateOnLoadingNoodlePosition`) and 0x36c2c00 (`onLoaded`), plus
+`assets/data/loadingScreen.script` for everything per-song. It is a SUBSTATE in
 the mod, and a scene of its own here: `animania_mod/menus/loading/`, entered
-through `LoadingScreen.go_to(tree, scene, variant)` — statics, because
+through `LoadingScreen.go_to(tree, scene, song_id)` — statics, because
 `change_scene_to_file()` takes no arguments. Both the story menu and freeplay go
 through it instead of switching to the song directly.
+
+The background is chosen by **song id**, not by level and not by stage, and two
+of the five do more than swap the art: winter-horrorland drops the music's pitch
+to 0.1 and goes black, dadbattle swaps the whole track. Both hide the box, BF and
+the noodle, so on those screens there is no progress bar at all.
 
 Godot has no `clipRect`, and it does not need one: a `Sprite2D` with
 `region_enabled` and `centered = false` reveals its strip left to right exactly

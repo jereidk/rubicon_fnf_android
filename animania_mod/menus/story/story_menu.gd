@@ -400,18 +400,20 @@ func start_song(difficulty: String) -> void:
 
 func _do_select_level(songs: PackedStringArray) -> void:
 	var scene: String = ""
+	var song_id: String = ""
 	for song: String in songs:
 		if SONG_SCENES.has(song) and ResourceLoader.exists(SONG_SCENES[song]):
 			scene = SONG_SCENES[song]
+			song_id = song
 			break
 	if scene.is_empty():
 		_confirmed = false
 		play_sound_file(SOUND_LOCKED)
 		return
 	# Through the loading screen, not straight into the song: the mod puts
-	# LoadingState between the menu and PlayState, and it is where the level's
-	# own drawing (funkin-week1, funkin-wh) gets shown.
-	LoadingScreen.go_to(get_tree(), scene, current_level_id)
+	# LoadingState between the menu and PlayState, and the SONG id is what picks
+	# the drawing there - dadbattle and phone-call each have their own.
+	LoadingScreen.go_to(get_tree(), scene, song_id)
 
 
 # ─── getSongsFiltered (from binary) ──────────────────────────────────────
