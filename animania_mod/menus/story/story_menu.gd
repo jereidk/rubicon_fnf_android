@@ -755,8 +755,13 @@ func determine_scroll_behavior() -> void:
 	update_props()
 	update_background_from_color()
 	# Animate diffMachine
+	# The scene carries a third copy of the diff-selector atlas, parked at
+	# (1280, 440). The mod builds that atlas exactly TWICE - the two arrows,
+	# each with zIndex 25 - and nothing sits where this one does; in the
+	# reference that patch of screen is bare band. It is a leftover, and drawn
+	# it shows up as a stray cyan mark beside the girlfriend.
 	if diff_machine != null:
-		diff_machine.play("idle")
+		diff_machine.visible = false
 
 
 # ─── Music ────────────────────────────────────────────────────────────────
