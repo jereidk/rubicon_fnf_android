@@ -565,6 +565,17 @@ func update_text() -> void:
 
 # ─── Props (character sprites) ────────────────────────────────────────────
 
+## Matches an animation by SUFFIX, because these atlases prefix every name with
+## the character ("bf idle", "dad confirm").
+func _find_anim(f: SpriteFrames, suffix: String) -> StringName:
+	if f == null:
+		return &""
+	for n: StringName in f.get_animation_names():
+		if String(n) == suffix or String(n).ends_with(" " + suffix):
+			return n
+	return &""
+
+
 func update_props() -> void:
 	for prop: AnimatedSprite2D in _active_props:
 		if is_instance_valid(prop):
@@ -663,8 +674,14 @@ func update_props() -> void:
 		anim_sprite.material = theme_color_shader
 		props_container.add_child(anim_sprite)
 
-		if frames.has_animation(&"idle"):
-			anim_sprite.play(&"idle")
+		# The sparrow names these with the character's prefix - "bf idle",
+		# "dad idle", "gf idle" - so a lookup for a bare "idle" finds nothing,
+		# nothing plays, and the sprite sits on frame 0 of whichever animation
+		# came first alphabetically ("... confirm"). That is why the cast was
+		# posed wrong against the reference.
+		var idle_anim: StringName = _find_anim(frames, "idle")
+		if idle_anim != &"":
+			anim_sprite.play(idle_anim)
 		elif frames.has_animation(&"danceLeft"):
 			anim_sprite.play(&"danceLeft")
 
@@ -674,14 +691,17 @@ func update_props() -> void:
 func play_confirm_on_props() -> void:
 	for prop: AnimatedSprite2D in _active_props:
 		if is_instance_valid(prop) and prop.sprite_frames.has_animation(&"confirm"):
-			prop.play(&"confirm")
+			var c: StringName = _find_anim(prop.sprite_frames, "confirm")
+			if c != &"":
+				prop.play(c)
 
 
 func dance_props() -> void:
 	for prop: AnimatedSprite2D in _active_props:
 		if is_instance_valid(prop):
-			if prop.sprite_frames.has_animation(&"idle"):
-				prop.play(&"idle")
+			var i2: StringName = _find_anim(prop.sprite_frames, "idle")
+			if i2 != &"":
+				prop.play(i2)
 			elif prop.sprite_frames.has_animation(&"danceLeft"):
 				prop.play(&"danceLeft")
 
