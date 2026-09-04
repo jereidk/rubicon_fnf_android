@@ -21,6 +21,10 @@ const BACKGROUND_HEIGHT := 400.0
 ## above it is exactly 56 tall. The port centred the band instead, which put it
 ## 104 Funkin pixels too low and made the top bar four times too tall.
 const BACKGROUND_Y := 56.0
+
+## How far below the band's top edge the level props hang. Measured: their art
+## tops sit at 77, 68 and 79 in the reference, a mean of 19 under the band's 56.
+const PROP_TOP_DROP := 19.0
 const DEFAULT_BACKGROUND_COLOR := Color(0.06, 0.05, 0.1)
 const DEFAULT_BACKGROUND_COLOR_V3 := Vector3(0.06, 0.05, 0.1)
 const FADE_OUT_TIME := 0.35
@@ -167,6 +171,7 @@ func _ready() -> void:
 	_size_level_background()
 	_place_boxes()
 	_apply_z_order()
+	_fit_difficulty_block()
 
 	# Setup chroma key shader material
 	# chroma_key exists for the PROPS, not for the background. The prop art is
@@ -650,7 +655,10 @@ func update_props() -> void:
 		# rather than papered over.
 		var slots: int = maxi(1, props_data.size())
 		var centre_x: float = SCREEN.x * float(2 * _prop_index + 1) / float(2 * slots)
-		var top: float = BACKGROUND_Y * FUNKIN_TO_RUBICON
+		# Not flush with the band's edge: the reference puts the cast's art tops
+		# at 77, 68 and 79 against a band top of 56, so they hang about 19 below
+		# it. Averaged, because the per-character spread is their own atlas trim.
+		var top: float = (BACKGROUND_Y + PROP_TOP_DROP) * FUNKIN_TO_RUBICON
 		var frame_size: Vector2 = Vector2.ZERO
 		var first_anim: StringName = _find_anim(frames, "idle")
 		if first_anim == &"" and frames.get_animation_names().size() > 0:
@@ -862,6 +870,38 @@ const DIFF_VALUE_POS := Vector2(1068.0, 653.0)
 const DIFF_ARROW_L_POS := Vector2(956.0, 656.0)
 const DIFF_ARROW_R_POS := Vector2(1182.0, 656.0)
 
+## The value is hard.png at 198x72 and the mod draws it 197x71, so it runs at
+## scale 1 against 1280x720 and takes the x1.5 here like everything else. It was
+## left at 1, which is exactly why it came out a third too small.
+##
+## The arrows were the wrong art entirely: the scene pointed them at
+## storymenu/ui/arrows.png, whose frames are 48x85, while the mod uses the
+## diff-selector atlas - "difficulty arrow", 17x33 unrotated, which is the 15x31
+## measured in the reference. That atlas is already vendored beside the scene.
+const DIFF_SELECTOR_FRAMES := "res://animania_mod/source/images/menus/story/diff_selector_frames.tres"
+
+## The atlas art is white; the mod tints it. Sampled off the reference arrows.
+const DIFF_ARROW_TINT := Color(66.0 / 255.0, 201.0 / 255.0, 199.0 / 255.0)
+
+
+func _fit_difficulty_block() -> void:
+	if difficulty_sprite != null:
+		difficulty_sprite.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	var f: SpriteFrames = load(DIFF_SELECTOR_FRAMES) as SpriteFrames
+	# The atlas holds one arrow; the pair is that art mirrored. The left one is
+	# the flipped copy - the reference has it pointing away from the value.
+	for entry: Array in [[left_difficulty_arrow, false], [right_difficulty_arrow, true]]:
+		var arrow: AnimatedSprite2D = entry[0]
+		if arrow == null:
+			continue
+		if f != null:
+			arrow.sprite_frames = f
+			if f.has_animation(&"idle"):
+				arrow.play(&"idle")
+		arrow.flip_h = bool(entry[1])
+		arrow.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		arrow.modulate = DIFF_ARROW_TINT
+
 const TRACKS_LABEL := "res://animania_mod/source/images/menus/story/eng/tracks.png"
 const DIFF_LABEL := "res://animania_mod/source/images/menus/story/eng/difficulty.png"
 ## First frame of difficulty.xml: 396x82 at (1,1). The atlas is an animation
@@ -936,7 +976,12 @@ func _place_boxes() -> void:
 ## header rather than text, so the inset here is by eye against the box.
 ## MEASURED off the 1280x720 reference:
 ##   LEVEL SCORE  starts at (7, 17), caps 20px tall -> ~28px of VCR
-##   tracklist    starts at (8, 511), ~44px per line, in (229, 102, 132)
+##   tracklist    starts at (8, 511), block 184x131, in (229, 102, 132)
+##
+## The tracklist's own face is NOT VCR: the mod letters it in the same
+## hand-drawn font as the TRACKS header, which this port does not have. VCR is
+## nearly twice as wide for the same height, so the size here is set to match
+## the BLOCK HEIGHT and the extra width is the font, not a placement error.
 ## The port drew both as small default-font Labels in white, which is what made
 ## the corners read wrong however well the boxes lined up.
 const TOP_TEXT_POS := Vector2(7.0, 12.0)
@@ -945,7 +990,7 @@ const TOP_TEXT_SIZE := 28
 ## x=1211, so the right margin is 69 where the score's left margin is 7.
 const TOP_TEXT_RIGHT_MARGIN := 69.0
 const TRACKLIST_POS := Vector2(8.0, 505.0)
-const TRACKLIST_SIZE := 40
+const TRACKLIST_SIZE := 52
 const TRACKLIST_COLOR := Color(229.0 / 255.0, 102.0 / 255.0, 132.0 / 255.0)
 const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
 
