@@ -367,11 +367,10 @@ func select_level() -> void:
 	play_sound_file(SOUND_CONFIRM)
 	play_confirm_on_props()
 
-	# Animate difficulty arrows
-	if left_difficulty_arrow != null:
-		left_difficulty_arrow.play("leftConfirm")
-	if right_difficulty_arrow != null:
-		right_difficulty_arrow.play("rightConfirm")
+	# The arrows do NOT animate here. selectLevel (0x32ef2a0) plays confirmMenu,
+	# calls LevelProp.playConfirm on the cast and starts a one-second timer, and
+	# that is all it touches - the leftConfirm/rightConfirm the port used to play
+	# are base Funkin's storymenu/ui/arrows, an atlas this menu does not use.
 
 	# Show difficulty selection sub-state
 	_confirmed = true
@@ -519,6 +518,7 @@ func load_difficulties() -> void:
 		if _current_diff_index < 0:
 			_current_diff_index = maxi(0, _available_difficulties.size() - 1)
 		current_difficulty_id = _available_difficulties[_current_diff_index]
+	_update_difficulty_alpha()
 
 
 # ─── sortingStoryDiffs (from binary) ─────────────────────────────────────
@@ -582,18 +582,34 @@ func change_difficulty(amount: int) -> void:
 	update_text()
 	play_sound_file(SOUND_SWITCH)
 	funny_music_thing()
-	# Animate arrows
-	if left_difficulty_arrow != null:
-		left_difficulty_arrow.play("leftConfirm")
-		await get_tree().create_timer(0.15).timeout
-		left_difficulty_arrow.play("leftIdle")
-	if right_difficulty_arrow != null:
-		right_difficulty_arrow.play("rightConfirm")
-		await get_tree().create_timer(0.15).timeout
-		right_difficulty_arrow.play("rightIdle")
+	_update_difficulty_alpha()
+
+
+## MEASURED, changeDifficulty at 0x32f04a8..0x32f0574: three sprites - the two
+## arrows and the difficulty art - take set_alpha (vtable slot 0x3a8) of either
+## 1.0 or 0.3, chosen by a flag the line above sets from
+## `difficulties.length > 1` (`cmpl $0x1` then `setg`). So a week with a single
+## difficulty shows the whole block dimmed, because there is nothing to scroll
+## to. There is no arrow ANIMATION anywhere in this class: the leftConfirm and
+## leftIdle the port played belong to base Funkin's storymenu/ui/arrows (48x85,
+## with an idle/press pair), and the mod letters this corner with diff-selector
+## instead, whose atlas carries exactly one animation. Every difficulty change
+## printed four "animation does not exist" errors because of it.
+const DIFF_ALPHA_ON := 1.0
+const DIFF_ALPHA_OFF := 0.3
+
+
+func _update_difficulty_alpha() -> void:
+	var a: float = DIFF_ALPHA_ON if _available_difficulties.size() > 1 \
+		else DIFF_ALPHA_OFF
+	for node: CanvasItem in [left_difficulty_arrow, right_difficulty_arrow,
+			difficulty_sprite]:
+		if node != null:
+			node.modulate.a = a
 
 
 func build_difficulty_sprite(diff_id: String) -> void:
+	difficulty_sprite.visible = false
 	if DIFFICULTY_TEXTURES.has(diff_id):
 		var path: String = DIFFICULTY_TEXTURES[diff_id]
 		if ResourceLoader.exists(path):
@@ -601,8 +617,7 @@ func build_difficulty_sprite(diff_id: String) -> void:
 			if tex != null:
 				difficulty_sprite.texture = tex
 				difficulty_sprite.visible = true
-				return
-	difficulty_sprite.visible = false
+	_update_difficulty_alpha()
 
 
 # ─── Data / text ──────────────────────────────────────────────────────────
@@ -1106,6 +1121,9 @@ func _fit_difficulty_block() -> void:
 		arrow.flip_h = bool(entry[1])
 		arrow.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 		arrow.modulate = DIFF_ARROW_TINT
+	# Assigning modulate above resets the alpha, so the dim-when-there-is-only-
+	# one-difficulty rule has to be re-applied after it, not before.
+	_update_difficulty_alpha()
 
 const TRACKS_LABEL := "res://animania_mod/source/images/menus/story/eng/tracks.png"
 const DIFF_LABEL := "res://animania_mod/source/images/menus/story/eng/difficulty.png"

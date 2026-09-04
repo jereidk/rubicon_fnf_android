@@ -406,6 +406,15 @@ itself: the pause pauses the tree, and a harness that stops with it never takes 
 
 ### Harness traps
 
+**A frame is not a unit of time here.** Rendering is llvmpipe, and a frame of a
+full menu takes the better part of a second, while a `Tween` runs on the real
+clock. "Capture four frames after `change_level`" therefore lands three seconds
+in, long after a 0.3s tween has finished, and the shot is identical to the
+settled one - which reads as "the port snaps instead of tweening" when the port
+is fine. Pass **`--fixed-fps 60`** whenever the shot is of something mid-flight;
+four frames is then 0.066s and means it.
+
+
 - **`get_viewport().get_texture()` is the LAST frame drawn.** Under xvfb a frame can take
   half a second, so a capture taken in the same frame as the state change is a picture of a
   different moment. Queue the save for the *next* frame.

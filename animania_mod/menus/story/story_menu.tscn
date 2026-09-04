@@ -61,7 +61,7 @@ position = Vector2(180, 840)
 
 [node name="Titles" type="Node2D" parent="." unique_id=822682661]
 
-[node name="Tutorial" type="Sprite2D" parent="Titles" unique_id=400129258]
+[node name="Tutorial" type="Sprite2D" parent="Titles" unique_id=1331163560]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_title_tutorial")
 metadata/hitbox = Rect2(-332.25, -61.5, 664.5, 123)
@@ -94,7 +94,7 @@ metadata/props_data = [{
 }]
 metadata/songs = PackedStringArray("tutorial")
 
-[node name="Week1" type="Sprite2D" parent="Titles" unique_id=688341073]
+[node name="Week1" type="Sprite2D" parent="Titles" unique_id=1393325012]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("3_title_week1")
 metadata/hitbox = Rect2(-269.25, -66.75, 538.5, 133.5)
@@ -146,7 +146,7 @@ metadata/props_data = [{
 }]
 metadata/songs = PackedStringArray("bopeebo", "fresh", "dadbattle")
 
-[node name="Week5" type="Sprite2D" parent="Titles" unique_id=789347566]
+[node name="Week5" type="Sprite2D" parent="Titles" unique_id=588442289]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("4_title_week5")
 metadata/hitbox = Rect2(-273, -68.25, 546, 136.5)
@@ -209,8 +209,8 @@ metadata/songs = PackedStringArray("cocoa", "eggnog", "winter-horrorland")
 [node name="DiffSelector" type="AnimatedSprite2D" parent="." unique_id=731537203]
 position = Vector2(1280, 440)
 sprite_frames = ExtResource("10_diff_frames")
-animation = &"idle"
-autoplay = "idle"
+animation = &"difficulty arrow"
+autoplay = "difficulty arrow"
 
 [node name="LeftArrow" type="AnimatedSprite2D" parent="." unique_id=1959643260]
 position = Vector2(1080, 440)

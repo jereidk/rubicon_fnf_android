@@ -73,8 +73,34 @@ func _init() -> void:
 		shown += 1
 		print("OUT %-24s %-24s %s" % [file_name, level.get("name", ""), songs])
 
+	_fix_stale_animations(instance)
+
 	var packed := PackedScene.new()
 	packed.pack(instance)
 	var err: int = ResourceSaver.save(packed, OUT)
 	print("OUT %d weeks, %s %s" % [shown, "saved" if err == OK else "FAILED", OUT])
 	quit(0 if err == OK else 1)
+
+
+## The scene was authored against base Funkin's storymenu/ui/arrows, whose atlas
+## has leftIdle/leftConfirm/rightIdle/rightConfirm. The menu now wears the mod's
+## diff-selector, which carries ONE animation ("difficulty arrow"), so the names
+## left in `animation` and `autoplay` name nothing: every instantiate printed
+## "Animation 'leftIdle' doesn't exist" before a line of the menu's own script
+## ran, and every difficulty change printed four more.
+##
+## Their real names cannot be hardcoded here either - they come from whatever
+## atlas the node ends up with - so this asks the SpriteFrames.
+func _fix_stale_animations(root: Node) -> void:
+	for node: Node in root.find_children("*", "AnimatedSprite2D", true, false):
+		var sprite: AnimatedSprite2D = node as AnimatedSprite2D
+		var frames: SpriteFrames = sprite.sprite_frames
+		if frames == null or frames.get_animation_names().is_empty():
+			continue
+		if frames.has_animation(sprite.animation):
+			continue
+		var first: StringName = StringName(frames.get_animation_names()[0])
+		print("OUT %-16s %s -> %s" % [sprite.name, sprite.animation, first])
+		sprite.animation = first
+		if sprite.autoplay != "" and not frames.has_animation(StringName(sprite.autoplay)):
+			sprite.autoplay = String(first)
