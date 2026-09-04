@@ -107,6 +107,8 @@ var right_difficulty_arrow: AnimatedSprite2D
 var difficulty_sprite: Sprite2D
 var bars_viz_mask: Sprite2D
 var weeks_blot: Sprite2D
+var week_diff_box: Sprite2D
+var tracks_box: Sprite2D
 var bars_viz: Node2D
 var bass_sound: AudioStreamPlayer
 var theme_color_shader: ShaderMaterial
@@ -132,15 +134,20 @@ func _ready() -> void:
 	tracklist_text = $TracklistText
 	mode_text = $ModeText
 	level_background = $LevelBackground
-	_size_level_background()
 	left_difficulty_arrow = $LeftArrow
 	right_difficulty_arrow = $RightArrow
 	difficulty_sprite = $DifficultySprite
 	bars_viz_mask = $BarsVizMask
 	weeks_blot = $WeeksBlot
+	week_diff_box = $WeekDiffBox
+	tracks_box = $TracksBox
 	bars_viz = $BarsViz
 	bass_sound = $BassSound
 	diff_machine = $DiffSelector
+
+	# After every node reference exists: these read the sprites' own sizes.
+	_size_level_background()
+	_place_boxes()
 
 	# Setup chroma key shader material
 	theme_color_shader = ShaderMaterial.new()
@@ -681,6 +688,83 @@ func _place_weeks_blot() -> void:
 	if weeks_blot != null:
 		weeks_blot.position.x = TITLE_CENTRE.x
 		weeks_blot.modulate = BLOT_TINT
+
+
+## MEASURED from StoryMenu_obj::create(). Both boxes are pinned to screen
+## EDGES, not to literal coordinates - which is why the binary carries almost
+## no numbers for them:
+##
+##   week-diff-box  x = FlxG.width  - box.width    (0x32f2977..0x32f29bc)
+##                  y = FlxG.height - box.height   (0x32f29e2..0x32f2a3b)
+##                  zIndex = 20                    (movl $0x14 at 0x32f2a51)
+##   tracks-box     y = FlxG.height - box.height   (0x32f30d0..0x32f3119)
+##                  x stays at its default 0
+##
+## So difficulty sits flush in the BOTTOM-RIGHT corner and the tracklist in the
+## BOTTOM-LEFT, which is how the reference shot reads. The port had both on the
+## right with difficulty near the top.
+##
+## Flixel anchors a sprite by its top-left and Godot Sprite2D by its centre, so
+## each formula gains half the drawn size. Reading the size at runtime rather
+## than hardcoding it keeps this correct whatever scale the texture is given.
+func _sprite_size(sp: Sprite2D) -> Vector2:
+	if sp == null or sp.texture == null:
+		return Vector2.ZERO
+	return sp.texture.get_size() * sp.scale
+
+
+## The mod draws these three at NATIVE size against its 1280x720 screen - the
+## disassembly shows no setGraphicSize, no updateHitbox and no scale write in
+## any of their blocks. This menu renders straight to 1920x1080 with no camera
+## zoom to carry the difference, so each one takes the x1.5 to cover the same
+## fraction of the screen. That is already the convention here: the level
+## titles ship at scale 1.5 in the scene.
+func _scale_screen_sprites() -> void:
+	for sp: Sprite2D in [week_diff_box, tracks_box, weeks_blot]:
+		if sp != null:
+			sp.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+
+
+func _place_boxes() -> void:
+	_scale_screen_sprites()
+	var d: Vector2 = _sprite_size(week_diff_box)
+	if week_diff_box != null and d != Vector2.ZERO:
+		week_diff_box.position = SCREEN - d * 0.5
+		week_diff_box.z_index = 20
+	var t: Vector2 = _sprite_size(tracks_box)
+	if tracks_box != null and t != Vector2.ZERO:
+		tracks_box.position = Vector2(t.x * 0.5, SCREEN.y - t.y * 0.5)
+	_follow_boxes()
+
+
+## The score line and the level name are NOT attached to the difficulty box:
+## create() builds both as FlxText at y=10 (0x32f3846 and 0x32f3a0b), which is
+## the top edge, and the reference shot has them in the black bar above the
+## band - score on the left, level name on the right. y=10 is a screen
+## distance, so x1.5.
+##
+## The tracklist DOES belong to its box; the mod draws localised art for its
+## header rather than text, so the inset here is by eye against the box.
+const TOP_TEXT_Y := 10.0
+
+func _follow_boxes() -> void:
+	var top: float = TOP_TEXT_Y * FUNKIN_TO_RUBICON
+	if score_text != null:
+		score_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		score_text.size = Vector2(SCREEN.x * 0.5, 50.0)
+		score_text.position = Vector2(top, top)
+		score_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	if level_title_text != null:
+		level_title_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		level_title_text.size = Vector2(SCREEN.x * 0.5 - top, 60.0)
+		level_title_text.position = Vector2(SCREEN.x * 0.5, top)
+		level_title_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var t: Vector2 = _sprite_size(tracks_box)
+	if tracklist_text != null and t != Vector2.ZERO:
+		tracklist_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		tracklist_text.size = Vector2(t.x * 0.8, t.y * 0.5)
+		tracklist_text.position = Vector2(t.x * 0.1, SCREEN.y - t.y * 0.62)
+		tracklist_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 
 ## Lays the level colour out as the measured band instead of a full-screen
