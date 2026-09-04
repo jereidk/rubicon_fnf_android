@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="difficulty.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="difficulty text0000" x="1" y="1" width="396" height="82"/>
+	<SubTexture name="difficulty text0001" x="1" y="1" width="396" height="82"/>
+	<SubTexture name="difficulty text0002" x="1" y="1" width="396" height="82"/>
+	<SubTexture name="difficulty text0003" x="1" y="84" width="396" height="82"/>
+	<SubTexture name="difficulty text0004" x="1" y="84" width="396" height="82"/>
+	<SubTexture name="difficulty text0005" x="1" y="84" width="396" height="82"/>
+</TextureAtlas>

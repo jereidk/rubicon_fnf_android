@@ -761,6 +761,64 @@ func _scale_screen_sprites() -> void:
 			sp.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 
 
+## The two headers the boxes carry. They are LOCALISED ART, not text: create()
+## builds each from "menus/story/" + the localization_folder ("eng") + "/tracks"
+## or "/difficulty", which is why the port had nothing there - neither png was
+## vendored.
+##
+## The tracks header offset inside its box IS measured: create() loads 40 and
+## 15 and adds them to the box's own x and y fields (0x30 and 0x38) at
+## 0x32f316b and 0x32f318f, plus a localisation nudge under the key
+## "story_tracks_xoffset" that eng does not use.
+##
+## The difficulty header carries no arithmetic of its own in create(), so it
+## hangs off its box; the inset here is by eye against the reference shot.
+const TRACKS_LABEL_OFFSET := Vector2(40.0, 15.0)
+const DIFF_LABEL_OFFSET := Vector2(104.0, 155.0)
+
+const TRACKS_LABEL := "res://animania_mod/source/images/menus/story/eng/tracks.png"
+const DIFF_LABEL := "res://animania_mod/source/images/menus/story/eng/difficulty.png"
+## First frame of difficulty.xml: 396x82 at (1,1). The atlas is an animation
+## the mod plays at 24fps; a single frame is what reads on a still.
+const DIFF_LABEL_FRAME := Rect2(1.0, 1.0, 396.0, 82.0)
+
+var _tracks_label: Sprite2D
+var _diff_label: Sprite2D
+
+
+func _place_labels() -> void:
+	var t: Vector2 = _sprite_size(tracks_box)
+	if t != Vector2.ZERO and _tracks_label == null:
+		var tex: Texture2D = load(TRACKS_LABEL)
+		if tex != null:
+			_tracks_label = Sprite2D.new()
+			_tracks_label.texture = tex
+			_tracks_label.centered = false
+			_tracks_label.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+			_tracks_label.z_index = 21
+			add_child(_tracks_label)
+	if _tracks_label != null and t != Vector2.ZERO:
+		_tracks_label.position = Vector2(0.0, SCREEN.y - t.y) \
+			+ TRACKS_LABEL_OFFSET * FUNKIN_TO_RUBICON
+
+	var d: Vector2 = _sprite_size(week_diff_box)
+	if d != Vector2.ZERO and _diff_label == null:
+		var sheet: Texture2D = load(DIFF_LABEL)
+		if sheet != null:
+			var at := AtlasTexture.new()
+			at.atlas = sheet
+			at.region = DIFF_LABEL_FRAME
+			_diff_label = Sprite2D.new()
+			_diff_label.texture = at
+			_diff_label.centered = false
+			_diff_label.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+			_diff_label.z_index = 21
+			add_child(_diff_label)
+	if _diff_label != null and d != Vector2.ZERO:
+		_diff_label.position = Vector2(SCREEN.x - d.x, SCREEN.y - d.y) \
+			+ DIFF_LABEL_OFFSET * FUNKIN_TO_RUBICON
+
+
 func _place_boxes() -> void:
 	_scale_screen_sprites()
 	var d: Vector2 = _sprite_size(week_diff_box)
@@ -771,6 +829,7 @@ func _place_boxes() -> void:
 	if tracks_box != null and t != Vector2.ZERO:
 		tracks_box.position = Vector2(t.x * 0.5, SCREEN.y - t.y * 0.5)
 	_follow_boxes()
+	_place_labels()
 
 
 ## The score line and the level name are NOT attached to the difficulty box:
