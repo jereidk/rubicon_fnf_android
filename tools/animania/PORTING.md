@@ -207,6 +207,21 @@ Fields are not slots and need their own evidence. `FunkinSprite`'s 0x260 was
 identified by asking which methods read it: all four are the zoom-scale
 procedure, so it is `zoomFactor`.
 
+### A sub-state belongs to whoever ALLOCATES it, not to whoever it is named after
+
+`StoryMenuSelectSubState` sounds like the story menu's, and it is the MAIN
+MENU's: its constructor takes a `MainMenuScreen`, and the only call to its
+`__alloc` is inside `MainMenuScreen::doSelect`, in the branch that tests the
+pressed button's name against `"storymode"`. It calls back with
+`MainMenuScreen::startTransitionToMenu`. The port had it opening off the story
+menu's own confirm, one screen too late, and the whole amtake/animania question
+read as "which song" instead of "which half of the mod".
+
+    nm -C --defined-only Animania | grep '<Class>_obj::__alloc'   # la direccion
+    objdump -d Animania | grep 'call   <direccion> <'             # quien la crea
+
+The name of a class is a hint. The caller is the answer.
+
 ### `animania::states::` is the mod; `funkin::ui::` is the game it forked
 
 The binary carries BOTH, and the one that runs is `animania::states::`. Reading

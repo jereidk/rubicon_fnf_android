@@ -36,7 +36,13 @@ var crew: Array[Dictionary] = []
 var cur_selected: int = 0
 var cur_selected_float: float = 0.0
 var grp_roles: Node2D
-var object_roles: Array[Sprite2D] = []
+## AnimatedSprite2D, not Sprite2D: the roles come out of a SpriteFrames and are
+## played by name. The port built them as Sprite2D and then assigned
+## sprite_frames and called play() on them - API that only exists on the animated
+## one - so every single role sprite failed to build, create_role_sprite returned
+## null, and the next line died assigning position on it. Two script errors per
+## credits screen, on every render since.
+var object_roles: Array[AnimatedSprite2D] = []
 var buttons_tween_manager: Tween
 var note_bg: ColorRect
 var note_txt: RichTextLabel
@@ -228,16 +234,22 @@ func handle_social_click(url: String) -> void:
 
 # ─── createRoleSprite ────────────────────────────────────────────────────
 
-func create_role_sprite(role_name: String) -> Sprite2D:
-	var sprite := Sprite2D.new()
+func create_role_sprite(role_name: String) -> AnimatedSprite2D:
+	var sprite := AnimatedSprite2D.new()
 	sprite.name = "Role_" + role_name
-	if _roles_frames != null:
-		sprite.sprite_frames = _roles_frames
-		if _roles_frames.has_animation(role_name):
-			sprite.play(role_name)
-		else:
-			sprite.play(&"default")
 	sprite.centered = true
+	if _roles_frames == null:
+		return sprite
+	sprite.sprite_frames = _roles_frames
+	# By name, and only if it is there: a role the atlas does not draw would
+	# otherwise take down the whole screen, and "default" is not guaranteed
+	# either - SpriteFrames only ships it when nothing renamed it.
+	if _roles_frames.has_animation(StringName(role_name)):
+		sprite.play(StringName(role_name))
+	elif _roles_frames.has_animation(&"default"):
+		sprite.play(&"default")
+	elif not _roles_frames.get_animation_names().is_empty():
+		sprite.play(StringName(_roles_frames.get_animation_names()[0]))
 	return sprite
 
 
@@ -257,7 +269,7 @@ func set_roles(roles: Array, extra: Variant = null) -> void:
 		var role_name: String = String(role_variant).to_lower()
 		if role_name == "none":
 			continue
-		var sprite: Sprite2D = create_role_sprite(role_name)
+		var sprite: AnimatedSprite2D = create_role_sprite(role_name)
 		sprite.position = Vector2(0, y_offset)
 		grp_roles.add_child(sprite)
 		object_roles.append(sprite)
@@ -265,7 +277,7 @@ func set_roles(roles: Array, extra: Variant = null) -> void:
 
 	# "thanks for support" is special
 	if extra is String and String(extra) == "thanks for support":
-		var thanks: Sprite2D = create_role_sprite("thanks for support")
+		var thanks: AnimatedSprite2D = create_role_sprite("thanks for support")
 		thanks.position = Vector2(0, y_offset + 20.0)
 		grp_roles.add_child(thanks)
 		object_roles.append(thanks)

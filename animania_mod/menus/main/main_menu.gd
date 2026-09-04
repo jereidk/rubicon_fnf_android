@@ -154,6 +154,7 @@ var _intro_angle: float = 0.0
 var _intro_offset := Vector2.ZERO
 ## Seconds into startTransitionToMenu, or -1 while it is not running.
 var _exit: float = -1.0
+var _story_select: Node = null
 var _exit_dude: float = 0.0
 var _exit_zoom: float = 1.0
 var _exit_up: float = 0.0
@@ -347,7 +348,44 @@ func do_select() -> void:
 		_start_intro()
 		return
 
+	# Story mode does not go straight to the story menu. MainMenuScreen::doSelect
+	# opens StoryMenuSelectSubState from HERE - the closure at 0x180b180 tests
+	# the pressed button's name against "storymode" (0x5a7e5e7) and only then
+	# allocates it - and the sub-state calls back into the main menu with
+	# startTransitionToMenu once a side is picked. The port had it hanging off
+	# the story menu's own confirm, which is one screen too late.
+	if name == "storymode":
+		_open_story_select()
+		return
+
 	get_tree().change_scene_to_file(String(DESTINATIONS[name]))
+
+
+const STORY_SELECT := "res://animania_mod/menus/story_select/story_menu_select_sub_state.gd"
+
+
+func _open_story_select() -> void:
+	if _story_select != null:
+		return
+	_story_select = load(STORY_SELECT).new()
+	_story_select._menu_state = self
+	add_child(_story_select)
+	_story_select.tree_exited.connect(func() -> void:
+		_story_select = null
+		# Backing out of the picker puts the menu back the way it was, the same
+		# way an unported destination does.
+		if is_inside_tree() and _confirmed:
+			_exit = -1.0
+			_confirmed = false
+			_refresh()
+			_start_intro())
+
+
+## Called by StoryMenuSelectSubState once a side is picked - the mod's
+## startTransitionToMenu, which is a method of the MAIN MENU, not of the story
+## menu. Only the amtake side is unlocked, in the mod as here.
+func start_story(_variant: String) -> void:
+	get_tree().change_scene_to_file(String(DESTINATIONS["storymode"]))
 
 
 ## The selected button shows `white` and every other one `basic`.

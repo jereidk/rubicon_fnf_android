@@ -154,7 +154,6 @@ var high_score_lerp: float = 0.0
 var base_y: float = TITLE_CENTRE.y
 var exiting_menu: bool = false
 var selected_level: int = 0
-var _select_sub_state: CanvasLayer = null
 var level_title_text: Label
 var score_text: Label
 var mode_text: Label
@@ -230,7 +229,13 @@ func _ready() -> void:
 	create_visualizer()
 	_place_weeks_blot()
 	build_level_titles()
-	reposition_titles(false)
+	# INSTANT on the way in. The titles start wherever the scene file left them,
+	# which is not a position they were ever at, so tweening from it animates
+	# nothing meaningful - and for the first 0.3s every title is still stacked on
+	# the same spot, which makes week_at answer 0 for any tap. That is what the
+	# flow guard has been catching: a tap on WEEK 5 landed on TUTORIAL's hitbox
+	# and walked the menu backwards.
+	reposition_titles(true)
 	load_difficulties()
 	update_data()
 	update_text()
@@ -371,32 +376,18 @@ func select_level() -> void:
 	# calls LevelProp.playConfirm on the cast and starts a one-second timer, and
 	# that is all it touches - the leftConfirm/rightConfirm the port used to play
 	# are base Funkin's storymenu/ui/arrows, an atlas this menu does not use.
-
-	# Show difficulty selection sub-state
+	#
+	# And it does NOT open a sub-state either: StoryMenuSelectSubState is built
+	# by the MAIN MENU (0x180b180, inside MainMenuScreen::doSelect), so by the
+	# time a week is confirmed the amtake/animania choice is already made. That
+	# one-second timer is what this await stands in for.
 	_confirmed = true
-	_show_select_sub_state(playable)
+	await get_tree().create_timer(SELECT_DELAY).timeout
+	_do_select_level(playable)
 
 
-func _show_select_sub_state(playable: PackedStringArray) -> void:
-	if _select_sub_state != null:
-		return
-	_select_sub_state = preload("res://animania_mod/menus/story_select/story_menu_select_sub_state.gd").new()
-	_select_sub_state._menu_state = self
-	add_child(_select_sub_state)
-	_select_sub_state.tree_exited.connect(func() -> void:
-		_select_sub_state = null
-		_confirmed = false
-	)
-
-
-## Called by StoryMenuSelectSubState. The argument is NOT a difficulty - that is
-## already chosen here, with the arrows - it is which version of the mod to play,
-## "amtake" or "animania". Only the amtake side is ported, so both land on the
-## same song; the id is taken anyway so the day the other one exists the caller
-## does not change.
-func start_story(_variant: String) -> void:
-	var title: Node2D = titles.get_child(selected_level)
-	_do_select_level(get_songs_filtered(title))
+## selectLevel's FlxTimer, at 0x32ef6fb with a duration of 1.
+const SELECT_DELAY := 1.0
 
 
 func _do_select_level(songs: PackedStringArray) -> void:

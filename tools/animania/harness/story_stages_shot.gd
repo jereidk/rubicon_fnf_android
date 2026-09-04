@@ -1,10 +1,12 @@
-# Renders the story menu at the moments it actually passes through, not just at
-# rest on week 1: every week, every difficulty, the title tween mid-flight, and
-# the confirm with its sub-state over the top.
+# Renders story mode at the moments it actually passes through: every week,
+# every difficulty, the title tween mid-flight, the week confirm, and the
+# amtake/animania picker.
 #
-# One instance of the menu is driven through the states in order, because that is
-# how a player reaches them - rebuilding the scene per shot would hide anything
-# that only goes wrong on the SECOND change_level.
+# The picker hangs off the MAIN MENU, not off the story menu - MainMenuScreen's
+# doSelect is what allocates it - so the last shots swap the scene under test.
+# Everything before them drives ONE instance of the story menu through the states
+# in order, because that is how a player reaches them: rebuilding per shot would
+# hide anything that only goes wrong on the SECOND change_level.
 #
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot \
 #       --rendering-driver opengl3 --fixed-fps 60 --path . \
@@ -19,6 +21,7 @@
 extends Node2D
 
 const STORY := "res://animania_mod/menus/story/story_menu.tscn"
+const MAIN := "res://animania_mod/menus/main/main_menu.tscn"
 ## Long enough for reposition_titles' tween and the background lerp to settle.
 const SETTLED := 45
 
@@ -30,8 +33,7 @@ var _plan: Array = []
 
 
 func _ready() -> void:
-	_menu = load(STORY).instantiate()
-	add_child(_menu)
+	_open_story()
 	# selected_level starts on week1 (index 1): tutorial, week1, week5, sorted by
 	# the level file's name.
 	_plan = [
@@ -45,15 +47,38 @@ func _ready() -> void:
 		["06_dif_easy", func() -> void: _diff(1, "easy"), SETTLED],
 		["07_dif_normal", func() -> void: _diff(1, "normal"), SETTLED],
 		["08_dif_hard", func() -> void: _diff(1, "hard"), SETTLED],
-		# select_level() plays the confirm on the cast and the arrows and opens
-		# the sub-state, which is a CanvasLayer over the menu.
+		# select_level plays the confirm on the cast and then waits a second
+		# before leaving, so this has to be shot inside that second and the menu
+		# torn down before it is up - otherwise the loading screen takes over the
+		# harness mid-run.
 		["09_confirm_6f", func() -> void: _menu.call(&"select_level"), 6],
-		# The buttons slide in over a full second, so the settled shot has to be
-		# past 60 frames of the fixed clock, not 45.
-		["10_subestado", func() -> void: pass, 80],
-		["11_subestado_animania", func() -> void: _sub_pick(1), 20],
+		# The picker, on the main menu where it belongs. Two shots, one per side,
+		# and 80 frames because the buttons slide in over a full second.
+		["10_selector_amtake", func() -> void: _open_picker(), 80],
+		["11_selector_animania", func() -> void: _pick(1), 20],
 	]
 	_begin()
+
+
+func _open_story() -> void:
+	_drop()
+	_menu = load(STORY).instantiate()
+	add_child(_menu)
+
+
+func _open_picker() -> void:
+	_drop()
+	_menu = load(MAIN).instantiate()
+	add_child(_menu)
+	_menu.call(&"_open_story_select")
+
+
+func _drop() -> void:
+	if _menu == null:
+		return
+	remove_child(_menu)
+	_menu.free()
+	_menu = null
 
 
 func _week(index: int) -> void:
@@ -73,10 +98,9 @@ func _diff(week: int, id: String) -> void:
 		_menu.call(&"change_difficulty", 1)
 
 
-## Reaches into the sub-state the menu opened and moves its selection, so the
-## second of the two buttons gets a shot of its own.
-func _sub_pick(index: int) -> void:
-	var sub: Node = _menu.get(&"_select_sub_state") as Node
+## Moves the picker's selection, so the second of the two buttons gets a shot.
+func _pick(index: int) -> void:
+	var sub: Node = _menu.get(&"_story_select") as Node
 	if sub != null:
 		sub.call(&"_select_button", index)
 
@@ -93,6 +117,7 @@ func _process(_delta: float) -> void:
 		_pending = ""
 		_at += 1
 		if _at >= _plan.size():
+			_drop()
 			get_tree().quit()
 			return
 		_begin()

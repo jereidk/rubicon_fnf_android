@@ -197,14 +197,20 @@ func _init() -> void:
 		"res://animania_mod/menus/credits/credits_menu.tscn").instantiate()
 	root.add_child(credits)
 	await process_frame
-	_check(credits.entry_count() == 36,
-		"credits tendria que traer 36 entradas y trae %d" % credits.entry_count())
+	# rows.get_child_count()/cur_selected, not entry_count()/_selected: the credits
+	# menu was rewritten and renamed both, the same way the story menu's
+	# selected_level was, and this guard was never brought along. The assertions
+	# are unchanged - 36 entries out of the mod's own credits.json, and a tap that
+	# lands on the row it was aimed at.
+	var entries: int = credits.rows.get_child_count()
+	_check(entries == 36,
+		"credits tendria que traer 36 entradas y trae %d" % entries)
 	var row_tap := InputEventScreenTouch.new()
 	row_tap.pressed = true
 	row_tap.position = credits.rows.position + credits.rows.get_child(3).position
 	credits._unhandled_input(row_tap)
-	_check(credits._selected == 3,
-		"el toque no selecciona en credits: sigue en %d" % credits._selected)
+	_check(credits.cur_selected == 3,
+		"el toque no selecciona en credits: sigue en %d" % credits.cur_selected)
 	credits.queue_free()
 	await process_frame
 

@@ -30,20 +30,30 @@ extends Node2D
 ## and starts "press to start"; the state then waits on a key rather than cutting
 ## straight to the song.
 ##
-## The one thing create() does that this port does not is write 0.4 into field
-## 0x260 of the noodle, BF and the box and 0.7 into pressEnter's
-## (0x36c8764..0x36c87d5). That field is `zoomFactor`: it is read by exactly four
-## methods, all of them FunkinSprite's zoom-scale procedure
-## (_hx___shouldDoScaleProcedure, _hx___doPreZoomScaleProcedure,
-## doAdditionalMatrixStuff and getScreenPosition), and it is how a sprite scales
-## back against a camera that is zooming. This screen's camera does zoom - update
-## eases it with exp(-3.125 * dt) and punches it on the keypress - and neither
-## the zoom nor the compensation is ported, so porting zoomFactor alone would
-## scale five sprites against a camera that never moves. They go together or not
-## at all, and for now it is not at all.
+## The camera, and what create() writes into field 0x260:
 ##
-## There is also no capture of this screen to compare against; everything with an
-## address beside it above IS the mod's own number, and nothing else was invented.
+##   update 0x36c90de  zoom -> 1 + (zoom - 1) * exp(-3.125 * elapsed * 2)
+##   update 0x36c9237  zoom -> zoom + 0.03, on the keypress
+##   update 0x36c94b2  BF's x eases to 147.05 with exp(-3.125 * elapsed * 2.5)
+##                     when there is no progress left to ride
+##
+## and 0x260 is `zoomFactor` - it is read by exactly four methods, all of them
+## FunkinSprite's zoom-scale procedure (_hx___shouldDoScaleProcedure,
+## _hx___doPreZoomScaleProcedure, doAdditionalMatrixStuff and getScreenPosition).
+## create() gives the noodle, BF and the box 0.4 and pressEnter 0.7
+## (0x36c8764..0x36c87d5), and it means "zoom this at a FRACTION of what the
+## camera does". The mod implements it inside draw by rewriting the scale and
+## the origin; here the same result comes out of moving the sprite in world
+## space, which is what _apply_zoom does - a sprite at P with factor f under a
+## camera at Z has to sit where a camera at 1 + (Z - 1) * f would have drawn it.
+##
+## So the whole thing is a 3% punch on a keypress that five sprites take at 40%
+## and 70% of. Small, but it is the difference between a still screen and one
+## that answers the button.
+##
+## There is no capture of this screen to compare against; everything with an
+## address beside it above IS the mod's own number, and nothing else was
+## invented.
 
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 const SCENE := "res://animania_mod/menus/loading/loading_screen.tscn"
@@ -66,6 +76,14 @@ const BF_POS := Vector2(0.0, 584.75)
 const PRESS_POS := Vector2(0.0, 631.75)
 ## FlxTween.num(0, 1, 4) on the music volume, at 0x36c8a41.
 const MUSIC_FADE := 4.0
+## The camera settles with exp(-3.125 * elapsed * 2) and jumps by 0.03 on a press.
+const CAM_DECAY := 3.125 * 2.0
+const CAM_PUNCH := 0.03
+## zoomFactor, per sprite. The background has none, so it takes the zoom whole.
+const ZOOM_FACTOR := {"noodle": 0.4, "box": 0.4, "bf": 0.4, "press": 0.7}
+## Where BF parks once there is nothing left to eat.
+const BF_REST_X := 147.05
+const BF_REST_DECAY := 3.125 * 2.5
 
 ## Which drawing to wear, and it is chosen by the SONG, not by the level or the
 ## stage. This is not inferred: create() builds the key as
@@ -130,6 +148,10 @@ var _loaded: PackedScene = null
 var _done: bool = false
 var _leaving: bool = false
 var _fade: Tween = null
+var _zoom: float = 1.0
+var _base: Dictionary = {}
+var _bf_x: float = 0.0
+var _cam: Camera2D = null
 
 
 ## The one way in. Anything that used to call change_scene_to_file() with a song
@@ -214,6 +236,20 @@ func _place() -> void:
 		press_enter.position = Vector2(
 			(screen_w - _frame_size(press_enter).x * FUNKIN_TO_RUBICON) * 0.5,
 			PRESS_POS.y * FUNKIN_TO_RUBICON)
+	_remember_base()
+
+
+## The camera compensation rewrites position and scale every frame, so the values
+## it starts from have to be kept somewhere that is not the node itself.
+func _remember_base() -> void:
+	_base.clear()
+	for pair: Array in [["noodle", noodle], ["box", box], ["bf", bf],
+			["press", press_enter]]:
+		var node: Node2D = pair[1]
+		if node != null:
+			_base[pair[0]] = [node.position, node.scale]
+	if bf != null:
+		_bf_x = bf.position.x
 
 
 func _frame_size(node: AnimatedSprite2D) -> Vector2:
@@ -329,6 +365,8 @@ func _process(delta: float) -> void:
 	if not _done and target_scene != "":
 		_poll()
 	_drive_noodle(delta)
+	_zoom = 1.0 + (_zoom - 1.0) * exp(-CAM_DECAY * delta)
+	_apply_zoom()
 
 
 func _poll() -> void:
@@ -359,9 +397,63 @@ func _drive_noodle(delta: float) -> void:
 	var width: float = target + (rect.size.x - target) * exp(-NOODLE_DECAY * delta)
 	rect.size.x = width
 	noodle.region_rect = rect
-	if bf != null:
-		bf.position.x = noodle.position.x \
-			+ (width - BF_LEAD) * FUNKIN_TO_RUBICON
+	if bf == null:
+		return
+	if _done and _progress >= 1.0:
+		# Nothing left to ride: BF eases back beside the box.
+		var rest: float = BF_REST_X * FUNKIN_TO_RUBICON
+		_bf_x = rest + (_bf_x - rest) * exp(-BF_REST_DECAY * delta)
+	else:
+		_bf_x = noodle.position.x + (width - BF_LEAD) * FUNKIN_TO_RUBICON
+	if _base.has("bf"):
+		var b: Array = _base["bf"]
+		_base["bf"] = [Vector2(_bf_x, (b[0] as Vector2).y), b[1]]
+
+
+## A sprite with zoomFactor f, under a camera at Z about the screen centre, has
+## to be drawn where a camera at 1 + (Z - 1) * f would have put it. In world
+## space, before the camera multiplies everything by Z, that is a position and a
+## scale divided down by Z / Z'.
+func _apply_zoom() -> void:
+	var camera: Camera2D = _camera()
+	if camera != null:
+		camera.zoom = Vector2.ONE * _zoom
+	var centre: Vector2 = _screen() * 0.5
+	for key: Variant in _base:
+		var node: Node2D = _node_for(String(key))
+		if node == null:
+			continue
+		var b: Array = _base[key]
+		var base_pos: Vector2 = b[0]
+		var base_scale: Vector2 = b[1]
+		var f: float = float(ZOOM_FACTOR.get(key, 1.0))
+		var k: float = (1.0 + (_zoom - 1.0) * f) / _zoom
+		node.position = centre + (base_pos - centre) * k
+		node.scale = base_scale * k
+
+
+func _node_for(key: String) -> Node2D:
+	match key:
+		"noodle": return noodle
+		"box": return box
+		"bf": return bf
+		"press": return press_enter
+	return null
+
+
+func _camera() -> Camera2D:
+	if _cam == null:
+		_cam = Camera2D.new()
+		_cam.name = "LoadingCamera"
+		_cam.position = _screen() * 0.5
+		# DRAG_CENTER, not FIXED_TOP_LEFT: the camera sits ON the screen centre,
+		# which is the point the zoom has to happen about. Anchored top-left it
+		# put the origin at the centre and showed a magnified bottom-right
+		# quarter of the screen.
+		_cam.anchor_mode = Camera2D.ANCHOR_MODE_DRAG_CENTER
+		add_child(_cam)
+		_cam.make_current()
+	return _cam
 
 
 func _on_loaded() -> void:
@@ -381,7 +473,12 @@ func _on_loaded() -> void:
 ## already holding it never sees the prompt. A tap does the same on a phone,
 ## where there is no ENTER at all.
 func _unhandled_input(event: InputEvent) -> void:
-	if not _done or _leaving or not event.is_pressed():
+	if _leaving or not event.is_pressed():
+		return
+	# The punch happens on the press itself, whether or not the song is ready:
+	# update checks the key and adds 0.03 before it ever looks at the loader.
+	_zoom += CAM_PUNCH
+	if not _done:
 		return
 	if event is InputEventKey:
 		match (event as InputEventKey).keycode:
