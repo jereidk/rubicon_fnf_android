@@ -58,11 +58,20 @@ a URL; it unpacks to `/home/user/animania_build`. **The container is ephemeral**
 `22c804dd53b269dd3e9235ea4e2d388d39a51c1d9afe7609d48b1a950aeea677`, and the direct URL that
 has worked is `https://pixeldrain.com/api/file/iq5uWdQ8`.
 
-**pixeldrain, Google Drive and GameBanana are blocked by the default egress policy.** The
-cloud environment ships at **Trusted** network access, which allows package registries and
-GitHub and nothing else; every other host gets a 403 at CONNECT, recorded under
-`recentRelayFailures` in `curl -sS "$HTTPS_PROXY/__agentproxy/status"`. Do not try to route
-around it. Either
+**This was once true and is not any more, so CHECK before repeating it:** pixeldrain,
+Google Drive and GameBanana used to be blocked by the default egress policy. The user opened
+the network afterwards - which is how the tarball got here in the first place - and it has
+stayed open. Measured 2026-09-04: `gamebanana.com` and `pixeldrain.com` both answer 200, and
+`recentRelayFailures` in `curl -sS "$HTTPS_PROXY/__agentproxy/status"` is **empty**. A stale
+line in this file cost a wrong answer to the user today; one `curl -sS -o /dev/null -w
+"%{http_code}"` settles it in a second.
+
+A large download through the proxy is paced, so a 400MB file can take a quarter of an hour
+even though a fresh probe reports 4MB/s. And for "what shape is this build?" the whole file
+is not needed: a zip's central directory is at the END, so a `Range: bytes=<size-200000>-`
+plus a scan for `PK\x01\x02` lists every entry and its size without downloading the body.
+
+If the network IS closed again, either
 - have the user set the environment's **Network access** to Full or Custom — it is in the
   cloud icon above the message box at claude.ai/code, then the gear on the environment, NOT
   anywhere in Settings — and note that the network change takes effect in a RUNNING session
