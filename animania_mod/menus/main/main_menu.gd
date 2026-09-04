@@ -471,13 +471,6 @@ func _play(path: String) -> void:
 	sfx.play()
 
 
-## createNewsButton. Creates the news/changelog button from the animated sprite
-## atlas. From the binary's createNewsButton method. The button uses the
-## news_button sprite atlas and shows/hides based on allowToUseNewsButton.
-const NEWS_BUTTON_PATH := "res://animania_mod/source/images/menus/news_button.png"
-const NEWS_BUBBLE_PATH := "res://animania_mod/source/images/menus/new_update_bub.png"
-var _news_button: Sprite2D = null
-var _news_bubble: Sprite2D = null
 
 
 var _changelog_sub_state: CanvasLayer = null
@@ -495,15 +488,34 @@ func _open_changelog() -> void:
 ## the frame labels "loop white", "loop white2" and "open", and slides it in from 350 with
 ## a delayed tween. It does NOT touch new_update_bub: that strip is 1184x106 of the word
 ## UPDATE repeated, a marquee, and the port was hanging it off the button unscaled - which
-## is where the three giant UPDATEs across the middle of the menu came from. The mod's own
-## capture has nothing there.
+## is where the three giant UPDATEs across the middle of the menu came from.
 ##
-## The button's placement is not measured yet, so it stays off rather than being invented a
-## second time: NEWS_BUBBLE_PATH is kept because the asset is real and will be wanted when
-## the changelog screen is done.
+## And the art settles a question this port had open for a whole session: the banner is an
+## ENVELOPE with a red seal, which is exactly the thing sitting at the bottom-left of the
+## mod's capture that nothing in create() seemed to make. It is this. The remaining
+## disagreement is how far in it comes - the binary seats it at x = -70 and the capture has
+## it about a hundred further right, the same shape of residual the waveform shows.
+## createNewsButton (0x18017a0). The banner is in the scene already - its Animate atlas and
+## the three frame-label animations are built by tools/animania/build_news_button.gd - and
+## what belongs here is the entrance: the mod parks it 350 further left than its seat
+## (0x1801d7e) and tweens it back with expoOut over 0.65s after a 1s delay
+## (0x1801df6 / 0x1801e8a), then hangs a click on it that opens the changelog.
+const NEWS_SLIDE := 350.0
+const NEWS_DELAY := 1.0
+const NEWS_TIME := 0.65
+
+var _news_button: Node2D = null
+
+
 func _create_news_button() -> void:
-	if not ResourceLoader.exists(NEWS_BUTTON_PATH):
+	_news_button = get_node_or_null("NewsButton") as Node2D
+	if _news_button == null:
 		return
+	var rest: float = _news_button.position.x
+	_news_button.position.x = rest - NEWS_SLIDE * FUNKIN_TO_RUBICON
+	var slide := create_tween()
+	slide.tween_property(_news_button, "position:x", rest, NEWS_TIME) \
+		.set_delay(NEWS_DELAY).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_EXPO)
 
 
 ## createSpecialElements (0x180ec40) is two calls and nothing else: createNewsButton and
@@ -811,16 +823,18 @@ func _setup_event_listeners() -> void:
 	pass
 
 
-## finalizeSetup. Final initialization after all components are created.
-## From the binary's finalizeSetup method.
+## create() plus finalizeSetup, which this port does in one pass because it has no separate
+## create(). Two calls that were here are NOT in either of them: _create_news_button, which
+## _create_special_elements already makes (so the banner was parked 350 twice and started
+## a screen further left than it should), and _music_social_play_anim, which plays the
+## disc's `selected` state - at startup that left the OST disc looking hovered for ever.
+## musicSocialPlayAnim takes the state to play; it belongs to the toggle, not to setup.
 func _finalize_setup() -> void:
 	_sort_by_z()
 	_init_music()
 	_init_mouse_events()
-	_create_news_button()
 	_create_special_elements()
 	_spawn_help_mouse_text()
-	_music_social_play_anim()
 	_setup_event_listeners()
 
 
@@ -951,6 +965,9 @@ func _touch(at: Vector2) -> void:
 		OS.shell_open(service)
 		_play(SOUND_CONFIRM)
 		return
+	if _news_hit(at):
+		_open_changelog()
+		return
 	var hit: int = _button_at(at)
 	if hit < 0:
 		return
@@ -959,6 +976,22 @@ func _touch(at: Vector2) -> void:
 		_refresh()
 		_play(SOUND_SWITCH)
 	do_select()
+
+
+## The banner's own rect. createNewsButton hangs a FlxMouseEventManager click on it
+## (0x1802032) and this screen's taps all go through _touch, so it is asked here with the
+## rest. Its `selected` state is the hover the mouse manager drives; on a phone there is no
+## hover, so the tap goes straight to `open`.
+func _news_hit(at: Vector2) -> bool:
+	if _news_button == null or not _news_button.visible:
+		return false
+	if not _news_button.has_meta(&"touch_rect"):
+		return false
+	# The rect travels with the slide: it is authored at the banner's seat and the entrance
+	# moves the node, so the tap target follows rather than sitting where the art will end up.
+	var rect: Rect2 = _news_button.get_meta(&"touch_rect") as Rect2
+	rect.position = _news_button.position
+	return rect.has_point(at)
 
 
 ## The URL of whichever open OST button was hit, or "".

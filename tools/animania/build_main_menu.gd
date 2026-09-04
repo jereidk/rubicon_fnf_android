@@ -33,6 +33,10 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## the same scale on both axes to within 0.2%. Times this project's 1.5. It is not a
 ## "cover" - it is the mod's camera resting at a zoom of 0.9 (which is what
 ## startIntroAnimation tweens to) looking at (646, 450) rather than at the screen centre.
+## The same pair main_menu.gd carries: the one measured offset between this build and the
+## mod's capture, taken by anything placed against FlxG.width/height.
+const WORLD_OFFSET := Vector2(-4.0, -37.0)
+
 const AUTHORED_SCALE := 0.9033
 ## The y carries a -6.6 the fit did not: rendered with 43.9 the three seams land on 433,
 ## 565 and 688 against the capture's 426, 556 and 685, all low by about the same. Measured
@@ -79,6 +83,12 @@ func _init() -> void:
 	_add(background)
 	print("OUT fondo en (%.0f, %.0f) a x%.2f"
 		% [background.position.x, background.position.y, FUNKIN_TO_RUBICON])
+
+	# createParticles runs between the background and the visualisers (0x181118b).
+	var particles := Node2D.new()
+	particles.name = "Particles"
+	particles.set_script(load("res://animania_mod/menus/main/menu_particles.gd"))
+	_add(particles)
 
 	# create() runs createVisualizers between the background and the plate (0x181119b), so
 	# the waveform and the FFT bars sit behind everything else the menu draws. The node was
@@ -187,6 +197,35 @@ func _init() -> void:
 		print("OUT %-10s id=%d rect=(%s, %s, %s, %s) -> pantalla (%.0f, %.0f)" % [
 			name, int(data["id"]), pos[0], pos[1], pos[2], pos[3],
 			symbol.position.x, symbol.position.y])
+
+	# createNewsButton (0x18017a0): the changelog banner, at (-70, 620) at scale 0.5, with
+	# its three states taken off FRAME LABELS rather than symbols - see build_news_button.gd.
+	# createSpecialElements calls it before createMusicSocial, so it draws under the disc.
+	const NEWS_POS := Vector2(-70.0, 620.0)
+	const NEWS_SCALE := 0.5
+	var news_atlas: Resource = load("%s/news_button_atlas.tres" % DIR)
+	var news_library: AnimationLibrary = load("%s/news_button_library.tres" % DIR)
+	if news_atlas != null and news_library != null:
+		var news := AnimateSymbol.new()
+		news.name = "NewsButton"
+		news.atlases = [news_atlas] as Array[AnimateAtlas]
+		news.atlas_index = 0
+		news.centered = false
+		news.scale = Vector2.ONE * (NEWS_SCALE * FUNKIN_TO_RUBICON)
+		news.position = (NEWS_POS + WORLD_OFFSET) * FUNKIN_TO_RUBICON
+		# AnimateSymbol has no bounds to ask for, so the tap rect comes from the mod's own
+		# flattened copy of the same banner: new_update_bub.png is 1184x106, which is the
+		# composition at scale 1 (its spritemap is 1183 wide).
+		news.set_meta(&"touch_rect", Rect2(news.position,
+			Vector2(1184.0, 106.0) * NEWS_SCALE * FUNKIN_TO_RUBICON))
+		_add(news)
+		var news_player := AnimationPlayer.new()
+		news_player.name = "AnimationPlayer"
+		news_player.add_animation_library(&"", news_library)
+		news_player.autoplay = &"news_button_idle"
+		news.add_child(news_player)
+		news_player.owner = _root
+		print("OUT boton de novedades en (%.0f, %.0f)" % [news.position.x, news.position.y])
 
 	# caramelDance.json: the caramen-dance atlas at (-75, 225), scale 1.1, animation
 	# `caramel`. Straight out of the file, like the buttons' rects.

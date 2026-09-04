@@ -1,22 +1,25 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://animania_mod/menus/main/main_menu.gd" id="1_45fl5"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/menu background.png" id="2_ahvaq"]
-[ext_resource type="Script" path="res://animania_mod/menus/main/menu_visualizer.gd" id="3_53ajg"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/buttons back.png" id="4_k3maf"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_dude_frames.tres" id="5_krfej"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="6_hjgio"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="7_u8mjm"]
-[ext_resource type="Resource" path="res://animania_mod/menus/main/menu_buttons_atlas.tres" id="8_fs0ch"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/main/menu_buttons_library.tres" id="9_sa1r4"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_lock_frames.tres" id="10_l8ddx"]
-[ext_resource type="Script" path="res://animania_mod/menus/main/menu_seasonal.gd" id="11_msg4d"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_snow_frames.tres" id="12_cmbxy"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_leafs_frames.tres" id="13_y2jva"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg" id="14_2bhcv"]
+[ext_resource type="Script" path="res://animania_mod/menus/main/main_menu.gd" id="1_k3maf"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/menu background.png" id="2_krfej"]
+[ext_resource type="Script" path="res://animania_mod/menus/main/menu_particles.gd" id="3_hjgio"]
+[ext_resource type="Script" path="res://animania_mod/menus/main/menu_visualizer.gd" id="4_u8mjm"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/menu/buttons back.png" id="5_fs0ch"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_dude_frames.tres" id="6_sa1r4"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="7_l8ddx"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="8_msg4d"]
+[ext_resource type="Resource" path="res://animania_mod/menus/main/menu_buttons_atlas.tres" id="9_cmbxy"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/main/menu_buttons_library.tres" id="10_y2jva"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_lock_frames.tres" id="11_2bhcv"]
+[ext_resource type="Resource" path="res://animania_mod/menus/main/news_button_atlas.tres" id="12_l1pen"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/main/news_button_library.tres" id="13_jsr37"]
+[ext_resource type="Script" path="res://animania_mod/menus/main/menu_seasonal.gd" id="14_t4c7f"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_snow_frames.tres" id="15_e1sij"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_leafs_frames.tres" id="16_dx777"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg" id="17_7g2nc"]
 
-[node name="MainMenu" type="Node2D" unique_id=2098840748 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
-script = ExtResource("1_45fl5")
+[node name="MainMenu" type="Node2D" unique_id=1787112159 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
+script = ExtResource("1_k3maf")
 buttons = NodePath("Buttons")
 sfx = NodePath("Sfx")
 music = NodePath("Music")
@@ -25,41 +28,44 @@ curtain_up = NodePath("BlackLineUp")
 curtain_down = NodePath("BlackLineDown")
 dude = NodePath("Dude")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1713438974]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=79991101]
 position = Vector2(960, 540)
 
-[node name="Background" type="Sprite2D" parent="." unique_id=387522548]
+[node name="Background" type="Sprite2D" parent="." unique_id=1627682525]
 position = Vector2(-166.5, -52.5)
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("2_ahvaq")
+texture = ExtResource("2_krfej")
 centered = false
 
-[node name="Visualizer" type="Node2D" parent="." unique_id=1995882624]
-script = ExtResource("3_53ajg")
+[node name="Particles" type="Node2D" parent="." unique_id=610271997]
+script = ExtResource("3_hjgio")
 
-[node name="ButtonsBack" type="Sprite2D" parent="." unique_id=1709963790]
+[node name="Visualizer" type="Node2D" parent="." unique_id=1157049109]
+script = ExtResource("4_u8mjm")
+
+[node name="ButtonsBack" type="Sprite2D" parent="." unique_id=1287398333]
 position = Vector2(1050, -13.5)
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("4_k3maf")
+texture = ExtResource("5_fs0ch")
 centered = false
 
-[node name="Dude" type="AnimatedSprite2D" parent="." unique_id=483091535]
+[node name="Dude" type="AnimatedSprite2D" parent="." unique_id=1770425655]
 position = Vector2(-7.8712463, 360.81372)
 scale = Vector2(1.490445, 1.490445)
-sprite_frames = ExtResource("5_krfej")
+sprite_frames = ExtResource("6_sa1r4")
 animation = &"caramel"
 autoplay = "caramel"
 centered = false
 
-[node name="Buttons" type="Node2D" parent="." unique_id=1998404414]
+[node name="Buttons" type="Node2D" parent="." unique_id=389253506]
 
-[node name="Storymode" type="Node2D" parent="Buttons" unique_id=904502767]
+[node name="Storymode" type="Node2D" parent="Buttons" unique_id=1125503566]
 position = Vector2(1119.4471, 65.43465)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/storymode basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1119.4471, 65.43465, 547.3998, 203.2425)
 metadata/states = {
 "basic": {
@@ -76,17 +82,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Storymode" unique_id=1287719861]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Storymode" unique_id=1885295500]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_storymode_basic"
 
-[node name="Shop" type="Node2D" parent="Buttons" unique_id=1668711934]
+[node name="Shop" type="Node2D" parent="Buttons" unique_id=997014307]
 position = Vector2(1680.3964, 65.43465)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/shop basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1680.3964, 65.43465, 239.82614, 241.18109)
 metadata/states = {
 "basic": {
@@ -103,17 +109,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Shop" unique_id=804722322]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Shop" unique_id=562697758]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_shop_basic"
 
-[node name="Freeplay" type="Node2D" parent="Buttons" unique_id=370717706]
+[node name="Freeplay" type="Node2D" parent="Buttons" unique_id=409180122]
 position = Vector2(1119.4471, 272.742)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/freeplay basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1119.4471, 272.742, 802.1304, 184.2732)
 metadata/states = {
 "basic": {
@@ -130,17 +136,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Freeplay" unique_id=1715512846]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Freeplay" unique_id=1350807815]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_freeplay_basic"
 
-[node name="Website" type="Node2D" parent="Buttons" unique_id=1882798156]
+[node name="Website" type="Node2D" parent="Buttons" unique_id=468098650]
 position = Vector2(1119.4471, 462.435)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/website basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1119.4471, 462.435, 794.0007, 168.0138)
 metadata/states = {
 "basic": {
@@ -157,17 +163,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Website" unique_id=2068668737]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Website" unique_id=1822518934]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_website_basic"
 
-[node name="Options" type="Node2D" parent="Buttons" unique_id=1246793204]
+[node name="Options" type="Node2D" parent="Buttons" unique_id=128303912]
 position = Vector2(1120.802, 645.3532)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/options basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1120.802, 645.3532, 230.34149, 180.20834)
 metadata/states = {
 "basic": {
@@ -184,17 +190,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Options" unique_id=1296302722]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Options" unique_id=1222339627]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_options_basic"
 
-[node name="Credits" type="Node2D" parent="Buttons" unique_id=711092679]
+[node name="Credits" type="Node2D" parent="Buttons" unique_id=696570429]
 position = Vector2(1368.7579, 645.3532)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/credits basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1368.7579, 645.3532, 541.98, 180.20834)
 metadata/states = {
 "basic": {
@@ -211,17 +217,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Credits" unique_id=438345751]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Credits" unique_id=1967677170]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_credits_basic"
 
-[node name="Awards" type="Node2D" parent="Buttons" unique_id=1289904297]
+[node name="Awards" type="Node2D" parent="Buttons" unique_id=732866437]
 position = Vector2(1120.802, 839.1111)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/awards basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1120.802, 839.1111, 230.34149, 178.8534)
 metadata/states = {
 "basic": {
@@ -238,17 +244,17 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Awards" unique_id=558526893]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Awards" unique_id=2101607893]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_awards_basic"
 
-[node name="Exit" type="Node2D" parent="Buttons" unique_id=1005446656]
+[node name="Exit" type="Node2D" parent="Buttons" unique_id=2115150866]
 position = Vector2(1368.7579, 839.1111)
 scale = Vector2(1.35495, 1.35495)
-script = ExtResource("6_hjgio")
+script = ExtResource("7_l8ddx")
 symbol = "render/eng/exit basic"
 centered = false
-atlases = Array[ExtResource("7_u8mjm")]([ExtResource("8_fs0ch")])
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("9_cmbxy")])
 metadata/touch_rect = Rect2(1368.7579, 839.1111, 541.98, 180.20834)
 metadata/states = {
 "basic": {
@@ -265,56 +271,68 @@ metadata/states = {
 }
 }
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Exit" unique_id=1392626368]
-libraries/ = ExtResource("9_sa1r4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Buttons/Exit" unique_id=1288562152]
+libraries/ = ExtResource("10_y2jva")
 autoplay = &"menu_buttons_exit_basic"
 
-[node name="ShopLock" type="AnimatedSprite2D" parent="Buttons" unique_id=2011772400]
+[node name="ShopLock" type="AnimatedSprite2D" parent="Buttons" unique_id=713924889]
 position = Vector2(1684.4612, 82.37152)
 scale = Vector2(1.35495, 1.35495)
-sprite_frames = ExtResource("10_l8ddx")
+sprite_frames = ExtResource("11_2bhcv")
 animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="WebsiteLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1745730799]
+[node name="WebsiteLock" type="AnimatedSprite2D" parent="Buttons" unique_id=838301330]
 position = Vector2(1400.5992, 442.7882)
 scale = Vector2(1.35495, 1.35495)
-sprite_frames = ExtResource("10_l8ddx")
+sprite_frames = ExtResource("11_2bhcv")
 animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="AwardsLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1603146193]
+[node name="AwardsLock" type="AnimatedSprite2D" parent="Buttons" unique_id=1846233559]
 position = Vector2(1120.1246, 824.8841)
 scale = Vector2(1.35495, 1.35495)
-sprite_frames = ExtResource("10_l8ddx")
+sprite_frames = ExtResource("11_2bhcv")
 animation = &"buttons lock"
 autoplay = "buttons lock"
 centered = false
 
-[node name="Seasonal" type="Node2D" parent="." unique_id=881699022]
-script = ExtResource("11_msg4d")
-snow_frames = ExtResource("12_cmbxy")
-leaf_frames = ExtResource("13_y2jva")
+[node name="NewsButton" type="Node2D" parent="." unique_id=2066832712]
+position = Vector2(-111, 874.5)
+scale = Vector2(0.75, 0.75)
+script = ExtResource("7_l8ddx")
+centered = false
+atlases = Array[ExtResource("8_msg4d")]([ExtResource("12_l1pen")])
+metadata/touch_rect = Rect2(-111, 874.5, 888, 79.5)
 
-[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1439277082]
-stream = ExtResource("14_2bhcv")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="NewsButton" unique_id=1011983696]
+libraries/ = ExtResource("13_jsr37")
+autoplay = &"news_button_idle"
+
+[node name="Seasonal" type="Node2D" parent="." unique_id=1540060557]
+script = ExtResource("14_t4c7f")
+snow_frames = ExtResource("15_e1sij")
+leaf_frames = ExtResource("16_dx777")
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1522320520]
+stream = ExtResource("17_7g2nc")
 autoplay = true
 bus = &"Music"
 
-[node name="BlackLineUp" type="ColorRect" parent="." unique_id=1903491214]
+[node name="BlackLineUp" type="ColorRect" parent="." unique_id=321123182]
 offset_left = -240.0
 offset_right = 2160.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="BlackLineDown" type="ColorRect" parent="." unique_id=94666481]
+[node name="BlackLineDown" type="ColorRect" parent="." unique_id=405553449]
 offset_left = -240.0
 offset_right = 2160.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=831681114]
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=2061287311]

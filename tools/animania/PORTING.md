@@ -422,13 +422,15 @@ down, because the port had three of them missing outright:
   strip they sit on. That the sum lands inside the strip is the check that it is read the
   right way round, and the five URLs in `.rodata` are in the same order as the anons.
 - **createParticles** (0x17fb440) is an `FlxTypedEmitter` at (750, -150) on
-  `menus/particle` — a plain white 100x100 square — lifespan 2 to 4, scale running 0.35
-  down to 0.1, a colour range through pink and cyan to white, and `start(false, 0.09)`.
-  Its two `FlxPointRangeBounds.set` calls carry -450/300/0/-300 and -200/-300/300/10, and
-  **which emitter property each of those belongs to is not visible** — the calls go through
-  a field pointer the disassembly does not name, and Flixel's velocity, acceleration and
-  drag all take the same shape. Identified, not ported: an emitter above the screen whose
-  velocities are read onto the wrong property is a worse answer than none.
+  `menus/particle`, a plain white 100x100 square. Its settings looked unreadable at first
+  because every `set` call goes through an unnamed field pointer — until you notice that
+  **hxcpp returns the bounds object for chaining, so the hidden return slot takes `rdi` and
+  the field being configured is in `rsi`.** Read `rdi` and all six calls look like the same
+  anonymous temporary; read `rsi` and the offsets fall straight onto FlxTypedEmitter's
+  declaration order: `velocity` 0xa8, `lifespan` 0xe8, `scale` 0xf0, `alpha` 0xf8, `color`
+  0x100, `drag` 0x108. The arguments are hxcpp's **right-to-left** evaluation, so the last
+  parameter is the first `Dynamic` built - which is what turns alpha from nonsense into
+  `set(0.9, 1, 0, 0)`, a plain fade-out, and is the check that the reading is right.
 - **createBackground** (0x1800500) is `loadTexture`, `screenCenter`, `scrollFactor.set(0.65,
   0.65)` and then `x -= 75`. **No scale.** The 1352x790 art is drawn at its own size on a
   1280x720 screen, overhanging 36 a side, and slides 75 left. This port had it scaled to

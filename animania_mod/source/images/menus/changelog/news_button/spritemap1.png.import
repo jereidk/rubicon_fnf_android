@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dec3ba816231"
-path="res://.godot/imported/icon.png-b9f908a0bf8d1a644745913452e5ad3b.ctex"
+uid="uid://bnhsjrv5quw0m"
+path="res://.godot/imported/spritemap1.png-0363473f31bcf967173f73e107435b41.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://animania_mod/source/icon.png"
-dest_files=["res://.godot/imported/icon.png-b9f908a0bf8d1a644745913452e5ad3b.ctex"]
+source_file="res://animania_mod/source/images/menus/changelog/news_button/spritemap1.png"
+dest_files=["res://.godot/imported/spritemap1.png-0363473f31bcf967173f73e107435b41.ctex"]
 
 [params]
 
