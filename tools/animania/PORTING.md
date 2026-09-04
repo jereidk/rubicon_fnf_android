@@ -419,6 +419,19 @@ run --headless --path . --script tools/animania/test_phone_call_port.gd   # 853 
 run --headless --path . --script tools/animania/harness/flow_check.gd     # the whole flow
 ```
 
+**A run that takes more than ten seconds needs a reason, not patience.** Godot
+itself starts and quits in 0.6s here, so anything longer is the script's own
+work and can be located. Pipe the run through a timestamper and print only the
+lines that took over a second:
+
+    p = Popen([...], stdout=PIPE, text=True, bufsize=1)
+    for line in p.stdout:  t = now - t0;  print(t, t - prev, line) if t - prev > 1
+
+For `test_phone_call_port.gd` that says 73s total, and where: +17.6s before the
+note-position checks, +21.1s before the standing death, +9s and +6s elsewhere -
+all of it building level and character scenes off multi-thousand-pixel Animate
+atlases. Not the check count; the scene loads.
+
 **Know the baseline before you read a result.** "The guard fails" is not news
 here; what matters is whether it fails MORE than it did. Measured on 4.7.1:
 

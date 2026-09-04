@@ -22,11 +22,25 @@ const AUTHORED := Vector2(1352.0, 790.0)
 ## FlxG.width/height lives in THAT space, not in the background's.
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 
-## Scaled to COVER the screen and centred, so the background has no edges showing and the
-## buttons keep their positions relative to it. Whether the mod does exactly this is the one
-## thing about the layout that is still a reading rather than a measurement.
-var _scale: float = maxf(SCREEN.x / AUTHORED.x, SCREEN.y / AUTHORED.y)
-var _origin: Vector2 = (SCREEN - AUTHORED * _scale) * 0.5
+## MEASURED, and it used to be a guess ("scale to cover, centre it"). The mod's own capture
+## settles it: the panel's gaps fall on rows 423-430, 553-560 and 682-689 and on column
+## 904-911 of a 1278-wide shot, and those are the seams between the button rects the JSONs
+## carry - website ends at y=424 where options starts at 435, options ends at x=928 where
+## credits starts at 941, and so on. Fitting the three row seams and the two column ones:
+##
+##     screen_1280 = 0.9033 * P + (62.5, 43.9)
+##
+## the same scale on both axes to within 0.2%. Times this project's 1.5. It is not a
+## "cover" - it is the mod's camera resting at a zoom of 0.9 (which is what
+## startIntroAnimation tweens to) looking at (646, 450) rather than at the screen centre.
+const AUTHORED_SCALE := 0.9033
+## The y carries a -6.6 the fit did not: rendered with 43.9 the three seams land on 433,
+## 565 and 688 against the capture's 426, 556 and 685, all low by about the same. Measured
+## residual, applied where it was measured.
+const AUTHORED_ORIGIN := Vector2(62.5, 43.9 - 6.6)
+
+var _scale: float = AUTHORED_SCALE * FUNKIN_TO_RUBICON
+var _origin: Vector2 = AUTHORED_ORIGIN * FUNKIN_TO_RUBICON
 
 var _root: Node2D
 
@@ -41,12 +55,20 @@ func _init() -> void:
 	camera.position = SCREEN * 0.5
 	_add(camera)
 
+	# The background does NOT take the buttons' mapping. createBackground centres it on the
+	# SCREEN at its own size - `x = (FlxG.width - bg.width) * 0.5`, same for y, both through
+	# get_width/get_height and the 0.5 at .rodata 0x59fa5e0 - and then gives it a zoomFactor
+	# so it barely follows the camera at all. The mod's capture has it edge to edge; putting
+	# it through the buttons' 0.903 left a bare strip down the left of the screen. So it
+	# covers, and it is centred.
 	var background := Sprite2D.new()
 	background.name = "Background"
 	background.texture = load("%s/menu background.png" % ART)
 	background.centered = false
-	background.scale = Vector2.ONE * _scale
-	background.position = _origin
+	var bg_size: Vector2 = background.texture.get_size()
+	var bg_scale: float = maxf(SCREEN.x / bg_size.x, SCREEN.y / bg_size.y)
+	background.scale = Vector2.ONE * bg_scale
+	background.position = (SCREEN - bg_size * bg_scale) * 0.5
 	_add(background)
 
 	# `buttons back`, and its placement is MEASURED now rather than derived. It used to be
@@ -59,16 +81,26 @@ func _init() -> void:
 	# - two cvtsi2sd of FlxG.width/height, a subsd of the sprite's own size and a multiply
 	# by the 0.5 at .rodata 0x59fa5e0. So it is centred on the SCREEN and has nothing to do
 	# with where the buttons are.
+	# ...and THEN pushed right by 390: right after the two centring calls,
+	# createUIComponents does `plate.set_x(390 + <x>)` (movsd of the 390 at .rodata
+	# 0x59fad58, an addsd of a field 0x30 - which is `x` - and set_x through slot 0x210).
+	# Centred alone puts the panel at 310 and the mod's own capture has its left edge on
+	# column 701; 310 + 390 = 700. The port was drawing it across the middle of the screen,
+	# behind the characters, instead of behind the buttons.
+	#
 	# Scaled by the project's flat 1.5 and not by the background's factor: it is placed
 	# against FlxG.width/height, which is Funkin's 1280x720, so it lives in that space and
-	# not in the background's 1352x790. That it comes out TALLER than the screen is the
-	# mod's own doing - (720 - 738) * 0.5 is a negative y, so the code expects it to bleed.
+	# not in the background's 1352x790. That it comes out TALLER and WIDER than the screen
+	# is the mod's own doing - (720 - 738) * 0.5 is a negative y, and 700 + 660 is past
+	# 1280, so the code expects it to bleed on both.
+	const PLATE_PUSH := 390.0
 	var plate := Sprite2D.new()
 	plate.name = "ButtonsBack"
 	plate.texture = load("%s/buttons back.png" % ART)
 	plate.centered = false
 	plate.scale = Vector2.ONE * FUNKIN_TO_RUBICON
-	plate.position = (SCREEN - plate.texture.get_size() * FUNKIN_TO_RUBICON) * 0.5
+	plate.position = (SCREEN - plate.texture.get_size() * FUNKIN_TO_RUBICON) * 0.5 \
+		+ Vector2(PLATE_PUSH * FUNKIN_TO_RUBICON, 0.0)
 	_add(plate)
 	print("OUT placa centrada en pantalla en (%.0f, %.0f)"
 		% [plate.position.x, plate.position.y])

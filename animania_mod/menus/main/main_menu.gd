@@ -107,8 +107,13 @@ const INTRO_ANGLE := 10.0
 const INTRO_SCROLL := 200.0 * 1920.0 / 1280.0
 ## The mod's zoom numbers are all against ITS resting 0.885 (see ZOOM_REST), so what
 ## carries over is the ratio: three and a bit times the resting size down to a touch over.
-const INTRO_ZOOM_FROM := 3.0 / 0.885
-const INTRO_ZOOM_TO := 0.9 / 0.885
+## The intro comes in from three times the resting size and lands ON it. The mod's 3.0 and
+## 0.9 are camera zooms against its own 1280x720; here the 0.9 lives in the scene's
+## AUTHORED_SCALE instead (see build_main_menu.gd), so what is left for the camera is the
+## RATIO - and the resting end of it is 1. Leaving it at 0.9/0.885 rested the menu 1.7%
+## zoomed in, on top of a layout that was already scaled wrong.
+const INTRO_ZOOM_FROM := 3.0 / 0.9
+const INTRO_ZOOM_TO := 1.0
 
 ## startTransitionToMenu, which is the intro run backwards. Its default duration is 0.75 -
 ## the same 0.75 the confirm animation takes, so the two are one gesture:
@@ -475,47 +480,53 @@ func _open_changelog() -> void:
 	_changelog_sub_state.tree_exited.connect(func() -> void: _changelog_sub_state = null)
 
 
+## createNewsButton (0x18017a0) loads menus/changelog/news_button, an Animate atlas with
+## the frame labels "loop white", "loop white2" and "open", and slides it in from 350 with
+## a delayed tween. It does NOT touch new_update_bub: that strip is 1184x106 of the word
+## UPDATE repeated, a marquee, and the port was hanging it off the button unscaled - which
+## is where the three giant UPDATEs across the middle of the menu came from. The mod's own
+## capture has nothing there.
+##
+## The button's placement is not measured yet, so it stays off rather than being invented a
+## second time: NEWS_BUBBLE_PATH is kept because the asset is real and will be wanted when
+## the changelog screen is done.
 func _create_news_button() -> void:
-	# The news button sits near the top of screen.
 	if not ResourceLoader.exists(NEWS_BUTTON_PATH):
 		return
-	_news_button = Sprite2D.new()
-	_news_button.texture = load(NEWS_BUTTON_PATH)
-	_news_button.position = Vector2(1700, 700)
-	_news_button.scale = Vector2(1.2, 1.2)
-	_news_button.set_meta("clickable", true)
-	add_child(_news_button)
-	# The update bubble indicator
-	if ResourceLoader.exists(NEWS_BUBBLE_PATH):
-		_news_bubble = Sprite2D.new()
-		_news_bubble.texture = load(NEWS_BUBBLE_PATH)
-		_news_bubble.position = Vector2(0, -80)
-		_news_button.add_child(_news_bubble)
 
 
-## createSpecialElements. Creates gradient overlays and special visual elements
-## from the binary's createSpecialElements method.
-const GRADIENT_COLOR_TOP := Color(0.0, 0.0, 0.0, 0.4)
-const GRADIENT_COLOR_BOTTOM := Color(0.0, 0.0, 0.0, 0.0)
-var _gradient_top: ColorRect = null
-var _gradient_bottom: ColorRect = null
+## createSpecialElements (0x180ec40) is two calls and nothing else: createNewsButton and
+## createMusicSocial. The port also drew two black ColorRects over the top and bottom of the
+## screen "for depth" - invented, and the top one is the grey band that sat across the
+## menu's sky in every render. Gone.
+const MUSIC_SOCIAL_FRAMES := "res://animania_mod/source/images/menus/menu/music_social_frames.tres"
+## createMusicSocial: scale 0.85 on both axes (0x180e611/0x180e62d), zoomFactor 0.875, and
+## the animations "soundtrack basic" (idle), "soundtrack white" (selected) and
+## "soundtrack press", all at 24. Where it SITS is off the mod's own capture - the OST disc
+## is centred on (645, 620) of a 1278-wide shot - because createMusicSocial's own placement
+## has not been read yet.
+const MUSIC_SOCIAL_SCALE := 0.85
+const MUSIC_SOCIAL_CENTRE := Vector2(645.0, 620.0)
+var _music_social: AnimatedSprite2D = null
 
 
 func _create_special_elements() -> void:
-	# Gradient overlays at top and bottom of screen for depth.
-	_gradient_top = ColorRect.new()
-	_gradient_top.color = GRADIENT_COLOR_TOP
-	_gradient_top.size = Vector2(1920, 120)
-	_gradient_top.position = Vector2(0, 0)
-	_gradient_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_gradient_top)
+	_create_news_button()
+	_create_music_social()
 
-	_gradient_bottom = ColorRect.new()
-	_gradient_bottom.color = GRADIENT_COLOR_BOTTOM
-	_gradient_bottom.size = Vector2(1920, 120)
-	_gradient_bottom.position = Vector2(0, 960)
-	_gradient_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_gradient_bottom)
+
+func _create_music_social() -> void:
+	if not ResourceLoader.exists(MUSIC_SOCIAL_FRAMES):
+		return
+	_music_social = AnimatedSprite2D.new()
+	_music_social.name = "MusicSocial"
+	_music_social.centered = true
+	_music_social.sprite_frames = load(MUSIC_SOCIAL_FRAMES) as SpriteFrames
+	if _music_social.sprite_frames.has_animation(&"soundtrack basic"):
+		_music_social.play(&"soundtrack basic")
+	_music_social.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * (1920.0 / 1280.0)
+	_music_social.position = MUSIC_SOCIAL_CENTRE * (1920.0 / 1278.0)
+	add_child(_music_social)
 
 
 ## initMouseEvents. Sets up mouse hover detection on buttons.

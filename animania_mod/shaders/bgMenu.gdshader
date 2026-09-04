@@ -4,10 +4,10 @@ shader_type canvas_item;
 // per-tile with a wave that decays outward from center, then blends with
 // the background texture at 85%.
 //
-// iChannel0 is the background texture (menuTransparent.png), passed as
-// screen_texture so the sprite behind this shader is visible.
-
-uniform sampler2D bg_texture : filter_linear;
+// iChannel0 in a flixel Shadertoy wrapper is the SPRITE'S OWN bitmap, so here it
+// is TEXTURE. The port had it sampling menuTransparent.png through a uniform,
+// and that file is a paletted transparency MASK, not a colour image: mixing 85%
+// of its undefined rgb turned the menu's teal background into a purple wash.
 
 void fragment() {
 	vec2 resolution = vec2(textureSize(TEXTURE, 0));
@@ -40,7 +40,7 @@ void fragment() {
 	vec3 final_color = vec3(pow(value, 2.0), pow(value, 1.5), pow(value, 1.2));
 
 	vec2 ogRes = fragCoord / resolution.xy;
-	vec4 bg = texture(bg_texture, ogRes);
+	vec4 bg = texture(TEXTURE, ogRes);
 	final_color = mix(final_color, bg.rgb, 0.85);
 
 	COLOR = vec4(final_color, 1.0);
