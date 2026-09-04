@@ -665,9 +665,22 @@ func funny_music_thing() -> void:
 ## idiom as the titles - a *0.5 on (screen width - its own width) and then a
 ## -50 - so its centre sits on the same x they do, which is what puts it
 ## BEHIND the week names instead of off to the left.
+## MEASURED from StoryMenu_obj::create() at 0x32f370f: right after the blot is
+## built and centred, the ARGB literal 0xFF27242A goes into %esi and is passed
+## through the vtable colour setter at slot 0x3b0. It does NOT show up as a
+## write to the sprite's colour field 0x180, which is why grepping for that
+## found nothing.
+##
+## The art itself is white in the build (sampled: 240,240,240 opaque) and is
+## byte-identical to the copy vendored here, so the dark splat in the mod is
+## this tint and nothing else.
+const BLOT_TINT := Color(39.0 / 255.0, 36.0 / 255.0, 42.0 / 255.0, 1.0)
+
+
 func _place_weeks_blot() -> void:
 	if weeks_blot != null:
 		weeks_blot.position.x = TITLE_CENTRE.x
+		weeks_blot.modulate = BLOT_TINT
 
 
 ## Lays the level colour out as the measured band instead of a full-screen
