@@ -40,6 +40,8 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 const SOUND_SWITCH := "res://animania_mod/source/sounds/animania/menu/menu_switch.ogg"
 ## doSelect's own sound, and the one a blocked button gets.
 const SOUND_CONFIRM := "res://animania_mod/source/sounds/confirmMenu.ogg"
+## handleInput's BACK branch plays `cancelMenu` (0x180f370).
+const SOUND_CANCEL := "res://animania_mod/source/sounds/cancelMenu.ogg"
 const SOUND_LOCKED := "res://animania_mod/source/sounds/animania/menu/locked_sfx.ogg"
 
 ## The confirm animation is 18 frames at 24fps. The transition waits it out.
@@ -62,7 +64,6 @@ const BPM := 102.0
 ## MOD's own framing is built around and this scene's framing was settled by looking at it.
 ## What is ported is the MOTION - a bump of half a percent decaying at the same rate - and
 ## on a base of 1.0 against their 0.885 that is the same half percent either way.
-const BEAT_ZOOM := 0.005
 const ZOOM_DECAY := 6.25
 const ZOOM_REST := 1.0
 
@@ -308,8 +309,41 @@ func _process(delta: float) -> void:
 	if beat == _beat:
 		return
 	_beat = beat
-	if camera != null:
-		camera.zoom += Vector2.ONE * BEAT_ZOOM
+	_beat_hit(beat)
+
+
+## beatHit (0x1812be0), which this port had as one flat bump on every beat. It is three
+## bumps under two conditions, and the second condition is a SECTION OF THE TRACK:
+##
+##     if (music.volume <= 0.1) return                       (0x1812cc8)
+##     inDrop = music.time > 50750 && music.time < 93000     (0x181302b / 0x1813052)
+##     if ((beat & 1) == 0 || inDrop)  camera.zoom += 0.005  (0x1812f4a)
+##     if ((beat & 3) == 0 || inDrop)  camera.zoom += 0.001  (0x1812eb5)
+##     if (inDrop)                     camera.zoom += 0.001  (0x1812ef4)
+##
+## So outside the drop the menu breathes on the EVEN beats only, at 0.005, with an extra
+## 0.001 every fourth; inside it every beat gets all three. A flat 0.005 everywhere punched
+## on the off-beats, which is the half of it that reads as wrong against the music.
+const BEAT_ZOOM_MAIN := 0.005
+const BEAT_ZOOM_EXTRA := 0.001
+const BEAT_VOLUME_GATE := 0.1
+const DROP_FROM := 50.750
+const DROP_TO := 93.0
+
+
+func _beat_hit(beat: int) -> void:
+	if camera == null or music == null:
+		return
+	if db_to_linear(music.volume_db) <= BEAT_VOLUME_GATE:
+		return
+	var at: float = music.get_playback_position()
+	var in_drop: bool = at > DROP_FROM and at < DROP_TO
+	if beat % 2 == 0 or in_drop:
+		camera.zoom += Vector2.ONE * BEAT_ZOOM_MAIN
+	if beat % 4 == 0 or in_drop:
+		camera.zoom += Vector2.ONE * BEAT_ZOOM_EXTRA
+	if in_drop:
+		camera.zoom += Vector2.ONE * BEAT_ZOOM_EXTRA
 
 
 ## The walk skips blocked buttons rather than stopping on them, and wraps.
@@ -985,6 +1019,27 @@ func _sort_by_z() -> void:
 
 
 
+## handleInput's BACK branch (0x180f370): `cancelMenu`, then startTransitionToMenu with a
+## closure that switches to animania::states::TitleScreen (0x17f636b). This port had no way
+## out of the main menu at all - on a phone that means the hardware back button did nothing.
+const TITLE := "res://animania_mod/menus/title/title_screen.tscn"
+
+
+func go_back() -> void:
+	if _confirmed or _exit >= 0.0 or not _live():
+		return
+	_confirmed = true
+	_play(SOUND_CANCEL)
+	_start_exit()
+	await get_tree().create_timer(EXIT_SECONDS).timeout
+	get_tree().change_scene_to_file(TITLE)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		go_back()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _confirmed or not event.is_pressed() or not _live():
 		return
@@ -997,6 +1052,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				change_item(1)
 			KEY_ENTER, KEY_SPACE, KEY_KP_ENTER:
 				do_select()
+			KEY_ESCAPE, KEY_BACKSPACE:
+				go_back()
 		return
 
 	# handleInput reads FlxG.mouse.wheel straight into changeItem, negated.

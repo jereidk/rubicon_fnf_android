@@ -475,6 +475,28 @@ func _init() -> void:
 		and String(current_scene.scene_file_path) == SONG,
 		"el reintento no recargo la cancion: %s" % [current_scene])
 
+	# handleInput's BACK branch (0x180f370) plays cancelMenu and transitions to
+	# animania::states::TitleScreen (0x17f636b). This port had no way out of the main menu
+	# at all - on a phone that is the hardware back button doing nothing.
+	#
+	# LAST, deliberately. go_back() calls change_scene_to_file, which frees whatever the
+	# current scene is; run in the middle of this walk it quietly took the guard's own menu
+	# out from under the checks that came after it.
+	var back_menu: Node = load(MENU).instantiate()
+	root.add_child(back_menu)
+	await process_frame
+	back_menu._intro = -1.0
+	back_menu.go_back()
+	var back_target: String = String(back_menu.TITLE)
+	var back_until: int = Time.get_ticks_msec() + 6000
+	while Time.get_ticks_msec() < back_until:
+		if current_scene != null and String(current_scene.scene_file_path) == back_target:
+			break
+		await process_frame
+	_check(current_scene != null and String(current_scene.scene_file_path) == back_target,
+		"atras desde el menu tendria que llevar al titulo, y llevo a %s"
+			% ("nada" if current_scene == null else current_scene.scene_file_path))
+
 	_report()
 
 
