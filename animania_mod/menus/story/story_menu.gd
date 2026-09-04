@@ -95,11 +95,11 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## tuning-by-eye: each is the leftover after the placement above, in Funkin
 ## pixels, and each was re-measured to 0 afterwards.
 const FIX_TITLE := Vector2(-4.0, 1.0)
-const FIX_SCORE := Vector2(-2.0, 0.0)
+const FIX_SCORE := Vector2(-3.0, -1.4)
 ## The week name is right-aligned, so its RIGHT edge is what is calibrated: the
 ## left one differs because VCR sets "DADDY DEAREST" wider than the mod's face.
-const FIX_WEEK_NAME := Vector2(6.0, 0.0)
-const FIX_TRACKLIST := Vector2(-3.0, -2.5)
+const FIX_WEEK_NAME := Vector2(3.0, -1.5)
+const FIX_TRACKLIST := Vector2(-0.4, 0.0)
 const FIX_DIFF_LABEL := Vector2(1.0, -1.0)
 const FIX_DIFF_VALUE := Vector2(3.0, 1.0)
 const FIX_ARROWS := Vector2(2.0, -2.0)
@@ -109,7 +109,12 @@ const FIX_ARROWS := Vector2(2.0, -2.0)
 const FIX_PROPS := {
 	"storymenu/props/amtake/week1/DADDY_DEAREST_MENU": Vector2(1.0, 3.0),
 	"storymenu/props/amtake/week1/BF_STANDART_MENU": Vector2(-4.0, -7.0),
-	"storymenu/props/amtake/week1/GF_STANDART_MENU": Vector2(0.0, 2.0),
+	# GF is the one that needed real work rather than a nudge. With the level
+	# data's danceLeft in place her boombox still sat 26px right of where the
+	# reference draws it, on a cross-correlation of the whole prop against the
+	# capture; at that shift the two boomboxes lie on top of each other and only
+	# her head differs, which is the bop being a frame out.
+	"storymenu/props/amtake/week1/GF_STANDART_MENU": Vector2(-26.06, -1.0),
 }
 
 const TITLE_CENTRE := Vector2(590.0 * FUNKIN_TO_RUBICON, 584.0 * FUNKIN_TO_RUBICON) \
@@ -525,20 +530,39 @@ func sorting_story_diffs(a: String, b: String) -> bool:
 
 # ─── getSongVariDisplayNames (from binary) ───────────────────────────────
 
+## Where the mod's own capitalisation lives. Title-casing the id gives
+## "Dadbattle"; the reference shows "DadBattle", and the difference is that the
+## mod reads songName out of the song's metadata instead of inventing a name
+## from the folder. The title-case is kept as the fallback for a song whose
+## metadata this port has not vendored yet.
+const SONG_META := "res://animania_mod/source/songs/%s/%s-metadata.json"
+
+
+func _song_display_name(song: String) -> String:
+	var path: String = SONG_META % [song, song]
+	if ResourceLoader.exists(path) or FileAccess.file_exists(path):
+		var text: String = FileAccess.get_file_as_string(path)
+		if text != "":
+			var data: Variant = JSON.parse_string(text)
+			if data is Dictionary and (data as Dictionary).has("songName"):
+				var name: String = String((data as Dictionary)["songName"])
+				if name != "":
+					return name
+	var display: String = song.replace("-", " ").replace("_", " ")
+	var words: PackedStringArray = display.split(" ")
+	var capitalized: PackedStringArray = []
+	for word: String in words:
+		if word.length() > 0:
+			capitalized.append(word[0].to_upper() + word.substr(1))
+		else:
+			capitalized.append(word)
+	return " ".join(capitalized)
+
+
 func get_song_vari_display_names(songs: PackedStringArray) -> PackedStringArray:
 	var result: PackedStringArray = []
 	for song: String in songs:
-		# Convert song ID to display name: "bopeebo" → "Bopeebo", "winter-horrorland" → "Winter Horrorland"
-		var display: String = song.replace("-", " ").replace("_", " ")
-		# Capitalize first letter of each word
-		var words: PackedStringArray = display.split(" ")
-		var capitalized: PackedStringArray = []
-		for word: String in words:
-			if word.length() > 0:
-				capitalized.append(word[0].to_upper() + word.substr(1))
-			else:
-				capitalized.append(word)
-		result.append(" ".join(capitalized))
+		result.append(_song_display_name(song))
 	return result
 
 
@@ -594,8 +618,8 @@ func update_text() -> void:
 
 	if level_title_text != null:
 		level_title_text.text = display_name
-	if tracklist_text != null:
-		tracklist_text.text = "\n".join(display_names)
+	if _tracklist_atlas != null:
+		_tracklist_atlas.text = "\n".join(display_names)
 	if score_text != null:
 		score_text.text = SCORE_FORMAT % high_score
 	if mode_text != null:
@@ -613,6 +637,110 @@ func _find_anim(f: SpriteFrames, suffix: String) -> StringName:
 		if String(n) == suffix or String(n).ends_with(" " + suffix):
 			return n
 	return &""
+
+
+## The animation the prop rests on: "idle" where the level data names one, and
+## GF's "danceLeft" where it does not. Used both to pose the sprite and to
+## measure the frame it will actually show.
+func _prop_idle_anim(f: SpriteFrames) -> StringName:
+	var idle: StringName = _find_anim(f, "idle")
+	if idle != &"":
+		return idle
+	if f != null and f.has_animation(&"danceLeft"):
+		return &"danceLeft"
+	if f != null and f.get_animation_names().size() > 0:
+		return StringName(f.get_animation_names()[0])
+	return &""
+
+
+## Rebuilds the atlas's raw sparrow strips into the animations the level data
+## asks for. Two things make this necessary:
+##
+##   - the names. The sparrow calls them "gf idle" and "bf confirm"; the level
+##     data calls them "danceLeft" and "confirm", and the menu drives them by
+##     the latter.
+##   - frameIndices. GF's dance is not the strip in order: danceLeft is frame 30
+##     followed by 0..14, danceRight is 15..29. Playing "gf idle" straight
+##     through shows poses the mod never puts on screen.
+##
+## The indices count SPARROW frames, and the .tres collapses runs of identical
+## frames into one entry with a duration, so the strip is expanded back out
+## before indexing into it - otherwise index 30 lands somewhere around 20.
+func _build_prop_anims(src: SpriteFrames, spec: Array, offsets: Dictionary) -> SpriteFrames:
+	if src == null or spec.is_empty():
+		return src
+	var out := SpriteFrames.new()
+	var new_offsets: Dictionary = {}
+	var made: bool = false
+	for entry: Variant in spec:
+		if not entry is Dictionary:
+			continue
+		var e: Dictionary = entry as Dictionary
+		var anim: StringName = StringName(String(e.get("name", "")))
+		var prefix: String = String(e.get("prefix", ""))
+		if String(anim) == "" or prefix == "":
+			continue
+		var source: StringName = _find_anim(src, prefix)
+		if source == &"":
+			continue
+
+		var texs: Array[Texture2D] = []
+		var offs: PackedVector2Array = PackedVector2Array()
+		var src_offs: PackedVector2Array = offsets.get(source, PackedVector2Array())
+		for fi: int in src.get_frame_count(source):
+			var repeat: int = maxi(1, int(round(src.get_frame_duration(source, fi))))
+			var t: Texture2D = src.get_frame_texture(source, fi)
+			var o: Vector2 = src_offs[fi] if fi < src_offs.size() else Vector2.ZERO
+			for _r: int in repeat:
+				texs.append(t)
+				offs.append(o)
+
+		out.add_animation(anim)
+		out.set_animation_speed(anim, float(e.get("frameRate", 24.0)))
+		out.set_animation_loop(anim, bool(e.get("looped", true)))
+		var picked: PackedVector2Array = PackedVector2Array()
+		var indices: Array = e.get("frameIndices", []) as Array
+		if indices.is_empty():
+			for i: int in texs.size():
+				out.add_frame(anim, texs[i])
+				picked.append(offs[i])
+		else:
+			for raw: Variant in indices:
+				var i: int = int(raw)
+				if i >= 0 and i < texs.size():
+					out.add_frame(anim, texs[i])
+					picked.append(offs[i])
+		new_offsets[anim] = picked
+		made = true
+
+	if not made:
+		return src
+	if out.has_animation(&"default") and out.get_animation_names().size() > 1:
+		out.remove_animation(&"default")
+	offsets.clear()
+	for k: Variant in new_offsets:
+		offsets[k] = new_offsets[k]
+	return out
+
+
+## The per-frame trim offset, applied where Flixel applies it: to the sprite,
+## not to the texture, so nothing is clipped.
+##
+## RELATIVE to the resting pose, not absolute. These atlases carry frameY values
+## that are not a trim inset at all - BF's is 144 on a frame nine pixels taller
+## than its region - so feeding them in raw walks the whole prop off the band
+## (BF lost his head behind the top bar the first time this ran). What the
+## offsets DO describe correctly is how each frame sits against the others, and
+## that is the part worth having: it is what keeps GF's boombox still while she
+## bops. Zeroing the resting frame keeps the measured placement below intact.
+func _apply_prop_offset(sprite: AnimatedSprite2D) -> void:
+	if not is_instance_valid(sprite):
+		return
+	var table: Dictionary = sprite.get_meta(&"frame_offsets", {}) as Dictionary
+	var base: Vector2 = sprite.get_meta(&"frame_offset_base", Vector2.ZERO)
+	var offs: PackedVector2Array = table.get(sprite.animation, PackedVector2Array())
+	sprite.offset = (offs[sprite.frame] - base) if sprite.frame < offs.size() \
+		else Vector2.ZERO
 
 
 func update_props() -> void:
@@ -656,17 +784,45 @@ func update_props() -> void:
 		# negative position on a Godot AtlasTexture draws the region outside the
 		# padded frame, where it is CLIPPED. That is what beheaded BF.
 		#
-		# The padding is under 2% on both axes, so dropping it costs nothing and
-		# the art draws whole. Done on a duplicate: the .tres is shared.
+		# Flixel does not clip: fromSparrow keeps frameX/frameY as an OFFSET and
+		# draws the region wherever it lands, inside the frame box or not. So the
+		# margin comes off the textures - which is what stops the clipping - and
+		# the offset it encoded is applied to the sprite instead, per frame, in
+		# _apply_prop_offset. Done on a duplicate: the .tres is shared.
 		frames = frames.duplicate(true)
+		var frame_offsets: Dictionary = {}
 		for anim_name: StringName in frames.get_animation_names():
+			var offs: PackedVector2Array = PackedVector2Array()
 			for fi: int in frames.get_frame_count(anim_name):
 				var at: AtlasTexture = frames.get_frame_texture(anim_name, fi) as AtlasTexture
-				if at != null and at.margin != Rect2():
+				if at == null:
+					offs.append(Vector2.ZERO)
+					continue
+				# Centred, Godot puts the region's own centre on the position;
+				# the frame box wants its centre there instead, with the region
+				# sitting at margin.position inside it.
+				offs.append(at.margin.position - at.margin.size * 0.5)
+				if at.margin != Rect2():
 					at.margin = Rect2()
+			frame_offsets[anim_name] = offs
+
+		# The level data names the animations and, for GF, which frames each one
+		# takes: danceLeft is [30, 0..14] of "gf idle" and danceRight [15..29].
+		# Asking the atlas for a bare "idle" got the whole 45-frame strip in
+		# sparrow order, which is how GF ended up in a pose the mod never shows
+		# with her boombox 26px off where the reference draws it.
+		frames = _build_prop_anims(frames, pd.get("animations", []) as Array,
+			frame_offsets)
 
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
+		anim_sprite.set_meta(&"frame_offsets", frame_offsets)
+		var rest: StringName = _prop_idle_anim(frames)
+		var rest_offs: PackedVector2Array = frame_offsets.get(rest, PackedVector2Array())
+		anim_sprite.set_meta(&"frame_offset_base",
+			rest_offs[0] if rest_offs.size() > 0 else Vector2.ZERO)
+		anim_sprite.frame_changed.connect(_apply_prop_offset.bind(anim_sprite))
+		anim_sprite.animation_changed.connect(_apply_prop_offset.bind(anim_sprite))
 		anim_sprite.scale = Vector2.ONE * scale_val * FUNKIN_TO_RUBICON
 		# Level_obj::buildProps (0x3ec1ee0) sets only x, and it does it as
 		#     x = FlxG.width * 0.25 * index + offsets[0]
@@ -694,9 +850,7 @@ func update_props() -> void:
 		# it. Averaged, because the per-character spread is their own atlas trim.
 		var top: float = (BACKGROUND_Y + PROP_TOP_DROP) * FUNKIN_TO_RUBICON
 		var frame_size: Vector2 = Vector2.ZERO
-		var first_anim: StringName = _find_anim(frames, "idle")
-		if first_anim == &"" and frames.get_animation_names().size() > 0:
-			first_anim = StringName(frames.get_animation_names()[0])
+		var first_anim: StringName = _prop_idle_anim(frames)
 		if first_anim != &"":
 			var ft: Texture2D = frames.get_frame_texture(first_anim, 0)
 			if ft != null:
@@ -715,11 +869,10 @@ func update_props() -> void:
 		# nothing plays, and the sprite sits on frame 0 of whichever animation
 		# came first alphabetically ("... confirm"). That is why the cast was
 		# posed wrong against the reference.
-		var idle_anim: StringName = _find_anim(frames, "idle")
+		var idle_anim: StringName = _prop_idle_anim(frames)
 		if idle_anim != &"":
 			anim_sprite.play(idle_anim)
-		elif frames.has_animation(&"danceLeft"):
-			anim_sprite.play(&"danceLeft")
+		_apply_prop_offset(anim_sprite)
 
 		_active_props.append(anim_sprite)
 
@@ -1022,23 +1175,58 @@ func _place_boxes() -> void:
 ## The tracklist DOES belong to its box; the mod draws localised art for its
 ## header rather than text, so the inset here is by eye against the box.
 ## MEASURED off the 1280x720 reference:
-##   LEVEL SCORE  starts at (7, 17), caps 20px tall -> ~28px of VCR
-##   tracklist    starts at (8, 511), block 184x131, in (229, 102, 132)
+##   LEVEL SCORE  starts at (6, 16), caps 21px tall
+##   week name    ends   at (1262, 37)
+##   tracklist    starts at (8, 511), block 184x131, in 0xE55777
 ##
-## The tracklist's own face is NOT VCR: the mod letters it in the same
-## hand-drawn font as the TRACKS header, which this port does not have. VCR is
-## nearly twice as wide for the same height, so the size here is set to match
-## the BLOCK HEIGHT and the extra width is the font, not a placement error.
-## The port drew both as small default-font Labels in white, which is what made
-## the corners read wrong however well the boxes lined up.
+## The two top texts ARE VCR. create() sets all three with
+##   setFormat("VCR OSD Mono", 32, ...)
+## - the size rides in the high half of a packed Null<int>, which is why it
+## reads as `movabs $0x2000000000` at 0x2faccbc, 0x2face85 and 0x2fad012 rather
+## than as a plain 32 - and the level name then takes alpha 0.7 (0x2fad0a8,
+## through the set-alpha slot 0x3a8), which is what makes it read grey next to
+## the white score. The port had them at 28 and fully opaque.
+##
+## The tracklist is the odd one out. The same call formats it as VCR too, but
+## nothing that ships in the build renders it that way: all 36 fonts embedded in
+## the executable were extracted and rendered, and not one is the rounded
+## hand-drawn face the reference shows. That face is the `default` SPARROW
+## ATLAS in assets/images/fonts, which matches the capture stroke for stroke.
+## So the song list is lettered with AtlasText, not with a Label.
 const TOP_TEXT_POS := Vector2(7.0, 12.0)
-const TOP_TEXT_SIZE := 28
-## The week name is right-aligned but not flush: in the reference it ends at
-## x=1211, so the right margin is 69 where the score's left margin is 7.
-const TOP_TEXT_RIGHT_MARGIN := 69.0
+const TOP_TEXT_SIZE := 32
+## 0.7, from create(): the week name is dimmer than the score.
+const LEVEL_TITLE_ALPHA := 0.7
+## The week name is right-aligned and very nearly flush: in the reference it
+## ends at x=1262 of 1277, a margin of 15 against the score's 7 on the left.
+## The 69 the port carried before came from measuring a run whose Label box was
+## itself the thing clipping the text, so it fitted the clip, not the mod.
+const TOP_TEXT_RIGHT_MARGIN := 15.07
 const TRACKLIST_POS := Vector2(8.0, 505.0)
 const TRACKLIST_SIZE := 52
-const TRACKLIST_COLOR := Color(229.0 / 255.0, 102.0 / 255.0, 132.0 / 255.0)
+## The mod letters the song list with its `default` bitmap font - the rounded
+## hand-drawn one in assets/images/fonts - so this is a glyph scale, not a point
+## size.
+##
+## MEASURED off the reference, not guessed. "DadBattle" is 185px wide there and
+## its glyph regions add up to 289px, and "Bopeebo" is 144px against 223px:
+## both give 0.640 and 0.646, so the atlas draws at 0.635 of its own size in the
+## mod's 1280 space, x1.5 for this port. Letter spacing is zero - the glyphs
+## advance by their own region width and nothing else, which is what makes both
+## words land on the same number.
+##
+## The line pitch is 46px in the reference (the three baselines sit at 549, 594
+## and 641). AtlasText stacks a line every `line_height * scale + line_spacing`,
+## and this font's tallest glyph is the pipe at 70px, so the glyphs alone carry
+## 66.8 of those 46/0.665 = 69.2 port pixels and the remainder is the spacing.
+const TRACKLIST_GLYPH_SCALE := 0.9548
+const TRACKLIST_LINE_SPACING := 1.553
+
+var _tracklist_atlas: AtlasText
+## 0xFFE55777, straight out of create() - `mov $0xffe55777,%esi` into the
+## set-colour slot 0x3b0 at 0x2facd87. The (229,102,132) the port used before
+## was eyedropped off an antialiased capture and ran light.
+const TRACKLIST_COLOR := Color(229.0 / 255.0, 87.0 / 255.0, 119.0 / 255.0)
 const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
 
 
@@ -1070,12 +1258,20 @@ func _follow_boxes() -> void:
 			+ FIX_WEEK_NAME * FUNKIN_TO_RUBICON
 		level_title_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_style_label(level_title_text, TOP_TEXT_SIZE, Color.WHITE)
+		level_title_text.modulate.a = LEVEL_TITLE_ALPHA
+	# The song list is lettered with the mod's own bitmap font, not with a TTF -
+	# see AtlasText. The Label stays in the scene but goes dark, because the
+	# builder and the guards still reach for it by name.
 	if tracklist_text != null:
-		tracklist_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		tracklist_text.size = Vector2(SCREEN.x * 0.3, SCREEN.y * 0.4)
-		tracklist_text.position = (TRACKLIST_POS + FIX_TRACKLIST) * FUNKIN_TO_RUBICON
-		tracklist_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		_style_label(tracklist_text, TRACKLIST_SIZE, TRACKLIST_COLOR)
+		tracklist_text.visible = false
+	if _tracklist_atlas == null:
+		_tracklist_atlas = AtlasText.new()
+		_tracklist_atlas.glyph_scale = TRACKLIST_GLYPH_SCALE
+		_tracklist_atlas.line_spacing = TRACKLIST_LINE_SPACING * FUNKIN_TO_RUBICON
+		_tracklist_atlas.colour = TRACKLIST_COLOR
+		_tracklist_atlas.z_index = Z_TRACKS_LABEL
+		add_child(_tracklist_atlas)
+	_tracklist_atlas.position = (TRACKLIST_POS + FIX_TRACKLIST) * FUNKIN_TO_RUBICON
 
 
 ## MEASURED: create() writes each element's zIndex into field 0x28, and those

@@ -151,6 +151,35 @@ These are settled and must not be re-litigated.
   imported list. Key one frame per *atlas* frame, each showing whichever imported frame
   covers it by running duration. See `_window` in `build_character_scenes.gd`.
 
+### Text: which face it is, and why `modulate` gives you nothing
+
+Two kinds of lettering, and the disassembly does **not** tell them apart.
+
+- **TTF.** `setFormat("VCR OSD Mono", 32, ...)` — the size rides in the high half of a packed
+  `Null<int>`, so it reads as `movabs $0x2000000000`, never as a plain `32`. The port has
+  `VCR OSD Mono Cyr.ttf`, which is a few percent narrower for the same cap height; a string
+  ending 5px short of the reference is that, not a placement error.
+- **Sparrow bitmap.** `assets/images/fonts/` holds `default`, `bold`, `alphabet-white` and
+  `freeplay-clear` as png + xml, one SubTexture per character (punctuation spelled out:
+  `-period-`, `-question mark-`). `AtlasText` in `animania_mod/scripts/` draws these.
+
+`StoryMenuState.create()` formats the tracklist as VCR like the other two, and the capture
+shows a rounded hand-drawn face instead. All 36 fonts embedded in the executable were
+extracted and rendered — none of them is it; `default` matches the capture stroke for
+stroke. **Trust the capture over the call.**
+
+To tell which one you are looking at, composite the word out of the atlas at a trial scale
+and stack it against the reference crop. Two words fix the scale on their own: the glyph
+regions add up (`"DadBattle"` = 289px of atlas for 185px on screen, `"Bopeebo"` 223 for 144,
+both 0.64), which also proves the letter spacing is zero.
+
+**`default.png` is solid black.** Every opaque pixel is `(0,0,0)`; the mod tints it by
+*adding* (`assets/scripts/shaders/AddColorShader.hx`), and Godot's `modulate` *multiplies*.
+Black times pink is black, so the first run of `AtlasText` laid out twenty-one glyphs, every
+check on them passed — in the tree, visible, right region, right position — and the box
+stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
+modulate.
+
 ---
 
 ## 4. The build loop
