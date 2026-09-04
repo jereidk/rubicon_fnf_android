@@ -30,6 +30,11 @@ const NAMED: Dictionary = {
 @export var line_spacing: float = 4.0
 @export var letter_spacing: float = 0.0
 @export var colour: Color = Color.WHITE
+## AtlasText.set_fieldWidth / set_wordWrap. Zero leaves the string on one line.
+@export var field_width: float = 0.0:
+	set(value):
+		field_width = value
+		_rebuild()
 
 var _glyphs: Dictionary = {}
 var _sheet: Texture2D
@@ -86,15 +91,38 @@ func _load_font() -> void:
 		var key: String = name.substr(0, name.length() - 4)
 		if key == "" or _glyphs.has(key):
 			continue
-		var at := AtlasTexture.new()
-		at.atlas = _sheet
-		at.region = Rect2(
+		var region := Rect2(
 			float(parser.get_named_attribute_value_safe("x")),
 			float(parser.get_named_attribute_value_safe("y")),
 			float(parser.get_named_attribute_value_safe("width")),
 			float(parser.get_named_attribute_value_safe("height")))
-		_glyphs[key] = at
-		_line_height = maxf(_line_height, at.region.size.y)
+		var tex: Texture2D
+		if parser.get_named_attribute_value_safe("rotated") == "true":
+			# `default.xml` has none of these, `alphabet-white.xml` has 34 of its 89:
+			# Animate turns a tall glyph on its side to pack it. An AtlasTexture cannot
+			# turn it back, so the glyph is cut out and rotated once, here.
+			tex = _unrotate(region)
+		else:
+			var at := AtlasTexture.new()
+			at.atlas = _sheet
+			at.region = region
+			tex = at
+		if tex == null:
+			continue
+		_glyphs[key] = tex
+		_line_height = maxf(_line_height, tex.get_size().y)
+
+
+## Sparrow's `rotated` means the frame was turned 90 degrees CLOCKWISE to pack it,
+## so it comes back with a counter-clockwise turn and its width and height swapped.
+func _unrotate(region: Rect2) -> Texture2D:
+	var sheet: Image = _sheet.get_image()
+	if sheet == null:
+		return null
+	var cut := Image.create_empty(int(region.size.x), int(region.size.y), false, Image.FORMAT_RGBA8)
+	cut.blit_rect(sheet, Rect2i(region), Vector2i.ZERO)
+	cut.rotate_90(COUNTERCLOCKWISE)
+	return ImageTexture.create_from_image(cut)
 
 
 func _key_for(c: String) -> String:
@@ -117,18 +145,17 @@ func _rebuild() -> void:
 	if _glyphs.is_empty():
 		return
 	var pen := Vector2.ZERO
-	for line: String in text.split("\n"):
-		var tallest: float = 0.0
+	for line: String in _lines():
 		for i: int in line.length():
 			var c: String = line[i]
 			if c == " ":
-				pen.x += _line_height * 0.28 * glyph_scale
+				pen.x += _space_width()
 				continue
 			var key: String = _key_for(c)
 			if key == "":
-				pen.x += _line_height * 0.28 * glyph_scale
+				pen.x += _space_width()
 				continue
-			var tex: AtlasTexture = _glyphs[key]
+			var tex: Texture2D = _glyphs[key]
 			var s := Sprite2D.new()
 			s.texture = tex
 			s.centered = false
@@ -136,13 +163,48 @@ func _rebuild() -> void:
 			# Sit every glyph on a shared baseline rather than on its own top,
 			# or letters with descenders ride up.
 			s.position = Vector2(pen.x,
-				pen.y + (_line_height - tex.region.size.y) * glyph_scale)
+				pen.y + (_line_height - tex.get_size().y) * glyph_scale)
 			s.modulate = colour
 			add_child(s)
-			pen.x += (tex.region.size.x + letter_spacing) * glyph_scale
-			tallest = maxf(tallest, tex.region.size.y * glyph_scale)
+			pen.x += (tex.get_size().x + letter_spacing) * glyph_scale
 		pen.x = 0.0
 		pen.y += (_line_height * glyph_scale) + line_spacing
+
+
+func _space_width() -> float:
+	return _line_height * 0.28 * glyph_scale
+
+
+func _run_width(run: String) -> float:
+	var w: float = 0.0
+	for i: int in run.length():
+		var c: String = run[i]
+		var key: String = _key_for(c) if c != " " else ""
+		if key == "":
+			w += _space_width()
+			continue
+		w += (_glyphs[key].get_size().x + letter_spacing) * glyph_scale
+	return w
+
+
+## Hard newlines always break; `field_width` breaks the rest at word boundaries,
+## which is what set_wordWrap(true) plus set_fieldWidth does in the mod.
+func _lines() -> PackedStringArray:
+	var out := PackedStringArray()
+	for hard: String in text.split("\n"):
+		if field_width <= 0.0 or _run_width(hard) <= field_width:
+			out.append(hard)
+			continue
+		var current: String = ""
+		for word: String in hard.split(" "):
+			var candidate: String = word if current == "" else current + " " + word
+			if current != "" and _run_width(candidate) > field_width:
+				out.append(current)
+				current = word
+			else:
+				current = candidate
+		out.append(current)
+	return out
 
 
 ## Width and height of what was laid out, for callers that need to place it.

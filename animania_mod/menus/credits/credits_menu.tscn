@@ -1,108 +1,121 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://animania_mod/menus/credits/credits_menu.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/coolBg.png" id="2_cool_bg"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/bg-stripe.png" id="3_bg_stripe"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/AnimaniaLogo.png" id="4_logo"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/textnote.png" id="5_textnote"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/source/images/menus/credits/roles_frames.tres" id="6_roles"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/youtube.png" id="7_youtube"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/x.png" id="8_x"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/soundcloud.png" id="9_soundcloud"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/newgrounds.png" id="10_newgrounds"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/pic-clip.png" id="11_pic_clip"]
+[ext_resource type="Script" path="res://animania_mod/menus/credits/credits_menu.gd" id="1_bqami"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/coolBg.png" id="2_k7yhb"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/bg-stripe.png" id="3_y4j1f"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/AnimaniaLogo Smaller.png" id="4_ruqd2"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/textnote.png" id="5_gskal"]
+[ext_resource type="Script" path="res://animania_mod/scripts/atlas_text.gd" id="6_n4qac"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/pic-clip.png" id="7_1krbi"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/source/images/menus/story/diff_selector_frames.tres" id="8_jum7k"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/youtube.png" id="9_kf1t4"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/x.png" id="10_ttpsm"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/soundcloud.png" id="11_b5708"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/newgrounds.png" id="12_owcfe"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_yt"]
-atlas = ExtResource("7_youtube")
-region = Rect2(0, 0, 64, 64)
-filter_clip = true
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_x"]
-atlas = ExtResource("8_x")
-region = Rect2(0, 0, 64, 64)
-filter_clip = true
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_sc"]
-atlas = ExtResource("9_soundcloud")
-region = Rect2(0, 0, 64, 64)
-filter_clip = true
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ng"]
-atlas = ExtResource("10_newgrounds")
-region = Rect2(0, 0, 64, 64)
-filter_clip = true
-
-[node name="CreditsMenu" type="Node2D" node_paths=PackedStringArray("rows", "sfx")]
-script = ExtResource("1_script")
-rows = NodePath("Rows")
+[node name="CreditsMenu" type="Node2D" unique_id=1794355003 node_paths=PackedStringArray("sfx")]
+script = ExtResource("1_bqami")
 sfx = NodePath("Sfx")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=279663308]
 position = Vector2(960, 540)
 
-[node name="Bg" type="Sprite2D" parent="."]
+[node name="Bg" type="Sprite2D" parent="." unique_id=1921233286]
+position = Vector2(-3, -2.25)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_k7yhb")
+centered = false
+
+[node name="BgStripe" type="Sprite2D" parent="." unique_id=663286239]
+modulate = Color(1, 1, 1, 0.35)
 position = Vector2(960, 540)
-texture = ExtResource("2_cool_bg")
+texture = ExtResource("3_y4j1f")
 
-[node name="BgStripe" type="Sprite2D" parent="."]
-position = Vector2(960, 540)
-texture = ExtResource("3_bg_stripe")
+[node name="Particles" type="Node2D" parent="." unique_id=680066171]
 
-[node name="Logo" type="Sprite2D" parent="."]
-position = Vector2(960, 100)
-texture = ExtResource("4_logo")
+[node name="Logo" type="Sprite2D" parent="." unique_id=436981011]
+position = Vector2(60, 0)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("4_ruqd2")
+centered = false
 
-[node name="PicBG" type="Sprite2D" parent="."]
-position = Vector2(1450, 540)
-texture = ExtResource("11_pic_clip")
+[node name="Roles" type="Node2D" parent="." unique_id=330360562]
+
+[node name="Stickers" type="Node2D" parent="." unique_id=1244326666]
+
+[node name="NoteBg" type="Sprite2D" parent="." unique_id=298392047]
+position = Vector2(999, 94.5)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("5_gskal")
+centered = false
+
+[node name="NoteTxt" type="Node2D" parent="." unique_id=1073395449]
+position = Vector2(1072.5, 270)
+scale = Vector2(1.5, 1.5)
+script = ExtResource("6_n4qac")
+font_png = "res://animania_mod/source/images/fonts/alphabet-white.png"
+field_width = 483.0
+
+[node name="NameSpr" type="Sprite2D" parent="." unique_id=1062482381]
 visible = false
+scale = Vector2(1.5, 1.5)
+centered = false
 
-[node name="PicSpr" type="Sprite2D" parent="."]
-position = Vector2(1450, 540)
+[node name="PicSpr" type="Sprite2D" parent="." unique_id=1778480451]
 visible = false
+centered = false
 
-[node name="NameSpr" type="Sprite2D" parent="."]
-position = Vector2(1450, 250)
+[node name="PicBG" type="Sprite2D" parent="." unique_id=1417679672]
+position = Vector2(1530, 678)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("7_1krbi")
+centered = false
+
+[node name="LeftArrow" type="AnimatedSprite2D" parent="." unique_id=450463403]
+scale = Vector2(1.95, 1.95)
+sprite_frames = ExtResource("8_jum7k")
+animation = &"difficulty arrow"
+centered = false
+flip_h = true
+
+[node name="RightArrow" type="AnimatedSprite2D" parent="." unique_id=799644695]
+scale = Vector2(1.95, 1.95)
+sprite_frames = ExtResource("8_jum7k")
+animation = &"difficulty arrow"
+centered = false
+
+[node name="SocialButtons" type="Node2D" parent="." unique_id=606932479]
+
+[node name="Social_youtube" type="Sprite2D" parent="SocialButtons" unique_id=1246073167]
 visible = false
+position = Vector2(991.5, 930)
+rotation = -0.10471976
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("9_kf1t4")
+centered = false
 
-[node name="NoteBg" type="ColorRect" parent="."]
-offset_left = 900.0
-offset_top = 320.0
-offset_right = 1900.0
-offset_bottom = 750.0
-mouse_filter = 2
-color = Color(0, 0, 0, 0.5)
-
-[node name="NoteTxt" type="RichTextLabel" parent="."]
-offset_left = 940.0
-offset_top = 350.0
-offset_right = 1860.0
-offset_bottom = 720.0
-theme_override_colors/default_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/normal_font_size = 22
-bbcode_enabled = true
-text = ""
-fit_content = true
-scroll_active = false
-
-[node name="Roles" type="Node2D" parent="."]
-position = Vector2(1450, 620)
-
-[node name="Stickers" type="Node2D" parent="."]
-
-[node name="Particles" type="Node2D" parent="."]
-
-[node name="SocialButtons" type="Node2D" parent="."]
-
-[node name="Rows" type="Node2D" parent="."]
-
-[node name="LeftArrow" type="Sprite2D" parent="."]
-position = Vector2(100, 540)
+[node name="Social_x" type="Sprite2D" parent="SocialButtons" unique_id=949765425]
 visible = false
+position = Vector2(1125, 945)
+rotation = 0.10471976
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("10_ttpsm")
+centered = false
 
-[node name="RightArrow" type="Sprite2D" parent="."]
-position = Vector2(1820, 540)
+[node name="Social_soundcloud" type="Sprite2D" parent="SocialButtons" unique_id=1115265226]
 visible = false
+position = Vector2(1264.5, 900)
+rotation = 0.13962634
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("11_b5708")
+centered = false
 
-[node name="Sfx" type="AudioStreamPlayer" parent="."]
-bus = &"Master"
+[node name="Social_newgrounds" type="Sprite2D" parent="SocialButtons" unique_id=1649487302]
+visible = false
+position = Vector2(1384.5, 930)
+rotation = -0.10471976
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("12_owcfe")
+centered = false
+
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=860654853]

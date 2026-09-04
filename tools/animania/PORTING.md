@@ -287,6 +287,69 @@ fourth's. It is not `alpha` — `FlxSprite::set_alpha` writes 0x148 — and no
 left out of the port and written down in the script instead, because a guess at
 what they mean would be a guess that shows on screen.
 
+### The credits screen is a card, not a list
+
+`animania::states::CreditsMenu` (0x138bc90..0x1398785, 24 methods) shows **one** crew
+member at a time and moves between them with two `menus/story/diff-selector` arrows.
+`create()` calls `loadCreditsData`, `createBackground`, `createParticles`,
+`createUIElements`, `createSocialButtons`, `changeItem(0)` and `sortStickers`, and not
+one of those builds a row. The scrolling roll of names this port used to draw — and the
+row hitboxes the guard tested it with — were invented, which is also why the tap always
+landed on row 0: `Rows` had no children at all, because the builder that was supposed to
+fill it read two constants (`ROW_HEIGHT`, `LIST_CENTRE`) that the script does not
+declare, so it had never run.
+
+What is actually there, all of it in the mod's 1280×720 space:
+
+| thing | where | address |
+| --- | --- | --- |
+| `AnimaniaLogo Smaller` | (40, 0), scale 0.5, `zoomFactor` 0.875, zIndex 15 | 0x1391000 |
+| note paper `textnote` | (666, 63), zIndex 45 | 0x1391bb0 |
+| note text `AtlasText` | (715, 180), `alphabet-white`, wordWrap, zIndex 46 | 0x1391119 |
+| — its fieldWidth | `noteBg.width - 2*(noteTxt.x - noteBg.x)` = 483 | 0x1391c56 |
+| name plate | centred on the note, `y = noteBg.y - height/3` | 0x1393863 |
+| photo clip `pic-clip` | (1020, 452) | 0x1391e7b |
+| role words ×5 | `createSparrow(24, 409, "menus/credits/roles")`, pooled | 0x139129d |
+| stickers ×36 | `x = FlxG.initialWidth*0.225 + i`, `y = 720 - h - 15`, scale 0.5 | 0x1392174 |
+| social buttons ×4 | youtube (661,620,−6°), x (750,630,6°), soundcloud (843,600,8°), newgrounds (923,620,−6°) | 0x138aad8 |
+
+`ARROWS_PAD` is **30** and `BASE_ICON_SIZE` is **150** (both read straight out of
+`__boot`, 0x138bfbe / 0x138c01b). The port had 40 and 0.8 — the second one read as a
+*scale* when it is a width in pixels.
+
+Three things this cost time and are worth keeping:
+
+- **The arrows hang off the FIRST sticker and are never moved again.**
+  `left.x = sticker[0].x - BASE_ICON_SIZE/2 - ARROWS_PAD - left.width`,
+  `left.y = sticker[0].y + (BASE_ICON_SIZE - left.height)/2 + 20`, and the right one is
+  the same with the signs flipped and no width term; its `y` is copied from the left
+  one's. So the pair straddles the sticker's left edge, not its middle. That is not a
+  misreading — it is what 0x1392cf7 and 0x13930a5 do.
+- **All 36 stickers exist at once**, stacked one pixel apart; `sortStickers` is a single
+  `FlxTypedGroup.sort` (0x138b642) and changes nothing but the draw order. The JSON's
+  `stickerOffset` is subtracted from the sprite's `offset`, which moves the art without
+  moving `x`/`y` — so it never moves the arrows.
+- **`setRoles` centres the words in a 550-wide column at x=24**, shrinking anything wider
+  with `setGraphicSize(550)`, and stacks them at
+  `y = ((5 - n)/1.25 + i) * (250/5) + 244` (0x138f239). That column is exactly the span
+  of the mod's own hand-laid role board, whose nine seats the constructor stores in
+  `rolePositions`: director (24,244), co-director (24,301), artist (24,355) with animator
+  beside it at (257,355), coder (24,409) with charter at (217,409) and `?` at (529,409),
+  composer (24,464) with voice actor at (360,464). Read those pairs the other way round
+  and they are nonsense; read them this way and each row's words butt up against the
+  previous one's width to the pixel, which is what proves the order.
+
+`alphabet-white` had to be vendored for the note, and it is the first font here with
+`rotated="true"` frames — 34 of its 89. An `AtlasTexture` cannot turn a glyph back, so
+`AtlasText._unrotate` cuts it out and rotates the image once at load. Its palette is
+white-with-an-alpha-ramp, so `_whiten` is a no-op on it and **nothing in the class tints
+it**: white lettering on the cream note is what the binary says, not a port bug.
+
+Left unported on purpose: `AtlasText.startTyping` (0x13945b6), which types the note out
+at the entry's `textSpeed` with `textPitch` — the units of that speed are not recovered,
+so the note is shown whole rather than at an invented rate. The note's `<img>` markup is
+dropped rather than printed.
+
 ---
 
 ## 4. The build loop

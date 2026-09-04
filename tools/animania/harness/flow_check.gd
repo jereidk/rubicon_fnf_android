@@ -191,26 +191,25 @@ func _init() -> void:
 	story_menu.queue_free()
 	await process_frame
 
-	# Credits: 36 entries straight out of the mod's own credits.json, and the same touch
-	# shape as every other list here.
+	# Credits: 36 entries straight out of the mod's own credits.json. The screen is a
+	# card, not a list - animania::states::CreditsMenu never builds a row - so what a
+	# touch has to hit is the right arrow, and the guard aims at it instead of at the
+	# row seats this port used to invent.
 	var credits: Node = load(
 		"res://animania_mod/menus/credits/credits_menu.tscn").instantiate()
 	root.add_child(credits)
 	await process_frame
-	# rows.get_child_count()/cur_selected, not entry_count()/_selected: the credits
-	# menu was rewritten and renamed both, the same way the story menu's
-	# selected_level was, and this guard was never brought along. The assertions
-	# are unchanged - 36 entries out of the mod's own credits.json, and a tap that
-	# lands on the row it was aimed at.
-	var entries: int = credits.rows.get_child_count()
+	var entries: int = credits.crew.size()
 	_check(entries == 36,
 		"credits tendria que traer 36 entradas y trae %d" % entries)
-	var row_tap := InputEventScreenTouch.new()
-	row_tap.pressed = true
-	row_tap.position = credits.rows.position + credits.rows.get_child(3).position
-	credits._unhandled_input(row_tap)
-	_check(credits.cur_selected == 3,
-		"el toque no selecciona en credits: sigue en %d" % credits.cur_selected)
+	_check(credits.stickers_grp.get_child_count() > 0,
+		"credits no construyo ninguna pegatina")
+	var arrow_tap := InputEventScreenTouch.new()
+	arrow_tap.pressed = true
+	arrow_tap.position = credits._arrow_rect(credits.right_arrow).get_center()
+	credits._unhandled_input(arrow_tap)
+	_check(credits.cur_selected == 1,
+		"el toque en la flecha no avanza en credits: sigue en %d" % credits.cur_selected)
 	credits.queue_free()
 	await process_frame
 
