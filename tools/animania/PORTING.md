@@ -180,6 +180,33 @@ check on them passed — in the tree, visible, right region, right position — 
 stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
 modulate.
 
+### `vtslot.py`: name the vtable slot instead of guessing it
+
+`call *0x210(%rax)` is a method call through a vtable, and which method depends
+on the RECEIVER's class. `tools/animania/vtslot.py` resolves it:
+
+    python3 tools/animania/vtslot.py "funkin::graphics::FunkinSprite_obj" 0x210 0x3a8
+    python3 tools/animania/vtslot.py "flixel::math::FlxBasePoint_obj"      # toda la tabla
+
+Two traps it exists to avoid. The pointer an object carries points **0x10 past**
+the `vtable for X` symbol (skipping offset-to-top and the typeinfo), so slot N is
+at symbol + 0x10 + N — read it from the symbol itself and every name comes out
+shifted and plausible. And when the name makes no sense for the arguments, the
+receiver is not what you assumed: in `createLock` the calls at 0x118 and 0x120
+each take a double, which would be `update(double)` and `draw()` on the sprite —
+they are `set_x`/`set_y` on its `scale`, an `FlxBasePoint`.
+
+The confirmed table for a FunkinSprite, since it comes up constantly:
+
+    0x128 set_visible   0x210 set_x        0x218 set_y      0x230 get_width
+    0x238 get_height    0x2b0 setGraphicSize  0x2b8 updateHitbox
+    0x3a8 set_alpha     0x3b0 set_color    0x3c8 set_clipRect
+    0x448 loadTexture   0x470 loadSparrow
+
+Fields are not slots and need their own evidence. `FunkinSprite`'s 0x260 was
+identified by asking which methods read it: all four are the zoom-scale
+procedure, so it is `zoomFactor`.
+
 ### `animania::states::` is the mod; `funkin::ui::` is the game it forked
 
 The binary carries BOTH, and the one that runs is `animania::states::`. Reading

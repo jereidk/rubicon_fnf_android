@@ -30,14 +30,20 @@ extends Node2D
 ## and starts "press to start"; the state then waits on a key rather than cutting
 ## straight to the song.
 ##
-## NOT ported, and deliberately: create() writes 0.4 into field 0x260 of the
-## noodle, BF and the box and 0.7 into pressEnter's (0x36c8764..0x36c87d5).
-## Whatever 0x260 is, it is NOT alpha - flixel's set_alpha writes 0x148 - and no
-## set_* method in FlxObject or FlxSprite touches 0x260 at all, so it is a plain
-## public field this port could not name. Guessing at it would show on screen, so
-## those four writes are left out and written down here instead. There is also no
-## capture of this screen to compare against; everything with an address beside
-## it above IS the mod's own number, and nothing else was invented.
+## The one thing create() does that this port does not is write 0.4 into field
+## 0x260 of the noodle, BF and the box and 0.7 into pressEnter's
+## (0x36c8764..0x36c87d5). That field is `zoomFactor`: it is read by exactly four
+## methods, all of them FunkinSprite's zoom-scale procedure
+## (_hx___shouldDoScaleProcedure, _hx___doPreZoomScaleProcedure,
+## doAdditionalMatrixStuff and getScreenPosition), and it is how a sprite scales
+## back against a camera that is zooming. This screen's camera does zoom - update
+## eases it with exp(-3.125 * dt) and punches it on the keypress - and neither
+## the zoom nor the compensation is ported, so porting zoomFactor alone would
+## scale five sprites against a camera that never moves. They go together or not
+## at all, and for now it is not at all.
+##
+## There is also no capture of this screen to compare against; everything with an
+## address beside it above IS the mod's own number, and nothing else was invented.
 
 const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 const SCENE := "res://animania_mod/menus/loading/loading_screen.tscn"
@@ -146,7 +152,8 @@ func _ready() -> void:
 		if ate != &"":
 			bf.play(ate)
 	if press_enter != null:
-		# create() hides it (vtable 0x128 with a 0 at 0x36c8748) and only
+		# create() hides it - the call at 0x36c8748 goes through vtable slot
+		# 0x128, which resolves to FlxBasic::set_visible, with a 0 - and only
 		# onLoaded() starts its animation, so the prompt is not up until the
 		# song is in memory.
 		press_enter.visible = false

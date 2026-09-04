@@ -37,14 +37,24 @@ extends CanvasLayer
 ##     BLUR_INTENSITY 12, CAMERA_ZOOM_BEAT 1.0015, LOGO_HOVER_SCALE 0.375,
 ##     BUTTON_SCALE 0.95, LOGO_SCALE 0.35
 ##
-## Two things are knowingly missing rather than guessed at: setupBlurEffect
-## (0x3d81870), which blurs the story menu behind - here it only darkens, to the
-## same 0.6 the mod tweens to - and configureMusicFilters (0x3d7f2e0), a low-pass
-## on the menu track that this port has no bus to hang.
+##   setupBlurEffect 0x3d81870
+##     an openfl BlurFilter on the camera behind, blurX and blurY tweened to
+##     BLUR_INTENSITY over 0.75s with {startDelay: 0.4, ease: backOut}; and back
+##     to 0 over 0.65s in closeSubState (0x3d81d4f).
 ##
-## And the one thing it cannot honour at all is what the choice MEANS: only the
-## amtake side of the mod is ported, so both buttons lead to the same song. The
-## screen is faithful; the fork behind it is not there yet.
+##   configureMusicFilters 0x3d7f2e0
+##     MusicFilterController: setFilter("LOWPASS"), GAIN 0.8, GAINHF 0.05,
+##     setEffect("REVERB"), DECAY_TIME 7.5, and one more effect var at 0.25;
+##     then applyNow(). The same set goes onto EffectSound.
+##
+## WHAT THE CHOICE MEANS. The second button is not a second campaign this port
+## is missing - it is LOCKED, in the mod too. createButton's fourth argument is
+## a bool, and createButtons passes `xor %ecx,%ecx` (false) for amtake and
+## `mov $0x1,%ecx` (true) for animania (0x3d858ea and 0x3d859c9); createButton
+## tests it at 0x3d85480 and only then calls createLock, which hangs a
+## menus/menu/button_lock sparrow on the button. So the mod ships with the
+## AnimaniaTake half playable and the original Animania half padlocked, and the
+## honest port of "what the choice means" is to draw the padlock and refuse.
 
 # ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -57,7 +67,10 @@ const SOUND_LOCKED := "res://animania_mod/source/sounds/animania/menu/locked_sfx
 
 const ART := "res://animania_mod/source/images/menus/story_select"
 const BUTTON_FRAMES := "%s/story_select_buttons_frames.tres" % ART
-const LOCK_PATH := "res://animania_mod/source/images/storymenu/ui/lock.png"
+## createLock 0x3d84250: menus/menu/button_lock, animation "buttons lock" at 24.
+const LOCK_FRAMES := "res://animania_mod/source/images/menus/menu/button_lock_frames.tres"
+const LOCK_ANIM := &"buttons lock"
+const LOCK_SCALE := 1.1
 
 ## The mod's own logos, 756x540 and 832x540. NOT the 4596x2208 animania_logo.png
 ## that sits beside them - that one is the credits wordmark, and drawing it here
@@ -75,12 +88,55 @@ const LOGO_SCALE := 0.35
 
 ## createButtons' third argument, the off-screen start, in the mod's 1280 space.
 const START_X := {"amtake": -640.0, "animania": 1408.0}
+## createButtons' fourth argument. Not a port limitation - the mod locks it too.
+const LOCKED := {"amtake": false, "animania": true}
+## setupBlurEffect / closeSubState.
+const BLUR_IN := 0.75
+const BLUR_DELAY := 0.4
+const BLUR_OUT := 0.65
+## configureMusicFilters. GAINHF 0.05 is a linear high-frequency gain in OpenAL's
+## EFX low-pass; Godot's filter is a cutoff instead, so THIS number is a
+## translation of that attenuation and not a value read off the binary.
+const MUSIC_BUS := &"Music"
+const FILTER_CUTOFF := 900.0
+const FILTER_GAIN_DB := -1.94  ## 20*log10(0.8), the measured GAIN.
+const REVERB_DECAY := 7.5
+const REVERB_WET := 0.25
 ## applyInitialAnimations: the margin on both sides, and how long the slide takes.
 const MARGIN := 50.0
 const SLIDE_TIME := 1.0
 ## createBackground.
 const BG_ALPHA := 0.6
 const BG_FADE := 0.75
+
+## Nine taps per axis, weighted 1/2/3/4/5/4/3/2/1, spaced by blurX/blurY pixels.
+## Separable would be two passes and a second viewport; at this radius one pass
+## reads 81 texels and llvmpipe still keeps up, so it stays one rect.
+const BLUR_SHADER := """
+shader_type canvas_item;
+
+uniform sampler2D screen : hint_screen_texture, filter_linear_mipmap;
+uniform float blurX = 0.0;
+uniform float blurY = 0.0;
+
+void fragment() {
+	vec2 step = vec2(blurX, blurY) * SCREEN_PIXEL_SIZE;
+	if (step.x <= 0.0 && step.y <= 0.0) {
+		COLOR = texture(screen, SCREEN_UV);
+	} else {
+		vec4 sum = vec4(0.0);
+		float total = 0.0;
+		for (int y = -4; y <= 4; y++) {
+			for (int x = -4; x <= 4; x++) {
+				float w = (5.0 - abs(float(x))) * (5.0 - abs(float(y)));
+				sum += texture(screen, SCREEN_UV + vec2(float(x), float(y)) * step) * w;
+				total += w;
+			}
+		}
+		COLOR = sum / total;
+	}
+}
+"""
 
 # ─── Fields ───────────────────────────────────────────────────────────────
 
@@ -92,11 +148,14 @@ var selected: String = ""
 var blur_shader: ShaderMaterial
 var _is_selecting: bool = false
 var _order: PackedStringArray = ["amtake", "animania"]
+var _bus_effects: int = 0
+var _bus_volume: float = 0.0
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────
 
 func _ready() -> void:
 	layer = 10
+	_setup_blur_effect()
 	_create_background()
 	_setup_camera()
 	_create_buttons()
@@ -156,6 +215,36 @@ func _create_background() -> void:
 	tw.tween_property(cool_bg, "modulate:a", BG_ALPHA, BG_FADE)
 
 
+## setupBlurEffect: the mod hangs an openfl BlurFilter on the camera behind and
+## tweens its blurX/blurY up. Godot has no filter stack on a camera, so the same
+## thing is done with a full-screen rect that samples the screen texture and
+## blurs it - the sub-state is a CanvasLayer, so what it samples IS the story
+## menu underneath. The radius, the delay, the duration and the ease are the
+## mod's; the kernel is this port's, because a gaussian is a gaussian.
+func _setup_blur_effect() -> void:
+	var shader := Shader.new()
+	shader.code = BLUR_SHADER
+	blur_shader = ShaderMaterial.new()
+	blur_shader.shader = shader
+	blur_shader.set_shader_parameter("blurX", 0.0)
+	blur_shader.set_shader_parameter("blurY", 0.0)
+
+	var rect := ColorRect.new()
+	rect.name = "Blur"
+	rect.size = SCREEN
+	rect.color = Color.WHITE
+	rect.material = blur_shader
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rect)
+
+	var tw: Tween = create_tween().set_parallel(true)
+	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(blur_shader, "shader_parameter/blurX",
+		BLUR_INTENSITY, BLUR_IN).set_delay(BLUR_DELAY)
+	tw.tween_property(blur_shader, "shader_parameter/blurY",
+		BLUR_INTENSITY, BLUR_IN).set_delay(BLUR_DELAY)
+
+
 func _setup_camera() -> void:
 	select_camera = Camera2D.new()
 	select_camera.name = "StorySelectCamera"
@@ -181,7 +270,7 @@ func _create_button(name: String, frames: SpriteFrames) -> Node2D:
 	var container := Node2D.new()
 	container.name = name.to_pascal_case()
 	container.set_meta(&"name", name)
-	container.set_meta(&"locked", false)
+	container.set_meta(&"locked", bool(LOCKED.get(name, false)))
 
 	var art := AnimatedSprite2D.new()
 	art.name = "Art"
@@ -213,6 +302,19 @@ func _create_button(name: String, frames: SpriteFrames) -> Node2D:
 	logo.position = size * 0.5 * BUTTON_SCALE * FUNKIN_TO_RUBICON
 	container.add_child(logo)
 	container.set_meta(&"logo", logo)
+
+	if bool(LOCKED.get(name, false)):
+		var lock := AnimatedSprite2D.new()
+		lock.name = "Lock"
+		lock.centered = true
+		lock.sprite_frames = load(LOCK_FRAMES) as SpriteFrames
+		if lock.sprite_frames != null and lock.sprite_frames.has_animation(LOCK_ANIM):
+			lock.play(LOCK_ANIM)
+		# createLock sets the lock's scale.x and scale.y to 1.1 through the point's
+		# own set_x/set_y (0x3d846ec and 0x3d84701, both fed the same 1.1).
+		lock.scale = Vector2.ONE * LOCK_SCALE * FUNKIN_TO_RUBICON
+		lock.position = size * 0.5 * BUTTON_SCALE * FUNKIN_TO_RUBICON
+		container.add_child(lock)
 
 	container.position = Vector2(
 		float(START_X.get(name, 0.0)) * FUNKIN_TO_RUBICON, 0.0)
@@ -284,6 +386,11 @@ func _select_button(index: int) -> void:
 func select_story(variant: String) -> void:
 	if _is_selecting:
 		return
+	for btn: Node2D in buttons:
+		if String(btn.get_meta(&"name", "")) == variant \
+				and bool(btn.get_meta(&"locked", false)):
+			_play(SOUND_LOCKED)
+			return
 	_is_selecting = true
 	_play(SOUND_CONFIRM)
 
@@ -295,10 +402,10 @@ func select_story(variant: String) -> void:
 		away.tween_property(btn, "modulate:a", 0.0, 0.45)
 
 	if blur_shader != null:
-		var bl: Tween = create_tween()
+		var bl: Tween = create_tween().set_parallel(true)
 		bl.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		bl.tween_property(blur_shader, "shader_parameter/blurX", BLUR_INTENSITY, 1.45)
-		bl.parallel().tween_property(blur_shader, "shader_parameter/blurY", BLUR_INTENSITY, 1.45)
+		bl.tween_property(blur_shader, "shader_parameter/blurY", BLUR_INTENSITY, 1.45)
 
 	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_LINEAR)
@@ -307,6 +414,7 @@ func select_story(variant: String) -> void:
 		# Only the amtake half of the mod is ported, so both buttons lead to the
 		# same song for now. The variant is passed on anyway, so the day the
 		# other one exists this call site does not have to change.
+		_clear_music_filters()
 		if _menu_state != null and _menu_state.has_method("start_story"):
 			_menu_state.start_story(variant)
 		queue_free())
@@ -319,11 +427,13 @@ func close_sub_state() -> void:
 		return
 	_is_selecting = true
 	_play(SOUND_CANCEL)
+	_clear_music_filters()
 
 	if blur_shader != null:
-		var bl: Tween = create_tween()
-		bl.tween_property(blur_shader, "shader_parameter/blurX", 0.0, 0.3)
-		bl.parallel().tween_property(blur_shader, "shader_parameter/blurY", 0.0, 0.3)
+		var bl: Tween = create_tween().set_parallel(true)
+		bl.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		bl.tween_property(blur_shader, "shader_parameter/blurX", 0.0, BLUR_OUT)
+		bl.tween_property(blur_shader, "shader_parameter/blurY", 0.0, BLUR_OUT)
 
 	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
@@ -333,12 +443,51 @@ func close_sub_state() -> void:
 
 # ─── Music filters ────────────────────────────────────────────────────────
 
+## The menu track keeps playing under this screen, muffled. The mod does it with
+## OpenAL EFX - a LOWPASS at GAIN 0.8 / GAINHF 0.05 plus a REVERB with
+## DECAY_TIME 7.5 - and the port's menu music already goes through a "Music" bus,
+## so the two effects go on that bus and come off again when the screen closes.
+## They are appended and removed by index rather than by rebuilding the layout,
+## so whatever else the bus carries survives.
 func _configure_music_filters() -> void:
-	# configureMusicFilters (0x3d7f2e0) puts a low-pass on the menu track. The
-	# port routes menu music through the Master bus with no effect chain of its
-	# own, so there is nothing to filter yet; left as the one piece of this
-	# screen that is knowingly missing rather than guessed at.
-	pass
+	var bus: int = AudioServer.get_bus_index(MUSIC_BUS)
+	if bus < 0:
+		return
+	var low := AudioEffectLowPassFilter.new()
+	low.cutoff_hz = FILTER_CUTOFF
+	low.db = AudioEffectFilter.FILTER_12DB
+	var reverb := AudioEffectReverb.new()
+	reverb.wet = REVERB_WET
+	reverb.dry = 1.0
+	# Godot's room_size is 0..1 where the mod names seconds of decay; 7.5s is at
+	# the top of what the effect can do, so it goes to the top.
+	reverb.room_size = minf(1.0, REVERB_DECAY / 8.0)
+	AudioServer.add_bus_effect(bus, low)
+	AudioServer.add_bus_effect(bus, reverb)
+	_bus_effects = 2
+	# The GAIN of 0.8 is a flat attenuation of the whole track.
+	_bus_volume = AudioServer.get_bus_volume_db(bus)
+	AudioServer.set_bus_volume_db(bus, _bus_volume + FILTER_GAIN_DB)
+
+
+func _clear_music_filters() -> void:
+	if _bus_effects <= 0:
+		return
+	var bus: int = AudioServer.get_bus_index(MUSIC_BUS)
+	if bus < 0:
+		return
+	for _i: int in _bus_effects:
+		var last: int = AudioServer.get_bus_effect_count(bus) - 1
+		if last >= 0:
+			AudioServer.remove_bus_effect(bus, last)
+	AudioServer.set_bus_volume_db(bus, _bus_volume)
+	_bus_effects = 0
+
+
+## Whatever happens to this node - closed, confirmed, or the whole menu torn
+## down under it - the bus goes back to how it was found.
+func _exit_tree() -> void:
+	_clear_music_filters()
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
