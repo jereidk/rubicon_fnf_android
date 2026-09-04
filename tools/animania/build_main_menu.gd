@@ -71,6 +71,15 @@ func _init() -> void:
 	background.position = (SCREEN - bg_size * bg_scale) * 0.5
 	_add(background)
 
+	# create() runs createVisualizers between the background and the plate (0x181119b), so
+	# the waveform and the FFT bars sit behind everything else the menu draws. The node was
+	# written months ago and never added to the scene, which is why nothing of it has ever
+	# shown up in a render.
+	var visualizer := Node2D.new()
+	visualizer.name = "Visualizer"
+	visualizer.set_script(load("res://animania_mod/menus/main/menu_visualizer.gd"))
+	_add(visualizer)
+
 	# `buttons back`, and its placement is MEASURED now rather than derived. It used to be
 	# centred on the eight buttons' bounding box, which was the only thing those two sizes
 	# allowed without the binary. createUIComponents does this instead:

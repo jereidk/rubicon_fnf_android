@@ -12,6 +12,7 @@ const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 const STORY := "res://animania_mod/menus/story/story_menu.tscn"
 const FREEPLAY := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const SONG := "res://songs/phone-call/phone_call.tscn"
+const LOADING := "res://animania_mod/menus/loading/loading_screen.tscn"
 
 var _failures: int = 0
 
@@ -232,6 +233,10 @@ func _init() -> void:
 		and menu.curtain_down.position.y <= -open_by,
 		"la cortina de abajo esta en %.0f, fuera de [0, %.0f]"
 			% [menu.curtain_down.position.y, -open_by])
+	# The menu goes live when the CAMERA tween lands at 0.75s, and the curtains run for a
+	# full second - so "the curtains are still moving" is not the same moment as "the menu
+	# is deaf", and this check has to name the one it means. Parked at 0.1s it certainly is.
+	menu._intro = 0.1
 	menu.change_item(1, false)
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
 		"el menu no tendria que responder durante el intro")
@@ -329,13 +334,46 @@ func _init() -> void:
 	_check(freeplay.disk_at(Vector2(120.0, 900.0)) == -1,
 		"la cama de freeplay no es un disco")
 
+	# confirm() waits out 0.6s of disk animation on a SceneTreeTimer and then goes to the
+	# loading screen, so this waits in wall clock the same way the menu's transition does.
+	# Eight frames is nowhere near 0.6s, and this check only started being reached at all
+	# once the walk above stopped landing on options.
 	freeplay.confirm()
-	for i: int in 8:
+	var confirm_until: int = Time.get_ticks_msec() + 4000
+	while is_instance_valid(freeplay) and current_scene == freeplay \
+			and Time.get_ticks_msec() < confirm_until:
+		await process_frame
+	for i: int in 6:
 		await process_frame
 
+	# Freeplay no longer goes straight into the song: LoadingScreen.go_to sits between the
+	# two, and it waits for a press once the level has finished loading. So this drives it
+	# the way a player does instead of assuming the song is already up.
+	var loading: Node = current_scene
+	_check(loading != null and loading != freeplay, "el disco no cambio de escena")
+	if loading == null or loading == freeplay:
+		_report()
+		return
+	if String(loading.scene_file_path) == LOADING:
+		var loaded_until: int = Time.get_ticks_msec() + 60000
+		while is_instance_valid(loading) and not bool(loading._done) \
+				and Time.get_ticks_msec() < loaded_until:
+			await process_frame
+		_check(bool(loading._done), "la pantalla de carga no termino de cargar")
+		if not bool(loading._done):
+			_report()
+			return
+		loading._enter()
+		var enter_until: int = Time.get_ticks_msec() + 20000
+		while current_scene == loading and Time.get_ticks_msec() < enter_until:
+			await process_frame
+		for i: int in 6:
+			await process_frame
+
 	var level: Node = current_scene
-	_check(level != null and level != freeplay, "el disco no cambio de escena")
-	if level == null or level == freeplay:
+	_check(level != null and level != freeplay and level != loading,
+		"la pantalla de carga no entro en la cancion")
+	if level == null or level == freeplay or level == loading:
 		_report()
 		return
 
@@ -363,7 +401,11 @@ func _init() -> void:
 		_check(is_equal_approx(float(control.opacity), 0.4),
 			"los controles tactiles estan a opacity %.2f" % control.opacity)
 
-	_check(root.has_node("DebugOverlay"), "falta el overlay de debug")
+	# NOT root.has_node("DebugOverlay"): it is an autoload, and Godot does not register
+	# autoloads under --script, so asking the tree for it here measures the harness and not
+	# the port. What is checkable from here is that the project still declares it.
+	_check(ProjectSettings.has_setting("autoload/DebugOverlay"),
+		"falta el overlay de debug en project.godot")
 
 	# The pause menu, which is what makes a song leavable at all. Until it existed the only
 	# way out of a song was killing the app.

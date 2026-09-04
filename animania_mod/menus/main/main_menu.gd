@@ -34,6 +34,9 @@ const DESTINATIONS := {
 ## `Dynamic` parameters first suggested: handleInput passes `Dynamic(-1), Dynamic(true)` on
 ## one branch and `Dynamic(-FlxG.mouse.wheel), Dynamic(true)` on the other, so the second is
 ## a bool and the walk is over the LIST, not over the grid the rects draw.
+## Funkin is 1280x720 and this project 1920x1080.
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+
 const SOUND_SWITCH := "res://animania_mod/source/sounds/animania/menu/menu_switch.ogg"
 ## doSelect's own sound, and the one a blocked button gets.
 const SOUND_CONFIRM := "res://animania_mod/source/sounds/confirmMenu.ogg"
@@ -308,6 +311,12 @@ func _process(delta: float) -> void:
 
 
 ## The walk skips blocked buttons rather than stopping on them, and wraps.
+##
+## Deaf until the intro's CAMERA tween lands - `_live()` - and not until the curtains stop:
+## the mod only reaches changeItem through handleInput, and update() stops calling
+## handleInput when that tween's onComplete fires at 0.75s, a quarter of a second before the
+## curtains finish. The guard used to look at whatever moment the frames happened to land on
+## and call it "during the intro"; it names the moment now.
 func change_item(amount: int, play_sound: bool = true) -> void:
 	if _confirmed or amount == 0 or not _live():
 		return
@@ -506,6 +515,16 @@ const MUSIC_SOCIAL_FRAMES := "res://animania_mod/source/images/menus/menu/music_
 ## is centred on (645, 620) of a 1278-wide shot - because createMusicSocial's own placement
 ## has not been read yet.
 const MUSIC_SOCIAL_SCALE := 0.85
+## createMusicSocial (0x180e0c2/0x180e0dd) creates the disc at world (570, 590) with a
+## 158x134 frame, so Flixel draws it centred on (649, 657). The mod's capture has that
+## centre on (645, 620) of a 1278-wide shot. The plate agrees with the binary to within
+## seven pixels and the curtains to within four, so the pair below is not a scale or a
+## camera - it is one measured offset between this build and that capture, and everything
+## this file places against FlxG.width/height takes it so the OST widget stays in one
+## piece.
+const MUSIC_SOCIAL_WORLD := Vector2(570.0, 590.0)
+const MUSIC_SOCIAL_FRAME := Vector2(158.0, 134.0)
+const WORLD_OFFSET := Vector2(-4.0, -37.0)
 const MUSIC_SOCIAL_CENTRE := Vector2(645.0, 620.0)
 ## menus/menu/music_social_lines at (7.5, 625.35) - the two doubles createMusicSocial loads
 ## right after the disc's scale, first the y then the x, the same order the loading screen's
@@ -514,8 +533,32 @@ const MUSIC_SOCIAL_CENTRE := Vector2(645.0, 620.0)
 ## and toggleSocialButtons exist, so it belongs to the expanded state, not the resting one.
 const MUSIC_LINES := "res://animania_mod/source/images/menus/menu/music_social_lines.png"
 const MUSIC_LINES_POS := Vector2(7.5, 625.35)
+
+## createSocialButtons (0x180ce20). Five, not the four this file used to say - amazon is in
+## the atlas too - and their seats are a running sum, not five loose numbers: the first is
+## at x = 37.3 (0x180d8b7) and each next one starts a full frame width minus six further
+## right (0x180d835), all of them on y = 620.9 (0x180d894) at scale 0.85. The last one ends
+## at 539, and music_social_lines is 661 wide at 0.85 running from 7.5 to 569 - the strip
+## they sit on. That is the check that the sum is read the right way round.
+##
+## The order is the order the anons are built (0x180ced3 onwards) and the URLs in .rodata
+## are in that same order, which is a second source agreeing.
+const MUSIC_BUTTONS := "res://animania_mod/source/images/menus/menu/music_social_buttons.png"
+const MUSIC_BUTTONS_XML := "res://animania_mod/source/images/menus/menu/music_social_buttons.xml"
+const SOCIAL_START_X := 37.3
+const SOCIAL_Y := 620.9
+const SOCIAL_STEP_TRIM := 6.0
+const SOCIAL_SERVICES: Array = [
+	["amazon", "https://music.amazon.com/artists/B0DLRGCSTC/animania-crew"],
+	["youtube button", "https://www.youtube.com/@animaniacrewyoutube"],
+	["soundcloud button", "https://soundcloud.com/animaniacrew"],
+	["spotify button", "https://open.spotify.com/artist/2BW1sh84ELs0TO4grqYmT3?si=TuwSLrFMR3uVeswvC_e9aw"],
+	["apple music button", "https://music.apple.com/us/artist/animania-crew/1777493090"],
+]
+
 var _music_social: AnimatedSprite2D = null
 var _music_lines: Sprite2D = null
+var _social_buttons: Array[Sprite2D] = []
 var _social_open: bool = false
 
 
@@ -533,8 +576,8 @@ func _create_music_social() -> void:
 	_music_social.sprite_frames = load(MUSIC_SOCIAL_FRAMES) as SpriteFrames
 	if _music_social.sprite_frames.has_animation(&"soundtrack basic"):
 		_music_social.play(&"soundtrack basic")
-	_music_social.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * (1920.0 / 1280.0)
-	_music_social.position = MUSIC_SOCIAL_CENTRE * (1920.0 / 1278.0)
+	_music_social.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * FUNKIN_TO_RUBICON
+	_music_social.position = _world(MUSIC_SOCIAL_WORLD + MUSIC_SOCIAL_FRAME * 0.5)
 	add_child(_music_social)
 
 	if ResourceLoader.exists(MUSIC_LINES):
@@ -542,16 +585,76 @@ func _create_music_social() -> void:
 		_music_lines.name = "MusicSocialLines"
 		_music_lines.centered = false
 		_music_lines.texture = load(MUSIC_LINES)
-		_music_lines.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * (1920.0 / 1280.0)
-		_music_lines.position = MUSIC_LINES_POS * (1920.0 / 1280.0)
+		_music_lines.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * FUNKIN_TO_RUBICON
+		_music_lines.position = _world(MUSIC_LINES_POS)
 		_music_lines.visible = false
 		add_child(_music_lines)
 
+	_create_social_buttons()
 
-## toggleSocialButtons. The four services (apple music, soundcloud, spotify, youtube) are
-## in music_social_buttons.xml and are NOT built here: their five positions are not measured
-## anywhere yet, and inventing five is how the news bubble ended up across the middle of
-## this menu. What is measured - the disc, its animations and the lines - is what is here.
+
+## The mod hides these until the disc is clicked (set_visible(false) at 0x180d665) and hangs
+## a FlxMouseEventManager click on each; here the tap goes through _touch like every other
+## button on this screen.
+func _create_social_buttons() -> void:
+	_social_buttons.clear()
+	var sheet: Texture2D = load(MUSIC_BUTTONS) as Texture2D
+	if sheet == null:
+		return
+	var regions: Dictionary = _sparrow_regions(MUSIC_BUTTONS_XML)
+	var pen: float = SOCIAL_START_X
+	for service: Array in SOCIAL_SERVICES:
+		var key: String = String(service[0])
+		if not regions.has(key):
+			continue
+		var region: Rect2 = regions[key] as Rect2
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = region
+
+		var button := Sprite2D.new()
+		button.name = "Social_" + key
+		button.centered = false
+		button.texture = atlas
+		button.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * FUNKIN_TO_RUBICON
+		button.position = _world(Vector2(pen, SOCIAL_Y))
+		button.visible = false
+		button.set_meta(&"url", String(service[1]))
+		add_child(button)
+		_social_buttons.append(button)
+		# The step is the UNSCALED frame width: the mod calls updateHitbox before it scales,
+		# so `width` is still the atlas frame's when the sum is taken.
+		pen += region.size.x - SOCIAL_STEP_TRIM
+
+
+func _sparrow_regions(path: String) -> Dictionary:
+	var out: Dictionary = {}
+	var parser := XMLParser.new()
+	if parser.open(path) != OK:
+		return out
+	while parser.read() == OK:
+		if parser.get_node_type() != XMLParser.NODE_ELEMENT:
+			continue
+		if parser.get_node_name() != "SubTexture":
+			continue
+		var raw_name: String = parser.get_named_attribute_value_safe("name")
+		var key: String = raw_name.substr(0, raw_name.length() - 4)
+		if key.is_empty() or out.has(key):
+			continue
+		out[key] = Rect2(
+			float(parser.get_named_attribute_value_safe("x")),
+			float(parser.get_named_attribute_value_safe("y")),
+			float(parser.get_named_attribute_value_safe("width")),
+			float(parser.get_named_attribute_value_safe("height")))
+	return out
+
+
+## FlxG-space (1280x720) into this scene's 1920x1080, through the one offset the disc fixes.
+func _world(p: Vector2) -> Vector2:
+	return (p + WORLD_OFFSET) * FUNKIN_TO_RUBICON
+
+
+## toggleSocialButtons.
 func _social_hit(at: Vector2) -> bool:
 	if _music_social == null or not _music_social.visible:
 		return false
@@ -569,6 +672,8 @@ func _toggle_social() -> void:
 	_social_open = not _social_open
 	if _music_lines != null:
 		_music_lines.visible = _social_open
+	for button: Sprite2D in _social_buttons:
+		button.visible = _social_open
 	if _music_social == null or _music_social.sprite_frames == null:
 		return
 	var anim: StringName = &"soundtrack white" if _social_open else &"soundtrack basic"
@@ -643,20 +748,36 @@ func _finalize_setup() -> void:
 	_setup_event_listeners()
 
 
-## updateCameraScroll. Slow camera drift for parallax feel.
-## From the binary's updateCameraScroll method.
-const SCROLL_DRIFT_SPEED := 30.0
-const SCROLL_LERP := 0.02
+const SCROLL_RANGE_X := Vector2(-10.0, 3.0)
+const SCROLL_RANGE_Y := Vector2(-1.0, 1.0)
+const SCROLL_LERP := 3.0
 var _scroll_target := Vector2.ZERO
 
 
+## updateCameraScroll (0x1804ac0), which was a pair of sines off the music's playback
+## position - invented, and it left the camera permanently off centre the moment the intro
+## finished. What the mod does is follow the MOUSE:
+##
+##     scroll.x = lerp(scroll.x, remapToRange(mouse.x, 0, FlxG.width,  -10, 3), elapsed * 3)
+##     scroll.y = lerp(scroll.y, remapToRange(mouse.y, 0, FlxG.height, -1,  1), elapsed * 3)
+##
+## - the two ranges out of .rodata at 0x59fa9e8/0x59fa7e0 and 0x59fa5a8/0x59fa558, and the
+## lerp factor is the 3.0 the elapsed is multiplied by at 0x1804b1f. Ten pixels across the
+## whole screen, so it is a lean and not a pan.
+##
+## With no mouse there is nothing to follow, and a phone has none: the drift is skipped
+## rather than fed a mouse position the platform is inventing.
 func _update_camera_scroll(delta: float) -> void:
-	if camera == null:
+	if camera == null or not DisplayServer.has_feature(DisplayServer.FEATURE_MOUSE):
 		return
-	var time: float = music.get_playback_position() if music != null else 0.0
-	_scroll_target.x = sin(time * 0.3) * SCROLL_DRIFT_SPEED
-	_scroll_target.y = cos(time * 0.2) * SCROLL_DRIFT_SPEED * 0.5
-	camera.offset = camera.offset.lerp(_scroll_target, SCROLL_LERP)
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	if view.x <= 0.0 or view.y <= 0.0:
+		return
+	var mouse: Vector2 = get_viewport().get_mouse_position()
+	_scroll_target = Vector2(
+		remap(mouse.x, 0.0, view.x, SCROLL_RANGE_X.x, SCROLL_RANGE_X.y),
+		remap(mouse.y, 0.0, view.y, SCROLL_RANGE_Y.x, SCROLL_RANGE_Y.y)) * FUNKIN_TO_RUBICON
+	camera.offset = camera.offset.lerp(_scroll_target, minf(1.0, SCROLL_LERP * delta))
 
 
 ## showSocialButtons / hideSocialButtons (0x17fc870 and 0x17fcae0). They used to poke a
@@ -729,6 +850,11 @@ func _touch(at: Vector2) -> void:
 		_toggle_social()
 		_play(SOUND_SWITCH)
 		return
+	var service: String = _social_button_at(at)
+	if not service.is_empty():
+		OS.shell_open(service)
+		_play(SOUND_CONFIRM)
+		return
 	var hit: int = _button_at(at)
 	if hit < 0:
 		return
@@ -737,6 +863,17 @@ func _touch(at: Vector2) -> void:
 		_refresh()
 		_play(SOUND_SWITCH)
 	do_select()
+
+
+## The URL of whichever open OST button was hit, or "".
+func _social_button_at(at: Vector2) -> String:
+	for button: Sprite2D in _social_buttons:
+		if not button.visible or button.texture == null:
+			continue
+		var size: Vector2 = button.texture.get_size() * button.scale
+		if Rect2(button.position, size).has_point(at):
+			return String(button.get_meta(&"url", ""))
+	return ""
 
 
 ## Which button's rect contains a point, or -1. The rects are set on the nodes by

@@ -350,6 +350,77 @@ at the entry's `textSpeed` with `textPitch` — the units of that speed are not 
 so the note is shown whole rather than at an invented rate. The note's `<img>` markup is
 dropped rather than printed.
 
+### The main menu's create(), and the three things that were missing from it
+
+`MainMenuScreen.create()` (0x18110d0) is eleven calls and they are worth having written
+down, because the port had three of them missing outright:
+
+    initMouseEvents, initMusic, createBackground, createParticles, createVisualizers,
+    createUIComponents, createButtons, createSeasonalEffects, createSpecialElements,
+    setupEventListeners, finalizeSetup
+
+- **createVisualizers** (0x17ff530) is a `WaveformSprite` down the left edge —
+  `setPosition(-100, -15)`, `setSize(256, 900)`, alpha 0.8 — and a `BarsVisualizer(-90,
+  390, 950, 350)`. The bars' own constructor (0x51c4ea0) carries 24 bars, alpha 0.6 and a
+  five-stop gradient (white, pale yellow twice at 69%, pink, cyan); `initBars` (0x51c5620)
+  divides the width by the count, draws each bar that wide minus 5 and the full height, and
+  `drawFFT` writes each one's `scale.y` — which Flixel applies about the frame's centre, so
+  a bar opens out of the middle of the band rather than growing off its floor.
+- **createSocialButtons** (0x180ce20) is five buttons, not four: amazon is in the atlas
+  next to youtube, soundcloud, spotify and apple music. Their seats are a **running sum**,
+  which is why they read as unmeasurable before — the first is at x = 37.3 and each next
+  one starts `previous frame width - 6` further right, all on y = 620.9 at scale 0.85. The
+  last ends at 539 and `music_social_lines` is 661 wide at 0.85 running 7.5 to 569: the
+  strip they sit on. That the sum lands inside the strip is the check that it is read the
+  right way round, and the five URLs in `.rodata` are in the same order as the anons.
+- **createParticles** (0x17fb440) is an `FlxTypedEmitter` at (750, -150) on
+  `menus/particle` — a plain white 100x100 square — with a scale that runs 0.35 down to
+  0.1 and a frequency of 0.09. Identified, not ported.
+
+`updateCameraScroll` (0x1804ac0) follows the **mouse**, not a clock:
+`scroll.x = lerp(scroll.x, remapToRange(mouse.x, 0, FlxG.width, -10, 3), elapsed * 3)` and
+the same on y with a range of -1 to 1. The port had a pair of sines off the music's
+playback position, which is why the camera never came back to centre after the intro and
+why the guard had been failing on it for weeks.
+
+### A guard check has to name the moment it means
+
+`change_item` was already deaf during the intro — `_live()` has been on its first line all
+along — and the guard failed on it anyway for weeks. The reason is that `_live()` opens when
+the CAMERA tween lands at 0.75s while the curtains run to 1.0s, and the guard asserted
+"the curtains are still moving, so the menu must be deaf" and then looked at whatever
+moment the frames happened to fall on. Two true statements about different moments. Parking
+`_intro` at 0.1 first makes the check deterministic and it passes, and adding a second
+`_live()` guard to `change_item` — which is what this looked like from the failure — fixes
+nothing, because the first one was never the problem.
+
+The knock-on is worth knowing: that one failure had been hiding the whole tail of
+`flow_check`. The walk it corrupted landed on options instead of freeplay, the guard hit its
+`_report(); return`, and **everything after it — freeplay, the loading screen, the song, the
+pause menu — had not run in weeks.** When it finally did, it needed the loading screen
+driven (`_done`, then `_enter()`), a wall-clock wait for freeplay's 0.6s confirm timer, and
+one check that could never have passed (`root.has_node("DebugOverlay")`, an autoload, which
+`--script` does not register) rewritten to ask `ProjectSettings` instead. An early
+`return` in a guard hides more than it reports.
+
+### One capture is not the build you have
+
+The mod's own main-menu capture and this 0.6 Linux build **disagree**, and it took a while
+to accept it. The plate is at world x = 700 in the binary (centred, then
+`plate.set_x(390 + x)`) and the capture has its left edge on 693 — seven pixels, fine. But
+`createMusicSocial` puts the OST disc at (570, 590) with a 158x134 frame, so Flixel draws
+it centred on (649, 657), and the capture has that centre on (645, 620): **37 out in y and
+right in x**. `createVisualizers` puts the waveform's spine on x = 28 and the capture has
+it near 97: **69 out in x**. Three different offsets on three elements rules out a camera
+transform — a zoom or a scroll would move all of them together, and the mouse-driven scroll
+above only spans ten pixels anyway.
+
+So the disc's pair is kept as the ONE calibration between the two — `WORLD_OFFSET` in
+`main_menu.gd`, (-4, -37) — and everything the menu places against `FlxG.width/height` takes
+it, so the OST widget stays in one piece and lands where the capture has it. Where the
+binary and the capture cannot both be satisfied, the binary wins and the difference is
+written down rather than tuned away.
+
 ---
 
 ## 4. The build loop
