@@ -14,6 +14,13 @@ static var _remembered_difficulty: String = ""
 ## no black letterbox above and below the way the mod does.
 ## It is a screen distance, so it takes the x1.5.
 const BACKGROUND_HEIGHT := 400.0
+
+## The band's TOP, not a centred offset. updateBackground loads 56 twice
+## (0x32ed349 and 0x32ed701), and the 1280x720 reference confirms it to the
+## pixel: the purple starts at y=57 in every clear column and the black bar
+## above it is exactly 56 tall. The port centred the band instead, which put it
+## 104 Funkin pixels too low and made the top bar four times too tall.
+const BACKGROUND_Y := 56.0
 const DEFAULT_BACKGROUND_COLOR := Color(0.06, 0.05, 0.1)
 const DEFAULT_BACKGROUND_COLOR_V3 := Vector3(0.06, 0.05, 0.1)
 const FADE_OUT_TIME := 0.35
@@ -66,8 +73,18 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## measures. That is a SCREEN distance, so it takes the x1.5.
 ## The y is NOT from here: buildLevelTitles leaves it at 0 and the scroll in
 ## update() drives it. TITLE_CENTRE.y and TITLE_SPACING are still unmeasured.
-const TITLE_CENTRE := Vector2((640.0 - 50.0) * FUNKIN_TO_RUBICON, 540.0)
-const TITLE_SPACING := 180.0
+## x is MEASURED in buildLevelTitles (0x32e7f60) as screenCenter(X) minus 50,
+## so the centre lands at 640-50 = 590 whatever the title measures. The
+## 1280x720 reference agrees to within 6px: WEEK 1's white spans x 406..762,
+## centre 584.
+##
+## y and the spacing come from that same reference, because buildLevelTitles
+## leaves y at 0 and update()'s scroll drives it: the selected title's centre
+## sits at 584 and the one above it at 470, so the step is 115. The port had
+## 540 and 180 in RUBICON units - 360 and 120 in Funkin's - which floated the
+## whole stack a hundred and fifty pixels high.
+const TITLE_CENTRE := Vector2(590.0 * FUNKIN_TO_RUBICON, 584.0 * FUNKIN_TO_RUBICON)
+const TITLE_SPACING := 115.0 * FUNKIN_TO_RUBICON
 const TITLE_ALPHA_OFF := 0.6
 
 # Visualizer
@@ -581,6 +598,22 @@ func update_props() -> void:
 		if frames == null:
 			continue
 
+		# These Animate atlases carry frameX/frameY that are NOT a trim inset:
+		# BF's frame is 344x496 around a 338x487 region - a 6x9 difference - yet
+		# frameY is 144, which cannot be an inset into it. The importer's
+		# standard formula turns that into margin.position (-14,-144), and a
+		# negative position on a Godot AtlasTexture draws the region outside the
+		# padded frame, where it is CLIPPED. That is what beheaded BF.
+		#
+		# The padding is under 2% on both axes, so dropping it costs nothing and
+		# the art draws whole. Done on a duplicate: the .tres is shared.
+		frames = frames.duplicate(true)
+		for anim_name: StringName in frames.get_animation_names():
+			for fi: int in frames.get_frame_count(anim_name):
+				var at: AtlasTexture = frames.get_frame_texture(anim_name, fi) as AtlasTexture
+				if at != null and at.margin != Rect2():
+					at.margin = Rect2()
+
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
 		anim_sprite.scale = Vector2.ONE * scale_val * FUNKIN_TO_RUBICON
@@ -610,23 +643,18 @@ func update_props() -> void:
 			if ft != null:
 				frame_size = ft.get_size() * anim_sprite.scale
 		var left: float = (1280.0 * 0.25 * float(_prop_index) + offset_x) * FUNKIN_TO_RUBICON
-		# The vertical is where the measurement runs out. Taken literally -
-		# y = 0 and the offset subtracted - BF lands at -180 and all that shows
-		# of him is his boots, which the reference plainly contradicts. Neither
-		# buildProps, nor build (it only allocates, `mov $0x348,%esi`), nor
-		# create() for the prop group assigns a y, so the base is somewhere this
-		# port has not found. Anchoring to the band's top edge puts the cast
-		# where the reference has it; the offsets keep their measured meaning as
-		# a subtraction. This line is a READING, not the mod's.
-		var band_top: float = (SCREEN.y - BACKGROUND_HEIGHT * FUNKIN_TO_RUBICON) * 0.5
-		# offsets[1] is NOT applied here, and that is deliberate. In Flixel the
-		# prop's `offset` compensates for its own atlas trim - each of week1's
-		# three has a different frameY - so that the drawn art lines up. Godot's
-		# AtlasTexture already carries that trim in its margin, which the
-		# regenerated frames now set correctly, so applying the offset on top
-		# counts it twice and is what threw BF a hundred and eighty pixels above
-		# the other two.
-		var top: float = band_top
+		# The vertical is MEASURED off the 1280x720 reference, not guessed. The
+		# cast's art tops land at y=67, 77 and 79 against a band top of 56, so the
+		# props hang from the band's upper edge and the ~10px spread between them
+		# is their own atlas trim.
+		#
+		# offsets[1] is deliberately NOT applied. buildProps never assigns y - it
+		# takes set_x twice and set_y not once - and in Flixel the prop's `offset`
+		# compensates for its atlas trim so the drawn art lines up. Godot's
+		# AtlasTexture already carries that trim in its margin now that the frames
+		# are regenerated correctly, so applying it again counts it twice: it threw
+		# BF 180px above the other two, where the reference has him within 10.
+		var top: float = BACKGROUND_Y * FUNKIN_TO_RUBICON
 		anim_sprite.position = Vector2(left, top) + frame_size * 0.5
 		_prop_index += 1
 		anim_sprite.centered = true
@@ -748,9 +776,15 @@ func funny_music_thing() -> void:
 const BLOT_TINT := Color(39.0 / 255.0, 36.0 / 255.0, 42.0 / 255.0, 1.0)
 
 
+## Its centre measures (582, 581) in the reference - the same x the titles get,
+## and a y that puts the splat under them with its lower half running off the
+## bottom edge.
+const BLOT_CENTRE_Y := 581.0
+
 func _place_weeks_blot() -> void:
 	if weeks_blot != null:
-		weeks_blot.position.x = TITLE_CENTRE.x
+		weeks_blot.position = Vector2(TITLE_CENTRE.x,
+			BLOT_CENTRE_Y * FUNKIN_TO_RUBICON)
 		weeks_blot.modulate = BLOT_TINT
 
 
@@ -896,10 +930,9 @@ func _follow_boxes() -> void:
 func _size_level_background() -> void:
 	if level_background == null:
 		return
-	var band: float = BACKGROUND_HEIGHT * FUNKIN_TO_RUBICON
 	level_background.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	level_background.size = Vector2(SCREEN.x, band)
-	level_background.position = Vector2(0.0, (SCREEN.y - band) * 0.5)
+	level_background.size = Vector2(SCREEN.x, BACKGROUND_HEIGHT * FUNKIN_TO_RUBICON)
+	level_background.position = Vector2(0.0, BACKGROUND_Y * FUNKIN_TO_RUBICON)
 
 
 # ─── Visualizer ───────────────────────────────────────────────────────────
