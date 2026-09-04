@@ -19,8 +19,27 @@ var _label: Label
 var _timer: float = 0.0
 
 
+## A harness render is a MEASUREMENT, and this readout sits on top of whatever
+## is being measured - it has covered the story menu's LEVEL SCORE line in every
+## shot taken so far, and it turns up in the 50% overlays against the mod's own
+## captures as noise that is not part of the menu. The harnesses are launched as
+##   godot --path . res://tools/animania/harness/<name>.tscn
+## so the path on the command line is what identifies them.
+const HARNESS_DIR := "tools/animania/harness/"
+
+
+func _is_harness_run() -> bool:
+	for arg: String in OS.get_cmdline_args():
+		if arg.contains(HARNESS_DIR):
+			return true
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.contains(HARNESS_DIR):
+			return true
+	return false
+
+
 func _ready() -> void:
-	if not OS.is_debug_build():
+	if not OS.is_debug_build() or _is_harness_run():
 		queue_free()
 		return
 

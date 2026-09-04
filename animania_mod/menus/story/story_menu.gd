@@ -629,45 +629,37 @@ func update_props() -> void:
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
 		anim_sprite.scale = Vector2.ONE * scale_val * FUNKIN_TO_RUBICON
-		# MEASURED, at last, in Level_obj::buildProps (0x3ec1ee0) - not in the
-		# mod's StoryMenu, which is why the earlier sweep came up empty:
+		# Level_obj::buildProps (0x3ec1ee0) sets only x, and it does it as
+		#     x = FlxG.width * 0.25 * index + offsets[0]
+		# read off 0x3ec22a9..0x3ec2337 - FlxG.width, *0.25, * the loop index in
+		# %r13d, the "offsets" entry added, all through set_x at vtable slot 0x210.
+		# It takes set_y not once, so y never gets assigned there.
 		#
-		#   x = FlxG.width * 0.25 * index + offsets[0]
+		# That formula does NOT reproduce the reference, and the discrepancy is not
+		# a constant bias, so it is not something to shim. Measured off the mod's
+		# own 1280x720 capture, with both sides in idle and overlaid at 50%, the
+		# cast's art centres sit at 213, 630 and 1053: a step of 417 and 423, near
+		# enough constant, where that formula would step by 320. Those centres are
+		# the screen split into equal slots with each prop in the middle of one -
+		# 1280/6, 1280/2, 5*1280/6 = 213, 640, 1067, within 14px of measured.
 		#
-		# read off 0x3ec22a9..0x3ec2337: FlxG.width, *0.25, * the loop index in
-		# %r13d, then the "offsets" entry added and pushed through the vtable's
-		# set_x at slot 0x210. That is the whole horizontal spread.
-		#
-		# y is NEVER assigned there: the function takes set_x twice and set_y not
-		# once. It stays at 0 and offsets[1] goes onto the prop's `offset` point in
-		# LevelProp_obj::applyData, and Flixel SUBTRACTS offset when it draws - so
-		# the top edge lands at -offsets[1].
-		#
-		# Both are screen distances against Funkin's 1280x720, so both take x1.5,
-		# and Godot centres a Sprite2D on its position where Flixel anchors the
-		# top-left, hence the half-size.
+		# So the slots are what gets used, and it generalises to any number of
+		# props. offsets[0] is left out for the same reason offsets[1] is: applying
+		# it moves the cast away from where the mod draws it, not towards.
+		# The residual against buildProps is unexplained and stays written down
+		# rather than papered over.
+		var slots: int = maxi(1, props_data.size())
+		var centre_x: float = SCREEN.x * float(2 * _prop_index + 1) / float(2 * slots)
+		var top: float = BACKGROUND_Y * FUNKIN_TO_RUBICON
 		var frame_size: Vector2 = Vector2.ZERO
-		var first_anim: StringName = &"idle"
-		if not frames.has_animation(first_anim) and frames.get_animation_names().size() > 0:
+		var first_anim: StringName = _find_anim(frames, "idle")
+		if first_anim == &"" and frames.get_animation_names().size() > 0:
 			first_anim = StringName(frames.get_animation_names()[0])
-		if frames.has_animation(first_anim):
+		if first_anim != &"":
 			var ft: Texture2D = frames.get_frame_texture(first_anim, 0)
 			if ft != null:
 				frame_size = ft.get_size() * anim_sprite.scale
-		var left: float = (1280.0 * 0.25 * float(_prop_index) + offset_x) * FUNKIN_TO_RUBICON
-		# The vertical is MEASURED off the 1280x720 reference, not guessed. The
-		# cast's art tops land at y=67, 77 and 79 against a band top of 56, so the
-		# props hang from the band's upper edge and the ~10px spread between them
-		# is their own atlas trim.
-		#
-		# offsets[1] is deliberately NOT applied. buildProps never assigns y - it
-		# takes set_x twice and set_y not once - and in Flixel the prop's `offset`
-		# compensates for its atlas trim so the drawn art lines up. Godot's
-		# AtlasTexture already carries that trim in its margin now that the frames
-		# are regenerated correctly, so applying it again counts it twice: it threw
-		# BF 180px above the other two, where the reference has him within 10.
-		var top: float = BACKGROUND_Y * FUNKIN_TO_RUBICON
-		anim_sprite.position = Vector2(left, top) + frame_size * 0.5
+		anim_sprite.position = Vector2(centre_x, top + frame_size.y * 0.5)
 		_prop_index += 1
 		anim_sprite.centered = true
 		# Its own material: a parent's is not inherited.
@@ -949,6 +941,9 @@ func _place_boxes() -> void:
 ## the corners read wrong however well the boxes lined up.
 const TOP_TEXT_POS := Vector2(7.0, 12.0)
 const TOP_TEXT_SIZE := 28
+## The week name is right-aligned but not flush: in the reference it ends at
+## x=1211, so the right margin is 69 where the score's left margin is 7.
+const TOP_TEXT_RIGHT_MARGIN := 69.0
 const TRACKLIST_POS := Vector2(8.0, 505.0)
 const TRACKLIST_SIZE := 40
 const TRACKLIST_COLOR := Color(229.0 / 255.0, 102.0 / 255.0, 132.0 / 255.0)
@@ -977,7 +972,8 @@ func _follow_boxes() -> void:
 		_style_label(score_text, TOP_TEXT_SIZE, Color.WHITE)
 	if level_title_text != null:
 		level_title_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		level_title_text.size = Vector2(SCREEN.x * 0.5 - pos.x, 60.0)
+		level_title_text.size = Vector2(
+			SCREEN.x * 0.5 - TOP_TEXT_RIGHT_MARGIN * FUNKIN_TO_RUBICON, 60.0)
 		level_title_text.position = Vector2(SCREEN.x * 0.5, pos.y)
 		level_title_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_style_label(level_title_text, TOP_TEXT_SIZE, Color.WHITE)
