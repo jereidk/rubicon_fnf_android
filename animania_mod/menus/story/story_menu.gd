@@ -15,6 +15,7 @@ static var _remembered_difficulty: String = ""
 ## It is a screen distance, so it takes the x1.5.
 const BACKGROUND_HEIGHT := 400.0
 const DEFAULT_BACKGROUND_COLOR := Color(0.06, 0.05, 0.1)
+const DEFAULT_BACKGROUND_COLOR_V3 := Vector3(0.06, 0.05, 0.1)
 const FADE_OUT_TIME := 0.35
 
 # ─── Paths ────────────────────────────────────────────────────────────────
@@ -150,14 +151,19 @@ func _ready() -> void:
 	_place_boxes()
 
 	# Setup chroma key shader material
+	# chroma_key exists for the PROPS, not for the background. The prop art is
+	# green-screened - BF_STANDART_MENU samples as (0,240,0) over most of its
+	# opaque area - and the shader keys that green out and redraws the rest as a
+	# flat silhouette tinted by bg_col, which is what gives the mod's line-art
+	# characters over the level colour.
+	#
+	# The port had it on level_background, a plain ColorRect where keying does
+	# nothing useful, and on the LevelProps container. A material on a Node2D
+	# parent is NOT inherited by its children in Godot - each CanvasItem needs
+	# its own - so the props were drawn raw and came out bright green.
 	theme_color_shader = ShaderMaterial.new()
 	theme_color_shader.shader = load("res://animania_mod/source/shaders/storymenu/chroma_key.gdshader")
-	theme_color_shader.set_shader_parameter("bg_col", Vector3(0.06, 0.05, 0.1))
-	level_background.material = theme_color_shader
-
-	# Apply chroma key to props container
-	if has_node("LevelProps"):
-		$LevelProps.material = theme_color_shader
+	theme_color_shader.set_shader_parameter("bg_col", DEFAULT_BACKGROUND_COLOR_V3)
 
 	preload_all()
 	remember_selection()
@@ -550,6 +556,7 @@ func update_props() -> void:
 	if props_data.is_empty():
 		return
 
+	var _prop_index: int = 0
 	for prop_dict: Variant in props_data:
 		if not prop_dict is Dictionary:
 			continue
@@ -571,8 +578,26 @@ func update_props() -> void:
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
 		anim_sprite.scale = Vector2.ONE * scale_val * FUNKIN_TO_RUBICON
-		anim_sprite.position = Vector2(offset_x * FUNKIN_TO_RUBICON, offset_y * FUNKIN_TO_RUBICON)
+		# The JSON offsets are NOT the position. LevelProp_obj::applyData
+		# (0x4310a90) writes them onto the prop's `offset` FlxPoint - field
+		# 0x338, through that point's own setters - not onto x/y, and two of
+		# week1's three are negative in y, which as a position would put them
+		# off the top of the screen. Where the BASE position comes from is not
+		# measured: updateProps (0x32ee710) touches no FlxG, create() gives the
+		# prop group only a zIndex of 18, and neither LevelProp.build nor
+		# set_propData positions anything.
+		#
+		# So the spread below is READ OFF the reference shot of the real menu -
+		# the cast standing evenly across the band - and the JSON offsets are
+		# applied on top as the nudges they are. NOT the mod's numbers.
+		var slot: float = (float(_prop_index) + 1.0) / float(props_data.size() + 1)
+		anim_sprite.position = Vector2(
+			SCREEN.x * slot + offset_x * FUNKIN_TO_RUBICON,
+			SCREEN.y * 0.5 - offset_y * FUNKIN_TO_RUBICON)
+		_prop_index += 1
 		anim_sprite.centered = true
+		# Its own material: a parent's is not inherited.
+		anim_sprite.material = theme_color_shader
 		props_container.add_child(anim_sprite)
 
 		if frames.has_animation(&"idle"):
@@ -607,6 +632,11 @@ func update_background_from_color() -> void:
 	var bg_str: String = String(title.get_meta(&"background", "#0F0D1A"))
 	var color: Color = Color.html(bg_str)
 	_animate_background(color)
+	# The props are drawn as a tint of the level colour, so the key has to
+	# follow it or they stay the colour of whatever level was shown first.
+	if theme_color_shader != null:
+		theme_color_shader.set_shader_parameter("bg_col",
+			Vector3(color.r, color.g, color.b))
 
 
 func _animate_background(target_color: Color) -> void:

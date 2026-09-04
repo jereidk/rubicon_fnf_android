@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://animania_mod/menus/story/story_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/titles/tutorial.png" id="2_title_tutorial"]
@@ -11,167 +11,272 @@
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/ui/lock.png" id="9_lock"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/source/images/menus/story/diff_selector_frames.tres" id="10_diff_frames"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/source/images/storymenu/ui/arrows_frames.tres" id="11_arrow_frames"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/difficulties/easy.png" id="12_diff_easy"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/difficulties/normal.png" id="13_diff_normal"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/difficulties/hard.png" id="14_diff_hard"]
 [ext_resource type="FontFile" path="res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf" id="16_font"]
-[ext_resource type="Shader" path="res://animania_mod/source/shaders/storymenu/chroma_key.gdshader" id="15_shader"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_chroma"]
-shader = ExtResource("15_shader")
-shader_parameter/bg_col = Vector3(0.06, 0.05, 0.1)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lock"]
 atlas = ExtResource("9_lock")
 region = Rect2(0, 0, 66, 92)
 filter_clip = true
 
-[node name="StoryMenu" type="Node2D" node_paths=PackedStringArray("titles", "sfx")]
+[node name="StoryMenu" type="Node2D" unique_id=1390787872 node_paths=PackedStringArray("titles", "sfx")]
 script = ExtResource("1_script")
 titles = NodePath("Titles")
 sfx = NodePath("Sfx")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2109708240]
 position = Vector2(960, 540)
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop" type="ColorRect" parent="." unique_id=596073020]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0.06, 0.05, 0.1, 1)
 
-[node name="LevelBackground" type="ColorRect" parent="."]
+[node name="LevelBackground" type="ColorRect" parent="." unique_id=1975804221]
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 color = Color(0.8, 0.6, 1, 1)
 
-[node name="WeekDiffBox" type="Sprite2D" parent="."]
+[node name="WeekDiffBox" type="Sprite2D" parent="." unique_id=179442687]
 position = Vector2(1280, 310)
 texture = ExtResource("5_week_diff_box")
 
-[node name="TracksBox" type="Sprite2D" parent="."]
+[node name="TracksBox" type="Sprite2D" parent="." unique_id=879595622]
 position = Vector2(1280, 760)
 texture = ExtResource("6_tracks_box")
 
-[node name="WeeksBlot" type="Sprite2D" parent="."]
+[node name="WeeksBlot" type="Sprite2D" parent="." unique_id=312786116]
 position = Vector2(400, 540)
 texture = ExtResource("7_weeks_blot")
 
-[node name="BarsVizMask" type="Sprite2D" parent="."]
+[node name="BarsVizMask" type="Sprite2D" parent="." unique_id=574433966]
+visible = false
 position = Vector2(960, 900)
 texture = ExtResource("8_viz_mask")
-visible = false
 
-[node name="BarsViz" type="Node2D" parent="."]
+[node name="BarsViz" type="Node2D" parent="." unique_id=696852439]
 position = Vector2(180, 840)
 
-[node name="Titles" type="Node2D" parent="."]
+[node name="Titles" type="Node2D" parent="." unique_id=822682661]
 
-[node name="Tutorial" type="Sprite2D" parent="Titles"]
+[node name="Tutorial" type="Sprite2D" parent="Titles" unique_id=400129258]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_title_tutorial")
 metadata/hitbox = Rect2(-332.25, -61.5, 664.5, 123)
 metadata/name = "BASIC RHYTHM"
-metadata/songs = PackedStringArray("tutorial")
 metadata/level_id = "tutorial"
 metadata/background = "#CC99FF"
 metadata/force_freeplay_visible = true
+metadata/props_data = [{
+"animations": [{
+"frameIndices": [30.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0],
+"name": "danceLeft",
+"prefix": "gf idle"
+}, {
+"frameIndices": [15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0],
+"name": "danceRight",
+"prefix": "gf idle"
+}],
+"assetPath": "storymenu/props/amtake/week1/GF_STANDART_MENU",
+"offsets": [-120.0, -100.0],
+"scale": 0.55
+}, {
+"animations": [{
+"frameRate": 24.0,
+"name": "idle",
+"prefix": "bf idle"
+}],
+"assetPath": "storymenu/props/amtake/week1/BF_STANDART_MENU",
+"offsets": [145.0, 120.0],
+"scale": 0.75
+}]
+metadata/songs = PackedStringArray("tutorial")
 
-[node name="Week1" type="Sprite2D" parent="Titles"]
+[node name="Week1" type="Sprite2D" parent="Titles" unique_id=688341073]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("3_title_week1")
 metadata/hitbox = Rect2(-269.25, -66.75, 538.5, 133.5)
 metadata/name = "DADDY DEAREST"
-metadata/songs = PackedStringArray("bopeebo", "fresh", "dadbattle")
 metadata/level_id = "week1"
 metadata/background = "#CC99FF"
 metadata/force_freeplay_visible = true
+metadata/props_data = [{
+"animations": [{
+"frameRate": 24.0,
+"name": "idle",
+"prefix": "dad idle"
+}, {
+"frameRate": 24.0,
+"name": "confirm",
+"prefix": "dad confirm"
+}],
+"assetPath": "storymenu/props/amtake/week1/DADDY_DEAREST_MENU",
+"offsets": [30.0, -122.0],
+"scale": 0.45
+}, {
+"animations": [{
+"frameRate": 24.0,
+"name": "idle",
+"prefix": "bf idle"
+}, {
+"name": "confirm",
+"prefix": "bf confirm"
+}],
+"assetPath": "storymenu/props/amtake/week1/BF_STANDART_MENU",
+"offsets": [145.0, 120.0],
+"scale": 0.75
+}, {
+"animations": [{
+"frameIndices": [30.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0],
+"name": "danceLeft",
+"prefix": "gf idle"
+}, {
+"frameIndices": [15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0],
+"name": "danceRight",
+"prefix": "gf idle"
+}, {
+"name": "confirm",
+"prefix": "gf confirm"
+}],
+"assetPath": "storymenu/props/amtake/week1/GF_STANDART_MENU",
+"offsets": [20.0, -100.0],
+"scale": 0.55
+}]
+metadata/songs = PackedStringArray("bopeebo", "fresh", "dadbattle")
 
-[node name="Week5" type="Sprite2D" parent="Titles"]
+[node name="Week5" type="Sprite2D" parent="Titles" unique_id=789347566]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("4_title_week5")
 metadata/hitbox = Rect2(-273, -68.25, 546, 136.5)
 metadata/name = "RED SNOW"
-metadata/songs = PackedStringArray("cocoa", "eggnog", "winter-horrorland")
 metadata/level_id = "week5"
 metadata/background = "#99CCFF"
-metadata/props_data = [{"assetPath": "storymenu/props/amtake/week5/PARENTS_MENU", "scale": 0.43, "offsets": PackedFloat32Array(-225, -190)}, {"assetPath": "storymenu/props/amtake/week5/X-MAS_BF_MENU", "scale": 0.75, "offsets": PackedFloat32Array(125, -2)}, {"assetPath": "storymenu/props/amtake/week5/X-MAS_GF_MENU", "scale": 0.55, "offsets": PackedFloat32Array(100, -70)}]
+metadata/force_freeplay_visible = false
+metadata/props_data = [{
+"animations": [{
+"frameRate": 24.0,
+"name": "idle",
+"prefix": "parents idle"
+}, {
+"frameIndices": [10.0, 11.0, 12.0, 13.0],
+"frameRate": 24.0,
+"name": "idle-loop",
+"prefix": "parents idle"
+}, {
+"name": "confirm",
+"offsets": [0.0, 15.0],
+"prefix": "parents confirm"
+}],
+"assetPath": "storymenu/props/amtake/week5/PARENTS_MENU",
+"offsets": [-225.0, -190.0],
+"scale": 0.43
+}, {
+"animations": [{
+"frameRate": 24.0,
+"name": "idle",
+"prefix": "bf idle"
+}, {
+"frameRate": 24.0,
+"name": "confirm",
+"offsets": [-20.0, 12.0],
+"prefix": "bf confirm"
+}],
+"assetPath": "storymenu/props/amtake/week5/X-MAS_BF_MENU",
+"offsets": [125.0, -2.0],
+"scale": 0.75
+}, {
+"animations": [{
+"frameIndices": [30.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0],
+"name": "danceLeft",
+"prefix": "gf idle"
+}, {
+"frameIndices": [15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0],
+"name": "danceRight",
+"prefix": "gf idle"
+}, {
+"name": "confirm",
+"offsets": [8.0, 3.0],
+"prefix": "gf confirm"
+}],
+"assetPath": "storymenu/props/amtake/week5/X-MAS_GF_MENU",
+"offsets": [100.0, -70.0],
+"scale": 0.55
+}]
+metadata/songs = PackedStringArray("cocoa", "eggnog", "winter-horrorland")
 
-[node name="DiffSelector" type="AnimatedSprite2D" parent="."]
+[node name="DiffSelector" type="AnimatedSprite2D" parent="." unique_id=731537203]
 position = Vector2(1280, 440)
 sprite_frames = ExtResource("10_diff_frames")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="LeftArrow" type="AnimatedSprite2D" parent="."]
+[node name="LeftArrow" type="AnimatedSprite2D" parent="." unique_id=1959643260]
 position = Vector2(1080, 440)
 sprite_frames = ExtResource("11_arrow_frames")
 animation = &"leftIdle"
 autoplay = "leftIdle"
 
-[node name="RightArrow" type="AnimatedSprite2D" parent="."]
+[node name="RightArrow" type="AnimatedSprite2D" parent="." unique_id=180608876]
 position = Vector2(1480, 440)
 sprite_frames = ExtResource("11_arrow_frames")
 animation = &"rightIdle"
 autoplay = "rightIdle"
 
-[node name="DifficultySprite" type="Sprite2D" parent="."]
+[node name="DifficultySprite" type="Sprite2D" parent="." unique_id=1482634706]
 position = Vector2(1280, 440)
 texture = ExtResource("14_diff_hard")
 
-[node name="ScoreText" type="Label" parent="."]
+[node name="ScoreText" type="Label" parent="." unique_id=735312747]
 offset_left = 1050.0
 offset_top = 550.0
 offset_right = 1510.0
 offset_bottom = 600.0
-theme_override_colors/font_color = Color(1, 1, 1, 0.7)
 theme_override_fonts/font = ExtResource("16_font")
 theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
 text = "HIGH SCORE: 0"
 horizontal_alignment = 1
 
-[node name="TracklistText" type="Label" parent="."]
+[node name="TracklistText" type="Label" parent="." unique_id=950383489]
 offset_left = 1070.0
 offset_top = 700.0
 offset_right = 1490.0
 offset_bottom = 860.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("16_font")
 theme_override_font_sizes/font_size = 22
-text = ""
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 horizontal_alignment = 1
 
-[node name="LevelTitleText" type="Label" parent="."]
+[node name="LevelTitleText" type="Label" parent="." unique_id=2115437456]
 offset_left = 1050.0
 offset_top = 200.0
 offset_right = 1510.0
 offset_bottom = 260.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("16_font")
 theme_override_font_sizes/font_size = 32
-text = ""
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 horizontal_alignment = 1
 
-[node name="ModeText" type="Label" parent="."]
+[node name="ModeText" type="Label" parent="." unique_id=1633914741]
 offset_left = 1050.0
 offset_top = 960.0
 offset_right = 1510.0
 offset_bottom = 1010.0
-theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_fonts/font = ExtResource("16_font")
 theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 text = "In StoryMode"
 horizontal_alignment = 1
 
-[node name="Lock" type="Sprite2D" parent="."]
+[node name="Lock" type="Sprite2D" parent="." unique_id=57383302]
+visible = false
 position = Vector2(1280, 540)
 texture = SubResource("AtlasTexture_lock")
-visible = false
 
-[node name="LevelProps" type="Node2D" parent="."]
-[node name="Sfx" type="AudioStreamPlayer" parent="."]
-bus = &"Master"
+[node name="LevelProps" type="Node2D" parent="." unique_id=1292381365]
 
-[node name="BassSound" type="AudioStreamPlayer" parent="."]
-bus = &"Master"
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1876249755]
+
+[node name="BassSound" type="AudioStreamPlayer" parent="." unique_id=774756934]
