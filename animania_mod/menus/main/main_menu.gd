@@ -507,7 +507,16 @@ const MUSIC_SOCIAL_FRAMES := "res://animania_mod/source/images/menus/menu/music_
 ## has not been read yet.
 const MUSIC_SOCIAL_SCALE := 0.85
 const MUSIC_SOCIAL_CENTRE := Vector2(645.0, 620.0)
+## menus/menu/music_social_lines at (7.5, 625.35) - the two doubles createMusicSocial loads
+## right after the disc's scale, first the y then the x, the same order the loading screen's
+## FunkinSprite calls take. It is a 661x83 strip that runs from the left edge to just short
+## of the disc, and the mod's capture does not show it: showSocialButtons/hideSocialButtons
+## and toggleSocialButtons exist, so it belongs to the expanded state, not the resting one.
+const MUSIC_LINES := "res://animania_mod/source/images/menus/menu/music_social_lines.png"
+const MUSIC_LINES_POS := Vector2(7.5, 625.35)
 var _music_social: AnimatedSprite2D = null
+var _music_lines: Sprite2D = null
+var _social_open: bool = false
 
 
 func _create_special_elements() -> void:
@@ -527,6 +536,44 @@ func _create_music_social() -> void:
 	_music_social.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * (1920.0 / 1280.0)
 	_music_social.position = MUSIC_SOCIAL_CENTRE * (1920.0 / 1278.0)
 	add_child(_music_social)
+
+	if ResourceLoader.exists(MUSIC_LINES):
+		_music_lines = Sprite2D.new()
+		_music_lines.name = "MusicSocialLines"
+		_music_lines.centered = false
+		_music_lines.texture = load(MUSIC_LINES)
+		_music_lines.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * (1920.0 / 1280.0)
+		_music_lines.position = MUSIC_LINES_POS * (1920.0 / 1280.0)
+		_music_lines.visible = false
+		add_child(_music_lines)
+
+
+## toggleSocialButtons. The four services (apple music, soundcloud, spotify, youtube) are
+## in music_social_buttons.xml and are NOT built here: their five positions are not measured
+## anywhere yet, and inventing five is how the news bubble ended up across the middle of
+## this menu. What is measured - the disc, its animations and the lines - is what is here.
+func _social_hit(at: Vector2) -> bool:
+	if _music_social == null or not _music_social.visible:
+		return false
+	if _music_social.sprite_frames == null:
+		return false
+	var tex: Texture2D = _music_social.sprite_frames.get_frame_texture(
+		_music_social.animation, 0)
+	if tex == null:
+		return false
+	var half: Vector2 = tex.get_size() * _music_social.scale * 0.5
+	return Rect2(_music_social.position - half, half * 2.0).has_point(at)
+
+
+func _toggle_social() -> void:
+	_social_open = not _social_open
+	if _music_lines != null:
+		_music_lines.visible = _social_open
+	if _music_social == null or _music_social.sprite_frames == null:
+		return
+	var anim: StringName = &"soundtrack white" if _social_open else &"soundtrack basic"
+	if _music_social.sprite_frames.has_animation(anim):
+		_music_social.play(anim)
 
 
 ## initMouseEvents. Sets up mouse hover detection on buttons.
@@ -612,24 +659,17 @@ func _update_camera_scroll(delta: float) -> void:
 	camera.offset = camera.offset.lerp(_scroll_target, SCROLL_LERP)
 
 
-## toggleSocialButtons / showSocialButtons / hideSocialButtons.
-## From the binary's social button visibility system.
+## showSocialButtons / hideSocialButtons (0x17fc870 and 0x17fcae0). They used to poke a
+## "SocialButtons" node the scene does not have; the real toggle is _toggle_social, up with
+## the disc it belongs to.
 func _show_social() -> void:
-	var social := get_node_or_null("SocialButtons")
-	if social != null:
-		social.visible = true
+	if not _social_open:
+		_toggle_social()
 
 
 func _hide_social() -> void:
-	var social := get_node_or_null("SocialButtons")
-	if social != null:
-		social.visible = false
-
-
-func _toggle_social() -> void:
-	var social := get_node_or_null("SocialButtons")
-	if social != null:
-		social.visible = not social.visible
+	if _social_open:
+		_toggle_social()
 
 
 ## sortByZ. Sorts children of the Buttons node by z_index.
@@ -684,6 +724,11 @@ func _unhandled_input(event: InputEvent) -> void:
 ## A tap on a button selects it and confirms it in one go, which is what a tap on a menu
 ## item means. A tap that lands on nothing does nothing - the background is not a button.
 func _touch(at: Vector2) -> void:
+	# The OST disc is not one of the eight, so it gets asked first.
+	if _social_hit(at):
+		_toggle_social()
+		_play(SOUND_SWITCH)
+		return
 	var hit: int = _button_at(at)
 	if hit < 0:
 		return
