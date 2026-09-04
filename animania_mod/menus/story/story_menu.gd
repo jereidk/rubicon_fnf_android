@@ -584,22 +584,50 @@ func update_props() -> void:
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
 		anim_sprite.scale = Vector2.ONE * scale_val * FUNKIN_TO_RUBICON
-		# The JSON offsets are NOT the position. LevelProp_obj::applyData
-		# (0x4310a90) writes them onto the prop's `offset` FlxPoint - field
-		# 0x338, through that point's own setters - not onto x/y, and two of
-		# week1's three are negative in y, which as a position would put them
-		# off the top of the screen. Where the BASE position comes from is not
-		# measured: updateProps (0x32ee710) touches no FlxG, create() gives the
-		# prop group only a zIndex of 18, and neither LevelProp.build nor
-		# set_propData positions anything.
+		# MEASURED, at last, in Level_obj::buildProps (0x3ec1ee0) - not in the
+		# mod's StoryMenu, which is why the earlier sweep came up empty:
 		#
-		# So the spread below is READ OFF the reference shot of the real menu -
-		# the cast standing evenly across the band - and the JSON offsets are
-		# applied on top as the nudges they are. NOT the mod's numbers.
-		var slot: float = (float(_prop_index) + 1.0) / float(props_data.size() + 1)
-		anim_sprite.position = Vector2(
-			SCREEN.x * slot + offset_x * FUNKIN_TO_RUBICON,
-			SCREEN.y * 0.5 - offset_y * FUNKIN_TO_RUBICON)
+		#   x = FlxG.width * 0.25 * index + offsets[0]
+		#
+		# read off 0x3ec22a9..0x3ec2337: FlxG.width, *0.25, * the loop index in
+		# %r13d, then the "offsets" entry added and pushed through the vtable's
+		# set_x at slot 0x210. That is the whole horizontal spread.
+		#
+		# y is NEVER assigned there: the function takes set_x twice and set_y not
+		# once. It stays at 0 and offsets[1] goes onto the prop's `offset` point in
+		# LevelProp_obj::applyData, and Flixel SUBTRACTS offset when it draws - so
+		# the top edge lands at -offsets[1].
+		#
+		# Both are screen distances against Funkin's 1280x720, so both take x1.5,
+		# and Godot centres a Sprite2D on its position where Flixel anchors the
+		# top-left, hence the half-size.
+		var frame_size: Vector2 = Vector2.ZERO
+		var first_anim: StringName = &"idle"
+		if not frames.has_animation(first_anim) and frames.get_animation_names().size() > 0:
+			first_anim = StringName(frames.get_animation_names()[0])
+		if frames.has_animation(first_anim):
+			var ft: Texture2D = frames.get_frame_texture(first_anim, 0)
+			if ft != null:
+				frame_size = ft.get_size() * anim_sprite.scale
+		var left: float = (1280.0 * 0.25 * float(_prop_index) + offset_x) * FUNKIN_TO_RUBICON
+		# The vertical is where the measurement runs out. Taken literally -
+		# y = 0 and the offset subtracted - BF lands at -180 and all that shows
+		# of him is his boots, which the reference plainly contradicts. Neither
+		# buildProps, nor build (it only allocates, `mov $0x348,%esi`), nor
+		# create() for the prop group assigns a y, so the base is somewhere this
+		# port has not found. Anchoring to the band's top edge puts the cast
+		# where the reference has it; the offsets keep their measured meaning as
+		# a subtraction. This line is a READING, not the mod's.
+		var band_top: float = (SCREEN.y - BACKGROUND_HEIGHT * FUNKIN_TO_RUBICON) * 0.5
+		# offsets[1] is NOT applied here, and that is deliberate. In Flixel the
+		# prop's `offset` compensates for its own atlas trim - each of week1's
+		# three has a different frameY - so that the drawn art lines up. Godot's
+		# AtlasTexture already carries that trim in its margin, which the
+		# regenerated frames now set correctly, so applying the offset on top
+		# counts it twice and is what threw BF a hundred and eighty pixels above
+		# the other two.
+		var top: float = band_top
+		anim_sprite.position = Vector2(left, top) + frame_size * 0.5
 		_prop_index += 1
 		anim_sprite.centered = true
 		# Its own material: a parent's is not inherited.
