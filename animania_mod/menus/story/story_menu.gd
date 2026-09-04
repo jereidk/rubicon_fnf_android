@@ -23,8 +23,10 @@ const BACKGROUND_HEIGHT := 400.0
 const BACKGROUND_Y := 56.0
 
 ## How far below the band's top edge the level props hang. Measured: their art
-## tops sit at 77, 68 and 79 in the reference, a mean of 19 under the band's 56.
-const PROP_TOP_DROP := 19.0
+## tops sit at 77, 68 and 79 in the reference, a mean of 19 under the band's 56;
+## comparing the rendered result against it put the three within 7, 3 and 5, so
+## the drop is nudged to 22 to centre that spread.
+const PROP_TOP_DROP := 22.0
 const DEFAULT_BACKGROUND_COLOR := Color(0.06, 0.05, 0.1)
 const DEFAULT_BACKGROUND_COLOR_V3 := Vector3(0.06, 0.05, 0.1)
 const FADE_OUT_TIME := 0.35
@@ -281,7 +283,10 @@ func reposition_titles(instant: bool = false) -> void:
 		var title: Node2D = titles.get_child(i)
 		var target_pos: Vector2 = TITLE_CENTRE + Vector2(0.0, TITLE_SPACING * float(i - selected_level))
 		var target_alpha: float = 1.0 if i == selected_level else TITLE_ALPHA_OFF
-		var target_scale: float = 1.6 if i == selected_level else 1.3
+		# MEASURED: WEEK 1 spans 358px in the reference and came out 380 at 1.6,
+		# so the selected title runs at 1.5 - the same x1.5 everything else in
+		# this menu takes - and the unselected keep their proportion to it.
+		var target_scale: float = 1.5 if i == selected_level else 1.22
 
 		if instant:
 			title.position = target_pos
@@ -866,7 +871,7 @@ func _scale_screen_sprites() -> void:
 ##
 ## The difficulty header carries no arithmetic of its own in create(), so it
 ## hangs off its box; the inset here is by eye against the reference shot.
-const TRACKS_LABEL_OFFSET := Vector2(40.0, 15.0)
+const TRACKS_LABEL_OFFSET := Vector2(33.0, 15.0)
 
 ## Everything in the difficulty corner, MEASURED off the 1280x720 reference
 ## rather than hung off the box by eye:
@@ -906,8 +911,14 @@ func _fit_difficulty_block() -> void:
 			continue
 		if f != null:
 			arrow.sprite_frames = f
-			if f.has_animation(&"idle"):
-				arrow.play(&"idle")
+			# Regenerated through build_sparrow_character.gd so the atlas's
+			# rotated="true" frames get BAKED: stored 33x17, they are 17x33
+			# upright, and unbaked they drew the arrows lying on their side -
+			# 12px tall where the mod's are 31. The animation is named
+			# "difficulty arrow".
+			var an: StringName = _find_anim(f, "arrow")
+			if an != &"":
+				arrow.play(an)
 		arrow.flip_h = bool(entry[1])
 		arrow.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 		arrow.modulate = DIFF_ARROW_TINT
