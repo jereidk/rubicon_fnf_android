@@ -239,6 +239,16 @@ func build_level_titles() -> void:
 
 
 func reposition_titles(instant: bool = false) -> void:
+	# ONE tween for the whole list, built before the loop. It used to be created
+	# inside it, so each week killed the tween of the week before and only the
+	# LAST title ever reached its target - which is why the menu rendered with a
+	# single week on screen and the others still stacked at the origin.
+	if not instant:
+		if _scroll_tween != null and _scroll_tween.is_valid():
+			_scroll_tween.kill()
+		_scroll_tween = create_tween().set_parallel(true) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
 	for i: int in week_count():
 		var title: Node2D = titles.get_child(i)
 		var target_pos: Vector2 = TITLE_CENTRE + Vector2(0.0, TITLE_SPACING * float(i - selected_level))
@@ -250,10 +260,6 @@ func reposition_titles(instant: bool = false) -> void:
 			title.modulate.a = target_alpha
 			title.scale = Vector2.ONE * target_scale
 		else:
-			# Smooth scroll with tween
-			if _scroll_tween != null and _scroll_tween.is_valid():
-				_scroll_tween.kill()
-			_scroll_tween = create_tween().set_parallel(true).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 			_scroll_tween.tween_property(title, "position", target_pos, 0.3)
 			_scroll_tween.tween_property(title, "modulate:a", target_alpha, 0.3)
 			_scroll_tween.tween_property(title, "scale", Vector2.ONE * target_scale, 0.3)
