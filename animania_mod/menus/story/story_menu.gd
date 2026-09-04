@@ -389,12 +389,14 @@ func _show_select_sub_state(playable: PackedStringArray) -> void:
 	)
 
 
-func start_song(difficulty: String) -> void:
-	# Called by StoryMenuSelectSubState when a difficulty is selected
+## Called by StoryMenuSelectSubState. The argument is NOT a difficulty - that is
+## already chosen here, with the arrows - it is which version of the mod to play,
+## "amtake" or "animania". Only the amtake side is ported, so both land on the
+## same song; the id is taken anyway so the day the other one exists the caller
+## does not change.
+func start_story(_variant: String) -> void:
 	var title: Node2D = titles.get_child(selected_level)
-	var songs: PackedStringArray = title.get_meta(&"songs", PackedStringArray())
-	var playable_filtered := get_songs_filtered(title)
-	_do_select_level(playable_filtered)
+	_do_select_level(get_songs_filtered(title))
 
 
 func _do_select_level(songs: PackedStringArray) -> void:

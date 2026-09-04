@@ -180,6 +180,20 @@ check on them passed — in the tree, visible, right region, right position — 
 stayed empty. Rebuild the sheet once with the RGB forced to white and the alpha kept, then
 modulate.
 
+### `animania::states::` is the mod; `funkin::ui::` is the game it forked
+
+The binary carries BOTH, and the one that runs is `animania::states::`. Reading
+`funkin::ui::story::StoryMenuState_obj::create()` at 0x2fac530 gives a perfectly
+coherent story menu that is not this menu; the real one is
+`animania::states::StoryMenu_obj::create()` at 0x32f20a0. Same for the select
+sub-state, the freeplay screen, the title, the main menu, the options and the
+credits - `nm -C | grep -oE "animania::[a-z]+::[A-Za-z]+_obj" | sort -u` lists
+them.
+
+The cost of getting this wrong is not a crash, it is a confident wrong answer:
+base Funkin's `changeDifficulty` animates `leftConfirm`/`rightConfirm` arrows and
+the mod's sets an alpha instead, and both read as "the arrows react".
+
 ### Not all of the mod is compiled
 
 **Before reverse-engineering a screen's behaviour, look for its HScript.** The

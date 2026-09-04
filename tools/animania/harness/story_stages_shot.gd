@@ -48,7 +48,10 @@ func _ready() -> void:
 		# select_level() plays the confirm on the cast and the arrows and opens
 		# the sub-state, which is a CanvasLayer over the menu.
 		["09_confirm_6f", func() -> void: _menu.call(&"select_level"), 6],
-		["10_subestado", func() -> void: pass, SETTLED],
+		# The buttons slide in over a full second, so the settled shot has to be
+		# past 60 frames of the fixed clock, not 45.
+		["10_subestado", func() -> void: pass, 80],
+		["11_subestado_animania", func() -> void: _sub_pick(1), 20],
 	]
 	_begin()
 
@@ -68,6 +71,14 @@ func _diff(week: int, id: String) -> void:
 		if String(_menu.get(&"current_difficulty_id")) == id:
 			return
 		_menu.call(&"change_difficulty", 1)
+
+
+## Reaches into the sub-state the menu opened and moves its selection, so the
+## second of the two buttons gets a shot of its own.
+func _sub_pick(index: int) -> void:
+	var sub: Node = _menu.get(&"_select_sub_state") as Node
+	if sub != null:
+		sub.call(&"_select_button", index)
 
 
 func _begin() -> void:

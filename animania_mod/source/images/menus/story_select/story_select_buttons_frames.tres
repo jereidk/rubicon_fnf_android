@@ -1,0 +1,58 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/story_select/story_select_buttons.png" id="1_4dxg5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yhqyp"]
+atlas = ExtResource("1_4dxg5")
+region = Rect2(1, 690, 623, 670)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_75v8a"]
+atlas = ExtResource("1_4dxg5")
+region = Rect2(1, 1, 637, 688)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_isroq"]
+atlas = ExtResource("1_4dxg5")
+region = Rect2(625, 690, 619, 670)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dto02"]
+atlas = ExtResource("1_4dxg5")
+region = Rect2(639, 1, 637, 688)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yhqyp")
+}],
+"loop": 1,
+"name": &"amtake basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_75v8a")
+}],
+"loop": 1,
+"name": &"amtake white",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_isroq")
+}],
+"loop": 1,
+"name": &"animania basic",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dto02")
+}],
+"loop": 1,
+"name": &"animania white",
+"speed": 24.0
+}]
