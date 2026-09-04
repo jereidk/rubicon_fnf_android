@@ -89,7 +89,12 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## whole stack a hundred and fifty pixels high.
 const TITLE_CENTRE := Vector2(590.0 * FUNKIN_TO_RUBICON, 584.0 * FUNKIN_TO_RUBICON)
 const TITLE_SPACING := 115.0 * FUNKIN_TO_RUBICON
-const TITLE_ALPHA_OFF := 0.6
+## MEASURED: the unselected titles are nearly invisible. WEEK 5's stroke reads
+## (75, 72, 77) over a blot of (55, 52, 57), which is alpha 0.10 - not the 0.6
+## the port used, which made them read as a second and third label competing
+## with the selected week. TUTORIAL measures lower still (0.035) because its
+## upper half is behind the band's edge.
+const TITLE_ALPHA_OFF := 0.10
 
 # Visualizer
 const VIS_BAR_COUNT := 32
@@ -1048,7 +1053,16 @@ func _follow_boxes() -> void:
 ## from create() respectively; the titles carry no zIndex of their own and take
 ## their group's 30, which is what puts them over the boxes.
 const Z_BLOT := 14
-const Z_BACKGROUND := 16
+## NOT 16. That write at 0x32f27ec goes to some other sprite; assuming it was
+## the level background put the blot underneath it, and the reference says
+## otherwise in a way that admits no argument: the purple/blot boundary is
+## different in every column - 500, 511, 492, 466, 421, 473, 456 - and at x=440
+## there is a lone purple droplet INSIDE the blot. A band drawn over the blot
+## would cut it with a straight edge at its own bottom, not with a splat
+## outline. So the blot (14, and that one IS traced: __alloc -> stack -0x100 ->
+## field 0x1c0) sits above the background, and the background carries no zIndex
+## of its own.
+const Z_BACKGROUND := 0
 const Z_PROPS := 18
 const Z_BOXES := 20
 const Z_DIFF_VALUE := 25
