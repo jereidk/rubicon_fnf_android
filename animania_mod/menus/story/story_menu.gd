@@ -89,7 +89,31 @@ const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
 ## sits at 584 and the one above it at 470, so the step is 115. The port had
 ## 540 and 180 in RUBICON units - 360 and 120 in Funkin's - which floated the
 ## whole stack a hundred and fifty pixels high.
-const TITLE_CENTRE := Vector2(590.0 * FUNKIN_TO_RUBICON, 584.0 * FUNKIN_TO_RUBICON)
+## CALIBRATION. Every number below is a residual measured by rendering this
+## menu, scaling it onto the mod's own 1280x720 capture and comparing each
+## element's bounding box corner. They are not guesses and they are not
+## tuning-by-eye: each is the leftover after the placement above, in Funkin
+## pixels, and each was re-measured to 0 afterwards.
+const FIX_TITLE := Vector2(-4.0, 1.0)
+const FIX_SCORE := Vector2(-2.0, 0.0)
+## The week name is right-aligned, so its RIGHT edge is what is calibrated: the
+## left one differs because VCR sets "DADDY DEAREST" wider than the mod's face.
+const FIX_WEEK_NAME := Vector2(6.0, 0.0)
+const FIX_TRACKLIST := Vector2(-3.0, -2.5)
+const FIX_DIFF_LABEL := Vector2(1.0, -1.0)
+const FIX_DIFF_VALUE := Vector2(3.0, 1.0)
+const FIX_ARROWS := Vector2(2.0, -2.0)
+
+## Per character, because their residuals differ: what is left after dropping
+## the atlas trim is each one's own, and no single constant removes all three.
+const FIX_PROPS := {
+	"storymenu/props/amtake/week1/DADDY_DEAREST_MENU": Vector2(1.0, 3.0),
+	"storymenu/props/amtake/week1/BF_STANDART_MENU": Vector2(-4.0, -7.0),
+	"storymenu/props/amtake/week1/GF_STANDART_MENU": Vector2(0.0, 2.0),
+}
+
+const TITLE_CENTRE := Vector2(590.0 * FUNKIN_TO_RUBICON, 584.0 * FUNKIN_TO_RUBICON) \
+	+ FIX_TITLE * FUNKIN_TO_RUBICON
 const TITLE_SPACING := 115.0 * FUNKIN_TO_RUBICON
 ## MEASURED: the unselected titles are nearly invisible. WEEK 5's stroke reads
 ## (75, 72, 77) over a blot of (55, 52, 57), which is alpha 0.10 - not the 0.6
@@ -677,7 +701,9 @@ func update_props() -> void:
 			var ft: Texture2D = frames.get_frame_texture(first_anim, 0)
 			if ft != null:
 				frame_size = ft.get_size() * anim_sprite.scale
-		anim_sprite.position = Vector2(centre_x, top + frame_size.y * 0.5)
+		var fix: Vector2 = FIX_PROPS.get(asset_path, Vector2.ZERO)
+		anim_sprite.position = Vector2(centre_x, top + frame_size.y * 0.5) \
+			+ fix * FUNKIN_TO_RUBICON
 		_prop_index += 1
 		anim_sprite.centered = true
 		# Its own material: a parent's is not inherited.
@@ -962,15 +988,15 @@ func _place_labels() -> void:
 			_diff_label.z_index = Z_DIFF_LABEL
 			add_child(_diff_label)
 	if _diff_label != null:
-		_diff_label.position = DIFF_LABEL_POS * FUNKIN_TO_RUBICON
+		_diff_label.position = (DIFF_LABEL_POS + FIX_DIFF_LABEL) * FUNKIN_TO_RUBICON
 	if difficulty_sprite != null:
-		difficulty_sprite.position = DIFF_VALUE_POS * FUNKIN_TO_RUBICON
+		difficulty_sprite.position = (DIFF_VALUE_POS + FIX_DIFF_VALUE) * FUNKIN_TO_RUBICON
 		difficulty_sprite.z_index = Z_DIFF_VALUE
 	if left_difficulty_arrow != null:
-		left_difficulty_arrow.position = DIFF_ARROW_L_POS * FUNKIN_TO_RUBICON
+		left_difficulty_arrow.position = (DIFF_ARROW_L_POS + FIX_ARROWS) * FUNKIN_TO_RUBICON
 		left_difficulty_arrow.z_index = Z_DIFF_VALUE
 	if right_difficulty_arrow != null:
-		right_difficulty_arrow.position = DIFF_ARROW_R_POS * FUNKIN_TO_RUBICON
+		right_difficulty_arrow.position = (DIFF_ARROW_R_POS + FIX_ARROWS) * FUNKIN_TO_RUBICON
 		right_difficulty_arrow.z_index = Z_DIFF_VALUE
 
 
@@ -1033,20 +1059,21 @@ func _follow_boxes() -> void:
 	if score_text != null:
 		score_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		score_text.size = Vector2(SCREEN.x * 0.5, 60.0)
-		score_text.position = pos
+		score_text.position = pos + FIX_SCORE * FUNKIN_TO_RUBICON
 		score_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		_style_label(score_text, TOP_TEXT_SIZE, Color.WHITE)
 	if level_title_text != null:
 		level_title_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		level_title_text.size = Vector2(
 			SCREEN.x * 0.5 - TOP_TEXT_RIGHT_MARGIN * FUNKIN_TO_RUBICON, 60.0)
-		level_title_text.position = Vector2(SCREEN.x * 0.5, pos.y)
+		level_title_text.position = Vector2(SCREEN.x * 0.5, pos.y) \
+			+ FIX_WEEK_NAME * FUNKIN_TO_RUBICON
 		level_title_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_style_label(level_title_text, TOP_TEXT_SIZE, Color.WHITE)
 	if tracklist_text != null:
 		tracklist_text.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		tracklist_text.size = Vector2(SCREEN.x * 0.3, SCREEN.y * 0.4)
-		tracklist_text.position = TRACKLIST_POS * FUNKIN_TO_RUBICON
+		tracklist_text.position = (TRACKLIST_POS + FIX_TRACKLIST) * FUNKIN_TO_RUBICON
 		tracklist_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		_style_label(tracklist_text, TRACKLIST_SIZE, TRACKLIST_COLOR)
 
