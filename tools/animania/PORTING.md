@@ -1084,6 +1084,34 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### `hxlines.py`: read a big method as a table first
+
+Three methods in a row were read by hand-rolling the same script, so it is now
+`tools/animania/hxlines.py`. hxcpp stamps the source line into the stack frame before each
+line's code, so everything a method does can be grouped by the Haxe line that produced it,
+and for construction-heavy methods that turns instruction-by-instruction work into one
+readable pass:
+
+```
+1241   =>darkOverlay  esi=-16777216  set_color
+1243   z=8
+1244   0.4  set_alpha
+```
+
+Per line it prints the field written, the `zIndex` immediate, the `esi` ints (hxcpp passes
+constructor arguments that way), rip-relative strings and doubles, the vtable slot of each
+indirect call, and the name of each direct one. `--fields freeplay` names the offsets.
+
+Two things it got wrong before they were fixed, both worth knowing:
+
+- **A stack slot is not a field.** `mov %rax,0x1f0(%rsp)` matched the same pattern as a
+  field store and printed `=>tvNoiseForward` inside a `FlxTween.tween` line, where no such
+  field is in play. Excluding `%rsp`/`%rbp` as the base fixes it. Field *reads* were also
+  missing at first, which is the half that says WHICH object a `set_visible` is acting on.
+- **The field table applies to any base register**, so `.curSelected` right after
+  `.tvSprite` is really `tvSprite.animation` — 0x108 on `FlxSprite` collides with 0x108 on
+  `FreeplayScreen`. The offset is the fact; the name is a hint.
+
 ### `buildBg`, read as a table
 
 14 018 bytes and about 200 Haxe lines, but almost all of it is state: a sprite, its
@@ -1660,13 +1688,11 @@ Recorded so the next person does not go looking for a bug that is not there.
   `optimize_atlas.py` (below), vendored, and wired as `TvBg`, `TvNoiseBack`,
   `TvNoiseForward`, `TvBackBG` and `TvSpriteFlash`, with `shakeShadows` hanging off the
   forward noise's frame changes the way `buildBg` line 1337 does it.
-- **Freeplay's intro reveal.** `buildBg` leaves eleven things INVISIBLE — `shadowsOnBed`
-  (1219), `tvGlow` (1236), `diskPlayer` (1266), `diskPlayerMask` (1274), `tvSprite` (1282),
-  `tvBackBG` (1292), `tvSpriteFlash` (1302), `tvNoiseBack` (1315), `tvNoiseForward` (1336),
-  `grpDisks` (1367) and one more at 1395 — and its last line (1396) calls `doIntroAnim`,
-  which is two `FlxTimer`s at 0.5 s and 1 s whose closures are 2325 and 5211 bytes of
-  reveal. The port builds them all visible. Porting the `visible = false` half without the
-  reveal half would leave an empty screen, so both wait until those closures are read.
+- **Freeplay's intro, below the top level.** The two timers and what they reveal are
+  ported; three callbacks the 0.5 s closure registers are not — `tvSprite.animation`'s
+  `onFrameChange` and `onFinish`, and `diskPlayer.animation`'s `onFinish` (lines 1605-1607)
+  — nor `dotsGrp.setDots`, `albumRoll.playIntro`, or the two 0.291667 s `quadIn` colour
+  tweens at 1619 and 1630.
 - **Freeplay's shadow art.** `shadowsOnBed` is a `FlxLayerGroup` and `shakeShadows` scales
   its matrix, but nothing has been put inside it: the shadows ride on `tvNoiseBack` and have
   not been separated out. The transform is ported and correct; it is simply invisible.

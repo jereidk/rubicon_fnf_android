@@ -86,6 +86,7 @@ func _init() -> void:
 	var shadows := Node2D.new()
 	shadows.name = "ShadowsOnBed"
 	shadows.z_index = 3
+	shadows.visible = false          # buildBg 1219
 	_add(shadows)
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
@@ -95,7 +96,11 @@ func _init() -> void:
 	# 1280 screen, which leaves 368 of nothing to the right, and the TV is 727 wide. Put
 	# its right edge on the screen's, at x = 553, and it covers that gap exactly while
 	# overlapping the wall by the rest. The glow is 997 wide and lands the same way.
-	_sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0)).z_index = 7
+	# buildBg deja media pantalla invisible y doIntroAnim la va encendiendo; el numero de
+	# linea de cada set_visible(false) va al lado.
+	var tv_glow: Sprite2D = _sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0))
+	tv_glow.z_index = 7
+	tv_glow.visible = false          # buildBg 1236
 
 	# La pantalla del televisor, leida de buildBg linea por linea. Todo lo de dentro
 	# comparte esquina en (117, 128) y el rectangulo mide 375x305; el zIndex de cada pieza
@@ -128,11 +133,13 @@ func _init() -> void:
 	var noise_back: AnimatedSprite2D = _sparrow(
 		"TvNoiseBack", "freeplay_tvnoise", "noise sprite", TV_INNER)
 	noise_back.z_index = 26
+	noise_back.visible = false       # buildBg 1315
 
 	var noise_forward: AnimatedSprite2D = _sparrow(
 		"TvNoiseForward", "freeplay_tvnoise", "noise sprite", TV_INNER)
 	noise_forward.z_index = 28
 	noise_forward.modulate.a = 0.45
+	noise_forward.visible = false    # buildBg 1336
 
 	var tv_flash := _panel("TvSpriteFlash", TV_INNER, TV_INNER_SIZE, Color(1, 1, 1, 1))
 	tv_flash.z_index = 29
@@ -163,17 +170,26 @@ func _init() -> void:
 	var tv: AnimatedSprite2D = _sparrow(
 		"Tv", "freeplay_tv", "freeplay tv образец ", Vector2(-60.0, -198.0))
 	tv.z_index = 30
+	tv.visible = false               # buildBg 1282
 	tv.autoplay = ""
 	tv.frame = TV_FRAME
 
 	# The VCR and the layer that goes over it, four pixels left and ten down from it.
 	# `diskPlayer` en el mod, con addByPrefix('y', 'player') a 24 fps.
-	_sparrow("Player", "freeplay_player", "player", Vector2(50.0, 505.0)).z_index = 16
-	_sprite("PlayerLayer", "bg/player-layer.png", Vector2(45.75, 515.0)).z_index = 24
+	var vcr: AnimatedSprite2D = _sparrow(
+		"Player", "freeplay_player", "player", Vector2(50.0, 505.0))
+	vcr.z_index = 16
+	vcr.visible = false              # buildBg 1266
+	vcr.autoplay = ""
+	var vcr_layer: Sprite2D = _sprite(
+		"PlayerLayer", "bg/player-layer.png", Vector2(45.75, 515.0))
+	vcr_layer.z_index = 24
+	vcr_layer.visible = false        # buildBg 1274
 
 	var disks := Node2D.new()
 	disks.name = "Disks"
 	disks.z_index = 19
+	disks.visible = false            # buildBg 1367
 	_add(disks)
 
 	var songs: Array = _root.get_script().get_script_constant_map()["SONGS"]

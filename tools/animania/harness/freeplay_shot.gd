@@ -8,6 +8,8 @@ const SCREEN := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 
 # doIntroAnim reproduce la animacion del televisor, asi que una toma a los seis frames
 # pilla el tele a medio encender y en el fotograma equivocado. Se espera a que termine.
+# doIntroAnim enciende la pantalla en dos pasos, a 0.5 y a 1 s, y el ultimo tween dura
+# 0.75. Con 2.5 la toma cae con todo ya encendido.
 const SETTLE := 2.5
 var _frames: int = 0
 var _t: float = 0.0

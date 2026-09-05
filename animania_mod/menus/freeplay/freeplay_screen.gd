@@ -98,7 +98,11 @@ const SCROLL_LERP := 0.02
 ## ─── Intro animation ────────────────────────────────────────────────────────
 
 ## From binary: doIntroAnim uses 0.5 and 1.0.
-const INTRO_DURATION := 1.0
+## Los dos FlxTimer de doIntroAnim, y las duraciones de sus dos tweens (lineas 1639, 1642).
+const INTRO_FIRST := 0.5
+const INTRO_SECOND := 1.0
+const INTRO_DARK := 0.65
+const INTRO_FLASH := 0.75
 const INTRO_SCALE_TARGET := 0.5
 
 ## ─── Header constants ───────────────────────────────────────────────────────
@@ -406,7 +410,10 @@ func _update_disks(sel: float) -> void:
 		return
 	for i: int in disks.get_child_count():
 		var disk: Node2D = disks.get_child(i)
-		var away: float = float(i) - sel
+		# disk.ID, no la posicion en el arbol: _refresh reordenaba los hijos para poner el
+		# elegido delante, asi que get_child(i) deja de ser el disco i en cuanto se mueve
+		# la seleccion. En el mod el orden lo decide el zIndex y el ID no se toca.
+		var away: float = float(int(disk.get_meta(&"index", i))) - sel
 		disk.set_meta(&"target", Vector2(
 			away * DISK_STEP_X + DISK_OFFSET_X, _disk_y(away)) * FUNKIN_TO_RUBICON)
 		disk.z_index = DISK_Z_SELECTED if is_zero_approx(away) else DISK_Z
@@ -565,33 +572,75 @@ func _update_data_stuff(_force: bool) -> void:
 ## From binary: uses 0.5 and 1.0 as timing constants.
 
 func _do_intro_anim() -> void:
-	# Start with the TV off and the overlay dark.
-	if tv_sprite != null:
-		tv_sprite.stop()
-	if dark_overlay != null:
-		dark_overlay.modulate.a = 1.0
+	# doIntroAnim (0x34bbf20) son dos lineas: dos FlxTimer, uno a 0.5 y otro a 1.
+	get_tree().create_timer(INTRO_FIRST).timeout.connect(_intro_switch_on)
+	get_tree().create_timer(INTRO_SECOND).timeout.connect(_intro_light_up)
 
-	# Play the TV-on sound.
+
+## El cierre del temporizador de 0.5 s (0x34b8df0, lineas 1601-1607).
+##
+##   diskPlayer.visible = true;                            // 1601
+##   diskPlayer.animation.play('y');                       // 1602
+##   tvSprite.visible = true;                              // 1603
+##   tvSprite.animation.onFrameChange.add(...);            // 1605
+##   tvSprite.animation.onFinish.addOnce(...);             // 1606
+##   diskPlayer.animation.onFinish.addOnce(...);           // 1607
+##
+## Los tres callbacks encadenan el resto del encendido y no se han leido; lo que si se
+## ve es que el aparato y el televisor aparecen aqui, medio segundo antes que nada mas.
+func _intro_switch_on() -> void:
+	var vcr := get_node_or_null("Player") as AnimatedSprite2D
+	if vcr != null:
+		vcr.visible = true
+		vcr.play(&"player")
+	if tv_sprite != null:
+		tv_sprite.visible = true
+
+
+## El cierre del temporizador de 1 s (0x34ca150, lineas 1612-1648).
+##
+##   dotsGrp/selectorsGroup/tvGlow/tvNoiseBack/tvNoiseForward .visible = true;   // 1612
+##   dotsGrp.setDots([...]); dotsGrp.curDiff = 'hard';                           // 1613-1614
+##   <flash>.color = 0xFFFFFFFF; <flash>.alpha = 1;                              // 1615-1616
+##   FlxTween.tween(<colorTransform>, {...}, 0.291667, {ease: quadIn});          // 1619, 1630
+##   FlxTween.tween(darkOverlay, {alpha: 0}, 0.65, {ease: circOut});             // 1639
+##   albumRoll.playIntro();                                                      // 1640
+##   FlxTween.tween(tvSpriteFlash, {...}, 0.75, {ease: circOut});                // 1642
+##   FlxG.sound.playOnce(...);                                                   // 1643
+##   shadowsOnBed.visible = true;                                                // 1645
+##   freeplayScore.updateScore(0);                                               // 1646
+##   changeSelection(...);                                                       // 1648
+##
+## El destino del tween de darkOverlay esta comprobado, no supuesto: el Anon de la linea
+## 1639 lleva nombre de 5 letras -'alpha'-, valor 0 y tipo 3 (entero).
+func _intro_light_up() -> void:
+	for name: String in ["TvGlow", "TvNoiseBack", "TvNoiseForward", "PlayerLayer",
+			"Disks", "ShadowsOnBed"]:
+		var node := get_node_or_null(name) as CanvasItem
+		if node != null:
+			node.visible = true
+
+	# El destello blanco: se enciende opaco y se apaga en 0.75 s.
+	if tv_sprite_flash != null:
+		tv_sprite_flash.visible = true
+		tv_sprite_flash.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		create_tween().tween_property(tv_sprite_flash, "modulate:a", 0.0, INTRO_FLASH) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CIRC)
+
+	if dark_overlay != null:
+		create_tween().tween_property(dark_overlay, "modulate:a", 0.0, INTRO_DARK) \
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CIRC)
+
+	# El sonido va aqui, no al abrir la pantalla: la linea 1643 lo toca dentro de este
+	# temporizador. Que sea tvOn es lo unico que no esta leido del binario.
 	_play_sound(SOUND_TV_ON, 0.6)
 
-	# Tween the dark overlay from opaque to transparent.
-	if dark_overlay != null:
-		var tween: Tween = create_tween()
-		tween.tween_property(dark_overlay, "modulate:a", 0.0, INTRO_DURATION) \
-			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-
-	# Start the TV animation after a brief delay.
-	if tv_sprite != null:
-		await get_tree().create_timer(0.3).timeout
-		tv_sprite.play()
-
-	# After the intro duration, mark it done.
-	await get_tree().create_timer(INTRO_DURATION).timeout
+	intended_score = 0
+	lerp_score = 0.0
+	change_selection(0, false)
 	tv_intro_done = true
 	intro_done = true
 	allow_input = true
-
-	# Show stickers if they exist.
 	_show_stickers()
 
 
@@ -699,19 +748,17 @@ func _refresh(snap: bool) -> void:
 	_update_disks(cur_selected_float)
 	for i: int in disks.get_child_count():
 		var disk: Node2D = disks.get_child(i)
-		var away: int = i - cur_selected
-		var chosen: bool = away == 0
+		var chosen: bool = int(disk.get_meta(&"index", i)) == cur_selected
 		disk.set_meta(&"scale", DISK_SCALE_ON if chosen else DISK_SCALE_OFF)
 		disk.set_meta(&"alpha", 1.0 if chosen else DISK_ALPHA_OFF)
-		disks.move_child(disk, disk.get_index())
 		if not snap:
 			continue
 		disk.position = disk.get_meta(&"target") as Vector2
 		var at: float = float(disk.get_meta(&"scale"))
 		disk.scale = Vector2(at, at)
 		disk.modulate.a = float(disk.get_meta(&"alpha"))
-	if disks.get_child_count() > cur_selected:
-		disks.move_child(disks.get_child(cur_selected), disks.get_child_count() - 1)
+	# Nada de move_child: quien pone el elegido delante es su zIndex (10 contra 5 en el
+	# mod, 1 contra 0 aqui), y reordenar el arbol rompia la correspondencia con el ID.
 	# Update song info.
 	_update_song_info()
 	# Update score.
