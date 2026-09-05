@@ -889,6 +889,17 @@ func _toggle_social() -> void:
 	_music_social_play_anim(&"selected" if _social_open else &"basic")
 
 
+## destroy() (0x1813fc0, line 1055). Most of it is the mod's own bookkeeping - three
+## FlxSound cleanups, MusicFilterController.clearFilter/clearEffect/applyNow, and resetting
+## FlxTransitionableState's skip flags - and the port's equivalents already ride on the
+## scene tree or on menu_visualizer's own _exit_tree. One thing does not: destroy's FIRST
+## act is `Cursor.cursorMode = CursorMode.Default` (0x181401d). The hover callbacks set the
+## pointer shape, and without this the next screen inherits a hand cursor because the menu
+## happened to be left with the mouse over a plaque.
+func _exit_tree() -> void:
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+
+
 func _park_social_buttons() -> void:
 	for button: Sprite2D in _social_buttons:
 		button.visible = false
@@ -1181,10 +1192,13 @@ func _create_seasonal_effects() -> void:
 ## createNewsButton 0x180c8da, handleInput 0x180ef84 - never set true anywhere), and
 ## `DebugMenuSubState` on the DEBUG_MENU action. Both are dev doors.
 func _finalize_setup() -> void:
+	# create() (0x18110d0) runs initMouseEvents and initMusic FIRST, before anything is
+	# built, and createSeasonalEffects only after the buttons: the music is playing by the
+	# time the winter layer is spun up against it.
+	_init_mouse_events()
+	_init_music()
 	_create_seasonal_effects()
 	_sort_by_z()
-	_init_music()
-	_init_mouse_events()
 	_create_special_elements()
 	_spawn_help_mouse_text()
 	_setup_event_listeners()

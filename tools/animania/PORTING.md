@@ -660,6 +660,48 @@ out of a stored seat the dump does not reach), and the companion `FlxTween.num` 
 that runs alongside on `backInOut` over the same 0.8. The port scales them in from zero at
 their seats, which is the same stagger with a substituted gesture.
 
+**`create` and the rest of the create* chain.** `create()` (0x18110d0) is eleven calls in
+order: `super.create()`, a bool, then `initMouseEvents, initMusic, createBackground,
+createParticles, createVisualizers, createUIComponents, createButtons, createSeasonalEffects,
+createSpecialElements, setupEventListeners, finalizeSetup`. The mouse and the music go up
+FIRST, before anything is built; this port had the seasonal layer spun up before the music it
+plays against, and that order is fixed now. `createUIComponents` (0x1804170) builds
+`menus/menu/buttons back`, the `MenuDude` and the two black curtains — all four are in the
+scene, so nothing was missing there. `createBlockedButton` (0x1806920) greys the plaque to
+`0xFFAAAAAA`, puts the lock at the button's CENTRE, and gives it `zoomFactor = 0.85`
+(field 0x260, not scale) and `zIndex = 30` — above every plaque, which is what keeping the
+locks last in the node already gives.
+
+`destroy()` (0x1813fc0) is mostly the mod's own bookkeeping, but its first act is
+`Cursor.cursorMode = Default` — and now that the hover callbacks set a pointer shape, the
+port has to do the same on the way out or the next screen inherits a hand cursor.
+
+### The second `__GetFields` trick, and the offsets NOT to port
+
+`FlxSprite_obj::__GetFields` names the sprite side the same way, and `updateHitbox`
+(0x512bff0) anchors it: it writes `-0.5 * (width - frameWidth)` into one point and
+`frameWidth * 0.5` into another, so
+
+    0x158 origin    0x160 offset    0x168 frameOffset    0x170 scale
+
+That settles two readings at once. `toggleSocialButtons` tweens `newsButton.offset.x` from 0
+to 500, and flixel draws at `x - offset.x`, so the banner really is pushed 500 to the LEFT.
+And `musicSocialPlayAnim` (0x180fc10) writes `frameOffset`, not offset:
+
+    623  var offsets = ['selected' => [8, 8], 'press' => [80, 67]];
+         musicSocial.animation.play('soundtrack ' + name, force);
+         musicSocial.frameOffset.set(o[0], o[1]);
+
+**That one is deliberately not ported, and the reason is worth keeping.** Those numbers are
+the mod re-centring animations whose authored canvases are different sizes — `music_social`'s
+Sparrow frames are 158x135 for `basic`, about 311x310 for `white` and 341x334 for `press`.
+Godot's `AtlasTexture` carries that as `margin`, and the builder emits it: fourteen of the
+frames in `music_social_frames.tres` have a non-zero margin. An `AnimatedSprite2D` with
+`centered = true` therefore re-centres each frame on its own authored canvas already.
+Applying the mod's `frameOffset` on top would double-count it and fling the disc a hundred
+pixels on click. Where the engine already does by construction what the mod does by hand,
+porting the hand-work is a regression.
+
 That dispatcher is also where the destinations diverge: only `freeplay` and `options` reach
 `startTransitionToMenu` (0x180ad15, 0x180af65). `storymode` allocates
 `StoryMenuSelectSubState` over a menu that is still standing — no curtain run at all, which
