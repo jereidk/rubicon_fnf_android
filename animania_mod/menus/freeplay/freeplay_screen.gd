@@ -994,18 +994,53 @@ func _generate_disks_list() -> void:
 	change_diff()
 
 
-## ─── initCharacters (from binary at 0x34c1800) ──────────────────────────────
-## Initializes character displays. From binary: uses 230.0 and 235.0 for
-## character positioning, "none" as default character ID, 0.5 for scale.
-
+## ─── initCharacters (0x34c1800, lineas 1401-1423) ──────────────────────────
+## Lo que decia el comentario viejo -"230.0 y 235.0 para colocar, 0.5 de escala"- estaba
+## a medias y en un punto mal: el 0.5 no es escala, es la razon de paralaje que se le pasa
+## al FlxTypedRatioHandler. Los tres objetos que crea, leidos:
+##
+##   1401  currentGirlfriend = new CharGirlfriend(FlxG.width - 508, 230, 'none')
+##   1402  currentGirlfriend.zIndex = 4
+##   1403  add(currentGirlfriend)
+##   1404  <ratioHandler>.add(currentGirlfriend, 0.5, 0);  shadowsOnBed.add(...)
+##   1407  currentPlayer = new CharPlayer(FlxG.width - 780, 235, 'none', null, null)
+##   1408  currentPlayer.zIndex = 5   (+ un cierre colgado del personaje)
+##   1411  add(currentPlayer);  <ratioHandler>.add(currentPlayer, 0.5, 0)
+##   1415  currentPhone = new FunkinSprite(FlxG.width - 517.6, 265.9,
+##             'animania-freeplay/skinSelector/phone')
+##   1416  currentPhone.zIndex = 6
+##   1418  animation.addByPrefix('switch', 'Phone fall', 24)
+##   1419  animation.play('switch');   1420  currentPhone.visible = false
+##   1422  <ratioHandler>.add(currentPhone, 0.5, 0);  shadowsOnBed.add(currentPhone)
+##
+## Las restas son sobre FlxG.width, que en el mod es 1280: la novia en 772, el jugador en
+## 500 y el telefono en 762.4. Los tres van dentro de shadowsOnBed, que buildBg deja
+## invisible (linea 1219) y que doIntroAnim enciende: los personajes no se ven hasta que
+## se enciende el televisor.
+##
+## PORTEADO: el telefono, que es un sparrow suelto y esta entero. Lo crea la escena
+## (build_freeplay_scene.gd), invisible y con z absoluto 6. Se crea invisible y NINGUN
+## metodo de FreeplayScreen lo vuelve a tocar -initCharacters es el unico de la clase que
+## lee el campo 0x198-, asi que quien lo enseñe esta fuera de esta pantalla.
+##
+## SIN PORTEAR, y no es un olvido: CharPlayer y CharGirlfriend no son del mod, son
+## `funkin::ui::freeplay::charSelect::` del juego base, con loadCharacter, getData sobre
+## un JSON de personaje, loadSkinChanger y loadIcon, y sus skins son atlas de Adobe
+## (Animation.json + spritemap) en skinSelector/bf y /gf. Es un subsistema, no dos
+## sprites. Los dos se construyen con el personaje 'none', y el unico sitio de esta clase
+## que llama a changeCharacter es la rama del disco aleatorio de playCurSongPreview, que
+## tambien pasa 'none'; quien pone un personaje de verdad esta en updateDataStuff o
+## postHeader. Las posiciones, los zIndex y el 0.5 de paralaje quedan escritos arriba para
+## cuando se porteen.
 func _init_characters() -> void:
-	# Characters would be displayed on the sides of the diorama.
-	# In the full mod, these are animated sprites that react to the selection.
-	# For now, set default values.
-	current_character = "bf"
-	current_character_id = "bf"
-	current_girlfriend = "gf"
-	current_player = "bf"
+	# Las cadenas siguen siendo el estado que lee el resto del puerto. El mod construye
+	# los dos personajes con la skin 'none' (lineas 1401 y 1407), no con bf/gf.
+	#
+	# `currentCharacterId` (campo 0xe0) NO se toca aqui: es otra cosa -el personaje de
+	# freeplay, el que viene de rememberedCharacterId- y initCharacters no lo escribe.
+	# Ponerlo a 'none' de paso habria sido cambiar algo que este metodo no cambia.
+	current_girlfriend = "none"
+	current_player = "none"
 
 
 ## ─── showStickers (0x34bb090, lineas 410-416) ──────────────────────────────

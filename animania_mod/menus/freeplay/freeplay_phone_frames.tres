@@ -1,0 +1,176 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/phone.png" id="1_1qtku"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7mwnj"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(447, 314, 214, 75)
+margin = Rect2(85, 177, 186, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y5irw"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(276, 446, 170, 87)
+margin = Rect2(107, 182, 230, 300)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cergx"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(276, 345, 169, 99)
+margin = Rect2(103, 152, 231, 288)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jfig3"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(2, 345, 272, 279)
+margin = Rect2(53, 35, 128, 108)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f2m6b"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(404, 2, 355, 310)
+margin = Rect2(24, 13, 45, 77)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6cdvb"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(2, 2, 400, 341)
+margin = Rect2(0, 0, 0, 46)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7kcvy"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(640, 491, 130, 80)
+margin = Rect2(128, 111, 270, 307)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vxavs"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(640, 405, 128, 84)
+margin = Rect2(130, 112, 272, 303)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6y2l7"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(663, 314, 125, 89)
+margin = Rect2(131, 127, 275, 298)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4ktmp"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(472, 527, 126, 86)
+margin = Rect2(131, 207, 274, 301)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a2m4o"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(276, 535, 194, 65)
+margin = Rect2(106, 322, 206, 322)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ehttb"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(448, 391, 190, 66)
+margin = Rect2(108, 320, 210, 321)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rt1ra"]
+atlas = ExtResource("1_1qtku")
+region = Rect2(448, 459, 190, 66)
+margin = Rect2(108, 320, 210, 321)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7mwnj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y5irw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cergx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jfig3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f2m6b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6cdvb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7kcvy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vxavs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vxavs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6y2l7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6y2l7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4ktmp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a2m4o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a2m4o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ehttb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ehttb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt1ra")
+}],
+"loop": 1,
+"name": &"Phone fall",
+"speed": 24.0
+}]

@@ -42,6 +42,8 @@ func _init() -> void:
 	_build_split_frames("characters", "freeplay_characters", "character button")
 	# initHeader 1523: addByPrefix('y', 'highscore small instance 1'), 27 fotogramas.
 	_build_frames("highscore", "freeplay_highscore", 24.0, ".")
+	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
+	_build_frames("phone", "freeplay_phone", 24.0, ".")
 
 	_root = Node2D.new()
 	_root.name = "FreeplayScreen"
@@ -95,6 +97,32 @@ func _init() -> void:
 	shadows.z_index = 3
 	shadows.visible = false          # buildBg 1219
 	_add(shadows)
+
+	# initCharacters (0x34c1800, lineas 1415-1422): el telefono del selector de skins.
+	#   1415  currentPhone = new FunkinSprite(FlxG.width - 517.6, 265.9,
+	#             'animania-freeplay/skinSelector/phone')
+	#   1416  currentPhone.zIndex = 6
+	#   1418  animation.addByPrefix('switch', 'Phone fall', 24)
+	#   1419  animation.play('switch')
+	#   1420  currentPhone.visible = false
+	#   1422  <ratioHandler>.add(currentPhone, 0.5, 0);  shadowsOnBed.add(currentPhone)
+	# Se crea invisible y NADIE dentro de FreeplayScreen lo vuelve a tocar: es el unico
+	# metodo de la clase que lee el campo 0x198. Quien lo enseñe esta fuera de aqui.
+	# Va colgado de ShadowsOnBed porque ahi lo mete la linea 1422, y con z absoluto: en
+	# Godot el z_index de un hijo es relativo al padre salvo que se apague z_as_relative,
+	# y el del mod es absoluto.
+	var phone := AnimatedSprite2D.new()
+	phone.name = "Phone"
+	phone.sprite_frames = load("%s/freeplay_phone_frames.tres" % DIR)
+	phone.animation = phone.sprite_frames.get_animation_names()[0]
+	phone.centered = false
+	phone.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	phone.position = Vector2(1280.0 - 517.6, 265.9) * FUNKIN_TO_RUBICON
+	phone.z_index = 6
+	phone.z_as_relative = false
+	phone.visible = false            # initCharacters 1420
+	shadows.add_child(phone)
+	phone.owner = _root
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
 	# earlier, and the TV's placement is not a constant at all - it is created through

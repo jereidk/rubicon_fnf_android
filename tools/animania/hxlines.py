@@ -180,6 +180,8 @@ def dump(start, stop, fields, reader):
          "-C", str(BINARY)], capture_output=True, text=True).stdout
 
     current, parts = None, []
+    # Registros que ahora mismo llevan un puntero de vtable. Ver mas abajo.
+    vt_regs: set = set()
     for line in asm.splitlines():
         # El marcador de linea: a -0x40(%rbp) o a un hueco de %rsp, segun el prologo.
         mark = re.search(r"movl\s+\$0x([0-9a-f]+),(?:-0x40\(%rbp\)|0x[0-9a-f]+\(%rsp\))",
@@ -204,6 +206,15 @@ def dump(start, stop, fields, reader):
             elif fields and 0xE0 <= off <= 0x300:
                 parts.append("=>0x%x" % off)
 
+        # `mov (%rX),%rY` saca el puntero de vtable de un objeto. Lo que se lea DESPUES
+        # con ese registro como base es un hueco de vtable, no un campo, y confundir las
+        # dos cosas es grave: los huecos 0x188/0x190/0x198 caen justo encima de
+        # shadowsOnBed/currentGirlfriend/currentPhone. Asi salio en su dia un
+        # "changeTheme toca currentPhone" que era `call *0x198(vtable)`.
+        vtload = re.search(r"mov\s+\((%r\w+)\),(%r\w+)$", line.split("\t")[-1].strip())
+        if vtload:
+            vt_regs.add(vtload.group(2))
+            continue
         # Las LECTURAS de campo son la otra mitad: sin ellas se ve que algo se hace
         # visible pero no que cosa. Se filtran las repetidas dentro de la misma linea.
         load = re.search(r"mov\s+0x([0-9a-f]+)\((%r\w+)\),%r\w+", line)
@@ -211,10 +222,22 @@ def dump(start, stop, fields, reader):
             load = None
         if load:
             off = int(load.group(1), 16)
-            if off in fields:
+            if load.group(2) in vt_regs:
+                parts.append(VTABLE.get(off, "vt+0x%x" % off))
+            elif off in fields:
                 tag = "." + fields[off]
                 if tag not in parts:
                     parts.append(tag)
+
+        # El borrado va DESPUES de leer, no antes: `mov 0x198(%rax),%rax` lee por el
+        # vtable y de paso pisa el registro, asi que descartarlo primero deshacia el
+        # arreglo entero. Una llamada se lleva por delante los de guarda del llamante.
+        if re.search(r"call\s", line):
+            vt_regs.clear()
+        else:
+            dest = line.split("\t")[-1].strip()
+            if "," in dest:
+                vt_regs.discard(dest.rsplit(",", 1)[1].strip())
 
         z = re.search(r"movl\s+\$0x([0-9a-f]+),0x28\(%rax\)", line)
         if z:

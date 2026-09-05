@@ -2035,6 +2035,107 @@ substring match that returned `buildBg` for `build`). When a disassembly reads p
 check the symbol before believing it.
 
 
+## 8d. A tool bug that faked field reads out of vtable slots
+
+`hxlines.py` labelled `mov 0x198(%rax),%rax` as a read of the field at 0x198. Sometimes it
+is. But when the register was just loaded by `mov (%rax),%rax` — dereferencing an object
+pointer to get its **vtable** — the same instruction is a vtable slot, and the call that
+follows is `call *%rax`.
+
+The offsets collide exactly where it hurts: slots 0x188, 0x190 and 0x198 sit on top of
+`shadowsOnBed`, `currentGirlfriend` and `currentPhone`. That is how a reading of
+`changeTheme` came out claiming the method touches `currentPhone` at line 959. It does
+not: that is `FunkinSound`'s `volumeTween` slot, and the layer's fade target has nothing
+to do with the phone.
+
+The tool now tracks which registers hold a vtable and prints `vt+0x198` for those. Two
+things about the fix are worth keeping in mind, because the first attempt got them wrong:
+
+- The register is cleared **after** the read, not before. `mov 0x198(%rax),%rax` reads
+  through the vtable *and* overwrites the register in one instruction; discarding first
+  undid the whole fix and the output looked exactly as broken as before.
+- A `call` clears every tracked register. Deliberately conservative — losing a label is
+  cheap, inventing one is not.
+
+Re-read anything important that was read before this fix. Checked so far and unchanged:
+`playCurSongPreview` (its `.currentPlayer` / `.currentGirlfriend` at lines 902-904 are
+genuine — it really does call `changeCharacter` on them) and `preloadThemes`.
+
+
+## 8e. initCharacters, and why only the phone is ported
+
+`initCharacters` (0x34c1800, lines 1401-1423) builds three things. The old port comment
+said "230.0 and 235.0 for positioning, 0.5 for scale" — half right, and wrong on the last
+point: **0.5 is not a scale**, it is the parallax ratio handed to `FlxTypedRatioHandler`.
+
+| line | what |
+|---|---|
+| 1401 | `currentGirlfriend = new CharGirlfriend(FlxG.width - 508, 230, 'none')`, zIndex 4 |
+| 1404 | `<ratioHandler>.add(gf, 0.5, 0)`; `shadowsOnBed.add(gf)` |
+| 1407 | `currentPlayer = new CharPlayer(FlxG.width - 780, 235, 'none', null, null)`, zIndex 5 |
+| 1415 | `currentPhone = new FunkinSprite(FlxG.width - 517.6, 265.9, '…skinSelector/phone')`, zIndex 6 |
+| 1418 | `addByPrefix('switch', 'Phone fall', 24)`, then `play('switch')` |
+| 1420 | `currentPhone.visible = false` |
+
+`FlxG.width` is 1280, so: girlfriend at x 772, player at 500, phone at 762.4. All three go
+into `shadowsOnBed`, which `buildBg` leaves invisible (line 1219) and `doIntroAnim` turns
+on — the characters do not appear until the television lights up.
+
+**The phone is ported**, exactly: a single-animation sparrow, built by the scene builder,
+invisible, with `z_as_relative` off so the mod's absolute zIndex 6 survives being a child
+of `ShadowsOnBed`. It is created invisible and nothing else in `FreeplayScreen` touches it
+— `initCharacters` is the only method in the class that reads field 0x198, checked across
+every method of the class — so whatever shows it lives outside this screen.
+
+**The two characters are not ported, and that is a decision.** `CharPlayer` and
+`CharGirlfriend` are not the mod's classes at all: they are
+`funkin::ui::freeplay::charSelect::`, from the base game, carrying `loadCharacter`,
+`getData` over a character JSON, `loadSkinChanger` and `loadIcon`; their skins are Adobe
+Animate atlases (`Animation.json` + spritemap) under `skinSelector/bf` and `/gf`, with
+standart / animania / xmas variants plus miku, teto and tadano. That is a subsystem, not
+two sprites. Both are constructed with the skin `'none'`, and the only `changeCharacter`
+call inside this class is the random-disk branch of `playCurSongPreview`, which also
+passes `'none'` — so whatever picks a real character is in `updateDataStuff` or
+`postHeader`. Read those before porting the characters. Every constant needed is in the
+table above.
+
+Note also that `currentCharacterId` (field 0xe0) is a **different** thing from the `'none'`
+in those constructors: that is the skin, this is the freeplay character that comes from
+`rememberedCharacterId`. `initCharacters` never writes it, so the port must not either.
+
+
+## 8f. postHeader: read, not yet built
+
+`postHeader` (0x34cb6e0, lines 1550-1594) builds the bottom info capsule and the
+difficulty dots. Read so far:
+
+- **dotsGrp**: zIndex 70, `scrollFactor.set(...)`, a y involving 20, `visible = false`,
+  then `loadDots(...)`, `setDots([...])`, `set_curDiff(...)`.
+- **songInfoCapsule**: `createSparrow('animania-freeplay/bottom capsule')`,
+  `addByPrefix` with `'m'` / `'y'` at 24 fps, zIndex 650, `scrollFactor.set(0,0)`, and an
+  x/y worked out from its own `get_width` (slot 0x230) times 0.5 and `get_height`.
+- **three `FlxFixedText`**: field width 300, `y = songInfoCapsule.y + 23`, placeholder text
+  `'epic'` / `'dude'` / `'bro'` → `infoBpmText`, `infoTitleText`, `infoDiffText`;
+  alignments `'left'`, `'center'`, `'right'`; font `'assets/fonts/' + 'DS-DIGIB.TTF'`;
+  size 28; one colour is 0xFFCCFFFF; zIndex 652.
+- **line 1593**: alpha `0.0001` on `infoBpmText`, `infoTitleText`, `infoDiffText`,
+  `highScoreSpr`, `clearBoxSprite`, `freeplayScore` and `completionText` — the whole
+  header starts invisible-but-present, not hidden.
+- **line 1594**: `dotsGrp.visible = false`.
+
+Two things block building it as read, and both are named rather than guessed:
+
+- The three info labels currently sit at invented positions in the builder — a vertical
+  stack at x 100 — when the real ones are a **horizontal row on the bottom capsule**, at
+  `capsule.y + 23`, 300 wide, aligned left/center/right. The capsule's own x and y come
+  out of `get_width`/`get_height` arithmetic through vtable setters that still need
+  tracing. Do not move the labels until that arithmetic is pinned.
+- `DS-DIGIB.TTF` is **not in the build** — no `.ttf` anywhere in it, so the font is inside
+  the executable or a packed archive. The port has `VCR OSD Mono Cyr.ttf`, which is a
+  plausible stand-in for a seven-segment digital face but is not the same font. Whatever
+  is used, it is a substitution and has to be marked as one.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
