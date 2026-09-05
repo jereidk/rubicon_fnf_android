@@ -44,8 +44,13 @@ const SOUND_CONFIRM := "res://animania_mod/source/sounds/confirmMenu.ogg"
 const SOUND_CANCEL := "res://animania_mod/source/sounds/cancelMenu.ogg"
 const SOUND_LOCKED := "res://animania_mod/source/sounds/animania/menu/locked_sfx.ogg"
 
-## The confirm animation is 18 frames at 24fps. The transition waits it out.
-const CONFIRM_SECONDS := 18.0 / 24.0
+## doSelect does NOT start the transition. Its forEach closure (0x18051a0) plays `confirm`
+## on the chosen button and arms `new FlxTimer().start(1.0, ...)` at 0x180531a - a flat one
+## second, not the 18/24 the animation's own frame count suggests - and only that timer's
+## closure picks the destination and calls startTransitionToMenu. So the confirm and the
+## exit are two waits back to back, 1.0 then 0.75, and this port had them fused into one
+## 0.75 that cut the confirm animation off a quarter of the way in.
+const CONFIRM_SECONDS := 1.0
 
 ## The menu breathes on the beat. animaniaLOOP's own metadata says 102 BPM, 4/4 - the same
 ## tempo the title's intro runs at, which is the track this one loops into.
@@ -346,34 +351,84 @@ func _beat_hit(beat: int) -> void:
 		camera.zoom += Vector2.ONE * BEAT_ZOOM_EXTRA
 
 
-## The walk skips blocked buttons rather than stopping on them, and wraps.
+## `changeItem(huh:Int = 0, skipBlocked:Bool = false)` - 0x17fd6b0, read line by line:
+##
+##     844  if (huh == -444) { curSelected = -1; }        // and nothing else: see deselect()
+##     848  else curSelected = FlxMath.wrap(curSelected + Std.int(huh), 0, len - 1);
+##     849       huh = huh < 0 ? -1 : 1;                  // the step, for the loop below
+##     851       if (skipBlocked) while (BLOCKED_BUTTONS.contains(BUTTONS_LIST[curSelected]))
+##                    goto 848;                           // re-wrap by that step
+##     853       if (huh != 0) FunkinSound.playOnce(Paths.sound('animania/menu/menu_switch'));
+##     859  <the forEach and the sort: see _refresh()>
+##
+## The second `Dynamic` is NOT a play-sound flag - the sound is unconditional past line 853,
+## because 849 has already made `huh` a hard +-1. It gates the blocked-button SKIP, and it
+## defaults to FALSE (0x17fdde7 builds `Dynamic(false)` for the missing argument). handleInput
+## passes true on every keyboard and wheel branch (0x180f1da, 0x180f2c9); the mouse callbacks
+## pass nothing, because they are jumping straight to the button under the pointer and a
+## blocked button never has a mouse callback in the first place (createButtons sends those to
+## createBlockedButton instead, 0x18075b7).
 ##
 ## Deaf until the intro's CAMERA tween lands - `_live()` - and not until the curtains stop:
 ## the mod only reaches changeItem through handleInput, and update() stops calling
 ## handleInput when that tween's onComplete fires at 0.75s, a quarter of a second before the
 ## curtains finish. The guard used to look at whatever moment the frames happened to land on
 ## and call it "during the intro"; it names the moment now.
-func change_item(amount: int, play_sound: bool = true) -> void:
+func change_item(amount: int, skip_blocked: bool = false) -> void:
 	if _confirmed or amount == 0 or not _live():
 		return
 	var step: int = signi(amount)
-	var at: int = _selected
-	# At most one full lap: if every other button were blocked this would otherwise spin.
-	for _i: int in BUTTONS.size():
-		at = wrapi(at + step, 0, BUTTONS.size())
-		if not BLOCKED.has(BUTTONS[at]):
-			break
+	var at: int = wrapi(_selected + amount, 0, BUTTONS.size())
+	if skip_blocked:
+		# At most one full lap: if every other button were blocked this would otherwise spin.
+		for _i: int in BUTTONS.size():
+			if not BLOCKED.has(BUTTONS[at]):
+				break
+			at = wrapi(at + step, 0, BUTTONS.size())
+		if BLOCKED.has(BUTTONS[at]):
+			return
 	if at == _selected:
 		return
 	_selected = at
 	_refresh()
-	if play_sound:
-		_play(SOUND_SWITCH)
+	_play(SOUND_SWITCH)
 
 
-## doSelect: the chosen button plays its `confirm` animation and the menu leaves.
+## changeItem's -444 branch (the compare at 0x17fd727). The sentinel means "nothing is
+## selected": curSelected goes to -1, the forEach below drops every plaque back to `basic`,
+## and the switch sound is skipped because the whole arithmetic between is jumped over.
+##
+## A button's onMouseOut sends it (0x17ff459) when the pointer leaves the button that WAS
+## selected, so on a desktop the menu really does go blank between plaques.
+func deselect() -> void:
+	if _confirmed or _selected < 0:
+		return
+	_selected = -1
+	_refresh()
+
+
+## `doSelect(id:Int)` - 0x1805510:
+##
+##     883  if (id < 0 || !canInteract) return;
+##     885  canInteract = false;
+##     886  FunkinSound.playOnce(Paths.sound('confirmMenu'));
+##     889  if (menuMusic != null) menuMusic.fadeOut(0.15, 0);     // the inlined FlxSound body
+##     891  var name = buttons.members[curSelected].<data>.name;
+##     892  buttons.forEach(function(b) { if (b.ID == curSelected) {
+##     896      b.playAnim('confirm');
+##     898      new FlxTimer().start(1.0, <the dispatcher>); } }, true);
+##
+## `id < 0` is not defensive: onMouseOut leaves curSelected at -1 (see deselect()), and the
+## keyboard's ACCEPT branch passes it straight through, so a confirm with nothing hovered has
+## to be a no-op. GDScript's negative indexing would have picked BUTTONS[-1] - `exit` - and
+## quit the game.
+##
+## There is no blocked-button test anywhere in doSelect. There does not need to be one: a
+## blocked button has no mouse callback and the keyboard walk skips it. The SOUND_LOCKED
+## branch below is this port's own, kept because a tap on a phone can land on a rect the
+## mouse never could.
 func do_select() -> void:
-	if _confirmed or not _live():
+	if _selected < 0 or _confirmed or not _live():
 		return
 	var name: String = BUTTONS[_selected]
 	if BLOCKED.has(name):
@@ -382,33 +437,53 @@ func do_select() -> void:
 
 	_confirmed = true
 	_play(SOUND_CONFIRM)
+	_fade_music_out()
 	_animate(name, "confirm")
-	_start_exit()
 
-	# The confirm animation and the transition are the same 0.75 seconds, which is why the
-	# mod can start both and only wait once.
-	await get_tree().create_timer(EXIT_SECONDS).timeout
-
-	if not DESTINATIONS.has(name):
-		# Nowhere to go yet, so it comes back in the way it went out. A button that is not
-		# ported reads as "not yet" instead of as a freeze.
-		_exit = -1.0
-		_confirmed = false
-		_refresh()
-		_start_intro()
+	# The confirm animation gets its whole second before anything else moves. The mod's
+	# dispatcher only runs when that FlxTimer fires.
+	await get_tree().create_timer(CONFIRM_SECONDS).timeout
+	if not is_inside_tree():
 		return
 
-	# Story mode does not go straight to the story menu. MainMenuScreen::doSelect
-	# opens StoryMenuSelectSubState from HERE - the closure at 0x180b180 tests
-	# the pressed button's name against "storymode" (0x5a7e5e7) and only then
-	# allocates it - and the sub-state calls back into the main menu with
-	# startTransitionToMenu once a side is picked. The port had it hanging off
-	# the story menu's own confirm, which is one screen too late.
+	# Story mode does not go straight to the story menu, and it does not run the curtain
+	# exit either: the dispatcher tests the pressed button's name against "storymode"
+	# (0x5a7e5e7) and allocates StoryMenuSelectSubState (0x180b180) on the spot, over a menu
+	# that is still standing. The sub-state calls back with startTransitionToMenu once a
+	# side is picked.
 	if name == "storymode":
 		_open_story_select()
 		return
 
+	if not DESTINATIONS.has(name):
+		# Nowhere to go yet. The plaque drops back out of `confirm` and the menu is live
+		# again; a button that is not ported reads as "not yet" instead of as a freeze.
+		_confirmed = false
+		_refresh()
+		return
+
+	# Only freeplay and options reach startTransitionToMenu in the mod (0x180ad15 and
+	# 0x180af65). credits opens a StickerSubState instead and exit runs the audio-filter
+	# ramp; this port sends both through the same curtain, which is the transition it has.
+	_start_exit()
+	await get_tree().create_timer(EXIT_SECONDS).timeout
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file(String(DESTINATIONS[name]))
+
+
+## doSelect line 889. The mod does not call fadeOut by name - hxcpp inlined the body, and it
+## is recognisable by its three parts at 0x18056db: cancel the old tween, take the current
+## volume, and FlxTween.num(volume, 0, 0.15) with `volumeTween` as the setter. Duration 0.15
+## is the double at 0x59fa840.
+const MUSIC_FADE := 0.15
+
+
+func _fade_music_out() -> void:
+	if music == null or not music.playing:
+		return
+	var fade := create_tween()
+	fade.tween_property(music, "volume_db", linear_to_db(0.0001), MUSIC_FADE)
 
 
 const STORY_SELECT := "res://animania_mod/menus/story_select/story_menu_select_sub_state.gd"
@@ -422,13 +497,12 @@ func _open_story_select() -> void:
 	add_child(_story_select)
 	_story_select.tree_exited.connect(func() -> void:
 		_story_select = null
-		# Backing out of the picker puts the menu back the way it was, the same
-		# way an unported destination does.
+		# Backing out of the picker puts the menu back the way it was. Nothing had moved -
+		# the picker opens over a menu that is still standing, with no curtain run - so this
+		# only has to take the plaque back out of `confirm`.
 		if is_inside_tree() and _confirmed:
-			_exit = -1.0
 			_confirmed = false
-			_refresh()
-			_start_intro())
+			_refresh())
 
 
 ## Called by StoryMenuSelectSubState once a side is picked - the mod's
@@ -438,10 +512,26 @@ func start_story(_variant: String) -> void:
 	get_tree().change_scene_to_file(String(DESTINATIONS["storymode"]))
 
 
-## The selected button shows `white` and every other one `basic`.
+## changeItem's tail: the forEach at line 859 (closure body 0x1806500) and the sort at line
+## 872, which the mod runs together on every selection change.
+##
+##     if (button.ID == curSelected) { button.playAnim('white'); button.zIndex = 0; }
+##     else                          { button.playAnim('basic'); button.zIndex = ~button.ID; }
+##     ...
+##     buttons.members.sort(sortByZ, FlxSort.ASCENDING)
+##
+## `~ID` is the bitwise NOT, so button 0 sits at -1, button 1 at -2 and so on, and the
+## selected one at 0 sorts last - it draws over its neighbours. That matters here because
+## the `white` plaque is BIGGER than the `basic` one: without the raise it slides under the
+## button below it. This port set no key at all, so _sort_by_z() was reordering eight nodes
+## that all compared equal and the raise never happened.
 func _refresh() -> void:
 	for i: int in BUTTONS.size():
 		_animate(BUTTONS[i], "white" if i == _selected else "basic")
+		var node: Node = _button_node(BUTTONS[i])
+		if node != null:
+			node.set_meta(&"sort_z", 0 if i == _selected else ~i)
+	_sort_by_z()
 
 
 func _animate(name: String, state: String) -> void:
@@ -727,16 +817,61 @@ func _toggle_social() -> void:
 	_music_social_play_anim(&"selected" if _social_open else &"basic")
 
 
-## initMouseEvents. Sets up mouse hover detection on buttons.
-## From the binary's initMouseEvents method.
+## createInteractiveButton (0x17fc0c0) hands every unblocked button to
+## FlxMouseEventManager.add with three callbacks, and this port had none of them - the menu
+## only answered clicks, so on a desktop the plaques never lit up under the pointer.
+##
+##   onMouseOver, 0x17fe080:
+##       334  if (canInteract) {
+##       336      changeItem(button.ID - curSelected);     // no blocked skip: a direct jump
+##       337      Cursor.cursorMode = CursorMode.Pointer; }
+##
+##   onMouseOut, 0x17ff350:
+##       340  if (canInteract) {
+##       342      Cursor.cursorMode = CursorMode.Default;
+##       343      if (button.ID == curSelected) changeItem(-444); }   // the whole menu blanks
+##
+##   onMouseUp, 0x18066a0:
+##       326  if (canInteract) {
+##       328      if (button.ID != curSelected) changeItem(button.ID - curSelected);
+##       330      doSelect(button.ID); }
+##
+## Godot has no per-node over/out for plain Node2Ds, so one motion event drives both: the
+## rect under the cursor is compared with the last one and the two callbacks fire off the
+## difference. The rects are the same `touch_rect` metas the tap path already uses.
+##
+## Blocked buttons are excluded here rather than inside change_item, exactly as the mod
+## excludes them: createButtons never calls createInteractiveButton for a blocked name
+## (0x18075b7), so a locked plaque simply has no callbacks to run.
 var _mouse_hover: int = -1
 
 
 func _init_mouse_events() -> void:
-	# The binary sets up FlxMouseEventManager for each button.
-	# In Godot, we handle this via _unhandled_input which already
-	# processes InputEventMouseButton for touch/click.
-	pass
+	# Motion arrives through _unhandled_input like everything else on this screen; there is
+	# nothing to register, but the mod's own method is a real step and this names it.
+	_mouse_hover = -1
+
+
+func _hover(at: Vector2) -> void:
+	if _confirmed or not _live():
+		return
+	var over: int = _button_at(at)
+	if over >= 0 and BLOCKED.has(BUTTONS[over]):
+		over = -1
+	if over == _mouse_hover:
+		return
+	var left: int = _mouse_hover
+	_mouse_hover = over
+
+	if over >= 0:
+		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+		if over != _selected:
+			change_item(over - _selected, false)
+		return
+
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	if left == _selected:
+		deselect()
 
 
 ## spawnHelpMouseText (0x1802d10). The string is the mod's own, out of .rodata, and so is
@@ -1004,18 +1139,30 @@ func _hide_social() -> void:
 		_toggle_social()
 
 
-## sortByZ. Sorts children of the Buttons node by z_index.
-## From the binary's sortByZ method.
+## sortByZ (0x17fe280) is `FlxSort.byValues(order, a.zIndex, b.zIndex)` - a.zIndex < b.zIndex
+## returns the order, equal returns 0, otherwise -order - and changeItem calls it with
+## FlxSort.ASCENDING. The key is _refresh()'s `sort_z` meta rather than Godot's own z_index:
+## z_index is a real layer here and the negative values the mod uses would push the plaques
+## behind the background, whereas in flixel zIndex is only ever this sort's key.
+##
+## Only the eight plaques take part. The three lock sprites live in the same node and stay
+## where they are, last, so they keep drawing over the button they belong to.
 func _sort_by_z() -> void:
 	if buttons == null:
 		return
-	var ch: Array[Node] = []
-	for child: Node in buttons.get_children():
-		ch.append(child)
-	ch.sort_custom(func(a: Node, b: Node) -> bool:
-		return a.z_index < b.z_index)
-	for i: int in ch.size():
-		buttons.move_child(ch[i], i)
+	var seats: Array[int] = []
+	var nodes: Array[Node] = []
+	for i: int in BUTTONS.size():
+		var node: Node = _button_node(BUTTONS[i])
+		if node == null:
+			continue
+		seats.append(node.get_index())
+		nodes.append(node)
+	seats.sort()
+	nodes.sort_custom(func(a: Node, b: Node) -> bool:
+		return int(a.get_meta(&"sort_z", 0)) < int(b.get_meta(&"sort_z", 0)))
+	for i: int in nodes.size():
+		buttons.move_child(nodes[i], seats[i])
 
 
 
@@ -1041,15 +1188,23 @@ func _notification(what: int) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Motion is not a press, so it is asked before the press gate.
+	if event is InputEventMouseMotion:
+		_hover((event as InputEventMouseMotion).position)
+		return
+
 	if _confirmed or not event.is_pressed() or not _live():
 		return
 
+	# handleInput's own branches pass `true` for the blocked skip on every keyboard and
+	# wheel path (0x180f1da, 0x180f2c9): those walk the list, so they have to step over a
+	# locked plaque rather than stop on it.
 	if event is InputEventKey:
 		match (event as InputEventKey).keycode:
 			KEY_UP, KEY_LEFT, KEY_W, KEY_A:
-				change_item(-1)
+				change_item(-1, true)
 			KEY_DOWN, KEY_RIGHT, KEY_S, KEY_D:
-				change_item(1)
+				change_item(1, true)
 			KEY_ENTER, KEY_SPACE, KEY_KP_ENTER:
 				do_select()
 			KEY_ESCAPE, KEY_BACKSPACE:
@@ -1060,10 +1215,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var button: int = (event as InputEventMouseButton).button_index
 		if button == MOUSE_BUTTON_WHEEL_UP:
-			change_item(-1)
+			change_item(-1, true)
 			return
 		if button == MOUSE_BUTTON_WHEEL_DOWN:
-			change_item(1)
+			change_item(1, true)
 			return
 		if button == MOUSE_BUTTON_LEFT:
 			_touch((event as InputEventMouseButton).position)

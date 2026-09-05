@@ -237,7 +237,7 @@ func _init() -> void:
 	# full second - so "the curtains are still moving" is not the same moment as "the menu
 	# is deaf", and this check has to name the one it means. Parked at 0.1s it certainly is.
 	menu._intro = 0.1
-	menu.change_item(1, false)
+	menu.change_item(1, true)
 	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
 		"el menu no tendria que responder durante el intro")
 	var intro_until: int = Time.get_ticks_msec() + 1400
@@ -250,10 +250,59 @@ func _init() -> void:
 		and menu.camera.offset.is_zero_approx(),
 		"la camara no volvio a su sitio tras el intro")
 
-	menu.change_item(1, false)
+	# The second argument is changeItem's `skipBlocked`, not a play-sound flag: handleInput
+	# passes true on every keyboard branch, which is what steps over `shop`.
+	menu.change_item(1, true)
 	await process_frame
 	_check(String(menu.BUTTONS[menu._selected]) == "freeplay",
 		"desde storymode tendria que saltarse shop y caer en freeplay, no en %s"
+			% menu.BUTTONS[menu._selected])
+
+	# changeItem's forEach gives the selected plaque zIndex 0 and every other one ~ID, and
+	# then sorts the group by it - so the selected one has to end up drawing LAST.
+	_check(int(menu._button_node("freeplay").get_meta(&"sort_z")) == 0
+		and int(menu._button_node("storymode").get_meta(&"sort_z")) == -1,
+		"changeItem no repartio los zIndex: freeplay=%s storymode=%s"
+			% [menu._button_node("freeplay").get_meta(&"sort_z", "?"),
+				menu._button_node("storymode").get_meta(&"sort_z", "?")])
+	var last_seat: int = menu._button_node("freeplay").get_index()
+	for name: String in menu.BUTTONS:
+		var other: Node = menu._button_node(name)
+		if other != null and name != "freeplay":
+			_check(other.get_index() < last_seat or menu.BLOCKED.has(name),
+				"%s dibuja por encima del boton elegido" % name)
+
+	# changeItem's -444 branch, which a button's onMouseOut sends when the pointer leaves
+	# the selected plaque: nothing is selected and every button goes back to `basic`.
+	menu.deselect()
+	_check(menu._selected == -1, "deselect no dejo el menu sin seleccion")
+	_check(String(menu._state["freeplay"]) == "basic",
+		"tras deselect freeplay sigue en %s" % menu._state["freeplay"])
+	# doSelect returns on id < 0, so a confirm with nothing hovered does nothing. Without
+	# that guard BUTTONS[-1] is `exit` and this would try to quit the game.
+	menu.do_select()
+	_check(not menu._confirmed, "doSelect confirmo con la seleccion en -1")
+
+	# onMouseOver jumps straight to the button under the pointer - changeItem(ID - curSelected)
+	# with no blocked skip - and the cursor turns into a pointer.
+	var seat: Rect2 = menu._button_node("credits").get_meta(&"touch_rect") as Rect2
+	menu._hover(seat.get_center())
+	_check(String(menu.BUTTONS[menu._selected]) == "credits",
+		"pasar el raton por credits no lo selecciono, quedo en %s"
+			% (menu.BUTTONS[menu._selected] if menu._selected >= 0 else "nada"))
+	# And leaving the selected one blanks the menu again.
+	menu._hover(Vector2(-500.0, -500.0))
+	_check(menu._selected == -1, "salir del boton seleccionado no deselecciono")
+	# A locked plaque has no callbacks at all in the mod, so the hover must not take it.
+	var locked: Rect2 = menu._button_node("shop").get_meta(&"touch_rect") as Rect2
+	menu._hover(locked.get_center())
+	_check(menu._selected == -1, "el raton selecciono un boton bloqueado")
+
+	menu._hover(Vector2(-500.0, -500.0))
+	menu.change_item(2, true)
+	await process_frame
+	_check(String(menu.BUTTONS[menu._selected]) == "freeplay",
+		"desde -1 dos pasos tendrian que dar freeplay, no %s"
 			% menu.BUTTONS[menu._selected])
 
 	# updateButtonsAnimation drives every idle off ONE clock, so two buttons in the same
@@ -278,6 +327,16 @@ func _init() -> void:
 	var dude_at: float = menu.dude.position.x
 	menu.do_select()
 	await process_frame
+	# doSelect does not start the transition. It plays `confirm` and arms a one-second
+	# FlxTimer (0x180531a); the dispatcher that timer runs is what calls
+	# startTransitionToMenu. So a frame after the press nothing has moved yet.
+	_check(menu._exit < 0.0, "la salida arranco antes del segundo de confirm")
+	_check(String(menu._state["freeplay"]) == "confirm",
+		"el boton elegido no esta en confirm sino en %s" % menu._state["freeplay"])
+	var confirming: int = Time.get_ticks_msec() + 1600
+	while is_instance_valid(menu) and current_scene == menu and menu._exit < 0.0 \
+			and Time.get_ticks_msec() < confirming:
+		await process_frame
 	_check(menu._exit >= 0.0, "doSelect no arranco la transicion de salida")
 	var closing: int = Time.get_ticks_msec() + 700
 	while is_instance_valid(menu) and current_scene == menu \
@@ -293,10 +352,11 @@ func _init() -> void:
 		_check(menu.camera.zoom.x > 3.0,
 			"la camara no se alejo, esta en %.2f" % menu.camera.zoom.x)
 
-	# doSelect waits out the 18-frame confirm animation before it leaves, on a SceneTree
-	# timer - so this waits in WALL CLOCK. Accumulating get_process_delta_time() does not
-	# work here: headless runs frames as fast as it can and the sum outruns the timer.
-	var until: int = Time.get_ticks_msec() + 4000
+	# doSelect waits out its one-second confirm timer and then the transition's own 0.75,
+	# both on SceneTree timers - so this waits in WALL CLOCK. Accumulating
+	# get_process_delta_time() does not work here: headless runs frames as fast as it can
+	# and the sum outruns the timer.
+	var until: int = Time.get_ticks_msec() + 5000
 	while is_instance_valid(menu) and current_scene == menu \
 			and Time.get_ticks_msec() < until:
 		await process_frame

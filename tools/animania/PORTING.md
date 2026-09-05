@@ -496,12 +496,73 @@ port, and why, so nobody re-derives it:
 | --- | --- |
 | `RuntimeRainShader` (autumn) | writing a rain shader from nothing is writing one, not porting it |
 | the emitter's `maxParticles` / `spawnValue` | their `cpp::Variant`s go by reference and the dump does not resolve them |
-| `initMouseEvents`, `setupEventListeners` | the first is `FlxG.mouse.visible` plus a cursor mode, the second is empty. Nothing to port on a touchscreen |
+| `setupEventListeners` | empty in the binary |
+| the `exit` button's audio ramp | `REVERB`/`LOWPASS` through `MusicFilterController`, which this port has no equivalent of |
+| `credits`' `StickerSubState` | the sticker wipe is its own screen; credits leaves through the curtain here |
 
 Two details that are easy to miss and both show on screen: `createBlockedButton` **greys the
 button under the padlock** to `0xFFAAAAAA` before adding the lock (0x1806989), and
 `musicSocialPlayAnim` is the method that chooses the OST disc's state — calling it from
 `finalizeSetup`, as this port did, leaves the disc looking permanently hovered.
+
+### Auditing "it is all there" against the binary
+
+"Everything is added" and "everything is added right" are different claims, and the second
+one only gets answered by reading the function again next to the port. Four methods were
+re-read that way — `changeItem`, `doSelect`, `startIntroAnimation`, `startTransitionToMenu`
+— and the two with tweens came back clean while the two with logic did not.
+
+**Clean.** `startIntroAnimation` (0x1802250): `camera.zoom = 3`, `scrollAngle =
+random(-10, 10)`, `scroll = random(-200, 200)` each axis, the two curtains tweened over
+**1.0s** on `smootherStepOut` to `+-(height - 30)`, and the camera tweened over **0.75s** on
+`smootherStepInOut` to `{zoom: 0.9, scrollAngle: 0}` with an onComplete that clears
+`isTransitioning` (field 0x169). `startTransitionToMenu` (0x1809790) is the same run
+backwards with a default duration of **0.75** (0x180a250) — dude `x - 650` on `backInOut`,
+curtain up to `10 - height*0.5` and down to `350` on `smootherStepOut`, camera to
+`{zoom: 3, scrollAngle: random(-10,10)}` and scroll to `random(-200,200)` on
+`smootherStepInOut`, then an `FlxTimer` of that same duration that switches the state. Every
+number already in the port.
+
+**Not clean.**
+
+- `changeItem(huh, skipBlocked)`'s second `Dynamic` is **not** a play-sound flag, which is
+  what the port had guessed. Line 849 makes `huh` a hard `+-1` before the sound test, so the
+  sound is unconditional; the flag gates the **blocked-button skip**, and it defaults to
+  *false* (0x17fdde7). `handleInput` passes true on every keyboard and wheel branch; the
+  mouse callbacks pass nothing, because a blocked button never gets a mouse callback at all
+  (`createButtons` sends those to `createBlockedButton` instead, 0x18075b7).
+- `changeItem` ends by **raising the selected plaque**: the forEach at line 859 gives it
+  `zIndex = 0` and every other button `~ID`, and line 872 sorts the group by that key
+  ascending (`sortByZ`, 0x17fe280, is `FlxSort.byValues` on `zIndex`). The port had
+  `_sort_by_z()` but never set a key, so it was sorting eight nodes that all compared equal
+  and the raise never happened — visible, because the `white` art is bigger than the `basic`
+  art and slides under its neighbour without it. In Godot the key is a `sort_z` **meta**, not
+  `z_index`: `z_index` is a real layer, and the mod's negative values would push the plaques
+  behind the background.
+- `changeItem(-444)` is a sentinel meaning **nothing is selected** (`curSelected = -1`, every
+  plaque back to `basic`, no sound). A button's `onMouseOut` sends it when the pointer leaves
+  the button that was selected, so on a desktop the menu really does go blank between
+  plaques. The port had no such state, and none of the three mouse callbacks at all —
+  `initMouseEvents` was a `pass` with a comment saying clicks were enough. They are not:
+  `createInteractiveButton` (0x17fc0c0) registers over, out and up, and the menu is
+  hover-driven with a mouse.
+- `doSelect(id)` **returns on `id < 0`** (0x1805555). That is not defensive: with the -444
+  state reachable, GDScript's negative indexing would have made `BUTTONS[-1]` = `exit` and
+  quit the game on a confirm with nothing hovered.
+- `doSelect` **fades the music out** over 0.15s (the inlined `FlxSound.fadeOut` body at
+  0x18056db), which the port did not.
+- The **timing was a second short**. `doSelect` does not start the transition: it plays
+  `confirm` and arms `new FlxTimer().start(1.0, ...)` (0x180531a), and only that timer's
+  closure picks the destination and calls `startTransitionToMenu`. So the two waits are
+  **1.0 then 0.75**, back to back. The port had fused them into one 0.75 derived from the
+  animation's own 18 frames at 24fps — a plausible number that cut the confirm animation off
+  a quarter of the way in. Where the frame count and the binary disagree, the binary wins.
+
+That dispatcher is also where the destinations diverge: only `freeplay` and `options` reach
+`startTransitionToMenu` (0x180ad15, 0x180af65). `storymode` allocates
+`StoryMenuSelectSubState` over a menu that is still standing — no curtain run at all, which
+is why backing out of the picker has nothing to reverse — `credits` opens a `StickerSubState`
+and `exit` runs the audio-filter ramp.
 
 ### One capture is not the build you have
 
