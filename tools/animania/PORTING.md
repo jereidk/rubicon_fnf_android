@@ -1003,8 +1003,28 @@ and that run rewrites `animania_mod/source/icon.png.import` with a fresh uid tha
 matches `project.godot`'s `config/icon`. Revert that one file afterwards; it is the same trap
 this file already warns about.
 
-Still missing on this screen: only the six props' placement beyond what `title_props.gd`
-already carries.
+**`updateProps` and its closure (0x2b258f0)**, the last of the screen. The constant list
+`title_props.gd` carried was partly guessed: it claimed "-550, 400" where the packed
+`Null<int>` immediates are -550 and **-440**, and it was missing half of them. Measured:
+
+    doubles  -300.0, 0.85, 1.15, 1.6, 2.05, 110.0, 50.0, 0.8, 0.7, 0.5
+    ints     10, 200, -10, -200, -440, -550, 0
+
+Two of them now have a job. Line 277 is `FlxG.random.float(0.85, 1.15)` and line 278 scales
+the prop by `<ratio> * 0.8 + 0.7` times that jitter; and line 283 is unambiguous —
+`get_width` (0x230) plus `get_height` (0x238), times 0.5, divided into **110** — so **a
+bigger prop falls slower**. This port had a flat 50-110 range with no size term at all.
+
+`POOL` was 9 with a note saying the number was not derivable. It is: `create()` line 167
+allocates **six** `TitleProp`s, each parked at -1000000 until `updateProps` places one.
+
+What the ratio in line 278 divides, and the two factors that multiply into line 283's speed,
+are still unresolved. So what the port takes from 283 is the SHAPE — speed inversely
+proportional to size — normalised on the prop's own art so it lands as `1 / scale`. A first
+attempt invented a pixel constant to make the units work and put an average prop at 4600
+px/s, across the screen in a quarter of a second; the runtime probe caught it. **When a
+formula's units are not in the dump, take the relationship and normalise it, rather than
+inventing a factor to close the gap — and then look at the number it produces.**
 
 ---
 
