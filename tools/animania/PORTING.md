@@ -1904,6 +1904,137 @@ Recorded so the next person does not go looking for a bug that is not there.
 
 ---
 
+## 8c. The freeplay theme music, and how the four files were chosen
+
+`assets/music/freeplayThemes/` in the mod build is seven .ogg files, 21.4 MB. The port
+shipped none of them, because `changeTheme` had been ported as if a "theme" were a
+picture: it built `images/freeplayThemes/Freeplay_<song id>.png` and pasted it on the
+Backwall. There is no such directory. A theme is music.
+
+### What the binary actually says
+
+`changeTheme` (0x34c2540, lines 920-970) takes the selected `DiskSpr`, reads two strings
+off the `FreeplaySongData` at its offset 0x268, and crossfades two tracks:
+
+| line | what |
+|---|---|
+| 920 | `theme = songData.<0xa8>` |
+| 922 | `layer = "-" + songData.<0xb8>` — the dash is added here, not in the metadata |
+| 925 | `if (theme != oldThemeName)` — nothing reloads when the name is unchanged |
+| 933 | `FunkinSound.load("freeplayThemes/Freeplay_" + theme)` |
+| 940 | `FlxTween.num(..., 1.0, {onComplete}, snd.volumeTween)` |
+| 945 | `if (layer != oldThemeLayerName)` |
+| 954 | `layerSound = FunkinSound.load("freeplayThemes/Freeplay_Layer" + layer)` |
+| 960 | the same 1.0 s volume tween on the layer |
+| 970 | `oldThemeName`/`oldThemeLayerName` updated, `onChangeTheme` dispatched |
+
+The 1.0 is a literal: the double at 0x59fa558, loaded twice. The two path prefixes are the
+literals at 0x5c28fa0 and 0x5c290f8; the second carries no dash for the reason above.
+
+The only caller is `playCurSongPreview` (0x34c3670, the call is at 0x34c3984, line 911),
+and that has exactly two callers of its own: `changeSelection` line 855, and the
+one-second closure of `doIntroAnim`, line 1651. **That second one is load-bearing.** Line
+1648 already calls `changeSelection`, but at that moment `allowInput` is still false and
+`changeSelection` leaves through its own guard — so line 1651 is what actually starts the
+first disk's theme. Port both calls or freeplay opens silent.
+
+### Which files the port can reach
+
+The theme and the layer are **declared metadata**, not derived from the opponent
+character. I had assumed the opponent decided the layer and it is false — `dadbattle`
+fights `dad-beast` and declares the layer `dad`. Straight from
+`assets/data/songs/<id>/<id>-metadata.json`:
+
+| song | freeplayTheme | freeplayLayer | in the port |
+|---|---|---|---|
+| phone-call | — | komi | yes |
+| bopeebo | — | dad | yes |
+| fresh | — | dad | yes |
+| dadbattle | — | dad | yes |
+| tutorial | — | — | in songs/, not in freeplay's list |
+| cocoa | Base | christmas | no |
+| eggnog | — | christmas | no |
+| winter-horrorland | Base-ChristmasCursed | Christmas-Cursed | no |
+
+A song that declares neither falls back to `Base` and `default` — `default` is the string
+at 0x5c28e62, in FreeplayScreen.hx's own literal block. So the port reaches
+`Freeplay_Base`, `Freeplay_Layer-dad`, `Freeplay_Layer-komi`, and `Freeplay_Layer-default`
+as the fallback. **Four of seven, before touching a single sample.** The three Christmas
+files belong to songs the port does not have; they are not deleted from anything, they are
+simply not vendored. If a Christmas song is ported, copy the two or three files it names
+from the table above and nothing else changes.
+
+`preloadThemes` (0x34ba820, lines 398-405) caches every entry of the two statics
+`freeplayThemes` (.bss 0x805ef58) and `freeplayThemesLayers` (0x805ef50) up front, plus
+`music/freeplayRandomAnimania/freeplayRandomAnimania`. The port does not copy the blind
+preload: it fires `load_threaded_request` on the reachable set instead, because loading
+7.6 MB on entry is worse on Android than loading one track when `changeTheme` asks, which
+has a full second of crossfade to do it in.
+
+### The re-encode, and what it costs
+
+`tools/animania/optimize_audio.py`. All seven sources are stereo 44100 Hz, 72.5 s, ~354
+kbps nominal Vorbis — a wild rate for this material: `Freeplay_Base` keeps 98.4% of its
+energy under 2 kHz and 0.076% above 12 kHz, and every track peaks 11-16 dB below full
+scale. They are also seven distinct pieces: the pairwise correlation between any two
+mono mixdowns is ~0.00, so there is nothing to deduplicate.
+
+**Read this before trusting the numbers.** This box has no libvorbis. The only Vorbis
+encoder available is ffmpeg's native one, which ffmpeg marks experimental and which
+ignores every quality knob there is — `global_quality`, `q`, `b` and `cutoff` all produce
+a byte-identical file. One fixed operating point, take it or leave it. With libvorbis this
+should be redone and compared.
+
+| file | before | after | |
+|---|---|---|---|
+| Freeplay_Base | 3.06 MB | 1.50 MB | 2.04x |
+| Freeplay_Layer-komi | 3.06 MB | 1.88 MB | 1.63x |
+| Freeplay_Layer-dad | 3.06 MB | 2.24 MB | 1.37x |
+| Freeplay_Layer-default | 3.06 MB | 1.95 MB | 1.57x |
+
+21.4 MB of source becomes **7.7 MB on disk**: 12.2 -> 7.7 from the encoder, and the other
+9.2 MB purely from shipping what the port reaches.
+
+What it costs, measured rather than assumed. Per-band error, in dB below the signal's
+*total* energy (`--report` prints this): 29 / 41 / 43 / 39 for `Freeplay_Base`. In-band
+SNR that works out to roughly 29 / 22 / 18 / 8 dB, so above 12 kHz the encoder effectively
+discards the content — which is 0.076% of the energy. Two checks say that error is
+ordinary codec noise and not damage:
+
+- **It is not a misalignment artifact.** The decoded re-encode has lag 0 against the
+  source and is 30 samples longer. Had it been shifted, the block-wise comparison would
+  have reported a large error for no audible reason. Check this first, always.
+- **It is spread, not concentrated.** Block-wise SNR over 93 ms windows: median 33.6 dB,
+  5th percentile 23.1, and only 5 blocks out of 780 under 15 dB — those five are
+  near-silent passages, where the ratio means nothing. Artefacts (clicks, dropouts) would
+  show as a handful of very deep blocks against a clean median. They do not.
+
+Downsampling to 32 kHz would buy perhaps another megabyte and is *not* done: there is no
+`scipy` here, and a hand-rolled 441->320 decimator risks aliasing that no amount of saved
+space justifies.
+
+### What is left open
+
+- `playCurSongPreview`'s random-capsule branch (line 891, when `songData` is null) is
+  written but its music, `freeplayRandomAnimania.ogg` (1.31 MB), is not vendored: the port
+  has no random capsule in the disk list, so nothing can reach that branch today. Vendor
+  the file when the capsule lands and the branch works as written.
+- `?` The layer fades *to* field 0xe0 of the base music. 0xd8 is `volume` — `FlxSound.
+  set_volume` writes it at 0x15f7530 — so 0xe0 is the double right after it, which in
+  HaxeFlixel is `_volumeAdjust`: 1.0 unless `proximity` is used, and freeplay never uses
+  it. The port fades to 1.0. Inferred, not read.
+
+### A tool bug worth remembering
+
+`hxlines.py` picked the **largest** matching symbol, and the base game declares the same
+method names as the mod. Asking for `changeTheme` therefore returned
+`funkin::ui::freeplay::FreeplayState_obj::changeTheme` — 4611 bytes of the wrong function,
+which reads plausibly and mentions `winter-horrorland`. It now sorts `animania::` first.
+This is the third time a matcher has quietly handed back the wrong thing (see also: the
+substring match that returned `buildBg` for `build`). When a disassembly reads plausibly,
+check the symbol before believing it.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

@@ -302,6 +302,16 @@ func _init() -> void:
 	sfx.bus = &"Master"
 	_add(sfx)
 
+	# changeTheme (0x34c2540) mueve dos pistas a la vez: la base y su capa. Van al bus
+	# Music, no al Master, porque son musica y el mod las carga con getPath(..., 'MUSIC').
+	for track: String in ["ThemeMusic", "LayerSound"]:
+		var player := AudioStreamPlayer.new()
+		player.name = track
+		player.bus = &"Music"
+		# Las arranca changeTheme con el fundido de un segundo, no la escena.
+		player.autoplay = false
+		_add(player)
+
 	_root.set(&"disks", disks)
 	_root.set(&"sfx", sfx)
 	_root.set(&"bed", bed)

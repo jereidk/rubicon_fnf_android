@@ -13,26 +13,35 @@ extends Node2D
 
 ## ─── Song list ───────────────────────────────────────────────────────────────
 
+## `theme` y `layer` son los dos campos que decide changeTheme, y salen tal cual de
+## assets/data/songs/<id>/<id>-metadata.json del mod: `freeplayTheme` y `freeplayLayer`.
+## No se deducen del personaje rival -eso lo supuse en su dia y era falso: dadbattle tiene
+## de rival a `dad-beast` y declara la capa `dad`-. Cuando la cancion no declara ninguno
+## valen los respaldos THEME_DEFAULT / LAYER_DEFAULT.
 const SONGS: Array[Dictionary] = [
 	{
 		"id": "phone-call",
 		"disk": "phone call",
 		"scene": "res://songs/phone-call/phone_call.tscn",
+		"layer": "komi",
 	},
 	{
 		"id": "bopeebo",
 		"disk": "bopeebo",
 		"scene": "res://songs/bopeebo/bopeebo.tscn",
+		"layer": "dad",
 	},
 	{
 		"id": "fresh",
 		"disk": "fresh",
 		"scene": "res://songs/fresh/fresh.tscn",
+		"layer": "dad",
 	},
 	{
 		"id": "dadbattle",
 		"disk": "dadbattle",
 		"scene": "res://songs/dadbattle/dadbattle.tscn",
+		"layer": "dad",
 	},
 ]
 
@@ -199,6 +208,9 @@ var scroll_cooldown: float = 0.0
 var spam_timer: float = 0.0
 var spamming: bool = false
 var can_play_switch_sound: bool = true
+## Campos 0x290 y 0x2a8. changeTheme los compara antes de tocar nada: si el nombre no
+## cambia, la pista no se recarga.
+var old_theme_name: String = ""
 var old_theme_layer_name: String = ""
 var _alpha_target: float = 1.0
 ## Completion text display.
@@ -261,6 +273,7 @@ func _resolve_nodes() -> void:
 	disk_player = get_node_or_null("DiskPlayer") as AnimatedSprite2D
 	disk_player_mask = get_node_or_null("DiskPlayerMask") as Sprite2D
 	characters_buttons = get_node_or_null("CharactersButtons")
+	_theme_music = get_node_or_null("ThemeMusic") as AudioStreamPlayer
 	layer_sound = get_node_or_null("LayerSound") as AudioStreamPlayer
 	boss_sound = get_node_or_null("BossSound") as AudioStreamPlayer
 	bossfight_skull = get_node_or_null("BossfightSkull") as Sprite2D
@@ -735,6 +748,10 @@ func _intro_light_up() -> void:
 	intended_score = 0
 	lerp_score = 0.0
 	change_selection(0, false)
+	# Linea 1651: playCurSongPreview otra vez, aparte del que ya lleva changeSelection
+	# dentro. No es redundante: en 1648 `allow_input` todavia es false y changeSelection se
+	# sale por su guarda, asi que esta es la llamada que arranca el tema del primer disco.
+	_play_cur_song_preview()
 	tv_intro_done = true
 	intro_done = true
 	allow_input = true
@@ -897,6 +914,9 @@ func change_selection(amount: int, play_sound: bool = true) -> void:
 	# que trae su puntuacion y su porcentaje.
 	change_diff()
 	_refresh(false)
+	# Linea 855: cambiar de disco cambia el tema que suena. Va al final, despues de
+	# changeDiff.
+	_play_cur_song_preview()
 
 
 ## ─── _refresh (updated) ─────────────────────────────────────────────────────
@@ -1006,15 +1026,6 @@ func _show_stickers() -> void:
 ## equivocada: no es que falte portear FreeplayScreenHelp, es que este metodo no llama a
 ## nadie. La clase FreeplayScreenHelp existe (22 simbolos) y la abre otro sitio.
 func _open_help() -> void:
-	pass
-
-
-## ─── playCurSongPreview (from binary) ────────────────────────────────────────
-## Plays a preview of the currently selected song.
-
-func _play_cur_song_preview() -> void:
-	# Song preview would play a short clip of the selected track.
-	# In the full mod, this uses FunkinSound.playMusic.
 	pass
 
 
@@ -1202,38 +1213,153 @@ func _capsule_on_confirm_random() -> void:
 	confirm()
 
 
-## ─── changeTheme (from binary at 0x34c2540) ─────────────────────────────────
-## Changes the visual theme of the freeplay screen based on the selected disk.
-## From binary: constructs path "freeplayThemes/Freeplay_" + theme_name,
-## loads the texture, and applies it to background layers.
-## References freeplayThemes, freeplayThemesLayers, rememberedCharacterId.
+## ─── playCurSongPreview (0x34c3670, lineas 887-916) ────────────────────────
+## Es el unico sitio desde el que se llama a changeTheme (la llamada esta en 0x34c3984,
+## linea 911), y a el se llega desde dos: changeSelection linea 855, y el cierre de un
+## segundo de doIntroAnim, linea 1651.
+##
+##   887  dispatch("onSongPreview")
+##   891  if (disk.songData == null) {           // la capsula del disco aleatorio
+##   894      <vtable +0x108 sobre la musica actual>
+##   896      FunkinSound.playMusic("freeplayRandomAnimania",
+##                {overrideExisting: ..., startingVolume: ..., restartTrack: ...})
+##   902      FlxTween.num(..., 1.0, {onComplete: ...}, snd.volumeTween)
+##   903      currentPlayer.changeCharacter("none")
+##   904      currentGirlfriend.changeCharacter(...)
+##   905      checkBed(...); oldThemeName = "RANDOM"; oldThemeLayerName = "RANDOM"
+##        } else {
+##   911      changeTheme(disk)
+##        }
+##   914  Conductor.instance.update(...)
+##   916  dispatch("onSongPreviewPost")
+##
+## La rama del disco aleatorio se deja escrita pero NO se vendorizo su musica
+## (assets/music/freeplayRandomAnimania/freeplayRandomAnimania.ogg, 1.31 MB): en el puerto
+## no hay capsula aleatoria en la lista, asi que hoy no hay forma de llegar a esa rama.
+## Cuando la haya, hay que meter ese .ogg y esto ya funciona. Marcar "RANDOM" en los dos
+## nombres viejos es lo que hace que el siguiente changeTheme vuelva a cargar de verdad.
+const RANDOM_TRACK := "res://animania_mod/source/music/freeplayRandomAnimania/freeplayRandomAnimania.ogg"
+const THEME_RANDOM := "RANDOM"
 
-func _change_theme(disk: Node2D, _data: Variant) -> void:
+
+func _play_cur_song_preview(disk: Node2D = null) -> void:
+	var target: Node2D = disk if disk != null else _get_current_disk()
+	if target != null and not _song_of(target).is_empty():
+		_change_theme(target)
+		return
+
+	# Linea 891: sin songData es la capsula aleatoria.
+	_theme_tween = _swap_track(_theme_music, _theme_tween, RANDOM_TRACK,
+		LAYER_TARGET_VOLUME)
+	_layer_tween = _swap_track(layer_sound, _layer_tween, "", 0.0)
+	current_player = "none"
+	_check_bed("none")
+	old_theme_name = THEME_RANDOM
+	old_theme_layer_name = THEME_RANDOM
+
+
+## ─── changeTheme (0x34c2540, lineas 920-970) ───────────────────────────────
+## Lo que habia aqui estaba inventado de arriba abajo: trataba el tema como una TEXTURA
+## -cargaba `images/freeplayThemes/Freeplay_<id>.png` y se la pegaba al Backwall- y usaba
+## el id de la cancion como nombre de tema. No hay ninguna imagen de tema en el mod. El
+## tema es MUSICA, y son los 22 MB de assets/music/freeplayThemes/ que el puerto no tocaba.
+##
+## El metodo real, leido linea a linea:
+##
+##   920  tema  = disk.songData.<campo 0xa8>              // freeplayTheme
+##   922  capa  = "-" + disk.songData.<campo 0xb8>        // freeplayLayer, con el guion
+##   925  if (tema != oldThemeName) {
+##   929        FlxTween.cancel(<el tween que hubiera>)
+##   930        <cleanup del sonido anterior>
+##   931        <vtable +0x108 sobre el sonido anterior>
+##   933        FunkinSound.load("freeplayThemes/Freeplay_" + tema)
+##   940        FlxTween.num(<vol actual>, <destino>, 1.0, {onComplete: ...}, snd.volumeTween)
+##        }
+##   945  if (capa != oldThemeLayerName) {
+##   951        <mismo apagado del layerSound anterior, tween de 1.0>
+##   954        layerSound = FunkinSound.load("freeplayThemes/Freeplay_Layer" + capa)
+##   959        destino = <musica base>.<campo 0xe0>
+##   960        FlxTween.num(layerSound.<0xd8 = volume>, destino, 1.0, ..., volumeTween)
+##        }
+##   970  oldThemeName = tema; oldThemeLayerName = capa; dispatch("onChangeTheme")
+##
+## La duracion del tween es literal y sale dos veces: el double en 0x59fa558 es 1.0.
+##
+## Rutas exactas, de los literales del binario: "freeplayThemes/Freeplay_" (0x5c28fa0) y
+## "freeplayThemes/Freeplay_Layer" (0x5c290f8). La segunda NO lleva guion porque la capa ya
+## se lo puso en la linea 922.
+##
+## `?` El destino del fundido de la capa es el campo 0xe0 de la musica base. 0xd8 es
+## `volume` (lo escribe FlxSound.set_volume en 0x15f7530), asi que 0xe0 es el double
+## siguiente, que en HaxeFlixel es `_volumeAdjust`: vale 1.0 salvo que se use proximity, y
+## freeplay no la usa. Por eso aqui el destino es 1.0. Deducido, no leido.
+const THEME_DEFAULT := "Base"
+const LAYER_DEFAULT := "default"
+const THEME_TWEEN := 1.0
+const THEME_DIR := "res://animania_mod/source/music/freeplayThemes/"
+## El campo 0xe0 de arriba. Ver la nota.
+const LAYER_TARGET_VOLUME := 1.0
+
+var _theme_music: AudioStreamPlayer
+var _theme_tween: Tween
+var _layer_tween: Tween
+
+
+func _change_theme(disk: Node2D, _data: Variant = null) -> void:
+	var song: Dictionary = _song_of(disk)
+	if song.is_empty():
+		return
+	var theme: String = String(song.get("theme", THEME_DEFAULT))
+	# Linea 922: el guion lo pone changeTheme, no el metadato.
+	var layer: String = "-" + String(song.get("layer", LAYER_DEFAULT))
+
+	if theme != old_theme_name:
+		_theme_tween = _swap_track(_theme_music, _theme_tween,
+			THEME_DIR + "Freeplay_" + theme + ".ogg", LAYER_TARGET_VOLUME)
+		old_theme_name = theme
+
+	if layer != old_theme_layer_name:
+		_layer_tween = _swap_track(layer_sound, _layer_tween,
+			THEME_DIR + "Freeplay_Layer" + layer + ".ogg", LAYER_TARGET_VOLUME)
+		old_theme_layer_name = layer
+
+
+## Las lineas 929-940 y 951-960 son el mismo bloque dos veces: cancelar el tween que
+## hubiera, cambiar la pista y subir el volumen en 1.0 s. Aqui van juntas.
+func _swap_track(player: AudioStreamPlayer, tween: Tween, path: String,
+		target: float) -> Tween:
+	if player == null:
+		return null
+	if tween != null and tween.is_valid():
+		tween.kill()
+	if not ResourceLoader.exists(path):
+		# Un tema que no se vendorizo. Se calla en vez de sonar el anterior, que es lo
+		# que haria si nos limitasemos a volver.
+		player.stop()
+		return null
+	var stream: AudioStream = load(path)
+	if stream == null:
+		player.stop()
+		return null
+	player.stream = stream
+	player.volume_db = linear_to_db(0.0001)
+	player.play()
+	var fresh: Tween = create_tween()
+	fresh.tween_method(
+		func(v: float) -> void: player.volume_db = linear_to_db(maxf(v, 0.0001)),
+		0.0, target, THEME_TWEEN)
+	return fresh
+
+
+## La cancion que hay detras de un disco. changeTheme la saca del `songData` en el offset
+## 0x268 del DiskSpr; aqui el disco lleva su indice en un meta, como en updateDisks.
+func _song_of(disk: Node2D) -> Dictionary:
 	if disk == null:
-		return
-	# The theme name comes from the disk's song data.
-	# In the binary, the path is "freeplayThemes/Freeplay_" + theme_name.
-	# Each theme has its own background layers that replace the default ones.
-	var song_id: String = ""
-	if cur_selected >= 0 and cur_selected < current_filtered_songs.size():
-		song_id = String(current_filtered_songs[cur_selected].get("id", ""))
-	if song_id.is_empty():
-		return
-
-	# Build the theme path pattern from the binary.
-	var theme_path: String = "freeplayThemes/Freeplay_%s" % song_id
-
-	# Load the theme texture if it exists.
-	var tex_path: String = "res://animania_mod/source/images/%s.png" % theme_path
-	if ResourceLoader.exists(tex_path):
-		var tex: Texture2D = load(tex_path)
-		# Apply to the backwall if it exists.
-		var backwall: Sprite2D = get_node_or_null("Backwall") as Sprite2D
-		if backwall != null and tex != null:
-			backwall.texture = tex
-
-	# Track the old theme layer name for cleanup.
-	old_theme_layer_name = theme_path
+		return {}
+	var index: int = int(disk.get_meta(&"index", -1))
+	if index < 0 or index >= current_filtered_songs.size():
+		return {}
+	return current_filtered_songs[index] as Dictionary
 
 
 ## ─── getCurrentDisk (from binary at 0x34bf330) ──────────────────────────────
@@ -1289,39 +1415,44 @@ func _fade_out(sound: Variant = null) -> void:
 	tween.tween_callback(func() -> void: player.stop())
 
 
-## ─── preloadThemes (from binary at 0x34ba820) ───────────────────────────────
-## Preloads theme assets and the freeplay music track.
-## From binary: loads music on "MUSIC" bus from
-## "music/freeplayRandomAnimania/freeplayRandomAnimania", then iterates
-## freeplayThemes and freeplayThemesLayers with hasNext pattern.
-
+## ─── preloadThemes (0x34ba820, lineas 398-405) ─────────────────────────────
+## Otra que estaba inventada: recorria `images/freeplayThemes/*.png`, un directorio que no
+## existe. El metodo real solo precachea SONIDO, y son tres cosas:
+##
+##   398  Paths.getPath("music/freeplayRandomAnimania/freeplayRandomAnimania" + "." +
+##            Constants.EXT_SOUND, "MUSIC") -> FunkinMemory.cacheSound(...)
+##   401  for (t in FreeplayScreen.freeplayThemes)        // estatico, .bss 0x805ef58
+##   402      cacheSound(getPath("music/freeplayThemes/Freeplay_" + t, "MUSIC"))
+##   404  for (l in FreeplayScreen.freeplayThemesLayers)  // estatico, .bss 0x805ef50
+##   405      cacheSound(getPath("music/freeplayThemes/Freeplay_Layer" + l, "MUSIC"))
+##
+## Los dos estaticos son arrays de String; el mod los precachea ENTEROS al entrar, no solo
+## los que alcanzan sus canciones.
+##
+## Aqui no se replica el precacheo ciego. Godot resuelve el .ogg por ResourceLoader y las
+## cuatro pistas que el puerto alcanza pesan 7.6 MB en total; cargarlas todas de golpe al
+## entrar en freeplay es peor en Android que cargarlas al cambiar de disco, que es cuando
+## changeTheme las pide y tiene un segundo entero de fundido para hacerlo.
+##
+## Lo que si se hace es tocarlas una vez para que ResourceLoader las tenga en cache, en
+## segundo plano, sin bloquear la entrada a la pantalla.
 func _preload_themes() -> void:
-	# Load the random freeplay music track on the MUSIC bus.
-	var music_path: String = "res://animania_mod/source/music/freeplayRandomAnimania/freeplayRandomAnimania.ogg"
-	if ResourceLoader.exists(music_path):
-		var stream: AudioStream = load(music_path)
-		if stream != null:
-			# In the binary, this is loaded on the "MUSIC" bus.
-			# Store it for later use by the music layer.
-			pass
+	for path: String in _reachable_themes():
+		if ResourceLoader.exists(path):
+			ResourceLoader.load_threaded_request(path)
 
-	# Iterate freeplayThemes (from binary: freeplayThemes at .bss 0x805ef58)
-	# and freeplayThemesLayers (at .bss 0x805ef50) with hasNext pattern.
-	# In the binary, these are arrays of theme names that get preloaded.
-	# For now, we preload any theme textures that exist in the mod.
-	var theme_dir: String = "res://animania_mod/source/images/freeplayThemes/"
-	if DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(theme_dir)):
-		var dir: DirAccess = DirAccess.open(theme_dir)
-		if dir != null:
-			dir.list_dir_begin()
-			var file_name: String = dir.get_next()
-			while file_name != "":
-				if file_name.ends_with(".png"):
-					var full_path: String = theme_dir + file_name
-					if ResourceLoader.exists(full_path):
-						load(full_path)
-				file_name = dir.get_next()
-			dir.list_dir_end()
+
+## Las pistas que las canciones de SONGS pueden llegar a pedir, que es lo unico que se
+## vendorizo. Ver la nota de arriba y tools/animania/PORTING.md.
+func _reachable_themes() -> PackedStringArray:
+	var wanted: Dictionary = {}
+	for song: Dictionary in SONGS:
+		wanted[THEME_DIR + "Freeplay_" + String(song.get("theme", THEME_DEFAULT)) + ".ogg"] = true
+		wanted[THEME_DIR + "Freeplay_Layer-" + String(song.get("layer", LAYER_DEFAULT)) + ".ogg"] = true
+	var out: PackedStringArray = PackedStringArray()
+	for path: String in wanted:
+		out.append(path)
+	return out
 
 
 ## ─── destroy (from binary at 0x34d7890) ─────────────────────────────────────

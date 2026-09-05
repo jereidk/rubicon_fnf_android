@@ -164,9 +164,11 @@ def resolve(name):
             pass
     if not hits:
         sys.exit("ningun simbolo contiene %r" % name)
-    hits.sort(key=lambda h: -h[1])
+    # El mod y el juego base declaran los mismos nombres de metodo. Auditamos el mod,
+    # asi que `animania::` gana siempre; a igualdad, el simbolo mas grande.
+    hits.sort(key=lambda h: (not h[2].startswith("animania::"), -h[1]))
     if len(hits) > 1:
-        print("# %d simbolos coinciden, se usa el mayor:" % len(hits), file=sys.stderr)
+        print("# %d simbolos coinciden, se usa el primero:" % len(hits), file=sys.stderr)
         for addr, size, sym in hits[:5]:
             print("#   0x%x  %6d  %s" % (addr, size, sym[:90]), file=sys.stderr)
     return hits[0][0], hits[0][1]
