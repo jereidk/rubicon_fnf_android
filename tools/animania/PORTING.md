@@ -1206,6 +1206,24 @@ module holding nulls, every chart event no-ops, and the guard passes on nothing.
 
 ### Builder traps
 
+**A builder that does not know about a node DELETES it.** `build_freeplay_scene.gd` packs
+the tree it builds and saves over `freeplay_screen.tscn`. Twelve nodes in that scene -
+`ShadowsOnBed`, the whole `UI/` group with its labels, `ClearBox`, `DifficultyStars`,
+`AlbumRoll`, `HelpButton`, and `DarkOverlay` - had been hand-added afterwards, and one run
+of the builder wiped every one of them. `_resolve_nodes()` looks them up, so the screen
+came back with nine null references and no error: `get_node_or_null` returns null and every
+user of them checks for null first. **`flow_check` still said "todo OK".**
+
+Two rules out of it:
+
+- Anything the script resolves has to be BUILT by the builder. If you hand-add a node to a
+  generated scene, put it in the generator in the same change or it is already lost.
+- After running any builder, diff the packed scene against the committed one before
+  committing, node by node. Differences that are only Godot dropping default values
+  (`position = Vector2(0, 0)`, `text = ""`, `centered = true` on a Sprite2D) are noise; a
+  missing `[node]` line is not.
+
+
 **A builder that loads a saved resource, adds to it and saves it back will skip its own
 work** if it guards with `if has_animation(x): return`. The previous run's version is loaded
 *with* the resource, so the rebuild reports success and changes nothing. This has happened

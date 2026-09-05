@@ -65,6 +65,14 @@ func _init() -> void:
 	bed.autoplay = ""
 	bed.frame = 2
 
+	# shadowsOnBed is a funkin.graphics.framebuffer.FlxLayerGroup (buildBg line 1216), and
+	# shakeShadows scales its matrix. Nothing is inside it yet - the shadow art rides on
+	# tvNoiseBack, which is not ported - so this is an empty seat, but _resolve_nodes looks
+	# it up and it has to exist. It sits between the bed and the glow in draw order.
+	var shadows := Node2D.new()
+	shadows.name = "ShadowsOnBed"
+	_add(shadows)
+
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
 	# earlier, and the TV's placement is not a constant at all - it is created through
 	# Paths.imageGraphic and positioned by setters that read other sprites. So both x's are
@@ -104,6 +112,50 @@ func _init() -> void:
 		disk.owner = _root
 		print("OUT disco %d: %s %dx%d" % [i, song["disk"], size.x, size.y])
 
+	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
+	# were hand-added to the scene once and this builder did not know about them, so a
+	# rebuild wiped them. Anything the script resolves has to be built HERE.
+	var ui := Node2D.new()
+	ui.name = "UI"
+	_add(ui)
+	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0")
+	var clear_box := Sprite2D.new()
+	clear_box.name = "ClearBox"
+	clear_box.texture = load("%s/bg/clearBox.png" % ART)
+	clear_box.position = Vector2(1500.0, 100.0)
+	clear_box.scale = Vector2.ONE * 0.8
+	ui.add_child(clear_box)
+	clear_box.owner = _root
+	_label(ui, "InfoTitle", Rect2(100.0, 30.0, 500.0, 40.0), "")
+	_label(ui, "InfoBpm", Rect2(100.0, 70.0, 500.0, 40.0), "")
+	_label(ui, "InfoDifficulty", Rect2(100.0, 110.0, 500.0, 40.0), "Normal")
+	var stars := Node2D.new()
+	stars.name = "DifficultyStars"
+	stars.position = Vector2(100.0, 130.0)
+	ui.add_child(stars)
+	stars.owner = _root
+	var album := Node2D.new()
+	album.name = "AlbumRoll"
+	ui.add_child(album)
+	album.owner = _root
+	var help := Sprite2D.new()
+	help.name = "HelpButton"
+	help.position = Vector2(1800.0, 1000.0)
+	ui.add_child(help)
+	help.owner = _root
+
+	# fadeOut / doIntroAnim drive this; it is opaque black at rest and the intro clears it.
+	var dark := ColorRect.new()
+	dark.name = "DarkOverlay"
+	dark.set(&"layout_mode", 0)
+	dark.offset_left = -200.0
+	dark.offset_top = -200.0
+	dark.offset_right = 2120.0
+	dark.offset_bottom = 1280.0
+	dark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dark.color = Color(0.0, 0.0, 0.0, 1.0)
+	_add(dark)
+
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"
 	sfx.bus = &"Master"
@@ -119,6 +171,20 @@ func _init() -> void:
 	var err: int = ResourceSaver.save(packed, OUT)
 	print("OUT %s %s" % ["saved" if err == OK else "FAILED", OUT])
 	quit(0 if err == OK else 1)
+
+
+func _label(parent: Node, node_name: String, box: Rect2, text: String) -> Label:
+	var label := Label.new()
+	label.name = node_name
+	label.set(&"layout_mode", 0)
+	label.offset_left = box.position.x
+	label.offset_top = box.position.y
+	label.offset_right = box.position.x + box.size.x
+	label.offset_bottom = box.position.y + box.size.y
+	label.text = text
+	parent.add_child(label)
+	label.owner = _root
+	return label
 
 
 func _add(node: Node) -> void:
