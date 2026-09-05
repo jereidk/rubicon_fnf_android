@@ -2586,7 +2586,7 @@ bytes of compiled method code.
 | `FreeplaySongData` | 4,004 | 4 | field table read; `updateValues`, `set_currentDifficulty`, `toString` not |
 | `DiskSpr` | 13,045 | 10 | **read whole** (8m); `updateDiskPos` ported |
 | `CharPlayer` | 10,945 | 9 | unread |
-| `DifficultyStars` | 9,555 | 6 | unread |
+| `DifficultyStars` | 9,555 | 6 | **read whole** (8n); the row is built |
 | `FreeplayAtlasHandler` | 6,804 | 6 | unread |
 | `FreeplayScreenHelp` | 4,976 | 5 | unread |
 | `CharGirlfriend` | 4,048 | 3 | unread |
@@ -2680,6 +2680,55 @@ either side of centre. Measured after the change: -5.5° and ×0.808 per step, 1
 - `syncDiskOffsets` (35-40), `updateHitbox` (132-135), `init` (55-61): origin and hitbox
   bookkeeping that Godot's own transform already covers.
 - `forcePosition`: reads as empty.
+
+
+## 8n. DifficultyStars, and a duplicate that really is a duplicate
+
+`nm | grep DifficultyStars_obj` returns the base game's copy first, exactly as it did for
+`CharPlayer` in 8i. **This time they are the same code.** Both `generateSprites` are 0xf02
+bytes; normalising the jump targets and diffing instruction by instruction gives 765 = 765
+with all 60 differences being jump addresses. The mod's class is a verbatim re-export, so
+reading either is fine.
+
+That is the useful shape of the rule: a duplicate namespace means **check**, not assume,
+and the check is cheap — compare the sizes, then diff with the addresses masked. `CharPlayer`
+failed that check and this one passes it.
+
+```
+generateSprites 29  sparrow 'animania-freeplay/diffstars', scale 0.281843
+                40  addByPrefix('dot',  'difficulty dot',  1)
+                41  addByPrefix('star', 'difficulty star', 1)
+                48  addByIndices('flame',     'difficulty fire', [...])
+                49  addByIndices('flameloop', …)
+                42  eleven slots, 40 px apart, y = sin(i / 3.5) * 10 - 10
+set_difficulty  66  Std.int(…) then updateStars()
+updateStars     87  the one going out: cancelTweensOf, scale 1.15/1.1, tween 0.4 quartOut
+                110 the one coming in: tween 0.25 quartOut with a startDelay and a ±0.05
+```
+
+Eleven is not a guess: the `cmp $0xb` closing the loop at line 42 bounds it, its neighbour
+accumulator adds 0x28 = 40 each turn, and the data agrees — `dadbattle` on hard has a rating
+of 11, which fills every slot.
+
+**Ported**: the eleven slots with their wave and scale, and the dot/star split driven by the
+song's rating. Ratings come from `ratings` in each song's metadata. `phone-call` declares
+only `standart: 4`, which is none of the port's three difficulties, so all three read 4.
+
+`?` **Not ported**: `updateStars`'s in/out tweens and the flame. The flame is twelve frames
+that the mod fires when the rating goes *up*, and that hangs off those tweens — without them
+it would be a flame frozen on, which is worse than none.
+
+### What it replaced
+
+`_update_difficulty_display` is **gone**, not emptied to a `pass`. It did two things and both
+were invention overwriting something read: it wrote the difficulty text without the `'DIF: '`
+prefix that `updateDataStuff` line 1125 puts there, and it lit `current_difficulty + 1` stars
+**by visibility** — between one and three — when the mod has eleven slots that turn from dot
+to star by the song's rating, which reaches 11. A method that exists only so its call sites
+do not fail is worse than no method: it looks like something is happening.
+
+That makes four properties in this file that had two writers, with the invented one winning
+because it ran later: the header alpha, the BPM, the difficulty text, and now the stars.
 
 
 ## 8b. Adding a song, for real

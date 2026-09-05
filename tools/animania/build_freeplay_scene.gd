@@ -85,6 +85,19 @@ const BOSS_AT := Vector2(105.0, -200.0)
 const BOSS_ATLAS_SCALE := 0.5
 const BOSS_VOLUME := 0.25
 
+## Las estrellas de dificultad, DifficultyStars.generateSprites (0x39ddf80).
+##
+## El bucle de la linea 42 va de 0 a 10 -sale del `cmp $0xb` con su `addl $0x1`- asi que
+## son ONCE huecos, y el acumulador de al lado suma 0x28 por vuelta: 40 px de paso. La `y`
+## es una onda, `sin(i / 3.5) * 10 - 10`, y la escala es el 0.281843 de la linea 29.
+##
+## Once cuadra con los datos: dadbattle en hard tiene rating 11, que las llena todas.
+const STAR_COUNT := 11
+const STAR_STEP_X := 40.0
+const STAR_WAVE_PERIOD := 3.5
+const STAR_WAVE_AMPLITUDE := 10.0
+const STAR_SCALE := 0.281843
+
 ## Los dos personajes del dormitorio y el SEGUNDO telefono, el del script.
 ##
 ## initCharacters coloca por la esquina como todo Flixel, pero un atlas de Adobe no trae
@@ -122,6 +135,8 @@ func _init() -> void:
 	_build_frames("bottom_capsule", "freeplay_capsule", 24.0, ".")
 	# buildBg linea 1349: addByPrefix(..., 'bossfight indicator', 24).
 	_build_frames("bossfightIndicator", "freeplay_boss", 24.0, ".")
+	# DifficultyStars.generateSprites lineas 40-49: dot, star y las dos de la llama.
+	_build_frames("diffstars", "freeplay_stars", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
 	_build_frames("phone", "freeplay_phone", 24.0, ".")
 
@@ -506,6 +521,21 @@ func _init() -> void:
 	stars.z_index = 35
 	ui.add_child(stars)
 	stars.owner = _root
+	# Los once huecos. Nacen todos en `dot`; set_difficulty enciende los que toquen.
+	var star_frames: SpriteFrames = load("%s/freeplay_stars_frames.tres" % DIR)
+	for i: int in STAR_COUNT:
+		var star := AnimatedSprite2D.new()
+		star.name = "Star%d" % i
+		star.sprite_frames = star_frames
+		star.animation = &"difficulty dot"
+		star.centered = false
+		star.scale = Vector2.ONE * FUNKIN_TO_RUBICON * STAR_SCALE
+		star.position = Vector2(
+			float(i) * STAR_STEP_X,
+			sin(float(i) / STAR_WAVE_PERIOD) * STAR_WAVE_AMPLITUDE - STAR_WAVE_AMPLITUDE
+		) * FUNKIN_TO_RUBICON
+		stars.add_child(star)
+		star.owner = _root
 	var album := Node2D.new()
 	album.name = "AlbumRoll"
 	album.position = Vector2(0.0, -100.0 * FUNKIN_TO_RUBICON)

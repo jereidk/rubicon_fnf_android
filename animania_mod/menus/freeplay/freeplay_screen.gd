@@ -31,6 +31,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "komi",
 		"bpm": 152,
 		"title": "Phone Call",
+		"ratings": {"easy": 4, "normal": 4, "hard": 4},
 	},
 	{
 		"id": "bopeebo",
@@ -39,6 +40,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 110,
 		"title": "Bopeebo",
+		"ratings": {"easy": 5, "normal": 7, "hard": 9},
 	},
 	{
 		"id": "fresh",
@@ -47,6 +49,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 120,
 		"title": "Fresh",
+		"ratings": {"easy": 5, "normal": 7, "hard": 8},
 	},
 	{
 		"id": "dadbattle",
@@ -55,6 +58,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 180,
 		"title": "DadBattle",
+		"ratings": {"easy": 7, "normal": 9, "hard": 11},
 	},
 ]
 
@@ -835,6 +839,9 @@ func _update_data_stuff(_force: bool) -> void:
 	# El gancho del script del mod. Ver _on_change_selection.
 	_on_change_selection(song)
 
+	# Linea 1113: difficultyStars.difficulty. Ver _update_stars.
+	_update_stars()
+
 	# Lineas 1114-1115: los puntos de dificultad. setDots deja visibles solo los ids que
 	# la cancion trae, y set_curDiff enciende el de la dificultad actual.
 	_set_dots()
@@ -1111,7 +1118,6 @@ func _init_header() -> void:
 ## traves de setters de vtable que falta trazar, y DS-DIGIB.TTF no esta en el build -no
 ## hay ni un .ttf en el-, asi que la fuente sera una sustitucion. Ver PORTING.md 8f.
 func _post_header() -> void:
-	_update_difficulty_display()
 	_update_song_info()
 	# Linea 1593.
 	for node: CanvasItem in [info_bpm_text, info_title, info_difficulty, high_score_spr,
@@ -1157,22 +1163,64 @@ func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	if _confirmed or not allow_input:
 		return
 	current_difficulty = wrapi(current_difficulty + amount, 0, total_diffs)
-	_update_difficulty_display()
 	_update_data_stuff(false)
 	if play_sound:
 		_play_sound(SOUND_DIFF_CHANGE, SWITCH_VOLUME)
 
 
-func _update_difficulty_display() -> void:
-	# El texto ya no se escribe aqui. Lo escribe updateDataStuff (linea 1125) y con el
-	# prefijo 'DIF: '; esto lo ponia crudo y, al correr despues, se lo comia. Tercer sitio
-	# en este fichero donde dos funciones escribian la misma propiedad -el alfa de la
-	# cabecera, el BPM y ahora la dificultad-, y las tres veces ganaba la inventada.
-	# Update stars if they exist.
-	if difficulty_stars != null:
-		for i: int in difficulty_stars.get_child_count():
-			var star: Node = difficulty_stars.get_child(i)
-			star.visible = i < current_difficulty + 1
+## ─── DifficultyStars (0x39ddf80) ───────────────────────────────────────────
+## La clase del mod es una reexportacion LITERAL de la del juego base: los dos
+## generateSprites miden 0xf02 bytes y, normalizando los destinos de salto, no hay ni una
+## instruccion distinta entre los dos. Comprobado, no supuesto -y hay que comprobarlo:
+## un `nm | grep DifficultyStars_obj` devuelve el del juego base primero, que es el mismo
+## tropiezo que con CharPlayer, solo que alli SI eran clases distintas.
+##
+##   generateSprites 29  sparrow 'animania-freeplay/diffstars', escala 0.281843
+##                   40  addByPrefix('dot',  'difficulty dot',  1)
+##                   41  addByPrefix('star', 'difficulty star', 1)
+##                   48  addByIndices('flame',     'difficulty fire', [...])
+##                   49  addByIndices('flameloop', ...)
+##                   42  once huecos, paso 40 px, y = sin(i/3.5)*10 - 10
+##   set_difficulty  66  Std.int(...) y updateStars()
+##   updateStars     87-90  el que se apaga: cancelTweensOf, scale 1.15/1.1 y un tween
+##                          de 0.4 con quartOut
+##                   110    el que se enciende: tween de 0.25 con quartOut y un
+##                          startDelay, mas un +-0.05 al azar
+##
+## PORTEADO: los once huecos con su onda y su escala, y el reparto dot/star por el rating.
+## `?` SIN portear: los tweens de encendido y apagado de updateStars y la llama. La llama
+## son doce fotogramas que en el mod se disparan al SUBIR de dificultad, y eso cuelga de
+## los tweens; sin ellos seria una llama fija, que es peor que ninguna.
+##
+## Los ratings salen de `ratings` en el metadata de cada cancion. phone-call solo declara
+## `standart: 4`, que no es ninguna de las tres del puerto, asi que sus tres valen 4.
+func _update_stars() -> void:
+	if difficulty_stars == null:
+		return
+	var rating: int = 0
+	if cur_selected >= 0 and cur_selected < current_filtered_songs.size():
+		var song: Dictionary = current_filtered_songs[cur_selected]
+		var table: Dictionary = song.get("ratings", {}) as Dictionary
+		var id: String = ""
+		if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
+			id = current_diffs_ids[current_difficulty]
+		rating = int(table.get(id, 0))
+	for i: int in difficulty_stars.get_child_count():
+		var star := difficulty_stars.get_child(i) as AnimatedSprite2D
+		if star == null:
+			continue
+		star.animation = &"difficulty star" if i < rating else &"difficulty dot"
+
+
+## _update_difficulty_display se ha ido entera, no vaciada a un `pass`.
+##
+## Hacia dos cosas y las dos eran invencion que pisaba a lo leido: escribia el texto de
+## dificultad sin el prefijo 'DIF: ' que pone updateDataStuff en su linea 1125, y encendia
+## `current_difficulty + 1` estrellas por VISIBILIDAD -entre una y tres- cuando en el mod
+## son once huecos que pasan de punto a estrella segun el RATING de la cancion, que llega
+## a 11. Lo primero lo hace updateDataStuff y lo segundo _update_stars, los dos desde donde
+## el binario los llama. Un metodo que solo existe para que sus llamadas no fallen es peor
+## que ninguno: parece que algo se hace.
 
 
 ## ─── changeSelection (from binary at 0x34c8f30) ────────────────────────────

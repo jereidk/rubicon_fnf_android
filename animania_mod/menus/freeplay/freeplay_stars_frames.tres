@@ -1,0 +1,145 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/diffstars.png" id="1_1uim5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_46xsp"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(493, 1, 17, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w0luv"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(419, 1, 73, 127)
+margin = Rect2(15, 17, 23, 30)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3yiua"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(1, 143, 93, 138)
+margin = Rect2(3, 6, 3, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hibhk"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(1, 1, 94, 141)
+margin = Rect2(0, 3, 2, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f1cnr"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(96, 1, 93, 135)
+margin = Rect2(1, 9, 3, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7tf7q"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(190, 1, 78, 156)
+margin = Rect2(10, 0, 18, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s250l"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(226, 158, 70, 81)
+margin = Rect2(13, 75, 26, 76)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_anmtm"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(159, 158, 66, 119)
+margin = Rect2(15, 37, 30, 38)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a11bh"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(345, 155, 57, 129)
+margin = Rect2(20, 28, 39, 28)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xbax6"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(419, 129, 53, 142)
+margin = Rect2(21, 14, 43, 15)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ja0r5"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(96, 137, 62, 146)
+margin = Rect2(18, 11, 34, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qwv4a"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(345, 1, 73, 153)
+margin = Rect2(13, 3, 23, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q5btw"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(269, 1, 75, 155)
+margin = Rect2(12, 1, 21, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0655r"]
+atlas = ExtResource("1_1uim5")
+region = Rect2(297, 157, 43, 45)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_46xsp")
+}],
+"loop": 1,
+"name": &"difficulty dot",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w0luv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3yiua")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hibhk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f1cnr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7tf7q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s250l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_anmtm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a11bh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xbax6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ja0r5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qwv4a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q5btw")
+}],
+"loop": 1,
+"name": &"difficulty fire",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0655r")
+}],
+"loop": 1,
+"name": &"difficulty star",
+"speed": 24.0
+}]
