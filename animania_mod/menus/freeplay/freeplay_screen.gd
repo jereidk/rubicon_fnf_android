@@ -44,6 +44,8 @@ const SWITCH_VOLUME := 0.4
 const SOUND_DIFF_CHANGE := "res://animania_mod/source/sounds/freeplay/diffChange.ogg"
 const SOUND_CONFIRM := "res://animania_mod/source/sounds/freeplay/diskConfirm.ogg"
 const SOUND_LOCKED := "res://animania_mod/source/sounds/freeplay/diskLocked.ogg"
+## handleExit linea 1875. Vive en animania/menu/freeplay/, no con los demas de freeplay.
+const SOUND_TV_OFF := "res://animania_mod/source/sounds/freeplay/tvOff.ogg"
 const SOUND_TV_ON := "res://animania_mod/source/sounds/freeplay/tvOn.ogg"
 
 ## ─── Navigation ──────────────────────────────────────────────────────────────
@@ -270,6 +272,23 @@ func _resolve_nodes() -> void:
 	tv_sprite_flash = get_node_or_null("TvSpriteFlash") as Sprite2D
 
 
+## ─── loadAllAvalaibleSongs (0x34bf580, lineas 422-491) ─────────────────────
+##   431  LevelRegistry.instance.listSortedLevelIds()
+##   433  LevelRegistry.instance.fetchEntry(<id>)   -> si falla, '[WARN] Could not find
+##        level with id (' por consola; lo mismo con SongRegistry y 'song with id ('
+##   465  Paths.getPath('music/freeplayThemes/Freeplay_' + <tema>, 'MUSIC') -> cacheSound
+##   468  Paths.getPath('music/freeplayThemes/Freeplay_Layer-' + <tema>, 'MUSIC') -> igual
+##   479  Paths.music('freeplayThemes/Freeplay_' + <tema>)
+##   485  Paths.music('freeplayThemes/Freeplay_Layer-' + <tema>)
+##   489  songs.push(...)
+##
+## La lista NO es un array escrito a mano: sale de los registros de niveles y canciones.
+## El SONGS de este puerto es un sustituto suyo y eso es una divergencia consciente.
+##
+## Lo que si aclara: cada cancion trae un TEMA, y cada tema son DOS pistas -la base
+## `Freeplay_<tema>` y una capa `Freeplay_Layer-<tema>`- que se precachean aqui. De ahi
+## salen layerSound, oldThemeName y oldThemeLayerName, y de ahi vive changeTheme. En el
+## build hay 22 MB de assets/music/freeplayThemes/ y el puerto no reproduce ninguno.
 func _load_songs() -> void:
 	current_filtered_songs.clear()
 	for song: Dictionary in SONGS:
@@ -726,24 +745,58 @@ func _intro_light_up() -> void:
 ## Handles the exit transition back to the main menu.
 ## From binary: references "onExit" event and "animania/menu/freeplay/tvOff".
 
+## ─── handleExit (0x34c5330, lineas 1873-1937) ──────────────────────────────
+##   1873  callOnScripts('onExit')
+##   1875  FunkinSound.playOnce(Paths.sound('animania/menu/freeplay/tvOff'))
+##   1880  shadowsOnBed.visible = false
+##   1882  FlxTween.cancelTweensOf(bossfightSkull, [...]);  1883 su alpha
+##   1890  tvGlow / tvNoiseBack / tvNoiseForward .visible = false
+##   1891  el alfa de songInfoCapsule, los tres textos de info, highScoreSpr,
+##         clearBoxSprite, freeplayScore y completionText
+##   1892  albumRoll.visible = false        1896  difficultyStars.visible = false
+##   1898  <fondo>.color = 0xFF000000       1899  su alpha = 0.4
+##   1901  FlxG.camera.fade(0xFF000000, 1, ...)      <- el fundido, UN segundo
+##   1928  y 1935  cleanup() y destroy() de dos sonidos; 1937 bossSound
+##
+## No es un tween del velo oscuro a opaco en medio segundo: es apagar todo lo que se
+## encendio en doIntroAnim, en el mismo orden inverso, y un FADE DE CAMARA a negro de un
+## segundo. El sonido `tvOff` vive en animania/menu/freeplay/, no junto a los otros de
+## freeplay, y no estaba vendorizado.
+const EXIT_FADE := 1.0
+
+## capsuleOnConfirmDefault: el salto del disco y el tono de la musica.
+const CONFIRM_DELAY := 0.2
+const CONFIRM_TIME := 1.0
+const CONFIRM_PITCH := 0.9
+## `?` La altura del salto no es un literal del metodo; sale de la propia posicion del
+## disco. Este 60 es una eleccion mia, marcada.
+const CONFIRM_JUMP := 60.0
+
+
 func _handle_exit() -> void:
 	if _confirmed:
 		return
 	_confirmed = true
 	allow_input = false
+	_play_sound(SOUND_TV_OFF, 1.0)
 
-	# Play the TV-off effect.
-	if tv_sprite != null:
-		tv_sprite.stop()
+	# Se apaga lo que doIntroAnim habia encendido.
+	for name: String in ["ShadowsOnBed", "TvGlow", "TvNoiseBack", "TvNoiseForward"]:
+		var node := get_node_or_null(name) as CanvasItem
+		if node != null:
+			node.visible = false
+	for path: String in ["UI/AlbumRoll", "UI/DifficultyStars"]:
+		var node := get_node_or_null(path) as CanvasItem
+		if node != null:
+			node.visible = false
 
-	# Tween the dark overlay to opaque.
+	# El fundido es de camara, negro y de un segundo. Aqui lo hace el velo, que ya esta
+	# encima de todo el diorama con su zIndex 8; la camara de Godot no tiene un fade.
 	if dark_overlay != null:
-		var tween: Tween = create_tween()
-		tween.tween_property(dark_overlay, "modulate:a", 1.0, 0.5) \
-			.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		dark_overlay.color = Color(0.0, 0.0, 0.0, dark_overlay.color.a)
+		create_tween().tween_property(dark_overlay, "modulate:a", 1.0, EXIT_FADE)
 
-	# Wait for the transition, then go to main menu.
-	await get_tree().create_timer(0.6).timeout
+	await get_tree().create_timer(EXIT_FADE).timeout
 	get_tree().change_scene_to_file(MENU)
 
 
@@ -900,17 +953,25 @@ func _update_score_for_selection() -> void:
 	lerp_completion = 0.0
 
 
-## ─── generateDisksList (from binary at 0x34d4070) ───────────────────────────
-## Generates the disk list from available songs.
-## From binary: references rememberedSongId, rememberedDifficulty.
-
+## ─── generateDisksList (0x34d4070, lineas 508-553) ─────────────────────────
+##   514-521  un DiskSpr por cancion, con sus currentDiffsIds
+##   524-526  scrollFactor, zIndex 0 y el tamano tomado del propio disco
+##   535-542  currentPhone e initLock(...) para los bloqueados
+##   545      selectorsGroup
+##   550      rememberSelection()
+##   552      changeSelection(...)
+##   553      changeDiff(...)
+##
+## Los discos nacen con zIndex 0; el 5 y el 10 los pone updateDisks despues. La cola
+## -recordar, seleccionar, fijar dificultad- si se portea; la creacion de los DiskSpr no
+## hace falta porque aqui los discos ya estan en la escena.
 func _generate_disks_list() -> void:
-	# The disk list is already generated from SONGS in _ready.
-	# In the full mod, this would filter by available songs and themes.
-	# It also checks rememberedSongId to restore the last selection.
 	if cur_selected < 0 or cur_selected >= SONGS.size():
 		cur_selected = 0
 	cur_selected_float = float(cur_selected)
+	_remember_selection()
+	change_selection(0, false)
+	change_diff()
 
 
 ## ─── initCharacters (from binary at 0x34c1800) ──────────────────────────────
@@ -995,14 +1056,36 @@ func confirm() -> void:
 	_play_sound(SOUND_CONFIRM, 1.0)
 	_remember_selection()
 
-	# Play the confirm animation on the selected disk.
+	# capsuleOnConfirmDefault (0x34c0a20, lineas 627-645):
+	#   627  new FlxTimer().start(0.5, ...)
+	#   634  <disco>.forcePosition()
+	#   635  FlxTween.tween(<disco>, {y: ...}, 1, {startDelay: 0.2, ease: backInOut})
+	#   640  FlxTween.tween(<musica>, {pitch: 0.9}, ..., {ease: quadInOut})
+	#   643  lo mismo sobre layerSound
+	#   645  new FlxTimer().start(1, ...)   <- y aqui se cambia de pantalla
+	# O sea: el disco salta con un backInOut de un segundo tras 0.2 de espera, la musica
+	# baja de tono a 0.9, y la transicion tarda UN segundo, no 0.6.
 	var disk: Node2D = _get_selected_disk()
 	if disk != null:
 		disk.set_meta(&"scale", DISK_SCALE_ON)
+		var jump := create_tween()
+		jump.tween_property(disk, "position:y",
+			disk.position.y - CONFIRM_JUMP, CONFIRM_TIME) \
+			.set_delay(CONFIRM_DELAY).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BACK)
+	_bend_pitch(CONFIRM_PITCH)
 
-	# Wait for the animation, then transition.
-	await get_tree().create_timer(0.6).timeout
+	await get_tree().create_timer(CONFIRM_TIME).timeout
 	LoadingScreen.go_to(get_tree(), String(song["scene"]), String(song.get("id", "")))
+
+
+## Los dos tweens de tono de capsuleOnConfirmDefault, lineas 640 y 643. En Godot el tono
+## de un AudioStreamPlayer es pitch_scale, no una propiedad interpolable de un tween de
+## flixel, pero el destino y la curva son los mismos.
+func _bend_pitch(to: float) -> void:
+	for player: Node in [sfx, layer_sound]:
+		if player is AudioStreamPlayer and (player as AudioStreamPlayer).playing:
+			create_tween().tween_property(player, "pitch_scale", to, CONFIRM_TIME) \
+				.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 
 
 func _get_selected_disk() -> Node2D:
