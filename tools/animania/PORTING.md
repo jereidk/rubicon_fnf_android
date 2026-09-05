@@ -2448,9 +2448,31 @@ all along. They are now carried through and scaled by the same factor as the fra
 they are coordinates inside it. With them, the indicator lands where it belongs — **on the
 television screen**, a glowing pentagram with a skull.
 
-TVBACK and TVNOISE, optimised earlier, are unaffected: neither original carries trim
-attributes at all. But any trimmed atlas run through the old version came out silently
-wrong, so check anything else that went through it.
+### The audit, since a silent bug deserves one
+
+`tools/animania/check_atlases.py` compares every vendored atlas against its original in the
+mod build and reports lost trim and frame-count differences. The result:
+
+- **Exactly three atlases ever went through `optimize_atlas.py`** — the only three whose
+  sheet geometry differs from the original: `TVBACK`, `TVNOISE` and `bossfightIndicator`.
+- **TVBACK and TVNOISE carry no trim attributes in the original at all**, so there was
+  nothing to lose. `bossfightIndicator` is now 29 in and 29 out.
+- Every other vendored atlas is a straight copy with its trim intact.
+- One frame-count difference remains and it is deliberate: TVNOISE 111 → 24, for the reason
+  in section 4.
+
+Two things about writing that checker are worth keeping, because both were wrong first:
+
+- **Look in the whole build, not `assets/images`.** There is a second tree at
+  `assets/shared/images`, and matching against only one of them leaves a dozen atlases
+  unpaired — the stages, the phone-call characters — and hands back an "all clear" that has
+  not looked at them.
+- **The obvious tiebreak between same-named originals is the wrong one.** The first version
+  kept the candidate with the most trim, and the build has two `leafs`: the phone-call
+  street's, 337×264 and trimmed, and the menu's, 128×256 and not. The port's is the menu's,
+  copied verbatim — and that tiebreak paired it with the other one and reported a
+  "RECORTE PERDIDO" that did not exist. The PNG's dimensions decide; path similarity is
+  only the fallback.
 
 
 ## 8b. Adding a song, for real
