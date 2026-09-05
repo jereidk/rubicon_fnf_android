@@ -1084,6 +1084,56 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### Making a fat atlas thin: measure the content, not the sheet
+
+`TVBACK` (5492×8192 RGBA, 171.6 MB) and `TVNOISE` (5279×2528, 50.9 MB) were the two assets
+that kept freeplay's television out of the port. `tools/animania/optimize_atlas.py` cuts
+them to 40.7 MB and 10.4 MB — 4.2× and 4.9× — with nothing visible lost. What worked, in the
+order the reasoning has to go:
+
+1. **Repacking gains nothing here, and that is a measurement, not an opinion.** TVBACK packs
+   41.4 Mpx of unique frames into a 45.0 Mpx sheet (92%); TVNOISE 12.5 into 13.3 (94%).
+   Whatever exported them already packed them tight. Before rewriting a packer, sum the
+   frame areas out of the `.xml` and divide.
+
+2. **Look at what the frames are.** TVBACK is 98 frames of 668×721 — of which only **86 are
+   distinct regions**, so 12 were already duplicates. Its content is scanline bands: measured
+   over the opaque area, the mean vertical gradient is **3.51 and the horizontal 0.54**, a
+   ratio of 6.45. Nearly all the information is in the row positions, almost none along a
+   row. So reduce the WIDTH and leave the height alone. At equal memory (~120k px/frame),
+   **167×721 scores 44.9 dB against 40.4 dB for an isotropic 334×360** — 4.5 dB free, just
+   from resampling along the axis that carries less.
+
+3. **TVNOISE is television static, and static has no continuity.** The correlation between
+   the per-row brightness profile of any two frames is **0.05**: nothing drifts, every frame
+   is an independent draw. So frames are interchangeable and 111 → 24 is invisible, while
+   *resolution* is not free — downscaling changes the grain size, which is the one thing the
+   eye does notice. Cut the frame count, keep the pixels. The kept frames come out
+   bit-identical.
+
+4. **Compare composited, at the size it is drawn.** The port draws these at 1.5×, so the
+   reference is the original upscaled to 1002×1082, not the original. And compose over the
+   background: an early pass of this used `Image.convert('RGB')`, which DROPS the alpha
+   channel rather than compositing, and produced a bright fringe along the parallelogram's
+   diagonal edge that does not exist on screen. That fringe sent me looking for a
+   premultiplied-alpha fix for a problem the harness had invented — and premultiplying
+   genuinely makes it worse here, because the alpha is 99.5% binary and un-premultiplying
+   divides the edge pixels by a near-zero alpha. Straight-alpha Lanczos is correct.
+
+5. **PSNR alone would have picked the wrong answer.** The isotropic and anisotropic options
+   scored within 4.5 dB of each other while looking clearly different side by side, and a
+   100×577 candidate at 40.9 dB visibly smears the short horizontal segments into streaks.
+   Score to narrow the field, then look at a crop of the worst region before choosing.
+
+The packer picks its rows by trying every `per_row` that keeps both sides under 4096 (a safe
+GLES3 limit on Android) and taking the smallest area: for 86 equal tiles, 22×4 wastes two
+slots where the square-ish 19×5 wastes nine. That is 90% → 97% occupancy for free.
+
+One lever deliberately NOT pulled: every texture in this project imports with
+`compress/mode=0` (lossless), so these two sit in GPU memory as RGBA8. Switching them to
+VRAM compression would be another ~4×, but that is a project-wide convention across 341
+textures and a quality decision of its own, not something to change inside an asset fix.
+
 ### Getting a font out of the executable
 
 `Blueprint.ttf` is not on disk — `assets/fonts/` does not exist in the build and
@@ -1438,7 +1488,8 @@ The phone-call pipeline is bespoke, so this is the shape rather than a script:
   "Android Debug"`); the user downloads the APK from the Actions run page themselves.
 - **Texture budget is a real constraint.** The device already runs the song at 41 fps. A
   5492×8192 RGBA atlas is ~180 MB uncompressed — freeplay's `TVBACK`/`TVNOISE` were left out
-  for exactly this reason. Check atlas dimensions *before* vendoring.
+  for exactly this reason. Check atlas dimensions *before* vendoring. Both have since been
+  cut down and vendored: see below.
 
 ---
 
@@ -1449,7 +1500,10 @@ Recorded so the next person does not go looking for a bug that is not there.
 - **The modchart's `tanWave`.** The formula is recovered exactly —
   `x += clamp(tan(p·π), −6, 6) · 40 · value` — but `p`'s unit is unidentified, so porting it
   would be guessing the sway's scale.
-- **Freeplay's `TVBACK` and `TVNOISE`** — texture budget, see above.
+- ~~**Freeplay's `TVBACK` and `TVNOISE`**~~ — the ART is in, cut from 222.5 MB to 51.1 MB by
+  `optimize_atlas.py` (below). What is still not wired is the screen that uses it: the two
+  noise sprites, `tvBackBG`, and therefore `shakeShadows`, which hangs off the noise
+  animation's `onFrameChange`.
 - ~~**The main menu's mouse furniture**~~ — this entry is out of date. `newsButton`,
   `musicSocial`, `socialButtons`, `updateCameraScroll` and `spawnHelpMouseText` were all
   ported during the fidelity audit: the banner and the OST disc are real screen furniture

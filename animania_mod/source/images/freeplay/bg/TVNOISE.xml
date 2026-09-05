@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="TVNOISE.png">
+	<SubTexture name="noise sprite0000" x="1" y="1" width="373" height="301" />
+	<SubTexture name="noise sprite0001" x="375" y="1" width="373" height="301" />
+	<SubTexture name="noise sprite0002" x="749" y="1" width="373" height="301" />
+	<SubTexture name="noise sprite0003" x="1123" y="1" width="373" height="301" />
+	<SubTexture name="noise sprite0004" x="1" y="303" width="373" height="301" />
+	<SubTexture name="noise sprite0005" x="375" y="303" width="373" height="301" />
+	<SubTexture name="noise sprite0006" x="749" y="303" width="373" height="301" />
+	<SubTexture name="noise sprite0007" x="1123" y="303" width="373" height="301" />
+	<SubTexture name="noise sprite0008" x="1" y="605" width="373" height="301" />
+	<SubTexture name="noise sprite0009" x="375" y="605" width="373" height="301" />
+	<SubTexture name="noise sprite0010" x="749" y="605" width="373" height="301" />
+	<SubTexture name="noise sprite0011" x="1123" y="605" width="373" height="301" />
+	<SubTexture name="noise sprite0012" x="1" y="907" width="373" height="301" />
+	<SubTexture name="noise sprite0013" x="375" y="907" width="373" height="301" />
+	<SubTexture name="noise sprite0014" x="749" y="907" width="373" height="301" />
+	<SubTexture name="noise sprite0015" x="1123" y="907" width="373" height="301" />
+	<SubTexture name="noise sprite0016" x="1" y="1209" width="373" height="301" />
+	<SubTexture name="noise sprite0017" x="375" y="1209" width="373" height="301" />
+	<SubTexture name="noise sprite0018" x="749" y="1209" width="373" height="301" />
+	<SubTexture name="noise sprite0019" x="1123" y="1209" width="373" height="301" />
+	<SubTexture name="noise sprite0020" x="1" y="1511" width="373" height="301" />
+	<SubTexture name="noise sprite0021" x="375" y="1511" width="373" height="301" />
+	<SubTexture name="noise sprite0022" x="749" y="1511" width="373" height="301" />
+	<SubTexture name="noise sprite0023" x="1123" y="1511" width="373" height="301" />
+</TextureAtlas>
