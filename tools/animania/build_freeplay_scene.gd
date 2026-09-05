@@ -79,6 +79,12 @@ const DOT_IDS := ["easy", "normal", "hard"]
 const DOT_DARKEN := 1.0 - 0.45
 const DOT_DIM_ALPHA := 0.9
 
+## El craneo de jefe. buildBg 1347 lo pone en (105, -200) con zIndex 900.
+const BOSS_AT := Vector2(105.0, -200.0)
+## Su hoja se vendoriza a la mitad, asi que el nodo compensa con el doble de escala.
+const BOSS_ATLAS_SCALE := 0.5
+const BOSS_VOLUME := 0.25
+
 ## Los dos personajes del dormitorio y el SEGUNDO telefono, el del script.
 ##
 ## initCharacters coloca por la esquina como todo Flixel, pero un atlas de Adobe no trae
@@ -114,6 +120,8 @@ func _init() -> void:
 	_build_frames("highscore", "freeplay_highscore", 24.0, ".")
 	# postHeader linea 1561: la capsula de info de abajo.
 	_build_frames("bottom_capsule", "freeplay_capsule", 24.0, ".")
+	# buildBg linea 1349: addByPrefix(..., 'bossfight indicator', 24).
+	_build_frames("bossfightIndicator", "freeplay_boss", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
 	_build_frames("phone", "freeplay_phone", 24.0, ".")
 
@@ -390,6 +398,41 @@ func _init() -> void:
 	clear_box.z_index = 52
 	ui.add_child(clear_box)
 	clear_box.owner = _root
+	# El craneo de jefe, buildBg 0x34d1170, lineas 1347-1355:
+	#
+	#   1347  bossfightSkull = new FunkinSprite(105, -200, ...)
+	#   1348  sparrow 'animania-freeplay/bossfightIndicator'
+	#   1349  animation.addByPrefix(..., 'bossfight indicator', 24)   1350  play
+	#   1352  alpha = 0      1353  zIndex = 900     1354  scrollFactor.set(0, 0)
+	#
+	# Nace con alfa 0 y quien lo sube es updateDataStuff (linea 1132, tween de 0.1 con
+	# backOut). O sea que la cancion que no es de jefe no lo esconde: es que nunca llega
+	# a subirlo.
+	#
+	# El atlas se guarda a la MITAD de escala, asi que se dibuja al doble de lo normal
+	# para salir del mismo tamano. Ver la nota de PORTING.md: la hoja original ya venia
+	# empaquetada al 86% -reempaquetarla la EMPEORA, 20.8 -> 26.8 MB- y lo unico que
+	# rinde aqui es la escala.
+	var skull := AnimatedSprite2D.new()
+	skull.name = "BossfightSkull"
+	skull.sprite_frames = load("%s/freeplay_boss_frames.tres" % DIR)
+	skull.animation = skull.sprite_frames.get_animation_names()[0]
+	skull.centered = false
+	skull.scale = Vector2.ONE * FUNKIN_TO_RUBICON / BOSS_ATLAS_SCALE
+	skull.position = BOSS_AT * FUNKIN_TO_RUBICON
+	skull.z_index = 900
+	skull.modulate.a = 0.0            # buildBg 1352
+	_add(skull)
+
+	# buildBg 1357: bossSound = FunkinSound.load(Paths.sound('freeplay/bossIndicator'))
+	# con 0.25 -el double en 0x59fa550- como volumen de partida.
+	var boss_sound := AudioStreamPlayer.new()
+	boss_sound.name = "BossSound"
+	boss_sound.bus = &"Master"
+	boss_sound.stream = load("res://animania_mod/source/sounds/freeplay/bossIndicator.ogg")
+	boss_sound.volume_db = linear_to_db(BOSS_VOLUME)
+	_add(boss_sound)
+
 	# postHeader (0x34cb6e0), leido linea a linea. Ya no son posiciones aproximadas.
 	#
 	#   1564  songInfoCapsule.zIndex = 650      1565  scrollFactor.set(0, 0)

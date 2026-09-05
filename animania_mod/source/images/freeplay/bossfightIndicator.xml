@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="bossfightIndicator.png">
+	<SubTexture name="bossfight indicator0000" x="1573" y="470" width="42" height="45" frameX="-81" frameY="-204" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0001" x="1573" y="470" width="42" height="45" frameX="-81" frameY="-204" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0002" x="1616" y="470" width="44" height="42" frameX="-81" frameY="-203" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0003" x="1616" y="470" width="44" height="42" frameX="-81" frameY="-203" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0004" x="1661" y="470" width="44" height="42" frameX="-81" frameY="-202" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0005" x="1661" y="470" width="44" height="42" frameX="-81" frameY="-202" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0006" x="1" y="1" width="187" height="468" frameX="-10" frameY="0" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0007" x="189" y="1" width="182" height="432" frameX="-12" frameY="-18" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0008" x="372" y="1" width="178" height="402" frameX="-14" frameY="-33" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0009" x="551" y="1" width="187" height="374" frameX="-8" frameY="-47" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0010" x="739" y="1" width="196" height="348" frameX="-3" frameY="-60" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0011" x="936" y="1" width="195" height="326" frameX="-3" frameY="-70" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0012" x="1132" y="1" width="204" height="306" frameX="0" frameY="-80" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0013" x="1337" y="1" width="204" height="290" frameX="0" frameY="-89" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0014" x="1542" y="1" width="206" height="274" frameX="0" frameY="-96" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0015" x="1749" y="1" width="206" height="262" frameX="0" frameY="-103" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0016" x="1956" y="1" width="204" height="252" frameX="0" frameY="-107" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0017" x="2366" y="1" width="204" height="248" frameX="0" frameY="-107" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0018" x="2161" y="1" width="204" height="250" frameX="0" frameY="-102" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0019" x="1" y="470" width="204" height="246" frameX="0" frameY="-102" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0020" x="206" y="470" width="152" height="223" frameX="-27" frameY="-122" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0021" x="359" y="470" width="152" height="220" frameX="-28" frameY="-124" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0022" x="512" y="470" width="152" height="217" frameX="-28" frameY="-126" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0023" x="665" y="470" width="152" height="216" frameX="-28" frameY="-126" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0024" x="818" y="470" width="150" height="215" frameX="-28" frameY="-126" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0025" x="969" y="470" width="150" height="214" frameX="-28" frameY="-127" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0026" x="1120" y="470" width="150" height="214" frameX="-28" frameY="-126" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0027" x="1271" y="470" width="150" height="214" frameX="-28" frameY="-127" frameWidth="206" frameHeight="468" />
+	<SubTexture name="bossfight indicator0028" x="1422" y="470" width="150" height="214" frameX="-28" frameY="-126" frameWidth="206" frameHeight="468" />
+</TextureAtlas>

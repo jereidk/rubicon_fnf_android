@@ -252,11 +252,25 @@ def main():
     for i, frame in enumerate(kept):
         tile = tiles[index[i]]
         x, y = places[index[i]]
-        ET.SubElement(root, "SubTexture", {
+        attrs = {
             "name": "%s%04d" % (prefix, i),
             "x": str(x), "y": str(y),
             "width": str(tile.width), "height": str(tile.height),
-        })
+        }
+        # El RECORTE tiene que sobrevivir. Un sparrow recortado guarda solo los pixeles
+        # opacos de cada fotograma y dice, con frameX/frameY/frameWidth/frameHeight,
+        # donde va ese trozo dentro del fotograma logico. Esto se perdia al reescribir,
+        # y el resultado no es un aviso: es que cada fotograma se dibuja pegado a la
+        # esquina de su fotograma logico. Con el indicador de jefe eso lo subia 407 px y
+        # salia cortado por arriba, y parecia mal colocado el sprite.
+        #
+        # Se escalan igual que el fotograma, y por el mismo factor, porque son
+        # coordenadas dentro de el.
+        for key, factor in (("frameX", args.scale_x), ("frameY", args.scale_y),
+                            ("frameWidth", args.scale_x), ("frameHeight", args.scale_y)):
+            if key in frame:
+                attrs[key] = str(int(round(float(frame[key]) * factor)))
+        ET.SubElement(root, "SubTexture", attrs)
     ET.indent(root, space="\t")
     args.target.with_suffix(".xml").write_text(
         '<?xml version="1.0" encoding="utf-8"?>\n'

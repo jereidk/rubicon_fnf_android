@@ -256,7 +256,7 @@ var tv_sprite_flash: Sprite2D
 
 var intro_done: bool = false
 var boss_sound: AudioStreamPlayer
-var bossfight_skull: Sprite2D
+var bossfight_skull: AnimatedSprite2D
 var diff_tweens: Array = []
 
 ## ─── Ready ───────────────────────────────────────────────────────────────────
@@ -298,7 +298,7 @@ func _resolve_nodes() -> void:
 	_theme_music = get_node_or_null("ThemeMusic") as AudioStreamPlayer
 	layer_sound = get_node_or_null("LayerSound") as AudioStreamPlayer
 	boss_sound = get_node_or_null("BossSound") as AudioStreamPlayer
-	bossfight_skull = get_node_or_null("BossfightSkull") as Sprite2D
+	bossfight_skull = get_node_or_null("BossfightSkull") as AnimatedSprite2D
 	selector = get_node_or_null("Selector")
 	completion_text = get_node_or_null("UI/CompletionText") as Label
 	freeplay_score = get_node_or_null("UI/HighScore") as Label
@@ -795,13 +795,34 @@ func _update_data_stuff(_force: bool) -> void:
 	# la cancion trae, y set_curDiff enciende el de la dificultad actual.
 	_set_dots()
 
-	# Lineas 1131-1133 y 1148: el craneo de jefe. Ninguna de las cuatro canciones del
-	# puerto es de jefe, asi que hoy solo se recorre la rama de apagarlo.
+	# El craneo de jefe. La rama la decide un bool en el offset 0x40 del FreeplaySongData
+	# -`cmpb $0x0,0x40(%rax)` en la linea 1129- que el __GetFields de esa clase nombra
+	# `isBoss`, quinto de su lista.
+	#
+	#   1131  FlxTween.cancelTweensOf(bossfightSkull, [...])
+	#   1132  FlxTween.tween(bossfightSkull, {alpha: ...}, 0.1, {ease: backOut})
+	#   1133  bossfightSkull.animation.play(...)
+	#   1137  bossSound ...
+	#   1142-1148  si no: pause, cancelTweensOf y el alfa del craneo abajo
+	#
+	# `?` Quien pone `isBoss` a true no lo he encontrado: ningun metadata de cancion ni
+	# ningun JSON de nivel del mod declara nada de jefe, y el constructor de
+	# FreeplaySongData escribe ese byte a 0 (`movb $0x0,0x40(%rbx)`). No he descartado
+	# todos los escritores posibles, asi que lo dejo dicho asi y no como "no lo pone
+	# nadie". Con `is_boss` a false en las cuatro canciones, hoy solo corre la rama de
+	# apagarlo, que es lo mismo que hace el mod.
 	if bossfight_skull != null:
-		var boss: bool = bool(song.get("bossfight", false))
+		var boss: bool = bool(song.get("is_boss", false))
 		var fade: Tween = create_tween()
 		fade.tween_property(bossfight_skull, "modulate:a", 1.0 if boss else 0.0,
 			SKULL_FADE).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		if boss:
+			bossfight_skull.play()
+			if boss_sound != null and not boss_sound.playing:
+				boss_sound.play()
+		elif boss_sound != null and boss_sound.playing:
+			# Linea 1146: pause, no stop.
+			boss_sound.stream_paused = true
 
 
 ## ─── onChangeSelection, de data/scripts/states/FreeplayScreen.script ───────

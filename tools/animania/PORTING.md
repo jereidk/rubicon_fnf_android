@@ -2288,9 +2288,7 @@ almost never in the one you are reading.
   in the table above; the values stay at zero.
 - **The title tween (line 1106).** `amount` is a property of the mod's `FlxFixedText`, an
   effect over the glyphs. The port's labels are Godot `Label`s with no equivalent.
-- **The bossfight skull.** `BossfightSkull` is not in the scene, so `bossfight_skull` is
-  null; the ported code guards for it. None of the port's four songs is a boss fight, so
-  only the fade-out branch would run today anyway.
+- **The bossfight skull.** Ported — see 8j.
 
 
 ## 8h. The HScript layer, which the disassembly does not contain
@@ -2380,6 +2378,79 @@ carrying filters. Nothing in the mod build is touched.
   `quit()` is never reached, and the process idles until something kills it. If a headless
   script "hangs", look for a script error before suspecting the resource — and never pipe
   its output through `grep` while diagnosing, because that hides the error that explains it.
+
+
+## 8j. The bossfight indicator, and a trim bug in optimize_atlas.py
+
+`buildBg` 0x34d1170, lines 1347-1355:
+
+```
+1347  bossfightSkull = new FunkinSprite(105, -200, …)
+1348  sparrow 'animania-freeplay/bossfightIndicator'
+1349  animation.addByPrefix(…, 'bossfight indicator', 24)     1350  play
+1352  alpha = 0        1353  zIndex = 900      1354  scrollFactor.set(0, 0)
+1357  bossSound = FunkinSound.load(Paths.sound('freeplay/bossIndicator')), volume 0.25
+```
+
+It is born at alpha 0 and `updateDataStuff` line 1132 raises it with a 0.1 s backOut tween.
+So a non-boss song does not hide it — it simply never raises it.
+
+The branch is gated by a **bool at offset 0x40 of `FreeplaySongData`** (`cmpb $0x0,0x40(%rax)`
+at line 1129). That class's `__GetFields` names its members in order —
+`song, levelId, songId, songName, isBoss, songPlayerSkin, songGFSkin, songStartingBpm,
+weekName, difficultyRating, songDifficulties, isLocked, albumId, freeplayTheme,
+freeplayLayer, scoringRank, currentDifficulty, displayedVariations` — so 0x40 is `isBoss`.
+
+`?` **Who sets `isBoss` true, I did not find.** No song metadata and no level JSON in the
+mod declares anything boss-shaped, and `FreeplaySongData`'s constructor writes that byte to
+zero. I did not rule out every writer, so this is stated as "not found", not as "nothing
+sets it". With `is_boss` false on all four songs the port runs only the fade-out branch,
+which is what the mod does.
+
+That same field list also answers something 8i left open: `songPlayerSkin` and `songGFSkin`
+are per-song fields, so the characters' skins are not only a char-select thing. Neither is
+declared in any of this mod's song metadata either.
+
+### The asset
+
+2373×2303, 29 frames, 20.8 MB RGBA on the GPU, 2.65 MB on disk.
+
+**Repacking makes it worse.** The original sheet is already 86% covered (4.72M of 5.46M
+pixels drawn); the shelf packer manages 67%, so a native-scale repack goes 20.8 → 26.8 MB.
+The only lever here is scale. Measured PSNR over the real frames — not the whole sheet,
+because the empty margin scores perfectly at any scale and would flatter the number:
+
+| scale | PSNR |
+|---|---|
+| 0.75 | 27.7 dB |
+| 0.60 | 25.9 dB |
+| 0.50 | 24.8 dB |
+| 0.40 | 23.6 dB |
+
+Low numbers, and PSNR already picked wrong once on this project (see the TVBACK note), so
+the three candidates were rendered side by side and looked at. The art is a soft blue flame
+and a white glow — the kind of content that survives downscaling — and 0.5 is
+indistinguishable from native at a glance. Shipped at **0.5: 7.4 MB GPU, 0.95 MB on disk**,
+with the sprite drawn at twice the usual factor to come out the same size on screen.
+
+### The bug that made it look misplaced
+
+First render put the indicator jammed against the top of the screen, cut off. It looked
+like a bad position — it was `optimize_atlas.py` throwing away the **trim** attributes.
+
+A trimmed Sparrow stores only each frame's opaque pixels and says, through
+`frameX`/`frameY`/`frameWidth`/`frameHeight`, where that piece sits inside the logical
+frame. The rewriter emitted only `name/x/y/width/height`. Nothing warns: every frame simply
+draws at its logical frame's corner. Here that was 407 px too high.
+
+The importer (`addons/sprite_importer/importers/sparrow.gd`) has supported those attributes
+all along. They are now carried through and scaled by the same factor as the frame, since
+they are coordinates inside it. With them, the indicator lands where it belongs — **on the
+television screen**, a glowing pentagram with a skull.
+
+TVBACK and TVNOISE, optimised earlier, are unaffected: neither original carries trim
+attributes at all. But any trimmed atlas run through the old version came out silently
+wrong, so check anything else that went through it.
 
 
 ## 8b. Adding a song, for real
