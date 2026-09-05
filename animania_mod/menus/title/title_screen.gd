@@ -62,9 +62,39 @@ const CONFIRM_VOLUME := 0.7
 ## to FunkinSound rather than doing it itself, so the duration is this port's.
 const MUSIC_FADE_IN_TIME := 1.5
 
-## CONFIRM_DELAY: 0.35, exact from create() rodata at 0x2ed34b2/0x2ed3471. The deaf
-## window after the intro ends before a confirm is accepted.
+## Re-read: 0.35 IS at that displacement, but it is not a delay. Both loads sit in create()
+## line 159, feeding `FlxPointRangeBounds.set(0.35, 0.35, 0.1, 0.1)` on the title's particle
+## emitter - it is the particles' START SCALE, shrinking to 0.1, the same pair the main
+## menu's emitter uses. There is no deaf window in the mod at all: `inIntro` and `transition`
+## are separate branches of update(), so one keypress can only be consumed by one of them.
+## This port has no such state split, so the window stays - as this port's own device, at a
+## number that is now admittedly arbitrary rather than measured.
 const CONFIRM_DELAY := 0.35
+
+## create() line 149-163, the title's own FlxTypedEmitter. This port had nothing here.
+##
+##     149  particleEmitter = new FlxTypedEmitter(-100, ...);
+##     150  loadParticles(Paths.imageGraphic('menus/particle'), ...);
+##     154  velocity.set(-50, -950, 50, -750)      // straight up, fast
+##     159  scale.set(0.35, 0.35, 0.1, 0.1)
+##     161  <colour range>.set(0xFFFFC0CB, 0xFF00FFFF, 0xFFFFFFFF)   // pink, cyan, white
+##     163  start(<bool>, 0.09)
+##
+## The velocity pair is read but its mapping onto FlxPointRangeBounds' six parameters is
+## this port's reading, the same caveat title_props.gd carries. Everything else is measured.
+const SCREEN := Vector2(1920.0, 1080.0)
+## Funkin is 1280x720 and this project 1920x1080.
+const FUNKIN_TO_RUBICON := 1920.0 / 1280.0
+const PARTICLE_IMAGE := "res://animania_mod/source/images/menus/particle.png"
+const PARTICLE_SCALE := Vector2(0.35, 0.1)
+const PARTICLE_RISE := Vector2(750.0, 950.0)
+const PARTICLE_DRIFT := 50.0
+const PARTICLE_FREQUENCY := 0.09
+const PARTICLE_COLOURS: Array[Color] = [
+	Color8(0xFF, 0xC0, 0xCB),
+	Color8(0x00, 0xFF, 0xFF),
+	Color(1.0, 1.0, 1.0),
+]
 
 ## Black screen bars: from the binary's blackScreen/blackLineDown/blackLineUp fields.
 ## These animate at the intro's dramatic beats. They appear at beat 28 (the zoom-in
@@ -163,6 +193,7 @@ var _intro_sound_player: AudioStreamPlayer = null
 
 func _ready() -> void:
 	_outro_angle = float(randi_range(-10, 0) * 2)
+	_build_particles()
 	title.visible = false
 	intro_text.visible = false
 	intro_text.text = ""
@@ -211,6 +242,43 @@ func _process(delta: float) -> void:
 	_update_camera(delta)
 	_bump_boil(delta)
 	_fade_music(delta)
+
+
+func _build_particles() -> void:
+	if not ResourceLoader.exists(PARTICLE_IMAGE):
+		return
+	var fx := CPUParticles2D.new()
+	fx.name = "TitleParticles"
+	fx.texture = load(PARTICLE_IMAGE) as Texture2D
+	fx.z_index = -5
+	# The emitter spans the screen's width and sits on its bottom edge, which is where a
+	# field rising at 750-950 px/s has to start.
+	fx.position = Vector2(SCREEN.x * 0.5, SCREEN.y)
+	fx.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	fx.emission_rect_extents = Vector2(SCREEN.x * 0.5, 8.0)
+	fx.direction = Vector2(0.0, -1.0)
+	fx.spread = 0.0
+	fx.gravity = Vector2.ZERO
+	fx.initial_velocity_min = PARTICLE_RISE.x * FUNKIN_TO_RUBICON
+	fx.initial_velocity_max = PARTICLE_RISE.y * FUNKIN_TO_RUBICON
+	fx.linear_accel_min = -PARTICLE_DRIFT
+	fx.linear_accel_max = PARTICLE_DRIFT
+	fx.scale_amount_min = PARTICLE_SCALE.x * FUNKIN_TO_RUBICON
+	fx.scale_amount_max = PARTICLE_SCALE.x * FUNKIN_TO_RUBICON
+	var shrink := Curve.new()
+	shrink.add_point(Vector2(0.0, 1.0))
+	shrink.add_point(Vector2(1.0, PARTICLE_SCALE.y / PARTICLE_SCALE.x))
+	fx.scale_amount_curve = shrink
+	# start(false, 0.09): one particle every 0.09s rather than a burst.
+	fx.lifetime = SCREEN.y / (PARTICLE_RISE.x * FUNKIN_TO_RUBICON)
+	fx.amount = maxi(1, int(fx.lifetime / PARTICLE_FREQUENCY))
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray(PARTICLE_COLOURS)
+	fx.color_ramp = ramp
+	fx.emitting = true
+	add_child(fx)
+	move_child(fx, 1)
 
 
 func _play_intro_sound() -> void:

@@ -877,8 +877,50 @@ Ported: the press animation, the 0.75s flash, the sound at 0.7, the camera swing
 rather than faked: the three-way 1400px fling, because this scene has one Logo where the mod
 has three sprites, and building them is `create()`'s job.
 
-Still unread on this screen: `create()` (0x30e7 bytes — the layout), `cheatCodeShit` /
-`codePress` (the easter egg), `updateProps`, and `destroy`.
+**`create()` (0x2b26ea0, lines 137-266)**, the layout, in order:
+
+    141  swagShader = new ColorSwap();
+    143  FlxG.mouse.visible = <bool>;
+    145  camOverlay = new FullScreenCamera(...);  FlxG.cameras.add(camOverlay, false);
+    149  particleEmitter = new FlxTypedEmitter(-100, ...);
+    150      loadParticles(Paths.imageGraphic('menus/particle'), ...);   // SQUARE mode
+    154      velocity.set(-50, -950, 50, -750);      // straight up, fast
+    159      scale.set(0.35, 0.35, 0.1, 0.1);
+    161      <colour>.set(0xFFFFC0CB, 0xFF00FFFF, 0xFFFFFFFF);   // pink, cyan, white
+    163      start(<bool>, 0.09);
+    165  propsGroup = new FlxTypedGroup();
+    167  six x new TitleProp(), each parked at -1000000
+    168  updateProps();
+    173  gradient  = 'title/void gradient', sized off FlxG.initialWidth
+    186  nonIntroGroup = new FlxTypedSpriteGroup(...);
+    189  fallBF = new FallCharacter();  'title/fallguys', addByPrefix('fall', 'bf fall', 24)
+    195      x = FlxG.width / 3 - 100
+    198  fallGF = new FallCharacter();  'gf fall', same shape
+    209  logoTV        = 'title/LOGO_OBJECT',  scale 0.32 both axes
+    219  pressEnterText = 'title/PRESS_ENTER', addBySymbolIndices('loop', [2 indices])
+    223                                        addBySymbolIndices('press', [30 indices])
+    225      play('loop')
+    229  txtVersion = FlxFixedText('Animania! Mod ' + Constants.VERSION_clear), vcr.ttf, 12
+    237  titleText  = FlxFixedText('ANIMANIA!CREW' / 'Hello there! :>'), Blueprint.ttf
+    243  boilShader = new BoilShader();  bumpTimer();  set_amount(1.0);
+    254  playMusic();
+         if (seenIntro) skipIntro(); else playIntro();
+
+`LOGO_SCALE = 0.32` checks out exactly (0x59fb4e0). **`CONFIRM_DELAY = 0.35` does not.** The
+0.35 is at the displacement the comment names, but both loads are in line 159 feeding the
+emitter's `FlxPointRangeBounds.set(0.35, 0.35, 0.1, 0.1)` — it is the PARTICLES' start scale,
+shrinking to 0.1, the same pair the main menu's emitter uses. There is no deaf window in the
+mod at all: `inIntro` and `transition` are separate branches of `update()`, so one keypress
+can only ever be consumed by one of them. The window stays in the port as its own device, now
+labelled as such.
+
+Ported from this: the particle emitter. Still missing and now named, with the assets already
+extracted (`title/fallguys.png+xml`, `title/props.png+xml`) — the six props' placement beyond
+what `title_props.gd` already carries, the two `FallCharacter`s (which are two of the three
+pieces the outro flings), and the two texts. `Blueprint.ttf` is not on disk; like
+Inconsolata-Black it ships inside the executable and would have to be extracted.
+
+Still unread on this screen: `cheatCodeShit` / `codePress` (the easter egg) and `destroy`.
 
 ---
 
@@ -1020,9 +1062,25 @@ run --headless --path . --script tools/animania/test_phone_call_port.gd   # 853 
 - Both, only when the change reaches across the two - a scene the flow enters, a shared
   script, `AnimaniaModule`, the loading screen.
 
-`flow_check` costs about four minutes now, and it did not before: it used to bail at the
-main menu and skip everything after, and now it loads the level scene off its Animate
-atlases like the other guard does. That is the price of it actually running.
+`flow_check` costs about **20 seconds**, measured. The "about four minutes" this file used
+to claim was stale and it did real damage: it made long runs look normal, so a 600-second
+hang got waited out instead of diagnosed. It was a parse error - the title screen's script
+failed to load and the guard span in its title phase.
+
+**Check that the scripts PARSE before running any guard.** It costs 0.6s and it catches the
+whole class of failure that otherwise looks like "the guard is slow":
+
+    # scratchpad/parse.gd
+    extends SceneTree
+    func _initialize() -> void:
+        for p in ["res://.../title_screen.gd", "res://.../main_menu.gd"]:
+            print(p, " -> ", "OK" if load(p) != null else "FALLO")
+        quit()
+
+Note the trap in it: `load()` on a script with a parse error still returns non-null, so the
+"OK" it prints means nothing. What tells you is the `SCRIPT ERROR: Parse Error` lines Godot
+writes to stderr - read those, not the return value.
+
 **A run that takes more than ten seconds needs a reason, not patience.** Godot
 itself starts and quits in 0.6s here, so anything longer is the script's own
 work and can be located. Pipe the run through a timestamper and print only the
