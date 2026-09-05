@@ -328,37 +328,48 @@ func _update_disks(delta: float) -> void:
 			disk.modulate.a, float(disk.get_meta(&"alpha")), delta, DISK_HALFLIFE_X)
 
 
-## ─── updateTvGlow (from binary at 0x34be370) ───────────────────────────────
-## The TV glow sprite pulses between TV_GLOW_MIN_ALPHA and TV_GLOW_MAX_ALPHA
-## on a cycle of TV_GLOW_FLICKER_CYCLE seconds, lerped by TV_GLOW_LERP_DURATION.
-## Verified constants from .rodata:
-##   TV_GLOW_TARGET_INTERVAL = 0.05
-##   TV_GLOW_FLICKER_CYCLE = 1.666667
-##   TV_GLOW_LERP_DURATION = 0.03
-##   Additional: 1.2 (max alpha), 0.75 (min alpha), 0.833333 (half cycle)
+## ─── updateTvGlow (0x34be370, lineas 1777-1787) ────────────────────────────
+## Leido entero contra el binario:
+##
+##   _glowTargetTimer += elapsed;                                   // campo 0x2c0
+##   while (_glowTargetTimer >= 0.05) {
+##       _alphaTarget = FlxG.random.float(0.75, 1.2);               // campo 0x2d0
+##       _glowTargetTimer -= 0.05;
+##   }
+##   _glowFlickerTimer = (_glowFlickerTimer + elapsed) % 1.6666667;  // campo 0x2c8
+##   if (_glowFlickerTimer > 0.8333333)
+##       tvGlow.colorTransform.alphaMultiplier =
+##           MathUtil.smoothLerpPrecision(<eso>, _alphaTarget, elapsed, 0.03);
+##
+## Las constantes ya estaban bien; la forma no. El objetivo se SORTEA al azar en el
+## rango, no alterna entre dos valores fijos, y la mitad del ciclo decide si el brillo
+## persigue su objetivo o se queda quieto - no cual es el objetivo. Media onda de cada
+## 1.667 s el televisor no se mueve.
+##
+## `tvGlow` es un FunkinSprite (buildBg lo crea con FunkinSprite.create) y el campo
+## 0x188 es `colorTransform` de FlxSprite; el `.0x8` es `alphaMultiplier`, porque OpenFL
+## declara los campos de ColorTransform en orden alfabetico. Un multiplicador de 1.2
+## satura igual en OpenFL que `modulate.a` en Godot, asi que la traduccion es fiel.
 
 func _update_tv_glow(delta: float) -> void:
 	if tv_glow == null:
 		return
 
-	# Advance the flicker clock.
-	_glow_flicker_time += delta
-
-	# Periodically pick a new target alpha.
+	# The target is re-rolled at random, not switched between two fixed values, and the
+	# subtraction loops: a frame longer than 50 ms owes more than one roll.
 	_glow_target_timer += delta
-	if _glow_target_timer >= TV_GLOW_TARGET_INTERVAL:
+	while _glow_target_timer >= TV_GLOW_TARGET_INTERVAL:
+		_glow_target_alpha = randf_range(TV_GLOW_MIN_ALPHA, TV_GLOW_MAX_ALPHA)
 		_glow_target_timer -= TV_GLOW_TARGET_INTERVAL
-		# The flicker cycle determines the range: at the peak of the cycle,
-		# the glow is brightest; at the trough, dimmest.
-		var phase: float = fmod(_glow_flicker_time, TV_GLOW_FLICKER_CYCLE)
-		if phase < TV_GLOW_HALF_CYCLE:
-			# Rising half: target is the max.
-			_glow_target_alpha = TV_GLOW_MAX_ALPHA
-		else:
-			# Falling half: target is the min.
-			_glow_target_alpha = TV_GLOW_MIN_ALPHA
 
-	# Lerp the actual alpha toward the target.
+	# The flicker clock is wrapped in place, and it gates whether the glow chases its
+	# target at all: for the first half of every cycle the glow holds where it is.
+	_glow_flicker_time = fmod(_glow_flicker_time + delta, TV_GLOW_FLICKER_CYCLE)
+	if _glow_flicker_time <= TV_GLOW_HALF_CYCLE:
+		return
+
+	# smoothLerpPrecision(current, target, elapsed, 0.03): the fraction of the gap left
+	# after `duration` seconds is 1/2, so the base is 2 and the exponent -delta/duration.
 	var current: float = tv_glow.modulate.a
 	var t: float = 1.0 - pow(2.0, -delta / TV_GLOW_LERP_DURATION)
 	tv_glow.modulate.a = lerpf(current, _glow_target_alpha, t)
