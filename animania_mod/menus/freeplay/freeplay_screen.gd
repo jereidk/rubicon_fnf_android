@@ -333,8 +333,16 @@ const SCORE_LERP := 0.65
 ## Y hay repetido al mantener, cada 0.07 s, con la primera pulsacion aparte. Por eventos
 ## eso queda en manos del repetido del sistema operativo, que es otro ritmo.
 ##
-## `?` La condicion que dispara handleExit sale de un hueco de vtable (0x100) sobre un
-## objeto que no he identificado; el puerto sigue saliendo por ESC/atras como antes.
+## Las tres condiciones que faltaban se leen por un hueco de VTABLE, no por una llamada
+## directa, y por eso un rastreo por nombre no las veia: FunkinAction.check() es virtual
+## (hueco 0x100 de su vtable) mientras checkPressed y checkJustPressed son directas.
+##
+##   1807  ACCEPT.check()        -> la confirmacion
+##   1859  BACK.check()          -> handleExit()            (1861)
+##   1864  DEBUG_CHART.check()   -> el editor de charts de la cancion elegida
+##
+## DEBUG_CHART es la accion 0x160 de Controls, sacada de su __GetFields junto al resto de
+## la tabla. Es un atajo de desarrollo y no se portea, como el resto del menu de depuracion.
 
 ## El umbral de spamTimer con el que se repite la seleccion.
 const INPUT_REPEAT := 0.07

@@ -44,7 +44,12 @@ BINARY = Path("/home/user/animania_build/Animania")
 # offset -> nombre, de FreeplayScreen_obj::__GetFields cruzado con __Mark. Base 0xe0.
 FREEPLAY_FIELDS = {
     0xE0: "currentCharacterId", 0xE8: "currentCharacter", 0xF0: "stickerSubState",
-    0xF8: "totalDiffs", 0x100: "curSelectedFloat", 0x108: "curSelected",
+    # OJO: hxcpp NO respeta el orden de declaracion aqui. Se declaran totalDiffs (Int),
+    # curSelectedFloat (Float) y curSelected (Int), y quedan con el double DELANTE de los
+    # dos enteros. Probado en changeSelection (0x34c8f30): `mov %eax,0x100(%rbx)` es una
+    # escritura de 4 bytes, y `cvtsi2sdl 0x100(%rbx),%xmm0; movsd %xmm0,0xf8(%rbx)` es
+    # literalmente `curSelectedFloat = curSelected`.
+    0xF8: "curSelectedFloat", 0x100: "curSelected", 0x104: "totalDiffs",
     0x110: "currentDifficulty", 0x118: "currentDiffsIds", 0x120: "songs",
     0x128: "freeplayTweens", 0x130: "freeplayTimers", 0x138: "lerpCompletion",
     0x140: "intendedCompletion", 0x148: "lerpScore", 0x150: "intendedScore",
@@ -69,6 +74,17 @@ FREEPLAY_FIELDS = {
 FIELD_TABLES = {"freeplay": FREEPLAY_FIELDS}
 
 # Huecos de vtable ya identificados, desde el puntero del objeto (o sea vtable + 0x10).
+# Acciones de funkin::input::Controls, de su __GetFields. Los 0x30..0x88 son las cuatro
+# direcciones en sus cuatro formas (sostenida, P de pulsada, R de soltada).
+CONTROLS = {
+    0x30: "UI_UP", 0x38: "UI_LEFT", 0x40: "UI_RIGHT", 0x48: "UI_DOWN",
+    0x90: "NOTE_UP", 0x98: "NOTE_LEFT", 0xA0: "NOTE_RIGHT", 0xA8: "NOTE_DOWN",
+    0xF0: "MECHANIC", 0x108: "ACCEPT", 0x110: "BACK", 0x118: "PAUSE", 0x120: "RESET",
+    0x128: "WINDOW_SCREENSHOT", 0x130: "WINDOW_FULLSCREEN", 0x138: "FREEPLAY_FAVORITE",
+    0x140: "FREEPLAY_LEFT", 0x148: "FREEPLAY_RIGHT", 0x150: "CUTSCENE_ADVANCE",
+    0x158: "DEBUG_MENU", 0x160: "DEBUG_CHART", 0x168: "DEBUG_STAGE",
+}
+
 VTABLE = {
     0x100: "destroy", 0x118: "point.set_x", 0x120: "point.set_y", 0x128: "set_visible",
     0x188: "add", 0x210: "set_x", 0x218: "set_y", 0x230: "get_width",
@@ -77,6 +93,11 @@ VTABLE = {
     0x3A8: "set_alpha", 0x3B0: "set_color", 0x3C8: "set_clipRect", 0x440: "initHitbox",
     0x448: "loadTexture", 0x4F8: "makeGraphic",
 }
+
+# FunkinAction: check() es VIRTUAL y checkPressed()/checkJustPressed() son llamadas
+# directas, asi que buscar solo por nombre se deja tres condiciones fuera. En freeplay,
+# ACCEPT, BACK y DEBUG_CHART se leen las tres por este hueco.
+FUNKIN_ACTION_CHECK = 0x100
 
 SKIP_CALLS = ("operator->", "StackFrame", "popFrame", "NullReference", "ObjectPtr",
               "pthread", "stack_chk", "__ToInt", "Dynamic::Dynamic")

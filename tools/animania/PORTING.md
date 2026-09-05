@@ -1122,8 +1122,42 @@ one that does not: selection repeats every **0.07 s** while held, difficulty doe
 at all. An event-driven port gets neither — it inherits the operating system's repeat rate
 for both.
 
-Still unresolved: the condition that fires `handleExit` at 1861 is a vtable call (slot
-0x100) on an object that has not been identified.
+And the reason a whole third of the conditions were missing from the first scan:
+**`FunkinAction.check()` is VIRTUAL** — slot 0x100 on its vtable — while `checkPressed()`
+and `checkJustPressed()` are direct calls. Grepping the disassembly for the method names
+finds the latter two and silently drops every use of the first. In freeplay that was three
+conditions, including both of the important ones:
+
+```
+1807  ACCEPT.check()       -> the confirm path (reads selectableDisks.length, curSelected)
+1859  BACK.check()         -> handleExit()   (1861)
+1864  DEBUG_CHART.check()  -> the chart editor for the selection
+```
+
+`DEBUG_CHART` is `Controls` field 0x160. The full action table, from
+`Controls_obj::__GetFields`, is worth having whole: 0x30 UI_UP, 0x38 UI_LEFT,
+0x40 UI_RIGHT, 0x48 UI_DOWN (and 0x50-0x88 their P/R variants), 0x90-0xa8 the note
+directions, 0xf0 MECHANIC, 0x108 ACCEPT, 0x110 BACK, 0x118 PAUSE, 0x120 RESET,
+0x128 WINDOW_SCREENSHOT, 0x130 WINDOW_FULLSCREEN, 0x138 FREEPLAY_FAVORITE,
+0x140 FREEPLAY_LEFT, 0x148 FREEPLAY_RIGHT, 0x150 CUTSCENE_ADVANCE, 0x158 DEBUG_MENU,
+0x160 DEBUG_CHART, 0x168 DEBUG_STAGE. Note that freeplay uses the generic UI_LEFT/UI_RIGHT
+and not `FREEPLAY_LEFT`/`FREEPLAY_RIGHT`, which exist and are for something else.
+
+### hxcpp does not always keep declaration order
+
+`FreeplayScreen` declares `totalDiffs:Int`, `curSelectedFloat:Float`, `curSelected:Int` in
+that order, and lays them out as **0xf8 curSelectedFloat, 0x100 curSelected,
+0x104 totalDiffs** — the double moved in front of the two ints. The field table here had
+them in declaration order and was wrong for all three.
+
+`changeSelection` (0x34c8f30) settles it without any inference: `mov %eax,0x100(%rbx)` is a
+four-byte store, so 0x100 is the Int, and `cvtsi2sdl 0x100(%rbx),%xmm0; movsd %xmm0,
+0xf8(%rbx)` is literally `curSelectedFloat = curSelected`.
+
+The lesson for reading a `__GetFields` list: declaration order gets the POINTERS right
+(`__Mark` confirms those anyway), but within a run of scalars the sizes can be reordered.
+Anchor every scalar on an instruction that reveals its width — a `movsd` versus a 32-bit
+`mov` — before trusting its name.
 
 ### `hxlines.py`: read a big method as a table first
 
