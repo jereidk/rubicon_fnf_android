@@ -68,17 +68,16 @@ func _init() -> void:
 	var press_at := Vector2(
 		(SCREEN.x - PRESS_DRAWN.x * FUNKIN_TO_RUBICON) * 0.5,
 		SCREEN.y - PRESS_DRAWN.y * FUNKIN_TO_RUBICON - PRESS_BOTTOM_MARGIN)
-	# KNOWN BROKEN, and the render is what showed it: the prompt does not draw at all.
-	#
-	# The symbol passed here is "main", and PRESS_ENTER's dictionary has no such entry - it
-	# holds `export/press enter loop` and `export/press enter confirm`, which is the same
-	# loop/press pair create() adds by symbol indices at lines 222-223. But naming the real
-	# symbol does not fix it either: it then draws a couple of the symbol's CHILDREN (the
-	# `pressenterglow` rings) scattered at their own timeline positions instead of the
-	# assembled rótulo. So this is the port's Animate handling, not a wrong constant, and
-	# "main" is kept until that is understood - drawing nothing beats drawing fragments.
+	# The prompt WAS drawing all along - as the scattered letters that looked like falling
+	# props in the first renders. `main`'s timeline is 34 frames of "PRESS ENTER TO PLAY"
+	# assembling itself, and this port looped all 34, so the letters were permanently in
+	# mid-flight. create() lines 222-223 say which frames belong to which state, by symbol
+	# index: `loop` is [1, 2] and `press` is [3 .. 32], thirty of them. Frame 1 is the
+	# assembled prompt; the scatter is the CONFIRM animation, not the idle.
 	_symbol(title, "PressEnter", "press_enter", &"press_enter_loop", "main",
 		FUNKIN_TO_RUBICON, press_at - PRESS_CORNER * FUNKIN_TO_RUBICON)
+	_reframe(title.get_node("PressEnter"), &"press_enter_loop", PRESS_LOOP, true)
+	_reframe(title.get_node("PressEnter"), &"press_enter_press", PRESS_CONFIRM, false)
 
 	# The falling props, behind the title and in front of the gradient. Read out of the
 	# Linux build's disassembly of updateProps() rather than transcribed - see the script.
@@ -187,6 +186,38 @@ func _init() -> void:
 const FALL_RISE := 100.0
 ## title_screen.gd's CAMERA_LERP_TARGET - where update() line 369 eases the zoom to.
 const CAMERA_REST := 0.885
+
+## create() line 222 pushes two symbol indices for `loop` and line 223 pushes 3..32 for
+## `press` - thirty of them, which is what "30 indices" meant.
+const PRESS_LOOP := Vector2i(1, 2)
+const PRESS_CONFIRM := Vector2i(3, 32)
+## addByPrefix and addBySymbolIndices are both given 24 on this screen.
+const SYMBOL_FPS := 24.0
+
+
+## Rewrites one of a symbol's animations to step `frame` over [span.x, span.y] at 24fps. The
+## library that ships beside the atlas animates the WHOLE timeline, which is right for a
+## symbol whose timeline is one animation and wrong for one that packs several.
+func _reframe(symbol: Node2D, animation: StringName, span: Vector2i, looped: bool) -> void:
+	var player: AnimationPlayer = symbol.get_node("AnimationPlayer")
+	var library: AnimationLibrary = player.get_animation_library(&"")
+	var count: int = span.y - span.x + 1
+	var clip := Animation.new()
+	clip.length = float(count) / SYMBOL_FPS
+	clip.loop_mode = Animation.LOOP_LINEAR if looped else Animation.LOOP_NONE
+	var track: int = clip.add_track(Animation.TYPE_VALUE)
+	clip.track_set_path(track, NodePath(".:frame"))
+	clip.track_set_interpolation_type(track, Animation.INTERPOLATION_NEAREST)
+	clip.value_track_set_update_mode(track, Animation.UPDATE_DISCRETE)
+	for i: int in count:
+		clip.track_insert_key(track, float(i) / SYMBOL_FPS, span.x + i)
+	if library.has_animation(animation):
+		library.remove_animation(animation)
+	library.add_animation(animation, clip)
+	# The library is an ExtResource in the packed scene, so mutating the loaded copy is
+	# invisible unless it is written back - which is why the first attempt at this changed
+	# nothing on screen.
+	ResourceSaver.save(library, library.resource_path)
 
 const BLUEPRINT_FONT := "res://animania_mod/source/fonts/Blueprint.ttf"
 const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"

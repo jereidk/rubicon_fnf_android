@@ -677,9 +677,11 @@ func confirm() -> void:
 
 	var press: Node = title.get_node_or_null(^"PressEnter") if title != null else null
 	if press != null:
+		# create() line 223: the confirm is symbol frames 3..32, the scatter the idle used to
+		# be looping. build_title_scene.gd emits it as `press_enter_press`.
 		var player: AnimationPlayer = press.get_node_or_null(^"AnimationPlayer")
-		if player != null and player.has_animation(&"press"):
-			player.play(&"press")
+		if player != null and player.has_animation(&"press_enter_press"):
+			player.play(&"press_enter_press")
 
 	if _flash_rect != null:
 		if _flash_tween != null and _flash_tween.is_valid():

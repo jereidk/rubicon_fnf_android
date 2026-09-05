@@ -53,5 +53,10 @@ defaults/note_database="uid://bvhsfvptfwijt"
 
 [rendering]
 
+; Flixel clears to BLACK - FlxCamera.bgColor defaults to FlxColor.BLACK and every screen in
+; the mod is drawn on that. Godot's default clear colour is a mid grey, which is what showed
+; through around the title's gradient and would show anywhere else a screen does not cover
+; the full view. This is the engine default, not a per-scene fix.
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/import_bptc=true

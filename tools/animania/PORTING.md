@@ -998,17 +998,31 @@ two inside the confirm outro. Running it caught three things the audit had not.
    `1/0.885` more world than the screen, and a gradient sized to exactly 1920x1080 left grey
    down both edges and along the bottom. The beats only ever zoom IN from the rest, so the
    resting zoom is the widest view there is; the gradient is sized and centred for it now.
-3. **The press-enter prompt does not draw at all**, and still does not. The builder passes
-   the symbol `"main"`, and `PRESS_ENTER`'s dictionary has no such entry — it holds
-   `export/press enter loop` and `export/press enter confirm`, the same loop/press pair
-   create() adds by symbol indices at lines 222-223. But naming the real symbol does not fix
-   it: it then draws a couple of the symbol's CHILDREN (the `pressenterglow` rings) scattered
-   at their own timeline positions instead of the assembled prompt. So it is the port's
-   Animate handling rather than a wrong constant, and `"main"` is kept until that is
-   understood — drawing nothing beats drawing fragments.
+3. **The press-enter prompt was drawing all along — as the "props".** Those scattered white
+   letters across the top of every title render were not `title_props`; they were
+   `PRESS ENTER TO PLAY` permanently in mid-flight. `main`'s timeline is 34 frames of the
+   letters assembling themselves, and the library that ships beside the atlas animates the
+   whole timeline, so the port looped the assembly forever.
 
-The general lesson is (1): **a guard that checks a flag is not a guard that checks the
-screen.** Every constant on this screen had been read against the binary and half of them
+   create() lines 222-223 say which frames belong to which state, by symbol index: `loop`
+   pushes **[1, 2]** and `press` pushes **[3 .. 32]** — the thirty that "30 indices" meant.
+   So the two-frame hold is the idle and **the scatter is the CONFIRM animation**.
+   `build_title_scene.gd` rewrites both animations over those spans now, and `confirm()`
+   plays `press_enter_press`.
+
+   Two traps on the way: the symbol resolves fine (`main` IS in the dictionary, and the node
+   reported 73 canvas items) so "nothing is drawing" was the wrong diagnosis from the start —
+   it was drawing in the wrong place. And the AnimationLibrary is an **ExtResource** in the
+   packed scene, so mutating the loaded copy changed nothing on screen until it was written
+   back with `ResourceSaver.save`.
+
+4. **The clear colour was grey.** Flixel clears to black — `FlxCamera.bgColor` defaults to
+   `FlxColor.BLACK` and every screen in the mod is drawn on that — while Godot's default is a
+   mid grey. That is what showed around the title's gradient, and it would show anywhere else
+   a screen does not cover the full view. Set once, in `project.godot`, not per scene.
+
+The general lesson is (1) and (3) together: **a guard that checks a flag is not a guard that
+checks the screen.** Every constant on this screen had been read against the binary and half of them
 corrected, and the whole sequence they drive was still not running.
 
 ### Getting a font out of the executable
