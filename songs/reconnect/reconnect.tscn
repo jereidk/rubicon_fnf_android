@@ -29,6 +29,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_event_dispatcher.gd" id="0027_evtd"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gameover_handler.gd" id="99_go_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -255,6 +256,9 @@ script = ExtResource("0027_evtd")
 events_path = "holyquintet_mod/source/songs/reconnect/events.json"
 [node name="HQSongCompletion" type="Node" parent="."]
 script = ExtResource("98_sc_hq")
+[node name="HQStageEvents" type="Node" parent="."]
+script = ExtResource("97_stage_hq")
+song_name = "reconnect"
 [node name="HQGameOverHandler" type="Node" parent="."]
 script = ExtResource("99_go_hq")
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=59348310 instance=ExtResource("0025")]
