@@ -2110,13 +2110,23 @@ every method of the class — so whatever shows it lives outside this screen.
 the screen's HScript at a different position with a different zIndex. `currentPhone` is
 still never shown by anything.
 
-**The two characters are not ported, and that is a decision.** `CharPlayer` and
-`CharGirlfriend` are not the mod's classes at all: they are
-`funkin::ui::freeplay::charSelect::`, from the base game, carrying `loadCharacter`,
-`getData` over a character JSON, `loadSkinChanger` and `loadIcon`; their skins are Adobe
-Animate atlases (`Animation.json` + spritemap) under `skinSelector/bf` and `/gf`, with
-standart / animania / xmas variants plus miku, teto and tadano. That is a subsystem, not
-two sprites. Both are constructed with the skin `'none'`, and the only `changeCharacter`
+**The two characters are not ported, and that is a decision.**
+
+> **Corrected.** This section first said `CharPlayer` and `CharGirlfriend` "are not the
+> mod's classes at all: they are `funkin::ui::freeplay::charSelect::`, from the base game".
+> That is wrong. **Both namespaces exist in the binary** — 80 symbols under
+> `funkin::ui::freeplay::charSelect::CharPlayer_obj` and 71 under
+> `animania::states::objects::freeplay::CharPlayer_obj` — and `initCharacters` calls the
+> **mod's**: the allocation at 0x34c1a0a is
+> `animania::states::objects::freeplay::CharPlayer_obj::__alloc`, and the girlfriend's at
+> 0x34c1897 likewise. A `nm | grep "CharPlayer_obj::"` shows the base game's first, and
+> that is what the claim was built on. Grep the namespace, not the class name.
+
+The mod's `CharPlayer` is 10,945 bytes over 9 methods — `changeCharacter`, `loadCharacter`,
+`getData`, `loadIcon`, `loadSkinChanger`, `set_slideOffset`, `draw`, `update` — and
+`CharGirlfriend` another 4,048 over 3. Their skins are Adobe Animate atlases
+(`Animation.json` + spritemap) under `skinSelector/bf` and `/gf`, with standart / animania /
+xmas variants plus miku, teto and tadano. That is a subsystem, not two sprites. Both are constructed with the skin `'none'`, and the only `changeCharacter`
 call inside this class is the random-disk branch of `playCurSongPreview`, which also
 passes `'none'` — so whatever picks a real character is in `updateDataStuff` or
 `postHeader`. Read those before porting the characters. Every constant needed is in the
@@ -2561,6 +2571,46 @@ unported, and the file says so.
 
 The file keeps its phone-call name — renaming it means touching five generated scenes and
 the builder — and its header now says the name is historical.
+
+
+## 8l. What freeplay actually is, and how much of it is read
+
+"Is freeplay finished?" deserves a count, not a feeling. `FreeplayScreen` is read end to
+end — 33 of 33 methods — but the screen is not the subsystem. Sizes are the binary's, in
+bytes of compiled method code.
+
+| class | bytes | methods | state |
+|---|---|---|---|
+| `FreeplayScreen` | 86,865 | 33 | **read whole** |
+| `FreeplayDots` | 7,096 | 5 | **read whole** (8f) |
+| `FreeplaySongData` | 4,004 | 4 | field table read; `updateValues`, `set_currentDifficulty`, `toString` not |
+| `DiskSpr` | 13,045 | 10 | only `intendedY`; `changeDisk`, `init`, `initLock`, `syncDiskOffsets`, `update`, `updateDiskPos`, `updateHitbox`, `forcePosition` unread |
+| `CharPlayer` | 10,945 | 9 | unread |
+| `DifficultyStars` | 9,555 | 6 | unread |
+| `FreeplayAtlasHandler` | 6,804 | 6 | unread |
+| `FreeplayScreenHelp` | 4,976 | 5 | unread |
+| `CharGirlfriend` | 4,048 | 3 | unread |
+| `FreeplayScore` | 2,133 | 3 | unread |
+| `ScoreNum` | 1,431 | 2 | unread |
+| `FreeplayDot` | 737 | 2 | unread |
+| `DotState` | 25 | enum | n/a |
+
+Plus `assets/data/scripts/states/FreeplayScreen.script`, read whole (8h).
+
+So roughly 98 KB of 152 KB is read, and the third that is not is where the disks, the
+stars, the score digits and the two characters live. Three of those are worth flagging
+specifically:
+
+- **`DiskSpr`** is the biggest unread class and the port draws disks every frame. The port
+  places them from `updateDisks` and `intendedY`, both read off `FreeplayScreen`, so the
+  carousel is right — but `changeDisk`, `initLock`, `syncDiskOffsets` and the sprite's own
+  `update` are not, and a locked disk's behaviour comes from `initLock`.
+- **`FreeplayScreenHelp`** has real content — `changeTip`, `viewHintTexts`, `leave`. Section
+  8e noted that `openHelp()` is empty in `FreeplayScreen` and that something else opens the
+  help screen. That something is still not identified, and the class it opens is unread.
+- **`FreeplayScore` / `ScoreNum`** are the score's digit sprites. The port draws the score
+  as a plain `Label`, which is why 8g's "no save system" gap is really two gaps: nothing
+  writes a score, and nothing draws it the way the mod does.
 
 
 ## 8b. Adding a song, for real
