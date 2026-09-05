@@ -1432,8 +1432,11 @@ Recorded so the next person does not go looking for a bug that is not there.
   `x += clamp(tan(p·π), −6, 6) · 40 · value` — but `p`'s unit is unidentified, so porting it
   would be guessing the sway's scale.
 - **Freeplay's `TVBACK` and `TVNOISE`** — texture budget, see above.
-- **The main menu's mouse furniture** — `newsButton`, `musicSocial`, `socialButtons`,
-  `updateCameraScroll` (mouse parallax), `spawnHelpMouseText`. All inert on Android.
+- ~~**The main menu's mouse furniture**~~ — this entry is out of date. `newsButton`,
+  `musicSocial`, `socialButtons`, `updateCameraScroll` and `spawnHelpMouseText` were all
+  ported during the fidelity audit: the banner and the OST disc are real screen furniture
+  even without a pointer, and the taps reach them through `_touch`. Kept here struck through
+  so nobody reads an older commit's list and puts them back on the not-done pile.
 - **The credits' character.** The roll is there - all 36 people and their roles, out of the
   mod's own `data/credits.json` - but not the portraits, the typed-out text with its
   per-entry speed and pitch and its embedded `<img>` tags, the social buttons or the
