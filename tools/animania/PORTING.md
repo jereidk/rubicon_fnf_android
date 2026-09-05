@@ -1143,6 +1143,43 @@ directions, 0xf0 MECHANIC, 0x108 ACCEPT, 0x110 BACK, 0x118 PAUSE, 0x120 RESET,
 0x160 DEBUG_CHART, 0x168 DEBUG_STAGE. Note that freeplay uses the generic UI_LEFT/UI_RIGHT
 and not `FREEPLAY_LEFT`/`FREEPLAY_RIGHT`, which exist and are for something else.
 
+### `changeSelection` and `changeDiff`: where the score comes from
+
+`changeSelection` (0x34c8f30, lines 818-864) in order: wrap the index, **play
+`freeplay/song switch` at 0.4 first** (line 824, not last), start a timer, refresh the info
+texts, rebuild `currentDiffsIds`, **call `changeDiff()`** (840), `changeCharacter` on both
+characters (842-843), `updateDisks` (852), `refresh` (856), the script event, and
+`updateDataStuff` (864).
+
+`changeDiff` (0x34c7a40, 978-1073) is the one that matters, because it is where the numbers
+come from:
+
+```
+ 989  currentDifficulty = MathUtil.curSelectionWrap(...)
+1004  FunkinSound.playOnce(Paths.sound('freeplay/diffChange'))
+1009  SongRegistry.instance ...   (warns to the console if the song id is unknown)
+1020  Save.instance.getSongScore(<song>, <difficulty>)
+1021  score = <that>.score
+1022  <that>.tallies.sick / .good / .totalNotes    -> the completion percentage
+1073  updateDataStuff(false)
+```
+
+So `intendedScore` and `intendedCompletion` — the two numbers `update` eases toward — come
+from **`Save.getSongScore` and its tallies**. That is the missing piece behind
+`updateDataStuff`, and it needs a save file the port does not have.
+
+**Reading a `Null<T>` default takes the prologue, not a guess.** `changeSelection` calls
+`changeDiff()` with both arguments null, and what null MEANS is written at 0x34c7a69:
+`xor %eax,%eax` before each flag test, so the fall-through value is 0 — `amount = 0` and
+`playSound = false`. Without that, adding the `changeDiff()` call would have made every
+song change play two sounds. The convention, confirmed twice now: the `Null<T>` pair is
+`{flag, value}` and **flag 0 means present**.
+
+Not fully traced: the `playOnce` at 1004 sits behind a second gate, `cmpb $0x0,0x2d8`
+(`allowInput`), and how that composes with the `playSound` branch is lost in the
+compiler's block reordering. The port plays it on a deliberate difficulty change and stays
+quiet when a song change drags one along.
+
 ### hxcpp does not always keep declaration order
 
 `FreeplayScreen` declares `totalDiffs:Int`, `curSelectedFloat:Float`, `curSelected:Int` in

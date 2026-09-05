@@ -40,6 +40,8 @@ const SONGS: Array[Dictionary] = [
 
 const SOUND_SWITCH := "res://animania_mod/source/sounds/freeplay/song switch.ogg"
 const SWITCH_VOLUME := 0.4
+## changeDiff linea 1004: cambiar de dificultad tiene su propio sonido.
+const SOUND_DIFF_CHANGE := "res://animania_mod/source/sounds/freeplay/diffChange.ogg"
 const SOUND_CONFIRM := "res://animania_mod/source/sounds/freeplay/diskConfirm.ogg"
 const SOUND_LOCKED := "res://animania_mod/source/sounds/freeplay/diskLocked.ogg"
 const SOUND_TV_ON := "res://animania_mod/source/sounds/freeplay/tvOn.ogg"
@@ -778,15 +780,39 @@ func _post_header() -> void:
 ## Changes the current difficulty. Wraps around.
 ## From binary: references rememberedDifficulty.
 
-func change_diff(amount: int) -> void:
+## ─── changeDiff (0x34c7a40, lineas 978-1073) ───────────────────────────────
+##    989  currentDifficulty = MathUtil.curSelectionWrap(...)
+##   1004  FunkinSound.playOnce(Paths.sound('freeplay/diffChange'))
+##   1009  SongRegistry.instance ...  (si no encuentra la cancion, avisa por consola)
+##   1020  Save.instance.getSongScore(<cancion>, <dificultad>)
+##   1021  score  = <eso>.score
+##   1022  <eso>.tallies.sick / .good / .totalNotes   -> el porcentaje
+##   1073  updateDataStuff(false)
+##
+## El sonido NO es el de cambiar de cancion: es `freeplay/diffChange`, otro fichero. El
+## puerto reutilizaba `song switch` para las dos cosas.
+##
+## Los dos argumentos son Null y el prologo (0x34c7a69) dice que valen cuando llegan a
+## nulo: `xor %eax,%eax` antes de mirar cada bandera, o sea amount = 0 y playSound =
+## false. Por eso changeSelection puede llamar a changeDiff() sin que suene dos veces.
+##
+## `?` Lo que no he acabado de trazar es cuando suena de verdad: el bloque del sonido
+## esta ademas detras de un `cmpb $0x0,0x2d8(%r12)`, o sea de allowInput, y su relacion
+## con la rama de playSound se pierde en la reordenacion de bloques del compilador. Aqui
+## suena cuando se cambia de dificultad a proposito y calla cuando lo arrastra un cambio
+## de cancion, que es lo que hacen los dos sitios que lo llaman.
+##
+## De donde salen la puntuacion y el porcentaje queda identificado y sin portear: son
+## Save.getSongScore y sus tallies (sick, good, totalNotes), y el puerto no tiene
+## guardado de partidas.
+func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	if _confirmed or not allow_input:
 		return
 	current_difficulty = wrapi(current_difficulty + amount, 0, total_diffs)
 	_update_difficulty_display()
-	# changeDiff llama a updateDataStuff: cambiar de dificultad cambia la puntuacion y el
-	# porcentaje que update persigue.
 	_update_data_stuff(false)
-	_play_sound(SOUND_SWITCH, SWITCH_VOLUME)
+	if play_sound:
+		_play_sound(SOUND_DIFF_CHANGE, SWITCH_VOLUME)
 
 
 func _update_difficulty_display() -> void:
@@ -810,9 +836,14 @@ func change_selection(amount: int, play_sound: bool = true) -> void:
 		return
 	cur_selected = wrapi(cur_selected + amount, 0, SONGS.size())
 	cur_selected_float = float(cur_selected)
-	_refresh(false)
+	# El sonido va al principio, linea 824, no al final.
 	if play_sound and can_play_switch_sound:
 		_play_sound(SOUND_SWITCH, SWITCH_VOLUME)
+	# Linea 840: changeDiff() con los dos argumentos a null, o sea con sus valores por
+	# defecto. Cambiar de cancion vuelve a fijar la dificultad para la nueva, que es lo
+	# que trae su puntuacion y su porcentaje.
+	change_diff()
+	_refresh(false)
 
 
 ## ─── _refresh (updated) ─────────────────────────────────────────────────────
@@ -1016,9 +1047,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			# changeDiff(UI_DOWN.checkJustPressed() ? -1 : 1), linea 1856: ABAJO resta.
 			# Es checkJustPressed, no checkPressed, asi que aqui no hay repetido.
 			KEY_DOWN, KEY_S:
-				change_diff(-1)
+				change_diff(-1, true)
 			KEY_UP, KEY_W:
-				change_diff(1)
+				change_diff(1, true)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				confirm()
 			KEY_ESCAPE, KEY_BACKSPACE:
