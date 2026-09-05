@@ -1084,6 +1084,37 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### What `update` actually does, and where the port had put it
+
+`FreeplayScreen.update` (0x34d7200) is short, and three of the seven things the port's
+`_process` ran were not in it. In full:
+
+```
+super.update(elapsed);
+lerpScore      = MathUtil.smoothLerpPrecision(lerpScore, intendedScore, elapsed, 0.65);
+lerpCompletion = MathUtil.smoothLerpPrecision(lerpCompletion, intendedCompletion, elapsed, 0.65);
+if (Math.isNaN(lerpScore)) ...            if (Math.isNaN(lerpCompletion)) ...
+_prevDisplayedScore = Std.int(lerpScore);
+freeplayScore.updateScore(Std.int(lerpScore));
+completionText.text = Std.string(Std.int(Math.floor(lerpCompletion * 100)));
+handleInput(elapsed); updateCameraScroll(elapsed); updateTvGlow(elapsed);
+callOnScripts('update', [elapsed]);
+```
+
+So the per-frame work is: two eased numbers and their two labels, plus three calls. The
+port instead ran `updateDisks`, `shakeShadows`, `checkBed` and `updateDataStuff` every
+frame — all four of which the mod drives from events — and did *not* ease the score or the
+completion at all. The easing it did have lived inside `updateDataStuff`, with an invented
+factor of 0.1 and a threshold.
+
+`MathUtil.smoothLerpPrecision(base, target, dt, duration, precision = 0.01)` (0x188bb20) is
+`lerp(base, target, 1 - precision^(dt/duration))`, with an early-out when the gap is under
+1e-7 — the value lands within `precision` of the target after `duration` seconds, which is
+a different curve from a fixed per-frame factor and from a half-life.
+
+And the completion label carries **no percent sign**: it is `Std.int(Math.floor(x * 100))`
+and nothing else. The `%` is art — the same `CLEARED %` graphic already on screen.
+
 ### `updateDisks(elapsed)` does not take an elapsed
 
 The signature is `updateDisks(double)` and the port had read that as a per-frame updater

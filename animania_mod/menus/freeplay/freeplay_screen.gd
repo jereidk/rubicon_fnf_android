@@ -281,10 +281,62 @@ func _load_songs() -> void:
 ## ─── Process ─────────────────────────────────────────────────────────────────
 
 func _process(delta: float) -> void:
-	_update_tv_glow(delta)
+	_drive_score(delta)
 	_update_camera_scroll(delta)
-	_update_data_stuff(false)
+	_update_tv_glow(delta)
+	# El acercamiento de cada disco a su sitio; updateDisks solo fija el destino.
 	_drive_disk_animations(delta)
+
+
+## ─── update (0x34d7200, lineas 897-...) ────────────────────────────────────
+## Lo que update hace por frame, y son tres llamadas y este trozo, nada mas:
+##
+##   super.update(elapsed);
+##   lerpScore      = MathUtil.smoothLerpPrecision(lerpScore, intendedScore, elapsed, 0.65);
+##   lerpCompletion = MathUtil.smoothLerpPrecision(lerpCompletion, intendedCompletion, elapsed, 0.65);
+##   if (Math.isNaN(lerpScore)) ...
+##   if (Math.isNaN(lerpCompletion)) ...
+##   _prevDisplayedScore = Std.int(lerpScore);
+##   freeplayScore.updateScore(Std.int(lerpScore));
+##   completionText.text = Std.string(Std.int(Math.floor(lerpCompletion * 100)));
+##   _prevDisplayedCompletion = <eso>;
+##   handleInput(elapsed); updateCameraScroll(elapsed); updateTvGlow(elapsed);
+##   callOnScripts('update', [elapsed]);
+##
+## El puerto no interpolaba nada por frame: lo hacia updateDataStuff, con un factor 0.1
+## inventado y un umbral, y ademas llamandolo cada frame cuando el mod solo lo llama
+## desde changeDiff y changeSelection.
+##
+## El texto de completado NO lleva el signo de porcentaje: es solo el entero. El `%` es
+## arte, el mismo `CLEARED %` que se ve en pantalla.
+
+## El `duration` de los dos smoothLerpPrecision de update.
+const SCORE_LERP := 0.65
+
+
+func _drive_score(delta: float) -> void:
+	lerp_score = _smooth_lerp(lerp_score, float(intended_score), delta, SCORE_LERP)
+	lerp_completion = _smooth_lerp(lerp_completion, intended_completion, delta, SCORE_LERP)
+	if is_nan(lerp_score):
+		lerp_score = float(intended_score)
+	if is_nan(lerp_completion):
+		lerp_completion = intended_completion
+	prev_displayed_score = int(lerp_score)
+	if freeplay_score != null:
+		freeplay_score.text = str(prev_displayed_score)
+	prev_displayed_completion = floor(lerp_completion * 100.0)
+	if completion_text != null:
+		completion_text.text = str(int(prev_displayed_completion))
+
+
+## MathUtil.smoothLerpPrecision (0x188bb20). Interpola de forma que a los `duration`
+## segundos queda a `precision` del objetivo, asi que el factor por frame es
+## 1 - precision^(dt/duration). El puerto tenia en su lugar un lerp de factor fijo.
+func _smooth_lerp(base: float, target: float, dt: float, duration: float,
+		precision: float = 0.01) -> float:
+	if absf(base - target) < 1e-7 or duration <= 0.0:
+		return target
+	return lerpf(base, target, 1.0 - pow(precision, dt / duration))
 
 
 func _drive_disk_animations(delta: float) -> void:
@@ -491,23 +543,17 @@ func _update_camera_scroll(delta: float) -> void:
 	cam.offset = cam.offset.lerp(Vector2(target_x, target_y), SCROLL_LERP)
 
 
-## ─── updateDataStuff (from binary at 0x34c5f50) ────────────────────────────
-## Updates score displays, completion text, and other data-driven UI elements.
-## Called every frame with a `force` flag.
-
-func _update_data_stuff(force: bool) -> void:
-	# Lerp the displayed score toward the intended score.
-	if high_score_spr != null:
-		var diff: float = absf(lerp_score - float(intended_score))
-		if force or diff > 0.5:
-			lerp_score = lerpf(lerp_score, float(intended_score), 0.1)
-			high_score_spr.text = str(int(lerp_score))
-
-	# Lerp the displayed completion.
-	if clear_box_sprite != null:
-		var diff: float = absf(lerp_completion - intended_completion)
-		if force or diff > 0.001:
-			lerp_completion = lerpf(lerp_completion, intended_completion, 0.1)
+## ─── updateDataStuff (0x34c5f50) ───────────────────────────────────────────
+## NO corre por frame: el grafo de llamadas del binario lo saca de changeDiff y de
+## changeSelection y de ningun otro sitio. Lo que hacia aqui -interpolar el marcador con
+## un factor 0.1 y un umbral- era de update, y ya esta donde le toca, en _drive_score.
+##
+## Sus 6883 bytes siguen sin leer. Por el tamano y por quien lo llama, es donde se
+## cargan del guardado la puntuacion, el porcentaje, la caja de completado y las
+## estrellas de dificultad de la cancion elegida. Aqui solo queda su papel: fijar los
+## `intended*` que update persigue.
+func _update_data_stuff(_force: bool) -> void:
+	_update_score_for_selection()
 
 
 ## ─── doIntroAnim (from binary at 0x34bbf20) ────────────────────────────────
@@ -609,6 +655,9 @@ func change_diff(amount: int) -> void:
 		return
 	current_difficulty = wrapi(current_difficulty + amount, 0, total_diffs)
 	_update_difficulty_display()
+	# changeDiff llama a updateDataStuff: cambiar de dificultad cambia la puntuacion y el
+	# porcentaje que update persigue.
+	_update_data_stuff(false)
 	_play_sound(SOUND_SWITCH, SWITCH_VOLUME)
 
 
