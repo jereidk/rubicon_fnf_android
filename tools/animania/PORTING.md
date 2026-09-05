@@ -801,6 +801,60 @@ written down rather than tuned away.
 
 ---
 
+### The title screen: the citations were fine, two of the readings were not
+
+`animania.states.TitleScreen` is the compiled half of that screen (the intro text is
+`TitleScreen.script`, plain HScript). Its twelve methods live around 0x2b2xxxx, and the
+comments this port carries cite things like `0x2ed0ce8` — which look like nonsense until you
+notice they are the **RIP displacement bytes**, not the resolved data address. They are from
+this build and they are correct; only the convention is confusing. `0x2ed0ce8(%rip)` from
+inside `update` resolves to `0x59fad78`, which holds 1/24.
+
+Read against the port:
+
+- **The camera never stops moving, and the port had none of it.** `update` line 365
+  (0x2b2a069-0x2b2a13f):
+
+      var t = FlxG.game.ticks * (1/24);
+      var wobble = Math.sin(t / 15 / Math.PI) + Math.sin(t / Math.PI) / 5;
+      camera.scrollAngle = wobble + (outroAngle - wobble) * lerpOutroFactor;
+
+  `ticks` is milliseconds, so the slow term turns over about every seven seconds and the
+  fast one about every half second: a degree of sway with a fifth of a degree of flutter.
+- **"Skipped when [this + 0x158] != 0, which is the follows_singer flag" was invented.**
+  `follows_singer` is a PlayState idea and has no business here. `__GetFields` names
+  TitleScreen's members — `inIntro, transition, txtVersion, camOverlay, blackScreen,
+  gradient, nonIntroGroup, propsGroup, pressEnterText, fallBF, fallGF, logoTV,
+  particleEmitter, titleText, boilShader, BOIL_INTERVAL, boilTimer, introSound,
+  lerpOutroFactor, outroAngle, lastBeat, cheatArray, curCheatPos, cheatActive,
+  playingLoveJingle, swagShader` — and 0x158 is `lerpOutroFactor`, the weight of that
+  scrollAngle lerp. The zoom lerp has no condition at all.
+- **The zoom rate really is -3.125 here.** There is no `addsd %xmm0,%xmm0` in this one,
+  unlike `MainMenuScreen::updateCameraZoom` where the same-looking code doubles it to -6.25.
+  Two screens, two rates; the port had both right by luck and now by evidence.
+- **`MUSIC_FINAL_VOLUME = 0.7` was a misattribution.** The 0.7 is at the displacement the
+  comment names, but doJingle line 548 (0x2b24b49) puts it in the `Null<double>` of
+  `FunkinSound.playOnce(Paths.sound('confirmMenu'), 0.7)` — it is the confirm SOUND's volume.
+  The music's own numbers are in `playMusic` (line 295): the options anon carries
+  `{overrideExisting: true, startingVolume: 0, restartTrack: true}` and its closure sets
+  `volume = 1.0` (0x2b241fc). The loop starts silent and ends at full, and `gfLoveJingle`
+  goes through `playMusic` with no volume override at all.
+- **`FLASH_COLOR = BLACK`, `FLASH_DURATION = 8.0` are right.** playIntro's `Null<int>` block
+  at 0x2b239d6 is `0xFF000000` — opaque black — and the duration double is 8.0. `skipIntro`
+  (line 334) has its own, shorter one: `camera.zoom += 0.1`, everything visible, `alpha = 1`,
+  `FlxTween.cancelTweensOf`, and a **1.0s** flash.
+- `beatHit` (line 445) dispatches `'titleBeat'` into the script (0x2b2b840), which is exactly
+  the split this port already assumes: the compiled side counts beats, the HScript places the
+  text.
+- `seenIntro` is a **static** (0x7fa8008), set by playIntro and read by playMusic, so the
+  intro plays once per RUN and is skipped afterwards.
+
+Still unread on this screen: `create()` (0x30e7 bytes — the layout), `cheatCodeShit` /
+`codePress` (the easter egg), `updateProps`, `destroy`, and the back half of `update` (the
+confirm branch at lines 404-439).
+
+---
+
 ## 4. The build loop
 
 Everything in `animania_mod/` and `songs/` is **generated**. Never hand-edit a `.tscn` or a

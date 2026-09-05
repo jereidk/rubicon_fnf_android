@@ -48,10 +48,18 @@ const CAMERA_LERP_RATE := -3.125
 const FLASH_COLOR := Color.BLACK
 const FLASH_DURATION := 8.0
 
-## MUSIC_FINAL_VOLUME: 0.7, exact from doJingle's rodata at 0x2ed5bf0. The intro music
-## fades in to this volume rather than starting at full.
-const MUSIC_FINAL_VOLUME := 0.7
-## MUSIC_FADE_IN_TIME: how long the music takes to reach final volume.
+## Re-read against the binary. The 0.7 IS at that displacement, but it is not the music's
+## volume: doJingle line 548 (0x2b24b49) puts it in the `Null<double>` that
+## `FunkinSound.playOnce(Paths.sound('confirmMenu'), 0.7)` takes - it is the CONFIRM SOUND's
+## volume. The music's own numbers are elsewhere: playMusic (line 295) passes
+## `{overrideExisting: true, startingVolume: 0, restartTrack: true}` (the anon's three fields
+## at 0x2b2356f onward, lengths 16/14/12), and its closure sets `volume = 1.0` (0x2b241fc,
+## set_volume through vtable 0x1b8). So the loop starts silent and ends at FULL.
+const MUSIC_FINAL_VOLUME := 1.0
+## The confirm sound in doJingle, which is where the 0.7 actually belongs.
+const CONFIRM_VOLUME := 0.7
+## MUSIC_FADE_IN_TIME: how long the music takes to reach final volume. The mod hands the ramp
+## to FunkinSound rather than doing it itself, so the duration is this port's.
 const MUSIC_FADE_IN_TIME := 1.5
 
 ## CONFIRM_DELAY: 0.35, exact from create() rodata at 0x2ed34b2/0x2ed3471. The deaf
@@ -234,20 +242,50 @@ func _fade_music(delta: float) -> void:
 		_music_fading = false
 
 
-## Camera lerp: exponential decay toward CAMERA_LERP_TARGET.
-## From update(): the camera field at offset 0x110 (zoom) is lerped:
-##   result = 0.885 + (current - 0.885) * exp(-3.125 * dt)
-## Skipped when [this + 0x158] != 0 (follows_singer mode).
-## In the port, the camera's zoom.x serves as the lerp target field.
+## update() line 369 (0x2b2a174), and it is unconditional - there is no skip. The
+## "skipped when [this + 0x158] != 0 (follows_singer)" this port used to carry was a
+## misreading: __GetFields names TitleScreen's members, and 0x158 is `lerpOutroFactor`, a
+## double used as the WEIGHT of the scrollAngle lerp below. Nothing about the zoom.
+##
+##     camera.zoom = 0.885 + (camera.zoom - 0.885) * exp(-3.125 * elapsed)
+##
+## Note there is no `addsd %xmm0,%xmm0` here, unlike MainMenuScreen's updateCameraZoom - so
+## the rate really is -3.125 on this screen and -6.25 on that one.
+##
+## Line 365 is the part that was missing entirely: the camera never stops moving.
+##
+##     var t = FlxG.game.ticks * (1/24);
+##     var wobble = Math.sin(t / 15 / Math.PI) + Math.sin(t / Math.PI) / 5;
+##     camera.scrollAngle = wobble + (outroAngle - wobble) * lerpOutroFactor;
+##
+## FlxG.game.ticks is milliseconds, so the slow term turns over about every seven seconds
+## and the fast one about every half second - a degree of sway with a fifth of a degree of
+## flutter on top. `lerpOutroFactor` is 0 for the whole screen and only ramps during the
+## outro, when it pulls the angle to `outroAngle`; until then the wobble is the whole of it.
+const ANGLE_SLOW := 15.0
+const ANGLE_FAST_DIV := 5.0
+const TICKS_PER_UNIT := 24.0
+
+
 func _update_camera(delta: float) -> void:
 	if camera == null:
 		return
-	# The mod skips the lerp when follows_singer is on (chart has events).
-	# For the title screen, follows_singer is always off, so we always lerp.
 	var current: float = camera.zoom.x
 	var factor: float = exp(CAMERA_LERP_RATE * delta)
 	var target: float = CAMERA_LERP_TARGET + (current - CAMERA_LERP_TARGET) * factor
 	camera.zoom = Vector2(target, target)
+
+	var t: float = float(Time.get_ticks_msec()) / TICKS_PER_UNIT
+	var wobble: float = sin(t / ANGLE_SLOW / PI) + sin(t / PI) / ANGLE_FAST_DIV
+	# flixel's scrollAngle is degrees; Godot's rotation is radians.
+	camera.rotation = deg_to_rad(lerpf(wobble, _outro_angle, _lerp_outro_factor))
+
+
+## `outroAngle` (0x160, an Int) and `lerpOutroFactor` (0x158). The outro is not ported, so
+## the factor stays at 0 and the angle never gets to matter - but they are named here so the
+## line above reads as the mod's rather than as an invented sine.
+var _outro_angle: float = 0.0
+var _lerp_outro_factor: float = 0.0
 
 
 ## bumpTimer/updateBoil: every BOIL_INTERVAL the displacement is re-rolled.
@@ -390,13 +428,15 @@ func _finish() -> void:
 ## Plays gfLoveJingle (overrideExisting, restartTrack) then confirmMenu
 ## at volume 0.7 (MUSIC_FINAL_VOLUME). The flash is fully transparent.
 func _do_jingle() -> void:
+	# gfLoveJingle goes through playMusic with only overrideExisting and restartTrack
+	# (0x2b24a6a/0x2b24a81) - no volume override, so it plays at full.
 	if ResourceLoader.exists(JINGLE_PATH):
 		_jingle_player.stream = load(JINGLE_PATH)
-		_jingle_player.volume_db = linear_to_db(MUSIC_FINAL_VOLUME)
+		_jingle_player.volume_db = 0.0
 		_jingle_player.play()
 	if ResourceLoader.exists(CONFIRM_SOUND_PATH):
 		_confirm_player.stream = load(CONFIRM_SOUND_PATH)
-		_confirm_player.volume_db = linear_to_db(MUSIC_FINAL_VOLUME)
+		_confirm_player.volume_db = linear_to_db(CONFIRM_VOLUME)
 		_confirm_player.play()
 
 
