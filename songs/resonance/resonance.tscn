@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="25_x7g4n"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="26_oev1w"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="27_31e32"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_dialogue_display.gd" id="96_dialogue_hq"]
 
 [sub_resource type="Animation" id="Animation_1bfk1"]
 length = 0.001
@@ -267,3 +268,8 @@ opacity = 0.4
 [editable path="Stage/KyubeySpeaker"]
 [editable path="Stage/Kyubey"]
 [editable path="UILayer/UI/HealthBar"]
+[node name="HQDialogue" type="CanvasLayer" parent="."]
+layer = 50
+script = ExtResource("96_dialogue_hq")
+dialogue_path = "holyquintet_mod/source/songs/resonance/dialogue.json"
+song_name = "resonance"

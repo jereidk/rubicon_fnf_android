@@ -30,6 +30,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gameover_handler.gd" id="99_go_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_dialogue_display.gd" id="96_dialogue_hq"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -258,6 +259,11 @@ events_path = "holyquintet_mod/source/songs/eternalstar/events.json"
 script = ExtResource("98_sc_hq")
 [node name="HQStageEvents" type="Node" parent="."]
 script = ExtResource("97_stage_hq")
+song_name = "eternalstar"
+[node name="HQDialogue" type="CanvasLayer" parent="."]
+layer = 50
+script = ExtResource("96_dialogue_hq")
+dialogue_path = "holyquintet_mod/source/songs/eternalstar/dialogue.json"
 song_name = "eternalstar"
 [node name="HQGameOverHandler" type="Node" parent="."]
 script = ExtResource("99_go_hq")

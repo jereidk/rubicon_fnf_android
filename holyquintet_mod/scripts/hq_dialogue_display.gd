@@ -1,11 +1,10 @@
 extends CanvasLayer
-## HQ Dialogue — simplified pre-song dialogue from dialogue.json.
+## HQ Dialogue — pre-song dialogue from dialogue.json.
 ## Handles graphic screens (full-screen images with fade/shake) and
-## normal dialogue (speaker name + text). Add as a child of a song scene
-## with events_path pointing to the song's dialogue.json.
+## normal dialogue (speaker name + text). Skippable with Enter/tap.
 ##
-## Skippable with ui_accept. After all entries, emits dialogue_finished
-## and the song scene starts the level.
+## While the dialogue is active, the song's clock animation is paused.
+## After the last entry, the clock animation plays and the song starts.
 
 @export var dialogue_path: String = ""
 @export var song_name: String = ""
@@ -14,11 +13,13 @@ var _entries: Array = []
 var _current_idx: int = 0
 var _is_active: bool = false
 var _can_advance: bool = false
+var _clock: Node
+var _anim_player: AnimationPlayer
 
 ## UI nodes (created in _ready)
 var _bg: ColorRect
 var _graphic: TextureRect
-var _dialogue_box: TextureRect
+var _dialogue_box: ColorRect
 var _speaker_label: Label
 var _text_label: Label
 var _skip_label: Label
@@ -28,6 +29,17 @@ signal dialogue_finished
 
 
 func _ready() -> void:
+	await get_tree().process_frame
+	var scene = get_tree().current_scene
+	if scene == null:
+		_start_song()
+		return
+
+	# Find the clock so we can pause it during dialogue
+	_clock = scene.get_node_or_null("RubiconLevelClock")
+	if _clock != null:
+		_anim_player = _clock.get_node_or_null("AnimationPlayer")
+
 	if dialogue_path.is_empty():
 		_start_song()
 		return
@@ -46,8 +58,22 @@ func _ready() -> void:
 	_build_ui()
 	_is_active = true
 	_current_idx = 0
+
+	# Stop the song clock animation and audio until dialogue ends
+	if _anim_player != null and _anim_player.has_animation("scene"):
+		_anim_player.stop()
+	# Stop any audio that autoplay may have triggered
+	var scene = get_tree().current_scene
+	if scene != null:
+		var song_module = scene.get_node_or_null("RubiconLevelSongModule")
+		if song_module != null:
+			for child in song_module.get_children():
+				if child is AudioStreamPlayer:
+					child.stop()
+
 	# Fade in from black
 	_fade_rect.modulate.a = 1.0
+	_fade_rect.visible = true
 	var tw := create_tween()
 	tw.tween_property(_fade_rect, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_callback(func(): _can_advance = true)
@@ -88,11 +114,7 @@ func _show_entry(idx: int) -> void:
 			var delay: float = params[0] if params.size() > 0 else 1.0
 			await get_tree().create_timer(delay).timeout
 			_can_advance = true
-			_current_idx += 1
-			if _current_idx >= _entries.size():
-				_end_dialogue()
-				return
-			_show_entry(_current_idx)
+			_advance()
 		"fadeout":
 			_can_advance = false
 			_fade_rect.modulate.a = 0.0
@@ -102,15 +124,18 @@ func _show_entry(idx: int) -> void:
 			var delay: float = params[0] if params.size() > 0 else 1.0
 			await tw.finished
 			await get_tree().create_timer(delay).timeout
-			_fade_rect.visible = false
+			# Bring all UI back
+			_dialogue_box.visible = true
+			_speaker_label.visible = true
+			_text_label.visible = true
+			_skip_label.visible = false
+			var tw2 := create_tween()
+			tw2.tween_property(_fade_rect, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_OUT)
+			await tw2.finished
 			_can_advance = true
-			_current_idx += 1
-			if _current_idx >= _entries.size():
-				_end_dialogue()
-				return
-			_show_entry(_current_idx)
+			_advance()
 		"gotonormal", "gotonormalintro":
-			_switch_to_normal(action == "gotonormalintro")
+			_switch_to_normal()
 			_show_normal(entry)
 		"witches", "griefseed", "magicalgirls":
 			_show_graphic(params if params.size() > 0 else [action])
@@ -121,14 +146,12 @@ func _show_entry(idx: int) -> void:
 func _show_normal(entry: Dictionary) -> void:
 	# Hide graphic, show dialogue box
 	_graphic.visible = false
-	_graphic.modulate.a = 0.0
 	_dialogue_box.visible = true
 	_speaker_label.visible = true
 	_text_label.visible = true
 	_skip_label.visible = false
 
 	var char_name: String = entry.get("name", "")
-	# Map internal names to display names
 	match char_name:
 		"sayaka":
 			_speaker_label.text = "Sayaka Miki"
@@ -149,7 +172,7 @@ func _show_normal(entry: Dictionary) -> void:
 		_:
 			_speaker_label.text = char_name.capitalize()
 
-	# Use the dialogue index as placeholder text
+	# Placeholder text using the dialogue index
 	_text_label.text = "[%s]" % entry.get("dialogue", "?")
 
 
@@ -169,8 +192,6 @@ func _show_graphic(params: Array) -> void:
 	if ResourceLoader.exists(tex_path):
 		_graphic.texture = load(tex_path)
 		_graphic.visible = true
-		_graphic.set_anchors_preset(Control.PRESET_FULL_RECT)
-		_graphic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 
 	match trans_type:
 		"fadein":
@@ -179,7 +200,6 @@ func _show_graphic(params: Array) -> void:
 			tw.tween_property(_graphic, "modulate:a", 1.0, 1.0).set_ease(Tween.EASE_IN_OUT)
 		"shake":
 			_graphic.modulate.a = 1.0
-			# Subtle shake effect via tween
 			var orig_pos := _graphic.position
 			var tw := create_tween().set_loops(8)
 			tw.tween_property(_graphic, "position:x", orig_pos.x + 5.0, 0.05)
@@ -187,7 +207,7 @@ func _show_graphic(params: Array) -> void:
 			tw.chain().tween_property(_graphic, "position", orig_pos, 0.05)
 
 
-func _switch_to_normal(instant: bool) -> void:
+func _switch_to_normal() -> void:
 	_graphic.visible = false
 	_graphic.modulate.a = 0.0
 	_dialogue_box.visible = true
@@ -207,6 +227,9 @@ func _end_dialogue() -> void:
 
 
 func _start_song() -> void:
+	# Start the song clock now that dialogue is done
+	if _anim_player != null:
+		_anim_player.play(&"scene")
 	dialogue_finished.emit()
 	queue_free()
 
@@ -227,38 +250,41 @@ func _load_dialogue(path: String) -> void:
 
 
 func _build_ui() -> void:
-	# Full-screen overlay
+	# Full-screen black background
 	_bg = ColorRect.new()
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_bg.color = Color.BLACK
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
 
 	# Graphic screen
 	_graphic = TextureRect.new()
 	_graphic.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_graphic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_graphic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_graphic.visible = false
 	add_child(_graphic)
 
 	# Dialogue box (dark translucent bar at bottom)
-	_dialogue_box = TextureRect.new()
+	_dialogue_box = ColorRect.new()
 	_dialogue_box.position = Vector2(100, 700)
 	_dialogue_box.size = Vector2(1720, 280)
 	_dialogue_box.color = Color(0, 0, 0, 0.7)
+	_dialogue_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dialogue_box.visible = false
 	add_child(_dialogue_box)
 
 	# Speaker name
 	_speaker_label = Label.new()
-	_speaker_label.position = Vector2(150, 670)
+	_speaker_label.position = Vector2(150, 655)
 	_speaker_label.size = Vector2(600, 40)
 	_speaker_label.add_theme_font_size_override("font_size", 42)
-	_speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_speaker_label.visible = false
 	add_child(_speaker_label)
 
 	# Dialogue text
 	_text_label = Label.new()
-	_text_label.position = Vector2(150, 730)
+	_text_label.position = Vector2(150, 710)
 	_text_label.size = Vector2(1620, 200)
 	_text_label.add_theme_font_size_override("font_size", 32)
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -281,4 +307,5 @@ func _build_ui() -> void:
 	_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fade_rect.color = Color.BLACK
 	_fade_rect.modulate.a = 1.0
+	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fade_rect)
