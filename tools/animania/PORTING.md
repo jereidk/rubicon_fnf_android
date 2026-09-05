@@ -1143,6 +1143,34 @@ directions, 0xf0 MECHANIC, 0x108 ACCEPT, 0x110 BACK, 0x118 PAUSE, 0x120 RESET,
 0x160 DEBUG_CHART, 0x168 DEBUG_STAGE. Note that freeplay uses the generic UI_LEFT/UI_RIGHT
 and not `FREEPLAY_LEFT`/`FREEPLAY_RIGHT`, which exist and are for something else.
 
+### `initHeader`: the z-order is read, the positions cannot be
+
+`initHeader` (0x34cca20, lines 1428-1545) builds the top-right furniture, and it settles
+the one number that was still an admitted guess — the UI layer's z-order:
+
+```
+1428-1437  a backing panel, 0xFF000000, zIndex 50
+1440-1453  helpButton         'animania-freeplay/help',       zIndex 52, alpha 0.4
+1485-1497  charactersButtons  'animania-freeplay/characters',  zIndex 52
+1506-1512  clearBoxSprite     'bg/clearBox',                   zIndex 52
+1514-1519  completionText     AtlasText 'freeplay-clear',      zIndex 53
+1540-1545  freeplayScore                                       zIndex 54
+1521-1532  highScoreSpr       'animania-freeplay/highscore',    zIndex 55
+```
+
+Both buttons carry one 19-frame prefix that `addByIndices` splits into `idle`
+(0..17 then back to 0) and `pressed` (frame 18) — the index arrays are readable straight
+out of the `Array_obj<int>::fromData` calls. `highScoreSpr` is
+`addByPrefix('y', 'highscore small instance 1')` followed by `finish()`, so it sits on its
+last frame.
+
+**The positions are a different matter, and not for lack of trying.** `initHeader` places
+nothing by constant: every piece is positioned from `albumRoll.width`,
+`highScoreSpr.height` and a margin of **76**. Until `AlbumRoll` exists in the port — it is a
+`funkin.ui.freeplay.AlbumRoll` — those expressions cannot be evaluated, so there are no
+numbers to read. The only literal is the 76. The port's placements stay approximate and are
+marked as such in the builder, rather than dressed up as read values.
+
 ### `changeSelection` and `changeDiff`: where the score comes from
 
 `changeSelection` (0x34c8f30, lines 818-864) in order: wrap the index, **play
@@ -1568,6 +1596,20 @@ Two rules out of it:
   (`position = Vector2(0, 0)`, `text = ""`, `centered = true` on a Sprite2D) are noise; a
   missing `[node]` line is not.
 
+
+**Vendoring an asset and building a resource from it in the SAME run produces a resource
+with a dangling reference.** Three sparrow atlases were copied in and a `SpriteFrames` built
+from each in one builder run, before Godot had imported the new PNGs. The builder loaded
+them, reported the right animations, and `get_frame_texture(...).get_size()` returned the
+right sizes — and the saved `.tres` came out with `AtlasTexture` sub-resources that have a
+`region` and no `atlas` at all, because the source had no import to reference. At runtime
+that is `ERR_CANT_OPEN` and a node that is `visible = true`, has an animation, has a frame
+count, and draws nothing. Import first, then build the resource; or run the builder twice.
+
+The debugging detour is worth remembering too: the first probe tinted the sprite magenta
+and counted magenta pixels, and reported a large box in the wrong place. **The bedroom floor
+is pink.** Pick a probe colour the scene cannot contain — green here — or the scenery
+answers for you.
 
 **A builder that loads a saved resource, adds to it and saves it back will skip its own
 work** if it guards with `if has_animation(x): return`. The previous run's version is loaded

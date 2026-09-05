@@ -35,6 +35,13 @@ func _init() -> void:
 	# SpriteFrames se generan aqui para que la escena no dependa de un .tres a mano.
 	_build_frames("TVNOISE", "freeplay_tvnoise", 24.0)
 	_build_frames("TVBACK", "freeplay_tvback", 24.0)
+	# initHeader 1442-1443 y 1487-1488: los dos botones traen un unico prefijo de 19
+	# fotogramas y se parten con addByIndices en `idle` (0..17 y vuelta al 0) y `pressed`
+	# (el 18). Los indices salen de los Array_obj<int>::fromData del propio metodo.
+	_build_split_frames("help", "freeplay_help", "help button")
+	_build_split_frames("characters", "freeplay_characters", "character button")
+	# initHeader 1523: addByPrefix('y', 'highscore small instance 1'), 27 fotogramas.
+	_build_frames("highscore", "freeplay_highscore", 24.0, ".")
 
 	_root = Node2D.new()
 	_root.name = "FreeplayScreen"
@@ -218,44 +225,63 @@ func _init() -> void:
 	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
 	# were hand-added to the scene once and this builder did not know about them, so a
 	# rebuild wiped them. Anything the script resolves has to be built HERE.
+	# La capa de arriba. Los zIndex ya NO son una eleccion mia: initHeader los reparte
+	# entre 50 y 55 -el panel de fondo 50, helpButton/charactersButtons/clearBox 52,
+	# completionText 53, freeplayScore 54, highScoreSpr 55- y esos son los que van aqui.
+	#
+	# Las POSICIONES en cambio siguen siendo aproximadas, y no por dejadez: initHeader no
+	# usa constantes, coloca cada pieza a partir de `albumRoll.width`, de
+	# `highScoreSpr.height` y de un margen de 76. Mientras albumRoll no exista en el
+	# puerto -es un funkin.ui.freeplay.AlbumRoll- esas cuentas no se pueden evaluar, asi
+	# que no hay numeros que leer. Lo unico literal es el 76.
+	const HEADER_MARGIN := 76.0
 	var ui := Node2D.new()
 	ui.name = "UI"
-	# PROVISIONAL: initHeader y postHeader, que son quienes dan su zIndex a cada cosa de
-	# arriba, aun no se han leido. 50 la deja por encima de difficultyStars (35) y por
-	# debajo de selectorsGroup (100), que es donde parece caer, pero es una eleccion mia.
-	ui.z_index = 50
 	_add(ui)
-	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0")
+	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0").z_index = 54
 	var clear_box := Sprite2D.new()
 	clear_box.name = "ClearBox"
 	clear_box.texture = load("%s/bg/clearBox.png" % ART)
 	clear_box.position = Vector2(1500.0, 100.0)
 	clear_box.scale = Vector2.ONE * 0.8
+	clear_box.z_index = 52
 	ui.add_child(clear_box)
 	clear_box.owner = _root
-	_label(ui, "InfoTitle", Rect2(100.0, 30.0, 500.0, 40.0), "")
-	_label(ui, "InfoBpm", Rect2(100.0, 70.0, 500.0, 40.0), "")
-	_label(ui, "InfoDifficulty", Rect2(100.0, 110.0, 500.0, 40.0), "Normal")
-	# buildBg 1338-1341: new DifficultyStars(525, 120), zIndex 35.
+	_label(ui, "InfoTitle", Rect2(100.0, 30.0, 500.0, 40.0), "").z_index = 53
+	_label(ui, "InfoBpm", Rect2(100.0, 70.0, 500.0, 40.0), "").z_index = 53
+	_label(ui, "InfoDifficulty", Rect2(100.0, 110.0, 500.0, 40.0), "Normal").z_index = 53
+	_label(ui, "CompletionText", Rect2(1500.0, 140.0, 200.0, 40.0), "100").z_index = 53
 	var stars := Node2D.new()
 	stars.name = "DifficultyStars"
 	stars.position = Vector2(525.0, 120.0) * FUNKIN_TO_RUBICON
-	stars.z_index = 35 - 50
+	stars.z_index = 35
 	ui.add_child(stars)
 	stars.owner = _root
-	# buildBg 1319-1324: albumRoll.y = -100, albumId 'animania05', zIndex 27, y un
-	# GaussianBlurShader con amount 0.1. Su x no es constante.
 	var album := Node2D.new()
 	album.name = "AlbumRoll"
 	album.position = Vector2(0.0, -100.0 * FUNKIN_TO_RUBICON)
-	album.z_index = 27 - 50
+	album.z_index = 27
 	ui.add_child(album)
 	album.owner = _root
-	var help := Sprite2D.new()
-	help.name = "HelpButton"
-	help.position = Vector2(1800.0, 1000.0)
-	ui.add_child(help)
-	help.owner = _root
+
+	# helpButton: addByIndices idle/pressed sobre `help button`, play('idle'), finish(),
+	# zIndex 52 y alpha 0.4 (initHeader 1440-1453).
+	var help := _ui_sparrow(ui, "HelpButton", "freeplay_help",
+		Vector2(1800.0, 1000.0) - Vector2(HEADER_MARGIN, 0.0))
+	help.z_index = 52
+	help.modulate.a = 0.4
+
+	# charactersButtons: lo mismo sobre `character button` (1485-1497).
+	var chars := _ui_sparrow(ui, "CharactersButtons", "freeplay_characters",
+		Vector2(1800.0, 1000.0) - Vector2(HEADER_MARGIN * 3.0, 0.0))
+	chars.z_index = 52
+
+	# highScoreSpr: addByPrefix('y', 'highscore small instance 1') y finish(), que lo deja
+	# en el ultimo fotograma (1521-1532).
+	var score_spr := _ui_sparrow(ui, "HighScoreSpr", "freeplay_highscore",
+		Vector2(1400.0, 40.0))
+	score_spr.z_index = 55
+	score_spr.frame = score_spr.sprite_frames.get_frame_count(score_spr.animation) - 1
 
 	# buildBg 1240-1245: color 0xFF000000, alpha 0.4, zIndex 8. El puerto lo tenia opaco y
 	# el ultimo del arbol, o sea tapando el tele, los discos y el mueble entero.
@@ -292,10 +318,11 @@ func _init() -> void:
 ## Genera un SpriteFrames a partir de un sparrow vendorizado. Se reconstruye siempre, sin
 ## comprobar si ya existe: un builder que se salta su propio trabajo cuando encuentra la
 ## version anterior es la trampa de siempre.
-func _build_frames(source_name: String, basename: String, fps: float) -> void:
+func _build_frames(source_name: String, basename: String, fps: float,
+		folder: String = "bg") -> void:
 	var data := SparrowImporterSpriteData.new()
-	data.texture = load("%s/bg/%s.png" % [ART, source_name])
-	data.atlas_path = "%s/bg/%s.xml" % [ART, source_name]
+	data.texture = load("%s/%s/%s.png" % [ART, folder, source_name])
+	data.atlas_path = "%s/%s/%s.xml" % [ART, folder, source_name]
 	data.fps = fps
 	data.loop = true
 	# Igual que en build_icons.gd: sparrow.gd revienta con las duraciones puestas cuando
@@ -307,6 +334,53 @@ func _build_frames(source_name: String, basename: String, fps: float) -> void:
 	var err: int = ResourceSaver.save(frames, out)
 	print("OUT %s %s  %s" % ["frames" if err == OK else "FALLO", out,
 		str(frames.get_animation_names())])
+
+
+## Los dos botones de cabecera: un prefijo, dos animaciones sacadas por indice.
+const BUTTON_IDLE := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0]
+const BUTTON_PRESSED := [18]
+
+
+## Un sparrow dentro de la capa de arriba, parado en su primer fotograma.
+func _ui_sparrow(parent: Node, node_name: String, basename: String,
+		at: Vector2) -> AnimatedSprite2D:
+	var sprite := AnimatedSprite2D.new()
+	sprite.name = node_name
+	sprite.sprite_frames = load("%s/%s_frames.tres" % [DIR, basename])
+	sprite.animation = sprite.sprite_frames.get_animation_names()[0]
+	sprite.centered = false
+	sprite.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	sprite.position = at
+	parent.add_child(sprite)
+	sprite.owner = _root
+	return sprite
+
+
+func _build_split_frames(source_name: String, basename: String, prefix: String) -> void:
+	var data := SparrowImporterSpriteData.new()
+	data.texture = load("%s/%s.png" % [ART, source_name])
+	data.atlas_path = "%s/%s.xml" % [ART, source_name]
+	data.fps = 24.0
+	data.loop = true
+	data.use_frame_duration = false
+	var importer: SpriteImporter = load("res://addons/sprite_importer/importers/sparrow.gd").new()
+	var whole: SpriteFrames = importer.convert_sprite([data])
+	if not whole.has_animation(prefix):
+		print("OUT FALLO %s no tiene %s (%s)" % [source_name, prefix,
+			str(whole.get_animation_names())])
+		return
+	var out := SpriteFrames.new()
+	out.remove_animation(&"default")
+	for pair: Array in [["idle", BUTTON_IDLE], ["pressed", BUTTON_PRESSED]]:
+		var name := StringName(pair[0])
+		out.add_animation(name)
+		out.set_animation_speed(name, 24.0)
+		out.set_animation_loop(name, pair[0] == "idle")
+		for index: int in pair[1] as Array:
+			out.add_frame(name, whole.get_frame_texture(prefix, index))
+	var path := "%s/%s_frames.tres" % [DIR, basename]
+	print("OUT %s %s  %s" % ["frames" if ResourceSaver.save(out, path) == OK else "FALLO",
+		path, str(out.get_animation_names())])
 
 
 func _panel(node_name: String, at: Vector2, size: Vector2, color: Color) -> ColorRect:
