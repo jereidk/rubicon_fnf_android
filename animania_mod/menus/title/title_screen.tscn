@@ -102,7 +102,7 @@ animations = [{
 "speed": 24.0
 }]
 
-[node name="TitleScreen" type="Node2D" unique_id=1848842884 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
+[node name="TitleScreen" type="Node2D" unique_id=1973744643 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
 script = ExtResource("1_or7m5")
 music = NodePath("Music")
 intro_text = NodePath("IntroLayer/IntroText")
@@ -110,22 +110,23 @@ title = NodePath("Title")
 camera = NodePath("Camera2D")
 boil = SubResource("ShaderMaterial_cqkyw")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=257313472]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=809857413]
 position = Vector2(960, 540)
 
-[node name="Background" type="Sprite2D" parent="." unique_id=1203389848]
-scale = Vector2(1920, 1.728)
+[node name="Background" type="Sprite2D" parent="." unique_id=957638892]
+position = Vector2(-124.74573, -70.169495)
+scale = Vector2(2169.4915, 1.9525424)
 texture = ExtResource("4_2mloa")
 centered = false
 
-[node name="Props" type="Node2D" parent="." unique_id=15901123]
+[node name="Props" type="Node2D" parent="." unique_id=1915221254]
 script = ExtResource("5_upg6s")
 frames = ExtResource("6_majus")
 
-[node name="NonIntro" type="Node2D" parent="." unique_id=409049348]
+[node name="NonIntro" type="Node2D" parent="." unique_id=1110288490]
 visible = false
 
-[node name="FallBF" type="AnimatedSprite2D" parent="NonIntro" unique_id=520210193]
+[node name="FallBF" type="AnimatedSprite2D" parent="NonIntro" unique_id=1813291126]
 position = Vector2(89, 162.75)
 scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_kb3sh")
@@ -133,7 +134,7 @@ animation = &"bf fall"
 autoplay = "bf fall"
 centered = false
 
-[node name="FallGF" type="AnimatedSprite2D" parent="NonIntro" unique_id=1116100814]
+[node name="FallGF" type="AnimatedSprite2D" parent="NonIntro" unique_id=1337647989]
 position = Vector2(1399.75, 129)
 scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_kb3sh")
@@ -141,7 +142,7 @@ animation = &"gf fall"
 autoplay = "gf fall"
 centered = false
 
-[node name="TitleText" type="Label" parent="NonIntro" unique_id=1735023476]
+[node name="TitleText" type="Label" parent="NonIntro" unique_id=1168631469]
 offset_right = 1920.0
 offset_bottom = 76.8
 theme_override_fonts/font = ExtResource("8_sk1xt")
@@ -149,7 +150,7 @@ theme_override_font_sizes/font_size = 48
 text = "ANIMANIA!CREW"
 horizontal_alignment = 1
 
-[node name="TxtVersion" type="Label" parent="NonIntro" unique_id=1361044685]
+[node name="TxtVersion" type="Label" parent="NonIntro" unique_id=1068065467]
 modulate = Color(1, 1, 1, 0.9)
 offset_top = 15.0
 offset_right = 1905.0
@@ -159,11 +160,11 @@ theme_override_font_sizes/font_size = 24
 text = "Animania! Mod v0.6.0"
 horizontal_alignment = 2
 
-[node name="Title" type="Node2D" parent="." unique_id=1422390368]
+[node name="Title" type="Node2D" parent="." unique_id=2092194872]
 visible = false
 material = SubResource("ShaderMaterial_cqkyw")
 
-[node name="Logo" type="Node2D" parent="Title" unique_id=63837216]
+[node name="Logo" type="Node2D" parent="Title" unique_id=909031333]
 position = Vector2(291.81982, 14.461351)
 scale = Vector2(0.65733415, 0.65733415)
 script = ExtResource("10_wqfhy")
@@ -171,11 +172,11 @@ symbol = "Logolol"
 centered = false
 atlases = Array[ExtResource("11_dj81x")]([ExtResource("12_qi70p")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=476222671]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=967553629]
 libraries/ = ExtResource("13_iqntt")
 autoplay = &"logo_idle"
 
-[node name="PressEnter" type="Node2D" parent="Title" unique_id=1542952109]
+[node name="PressEnter" type="Node2D" parent="Title" unique_id=632869687]
 position = Vector2(331.5, 765)
 scale = Vector2(1.5, 1.5)
 script = ExtResource("10_wqfhy")
@@ -183,13 +184,13 @@ symbol = "main"
 centered = false
 atlases = Array[ExtResource("11_dj81x")]([ExtResource("14_2xgbg")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=1507803939]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=460390147]
 libraries/ = ExtResource("15_ofxq1")
 autoplay = &"press_enter_loop"
 
-[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=25857240]
+[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=365448165]
 
-[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=538908824]
+[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=379138411]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -202,5 +203,5 @@ theme_override_constants/outline_size = 16
 bbcode_enabled = true
 scroll_active = false
 
-[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1934405331]
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=799664631]
 stream = ExtResource("16_o48b3")

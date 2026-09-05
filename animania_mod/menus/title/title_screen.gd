@@ -254,9 +254,33 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
+	_drive_beats()
 	_update_camera(delta)
 	_bump_boil(delta)
 	_fade_music(delta)
+
+
+## beatHit (line 445) dispatches 'titleBeat' into the script on every beat, and _run_beat is
+## this port's side of that. It had no caller: commit affb218 rewrote _process and took the
+## driver with it, so the whole 31-beat intro - the BEATS table, the text spelling itself
+## out, the bars, the zoom punches - has been dead code ever since. Nothing catches that,
+## because the guard only asks whether _finish() leaves the title visible, which it does
+## whether or not a single beat ever ran. A render is what showed it: beat=0 in all six
+## frames and the text field empty.
+##
+## The clock is the music's when there is one, so the beats sit on the track rather than on
+## whatever the frame rate managed; _elapsed is the fallback for a headless run where the
+## audio device will not open.
+func _drive_beats() -> void:
+	if _done:
+		return
+	var at: float = _elapsed
+	if music != null and music.playing:
+		at = music.get_playback_position()
+	var beat: int = floori(at * BPM / 60.0)
+	while _beat < beat:
+		_beat += 1
+		_run_beat(_beat)
 
 
 func _build_particles() -> void:

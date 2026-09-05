@@ -982,6 +982,35 @@ what **'Hello there! :>'** is not: it sits beside these two in .rodata and reads
 caption, but it is the Discord presence string that goes with `'Title Screen'` through
 `changePresence` at line 137. Adjacent strings are not related strings.
 
+### What rendering the screen found that reading it did not
+
+`title_shot.gd` now takes six frames: three inside the intro, one on the finished title, and
+two inside the confirm outro. Running it caught three things the audit had not.
+
+1. **The 31-beat intro was dead code.** `_run_beat` had no caller: commit `affb218`
+   ("Fix camera lerp to only run during intro") rewrote `_process` and took the beat driver
+   with it, so the BEATS table, the text spelling itself out, the bars and the zoom punches
+   had not run since. `flow_check` never saw it, because it only asks whether `_finish()`
+   leaves the title visible — which it does whether or not a single beat ever ran. The render
+   said `beat=0` in all six frames with the text field empty. Restored, driving off the
+   music's playback position with `_elapsed` as the headless fallback.
+2. **The background did not cover the view.** The camera RESTS at 0.885, so it shows
+   `1/0.885` more world than the screen, and a gradient sized to exactly 1920x1080 left grey
+   down both edges and along the bottom. The beats only ever zoom IN from the rest, so the
+   resting zoom is the widest view there is; the gradient is sized and centred for it now.
+3. **The press-enter prompt does not draw at all**, and still does not. The builder passes
+   the symbol `"main"`, and `PRESS_ENTER`'s dictionary has no such entry — it holds
+   `export/press enter loop` and `export/press enter confirm`, the same loop/press pair
+   create() adds by symbol indices at lines 222-223. But naming the real symbol does not fix
+   it: it then draws a couple of the symbol's CHILDREN (the `pressenterglow` rings) scattered
+   at their own timeline positions instead of the assembled prompt. So it is the port's
+   Animate handling rather than a wrong constant, and `"main"` is kept until that is
+   understood — drawing nothing beats drawing fragments.
+
+The general lesson is (1): **a guard that checks a flag is not a guard that checks the
+screen.** Every constant on this screen had been read against the binary and half of them
+corrected, and the whole sequence they drive was still not running.
+
 ### Getting a font out of the executable
 
 `Blueprint.ttf` is not on disk — `assets/fonts/` does not exist in the build and

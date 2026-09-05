@@ -39,12 +39,18 @@ func _init() -> void:
 	camera.position = SCREEN * 0.5
 	_add(camera)
 
+	# The camera RESTS at 0.885 (update() line 369), so it shows 1/0.885 more world than the
+	# screen and a gradient sized to exactly 1920x1080 leaves grey down both edges and along
+	# the bottom - which is what the first render of this screen showed. The beats only ever
+	# zoom IN from there, so the resting zoom is the widest view there is.
 	var background := Sprite2D.new()
 	background.name = "Background"
 	background.texture = load("res://animania_mod/source/images/title/void gradient.png")
 	background.centered = false
 	if background.texture != null:
-		background.scale = SCREEN / background.texture.get_size()
+		var view: Vector2 = SCREEN / CAMERA_REST
+		background.scale = view / background.texture.get_size()
+		background.position = (SCREEN - view) * 0.5
 	_add(background)
 
 	# Hidden until the intro's 31 beats are spelled out.
@@ -62,6 +68,15 @@ func _init() -> void:
 	var press_at := Vector2(
 		(SCREEN.x - PRESS_DRAWN.x * FUNKIN_TO_RUBICON) * 0.5,
 		SCREEN.y - PRESS_DRAWN.y * FUNKIN_TO_RUBICON - PRESS_BOTTOM_MARGIN)
+	# KNOWN BROKEN, and the render is what showed it: the prompt does not draw at all.
+	#
+	# The symbol passed here is "main", and PRESS_ENTER's dictionary has no such entry - it
+	# holds `export/press enter loop` and `export/press enter confirm`, which is the same
+	# loop/press pair create() adds by symbol indices at lines 222-223. But naming the real
+	# symbol does not fix it either: it then draws a couple of the symbol's CHILDREN (the
+	# `pressenterglow` rings) scattered at their own timeline positions instead of the
+	# assembled rótulo. So this is the port's Animate handling, not a wrong constant, and
+	# "main" is kept until that is understood - drawing nothing beats drawing fragments.
 	_symbol(title, "PressEnter", "press_enter", &"press_enter_loop", "main",
 		FUNKIN_TO_RUBICON, press_at - PRESS_CORNER * FUNKIN_TO_RUBICON)
 
@@ -170,6 +185,8 @@ func _init() -> void:
 ## FlxG.width / 3 and the 100 are in Funkin's 1280x720; the third is a fraction of the
 ## screen either way, the 100 takes the project's 1.5x.
 const FALL_RISE := 100.0
+## title_screen.gd's CAMERA_LERP_TARGET - where update() line 369 eases the zoom to.
+const CAMERA_REST := 0.885
 
 const BLUEPRINT_FONT := "res://animania_mod/source/fonts/Blueprint.ttf"
 const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
