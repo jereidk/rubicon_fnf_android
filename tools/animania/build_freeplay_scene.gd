@@ -78,6 +78,19 @@ const DOT_IDS := ["easy", "normal", "hard"]
 ## Flixel getDarkened(f) multiplica el RGB por (1 - f). Aqui f = 0.45.
 const DOT_DARKEN := 1.0 - 0.45
 const DOT_DIM_ALPHA := 0.9
+
+## Los dos personajes del dormitorio y el SEGUNDO telefono, el del script.
+##
+## initCharacters coloca por la esquina como todo Flixel, pero un atlas de Adobe no trae
+## tamano: gdanimate lo dibuja de un arbol de simbolos. Asi que la esquina se MIDE, con
+## tools/animania/harness/measure_freeplay_chars.gd, que lo pinta y cuenta pixeles opacos.
+## Medido: bf esquina local (-6, -5) y 383x423; gf esquina local (-20, 1) y 310x383. La
+## posicion del nodo es el destino menos esa esquina.
+const GF_AT := Vector2(772.0 + 20.0, 230.0 - 1.0)     # initCharacters 1401
+const BF_AT := Vector2(500.0 + 6.0, 235.0 + 5.0)      # initCharacters 1407
+## data/scripts/states/FreeplayScreen.script, createPost: un sparrow aparte del que crea
+## initCharacters, en otro sitio y con otro zIndex, y ESTE si se enseña.
+const PHONE_CALL_AT := Vector2(1280.0 - 510.0, 300.0)
 const SCREEN := Vector2(1920.0, 1080.0)
 
 ## Funkin is 1280x720 and this project is 1920x1080. buildBg places everything against
@@ -182,6 +195,49 @@ func _init() -> void:
 	phone.visible = false            # initCharacters 1420
 	shadows.add_child(phone)
 	phone.owner = _root
+
+	# Los dos personajes del dormitorio. Ver GF_AT / BF_AT arriba para las medidas.
+	#
+	# `?` La SKIN es una eleccion, no una lectura: initCharacters construye los dos con
+	# 'none' y el unico changeCharacter de la clase pasa tambien 'none', asi que quien
+	# pone una de verdad es el selector de personajes del juego base a traves de
+	# rememberedCharacterId, y de un guardado que este proyecto no tiene. Se usa
+	# bf-animania / gf-animania, que son las del mod. Con guardado, esto se cambia aqui.
+	for who: Array in [["Girlfriend", "freeplay_gf", GF_AT, 4],
+			["Player2", "freeplay_bf", BF_AT, 5]]:
+		var sym := AnimateSymbol.new()
+		sym.name = who[0] as String
+		sym.atlases = [load("%s/%s_atlas.tres" % [DIR, who[1]])] as Array[AnimateAtlas]
+		sym.position = (who[2] as Vector2) * FUNKIN_TO_RUBICON
+		sym.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		sym.z_index = who[3] as int
+		sym.z_as_relative = false
+		shadows.add_child(sym)
+		sym.owner = _root
+		var anims := AnimationPlayer.new()
+		anims.name = "Anims"
+		anims.add_animation_library(&"", load("%s/%s_library.tres" % [DIR, who[1]]))
+		sym.add_child(anims)
+		anims.owner = _root
+		anims.root_node = anims.get_path_to(sym)
+		anims.autoplay = "%s_idle" % who[1]
+
+	# El telefono del script (createPost). No es el currentPhone de initCharacters: es un
+	# sparrow distinto, en (FlxG.width - 510, 300) y con zIndex 5, y su animacion 'y' NO
+	# hace bucle. Nace invisible y onChangeSelection lo enseña con phone-call.
+	var call_phone := AnimatedSprite2D.new()
+	call_phone.name = "PhoneCallPhone"
+	call_phone.sprite_frames = load("%s/freeplay_phone_frames.tres" % DIR)
+	call_phone.animation = call_phone.sprite_frames.get_animation_names()[0]
+	call_phone.sprite_frames.set_animation_loop(call_phone.animation, false)
+	call_phone.centered = false
+	call_phone.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	call_phone.position = PHONE_CALL_AT * FUNKIN_TO_RUBICON
+	call_phone.z_index = 5
+	call_phone.z_as_relative = false
+	call_phone.visible = false
+	shadows.add_child(call_phone)
+	call_phone.owner = _root
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
 	# earlier, and the TV's placement is not a constant at all - it is created through

@@ -788,6 +788,9 @@ func _update_data_stuff(_force: bool) -> void:
 		kick.tween_property(tv_noise_forward, "modulate:a", NOISE_REST, NOISE_SETTLE) \
 			.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
+	# El gancho del script del mod. Ver _on_change_selection.
+	_on_change_selection(song)
+
 	# Lineas 1114-1115: los puntos de dificultad. setDots deja visibles solo los ids que
 	# la cancion trae, y set_curDiff enciende el de la dificultad actual.
 	_set_dots()
@@ -799,6 +802,44 @@ func _update_data_stuff(_force: bool) -> void:
 		var fade: Tween = create_tween()
 		fade.tween_property(bossfight_skull, "modulate:a", 1.0 if boss else 0.0,
 			SKULL_FADE).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
+## ─── onChangeSelection, de data/scripts/states/FreeplayScreen.script ───────
+## Esta pantalla NO es solo la clase compilada: el mod le cuelga un HScript, y ahi estan
+## dos cosas que el binario no cuenta.
+##
+## La primera corrige lo que documente al portear initCharacters. Yo escribi que el
+## telefono se crea invisible y que "quien lo enseñe esta fuera de esta pantalla". Estaba
+## fuera, si: en `createPost` del script, que crea un SEGUNDO telefono, distinto del
+## currentPhone del binario -otro sitio, (FlxG.width - 510, 300) contra
+## (FlxG.width - 517.6, 265.9), y zIndex 5 contra 6- con la misma animacion pero SIN
+## bucle. El currentPhone de initCharacters sigue sin que nadie lo enseñe; el que se ve
+## es este. Y se ve con phone-call, que es una de las cuatro canciones del puerto, asi
+## que esto si se alcanza.
+##
+## La segunda es winter-horrorland: pausa las animaciones de los dos personajes, enseña
+## sus `censureBlock` y sube un shader Glitch2 a 0.0125 en 1.5 s con circOut. Nada de eso
+## se portea porque esa cancion no esta aqui, y el shader tampoco.
+##
+## `?` En el mod el telefono NO aparece al elegir la cancion: aparece dentro de
+## `currentPlayer.onPopCallback`, o sea cuando el personaje hace su animacion de salto, y
+## ese callback tambien llama a checkBed("none"). El callback es del subsistema de
+## personajes, que no esta porteado, asi que aqui se enseña al elegir. Es una diferencia
+## de MOMENTO, no de contenido, y va dicha.
+func _on_change_selection(song: Dictionary) -> void:
+	# El script se sale entero si el intro no ha terminado.
+	if not tv_intro_done:
+		return
+	var phone := get_node_or_null("ShadowsOnBed/PhoneCallPhone") as AnimatedSprite2D
+	if phone == null:
+		return
+	if String(song.get("id", "")) == "phone-call":
+		phone.visible = true
+		phone.frame = 0
+		phone.play()
+		_check_bed("none")
+	else:
+		phone.visible = false
 
 
 ## setDots (0x4092250, lineas 64-80) y set_curDiff (0x4091910, 25-29) juntos: cual se ve
@@ -1136,17 +1177,47 @@ func _update_song_info() -> void:
 
 ## ─── _update_score_for_selection ─────────────────────────────────────────────
 
+## updateDataStuff lineas 1090-1092:
+##
+##   var save = <guardado>.getSongScore(<cancion>, currentDifficulty);
+##   score      = save.score;
+##   completion = (save.tallies.good + save.tallies.sick) / save.tallies.totalNotes;
+##
+## Los dos `asDouble` que se suman son good y sick, el tercero es totalNotes y el `divsd`
+## esta en 0x34c657f. El porcentaje es una fraccion de 0 a 1; el *100 lo hace _drive_score
+## al pintarlo, no esto.
+##
+## `?` De donde sale ese guardado NO se portea, y es un hueco de verdad, no un descuido:
+## getSongScore lee el Save del juego base y este proyecto no tiene guardado ninguno -ni
+## el mod portado ni Rubicon-, y el menu de historia tambien deja su marcador a 0. La
+## formula queda escrita y aislada en _completion_of para que el dia que haya guardado
+## esto sea una linea, no una reconstruccion.
 func _update_score_for_selection() -> void:
 	if cur_selected < 0 or cur_selected >= current_filtered_songs.size():
 		return
-	# Score would be loaded from a save file in the full mod.
-	# For now, set to 0.
-	intended_score = 0
-	intended_completion = 0.0
+	var record: Dictionary = _song_score(
+		String(current_filtered_songs[cur_selected].get("id", "")), current_difficulty)
+	intended_score = int(record.get("score", 0))
+	intended_completion = _completion_of(record)
 	prev_displayed_score = 0
 	prev_displayed_completion = 0.0
 	lerp_score = 0.0
 	lerp_completion = 0.0
+
+
+## El getSongScore de la linea 1090. Sin guardado devuelve vacio, que es lo mismo que
+## devuelve el mod cuando la cancion no se ha jugado.
+func _song_score(_song_id: String, _difficulty: int) -> Dictionary:
+	return {}
+
+
+## Linea 1092. Aislada porque es lo unico de este bloque que esta leido del binario.
+func _completion_of(record: Dictionary) -> float:
+	var tallies: Dictionary = record.get("tallies", {}) as Dictionary
+	var total: float = float(tallies.get("totalNotes", 0))
+	if total <= 0.0:
+		return 0.0
+	return (float(tallies.get("good", 0)) + float(tallies.get("sick", 0))) / total
 
 
 ## ─── generateDisksList (0x34d4070, lineas 508-553) ─────────────────────────

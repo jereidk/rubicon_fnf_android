@@ -2106,6 +2106,10 @@ of `ShadowsOnBed`. It is created invisible and nothing else in `FreeplayScreen` 
 — `initCharacters` is the only method in the class that reads field 0x198, checked across
 every method of the class — so whatever shows it lives outside this screen.
 
+**And it does. See 8h: the thing that shows a phone is a *different* phone**, created by
+the screen's HScript at a different position with a different zIndex. `currentPhone` is
+still never shown by anything.
+
 **The two characters are not ported, and that is a decision.** `CharPlayer` and
 `CharGirlfriend` are not the mod's classes at all: they are
 `funkin::ui::freeplay::charSelect::`, from the base game, carrying `loadCharacter`,
@@ -2287,6 +2291,95 @@ almost never in the one you are reading.
 - **The bossfight skull.** `BossfightSkull` is not in the scene, so `bossfight_skull` is
   null; the ported code guards for it. None of the port's four songs is a boss fight, so
   only the fade-out branch would run today anyway.
+
+
+## 8h. The HScript layer, which the disassembly does not contain
+
+`assets/data/scripts/states/FreeplayScreen.script` — 103 lines of HScript the mod hangs off
+this screen. **Read it before concluding anything about what freeplay does.** The compiled
+class dispatches events (`onSongPreview`, `onChangeTheme`, `onUpdateDataStuff`, `onExit`…)
+and this file is what listens to them, so behaviour that is simply absent from the
+disassembly lives here in plain source.
+
+It corrected something I had written down as a finding. Porting `initCharacters` I noted
+that `currentPhone` is created invisible and that "whatever shows it lives outside this
+screen". It does — and it is **not that sprite**. `createPost` builds a *second* phone:
+
+| | `initCharacters` | the script's `createPost` |
+|---|---|---|
+| position | `FlxG.width - 517.6, 265.9` | `FlxG.width - 510, 300` |
+| zIndex | 6 | 5 |
+| animation | `'switch'` from `Phone fall`, 24 | `'y'` from `Phone fall`, 24, **not looping** |
+| ever shown | no | yes, on `phone-call` |
+
+Same atlas, different sprite, and the visible one is the script's. `currentPhone` really is
+never shown by anything. Both are in the port now.
+
+`onChangeSelection(songData)` returns immediately unless `tvIntroDone`, then:
+
+- **`phone-call`** → the phone becomes visible and replays, `checkBed("none")`, and both
+  characters get `alpha = 1` and play `switch`.
+- **`winter-horrorland`** → a `Glitch2` shader ramps to 0.0125 over 1.5 s (circOut), the
+  characters' atlas animations pause and their `censureBlock`s show. Not ported: the port
+  has no winter-horrorland and no Glitch2.
+- anything else → the phone hides and the glitch ramps back to 0 over 0.25 s (circIn).
+
+`onExit` removes the shader and resumes the paused animations.
+
+`?` In the mod the phone appears inside `currentPlayer.onPopCallback` — when the character
+plays its pop animation — not on selection. That callback belongs to the character
+subsystem, so the port shows it on selection instead. A difference of *timing*, not of
+content.
+
+
+## 8i. The two freeplay characters
+
+Ported, with one measurement and one choice.
+
+The atlases are `skinSelector/bf/bf-animania` and `gf/gf-animania`, Adobe Animate
+(`Animation.json` + spritemap), converted by the existing
+`tools/animania/build_adobe_character.gd`. An Adobe atlas has no authored size — gdanimate
+draws it out of a symbol tree — so the drawn corner has to be **measured**, which
+`tools/animania/harness/measure_freeplay_chars.gd` does by rendering and counting opaque
+pixels:
+
+| | local corner | drawn size | placed at (mod) |
+|---|---|---|---|
+| bf | (-6, -5) | 383×423 | 500, 235 → node at 506, 240 |
+| gf | (-20, 1) | 310×383 | 772, 230 → node at 792, 229 |
+
+Flixel places by the corner, so the node position is the target minus that corner.
+
+**The skin is a choice, not a reading.** `initCharacters` builds both with `'none'` and the
+only `changeCharacter` in the class also passes `'none'`; the real skin comes from the base
+game's character select through `rememberedCharacterId`, out of a save this project does
+not have. The port uses `bf-animania` / `gf-animania`, which are the mod's own. When a save
+exists, this changes in one place in the builder.
+
+### A blurred layer that had to come out
+
+bf's atlas has one layer, `Слой_11`, holding a single instance called `add` —
+`symbols/green light`, the television's reflection on him — carrying an Animate **blur
+filter of 89×89**. gdanimate applies neither Animate's filters nor its blend modes, so that
+layer rendered as a hard, fully opaque green ellipse stuck to his face. gf's atlas has no
+filtered layer at all.
+
+Drawing it wrong is further from the mod's look than not drawing it, so it comes out —
+through `tools/animania/drop_adobe_layer.py`, which does it on the vendored copy, leaves a
+`_porteo` note inside the JSON saying which layer went and why, and drops the derived
+`animation_cache.res`. Run it with `--list` first: it prints every layer and marks the ones
+carrying filters. Nothing in the mod build is touched.
+
+### Two traps worth remembering
+
+- **`build_adobe_character.gd` names animations `<basename>_<name>`, not `<name>`.** Asking
+  an `AnimationPlayer` for `&"idle"` does not fail loudly: `AnimateSymbol` still draws its
+  default symbol, so gf measured fine and bf came back "nothing drawn", which reads like a
+  broken atlas rather than a wrong animation name.
+- **A GDScript error inside a `SceneTree`'s `_initialize` hangs Godot.** The error prints,
+  `quit()` is never reached, and the process idles until something kills it. If a headless
+  script "hangs", look for a script error before suspecting the resource — and never pipe
+  its output through `grep` while diagnosing, because that hides the error that explains it.
 
 
 ## 8b. Adding a song, for real
