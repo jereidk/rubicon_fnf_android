@@ -849,9 +849,36 @@ Read against the port:
 - `seenIntro` is a **static** (0x7fa8008), set by playIntro and read by playMusic, so the
   intro plays once per RUN and is skipped afterwards.
 
+**The confirm is an outro, not a scene change.** `update`'s back half, lines 404-439:
+
+    404  pressEnterText.animation.play('press');
+    405  FlxG.camera.flash(<colour>, 0.75);
+    407  FunkinSound.playOnce(Paths.sound('confirmMenu'), 0.7);
+         transition = true;                                   // field 0xd1
+    410  FlxTween.tween(<a>, {y: <a>.y + 600}, 1.8, {ease: cubeIn});
+    416  new FlxTimer().start(0.5, ...);
+    420  var r0 = FlxG.random.float(0.25, 1.75);   // and r1, r2 the same
+    424  FlxTween.num(0, 1, 1.8, {ease: cubeIn}, <the driver at 0x2b213a0>);
+    434  FlxTween.tween(<b>, {y: <b>.y - 100}, ..., {ease: cubeIn});
+    439  moveToMain();
+
+That `FlxTween.num(0, 1, 1.8)` is the outro's progress, and its driver (line 427) runs one
+formula three times, once per random: a `pow` curve keyed on `1.5 * progress` against 0.75,
+times **1400**, times that sprite's own random — the three title pieces are flung off screen
+at different speeds. The three are `fallBF`, `fallGF` and `logoTV`. And the progress is the
+same `lerpOutroFactor` that weights the scrollAngle lerp, so the camera swings from its
+wobble to `outroAngle` across the same 1.8s. `outroAngle` and the factor are reset together
+at 0x2b254b4: the factor to 0, the angle to `FlxG.random.int(-10, 0) * 2` — the
+`add %eax,%eax` after the call is the doubling, so it lands between 0 and -20 degrees, rolled
+per visit.
+
+Ported: the press animation, the 0.75s flash, the sound at 0.7, the camera swing, and the
+1.8s before the scene changes — this port used to jump straight to the menu. Written down
+rather than faked: the three-way 1400px fling, because this scene has one Logo where the mod
+has three sprites, and building them is `create()`'s job.
+
 Still unread on this screen: `create()` (0x30e7 bytes — the layout), `cheatCodeShit` /
-`codePress` (the easter egg), `updateProps`, `destroy`, and the back half of `update` (the
-confirm branch at lines 404-439).
+`codePress` (the easter egg), `updateProps`, and `destroy`.
 
 ---
 

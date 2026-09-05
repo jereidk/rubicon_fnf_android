@@ -63,6 +63,18 @@ func _init() -> void:
 
 	title._elapsed = title._ready_at + 1.0
 	title.confirm()
+	await process_frame
+	# update()'s confirm branch is a second and eight tenths of animation before moveToMain:
+	# the press animation, the 0.75s flash, confirmMenu, and FlxTween.num(0, 1, 1.8) swinging
+	# the camera to outroAngle. So a frame after the press nothing has changed yet.
+	_check(current_scene == title, "el confirm salto la salida de %.1fs" % title.OUTRO_SECONDS)
+	_check(title._lerp_outro_factor >= 0.0 and title._lerp_outro_factor < 1.0,
+		"el factor de salida no arranco en 0, esta en %.2f" % title._lerp_outro_factor)
+	# Wall clock: the outro rides a SceneTreeTimer and headless runs frames faster than it.
+	var outro_until: int = Time.get_ticks_msec() + 3000
+	while is_instance_valid(title) and current_scene == title \
+			and Time.get_ticks_msec() < outro_until:
+		await process_frame
 	for i: int in 6:
 		await process_frame
 

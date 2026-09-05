@@ -162,6 +162,7 @@ var _intro_sound_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
+	_outro_angle = float(randi_range(-10, 0) * 2)
 	title.visible = false
 	intro_text.visible = false
 	intro_text.text = ""
@@ -281,9 +282,10 @@ func _update_camera(delta: float) -> void:
 	camera.rotation = deg_to_rad(lerpf(wobble, _outro_angle, _lerp_outro_factor))
 
 
-## `outroAngle` (0x160, an Int) and `lerpOutroFactor` (0x158). The outro is not ported, so
-## the factor stays at 0 and the angle never gets to matter - but they are named here so the
-## line above reads as the mod's rather than as an invented sine.
+## `outroAngle` (0x160, an Int) and `lerpOutroFactor` (0x158), reset together at 0x2b254b4:
+## the factor to 0 and the angle to `FlxG.random.int(-10, 0) * 2` - the `add %eax,%eax` right
+## after the call is the doubling. So the camera swings to somewhere between 0 and -20 degrees
+## on the way out, and which one is rolled per visit.
 var _outro_angle: float = 0.0
 var _lerp_outro_factor: float = 0.0
 
@@ -472,10 +474,66 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## moveToMain. The deaf window prevents the skip keystroke from also confirming.
+## update()'s confirm branch, lines 404-439, which this port jumped straight past:
+##
+##     404  pressEnterText.animation.play('press');
+##     405  FlxG.camera.flash(<colour>, 0.75);
+##     407  FunkinSound.playOnce(Paths.sound('confirmMenu'), 0.7);
+##          transition = true;                                   // field 0xd1
+##     410  FlxTween.tween(<a>, {y: <a>.y + 600}, 1.8, {ease: cubeIn});
+##     416  new FlxTimer().start(0.5, ...);
+##     420  var r0 = FlxG.random.float(0.25, 1.75);   // and r1, r2 the same
+##     424  FlxTween.num(0, 1, 1.8, {ease: cubeIn}, <the driver at 0x2b213a0>);
+##     434  FlxTween.tween(<b>, {y: <b>.y - 100}, ..., {ease: cubeIn});
+##     439  moveToMain();
+##
+## So confirming is a second and eight tenths of animation, not a scene change. The driver
+## closure (line 427) runs one formula three times, once per random: a `pow` curve keyed on
+## `1.5 * progress` against 0.75, times **1400**, times that sprite's random - the three
+## title pieces are flung off screen at different speeds. Those three are `fallBF`, `fallGF`
+## and `logoTV` from the field list, and this scene has only a Logo, so the fling is written
+## down rather than faked; it needs create() read and the sprites built first.
+##
+## What IS ported is the shape: the press animation, the flash, the sound, the camera swing,
+## and the 1.8s before the scene changes.
+const OUTRO_SECONDS := 1.8
+const CONFIRM_FLASH := 0.75
+## The three flung pieces travel up to 1400 scaled by their own FlxG.random.float(0.25, 1.75).
+const OUTRO_THROW := 1400.0
+const OUTRO_SPREAD := Vector2(0.25, 1.75)
+
+
 func confirm() -> void:
 	if _confirmed or not _done or _elapsed < _ready_at:
 		return
 	_confirmed = true
+
+	var press: Node = title.get_node_or_null(^"PressEnter") if title != null else null
+	if press != null:
+		var player: AnimationPlayer = press.get_node_or_null(^"AnimationPlayer")
+		if player != null and player.has_animation(&"press"):
+			player.play(&"press")
+
+	if _flash_rect != null:
+		if _flash_tween != null and _flash_tween.is_valid():
+			_flash_tween.kill()
+		_flash_rect.modulate.a = 1.0
+		_flash_tween = create_tween()
+		_flash_tween.tween_property(_flash_rect, "modulate:a", 0.0, CONFIRM_FLASH)
+
+	if ResourceLoader.exists(CONFIRM_SOUND_PATH):
+		_confirm_player.stream = load(CONFIRM_SOUND_PATH)
+		_confirm_player.volume_db = linear_to_db(CONFIRM_VOLUME)
+		_confirm_player.play()
+
+	# FlxTween.num(0, 1, 1.8, {ease: cubeIn}) - the progress the whole outro reads, and the
+	# weight that swings the camera from its wobble to outroAngle.
+	var outro := create_tween()
+	outro.tween_property(self, "_lerp_outro_factor", 1.0, OUTRO_SECONDS) 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+
+	await get_tree().create_timer(OUTRO_SECONDS).timeout
+	if not is_inside_tree():
+		return
 	if music != null:
 		music.stop()
 	get_tree().change_scene_to_file(NEXT_SCENE)
