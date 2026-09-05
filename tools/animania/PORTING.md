@@ -1129,10 +1129,31 @@ The packer picks its rows by trying every `per_row` that keeps both sides under 
 GLES3 limit on Android) and taking the smallest area: for 86 equal tiles, 22×4 wastes two
 slots where the square-ish 19×5 wastes nine. That is 90% → 97% occupancy for free.
 
+**On disk is a different problem from in GPU, and it has different answers.** Getting both
+files under 5 MB took two more things, neither of which touches GPU memory at all:
+
+- **Colour depth.** Lanczos leaves 1.26 million distinct colours where the source art had
+  fairly flat bands, and that is what inflates the PNG: compressed on their own the three
+  colour channels cost 3.5-3.8 MB each and the alpha channel 0.06 MB. Quantising to **64
+  levels per channel** takes TVBACK from 7.8 MB to 4.4 MB for 1.8 dB, with no banding
+  visible in a side-by-side of the gradient areas (5 bits does start to eat the faint
+  speckle). Reconstruct to the middle of the step, not its floor, or the whole image
+  darkens by half a level. Compared against the alternative at equal file size - dropping
+  to 122×721 at full colour depth - quantising wins, 43.1 dB against about 42.7, and it
+  keeps the resolution where the band edges live.
+- **Not widening the mode.** TVNOISE is `LA` (grey + alpha) and the first version of this
+  tool did `Image.open(...).convert("RGBA")`, doubling it on disk without adding one colour.
+  Preserving the source mode alone took it from 4.19 MB to 2.55 MB.
+
+Final: TVBACK 3697×2889, **4.43 MB** on disk and 3.94 MB as `.ctex`; TVNOISE 1497×1813 LA,
+**2.55 MB** and 2.06 MB. In GPU they are still 40.7 and 10.4 MB, because that is set by
+pixel count and import mode, not by how well the file compresses.
+
 One lever deliberately NOT pulled: every texture in this project imports with
 `compress/mode=0` (lossless), so these two sit in GPU memory as RGBA8. Switching them to
-VRAM compression would be another ~4×, but that is a project-wide convention across 341
-textures and a quality decision of its own, not something to change inside an asset fix.
+VRAM compression would be another ~4× **in GPU**, but that is a project-wide convention
+across 341 textures and a quality decision of its own, not something to change inside an
+asset fix.
 
 ### Getting a font out of the executable
 
@@ -1489,7 +1510,8 @@ The phone-call pipeline is bespoke, so this is the shape rather than a script:
 - **Texture budget is a real constraint.** The device already runs the song at 41 fps. A
   5492×8192 RGBA atlas is ~180 MB uncompressed — freeplay's `TVBACK`/`TVNOISE` were left out
   for exactly this reason. Check atlas dimensions *before* vendoring. Both have since been
-  cut down and vendored: see below.
+  cut down and vendored: see below. And note the three numbers are independent — pixels in
+  GPU, bytes on disk, bytes in the APK — so say which one a budget is about.
 
 ---
 

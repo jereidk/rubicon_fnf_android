@@ -22,7 +22,7 @@ mirar de qué está hecho cada uno:
 Uso:
 
     python3 tools/animania/optimize_atlas.py ENTRADA.png SALIDA.png \\
-        [--scale-x F] [--scale-y F] [--frames N] [--no-dedupe]
+        [--scale-x F] [--scale-y F] [--frames N] [--bits N] [--no-dedupe]
 
 El xml se lee y se escribe junto al png. Con --frames N se queda con N fotogramas
 repartidos por toda la secuencia (para ruido, donde el orden da igual) y renumera.
@@ -48,13 +48,20 @@ MAX_SIDE = 4096
 
 
 def read_atlas(png: Path):
-    """Devuelve (imagen, [ {name,x,y,width,height,...} ]) de un Sparrow."""
+    """Devuelve (imagen, [ {name,x,y,width,height,...} ]) de un Sparrow.
+
+    El modo se respeta: TVNOISE viene en LA (gris + alfa) y convertirlo a RGBA
+    duplicaba su peso en disco sin anadir un solo color.
+    """
     xml = png.with_suffix(".xml")
     root = ET.fromstring(xml.read_text(encoding="utf-8", errors="replace"))
     frames = [dict(node.attrib) for node in root.iter("SubTexture")]
     if not frames:
         sys.exit("%s no tiene SubTexture" % xml)
-    return Image.open(png).convert("RGBA"), frames
+    image = Image.open(png)
+    if image.mode not in ("RGBA", "LA"):
+        image = image.convert("RGBA")
+    return image, frames
 
 
 def cut(image, frame):
@@ -77,6 +84,27 @@ def resize(tile, scale_x, scale_y):
     if (w, h) == tile.size:
         return tile
     return tile.resize((w, h), Image.LANCZOS)
+
+
+def quantize(image, bits):
+    """Recorta la profundidad de color dejando el alfa intacto.
+
+    El remuestreo de Lanczos deja 1.26 millones de colores distintos donde el arte
+    original tenia bandas bastante planas, y eso es lo que hincha el PNG: los tres
+    canales de color cuestan 3.5-3.8 MB cada uno comprimidos por separado y el alfa
+    solo 0.06 MB. A 64 niveles por canal el PNG baja de 7.8 a 4.4 MB y se pierden
+    1.8 dB, sin banding visible. Se reconstruye al centro del escalon para no
+    oscurecer la imagen entera medio nivel.
+    """
+    if bits >= 8:
+        return image
+    a = np.asarray(image).astype(np.uint8).copy()
+    step = 1 << (8 - bits)
+    channels = 3 if image.mode == "RGBA" else 1
+    a[..., :channels] = np.clip(
+        (a[..., :channels].astype(np.uint16) // step) * step + step // 2,
+        0, 255).astype(np.uint8)
+    return Image.fromarray(a, image.mode)
 
 
 def pack(tiles, padding=1):
@@ -120,7 +148,8 @@ def pack(tiles, padding=1):
         row_height = max(row_height, tile.height)
     height = y + row_height + padding
 
-    sheet = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    mode = tiles[0].mode
+    sheet = Image.new(mode, (width, height), (0,) * len(mode))
     for tile, (px, py) in zip(tiles, places):
         sheet.paste(tile, (px, py))
     return sheet, places
@@ -134,8 +163,9 @@ def psnr(reference, test):
 
 
 def over_black(image):
+    rgba = image.convert("RGBA")
     return Image.alpha_composite(
-        Image.new("RGBA", image.size, (0, 0, 0, 255)), image).convert("RGB")
+        Image.new("RGBA", rgba.size, (0, 0, 0, 255)), rgba).convert("RGB")
 
 
 def report(image, frames, candidates):
@@ -168,14 +198,17 @@ def main():
     parser.add_argument("--frames", type=int, default=0,
                         help="quedarse con N fotogramas repartidos por la secuencia")
     parser.add_argument("--no-dedupe", action="store_true")
+    parser.add_argument("--bits", type=int, default=8,
+                        help="niveles por canal de color, 8 = sin tocar")
     parser.add_argument("--report", action="store_true",
                         help="solo medir, sin escribir nada")
     args = parser.parse_args()
 
     image, frames = read_atlas(args.source)
     before = image.width * image.height * 4 / 1048576
-    print("entrada  %s  %dx%d  %d fotogramas  %.1f MB RGBA"
-          % (args.source.name, image.width, image.height, len(frames), before))
+    print("entrada  %s  %dx%d %s  %d fotogramas  %.1f MB RGBA en GPU  %.2f MB en disco"
+          % (args.source.name, image.width, image.height, image.mode, len(frames),
+             before, args.source.stat().st_size / 1048576))
 
     if args.report:
         report(image, frames, [(1.0, 1.0), (0.5, 0.5), (0.25, 1.0),
@@ -210,8 +243,9 @@ def main():
         print("  regiones %d -> %d tras deduplicar" % (len(kept), len(tiles)))
 
     sheet, places = pack(tiles)
+    sheet = quantize(sheet, args.bits)
     args.target.parent.mkdir(parents=True, exist_ok=True)
-    sheet.save(args.target)
+    sheet.save(args.target, optimize=True)
 
     root = ET.Element("TextureAtlas", {"imagePath": args.target.name})
     prefix = re.sub(r"\d+$", "", kept[0]["name"])
@@ -230,9 +264,11 @@ def main():
 
     after = sheet.width * sheet.height * 4 / 1048576
     used = sum(t.width * t.height for t in tiles)
-    print("salida   %s  %dx%d  %d fotogramas  %.1f MB RGBA  (%.1fx menos, %.0f%% ocupado)"
+    print("salida   %s  %dx%d  %d fotogramas  %.1f MB RGBA en GPU  %.2f MB en disco"
           % (args.target.name, sheet.width, sheet.height, len(kept), after,
-             before / after, 100.0 * used / (sheet.width * sheet.height)))
+             args.target.stat().st_size / 1048576))
+    print("         %.1fx menos memoria, %.0f%% de la hoja ocupada, %d niveles por canal"
+          % (before / after, 100.0 * used / (sheet.width * sheet.height), 1 << args.bits))
 
 
 if __name__ == "__main__":
