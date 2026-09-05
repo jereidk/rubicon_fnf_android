@@ -505,6 +505,46 @@ button under the padlock** to `0xFFAAAAAA` before adding the lock (0x1806989), a
 `musicSocialPlayAnim` is the method that chooses the OST disc's state — calling it from
 `finalizeSetup`, as this port did, leaves the disc looking permanently hovered.
 
+### `__GetFields` names every field, and that settles arguments
+
+Chasing `this->0x120` one cross-reference at a time is the slow way. `MainMenuScreen_obj::
+__GetFields(Array<String>&)` pushes every member NAME as a string literal, in declaration
+order, and hxcpp lays the POINTER fields out first, contiguously, 8 bytes apart. So one
+known offset anchors the whole block:
+
+    python3 raw.py <__GetFields start> <end> | grep -oE "S='[^']*'"
+
+For `MainMenuScreen` that gives `background, waveform, barsViz, buttonsBg, menuDude,
+menuButtons, menuButtonsUI, locks, blackLineUp, blackLineDown, newsButton, musicSocial,
+musicSocialLines, musicSocialButtons, mouseEvents, seasonalEmitter, colorShader, rainShader,
+debugMenuCamera`, then the bools, a String, three sounds, three more bools, and two objects.
+`rainShader` was already known to be 0x158 from `updateSeasonalEffects`, so the base is 0xD0
+and the rest falls out:
+
+    0xd0 background      0xd8 waveform        0xe0 barsViz        0xe8 buttonsBg
+    0xf0 menuDude        0xf8 menuButtons     0x100 menuButtonsUI 0x108 locks
+    0x110 blackLineUp    0x118 blackLineDown  0x120 newsButton    0x128 musicSocial
+    0x130 musicSocialLines  0x138 musicSocialButtons  0x140 mouseEvents
+    0x148 seasonalEmitter   0x150 colorShader          0x158 rainShader
+    0x160 debugMenuCamera   0x168 canChange   0x169 transitioning 0x16a overMusic
+    0x170 currentSeason (String, 16 bytes)
+    0x180 gokMoveSound   0x188 bassSound      0x190 musicLayerSound
+    0x198 allowToUseNewsButton  0x199 allowToUseMusicSocial  0x19a toogleMusicSocialButtons
+    0x1a0 musicFilter    0x1a8 imLowkeyWannaPlayManager
+
+Two independent confirmations fall straight out: `handleInput` reads 0x160 for the
+`DebugMenuSubState`'s camera, and `createNewsButton` writes 0x120. And the joke name at
+0x1a8 explains the dead branch — `imLowkeyWannaPlayManager` is a dev door nobody wired up.
+
+**It also corrected a finding from the previous pass.** `doSelect` line 889 fades out field
+0x190, which is `musicLayerSound` — the extra stem — not the menu music. And
+`updateSeasonalEffects` line 750 does `musicLayerSound.volume = FlxG.sound.music.volume`
+every frame, unconditionally (0x17fd129, `set_volume` through vtable 0x1b8). Flixel updates
+`FlxG.plugins` — where the tween managers live — BEFORE the state, so that per-frame
+assignment lands after the tween's and wins it every frame: **the fade never reaches the
+speakers in this build.** The port had briefly been made to fade its menu music on select,
+which is louder than anything the mod does. Reverted.
+
 ### Auditing "it is all there" against the binary
 
 "Everything is added" and "everything is added right" are different claims, and the second
@@ -585,6 +625,40 @@ order), `changePresence` (vtable 0x388, Discord Rich Presence off `RANDOM_MESSAG
 0x7e568b0), a `ManagerPlayState` behind a field at 0x1a8 that is **only ever written false**
 (0x17fe8bd, 0x180c8da, 0x180ef84 — nothing in the binary sets it true), and
 `DebugMenuSubState` on the DEBUG_MENU action. The last two are dev doors.
+
+**The per-frame trio and the OST widget.** `update` (0x1812a70) is six calls and no
+conditions at all — `super.update`, `musicFilter.update`, `updateSeasonalEffects`,
+`updateCameraZoom`, `updateButtonsAnimation`, `handleInput`, `updateCameraScroll` — every
+frame, with the gating living inside `handleInput`. `updateCameraScroll` (0x1804ac0) matched
+the port number for number: `remapToRange(mouse.x, 0, FlxG.width, -10, 3)` and
+`(mouse.y, 0, FlxG.height, -1, 1)`, lerped by `elapsed * 3`. `updateSeasonalEffects`
+(0x17fd030) is the rain shader plus the volume line above. No numeric defects in any of
+them.
+
+One divergence stays on purpose: this port's `_process` hands the camera to `_advance_intro`
+/ `_advance_exit` alone and skips the zoom decay, the scroll and the beat while either runs.
+The mod runs all of them alongside its tweens, and because the state updates after the
+plugins its per-frame easing takes the last five to ten percent of each frame off the
+tween's value. That is a slightly different settle curve, not a different shape, and it is
+not worth restructuring the camera's ownership on a framerate-dependent guess.
+
+`toggleSocialButtons` (0x17fcd00) and its two halves were the real find here, because the
+port had them as a `visible` flip:
+
+    634  if (toogleMusicSocialButtons) showSocialButtons(onDone) else hideSocialButtons(onDone);
+    647  FlxTween.tween(newsButton.<0x160>, {x: 500}, 0.7, {ease: cubeIn});    // opening
+         FlxTween.tween(newsButton.<0x160>, {x: 0},   1.3, {ease: cubeOut});  // closing
+
+and `showSocialButtons` (0x17fc870) is a 0.1s one-shot `FlxTimer` whose closure (0x18081f0)
+walks the five buttons, makes each visible at scale 1, and tweens it over **0.8s** on
+`backOut` with `startDelay = (1.0 - i / length + 0.2) * 0.8` — 0.96, 0.80, 0.64, 0.48, 0.32,
+so the FAR button arrives first and the one nearest the disc last. Opening and closing are
+not mirror images: the news banner is pushed 500 out in 0.7 and takes 1.3 to come back.
+
+Not resolved and written down rather than guessed: the x/y the buttons tween FROM (they come
+out of a stored seat the dump does not reach), and the companion `FlxTween.num` at 0x1808886
+that runs alongside on `backInOut` over the same 0.8. The port scales them in from zero at
+their seats, which is the same stagger with a substituted gesture.
 
 That dispatcher is also where the destinations diverge: only `freeplay` and `options` reach
 `startTransitionToMenu` (0x180ad15, 0x180af65). `storymode` allocates

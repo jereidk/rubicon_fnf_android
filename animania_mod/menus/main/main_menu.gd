@@ -451,7 +451,6 @@ func do_select() -> void:
 
 	_confirmed = true
 	_play(SOUND_CONFIRM)
-	_fade_music_out()
 	_animate(name, "confirm")
 
 	# The confirm animation gets its whole second before anything else moves. The mod's
@@ -486,18 +485,18 @@ func do_select() -> void:
 	get_tree().change_scene_to_file(String(DESTINATIONS[name]))
 
 
-## doSelect line 889. The mod does not call fadeOut by name - hxcpp inlined the body, and it
-## is recognisable by its three parts at 0x18056db: cancel the old tween, take the current
-## volume, and FlxTween.num(volume, 0, 0.15) with `volumeTween` as the setter. Duration 0.15
-## is the double at 0x59fa840.
-const MUSIC_FADE := 0.15
-
-
-func _fade_music_out() -> void:
-	if music == null or not music.playing:
-		return
-	var fade := create_tween()
-	fade.tween_property(music, "volume_db", linear_to_db(0.0001), MUSIC_FADE)
+## doSelect line 889 IS a fade - the inlined FlxSound.fadeOut body at 0x18056db: cancel the
+## old tween, take the current volume, FlxTween.num(volume, 0, 0.15) with `volumeTween` as
+## the setter. But it is NOT the menu music. The field is 0x190, and __GetFields names the
+## pointer block: it is `musicLayerSound`, the extra stem. And updateSeasonalEffects line 750
+## does `musicLayerSound.volume = FlxG.sound.music.volume` EVERY FRAME, unconditionally
+## (0x17fd129, set_volume through vtable 0x1b8).
+##
+## Flixel updates FlxG.plugins - where the tween managers live - BEFORE the state, so the
+## per-frame assignment lands after the tween's and wins it every frame. The fade never
+## reaches the speakers in this build. So there is nothing to port: the menu music runs at
+## full volume straight through the confirm and the transition, and this port briefly faded
+## it because the field had not been named yet.
 
 
 const STORY_SELECT := "res://animania_mod/menus/story_select/story_menu_select_sub_state.gd"
@@ -817,18 +816,98 @@ func _social_hit(at: Vector2) -> bool:
 	return Rect2(_music_social.position - half, half * 2.0).has_point(at)
 
 
+## The staggered reveal, from showSocialButtons (0x17fc870) and its timer closure
+## (0x18081f0). The port used to flip `visible` on all five at once.
+##
+##     652  showSocialButtons(onDone): new FlxTimer().start(0.1, ...)   // one shot
+##     654  for (i in 0...musicSocialButtons.length) {
+##     656      button.visible = true; button.scale.set(1, 1); button.setPosition(...)
+##     662      var d = 1.0 - i / musicSocialButtons.length;
+##     664      FlxTween.tween(button, {x: ..., y: ...}, 0.8,
+##                             { ease: backOut, startDelay: (d + 0.2) * 0.8 })
+##          }
+##
+## With five buttons that is 0.96s, 0.80s, 0.64s, 0.48s, 0.32s - the FAR one arrives first
+## and the one nearest the disc last, about a sixth of a second apart. hideSocialButtons
+## (0x17fcae0) is the same shape.
+const SOCIAL_REVEAL_WAIT := 0.1
+const SOCIAL_REVEAL_TIME := 0.8
+const SOCIAL_REVEAL_BIAS := 0.2
+const SOCIAL_REVEAL_SPAN := 0.8
+
+## toggleSocialButtons (0x17fcd00) lines 647-648. Opening and closing are not mirror images:
+##
+##     FlxTween.tween(newsButton.<0x160>, {x: 500}, 0.7, {ease: cubeIn})    // opening
+##     FlxTween.tween(newsButton.<0x160>, {x: 0},   1.3, {ease: cubeOut})   // closing
+##
+## The target is the news banner (field 0x120, named `newsButton` by __GetFields) - the OST
+## row unfolds along the bottom of the screen, which is where the banner sits, so the banner
+## is pushed out of the way and takes nearly twice as long to come back.
+const NEWS_PUSH := 500.0
+const NEWS_PUSH_OUT := 0.7
+const NEWS_PUSH_BACK := 1.3
+var _social_tween: Tween = null
+var _news_push_tween: Tween = null
+
+
 func _toggle_social() -> void:
 	_social_open = not _social_open
 	if _music_lines != null:
 		_music_lines.visible = _social_open
-	for button: Sprite2D in _social_buttons:
-		button.visible = _social_open
+
+	if _social_tween != null and _social_tween.is_valid():
+		_social_tween.kill()
+	var seat: Vector2 = Vector2.ONE * MUSIC_SOCIAL_SCALE * FUNKIN_TO_RUBICON
+	if _social_buttons.size() > 0:
+		_social_tween = create_tween().set_parallel(true)
+		var total: int = _social_buttons.size()
+		for i: int in total:
+			var button: Sprite2D = _social_buttons[i]
+			var delay: float = SOCIAL_REVEAL_WAIT \
+				+ (1.0 - float(i) / float(total) + SOCIAL_REVEAL_BIAS) * SOCIAL_REVEAL_SPAN
+			if _social_open:
+				button.visible = true
+				button.scale = Vector2.ZERO
+			var step: PropertyTweener = _social_tween.tween_property(
+				button, "scale", seat if _social_open else Vector2.ZERO,
+				SOCIAL_REVEAL_TIME)
+			step.set_delay(delay).set_trans(Tween.TRANS_BACK)
+			step.set_ease(Tween.EASE_OUT if _social_open else Tween.EASE_IN)
+		if not _social_open:
+			# Only once every one of them has shrunk away, so the row does not blink out
+			# from under its own stagger. A named method rather than a lambda: the Tween
+			# owns the callback and frees it with itself, and nothing captures the array.
+			_social_tween.chain().tween_callback(_park_social_buttons)
+
+	_push_news_button()
+
 	if _music_social == null or _music_social.sprite_frames == null:
 		return
 	# Through musicSocialPlayAnim rather than around it: that is the method the mod has for
 	# choosing the disc's state, and leaving it uncalled would make it dead code that only
 	# looks ported.
 	_music_social_play_anim(&"selected" if _social_open else &"basic")
+
+
+func _park_social_buttons() -> void:
+	for button: Sprite2D in _social_buttons:
+		button.visible = false
+		button.scale = Vector2.ONE * MUSIC_SOCIAL_SCALE * FUNKIN_TO_RUBICON
+
+
+func _push_news_button() -> void:
+	if _news_button == null:
+		return
+	if not _news_button.has_meta(&"rest_x"):
+		_news_button.set_meta(&"rest_x", _news_button.position.x)
+	var rest: float = float(_news_button.get_meta(&"rest_x"))
+	if _news_push_tween != null and _news_push_tween.is_valid():
+		_news_push_tween.kill()
+	_news_push_tween = create_tween()
+	# Flixel draws a sprite at `x - offset.x`, so a positive offset pushes it LEFT.
+	var to: float = rest - NEWS_PUSH * FUNKIN_TO_RUBICON if _social_open else rest
+	_news_push_tween.tween_property(_news_button, "position:x", to,
+		NEWS_PUSH_OUT if _social_open else NEWS_PUSH_BACK) 		.set_trans(Tween.TRANS_CUBIC) 		.set_ease(Tween.EASE_IN if _social_open else Tween.EASE_OUT)
 
 
 ## createInteractiveButton (0x17fc0c0) hands every unblocked button to
