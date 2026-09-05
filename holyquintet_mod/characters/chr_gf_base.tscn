@@ -814,7 +814,7 @@ _data = {
 &"sing_up_end": SubResource("Animation_3c6gg")
 }
 
-[node name="gf_base" type="Node2D" unique_id=102084612 node_paths=PackedStringArray("animation_player")]
+[node name="gf_base" type="Node2D" unique_id=873024793 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_mpftx")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
@@ -843,16 +843,17 @@ metadata/color = "#A5004D"
 metadata/flipX = "true"
 metadata/isPlayer = "true"
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=488742737]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=1703967022]
+position = Vector2(226.5, -584)
 scale = Vector2(-1, 1)
 script = ExtResource("2_q8lsj")
 symbol = "GFATLAS"
 centered = false
 atlases = Array[ExtResource("3_b2nd8")]([SubResource("Resource_xjrx1")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1824171653]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=2001872147]
 libraries/ = ExtResource("5_8djsx")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=9992270]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=964955904]
 libraries/ = SubResource("AnimationLibrary_htwy5")
 autoplay = &"dance_left"

@@ -1,20 +1,37 @@
 [remap]
 
-importer="svg"
-type="DPITexture"
+importer="texture"
+type="CompressedTexture2D"
 uid="uid://btnp1wb1pyiiw"
-path="res://.godot/imported/Remove.svg-5941193af3dc35da7d082b25307970fb.dpitex"
+path="res://.godot/imported/Remove.svg-5941193af3dc35da7d082b25307970fb.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://addons/sprite_importer/icons/Remove.svg"
-dest_files=["res://.godot/imported/Remove.svg-5941193af3dc35da7d082b25307970fb.dpitex"]
+dest_files=["res://.godot/imported/Remove.svg-5941193af3dc35da7d082b25307970fb.ctex"]
 
 [params]
 
-base_scale=1.0
-saturation=1.0
-color_map={}
-fix_alpha_border=false
-premult_alpha=false
-compress=true
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

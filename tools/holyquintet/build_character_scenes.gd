@@ -29,13 +29,15 @@ const CHARACTERS := {
 		"atlas": "res://holyquintet_mod/source/images/characters/sayaka-base",
 		"xml": "res://holyquintet_mod/source/data/characters/sayaka-base.xml",
 		"flip": false,
-		"origin": Vector2.ZERO,   # MEASURE
+		"origin": Vector2(244.5, 725.0),   # MEASURED
+
 	},
 	"gf-base": {
 		"atlas": "res://holyquintet_mod/source/images/characters/gf-base",
 		"xml": "res://holyquintet_mod/source/data/characters/gf-base.xml",
 		"flip": true,
-		"origin": Vector2.ZERO,   # MEASURE
+		"origin": Vector2(-226.5, 584.0),   # MEASURED
+
 	},
 	"kyubey-big-bald": {
 		"atlas": "res://holyquintet_mod/source/images/characters/kyubey-big-bald",
@@ -43,7 +45,8 @@ const CHARACTERS := {
 		# anims come from its sibling kyubey-big.xml - both share the KYUBEYATLAS symbol.
 		"xml": "res://holyquintet_mod/source/data/characters/kyubey-big.xml",
 		"flip": false,
-		"origin": Vector2.ZERO,   # MEASURE
+		"origin": Vector2(165.5, 244.0),   # MEASURED
+
 	},
 	"madokabg": {
 		"atlas": "res://holyquintet_mod/source/images/stages/resonance/madokabg",

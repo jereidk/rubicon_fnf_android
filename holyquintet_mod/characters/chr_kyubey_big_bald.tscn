@@ -139,7 +139,7 @@ _data = {
 &"sad": SubResource("Animation_ii3nl")
 }
 
-[node name="kyubey_big_bald" type="Node2D" unique_id=1637886888 node_paths=PackedStringArray("animation_player")]
+[node name="kyubey_big_bald" type="Node2D" unique_id=323230003 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_h3etq")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
@@ -156,15 +156,16 @@ metadata/camy = "-75"
 metadata/icon = "kyubey"
 metadata/color = "#FFFFFF"
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=453946511]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=664960296]
+position = Vector2(-165.5, -244)
 script = ExtResource("2_7yht1")
 symbol = "KYUBEYATLAS"
 centered = false
 atlases = Array[ExtResource("3_2pqhy")]([SubResource("Resource_8mhn8")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1094043478]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=543542575]
 libraries/ = ExtResource("5_cypyr")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=224600375]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=723128248]
 libraries/ = SubResource("AnimationLibrary_xqx84")
 autoplay = &"dance_idle"
