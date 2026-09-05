@@ -142,6 +142,15 @@ void fragment() {
 
 var _menu_state: Node  ## Parent StoryMenu reference
 var buttons: Array[Node2D] = []
+## Todo lo que se DIBUJA cuelga de aqui, y no de la propia pantalla.
+##
+## Esta clase extiende CanvasLayer, y CanvasLayer no hereda de CanvasItem: no tiene
+## `modulate`. Los dos fundidos de salida hacian tween sobre `self, "modulate:a"` y en
+## escritorio eso no se ve, pero en el movil salta
+## "The tweened property modulate:a does not exist in object CanvasLayer" y la pantalla se
+## va de golpe en vez de fundirse. La camara y el reproductor de sonido se quedan fuera:
+## una no se modula y el otro no se dibuja.
+var content: Node2D
 var cool_bg: ColorRect
 var select_camera: Camera2D
 var selected: String = ""
@@ -154,6 +163,9 @@ var _bus_volume: float = 0.0
 # ─── Lifecycle ────────────────────────────────────────────────────────────
 
 func _ready() -> void:
+	content = Node2D.new()
+	content.name = "Content"
+	add_child(content)
 	layer = 10
 	_setup_blur_effect()
 	_create_background()
@@ -209,7 +221,7 @@ func _create_background() -> void:
 	cool_bg.color = Color(0.0, 0.0, 0.0, 1.0)
 	cool_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cool_bg.modulate.a = 0.0
-	add_child(cool_bg)
+	content.add_child(cool_bg)
 	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(cool_bg, "modulate:a", BG_ALPHA, BG_FADE)
@@ -235,7 +247,7 @@ func _setup_blur_effect() -> void:
 	rect.color = Color.WHITE
 	rect.material = blur_shader
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(rect)
+	content.add_child(rect)
 
 	var tw: Tween = create_tween().set_parallel(true)
 	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -259,7 +271,7 @@ func _create_buttons() -> void:
 		if btn == null:
 			continue
 		buttons.append(btn)
-		add_child(btn)
+		content.add_child(btn)
 	if not buttons.is_empty():
 		_select_button(0)
 
@@ -409,7 +421,7 @@ func select_story(variant: String) -> void:
 
 	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_LINEAR)
-	tw.tween_property(self, "modulate:a", 0.0, 1.35)
+	tw.tween_property(content, "modulate:a", 0.0, 1.35)
 	tw.tween_callback(func() -> void:
 		# Only the amtake half of the mod is ported, so both buttons lead to the
 		# same song for now. The variant is passed on anyway, so the day the
@@ -437,7 +449,7 @@ func close_sub_state() -> void:
 
 	var tw: Tween = create_tween()
 	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.tween_property(self, "modulate:a", 0.0, 0.3)
+	tw.tween_property(content, "modulate:a", 0.0, 0.3)
 	tw.tween_callback(queue_free)
 
 

@@ -466,11 +466,32 @@ func close_self() -> void:
 	transitioning = true
 	_play(SOUND_CANCEL)
 
-	# Blur out and fade
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
-	tw.set_trans(Tween.TRANS_CUBIC)
-	tw.tween_callback(queue_free)
+	# Blur out and fade.
+	#
+	# Esto hacia tween sobre `self, "modulate:a"`, y esta clase extiende CanvasLayer, que
+	# NO hereda de CanvasItem y no tiene `modulate`. En escritorio no se nota; en el movil
+	# salta "The tweened property modulate:a does not exist" y la pantalla desaparece de
+	# golpe en vez de fundirse.
+	#
+	# Aqui se funden los hijos en paralelo en vez de meterlos en un contenedor, que es lo
+	# que se hizo en story_menu_select_sub_state. La diferencia no es capricho: alli el
+	# camino de confirmar ya tiene su propio tween por boton y un fundido global sobre los
+	# mismos nodos se lo comeria, asi que hacia falta un nodo aparte. Aqui no compite
+	# nadie, y son veinte add_child que no hace falta mover.
+	var tw := create_tween().set_parallel(true)
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	var fading: bool = false
+	for child: Node in get_children():
+		var item := child as CanvasItem
+		if item == null:
+			continue
+		tw.tween_property(item, "modulate:a", 0.0, 0.3)
+		fading = true
+	if fading:
+		tw.chain().tween_callback(queue_free)
+	else:
+		tw.kill()
+		queue_free()
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────

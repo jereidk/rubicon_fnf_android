@@ -1,22 +1,35 @@
-; Note database for phone-call.
+; Base de notas de TODAS las canciones del puerto.
 ;
-; Two of the chart's 362 notes carry the V-Slice note kind "noAnimation" - the holds at
-; 80156.25ms and 86472.04ms, both on the player side. Rubicon builds a note's database key
-; as "<type>_<mode>", so those two ask for "noAnimation_mania", and with no such key the
-; handler indexes a Dictionary that does not have it. That is not a one-off: the lookup
-; happens per frame while the note is alive, so the full-song run threw 911 errors off
-; those two notes alone. The pool prewarm at rubicon_level_note_handler.gd:262 guards with
-; has(), but the two paths that matter (:384 and :515) do not.
+; El nombre del fichero dice phone_call por historia: nacio con la unica clase de nota que
+; tenia phone-call y las cinco escenas de cancion lo comparten. Se queda donde esta porque
+; renombrarlo obliga a tocar esas cinco escenas y el builder; el nombre miente, esto no.
 ;
-; So they get an entry, drawn with the same Funkin note as everything else.
+; Rubicon arma la clave de una nota como "<tipo>_<modo>", asi que una nota con clase
+; `beatbox` en mania pide "beatbox_mania". Sin esa clave el manejador INDEXA un Dictionary
+; que no la tiene, y no es un fallo de una vez: la busqueda ocurre por fotograma mientras
+; la nota vive. En un movil real, una vuelta a `fresh` saco 4175 errores de
+; rubicon_level_note_handler.gd:384 y 27 de :515. El prewarm del pool en :262 se protege
+; con has(); esas dos rutas no.
 ;
-; What this does NOT do is the half the kind is named for. In V-Slice "noAnimation" means
-; the note is hit but the character does not sing, and Rubicon decides the sing animation
-; from the LANE (rubicon_character.gd's mania_anim_aliases), never from the note type -
-; there is no flag on RubiconLevelNoteMetadata to suppress it and no seam to hook without
-; editing vendored engine code. Both notes land within 25ms of the two PlayAnimation
-; events that put komi into "breath", which is presumably why the charter marked them.
-; Until a character-side hook exists, tadano sings through them.
+; Las clases que usan las canciones porteadas, sacadas de sus propios charts:
+;
+;   bopeebo      Fuck Up, blush, cheer, mom, noAnimation, solotime, stop bope
+;   dadbattle    blush, fresh, mom, noAnimation, solotime
+;   fresh        Fuck Up, beatbox, blush, erect-up, fresh, mom, noAnimation, solotime
+;   phone-call   noAnimation
+;   tutorial     (ninguna)
+;
+; Todas se dibujan con la misma nota de Funkin, porque en V-Slice una clase de nota es una
+; etiqueta de COMPORTAMIENTO, no un grafico distinto.
+;
+; Lo que esto NO hace es la mitad por la que algunas se llaman como se llaman. En V-Slice
+; "noAnimation" significa que la nota se toca y el personaje NO canta, y Rubicon decide la
+; animacion de canto por el CARRIL -mania_anim_aliases de rubicon_character.gd-, nunca por
+; el tipo de nota: no hay bandera en RubiconLevelNoteMetadata que lo suprima ni costura
+; donde engancharse sin editar codigo del motor vendorizado. Lo mismo vale para las demas
+; -`beatbox`, `blush`, `cheer`, `mom`...- que en el mod disparan animaciones de personaje
+; desde sus scripts. Aqui solo se registran para que existan y la nota se dibuje y se
+; pueda tocar. La animacion que cada clase deberia disparar sigue sin portear.
 [gd_resource type="Resource" script_class="RubiconLevelNoteDatabase" format=3]
 
 [ext_resource type="Script" path="res://addons/rubicon/scripts/data/game/rubicon_level_note_metadata.gd" id="1_meta"]
@@ -27,7 +40,43 @@
 script = ExtResource("1_meta")
 scene = ExtResource("3_note")
 
-[sub_resource type="Resource" id="Resource_noanim"]
+[sub_resource type="Resource" id="Resource_Fuck_Up_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_beatbox_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_blush_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_cheer_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_erect_up_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_fresh_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_mom_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_noAnimation_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_solotime_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_note")
+
+[sub_resource type="Resource" id="Resource_stop_bope_mania"]
 script = ExtResource("1_meta")
 scene = ExtResource("3_note")
 
@@ -35,5 +84,14 @@ scene = ExtResource("3_note")
 script = ExtResource("2_db")
 defines = Dictionary[StringName, ExtResource("1_meta")]({
 &"mania": SubResource("Resource_mania"),
-&"noAnimation_mania": SubResource("Resource_noanim")
+&"Fuck Up_mania": SubResource("Resource_Fuck_Up_mania"),
+&"beatbox_mania": SubResource("Resource_beatbox_mania"),
+&"blush_mania": SubResource("Resource_blush_mania"),
+&"cheer_mania": SubResource("Resource_cheer_mania"),
+&"erect-up_mania": SubResource("Resource_erect_up_mania"),
+&"fresh_mania": SubResource("Resource_fresh_mania"),
+&"mom_mania": SubResource("Resource_mom_mania"),
+&"noAnimation_mania": SubResource("Resource_noAnimation_mania"),
+&"solotime_mania": SubResource("Resource_solotime_mania"),
+&"stop bope_mania": SubResource("Resource_stop_bope_mania")
 })

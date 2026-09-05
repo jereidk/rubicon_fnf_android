@@ -2475,6 +2475,94 @@ Two things about writing that checker are worth keeping, because both were wrong
   only the fallback.
 
 
+## 8k. Five bugs that only exist on the phone
+
+Four error logs off a moto g53 (Adreno 619). None of them reproduces on desktop, and three
+of the five share one cause.
+
+### `.xml` and `.json` are not resources, so they are not exported
+
+`export_presets.cfg` had `export_filter="all_resources"` with an empty `include_filter`.
+Godot exports the resources it knows about; a `.xml` or a `.json` is neither. On desktop
+`res://` is the project folder and every read works, so this class of bug is **invisible
+until it runs on a device**.
+
+Three of the five errors were this:
+
+- `Cannot open file '…/menus/menu/music_social_buttons.xml'` — in all four logs, every
+  session, the main menu.
+- `Cannot open file '…/fonts/default.xml'` + `AtlasText: no atlas` — every piece of atlas
+  text in that screen silently draws nothing.
+- `There is no animation with name 'idle'` ×316 — *downstream* of the same thing.
+  `changelog_sub_state.gd` builds its network-connection sprite from
+  `network_connection.xml`; with the file missing the `SpriteFrames` comes out empty and
+  every `play("idle")` fails, once per frame.
+
+Everything that reads a non-resource at runtime, found by sweep rather than by guess:
+`music_social_buttons.xml`, `gear.xml`, `gearSide.xml`, `menu_scroll_line.xml`,
+`network_connection.xml`, `atlas_text.gd`'s `<font>.xml` (any font), plus three JSON reads —
+`credits.json`, `<song>-metadata.json`, and `nessie/spritemap1.json`.
+
+The filter is now `*.xml,*.json` with `*-chart.json` excluded. The numbers behind that: all
+71 XMLs are 0.49 MB; the JSON is 2.97 MB, of which charts are 0.71 MB and **provably not
+read at runtime** — nothing outside `tools/` mentions them, they are converted to `.tres`.
+The remaining ~2 MB is `Animation.json`, kept deliberately: when an Adobe atlas folder has
+an `animation_cache.res` beside it, `adobe_atlas.gd` loads the cache and never opens the
+JSON, so it is dead weight — but a future atlas added *without* a cache would break exactly
+the same silent way, and 2 MB is a cheap insurance against that.
+
+While checking that, two Adobe folders turned out to have **no cache at all** —
+`menus/options/checkmark` and `menus/changelog/nessie` — so on a phone they were parsing
+JSON at load, when they could open it. Both now have one.
+
+### `CanvasLayer` has no `modulate`
+
+`The tweened property "modulate:a" does not exist in object "CanvasLayer"`.
+
+`CanvasLayer` does not inherit from `CanvasItem`. Two screens fade themselves out with
+`tween_property(self, "modulate:a", 0, …)` and both extend `CanvasLayer`, so on a phone the
+screen vanishes instantly instead of fading. Desktop swallows it the same way — it is an
+error, not a crash, and errors go to a log nobody reads.
+
+The two got **different fixes on purpose**:
+
+- `story_menu_select_sub_state.gd` gets a `Content` node and everything drawn hangs off it.
+  It needs the extra node because its confirm path already tweens each unselected button's
+  own `modulate:a` over 0.45 s, and a blanket fade over the same properties would be
+  created later and win, swallowing that choreography.
+- `changelog_sub_state.gd` fades its direct `CanvasItem` children in parallel. Nothing
+  competes there, and it has twenty `add_child` calls that would all have to move.
+
+A sweep found no other `CanvasLayer` touching `modulate`.
+
+### Every note kind needs a database entry
+
+`Invalid access to property or key 'beatbox_mania'` — **4175 times** in one run of `fresh`,
+plus 27 more from the hit path.
+
+Rubicon builds a note's key as `"<type>_<mode>"`, and the lookup happens per frame while
+the note is alive, so a handful of notes produce thousands of errors. This was already
+solved once, for phone-call's two `noAnimation` holds, with
+`animania_mod/songs/phone_call_note_overrides.tres` — but that file registers two keys and
+**all five song scenes share it**, while the four charts between them carry ten kinds:
+
+| song | kinds |
+|---|---|
+| phone-call | noAnimation |
+| bopeebo | Fuck Up, blush, cheer, mom, noAnimation, solotime, stop bope |
+| fresh | Fuck Up, beatbox, blush, erect-up, fresh, mom, noAnimation, solotime |
+| dadbattle | blush, fresh, mom, noAnimation, solotime |
+| tutorial | (none) |
+
+All ten are registered now, drawn with the same note. What that does **not** do is the
+behaviour each kind is named for: in V-Slice a note kind triggers a character animation, and
+Rubicon picks the sing animation from the lane, never from the note type. That half is still
+unported, and the file says so.
+
+The file keeps its phone-call name — renaming it means touching five generated scenes and
+the builder — and its header now says the name is historical.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
