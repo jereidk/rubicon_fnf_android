@@ -170,13 +170,15 @@ func _init() -> void:
 		var disk := Sprite2D.new()
 		disk.name = "Disk%d" % i
 		disk.texture = load("%s/disks/%s.png" % [ART, song["disk"]])
-		disk.centered = true
+		# updateDisks (linea 800) escribe disk.x, y en flixel eso es el borde IZQUIERDO:
+		# la fila se alinea por ahi, no por el centro, y los discos no miden todos igual.
+		disk.centered = false
 		disk.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 		# The rect a tap has to land in, around the disk's own middle - the sprite is
 		# centred, so this is too. Kept in the disk's LOCAL space so the carousel can move
 		# it without the hitbox drifting.
 		var size: Vector2 = disk.texture.get_size() * FUNKIN_TO_RUBICON
-		disk.set_meta(&"hitbox", Rect2(-size * 0.5, size))
+		disk.set_meta(&"hitbox", Rect2(Vector2.ZERO, size))
 		disk.set_meta(&"index", i)
 		disk.set_meta(&"target", Vector2.ZERO)
 		disk.set_meta(&"scale", 1.0)

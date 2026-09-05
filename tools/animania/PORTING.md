@@ -1084,6 +1084,40 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### `updateDisks(elapsed)` does not take an elapsed
+
+The signature is `updateDisks(double)` and the port had read that as a per-frame updater
+with a delta. It is the SELECTION, as a float, which is why `changeSelection` calls it and
+`update` never does. Read out, lines 798-807:
+
+```
+for (disk in grpDisks) {
+    disk.x = (disk.ID - sel) * 225 - 20;              // 800
+    disk.y = DiskSpr.intendedY(disk.ID - sel);        // 801
+    disk.zIndex = 5;                                  // 802
+    disk.selected = (sel == disk.ID);                 // 803
+    if (sel == disk.ID) { disk.<0x258>.y -= 3; disk.zIndex = 10; }   // 804-807
+}
+```
+
+and `DiskSpr.intendedY(d)` (0x200c7a0) is `(d * 1.5)² * 6 + 520`. So the carousel is a ROW
+along the bottom on a shallow parabola — selected at (-20, 520), then (205, 533.5), then
+(430, 574) — not the vertical column at (1390, 560) the port had. That column was invented,
+and the comment above it said the constants "are not simple constants in the mod", while
+`DISK_BASE_Y := 225.0` and `DISK_SPACING_Y := 20.0` sat four lines below, already read and
+misnamed as Y quantities when 225 and 20 are the X formula.
+
+Two smaller things fall out of the same line:
+
+- **`disk.x` in flixel is the LEFT EDGE**, so the row aligns left and the disks do not all
+  have to be the same width. The port had `centered = true` on them, which lines up their
+  centres instead — visibly different once the disks differ in size.
+- **A guard can encode the bug.** `flow_check` asserted that a tap at (120, 900) is not a
+  disk, a point chosen to sit clear of the invented column on the right. With the real row
+  that point is inside the first disk, so the guard failed on a corrected layout. The
+  check moved to the wall above the TV. Worth remembering when a guard fails right after a
+  fix: ask whether the assertion was written against the old, wrong behaviour.
+
 ### The television: three port-side guesses, and what the constants said
 
 Wiring the TV's screen exposed that the port had the television in the wrong place, showing
@@ -1568,10 +1602,6 @@ Recorded so the next person does not go looking for a bug that is not there.
 - **Freeplay's shadow art.** `shadowsOnBed` is a `FlxLayerGroup` and `shakeShadows` scales
   its matrix, but nothing has been put inside it: the shadows ride on `tvNoiseBack` and have
   not been separated out. The transform is ported and correct; it is simply invisible.
-- **Freeplay's disk positions.** `grpDisks` (zIndex 19) draws *behind* the TV housing (30)
-  and in front of `diskPlayer` (16), so the carousel belongs inside the TV screen. The port
-  places the disks off to the right, where they were put to match a TV that was itself in
-  the wrong place. `updateDisks` has not been read yet.
 - ~~**The main menu's mouse furniture**~~ — this entry is out of date. `newsButton`,
   `musicSocial`, `socialButtons`, `updateCameraScroll` and `spawnHelpMouseText` were all
   ported during the fidelity audit: the banner and the OST disc are real screen furniture

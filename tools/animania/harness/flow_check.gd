@@ -417,8 +417,12 @@ func _init() -> void:
 			disk = child
 	_check(disk != null and freeplay.disk_at(disk.position) == 0,
 		"tocar el disco tendria que dar con el disco")
-	_check(freeplay.disk_at(Vector2(120.0, 900.0)) == -1,
-		"la cama de freeplay no es un disco")
+	# El punto de "esto no es un disco" tenia que cambiar: se habia elegido contra la
+	# columna vertical de discos a la derecha, que era invencion del puerto. Con la fila
+	# real -updateDisks los pone en y >= 780 de mundo- (120, 900) cae DENTRO del primero.
+	# El muro, por encima del televisor, no lo pisa ningun disco.
+	_check(freeplay.disk_at(Vector2(960.0, 100.0)) == -1,
+		"el muro de freeplay no es un disco")
 
 	# confirm() waits out 0.6s of disk animation on a SceneTreeTimer and then goes to the
 	# loading screen, so this waits in wall clock the same way the menu's transition does.

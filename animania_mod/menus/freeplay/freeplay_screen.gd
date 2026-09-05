@@ -56,17 +56,12 @@ const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 const DISK_HALFLIFE_X := 0.256
 const DISK_HALFLIFE_Y := 0.192
 
-## From binary: DISK_CENTRE and DISK_SPACING are not simple constants in the
-## mod; they are computed from the diorama layout. These match the visual.
-const DISK_CENTRE := Vector2(1390.0, 560.0)
-const DISK_SPACING := Vector2(0.0, 210.0)
 const DISK_SCALE_ON := 1.0
 const DISK_SCALE_OFF := 0.72
 const DISK_ALPHA_OFF := 0.55
 
-## From binary: updateDisks uses 225.0 and 20.0 for disk layout computation.
-const DISK_BASE_Y := 225.0
-const DISK_SPACING_Y := 20.0
+## Lo que el disco elegido sube, de updateDisks linea 806: disk.<0x258>.y -= 3. El campo
+## 0x258 es un hijo del propio DiskSpr, todavia sin identificar, asi que no se aplica.
 const DISK_TOP_OFFSET := 3.0
 
 ## ─── TV glow constants (verified from binary .rodata) ───────────────────────
@@ -286,7 +281,6 @@ func _load_songs() -> void:
 ## ─── Process ─────────────────────────────────────────────────────────────────
 
 func _process(delta: float) -> void:
-	_update_disks(delta)
 	_update_tv_glow(delta)
 	_update_camera_scroll(delta)
 	_update_data_stuff(false)
@@ -315,24 +309,52 @@ func _ease(from: float, to: float, delta: float, half: float) -> float:
 	return to + (from - to) * pow(2.0, -delta / half)
 
 
-## ─── updateDisks (from binary at 0x34bb470) ────────────────────────────────
-## Moves each disk toward its target position with the half-life easing.
-## The binary uses 225.0 and 20.0 for vertical layout computation.
+## ─── updateDisks (0x34bb470, lineas 798-807) ───────────────────────────────
+## El parametro NO es un delta: es la seleccion. Por eso lo llama changeSelection y no
+## update, y por eso la resta de abajo tiene sentido.
+##
+##   for (disk in grpDisks) {                                  // 799
+##       disk.x = (disk.ID - sel) * 225 - 20;                  // 800
+##       disk.y = DiskSpr.intendedY(disk.ID - sel);            // 801
+##       disk.zIndex = 5;                                      // 802
+##       disk.selected = (sel == disk.ID);                     // 803
+##       if (sel == disk.ID) {                                 // 804
+##           disk.<0x258>.y -= 3;                              // 806
+##           disk.zIndex = 10;                                 // 807
+##       }
+##   }
+##
+## y DiskSpr.intendedY(d) (0x200c7a0) es (d * 1.5)^2 * 6 + 520: una parabola muy suave.
+## O sea una FILA por la parte baja de la pantalla -el elegido en (-20, 520), el
+## siguiente en (205, 533.5), el de mas alla en (430, 574)- no la columna vertical en
+## (1390, 560) que tenia el puerto. Aquella era inventada, y el comentario que decia
+## que "no son constantes simples en el binario" se contradecia con las dos constantes
+## que el propio puerto ya tenia leidas: 225 y 20.
 
-func _update_disks(delta: float) -> void:
+const DISK_STEP_X := 225.0
+const DISK_OFFSET_X := -20.0
+const DISK_CURVE_X := 1.5
+const DISK_CURVE_Y := 6.0
+const DISK_BASE_Y := 520.0
+const DISK_Z := 5
+const DISK_Z_SELECTED := 10
+
+
+## DiskSpr.intendedY (0x200c7a0), con `d` en pasos de seleccion.
+func _disk_y(away: float) -> float:
+	var t: float = away * DISK_CURVE_X
+	return t * t * DISK_CURVE_Y + DISK_BASE_Y
+
+
+func _update_disks(sel: float) -> void:
 	if disks == null:
 		return
 	for i: int in disks.get_child_count():
 		var disk: Node2D = disks.get_child(i)
-		var target: Vector2 = disk.get_meta(&"target") as Vector2
-		disk.position = Vector2(
-			_ease(disk.position.x, target.x, delta, DISK_HALFLIFE_X),
-			_ease(disk.position.y, target.y, delta, DISK_HALFLIFE_Y))
-		var wants: float = float(disk.get_meta(&"scale"))
-		var at: float = _ease(disk.scale.x, wants, delta, DISK_HALFLIFE_X)
-		disk.scale = Vector2(at, at)
-		disk.modulate.a = _ease(
-			disk.modulate.a, float(disk.get_meta(&"alpha")), delta, DISK_HALFLIFE_X)
+		var away: float = float(i) - sel
+		disk.set_meta(&"target", Vector2(
+			away * DISK_STEP_X + DISK_OFFSET_X, _disk_y(away)) * FUNKIN_TO_RUBICON)
+		disk.z_index = DISK_Z_SELECTED if is_zero_approx(away) else DISK_Z
 
 
 ## ─── updateTvGlow (0x34be370, lineas 1777-1787) ────────────────────────────
@@ -406,6 +428,8 @@ func _update_tv_glow(delta: float) -> void:
 
 ## FlxG.width / FlxG.height, en pixeles del puerto.
 const SCREEN := Vector2(1920.0, 1080.0)
+## 1280x720 del mod -> 1920x1080 del puerto.
+const FUNKIN_TO_RUBICON := 1.5
 const SHADOW_SCALE := Vector2(1.1, 1.11)
 const SHADOW_PIVOT_X_DIVISOR := 1.2
 const SHADOW_PIVOT_Y_FACTOR := 1.2
@@ -618,11 +642,13 @@ func change_selection(amount: int, play_sound: bool = true) -> void:
 ## Where each disk is heading and how it should look getting there.
 
 func _refresh(snap: bool) -> void:
+	# updateDisks es quien coloca; aqui solo queda la escala y el alfa, que el mod maneja
+	# desde DiskSpr y no desde este metodo.
+	_update_disks(cur_selected_float)
 	for i: int in disks.get_child_count():
 		var disk: Node2D = disks.get_child(i)
 		var away: int = i - cur_selected
 		var chosen: bool = away == 0
-		disk.set_meta(&"target", DISK_CENTRE + DISK_SPACING * float(away))
 		disk.set_meta(&"scale", DISK_SCALE_ON if chosen else DISK_SCALE_OFF)
 		disk.set_meta(&"alpha", 1.0 if chosen else DISK_ALPHA_OFF)
 		disks.move_child(disk, disk.get_index())
