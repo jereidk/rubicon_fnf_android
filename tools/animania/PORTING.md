@@ -1084,40 +1084,46 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
-### `handleInput`: read in outline, deliberately not ported
+### `handleInput`: the axes were swapped, and the `Controls` object hides behind three hops
 
-Read far enough to describe and not far enough to port, which is a distinction worth
-writing down rather than papering over. Lines 1802-1867, in source order:
+The port had UP/DOWN changing the SONG and LEFT/RIGHT changing the DIFFICULTY. The binary
+has it the other way round, and once the disks turned out to be a horizontal row rather
+than the invented vertical column, left/right for the song is the reading that makes sense
+of the whole screen at once.
 
 ```
-1802  scrollCooldown  (leido/descontado)
-1811  curSelectedFloat
-1813  selectorsGroup.<vt+0xc8>
-1818  if (scrollCooldown <= 0)
-1823  changeSelection(...);  scrollCooldown = 0.01;
-1828  UI_LEFT.checkPressed()   ... spamTimer
-1835  <accion>.checkPressed()
-1844  ACCEPT.checkPressed()  -> changeSelection(...)
-1847  spamTimer
-1854  UI_DOWN.checkJustPressed()
-1856  UI_DOWN.checkJustPressed() -> changeDiff(...)
-1859  currentDifficulty
-1861  handleExit()
-1864  mouseEvents
-1866  curSelectedFloat, NextState.fromMaker(...)
+1828  if (UI_LEFT.checkPressed() || UI_RIGHT.checkPressed()) {
+1835      if (spamming && spamTimer >= 0.07)                 // repeat while held
+1844      else if (!spamming)                                // first press
+              changeSelection(UI_LEFT.checkPressed() ? -1 : 1);
+      } else { spamming = false; spamTimer = 0; }
+1854  UI_UP.checkJustPressed() / UI_DOWN.checkJustPressed()
+1856      changeDiff(UI_DOWN.checkJustPressed() ? -1 : 1);
+1861  <something>() -> handleExit();
 ```
 
-The shape is a held-key repeat gated by `scrollCooldown` and `spamTimer`/`spamming`
-(fields 0x2f0, 0x2e0, 0x2e8) — but the compiler reorders the blocks, so pairing each
-`checkPressed` with its action means tracking which register holds the `Controls` object
-through the reordering, and two of the seven calls did not resolve that way. **Input is
-the one thing the player touches, so a half-read port of it is worse than none**: the
-remaining actions and the exact repeat timing need a register-accurate pass before this
-moves.
+Two things needed real care:
 
-For reference when that happens, the action offsets on `Controls`, recovered earlier from
-`OptionsSubMenu::update`: 0x30 UI_UP, 0x38 UI_LEFT, 0x40 UI_RIGHT, 0x48 UI_DOWN,
-0x108 ACCEPT, 0x110 BACK, 0x158 DEBUG_MENU.
+- **Pairing each `checkPressed` with its action.** An earlier pass got two of seven wrong
+  because it took "the last plausible offset seen". The reads come in two shapes and both
+  have to be matched: `PlayerSettings.player1` → `mov 0x10(%rax),%r15` (`.controls`) →
+  `mov 0xNN(%r15),%rdi`; or three chained `operator->` calls with the offset in the `lea`
+  *between* them — `lea 0x10(%rax),%rdi` then `lea 0x30(%rax),%rdi`. Bounding the search to
+  ~14 instructions before each call and only accepting known action offsets resolved all
+  seven. The offsets are 0x30 UI_UP, 0x38 UI_LEFT, 0x40 UI_RIGHT, 0x48 UI_DOWN,
+  0x108 ACCEPT, 0x110 BACK, 0x158 DEBUG_MENU.
+- **The sign is an idiom, not a constant.** `cmp $1,%al; sbb %eax,%eax; and $2,%eax;
+  sub $1,%eax` is `condition ? -1 : 1` — worth recognising on sight, because it is where
+  the direction of every one of these lives. LEFT is -1, and, less obviously, DOWN is -1
+  for the difficulty.
+
+`checkPressed` versus `checkJustPressed` is the difference between a key that repeats and
+one that does not: selection repeats every **0.07 s** while held, difficulty does not repeat
+at all. An event-driven port gets neither — it inherits the operating system's repeat rate
+for both.
+
+Still unresolved: the condition that fires `handleExit` at 1861 is a vtable call (slot
+0x100) on an object that has not been identified.
 
 ### `hxlines.py`: read a big method as a table first
 

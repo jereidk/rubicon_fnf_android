@@ -191,7 +191,8 @@ var layer_sound: AudioStreamPlayer
 
 ## Misc.
 var scroll_cooldown: float = 0.0
-var spam_time: float = 0.0
+## spamTimer (campo 0x2e0): cuanto lleva mantenida la tecla desde el ultimo paso.
+var spam_timer: float = 0.0
 var spamming: bool = false
 var can_play_switch_sound: bool = true
 var old_theme_layer_name: String = ""
@@ -279,6 +280,7 @@ func _load_songs() -> void:
 ## ─── Process ─────────────────────────────────────────────────────────────────
 
 func _process(delta: float) -> void:
+	_handle_input(delta)
 	_drive_score(delta)
 	_update_camera_scroll(delta)
 	_update_tv_glow(delta)
@@ -310,6 +312,63 @@ func _process(delta: float) -> void:
 
 ## El `duration` de los dos smoothLerpPrecision de update.
 const SCORE_LERP := 0.65
+
+
+## ─── handleInput (0x34d25e0, lineas 1802-1867) ─────────────────────────────
+## Los ejes del puerto estaban cambiados. El binario es claro:
+##
+##   1828  if (UI_LEFT.checkPressed() || UI_RIGHT.checkPressed()) {
+##   1835        if (spamming && spamTimer >= 0.07)                  // repetido
+##   1844        else if (!spamming)                                 // primera pulsacion
+##                   changeSelection(UI_LEFT.checkPressed() ? -1 : 1);
+##         } else { spamming = false; spamTimer = 0; }
+##   1854  UI_UP.checkJustPressed() / UI_DOWN.checkJustPressed()
+##   1856      -> changeDiff(...)
+##   1861  ... -> handleExit()
+##
+## IZQUIERDA y DERECHA cambian de CANCION; ARRIBA y ABAJO cambian de DIFICULTAD. El
+## puerto los tenia al reves, lo cual encajaba con su carrusel vertical inventado: con la
+## fila horizontal que updateDisks realmente dibuja, izquierda y derecha es lo natural.
+##
+## Y hay repetido al mantener, cada 0.07 s, con la primera pulsacion aparte. Por eventos
+## eso queda en manos del repetido del sistema operativo, que es otro ritmo.
+##
+## `?` La condicion que dispara handleExit sale de un hueco de vtable (0x100) sobre un
+## objeto que no he identificado; el puerto sigue saliendo por ESC/atras como antes.
+
+## El umbral de spamTimer con el que se repite la seleccion.
+const INPUT_REPEAT := 0.07
+
+const KEYS_PREV := [KEY_LEFT, KEY_A]
+const KEYS_NEXT := [KEY_RIGHT, KEY_D]
+
+
+func _any_held(keys: Array) -> bool:
+	for key: int in keys:
+		if Input.is_key_pressed(key as Key):
+			return true
+	return false
+
+
+func _handle_input(delta: float) -> void:
+	if _confirmed or not allow_input:
+		return
+
+	var prev: bool = _any_held(KEYS_PREV)
+	if prev or _any_held(KEYS_NEXT):
+		var step: int = -1 if prev else 1
+		if not spamming:
+			change_selection(step)
+			spamming = true
+			spam_timer = 0.0
+		else:
+			spam_timer += delta
+			if spam_timer >= INPUT_REPEAT:
+				change_selection(step)
+				spam_timer = 0.0
+	else:
+		spamming = false
+		spam_timer = 0.0
 
 
 func _drive_score(delta: float) -> void:
@@ -942,15 +1001,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _confirmed or not allow_input or not event.is_pressed():
 		return
 
+	# Las flechas NO se atienden aqui: handleInput las SONDEA por frame para poder repetir
+	# mientras se mantienen. Lo que queda por evento es lo que no se repite.
 	if event is InputEventKey:
 		match (event as InputEventKey).keycode:
-			KEY_UP, KEY_W:
-				change_selection(-1)
+			# changeDiff(UI_DOWN.checkJustPressed() ? -1 : 1), linea 1856: ABAJO resta.
+			# Es checkJustPressed, no checkPressed, asi que aqui no hay repetido.
 			KEY_DOWN, KEY_S:
-				change_selection(1)
-			KEY_LEFT, KEY_A:
 				change_diff(-1)
-			KEY_RIGHT, KEY_D:
+			KEY_UP, KEY_W:
 				change_diff(1)
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				confirm()
