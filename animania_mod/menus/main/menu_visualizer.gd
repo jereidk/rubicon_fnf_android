@@ -59,6 +59,22 @@ const BAR_LERP := 12.0
 const MIN_HZ := 40.0
 const MAX_HZ := 16000.0
 
+## setupEventListeners (0x17fc540) hangs a callback on THIS object - field 0x158 of barsViz -
+## and the callback takes one Float. So the visualiser is not only decoration: it is what
+## tells the menu a loud hit landed. See main_menu.gd's _setup_event_listeners.
+##
+## The mod's threshold is `intensity > 1.35` (0x180b9aa). What BarsVisualizer measures to
+## get that number is its own business and this port cannot read the same signal, so the
+## substitution is here: intensity is the loudest band's level, doubled, which puts a
+## full-scale bar at 2.0 and keeps the mod's own 1.35 meaning "well past half".
+signal peaked(intensity: float)
+
+## Re-armed only once the level drops back under this, so one hit is one event rather than
+## one per frame for as long as it is loud.
+const PEAK_ON := 1.35
+const PEAK_OFF := 1.0
+var _peak_armed: bool = true
+
 var _bars: Array[Sprite2D] = []
 var _levels: PackedFloat32Array = []
 var _spectrum: AudioEffectSpectrumAnalyzerInstance = null
@@ -195,6 +211,16 @@ func _drive_bars(delta: float) -> void:
 		_levels[i] = lerpf(_levels[i], level, catch_up)
 		var bar: Sprite2D = _bars[i]
 		bar.scale.y = float(bar.get_meta(&"full")) * _levels[i]
+
+	var loudest: float = 0.0
+	for level: float in _levels:
+		loudest = maxf(loudest, level)
+	var intensity: float = loudest * 2.0
+	if _peak_armed and intensity > PEAK_ON:
+		_peak_armed = false
+		peaked.emit(intensity)
+	elif not _peak_armed and intensity < PEAK_OFF:
+		_peak_armed = true
 
 
 func _drive_waveform() -> void:

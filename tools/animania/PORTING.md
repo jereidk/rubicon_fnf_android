@@ -496,7 +496,7 @@ port, and why, so nobody re-derives it:
 | --- | --- |
 | `RuntimeRainShader` (autumn) | writing a rain shader from nothing is writing one, not porting it |
 | the emitter's `maxParticles` / `spawnValue` | their `cpp::Variant`s go by reference and the dump does not resolve them |
-| `setupEventListeners` | empty in the binary |
+| `MusicFilterController` | the reverb and lowpass it drives are only used by the `exit` button's quit ramp, which is not ported either |
 | the `exit` button's audio ramp | `REVERB`/`LOWPASS` through `MusicFilterController`, which this port has no equivalent of |
 | `credits`' `StickerSubState` | the sticker wipe is its own screen; credits leaves through the curtain here |
 
@@ -675,6 +675,49 @@ locks last in the node already gives.
 `destroy()` (0x1813fc0) is mostly the mod's own bookkeeping, but its first act is
 `Cursor.cursorMode = Default` — and now that the hover callbacks set a pointer shape, the
 port has to do the same on the way out or the next screen inherits a hand cursor.
+
+### `setupEventListeners` is not empty, and the loop has two stems
+
+Two things this port had written off. Both were wrong, and both are audible or visible.
+
+**`setupEventListeners` (0x17fc540)** was recorded here as "empty". It is one line, and it is
+what makes the menu react to the music:
+
+    594  barsViz.<0x158> = function(intensity:Float) {
+    596      if (intensity > 1.35 && ... && FlxG.sound.music.volume > 0.1) {
+    598          FlxG.camera.shake(0.00075, 0.1);
+    599          FlxG.camera.zoom += 0.0005;
+    601          for (lock in locks)                                  // this->0x108
+                     lock.frameOffset.set(FlxG.random.float(-0.75 * i, 0.75 * i),
+                                          FlxG.random.float(-0.75 * i, 0.75 * i));
+    604          menuDude.frameOffset.set(<the same pair>);           // this->0xf0
+             }
+         };
+
+So the visualiser is not decoration: it is the thing that tells the menu a loud hit landed.
+On one, the camera shivers about a pixel and a half for a tenth of a second, gains half a
+thousandth of zoom, and the three padlocks and the dancer jitter by up to 0.75x the
+intensity. A fine shiver, not a punch — `beatHit` is the punch.
+
+What `BarsVisualizer` measures to produce that number is its own business and this port
+cannot read the same signal, so the substitution is named where it lives: `menu_visualizer`
+emits `peaked(intensity)` with intensity = the loudest band's level doubled, which puts a
+full-scale bar at 2.0 and keeps the mod's own 1.35 meaning "well past half". The shake is
+written to the camera's `position`, not its `offset`, because `updateCameraScroll` owns
+offset and lerps it every frame — a shake written there is eaten by the lerp and leaves a
+drift behind.
+
+**`initMusic` (0x17ffeb0)** plays the theme and then, at line 181, loads
+`Paths.music('AnimaniaLOOPbass')` into `bassSound` (field 0x188) at the music's own volume,
+looped, autoplaying. **The menu loop is two stems.** `AnimaniaLOOPbass.ogg` had already been
+extracted next to `animaniaLOOP.ogg` and was simply never played, so this port had been
+running the menu without its bass. An asset sitting unused next to one that IS used is worth
+a second look — that is the same lesson as "never delete an asset because it looks orphaned",
+read from the other end.
+
+`createBackground` (0x1800500) came back clean: `menus/menu/menu background`, centred on
+`FlxG.width/height`, `scrollFactor` 0.65, then `x -= 75`. Every one of those is already in
+the port.
 
 ### The second `__GetFields` trick, and the offsets NOT to port
 

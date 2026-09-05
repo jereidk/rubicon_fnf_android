@@ -317,6 +317,7 @@ func _process(delta: float) -> void:
 		camera.zoom = Vector2.ONE * (ZOOM_REST
 			+ (camera.zoom.x - ZOOM_REST) * exp(-ZOOM_DECAY * delta))
 	_update_camera_scroll(delta)
+	_drive_shake(delta)
 	_apply_parallax()
 
 	if music == null or not music.playing:
@@ -1084,21 +1085,130 @@ func _music_social_play_anim(anim: StringName = &"basic") -> void:
 		_music_social.play(wanted)
 
 
-## initMusic. Initializes the menu music track with proper settings.
-## From the binary's initMusic method.
+## initMusic (0x17ffeb0, line 171):
+##
+##     172  FunkinSound.playMusic(Constants.defaultThemeTrack,
+##                                {overrideExisting: true, restartTrack: true});
+##     181  bassSound = FunkinSound.load(Paths.music('AnimaniaLOOPbass'),
+##                                       FlxG.sound.music.volume, /*looped*/ true,
+##                                       ..., /*autoPlay*/ true);           // field 0x188
+##          musicFilter = new MusicFilterController(...);
+##
+## The loop is TWO stems. `AnimaniaLOOPbass.ogg` was already extracted next to
+## `animaniaLOOP.ogg` and this port never played it, so the menu was running without its
+## bass. It goes on at the main loop's volume, looped, on the same bus.
+##
+## `MusicFilterController` has no equivalent here - the reverb and lowpass it drives are
+## only ever used by the `exit` button's quit ramp, which is not ported either.
+const MUSIC_BASS := "res://animania_mod/source/music/AnimaniaLOOPbass.ogg"
+var _bass: AudioStreamPlayer = null
+
+
 func _init_music() -> void:
 	if music != null:
 		music.add_to_group("menu_music")
 		music.bus = &"Music"
 
+	if not ResourceLoader.exists(MUSIC_BASS):
+		return
+	_bass = AudioStreamPlayer.new()
+	_bass.name = "Bass"
+	_bass.stream = load(MUSIC_BASS)
+	if _bass.stream is AudioStreamOggVorbis:
+		(_bass.stream as AudioStreamOggVorbis).loop = true
+	_bass.bus = &"Music"
+	if music != null:
+		_bass.volume_db = music.volume_db
+	add_child(_bass)
+	_bass.play()
+	# Both stems start from the same point, so a menu re-entered mid-loop keeps them locked.
+	if music != null and music.playing:
+		_bass.seek(music.get_playback_position())
 
-## setupEventListeners. Sets up event listeners for state changes.
-## From the binary's setupEventListeners method.
+
+## setupEventListeners (0x17fc540) is NOT empty, which is what this port had recorded. It is
+## one line, and it is the thing that makes the menu react to the music:
+##
+##     594  barsViz.<0x158> = function(intensity:Float) {
+##     596      if (intensity > 1.35 && ... && FlxG.sound.music.volume > 0.1) {
+##     598          FlxG.camera.shake(0.00075, 0.1);
+##     599          FlxG.camera.zoom += 0.0005;
+##     601          for (lock in locks)                                 // this->0x108
+##                      lock.frameOffset.set(FlxG.random.float(-0.75 * i, 0.75 * i),
+##                                           FlxG.random.float(-0.75 * i, 0.75 * i));
+##     604          menuDude.frameOffset.set(<the same pair>);          // this->0xf0
+##              }
+##          };
+##
+## So on a loud hit the camera shivers about a pixel for a tenth of a second, gains half a
+## thousandth of zoom, and the three padlocks and the dancer jitter by up to 0.75 * the
+## intensity. It is a fine shiver rather than a punch - beatHit is the punch - and the port
+## had none of it because `setupEventListeners` read as empty in the dump.
+const PEAK_SHAKE := 0.00075
+const PEAK_SHAKE_TIME := 0.1
+const PEAK_ZOOM := 0.0005
+const PEAK_JITTER := 0.75
+var _shake_left: float = 0.0
+var _shake_at := Vector2.ZERO
+
+
 func _setup_event_listeners() -> void:
-	# The binary subscribes to events like language changes,
-	# season changes, etc. In Godot, most of these are handled
-	# by the node tree and scene transitions.
-	pass
+	var viz: Node = get_node_or_null(^"Visualizer")
+	if viz != null and viz.has_signal(&"peaked"):
+		viz.peaked.connect(_on_peak)
+
+
+func _on_peak(intensity: float) -> void:
+	# The callback's own guard is `transitioning` (field 0x169), which the intro's camera
+	# tween clears at 0.75s and startTransitionToMenu sets again - the same window _live()
+	# names.
+	if camera == null or _exit >= 0.0 or not _live():
+		return
+	if music == null or not music.playing or db_to_linear(music.volume_db) <= BEAT_VOLUME_GATE:
+		return
+	_shake_left = PEAK_SHAKE_TIME
+	camera.zoom += Vector2.ONE * PEAK_ZOOM
+	var reach: float = PEAK_JITTER * intensity * FUNKIN_TO_RUBICON
+	for node: Node in _jitter_targets():
+		var node2d: Node2D = node as Node2D
+		if node2d == null:
+			continue
+		if not node2d.has_meta(&"jitter_base"):
+			node2d.set_meta(&"jitter_base", node2d.position)
+		# frameOffset SUBTRACTS, the same as offset, so the sign is flipped here.
+		node2d.position = Vector2(node2d.get_meta(&"jitter_base")) \
+			- Vector2(randf_range(-reach, reach), randf_range(-reach, reach))
+
+
+## `locks` (field 0x108) and `menuDude` (0xf0) - the only two the callback touches.
+func _jitter_targets() -> Array[Node]:
+	var out: Array[Node] = []
+	if dude != null:
+		out.append(dude)
+	if buttons != null:
+		for child: Node in buttons.get_children():
+			if String(child.name).ends_with("Lock"):
+				out.append(child)
+	return out
+
+
+## flixel's camera.shake moves the camera by +-intensity * width every frame for the
+## duration. At 0.00075 of a 1920-wide screen that is about a pixel and a half.
+func _drive_shake(delta: float) -> void:
+	if camera == null:
+		return
+	# On `position`, not on `offset`: updateCameraScroll owns offset and lerps it every
+	# frame, so a shake written there would be eaten by the lerp and leave a drift behind.
+	if _shake_left <= 0.0:
+		if not _shake_at.is_zero_approx():
+			camera.position -= _shake_at
+			_shake_at = Vector2.ZERO
+		return
+	_shake_left -= delta
+	camera.position -= _shake_at
+	var reach: float = PEAK_SHAKE * get_viewport_rect().size.x
+	_shake_at = Vector2(randf_range(-reach, reach), randf_range(-reach, reach))
+	camera.position += _shake_at
 
 
 ## create() plus finalizeSetup, which this port does in one pass because it has no separate
