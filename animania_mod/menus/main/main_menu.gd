@@ -979,6 +979,33 @@ func _hover(at: Vector2) -> void:
 		deselect()
 
 
+## createMusicSocial ends with its own FlxMouseEventManager.add on the disc (0x180e98a) -
+## three closures, the same down/over/out shape the plaques get. So the disc lights up under
+## the pointer too, and the port had no hover on it at all.
+##
+## The mod's three animation names are `idle`, `selected` and `press` (0x180e3f9, 0x180e49a,
+## 0x180e534), mapped onto the clips `soundtrack basic`, `soundtrack white` and
+## `soundtrack press`.
+var _disc_hover: bool = false
+
+
+func _hover_disc(at: Vector2) -> void:
+	if _confirmed or not _live():
+		return
+	var over: bool = _social_hit(at)
+	if over == _disc_hover:
+		return
+	_disc_hover = over
+	if over:
+		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+		_music_social_play_anim(&"selected")
+		return
+	# While the row is open the disc stays lit: that is the state _toggle_social put it in,
+	# and leaving the pointer should not close it.
+	if not _social_open:
+		_music_social_play_anim(&"basic")
+
+
 ## spawnHelpMouseText (0x1802d10). The string is the mod's own, out of .rodata, and so is
 ## the face: `assets/fonts/Inconsolata-Black.ttf`, which ships inside the executable rather
 ## than beside it and is extracted next to the VCR one. "Click to select!" in an 18px
@@ -1430,7 +1457,9 @@ func _notification(what: int) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# Motion is not a press, so it is asked before the press gate.
 	if event is InputEventMouseMotion:
-		_hover((event as InputEventMouseMotion).position)
+		var at: Vector2 = (event as InputEventMouseMotion).position
+		_hover_disc(at)
+		_hover(at)
 		return
 
 	if _confirmed or not event.is_pressed() or not _live():
@@ -1494,6 +1523,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _touch(at: Vector2) -> void:
 	# The OST disc is not one of the eight, so it gets asked first.
 	if _social_hit(at):
+		# The mod's `press` clip belongs to the disc's onMouseDown and is replaced by
+		# `selected` on the up that follows. A tap has no room between the two, and playing
+		# it here only gets overwritten by _toggle_social's own state a line later - so the
+		# clip stays mapped in _music_social_play_anim and unused, rather than flashed for
+		# no frames.
 		_toggle_social()
 		_play(SOUND_SWITCH)
 		return

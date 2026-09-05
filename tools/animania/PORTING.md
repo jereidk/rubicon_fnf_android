@@ -676,6 +676,36 @@ locks last in the node already gives.
 `Cursor.cursorMode = Default` — and now that the hover callbacks set a pointer shape, the
 port has to do the same on the way out or the next screen inherits a hand cursor.
 
+### The OST widget, measured: the numbers were right, the behaviour was not
+
+`createMusicSocial` (0x180e050) and `createSocialButtons` (0x180ce20) came back matching the
+port on **every** number, which is worth recording because this is the corner where the
+binary and the mod's own capture disagree and `WORLD_OFFSET` is the calibration between them:
+
+    disc      FunkinSprite(570, 590), scale 0.85, zoomFactor 0.875
+              soundtrack basic -> `idle`, soundtrack white -> `selected`,
+              soundtrack press -> `press`, all addByPrefix at 24
+    lines     music_social_lines at (7.5, 625.35), scale 0.85, zoomFactor 0.875
+    buttons   amazon, youtube button, soundcloud button, spotify button,
+              apple music button - from x = 37.3, y = 620.9, each stepping the running
+              sum by its unscaled frame width MINUS 6.0 (0x180d835)
+
+Note the disc's argument order: `mov $0x24e` (590) is built before `mov $0x23a` (570), and
+hxcpp evaluates right to left, so the first Dynamic built is Y — the sprite is at
+(570, 590), not (590, 570). That is the same trap this file warns about for `FunkinSprite`
+generally, and it is the one place where getting it backwards would look plausible.
+
+Two behaviours were missing even though the numbers were right:
+
+- The lines strip gets `clipRect = FlxRect(0, 0, 0, frameHeight)` at creation (0x180e83f) —
+  **width zero**, so it is not hidden, it is rolled up, and something unrolls it. The port
+  flips `visible`, which is the same appearance without the unroll.
+- `createMusicSocial` ends with its own `FlxMouseEventManager.add` on the disc (0x180e98a),
+  three closures like every plaque gets. So the disc lights up under the pointer too. Ported.
+  Its `press` clip is the mouse-DOWN state and is replaced by `selected` on the up that
+  follows; a tap has no room between the two, so the clip stays mapped and unused rather than
+  flashed for no frames.
+
 ### `setupEventListeners` is not empty, and the loop has two stems
 
 Two things this port had written off. Both were wrong, and both are audible or visible.
