@@ -75,19 +75,20 @@ const SOUND_TV_ON := "res://animania_mod/source/sounds/freeplay/tvOn.ogg"
 const MENU := "res://animania_mod/menus/main/main_menu.tscn"
 
 ## ─── Disk carousel constants ─────────────────────────────────────────────────
-## From binary: DiskSpr.updateDiskPos uses smoothLerpPrecision.
-## Half-life in seconds: y trails x by a quarter, so the carousel arrives
-## with a slight roll rather than square.
+## Las que habia aqui -DISK_HALFLIFE_X/Y, DISK_SCALE_ON/OFF, DISK_ALPHA_OFF- se han ido.
+## Los dos primeros numeros eran los correctos, 0.256 y 0.192, pero usados como vida media
+## de un `to + (from-to)*2^(-dt/half)` cuando el mod usa smoothLerpPrecision, que es otra
+## curva. Los otros tres eran invencion entera. Todo eso vive ahora en _drive_disk_animations
+## y _apply_disk_pose, leido de DiskSpr.updateDiskPos.
 
-const DISK_HALFLIFE_X := 0.256
-const DISK_HALFLIFE_Y := 0.192
-
-const DISK_SCALE_ON := 1.0
-const DISK_SCALE_OFF := 0.72
-const DISK_ALPHA_OFF := 0.55
-
-## Lo que el disco elegido sube, de updateDisks linea 806: disk.<0x258>.y -= 3. El campo
-## 0x258 es un hijo del propio DiskSpr, todavia sin identificar, asi que no se aplica.
+## Lo que sube el disco elegido, de updateDisks linea 806: `disk.targetPos.y -= 3`.
+##
+## El campo 0x258 estaba marcado aqui como "un hijo del propio DiskSpr, todavia sin
+## identificar, asi que no se aplica". Ya esta identificado: el __GetFields de DiskSpr da
+## sus miembros en orden -disk, phText, targetPos, lockSpr, songData- y su __Mark da los
+## offsets -0x248, 0x250, 0x258, 0x260, 0x268-, y el ultimo cuadra con el songData que
+## changeTheme lee en 0x268. Asi que 0x258 es `targetPos` y esto se aplica: el disco
+## elegido apunta tres pixeles mas arriba que los demas.
 const DISK_TOP_OFFSET := 3.0
 
 ## ─── TV glow constants (verified from binary .rodata) ───────────────────────
@@ -460,6 +461,40 @@ func _smooth_lerp(base: float, target: float, dt: float, duration: float,
 	return lerpf(base, target, 1.0 - pow(precision, dt / duration))
 
 
+## ─── DiskSpr.updateDiskPos (0x200bf70, lineas 150-168) ─────────────────────
+## Esto estaba inventado de cabo a rabo: una interpolacion por vida media con dos
+## constantes puestas a ojo, una escala de 1.0 / 0.72 y un alfa de 0.55. Nada de eso esta
+## en el mod. DiskSpr.update (linea 141) llama a updateDiskPos con el elapsed y sin
+## ninguna guarda, y lo que hace es:
+##
+##   150  x = MathUtil.smoothLerpPrecision(x, targetPos.x, elapsed, 0.256)
+##   153  y = MathUtil.smoothLerpPrecision(y, targetPos.y, elapsed, 0.192)
+##   161  angle = (x + 20) / 225 * -5.5                  // hueco 0x248 = set_angle
+##   165  _reqScale = 1 - abs(angle) * 0.035             // campo 0x288
+##   167  if (scale.x != _reqScale) scale.set(_reqScale, _reqScale)
+##   168  color = FlxColor(255*_reqScale, 255*_reqScale, 255*_reqScale, 255)
+##
+## Tres cosas que solo se ven leyendolo:
+##
+## El (x + 20) / 225 no es un numero magico: 225 es el paso entre discos y -20 su
+## desplazamiento, o sea que ese cociente ES la distancia en pasos hasta el elegido. Y se
+## calcula sobre la x YA interpolada, no sobre el destino, asi que el giro, el tamaño y el
+## color siguen a la animacion en vez de saltar con ella.
+##
+## El disco lejano no baja de ALFA: baja de COLOR. Los tres canales van a 255*escala con
+## el alfa fijo en 255, que es un gris, no una transparencia. Se nota: sobre el fondo
+## claro de la cama un gris y un alfa no se parecen en nada.
+##
+## Y el `andpd` de 0x200c0ef es la mascara que quita el bit de signo: es abs(), asi que el
+## disco encoge igual a un lado que al otro.
+const DISK_LERP_X := 0.256
+const DISK_LERP_Y := 0.192
+## Grados por paso, linea 161. Negativo: el carrusel gira al contrario que su avance.
+const DISK_ANGLE_PER_STEP := -5.5
+## Cuanto encoge por grado, linea 165.
+const DISK_SCALE_PER_DEGREE := 0.035
+
+
 func _drive_disk_animations(delta: float) -> void:
 	if disks == null:
 		return
@@ -467,19 +502,25 @@ func _drive_disk_animations(delta: float) -> void:
 		var disk: Node2D = disks.get_child(i)
 		var target: Vector2 = disk.get_meta(&"target") as Vector2
 		disk.position = Vector2(
-			_ease(disk.position.x, target.x, delta, DISK_HALFLIFE_X),
-			_ease(disk.position.y, target.y, delta, DISK_HALFLIFE_Y))
-		var wants: float = float(disk.get_meta(&"scale"))
-		var at: float = _ease(disk.scale.x, wants, delta, DISK_HALFLIFE_X)
-		disk.scale = Vector2(at, at)
-		disk.modulate.a = _ease(
-			disk.modulate.a, float(disk.get_meta(&"alpha")), delta, DISK_HALFLIFE_X)
+			_smooth_lerp(disk.position.x, target.x, delta, DISK_LERP_X),
+			_smooth_lerp(disk.position.y, target.y, delta, DISK_LERP_Y))
+		_apply_disk_pose(disk)
 
 
-## ─── MathUtil.smoothLerpPrecision ────────────────────────────────────────────
+## Las lineas 161-168: todo sale de la x actual, asi que vale igual para el fotograma a
+## fotograma y para el salto de _refresh.
+func _apply_disk_pose(disk: Node2D) -> void:
+	# La x del mod, que es la del puerto sin el factor de escala de pantalla.
+	var step: float = (disk.position.x / FUNKIN_TO_RUBICON - DISK_OFFSET_X) / DISK_STEP_X
+	var angle: float = step * DISK_ANGLE_PER_STEP
+	disk.rotation = deg_to_rad(angle)
+	var at: float = 1.0 - absf(angle) * DISK_SCALE_PER_DEGREE
+	disk.scale = Vector2(at, at)
+	# Linea 168: gris, no alfa. Std.int() trunca y el resultado se recorta a 0..255.
+	var grey: float = clampf(float(int(255.0 * at)), 0.0, 255.0) / 255.0
+	disk.modulate = Color(grey, grey, grey, 1.0)
 
-func _ease(from: float, to: float, delta: float, half: float) -> float:
-	return to + (from - to) * pow(2.0, -delta / half)
+
 
 
 ## ─── updateDisks (0x34bb470, lineas 798-807) ───────────────────────────────
@@ -531,9 +572,12 @@ func _update_disks(sel: float) -> void:
 		# elegido delante, asi que get_child(i) deja de ser el disco i en cuanto se mueve
 		# la seleccion. En el mod el orden lo decide el zIndex y el ID no se toca.
 		var away: float = float(int(disk.get_meta(&"index", i))) - sel
+		var chosen: bool = is_zero_approx(away)
+		# Linea 806: el elegido apunta tres pixeles mas arriba. Ver DISK_TOP_OFFSET.
+		var y: float = _disk_y(away) - (DISK_TOP_OFFSET if chosen else 0.0)
 		disk.set_meta(&"target", Vector2(
-			away * DISK_STEP_X + DISK_OFFSET_X, _disk_y(away)) * FUNKIN_TO_RUBICON)
-		disk.z_index = DISK_Z_SELECTED if is_zero_approx(away) else DISK_Z
+			away * DISK_STEP_X + DISK_OFFSET_X, y) * FUNKIN_TO_RUBICON)
+		disk.z_index = DISK_Z_SELECTED if chosen else DISK_Z
 
 
 ## ─── updateTvGlow (0x34be370, lineas 1777-1787) ────────────────────────────
@@ -1162,17 +1206,13 @@ func _refresh(snap: bool) -> void:
 	# updateDisks es quien coloca; aqui solo queda la escala y el alfa, que el mod maneja
 	# desde DiskSpr y no desde este metodo.
 	_update_disks(cur_selected_float)
-	for i: int in disks.get_child_count():
-		var disk: Node2D = disks.get_child(i)
-		var chosen: bool = int(disk.get_meta(&"index", i)) == cur_selected
-		disk.set_meta(&"scale", DISK_SCALE_ON if chosen else DISK_SCALE_OFF)
-		disk.set_meta(&"alpha", 1.0 if chosen else DISK_ALPHA_OFF)
-		if not snap:
-			continue
-		disk.position = disk.get_meta(&"target") as Vector2
-		var at: float = float(disk.get_meta(&"scale"))
-		disk.scale = Vector2(at, at)
-		disk.modulate.a = float(disk.get_meta(&"alpha"))
+	# Ya no se guardan metas de escala ni de alfa: no existen en el mod. El tamaño, el
+	# giro y el gris salen los tres de la x, en _apply_disk_pose.
+	if snap:
+		for i: int in disks.get_child_count():
+			var disk: Node2D = disks.get_child(i)
+			disk.position = disk.get_meta(&"target") as Vector2
+			_apply_disk_pose(disk)
 	# Nada de move_child: quien pone el elegido delante es su zIndex (10 contra 5 en el
 	# mod, 1 contra 0 aqui), y reordenar el arbol rompia la correspondencia con el ID.
 	# Update song info.
@@ -1381,7 +1421,6 @@ func confirm() -> void:
 	# baja de tono a 0.9, y la transicion tarda UN segundo, no 0.6.
 	var disk: Node2D = _get_selected_disk()
 	if disk != null:
-		disk.set_meta(&"scale", DISK_SCALE_ON)
 		var jump := create_tween()
 		jump.tween_property(disk, "position:y",
 			disk.position.y - CONFIRM_JUMP, CONFIRM_TIME) \

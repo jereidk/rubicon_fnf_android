@@ -2584,7 +2584,7 @@ bytes of compiled method code.
 | `FreeplayScreen` | 86,865 | 33 | **read whole** |
 | `FreeplayDots` | 7,096 | 5 | **read whole** (8f) |
 | `FreeplaySongData` | 4,004 | 4 | field table read; `updateValues`, `set_currentDifficulty`, `toString` not |
-| `DiskSpr` | 13,045 | 10 | only `intendedY`; `changeDisk`, `init`, `initLock`, `syncDiskOffsets`, `update`, `updateDiskPos`, `updateHitbox`, `forcePosition` unread |
+| `DiskSpr` | 13,045 | 10 | **read whole** (8m); `updateDiskPos` ported |
 | `CharPlayer` | 10,945 | 9 | unread |
 | `DifficultyStars` | 9,555 | 6 | unread |
 | `FreeplayAtlasHandler` | 6,804 | 6 | unread |
@@ -2601,16 +2601,85 @@ So roughly 98 KB of 152 KB is read, and the third that is not is where the disks
 stars, the score digits and the two characters live. Three of those are worth flagging
 specifically:
 
-- **`DiskSpr`** is the biggest unread class and the port draws disks every frame. The port
-  places them from `updateDisks` and `intendedY`, both read off `FreeplayScreen`, so the
-  carousel is right — but `changeDisk`, `initLock`, `syncDiskOffsets` and the sprite's own
-  `update` are not, and a locked disk's behaviour comes from `initLock`.
+- ~~**`DiskSpr`** is the biggest unread class~~ — read, see 8m. What is still unported from
+  it is `changeDisk` (the placeholder path) and `initLock` (locked songs).
 - **`FreeplayScreenHelp`** has real content — `changeTip`, `viewHintTexts`, `leave`. Section
   8e noted that `openHelp()` is empty in `FreeplayScreen` and that something else opens the
   help screen. That something is still not identified, and the class it opens is unread.
 - **`FreeplayScore` / `ScoreNum`** are the score's digit sprites. The port draws the score
   as a plain `Label`, which is why 8g's "no save system" gap is really two gaps: nothing
   writes a score, and nothing draws it the way the mod does.
+
+
+## 8m. DiskSpr: the carousel's whole look was invented
+
+`DiskSpr` is 13,045 bytes over 10 methods. Its field table comes from `__GetFields` (member
+names in declaration order) crossed with `__Mark` (the pointer offsets):
+
+| offset | field |
+|---|---|
+| 0x248 | `disk` |
+| 0x250 | `phText` |
+| 0x258 | `targetPos` |
+| 0x260 | `lockSpr` |
+| 0x268 | `songData` |
+| 0x288 | `_reqScale` |
+
+0x268 is the anchor that proves the mapping: `changeTheme` reads the song's theme off
+`disk.songData` at exactly that offset.
+
+### `updateDiskPos` (0x200bf70, lines 150-168)
+
+`DiskSpr.update` line 141 calls it every frame with `elapsed`, with no guard.
+
+```
+150  x = MathUtil.smoothLerpPrecision(x, targetPos.x, elapsed, 0.256)
+153  y = MathUtil.smoothLerpPrecision(y, targetPos.y, elapsed, 0.192)
+161  angle = (x + 20) / 225 * -5.5            // vtable slot 0x248 is set_angle
+165  _reqScale = 1 - abs(angle) * 0.035
+167  if (scale.x != _reqScale) scale.set(_reqScale, _reqScale)
+168  color = FlxColor(255*_reqScale, 255*_reqScale, 255*_reqScale, 255)
+```
+
+**The port had all of this invented.** It eased with `to + (from-to) * 2^(-dt/half)` — a
+half-life curve, not `smoothLerpPrecision` — and it set scale from `DISK_SCALE_ON 1.0` /
+`DISK_SCALE_OFF 0.72` and alpha from `DISK_ALPHA_OFF 0.55`, three numbers that appear
+nowhere in the mod. The two half-life constants were 0.256 and 0.192: **the right numbers
+fed to the wrong formula**, which is the kind of near-miss that reads as verified.
+
+Three things only visible by reading it:
+
+- **`(x + 20) / 225` is not a magic number.** 225 is the step between disks and -20 their
+  offset, so that quotient *is* the distance in steps from the selected one. Everything —
+  angle, scale, tint — comes off it.
+- **It is computed from the eased `x`, not from the target**, so the rotation, the size and
+  the colour follow the animation instead of snapping with it.
+- **A distant disk does not lose alpha, it loses colour.** All three channels go to
+  `255 * scale` with alpha pinned at 255 — a grey tint, not transparency. Over the bed's
+  pale bedding those look nothing alike.
+
+The `andpd` at 0x200c0ef is the sign-bit mask, i.e. `abs()`, so a disk shrinks the same
+either side of centre. Measured after the change: -5.5° and ×0.808 per step, 1.000 → 0.808
+→ 0.615 → 0.423 across four disks.
+
+### And it closed an open note
+
+`updateDisks` line 806 does `disk.<0x258>.y -= 3`, and the port's comment said 0x258 was
+"a child of the DiskSpr itself, still unidentified, so this is not applied". It is
+`targetPos`. The selected disk aims three pixels higher than the rest, and that now happens.
+
+### The rest of the class, read but not ported
+
+- `changeDisk` (82-106): loads `animania-freeplay/disks/<name>`, falls back to a
+  `placeholder` graphic and then shows `phText` with the name upper-cased; sets origin to
+  0.5 and re-centres by width/height. The port's disks come pre-built into the scene from
+  the same art, so only the placeholder path is missing — it matters the day a song has no
+  disk graphic.
+- `initLock` (66-71): a lock sprite from `animania-freeplay/songs lock`, centred on the
+  disk. Nothing in the port locks songs yet.
+- `syncDiskOffsets` (35-40), `updateHitbox` (132-135), `init` (55-61): origin and hitbox
+  bookkeeping that Godot's own transform already covers.
+- `forcePosition`: reads as empty.
 
 
 ## 8b. Adding a song, for real
