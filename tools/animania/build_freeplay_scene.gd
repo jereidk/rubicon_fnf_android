@@ -105,9 +105,18 @@ const STAR_SCALE := 0.281843
 ## Cada digito es una animacion de DIEZ que ScoreNum monta en su linea 100, nombradas por
 ## el prefijo "<PALABRA> DIGITAL" -ZERO, ONE, ... NINE-, de 16 fotogramas a 24. O sea que
 ## no es un numero pintado: es un display que parpadea.
-const SCORE_AT := Vector2(0.0, 61.0)
+## El 0 del constructor NO es donde acaba: initHeader linea 1543 le cambia la x justo
+## despues, con `freeplayScore.x = FlxG.width - freeplayScore.width + 5` -el get_width es
+## el hueco 0x230, el set_x el 0x210 y el 5.0 el double en 0x59fa820-. O sea que el
+## marcador va pegado al borde DERECHO, debajo del HIGHSCORE, no en la esquina izquierda
+## encima del televisor, que es donde lo puso el 0 a secas.
+##
+## El ancho es el de la caja de los siete: 6*45 mas el fotograma mas ancho, que son 138.
 const SCORE_DIGITS := 7
 const SCORE_STEP_X := 45.0
+const SCORE_FRAME_W := 138.0
+const SCORE_WIDTH := (SCORE_DIGITS - 1) * SCORE_STEP_X + SCORE_FRAME_W
+const SCORE_AT := Vector2(1280.0 - SCORE_WIDTH + 5.0, 61.0)
 ## Los prefijos del atlas, en orden de digito.
 const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
 	"EIGHT", "NINE"]
@@ -119,8 +128,18 @@ const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEV
 ## tools/animania/harness/measure_freeplay_chars.gd, que lo pinta y cuenta pixeles opacos.
 ## Medido: bf esquina local (-6, -5) y 383x423; gf esquina local (-20, 1) y 310x383. La
 ## posicion del nodo es el destino menos esa esquina.
-const GF_AT := Vector2(772.0 + 20.0, 230.0 - 1.0)     # initCharacters 1401
-const BF_AT := Vector2(500.0 + 6.0, 235.0 + 5.0)      # initCharacters 1407
+## CORREGIDO. A las coordenadas de initCharacters hay que sumarles el `position` del JSON
+## de la skin, porque loadCharacter linea 147 crea el sprite que se ve
+## -`skinAtlas = new FunkinSprite(position[0], position[1], ...)`, guardado en 0x2c0, que
+## el __Field de CharPlayer identifica como skinAtlas- en esa posicion RELATIVA al grupo.
+##
+## Que es relativa se ve en los propios datos: bf-standart pide [70,0] y gf-animania
+## [-115,-5], y como coordenadas de mundo eso seria fuera de la pantalla.
+##
+## bf-animania trae [0,0], asi que bf no se mueve. gf-animania trae [-115,-5], asi que la
+## novia estaba 115 px a la derecha y 5 abajo de donde le toca.
+const GF_AT := Vector2(772.0 - 115.0 + 20.0, 230.0 - 5.0 - 1.0)   # 1401 + position
+const BF_AT := Vector2(500.0 + 0.0 + 6.0, 235.0 + 0.0 + 5.0)      # 1407 + position
 ## data/scripts/states/FreeplayScreen.script, createPost: un sparrow aparte del que crea
 ## initCharacters, en otro sitio y con otro zIndex, y ESTE si se enseña.
 const PHONE_CALL_AT := Vector2(1280.0 - 510.0, 300.0)

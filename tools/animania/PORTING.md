@@ -2585,7 +2585,7 @@ bytes of compiled method code.
 | `FreeplayDots` | 7,096 | 5 | **read whole** (8f) |
 | `FreeplaySongData` | 4,004 | 4 | field table read; `updateValues`, `set_currentDifficulty`, `toString` not |
 | `DiskSpr` | 13,045 | 10 | **read whole** (8m); `updateDiskPos` ported |
-| `CharPlayer` | 10,945 | 9 | **read in part** (8p): the skin pipeline, not the placement |
+| `CharPlayer` | 10,945 | 9 | **read** (8p); placement resolved |
 | `DifficultyStars` | 9,555 | 6 | **read whole** (8n); the row is built |
 | `FreeplayAtlasHandler` | 6,804 | 6 | **read** (8p) |
 | `FreeplayScreenHelp` | 4,976 | 5 | **dead in this build** — see 8o |
@@ -2769,6 +2769,19 @@ a change that does not belong in this one.
 `?` Leading zeros are left showing, which is what a seven-digit display does. Whether
 `set_scoreShit` hides them is not read.
 
+**The constructor's `0` is not where it ends up.** `initHeader` line 1543 overwrites the x
+immediately after building it:
+
+```
+freeplayScore.x = FlxG.width - freeplayScore.width + 5
+```
+
+— `get_width` is vtable slot 0x230, `set_x` is 0x210, and the 5.0 is the double at
+0x59fa820. The score is **right-aligned to the screen edge**, under the HIGHSCORE art. Taking
+the constructor's `0` at face value put a 400-px-wide display in the top-left corner across
+the television. A constructor argument is where an object *starts*; the next line is allowed
+to move it.
+
 **A probe that lied.** The first check set a value and read it back the next frame, and every
 digit came back ZERO — which reads exactly like a broken function. It was the probe:
 `_drive_score` runs every frame and rewrites the digits from `prev_displayed_score`, which is
@@ -2817,24 +2830,34 @@ already has — is downstream of which skin is loaded. And **`characterFolder` i
 `CharPlayer`**, which is why `'bf'` / `'gf'` in `preloadFromSongs` are folders, not skin
 names: the atlas path is `skinSelector/<folder>/<assetPath>`.
 
-### The number I did not settle
+### The number, settled: `position` does move the character
 
-`loadCharacter` line 147 reads `position[0]` and `position[1]` and feeds them, along with a
-255, into the pointer field at **0x320**. I could not pin what 0x320 is. What I did pin is
-that it is **not** `slideOffset`: `set_slideOffset` writes 0x318, and it also writes the
-sprite's own x and y at 0x30/0x38, so sliding moves the character.
+`loadCharacter` line 147 reads `position[0]` and `position[1]` off field 0x320 and then
+**allocates a `FunkinSprite` with them**, storing the result in **0x2c0**.
 
-This matters concretely. `gf-animania` carries `[-115, -5]`. The port places both characters
-at the coordinates `initCharacters` constructs them with, measured against their drawn
-corner (8i). **If that `position` is added to the character's own, the port's girlfriend is
-115 px too far right.** If it feeds an icon or a transition sprite instead, the port is
-right. I have not resolved which, and I am not going to guess it — this file already carries
-four corrections that started as a plausible guess.
+Inferring the offsets from `__GetFields` order against `__Mark`'s gaps did not converge —
+eleven marks for ten declared fields, with String halves confusing the spacing. **`__Field`
+settles it directly**: it is the reflection getter, so it compares the field name and then
+loads that field's offset, in the same basic block. Reading the comparison right before each
+access gives the mapping with no inference at all. 0x320 is where `curSkinD` + `ata` is
+matched — `curSkinData`, the parsed JSON — and 0x2c0 is where `skinAtla[s]` is:
 
-To settle it: identify field 0x320 by crossing `CharPlayer`'s `__GetFields`
-(`currentCharacterName, skinAtlas, skinIconFreeplay, skinIconGlowFreeplay, characterFolder,
-transitionSparrow, bedMode, censureBlock, slideOffset, curSkinData`) against its `__Mark`,
-which marks 0x308, 0x310, 0x320 and 0x328.
+```
+skinAtlas = new FunkinSprite(curSkinData.position[0], curSkinData.position[1], …)
+```
+
+`skinAtlas` **is** the character's visible sprite, and `FreeplayScore`'s constructor calls
+`FlxTypedSpriteGroup.__construct`, so these classes are groups and member coordinates are
+relative to them. The data agrees: `bf-standart` asks for `[70, 0]` and `gf-animania` for
+`[-115, -5]`, which as world coordinates would be off-screen.
+
+So the skin's `position` **is** part of the character's placement. `bf-animania` is `[0, 0]`,
+so bf did not move; `gf-animania` is `[-115, -5]`, so **the port's girlfriend was 115 px to
+the right and 5 down of where she belongs**. Fixed — she now sits against bf sharing the
+controller, which is what the art is drawn for.
+
+When inference over field offsets stops converging, stop inferring: `__Field` has the answer
+written down.
 
 ### What the port still assumes
 
