@@ -736,6 +736,18 @@ const NOISE_REST := 0.45
 const NOISE_SETTLE := 0.25
 const HEADER_HIDDEN := 0.0001
 const SKULL_FADE := 0.1
+## FreeplayDots: el elegido a alfa 1 y color entero, los demas a 0.9 y getDarkened(0.45),
+## que en Flixel es multiplicar el RGB por (1 - 0.45). Los colores son diffColors, del
+## __boot de la clase; los mismos que usa el builder.
+const DIFF_COLORS := {
+	"easy": Color8(0xc5, 0xfe, 0x59),
+	"normal": Color8(0xfe, 0xe5, 0x43),
+	"hard": Color8(0xfe, 0x24, 0x66),
+	"legacy": Color8(0x7f, 0x6a, 0xf7),
+	"standart": Color8(0x6c, 0xe7, 0xc3),
+}
+const DOT_DARKEN := 1.0 - 0.45
+const DOT_DIM_ALPHA := 0.9
 
 
 func _update_data_stuff(_force: bool) -> void:
@@ -776,6 +788,10 @@ func _update_data_stuff(_force: bool) -> void:
 		kick.tween_property(tv_noise_forward, "modulate:a", NOISE_REST, NOISE_SETTLE) \
 			.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
+	# Lineas 1114-1115: los puntos de dificultad. setDots deja visibles solo los ids que
+	# la cancion trae, y set_curDiff enciende el de la dificultad actual.
+	_set_dots()
+
 	# Lineas 1131-1133 y 1148: el craneo de jefe. Ninguna de las cuatro canciones del
 	# puerto es de jefe, asi que hoy solo se recorre la rama de apagarlo.
 	if bossfight_skull != null:
@@ -783,6 +799,28 @@ func _update_data_stuff(_force: bool) -> void:
 		var fade: Tween = create_tween()
 		fade.tween_property(bossfight_skull, "modulate:a", 1.0 if boss else 0.0,
 			SKULL_FADE).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
+## setDots (0x4092250, lineas 64-80) y set_curDiff (0x4091910, 25-29) juntos: cual se ve
+## y cual esta encendido. En el mod son dos metodos de FreeplayDots porque el grupo es una
+## clase; aqui los puntos son hijos de un Node2D y esto es todo lo que hacen.
+func _set_dots() -> void:
+	var dots := get_node_or_null("UI/DotsGrp") as Node2D
+	if dots == null:
+		return
+	var current: String = ""
+	if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
+		current = current_diffs_ids[current_difficulty]
+	for dot: Node in dots.get_children():
+		var sprite := dot as Sprite2D
+		if sprite == null:
+			continue
+		var id: String = String(sprite.get_meta(&"diff", ""))
+		# Linea 66: el que la cancion no ofrece se apaga del todo.
+		sprite.visible = current_diffs_ids.has(id)
+		var base: Color = DIFF_COLORS.get(id, Color.WHITE)
+		sprite.modulate = Color(base, 1.0) if id == current \
+			else Color(base * DOT_DARKEN, DOT_DIM_ALPHA)
 
 
 ## ─── doIntroAnim (from binary at 0x34bbf20) ────────────────────────────────
@@ -833,8 +871,9 @@ func _intro_switch_on() -> void:
 ## El destino del tween de darkOverlay esta comprobado, no supuesto: el Anon de la linea
 ## 1639 lleva nombre de 5 letras -'alpha'-, valor 0 y tipo 3 (entero).
 func _intro_light_up() -> void:
+	# Linea 1612: dotsGrp va en esta lista, es de los primeros que se encienden.
 	for name: String in ["TvGlow", "TvNoiseBack", "TvNoiseForward", "PlayerLayer",
-			"Disks", "ShadowsOnBed"]:
+			"Disks", "ShadowsOnBed", "UI/DotsGrp"]:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
 			node.visible = true

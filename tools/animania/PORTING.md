@@ -2035,7 +2035,9 @@ substring match that returned `buildBg` for `build`). When a disassembly reads p
 check the symbol before believing it.
 
 
-## 8d. A tool bug that faked field reads out of vtable slots
+## 8d. Two tool bugs, both of which made hxlines quietly wrong
+
+### Vtable slots read as field names
 
 `hxlines.py` labelled `mov 0x198(%rax),%rax` as a read of the field at 0x198. Sometimes it
 is. But when the register was just loaded by `mov (%rax),%rax` — dereferencing an object
@@ -2060,6 +2062,23 @@ things about the fix are worth keeping in mind, because the first attempt got th
 Re-read anything important that was read before this fix. Checked so far and unchanged:
 `playCurSongPreview` (its `.currentPlayer` / `.currentGirlfriend` at lines 902-904 are
 genuine — it really does call `changeCharacter` on them) and `preloadThemes`.
+
+### Short files came out completely empty
+
+The line marker is a `movl $imm` to a stack slot, and the tool accepted either
+`-0x40(%rbp)` or any `%rsp` slot, filtering on `0x100 < value < 0x10000` to tell line
+numbers apart from ordinary integers going to the stack.
+
+That cutoff works for `FreeplayScreen.hx`, which is two thousand lines long, and silences
+**every short file**. `FreeplayDots.hx` starts at line 38, so the dump came back completely
+empty — not wrong, *empty*, exactly as if the methods had nothing in them. That is the
+worse failure mode: a wrong label invites a second look, a blank page reads like an answer.
+
+The slot is now deduced instead of guessed: whichever stack slot receives the most
+distinct `movl $imm` values is the line slot, and the prologue's
+`_hx_pos_<hash>_<line>_<method>` symbol gives a base line to accept a window around. Both
+long and short files read correctly; `changeTheme` and `initCharacters` come out identical
+to before.
 
 
 ## 8e. initCharacters, and why only the phone is ported
@@ -2160,10 +2179,48 @@ right starts at 321 — 72 and 37 px of air. That is the size the port uses, thr
 `FONT_SUBSTITUTE_NARROW` constant so the read 28 stays visible and the fudge has a name
 instead of being baked into it.
 
-### Still not built
+### The difficulty dots
 
-- **`dotsGrp`** (zIndex 70, `loadDots`, `setDots`, `set_curDiff`) — the difficulty dots.
-  `_post_header` hides a `UI/DotsGrp` if it finds one; nothing creates it yet.
+`FreeplayDots` (`animania::states::objects::freeplay::FreeplayDots`) is a small class and
+it is now read whole:
+
+```
+postHeader 1550  new FreeplayDots(tvSprite.x + tvSprite.width*0.5 - 2, null)
+           1551  zIndex = 70     1552  scrollFactor.set(0, 0)
+           1553  y = 20          1554  visible = false
+repositionDots 87-91  dot.x = group.x - n*distance*0.5 + i*distance;  dot.y = group.y
+loadDots 57 / setDots 76 / set_curDiff 25-27:
+     the selected one → alpha 1,   its colour whole
+     the others       → alpha 0.9, colour.getDarkened(0.45)
+setDots 66            → an id the song does not offer is hidden outright
+```
+
+`distance` is the constructor's second argument and `postHeader` passes null, so it takes
+its default: the double at 0x59fa980, **35**. The field names come from the class's
+`__GetFields` — `distance`, `dots`, `fuckingDots`, `curDiff` — which is what made 0x228
+readable as a scalar in the first place; the constructor stores it through a general
+register (`mov 0x59fa980,%rax` then `mov %rax,0x228(%rbp)`), not a `movsd`, so grepping
+for a float store finds nothing.
+
+`diffColors`, from the class's `__boot` (0x4090f60), is five entries:
+
+| id | colour |
+|---|---|
+| easy | #C5FE59 |
+| normal | #FEE543 |
+| hard | #FE2466 |
+| legacy | #7F6AF7 |
+| standart | #6CE7C3 |
+
+Flixel's `getDarkened(f)` multiplies RGB by `1 - f`, so the dimmed dots are the colour
+times 0.55 at alpha 0.9. The art is `dot.png`, 29×33.
+
+The group is centred on the television just like the capsule — the same
+`tvSprite.x + width*0.5`, minus 2 this time instead of half its own width. `doIntroAnim`
+line 1612 turns it visible along with the glow and the noise, which the port's list had
+been missing.
+
+
 
 
 ## 8g. updateDataStuff, and three labels with two writers each

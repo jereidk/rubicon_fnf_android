@@ -50,6 +50,34 @@ const TEXT_SIZE := 28.0                                # 1585
 const FONT_SUBSTITUTE_NARROW := 20.0 / (28.0 * 1.5)
 const TEXT_COLOR := Color8(0xcc, 0xff, 0xff)           # 1588, 0xFFCCFFFF
 const TEXT_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
+
+## Los puntos de dificultad, FreeplayDots (0x4090f60 y alrededores). Leido:
+##   postHeader 1550  new FreeplayDots(tvSprite.x + tvSprite.width*0.5 - 2, null)
+##              1551  zIndex = 70      1552  scrollFactor.set(0, 0)
+##              1553  y = 20           1554  visible = false
+##   repositionDots 87-91  dot.x = grupo.x - n*distance*0.5 + i*distance;  dot.y = grupo.y
+##   loadDots 57 / setDots 76 / set_curDiff 25-27:
+##       el elegido  -> alpha 1   y su color entero
+##       los demas   -> alpha 0.9 y color.getDarkened(0.45)
+##
+## `distance` es el segundo argumento del constructor y postHeader pasa null, asi que
+## vale su valor por defecto, que es el double en 0x59fa980: 35. Los nombres de campo
+## salen del __GetFields de la clase: distance, dots, fuckingDots, curDiff.
+const DOTS_AT := Vector2(TV_AT_X + TV_WIDTH * 0.5 - 2.0, 20.0)
+const DOT_DISTANCE := 35.0
+## FreeplayDots.diffColors, del __boot de la clase (0x4090f60). Cinco entradas.
+const DIFF_COLORS := {
+	"easy": Color8(0xc5, 0xfe, 0x59),
+	"normal": Color8(0xfe, 0xe5, 0x43),
+	"hard": Color8(0xfe, 0x24, 0x66),
+	"legacy": Color8(0x7f, 0x6a, 0xf7),
+	"standart": Color8(0x6c, 0xe7, 0xc3),
+}
+## Las dificultades que el puerto ofrece hoy, en el mismo orden que su tabla.
+const DOT_IDS := ["easy", "normal", "hard"]
+## Flixel getDarkened(f) multiplica el RGB por (1 - f). Aqui f = 0.45.
+const DOT_DARKEN := 1.0 - 0.45
+const DOT_DIM_ALPHA := 0.9
 const SCREEN := Vector2(1920.0, 1080.0)
 
 ## Funkin is 1280x720 and this project is 1920x1080. buildBg places everything against
@@ -330,6 +358,30 @@ func _init() -> void:
 	capsule.z_index = 650
 	ui.add_child(capsule)
 	capsule.owner = _root
+
+	# El grupo de puntos. Nace invisible (linea 1554); lo enciende doIntroAnim.
+	var dots := Node2D.new()
+	dots.name = "DotsGrp"
+	dots.position = DOTS_AT * FUNKIN_TO_RUBICON
+	dots.z_index = 70
+	dots.visible = false
+	ui.add_child(dots)
+	dots.owner = _root
+	var dot_texture: Texture2D = load("%s/dot.png" % ART)
+	for i: int in DOT_IDS.size():
+		var dot := Sprite2D.new()
+		dot.name = "Dot%d" % i
+		dot.texture = dot_texture
+		dot.centered = false
+		dot.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		# repositionDots lineas 87-91, en local al grupo.
+		dot.position = Vector2(
+			(float(i) - DOT_IDS.size() * 0.5) * DOT_DISTANCE, 0.0) * FUNKIN_TO_RUBICON
+		# Nacen todos apagados; updateDataStuff enciende el que toque.
+		dot.modulate = Color(DIFF_COLORS[DOT_IDS[i]] * DOT_DARKEN, DOT_DIM_ALPHA)
+		dot.set_meta(&"diff", DOT_IDS[i])
+		dots.add_child(dot)
+		dot.owner = _root
 
 	# La fila. Las tres en la misma caja de 300 de ancho, a capsula.y + 23.
 	var row := Rect2(TEXT_AT * FUNKIN_TO_RUBICON,

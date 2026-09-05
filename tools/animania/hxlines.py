@@ -179,14 +179,36 @@ def dump(start, stop, fields, reader):
         ["objdump", "-d", "--start-address=%d" % start, "--stop-address=%d" % stop,
          "-C", str(BINARY)], capture_output=True, text=True).stdout
 
+    # El numero de linea se escribe a un hueco de pila, pero CUAL depende del prologo que
+    # haya generado hxcpp. Antes esto aceptaba -0x40(%rbp) o cualquier hueco de %rsp y de
+    # paso exigia que el valor fuera > 0x100, que es lo que separaba los numeros de linea
+    # de los enteros normales que tambien van a la pila.
+    #
+    # Esa cota es una trampa: vale para FreeplayScreen.hx, que tiene dos mil lineas, y
+    # deja MUDO cualquier fichero corto. FreeplayDots.hx empieza en la linea 38 y el
+    # volcado salia vacio del todo, como si el metodo no tuviera nada dentro.
+    #
+    # Ahora el hueco se deduce: el que reciba mas valores distintos por `movl $imm` es el
+    # de la linea, y el prologo da la linea de partida (va en el nombre del simbolo
+    # _hx_pos_<hash>_<linea>_<metodo>), asi que se acepta una ventana alrededor.
+    base = 0
+    first = re.search(r"_hx_pos_[0-9a-f]+_(\d+)_", asm)
+    if first:
+        base = int(first.group(1))
+    counts: dict = {}
+    for line in asm.splitlines():
+        m = re.search(r"movl\s+\$0x([0-9a-f]+),(-?0x[0-9a-f]+\(%r[sb]p\))", line)
+        if m:
+            counts.setdefault(m.group(2), set()).add(int(m.group(1), 16))
+    slot = max(counts, key=lambda k: len(counts[k])) if counts else None
+    low, high = max(base - 2000, 0), base + 5000
+
     current, parts = None, []
     # Registros que ahora mismo llevan un puntero de vtable. Ver mas abajo.
     vt_regs: set = set()
     for line in asm.splitlines():
-        # El marcador de linea: a -0x40(%rbp) o a un hueco de %rsp, segun el prologo.
-        mark = re.search(r"movl\s+\$0x([0-9a-f]+),(?:-0x40\(%rbp\)|0x[0-9a-f]+\(%rsp\))",
-                         line)
-        if mark and 0x100 < int(mark.group(1), 16) < 0x10000:
+        mark = re.search(r"movl\s+\$0x([0-9a-f]+),(-?0x[0-9a-f]+\(%r[sb]p\))", line)
+        if mark and mark.group(2) == slot and low <= int(mark.group(1), 16) <= high:
             if current is not None and parts:
                 print("%-6d %s" % (current, "  ".join(parts)))
             current, parts = int(mark.group(1), 16), []
