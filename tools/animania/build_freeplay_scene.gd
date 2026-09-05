@@ -98,6 +98,20 @@ const STAR_WAVE_PERIOD := 3.5
 const STAR_WAVE_AMPLITUDE := 10.0
 const STAR_SCALE := 0.281843
 
+## El marcador. initHeader linea 1540 crea FreeplayScore(0, 61, 7) -la x es un
+## `pxor %xmm0,%xmm0`, o sea cero; la y el double 61.0; y el 7 va en %edx-, y el bucle de
+## su constructor avanza 0x2d = 45 px por digito antes de cada ScoreNum.
+##
+## Cada digito es una animacion de DIEZ que ScoreNum monta en su linea 100, nombradas por
+## el prefijo "<PALABRA> DIGITAL" -ZERO, ONE, ... NINE-, de 16 fotogramas a 24. O sea que
+## no es un numero pintado: es un display que parpadea.
+const SCORE_AT := Vector2(0.0, 61.0)
+const SCORE_DIGITS := 7
+const SCORE_STEP_X := 45.0
+## Los prefijos del atlas, en orden de digito.
+const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
+	"EIGHT", "NINE"]
+
 ## Los dos personajes del dormitorio y el SEGUNDO telefono, el del script.
 ##
 ## initCharacters coloca por la esquina como todo Flixel, pero un atlas de Adobe no trae
@@ -137,6 +151,8 @@ func _init() -> void:
 	_build_frames("bossfightIndicator", "freeplay_boss", 24.0, ".")
 	# DifficultyStars.generateSprites lineas 40-49: dot, star y las dos de la llama.
 	_build_frames("diffstars", "freeplay_stars", 24.0, ".")
+	# ScoreNum ctor linea 100: diez animaciones "<PALABRA> DIGITAL" a 24.
+	_build_frames("digital_numbers", "freeplay_digits", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
 	_build_frames("phone", "freeplay_phone", 24.0, ".")
 
@@ -405,6 +421,26 @@ func _init() -> void:
 	ui.name = "UI"
 	_add(ui)
 	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0").z_index = 54
+
+	# Los siete digitos del marcador. Ver SCORE_AT / SCORE_STEP_X.
+	var score := Node2D.new()
+	score.name = "FreeplayScore"
+	score.position = SCORE_AT * FUNKIN_TO_RUBICON
+	score.z_index = 54
+	ui.add_child(score)
+	score.owner = _root
+	var digit_frames: SpriteFrames = load("%s/freeplay_digits_frames.tres" % DIR)
+	for i: int in SCORE_DIGITS:
+		var d := AnimatedSprite2D.new()
+		d.name = "Digit%d" % i
+		d.sprite_frames = digit_frames
+		d.animation = StringName("%s DIGITAL" % DIGIT_WORDS[0])
+		d.centered = false
+		d.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		d.position = Vector2(float(i) * SCORE_STEP_X, 0.0) * FUNKIN_TO_RUBICON
+		d.autoplay = d.animation
+		score.add_child(d)
+		d.owner = _root
 	var clear_box := Sprite2D.new()
 	clear_box.name = "ClearBox"
 	clear_box.texture = load("%s/bg/clearBox.png" % ART)

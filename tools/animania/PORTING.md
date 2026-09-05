@@ -2588,10 +2588,10 @@ bytes of compiled method code.
 | `CharPlayer` | 10,945 | 9 | unread |
 | `DifficultyStars` | 9,555 | 6 | **read whole** (8n); the row is built |
 | `FreeplayAtlasHandler` | 6,804 | 6 | unread |
-| `FreeplayScreenHelp` | 4,976 | 5 | unread |
+| `FreeplayScreenHelp` | 4,976 | 5 | **dead in this build** — see 8o |
 | `CharGirlfriend` | 4,048 | 3 | unread |
-| `FreeplayScore` | 2,133 | 3 | unread |
-| `ScoreNum` | 1,431 | 2 | unread |
+| `FreeplayScore` | 2,133 | 3 | **read**, digits built (8o) |
+| `ScoreNum` | 1,431 | 2 | **read**, digits built (8o) |
 | `FreeplayDot` | 737 | 2 | unread |
 | `DotState` | 25 | enum | n/a |
 
@@ -2603,12 +2603,9 @@ specifically:
 
 - ~~**`DiskSpr`** is the biggest unread class~~ — read, see 8m. What is still unported from
   it is `changeDisk` (the placeholder path) and `initLock` (locked songs).
-- **`FreeplayScreenHelp`** has real content — `changeTip`, `viewHintTexts`, `leave`. Section
-  8e noted that `openHelp()` is empty in `FreeplayScreen` and that something else opens the
-  help screen. That something is still not identified, and the class it opens is unread.
-- **`FreeplayScore` / `ScoreNum`** are the score's digit sprites. The port draws the score
-  as a plain `Label`, which is why 8g's "no save system" gap is really two gaps: nothing
-  writes a score, and nothing draws it the way the mod does.
+- ~~**`FreeplayScreenHelp`**~~ — resolved in 8o: nothing opens it, in the mod either.
+- ~~**`FreeplayScore` / `ScoreNum`**~~ — read and built, see 8o. The save-system half of
+  that gap stands: nothing writes a score, so the display reads 0000000.
 
 
 ## 8m. DiskSpr: the carousel's whole look was invented
@@ -2729,6 +2726,54 @@ do not fail is worse than no method: it looks like something is happening.
 
 That makes four properties in this file that had two writers, with the invented one winning
 because it ran later: the header alpha, the BPM, the difficulty text, and now the stars.
+
+
+## 8o. The help screen is dead, and the score is seven blinking digits
+
+### `FreeplayScreenHelp`: nobody opens it
+
+Section 8e said `openHelp()` is empty in `FreeplayScreen` — 312 bytes of stack-frame
+prologue and epilogue with nothing between — and concluded "the class exists and something
+else opens it". **That was an assumption, and it is wrong.**
+
+`FreeplayScreenHelp`'s constructor takes the `FreeplayScreen` as its argument, and the only
+calls to it in the whole binary are from the class's own `__new` / `__Create`. Its `__alloc`
+and `__new` are called **zero** times, checked across the entire disassembly. Nothing in
+`assets/` names the class either, so no HScript reaches it by reflection.
+
+So the help screen is **dead code in the shipped mod**: `changeTip`, `viewHintTexts`,
+`leave` and `update` are compiled and never run. The mod's author emptied the opener and
+left the class behind. Not porting it is now a fact rather than a gap — and the help button
+doing nothing in the port matches the mod exactly.
+
+### `FreeplayScore` / `ScoreNum`
+
+```
+initHeader 1540  new FreeplayScore(0, 61, 7)
+                 x is a `pxor %xmm0,%xmm0` — zero; y is the double 61.0; 7 is in %edx
+ctor             the loop adds 0x2d = 45 px per digit before each ScoreNum
+set_scoreShit 14 splits the number with % 10 and integer division, right to left
+ScoreNum ctor 100  ten animations by prefix: "ZERO DIGITAL" … "NINE DIGITAL",
+                   16 frames each at 24 fps, from 'animania-freeplay/digital_numbers'
+```
+
+A digit is not a painted number: it is a sixteen-frame animation. The display blinks.
+
+Seven `AnimatedSprite2D`s are built at `i * 45`, and `_show_score_digits` splits the value
+right to left the way line 19 does. Verified: `1234567` → ONE TWO THREE FOUR FIVE SIX SEVEN,
+`90` → …NINE ZERO, `0` → seven zeros.
+
+The text `Label` stays alongside for now — the rest of the port reads it, and removing it is
+a change that does not belong in this one.
+
+`?` Leading zeros are left showing, which is what a seven-digit display does. Whether
+`set_scoreShit` hides them is not read.
+
+**A probe that lied.** The first check set a value and read it back the next frame, and every
+digit came back ZERO — which reads exactly like a broken function. It was the probe:
+`_drive_score` runs every frame and rewrites the digits from `prev_displayed_score`, which is
+0 because nothing writes a score. Reading state a frame after writing it, in a screen with a
+per-frame driver, measures the driver and not the write.
 
 
 ## 8b. Adding a song, for real

@@ -450,6 +450,7 @@ func _drive_score(delta: float) -> void:
 	prev_displayed_score = int(lerp_score)
 	if freeplay_score != null:
 		freeplay_score.text = str(prev_displayed_score)
+	_show_score_digits(prev_displayed_score)
 	prev_displayed_completion = floor(lerp_completion * 100.0)
 	if completion_text != null:
 		completion_text.text = str(int(prev_displayed_completion))
@@ -1166,6 +1167,44 @@ func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	_update_data_stuff(false)
 	if play_sound:
 		_play_sound(SOUND_DIFF_CHANGE, SWITCH_VOLUME)
+
+
+## ─── FreeplayScore / ScoreNum ──────────────────────────────────────────────
+## initHeader linea 1540: `new FreeplayScore(0, 61, 7)`. La x es un `pxor %xmm0,%xmm0`,
+## o sea cero; la y es el double 61.0; el 7 va en %edx. El bucle de su constructor avanza
+## 0x2d = 45 px por digito antes de cada ScoreNum.
+##
+## set_scoreShit (lineas 14-26) parte el numero con `% 10` y division entera y le da a
+## cada ScoreNum su digito, de derecha a izquierda.
+##
+## Y cada digito NO es un numero pintado: ScoreNum monta en su linea 100 diez animaciones
+## por prefijo -"ZERO DIGITAL", "ONE DIGITAL", ... "NINE DIGITAL"- de 16 fotogramas a 24
+## desde 'animania-freeplay/digital_numbers'. Es un display que parpadea.
+##
+## La etiqueta de texto se queda al lado: el resto del puerto la lee y quitarla ahora seria
+## un cambio que no toca aqui. Los digitos son lo que se ve.
+##
+## `?` Los ceros a la izquierda se dejan puestos, que es lo que sale de un display de siete
+## digitos. No he leido si set_scoreShit los oculta.
+const SCORE_DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
+	"EIGHT", "NINE"]
+
+
+func _show_score_digits(value: int) -> void:
+	var row := get_node_or_null("UI/FreeplayScore") as Node2D
+	if row == null:
+		return
+	var left: int = maxi(value, 0)
+	# De derecha a izquierda, como el % 10 de la linea 19.
+	for i: int in range(row.get_child_count() - 1, -1, -1):
+		var digit := row.get_child(i) as AnimatedSprite2D
+		if digit == null:
+			continue
+		var name := StringName("%s DIGITAL" % SCORE_DIGIT_WORDS[left % 10])
+		if digit.animation != name:
+			digit.animation = name
+			digit.play()
+		left /= 10
 
 
 ## ─── DifficultyStars (0x39ddf80) ───────────────────────────────────────────
