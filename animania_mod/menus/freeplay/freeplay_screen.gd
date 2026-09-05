@@ -88,6 +88,9 @@ const TV_GLOW_HALF_CYCLE := 0.833333  # TV_GLOW_FLICKER_CYCLE / 2
 
 ## ─── Bed constants ───────────────────────────────────────────────────────────
 
+## buildBg's three addByIndices calls, in order: cada estado es un solo fotograma.
+const BED_STATES := {"light": 0, "normal": 1, "none": 2}
+
 ## BED_RATIO_FACTOR = 0.5 from binary.
 const BED_RATIO_FACTOR := 0.5
 
@@ -147,8 +150,8 @@ var tv_back_bg: Sprite2D  ## TV background.
 var shadows_on_bed: Node2D
 var _shadow_shake_amount: float = 0.0
 
-## Bed state.
-var bed_state: int = 1  ## 0=light, 1=normal, 2=third.
+## El estado en el que quedo la cama, por nombre. create() abre en 'none'.
+var bed_state: String = "none"
 
 ## Song data.
 var current_filtered_songs: Array = []
@@ -235,6 +238,8 @@ func _ready() -> void:
 	_init_header()
 	_post_header()
 	_preload_themes()
+	# create() (0x34d6cc0) termina en checkBed('none'), linea 360.
+	_check_bed(bed_state)
 	_do_intro_anim.call_deferred()
 
 
@@ -281,7 +286,6 @@ func _process(delta: float) -> void:
 	_update_tv_glow(delta)
 	_update_camera_scroll(delta)
 	_shake_shadows(delta)
-	_check_bed()
 	_update_data_stuff(false)
 	_drive_disk_animations(delta)
 
@@ -389,17 +393,30 @@ func _shake_shadows(delta: float) -> void:
 	shadows_on_bed.position = Vector2(shake_x, shake_y)
 
 
-## ─── checkBed (from binary at 0x34bd210) ────────────────────────────────────
-## Checks the bed animation state. The bed has 3 frames representing states:
-## 0=light, 1=normal, 2=third. BED_RATIO_FACTOR = 0.5 from binary.
+## ─── checkBed (0x34bcac0, lineas 1696-1697) ─────────────────────────────────
+## El metodo entero son dos lineas:
+##
+##   bgBed.animation.play(name, false);
+##   callOnScripts('onUpdateBed', [name]);
+##
+## No comprueba nada por frame: es un cambio de animacion por nombre. buildBg le
+## registra tres animaciones de UN solo fotograma con addByIndices - `light` -> [0],
+## `normal` -> [1], `none` -> [2] - y los tres nombres salen del binario, no de una
+## suposicion (el puerto llamaba `third` al tercero).
+##
+## Quien lo llama: create() con 'none' (asi abre la pantalla), la rama de
+## playCurSongPreview en la que no hay disco -tambien con 'none', junto a
+## changeCharacter('none') sobre el jugador y la novia- y un cierre que initCharacters
+## (linea 1408) cuelga del personaje, que reenvia el nombre que le llegue.
+##
+## Antes esto corria en _process comparando bed.frame con una variable inventada.
 
-func _check_bed() -> void:
+func _check_bed(state: String) -> void:
 	if bed == null:
 		return
-	# The bed frame corresponds to the selection or difficulty state.
-	# Frame 1 is the default "normal" state.
-	if bed.frame != bed_state:
-		bed.frame = bed_state
+	if not BED_STATES.has(state):
+		return
+	bed.frame = BED_STATES[state]
 
 
 ## ─── updateCameraScroll (from binary at 0x34bdcd0) ─────────────────────────
@@ -586,8 +603,6 @@ func _refresh(snap: bool) -> void:
 		disk.modulate.a = float(disk.get_meta(&"alpha"))
 	if disks.get_child_count() > cur_selected:
 		disks.move_child(disks.get_child(cur_selected), disks.get_child_count() - 1)
-	# Update the bed state based on selection.
-	bed_state = 1  # Default to normal.
 	# Update song info.
 	_update_song_info()
 	# Update score.

@@ -53,11 +53,17 @@ func _init() -> void:
 
 	_sprite("Backwall", "bg/freeplay backwall.png", Vector2(0.0, 18.75))
 
-	# The bed. Three frames that are three STATES rather than a cycle:
-	# addByIndices(light, [0]), (normal, [1]) and a third on [2]. It sits on `normal`.
+	# The bed. Three frames that are three STATES rather than a cycle. buildBg names them
+	# with addByIndices: `light` -> [0], `normal` -> [1], `none` -> [2] (the third one is
+	# `none`, read out of the binary rather than guessed), and checkBed(name) plays one of
+	# them. create() ends on checkBed('none'), so the screen opens on frame 2.
+	#
+	# `pause()` here did nothing to the saved scene: _sparrow sets `autoplay`, which the
+	# packed scene keeps, so the bed came back cycling all three frames at 24 fps on load.
+	# Clear autoplay, or the bed flickers through its own states for ever.
 	var bed: AnimatedSprite2D = _sparrow("Bed", "freeplay_bed", "bed", Vector2(0.0, 254.0))
-	bed.frame = 1
-	bed.pause()
+	bed.autoplay = ""
+	bed.frame = 2
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
 	# earlier, and the TV's placement is not a constant at all - it is created through
