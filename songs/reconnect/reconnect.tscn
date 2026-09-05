@@ -27,6 +27,8 @@
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="0025"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="0026"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_event_dispatcher.gd" id="0027_evtd"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gameover_handler.gd" id="99_go_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -42,10 +44,26 @@ tracks/0/keys = {
 "update": 1,
 "values": [&"Opponent"]
 }
+[sub_resource type="Animation" id="Animation_scene"]
+length = 136.20
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_cam"]
 _data = {
 &"RESET": SubResource("Animation_reset"),
+&"scene": SubResource("Animation_scene"),
 }
 
 [node name="Reconnect" type="Node2D" unique_id=79082878]
@@ -58,6 +76,7 @@ script = ExtResource("0003")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=93153876]
 callback_mode_discrete = 2
 libraries/ = SubResource("AnimationLibrary_cam")
+autoplay = &"scene"
 
 [node name="RubiconLevelSongModule" type="Node" parent="." unique_id=26927699 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
 script = ExtResource("0004")
@@ -234,6 +253,10 @@ starting_health = 50.0
 [node name="HQEventDispatcher" type="Node" parent="."]
 script = ExtResource("0027_evtd")
 events_path = "holyquintet_mod/source/songs/reconnect/events.json"
+[node name="HQSongCompletion" type="Node" parent="."]
+script = ExtResource("98_sc_hq")
+[node name="HQGameOverHandler" type="Node" parent="."]
+script = ExtResource("99_go_hq")
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=59348310 instance=ExtResource("0025")]
 layer = 15
 script = ExtResource("0026")
