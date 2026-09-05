@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"diffStars": "2",
+		"charters": "Flootena",
+		"artists": "Kixel & RevDev",
+		"gjid": "1098965",
+		"coders": "Sector",
+		"unlockCond": "UnlockCondStory",
+		"portrait": "madoka",
+		"composers": "akoy!"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": true,
+	"icon": "madoka",
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"coopAllowed": true,
+	"stepsPerBeat": 4,
+	"displayName": "Eternal Star",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 205
+}

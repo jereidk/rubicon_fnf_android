@@ -1,0 +1,4 @@
+<stage zoom="1.0" name="eternalstar" folder="stages/eternalstar/" startCamPosX="0" startCamPosY="0">
+    <boyfriend x="800" y="-390" camxoffset="-350" camyoffset="-50" />
+    <dad x="-150" y="-420" camxoffset="250" camyoffset="-25" />
+</stage>

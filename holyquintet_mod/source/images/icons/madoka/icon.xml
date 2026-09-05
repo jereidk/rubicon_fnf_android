@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="icon.png">
+	<!-- Created with Adobe Animate version 24.0.12.3 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="MADOKA-L0000" x="1" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-L0001" x="1" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-L0002" x="1" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-L0003" x="167" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-L0004" x="167" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-L0005" x="167" y="1" width="165" height="165"/>
+	<SubTexture name="MADOKA-LTN0000" x="333" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0001" x="333" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0002" x="498" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0003" x="498" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0004" x="663" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0005" x="828" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0006" x="828" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0007" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-LTN0008" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0000" x="1" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0001" x="1" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0002" x="1" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0003" x="166" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0004" x="166" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-N0005" x="166" y="167" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTL0000" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTL0001" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTL0002" x="331" y="167" width="164" height="165" frameX="0" frameY="0" frameWidth="170" frameHeight="165"/>
+	<SubTexture name="MADOKA-NTL0003" x="331" y="167" width="164" height="165" frameX="0" frameY="0" frameWidth="170" frameHeight="165"/>
+	<SubTexture name="MADOKA-NTL0004" x="496" y="167" width="164" height="165" frameX="0" frameY="0" frameWidth="170" frameHeight="165"/>
+	<SubTexture name="MADOKA-NTL0005" x="661" y="167" width="164" height="165" frameX="0" frameY="0" frameWidth="170" frameHeight="165"/>
+	<SubTexture name="MADOKA-NTL0006" x="826" y="167" width="168" height="165" frameX="0" frameY="0" frameWidth="170" frameHeight="165"/>
+	<SubTexture name="MADOKA-NTL0007" x="1" y="333" width="170" height="165"/>
+	<SubTexture name="MADOKA-NTL0008" x="333" y="1" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTW0000" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTW0001" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTW0002" x="172" y="333" width="165" height="165"/>
+	<SubTexture name="MADOKA-NTW0003" x="172" y="333" width="165" height="165"/>
+	<SubTexture name="MADOKA-NTW0004" x="338" y="333" width="165" height="165"/>
+	<SubTexture name="MADOKA-NTW0005" x="504" y="333" width="165" height="165"/>
+	<SubTexture name="MADOKA-NTW0006" x="504" y="333" width="165" height="165"/>
+	<SubTexture name="MADOKA-NTW0007" x="1" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-NTW0008" x="1" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0000" x="670" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0001" x="670" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0002" x="670" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0003" x="835" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0004" x="835" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-W0005" x="835" y="333" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0000" x="1" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0001" x="1" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0002" x="166" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0003" x="166" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0004" x="331" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0005" x="496" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0006" x="496" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0007" x="661" y="499" width="164" height="165"/>
+	<SubTexture name="MADOKA-WTN0008" x="661" y="499" width="164" height="165"/>
+</TextureAtlas>

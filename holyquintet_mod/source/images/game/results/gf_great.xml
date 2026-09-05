@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="gf_great.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="GREAT instance 10000" x="2" y="2" width="600" height="1389" frameX="-67" frameY="0" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10001" x="2" y="2" width="600" height="1389" frameX="-67" frameY="0" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10002" x="2" y="2" width="600" height="1389" frameX="-67" frameY="0" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10003" x="604" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10004" x="604" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10005" x="604" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10006" x="1340" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10007" x="1340" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10008" x="1340" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10009" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10010" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10011" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10012" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10013" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10014" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10015" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10016" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10017" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10018" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10019" x="738" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10020" x="738" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10021" x="738" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10022" x="1474" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10023" x="1474" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10024" x="1474" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10025" x="1474" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10026" x="2210" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10027" x="2210" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10028" x="2210" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10029" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10030" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10031" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10032" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10033" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10034" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10035" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10036" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10037" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10038" x="2946" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10039" x="2946" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10040" x="2946" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10041" x="2" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10042" x="2" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10043" x="2" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10044" x="2" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10045" x="738" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10046" x="738" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10047" x="738" y="2474" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10048" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10049" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10050" x="2076" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10051" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10052" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10053" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10054" x="2812" y="2" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10055" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10056" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+	<SubTexture name="GREAT instance 10057" x="2" y="1393" width="734" height="1079" frameX="0" frameY="-425" frameWidth="734" frameHeight="1504"/>
+</TextureAtlas>

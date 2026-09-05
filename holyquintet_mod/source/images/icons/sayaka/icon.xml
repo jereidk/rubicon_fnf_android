@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="icon.png">
+	<!-- Created with Adobe Animate version 21.0.7.42652 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="SAYAKA-L0000" x="2" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-L0001" x="2" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-L0002" x="2" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-L0003" x="169" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-L0004" x="169" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-L0005" x="169" y="2" width="165" height="164"/>
+	<SubTexture name="SAYAKA-LTN0000" x="336" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0001" x="336" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0002" x="502" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0003" x="502" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0004" x="668" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0005" x="834" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0006" x="834" y="2" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0007" x="666" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-LTN0008" x="666" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0000" x="2" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0001" x="2" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0002" x="2" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0003" x="168" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0004" x="168" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-N0005" x="168" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0000" x="334" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0001" x="334" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0002" x="500" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0003" x="500" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0004" x="666" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0005" x="832" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0006" x="832" y="168" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0007" x="2" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTL0008" x="2" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTW0000" x="666" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTW0001" x="666" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTW0002" x="168" y="334" width="165" height="164"/>
+	<SubTexture name="SAYAKA-NTW0003" x="168" y="334" width="165" height="164"/>
+	<SubTexture name="SAYAKA-NTW0004" x="335" y="334" width="165" height="164"/>
+	<SubTexture name="SAYAKA-NTW0005" x="502" y="334" width="165" height="164"/>
+	<SubTexture name="SAYAKA-NTW0006" x="502" y="334" width="165" height="164"/>
+	<SubTexture name="SAYAKA-NTW0007" x="2" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-NTW0008" x="2" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0000" x="669" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0001" x="669" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0002" x="669" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0003" x="835" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0004" x="835" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-W0005" x="835" y="334" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0000" x="2" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0001" x="2" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0002" x="168" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0003" x="168" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0004" x="334" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0005" x="500" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0006" x="500" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0007" x="666" y="500" width="164" height="164"/>
+	<SubTexture name="SAYAKA-WTN0008" x="666" y="500" width="164" height="164"/>
+</TextureAtlas>

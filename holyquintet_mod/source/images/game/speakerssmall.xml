@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="speakerssmall.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="speaker single instance 10000" x="2" y="2" width="190" height="261"/>
+	<SubTexture name="speaker single instance 10001" x="2" y="2" width="190" height="261"/>
+	<SubTexture name="speaker single instance 10002" x="194" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10003" x="381" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10004" x="381" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10005" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10006" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10007" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10008" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10009" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10010" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10011" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10012" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+	<SubTexture name="speaker single instance 10013" x="568" y="2" width="185" height="255" frameX="0" frameY="-6" frameWidth="190" frameHeight="261"/>
+</TextureAtlas>

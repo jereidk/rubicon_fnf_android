@@ -1,0 +1,26 @@
+<!DOCTYPE codename-engine-icon>
+<icon scale="1" facing="right" antialiasing="true" offsetX="0" offsetY="30">
+    <!-- adds an animation for type neutral with the anim idle0 with an y offset of -15 and not moving with fps=0 -->
+    <anim name="neutral" anim="HOMURA-N0" looped="true" fps="24"/>
+    <anim name="losing" anim="HOMURA-L0" looped="true" fps="24"/>
+    <anim name="winning" anim="HOMURA-W0" looped="true" fps="24"/>
+
+    <transition from="neutral" to="losing" anim="HOMURA-NTL0" fps="24"/>
+    <transition from="losing" to="neutral" anim="HOMURA-LTN0" fps="24"/>
+    <transition from="neutral" to="winning" anim="HOMURA-NTW0" fps="24"/>
+    <transition from="winning" to="neutral" anim="HOMURA-WTN0" fps="24"/>
+
+    <!-- adds a transition from neutral to winning with a fps value of 10 fps and y offset of -15 -->
+   <!--  <transition from="neutral" to="winning" anim="ICON0" fps="24" offsetY="-15"/> -->
+
+    <!-- this sets the percentage from 0 to the next step (added later) to be specified as a neutral type -->
+    <step name="losing" percent="0" type="losing"/>
+    <step name="neutral" percent="25" type="neutral"/>
+    <step name="winning" percent="75" type="winning"/>
+
+    <!-- doing the same as before but for winning -->
+    <!-- <anim name="winning" anim="confirm-hold0" looped="false" offsetY="-15" fps="24"/>-->
+    <!-- <transition from="winning" to="neutral" anim="ICON0" fps="10" offsetY="-15"/>-->
+
+    <!-- with this added in combination of the previous step node will make the icon go to its winning state at 80% of health and go back to neutral below that -->
+</icon>

@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="gf_bad.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="BAD instance 10000" x="2" y="2" width="495" height="417" frameX="-274"
+		frameY="0" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10001" x="2" y="2" width="495" height="417" frameX="-274"
+		frameY="0" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10002" x="2" y="2" width="495" height="417" frameX="-274"
+		frameY="0" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10003" x="499" y="2" width="497" height="697" frameX="-343"
+		frameY="-452" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10004" x="499" y="2" width="497" height="697" frameX="-343"
+		frameY="-452" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10005" x="998" y="2" width="940" height="496" frameX="-86"
+		frameY="-862" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10006" x="998" y="2" width="940" height="496" frameX="-86"
+		frameY="-862" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10007" x="1940" y="2" width="971" height="514" frameX="-82"
+		frameY="-864" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10008" x="2913" y="2" width="966" height="449" frameX="-88"
+		frameY="-933" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10009" x="2" y="701" width="979" height="469" frameX="-87"
+		frameY="-934" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10010" x="2" y="701" width="979" height="469" frameX="-87"
+		frameY="-934" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10011" x="983" y="701" width="767" height="373" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10012" x="983" y="701" width="767" height="373" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10013" x="983" y="701" width="767" height="373" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10014" x="983" y="701" width="767" height="373" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10015" x="983" y="701" width="767" height="373" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10016" x="1752" y="701" width="766" height="923" frameX="-120"
+		frameY="-377" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10017" x="1752" y="701" width="766" height="923" frameX="-120"
+		frameY="-377" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10018" x="1752" y="701" width="766" height="923" frameX="-120"
+		frameY="-377" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10019" x="2520" y="701" width="766" height="570" frameX="-122"
+		frameY="-728" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10020" x="2520" y="701" width="766" height="570" frameX="-122"
+		frameY="-728" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10021" x="3288" y="701" width="763" height="495" frameX="-125"
+		frameY="-803" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10022" x="3288" y="701" width="763" height="495" frameX="-125"
+		frameY="-803" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10023" x="3288" y="701" width="763" height="495" frameX="-125"
+		frameY="-803" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10024" x="2" y="1626" width="767" height="374" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10025" x="2" y="1626" width="767" height="374" frameX="-122"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10026" x="771" y="1626" width="765" height="374" frameX="-124"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10027" x="771" y="1626" width="765" height="374" frameX="-124"
+		frameY="-922" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10028" x="1538" y="1626" width="772" height="380" frameX="-117"
+		frameY="-919" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10029" x="1538" y="1626" width="772" height="380" frameX="-117"
+		frameY="-919" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10030" x="1538" y="1626" width="772" height="380" frameX="-117"
+		frameY="-919" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10031" x="2312" y="1626" width="771" height="382" frameX="-122"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10032" x="2312" y="1626" width="771" height="382" frameX="-122"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10033" x="3085" y="1626" width="769" height="383" frameX="-120"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10034" x="3085" y="1626" width="769" height="383" frameX="-120"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10035" x="3085" y="1626" width="769" height="383" frameX="-120"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10036" x="3085" y="1626" width="769" height="383" frameX="-120"
+		frameY="-918" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10037" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10038" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10039" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10040" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10041" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10042" x="2" y="2011" width="675" height="353" frameX="-149"
+		frameY="-947" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10043" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10044" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10045" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10046" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10047" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10048" x="679" y="2011" width="562" height="534" frameX="-143"
+		frameY="-745" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10049" x="1243" y="2011" width="488" height="683" frameX="-183"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10050" x="1243" y="2011" width="488" height="683" frameX="-183"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10051" x="1243" y="2011" width="488" height="683" frameX="-183"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10052" x="1243" y="2011" width="488" height="683" frameX="-183"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10053" x="1243" y="2011" width="488" height="683" frameX="-183"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10054" x="1733" y="2011" width="475" height="723" frameX="-169"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10055" x="1733" y="2011" width="475" height="723" frameX="-169"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10056" x="1733" y="2011" width="475" height="723" frameX="-169"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10057" x="1733" y="2011" width="475" height="723" frameX="-169"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10058" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10059" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10060" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10061" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10062" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10063" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10064" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10065" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10066" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10067" x="2210" y="2011" width="491" height="732" frameX="-160"
+		frameY="-552" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10068" x="2703" y="2011" width="493" height="731" frameX="-161"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10069" x="2703" y="2011" width="493" height="731" frameX="-161"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10070" x="2703" y="2011" width="493" height="731" frameX="-161"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10071" x="2703" y="2011" width="493" height="731" frameX="-161"
+		frameY="-558" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10072" x="3198" y="2011" width="435" height="716" frameX="-210"
+		frameY="-575" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10073" x="3198" y="2011" width="435" height="716" frameX="-210"
+		frameY="-575" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10074" x="3198" y="2011" width="435" height="716" frameX="-210"
+		frameY="-575" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10075" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10076" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10077" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10078" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10079" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10080" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10081" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10082" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10083" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10084" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10085" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10086" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10087" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10088" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10089" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10090" x="3635" y="2011" width="425" height="720" frameX="-215"
+		frameY="-566" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10091" x="3198" y="2011" width="435" height="716" frameX="-216"
+		frameY="-573" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10092" x="3198" y="2011" width="435" height="716" frameX="-216"
+		frameY="-573" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10093" x="3198" y="2011" width="435" height="716" frameX="-216"
+		frameY="-573" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10094" x="2" y="2745" width="438" height="682" frameX="-199"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10095" x="2" y="2745" width="438" height="682" frameX="-199"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10096" x="2" y="2745" width="438" height="682" frameX="-199"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10097" x="2" y="2745" width="438" height="682" frameX="-199"
+		frameY="-605" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10098" x="442" y="2745" width="470" height="679" frameX="-74"
+		frameY="-611" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10099" x="442" y="2745" width="470" height="679" frameX="-74"
+		frameY="-611" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10100" x="442" y="2745" width="470" height="679" frameX="-74"
+		frameY="-611" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10101" x="442" y="2745" width="470" height="679" frameX="-74"
+		frameY="-611" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10102" x="914" y="2745" width="478" height="691" frameX="-6"
+		frameY="-596" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10103" x="914" y="2745" width="478" height="691" frameX="-6"
+		frameY="-596" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10104" x="914" y="2745" width="478" height="691" frameX="-6"
+		frameY="-596" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10105" x="1394" y="2745" width="475" height="688" frameX="0"
+		frameY="-610" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10106" x="1394" y="2745" width="475" height="688" frameX="0"
+		frameY="-610" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10107" x="1394" y="2745" width="475" height="688" frameX="0"
+		frameY="-610" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10108" x="1871" y="2745" width="323" height="698" frameX="-1"
+		frameY="-604" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10109" x="1871" y="2745" width="323" height="698" frameX="-1"
+		frameY="-604" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10110" x="1871" y="2745" width="323" height="698" frameX="-1"
+		frameY="-604" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10111" x="2196" y="2745" width="168" height="476" frameX="-10"
+		frameY="-819" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10112" x="2196" y="2745" width="168" height="476" frameX="-10"
+		frameY="-819" frameWidth="1066" frameHeight="1403" />
+	<SubTexture name="BAD instance 10113" x="2366" y="2745" width="1" height="1" frameX="1"
+		frameY="1" frameWidth="1066" frameHeight="1403" />
+</TextureAtlas>

@@ -1,0 +1,98 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/resonance/simpleBG.png" id="1_4c35f"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/resonance/background_bg.png" id="2_qhhl4"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/stages/props/madokabg.tscn" id="3_ua4hi"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/stages/props/mamibg.tscn" id="4_5b4et"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/stages/props/speakersmain.tscn" id="5_56sxi"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/characters/chr_kyubey_big_bald.tscn" id="6_cdsnt"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/resonance/middleground_fog.png" id="7_c7h4h"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/resonance/foreground_flowerL.png" id="8_ug3qo"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/resonance/foreground_flowerR.png" id="9_0oxv2"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="10_t5x7c"]
+
+[node name="Resonance" type="Node2D" unique_id=943117486]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="SimpleBG" type="Sprite2D" parent="." unique_id=1940771334]
+z_index = 5
+position = Vector2(-500, -1200)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1_4c35f")
+centered = false
+
+[node name="Ground" type="Sprite2D" parent="." unique_id=2125159256]
+z_index = 5
+position = Vector2(0, -480)
+scale = Vector2(2.25, 2.25)
+texture = ExtResource("2_qhhl4")
+centered = false
+
+[node name="Madoka" parent="." unique_id=1020122038 instance=ExtResource("3_ua4hi")]
+z_index = 10
+position = Vector2(790, -470)
+scale = Vector2(0.9, 0.9)
+
+[node name="Mami" parent="." unique_id=2063852172 instance=ExtResource("4_5b4et")]
+z_index = 10
+position = Vector2(-780, -480)
+scale = Vector2(0.8, 0.8)
+
+[node name="KyubeySpeaker" parent="." unique_id=1748413474 instance=ExtResource("5_56sxi")]
+z_index = 20
+position = Vector2(300, -250)
+scale = Vector2(0.9, 0.9)
+
+[node name="Kyubey" parent="." unique_id=1637886888 instance=ExtResource("6_cdsnt")]
+position = Vector2(375, -780)
+scale = Vector2(0.9, 0.9)
+
+[node name="Scroll_Fog" type="Parallax2D" parent="." unique_id=459330696]
+scroll_scale = Vector2(1.1, 1.1)
+
+[node name="Fog" type="Sprite2D" parent="Scroll_Fog" unique_id=1242490687]
+modulate = Color(1, 1, 1, 0.5)
+position = Vector2(-200, 100)
+scale = Vector2(1.75, 1.75)
+texture = ExtResource("7_c7h4h")
+centered = false
+
+[node name="Scroll_FlowerL" type="Parallax2D" parent="." unique_id=130213623]
+scroll_scale = Vector2(1.2, 1.2)
+
+[node name="FlowerL" type="Sprite2D" parent="Scroll_FlowerL" unique_id=1088687536]
+position = Vector2(-900, -250)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("8_ug3qo")
+centered = false
+
+[node name="Scroll_FlowerR" type="Parallax2D" parent="." unique_id=939035831]
+scroll_scale = Vector2(1.2, 1.2)
+
+[node name="FlowerR" type="Sprite2D" parent="Scroll_FlowerR" unique_id=190236790]
+position = Vector2(1250, -100)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("9_0oxv2")
+centered = false
+
+[node name="PlayerPoint" type="Marker2D" parent="." unique_id=2024602541]
+position = Vector2(1150, 225)
+metadata/camera_offsets = Vector2(-280, -25)
+
+[node name="OpponentPoint" type="Marker2D" parent="." unique_id=900991592]
+position = Vector2(120, 200)
+metadata/camera_offsets = Vector2(270, -25)
+
+[node name="GirlfriendPoint" type="Marker2D" parent="." unique_id=1307959900]
+position = Vector2(-850, 400)
+metadata/camera_offsets = Vector2(700, -700)
+
+[node name="StageBop" type="Node" parent="." unique_id=841984643]
+script = ExtResource("10_t5x7c")
+
+[editable path="Madoka"]
+[editable path="Mami"]
+[editable path="KyubeySpeaker"]
+[editable path="Kyubey"]

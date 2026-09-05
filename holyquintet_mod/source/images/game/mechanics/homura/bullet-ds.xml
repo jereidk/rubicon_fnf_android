@@ -1,0 +1,38 @@
+ons.lowMemoryMode)
+	{
+		afterFramePlayer = new Character(bf.x, bf.y, 'gf-base', true);
+		insert(members.indexOf(bf), afterFramePlayer);
+		afterFramePlayer.alpha = 0.0;
+		afterFramePlayer.blend = BlendMode.ADD;
+		afterFramePlayer.color = 0xFFECA6FF;
+		afterFramePlayer.useRenderTexture = true;
+
+		if (dad != null)
+		{
+			afterFrameOpponent = new Character(dad.x, dad.y, 'homura-base', false);
+			insert(members.indexOf(dad), afterFrameOpponent);
+			afterFrameOpponent.alpha = 0.0;
+			afterFrameOpponent.blend = BlendMode.ADD;
+			afterFrameOpponent.color = 0xFFECA6FF;
+			afterFrameOpponent.useRenderTexture = true;
+		}
+
+		if (Options.gameplayShaders)
+		{
+			shootTimestopShader = new CustomShader("Timestop");
+			shootTimestopShader.scale = 0.2;
+			afterFrameOpponent.shader = shootTimestopShader;
+		}
+	}
+
+	shootSnd = new FlxSound().loadEmbedded(Paths.sound('mechanics/homura_shoot'));
+	shootSnd.volume = 0.5 * Options.volumeSFX;
+	FlxG.sound.list.add(shootSnd);
+}
+
+function onNoteCreation(e)
+{
+	if (e.noteType == 'Bullet Note')
+	{
+		if (Options.downscroll)
+			e.noteSprite = "game/mechanics/homura/bullet-ds

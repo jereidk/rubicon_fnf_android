@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="sayaka.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="sayaka idle instance 10000" x="2" y="2" width="291" height="441" frameX="0" frameY="-6" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10001" x="2" y="2" width="291" height="441" frameX="0" frameY="-6" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10002" x="295" y="2" width="276" height="442" frameX="-8" frameY="-5" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10003" x="295" y="2" width="276" height="442" frameX="-8" frameY="-5" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10004" x="573" y="2" width="272" height="445" frameX="-17" frameY="-2" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10005" x="573" y="2" width="272" height="445" frameX="-17" frameY="-2" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10006" x="847" y="2" width="270" height="446" frameX="-30" frameY="-1" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10007" x="847" y="2" width="270" height="446" frameX="-30" frameY="-1" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10008" x="1119" y="2" width="267" height="447" frameX="-37" frameY="0" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10009" x="1388" y="2" width="276" height="447" frameX="-25" frameY="0" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10010" x="1388" y="2" width="276" height="447" frameX="-25" frameY="0" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10011" x="1666" y="2" width="277" height="447" frameX="-16" frameY="0" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10012" x="1666" y="2" width="277" height="447" frameX="-16" frameY="0" frameWidth="304" frameHeight="447"/>
+	<SubTexture name="sayaka idle instance 10013" x="2" y="451" width="291" height="447" frameX="-3" frameY="0" frameWidth="304" frameHeight="447"/>
+</TextureAtlas>

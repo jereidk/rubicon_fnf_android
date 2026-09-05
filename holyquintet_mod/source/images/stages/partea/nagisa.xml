@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="nagisa.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="nagisa vibe instance 10000" x="2" y="2" width="357" height="384" frameX="0" frameY="-10" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10001" x="2" y="2" width="357" height="384" frameX="0" frameY="-10" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10002" x="361" y="2" width="355" height="392" frameX="-2" frameY="-7" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10003" x="361" y="2" width="355" height="392" frameX="-2" frameY="-7" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10004" x="718" y="2" width="353" height="398" frameX="-4" frameY="-2" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10005" x="718" y="2" width="353" height="398" frameX="-4" frameY="-2" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10006" x="1073" y="2" width="351" height="399" frameX="-6" frameY="-1" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10007" x="1073" y="2" width="351" height="399" frameX="-6" frameY="-1" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10008" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10009" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10010" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10011" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10012" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+	<SubTexture name="nagisa vibe instance 10013" x="1426" y="2" width="351" height="400" frameX="-6" frameY="0" frameWidth="357" frameHeight="400"/>
+</TextureAtlas>

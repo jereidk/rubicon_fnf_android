@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RubiconLevelMetadata" format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_level_metadata_difficulty.gd" id="1_n0r1p"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_level_metadata.gd" id="2_507u3"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/rubicon_time_change.gd" id="3_o233o"]
+
+[sub_resource type="Resource" id="Resource_n0r1p"]
+script = ExtResource("3_o233o")
+bpm = 140.0
+
+[resource]
+script = ExtResource("2_507u3")
+time_changes = Array[ExtResource("3_o233o")]([SubResource("Resource_n0r1p")])

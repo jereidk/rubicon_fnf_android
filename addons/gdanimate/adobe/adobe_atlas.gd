@@ -393,8 +393,13 @@ func load_spritemap(spritemap_name: String) -> void :
 
 	var texture: Texture2D = load("%s/%s.png" % [base_dir, spritemap_name.get_basename()])
 	if not is_instance_valid(texture):
-		printerr("Failed to load %s/%s.png as Texture2D!" % [base_dir, spritemap_name.get_basename()])
-		return
+		# Local-machine fallback when the project has not been imported yet: read the
+		# spritemap PNG straight off disk. The exported build uses the imported texture.
+		var image: Image = Image.load_from_file("%s/%s.png" % [base_dir, spritemap_name.get_basename()])
+		if image == null:
+			printerr("Failed to load %s/%s.png as Texture2D!" % [base_dir, spritemap_name.get_basename()])
+			return
+		texture = ImageTexture.create_from_image(image)
 
 	var data: Dictionary = json as Dictionary
 	if not data.has("ATLAS"):

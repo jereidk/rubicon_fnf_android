@@ -1,0 +1,269 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level.gd" id="1_nxe35"]
+[ext_resource type="Resource" path="res://songs/resonance/data/Meta.tres" id="2_agyjy"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/rubicon_level_clock.gd" id="3_w66s1"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_song.gd" id="4_csrsf"]
+[ext_resource type="AudioStream" path="res://holyquintet_mod/source/songs/resonance/song/Inst.ogg" id="5_sqbeg"]
+[ext_resource type="AudioStream" path="res://holyquintet_mod/source/songs/resonance/song/Voices-Opponent.ogg" id="6_ci6e7"]
+[ext_resource type="AudioStream" path="res://holyquintet_mod/source/songs/resonance/song/Voices-Player.ogg" id="7_72w74"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/stages/stg_resonance.tscn" id="8_a633h"]
+[ext_resource type="PackedScene" path="res://resources/levels/characters/bf.tscn" id="9_uwbff"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/characters/chr_sayaka_base.tscn" id="10_fg6eh"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/characters/chr_gf_base.tscn" id="11_kh5ti"]
+[ext_resource type="PackedScene" path="res://addons/rubicon/resources/levels/ui/default/Judgment.tscn" id="12_f85dt"]
+[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/health_bar.tscn" id="13_skxh7"]
+[ext_resource type="SpriteFrames" path="res://holyquintet_mod/ui/sayaka_icon.tres" id="14_pwake"]
+[ext_resource type="SpriteFrames" path="res://holyquintet_mod/ui/bf_icon.tres" id="15_nqgk8"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="16_qjn5g"]
+[ext_resource type="Resource" path="res://songs/resonance/data/resonance-hard_Opponent.tres" id="17_165ws"]
+[ext_resource type="Resource" path="res://resources/levels/ui/funkin/funkin_note_override.tres" id="18_q4aag"]
+[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/mania/Lane.tscn" id="19_yyu5c"]
+[ext_resource type="Resource" path="res://songs/resonance/data/resonance-hard_Player.tres" id="20_c2x22"]
+[ext_resource type="Resource" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="21_n4sc2"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="22_agfhu"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_position_setter.gd" id="23_gr6te"]
+[ext_resource type="Script" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="24_r67sv"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="25_x7g4n"]
+[ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="26_oev1w"]
+[ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="27_31e32"]
+
+[sub_resource type="Animation" id="Animation_1bfk1"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"Opponent"]
+}
+
+[sub_resource type="Animation" id="Animation_sbc3m"]
+length = 171.3372
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.8604652, 9.302325, 16.744186, 20.930233, 24.186047, 31.627907, 39.069767, 50.23256, 53.953487, 61.395348, 68.83721, 76.27907, 83.72093, 91.16279, 98.60465, 113.48837, 120.93023, 128.37209, 150.69768, 152.55814, 154.41861, 158.13954, 160, 161.86046),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [&"Opponent", &"Player", &"Opponent", &"Player", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent", &"Player", &"Opponent"]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_b0pqc"]
+_data = {
+&"RESET": SubResource("Animation_1bfk1"),
+&"scene": SubResource("Animation_sbc3m")
+}
+
+[node name="Resonance" type="Node2D" unique_id=1758162350]
+script = ExtResource("1_nxe35")
+metadata = ExtResource("2_agyjy")
+
+[node name="RubiconLevelClock" type="Node" parent="." unique_id=1644111782]
+script = ExtResource("3_w66s1")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="RubiconLevelClock" unique_id=66335731]
+callback_mode_discrete = 2
+libraries/ = SubResource("AnimationLibrary_b0pqc")
+autoplay = &"scene"
+
+[node name="RubiconLevelSongModule" type="Node" parent="." unique_id=1884518439 node_paths=PackedStringArray("audio_players", "sync_reference_player")]
+script = ExtResource("4_csrsf")
+audio_players = [NodePath("Instrumental"), NodePath("VocalsOpponent"), NodePath("VocalsPlayer")]
+sync_reference_player = NodePath("Instrumental")
+
+[node name="Instrumental" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=768860045]
+stream = ExtResource("5_sqbeg")
+bus = &"Music"
+
+[node name="VocalsOpponent" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1949141257]
+stream = ExtResource("6_ci6e7")
+bus = &"Music"
+
+[node name="VocalsPlayer" type="AudioStreamPlayer" parent="RubiconLevelSongModule" unique_id=1559959199]
+stream = ExtResource("7_72w74")
+bus = &"Music"
+
+[node name="Stage" parent="." unique_id=943117486 instance=ExtResource("8_a633h")]
+
+[node name="Boyfriend" parent="Stage" unique_id=657420159 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("9_uwbff")]
+position = Vector2(1150, 225)
+level_note_controller = NodePath("../../UILayer/UI/Player")
+
+[node name="Sayaka" parent="Stage" unique_id=461899527 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("10_fg6eh")]
+position = Vector2(120, 200)
+level_note_controller = NodePath("../../UILayer/UI/Opponent")
+
+[node name="Girlfriend" parent="Stage" unique_id=102084612 instance=ExtResource("11_kh5ti")]
+position = Vector2(-850, 400)
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=369794642]
+layer = 2
+
+[node name="UI" type="Control" parent="UILayer" unique_id=166853683]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Judgment" parent="UILayer/UI" unique_id=609072453 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("12_f85dt")]
+layout_mode = 1
+anchors_preset = -1
+level_note_controller = NodePath("../Player")
+
+[node name="HealthBar" parent="UILayer/UI" unique_id=2000574413 node_paths=PackedStringArray("health_module") instance=ExtResource("13_skxh7")]
+layout_mode = 1
+health_module = NodePath("../../../RubiconHealthModule")
+
+[node name="IconL" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(2000574413, 1230556197) index="0" unique_id=2114972775]
+sprite_frames = ExtResource("14_pwake")
+
+[node name="IconR" parent="UILayer/UI/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(2000574413, 1230556197) index="1" unique_id=500134408]
+sprite_frames = ExtResource("15_nqgk8")
+
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=722851927]
+anchors_preset = 0
+anchor_left = 0.25
+anchor_top = 1.0
+anchor_right = 0.25
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("16_qjn5g")
+chart = ExtResource("17_165ws")
+note_overrides = ExtResource("18_q4aag")
+autoplay = true
+
+[node name="Lane" parent="UILayer/UI/Opponent" unique_id=990823892 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -240.0
+offset_right = -240.0
+lane_autoplay_hit_lingers = true
+
+[node name="Lane2" parent="UILayer/UI/Opponent" unique_id=1805559279 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -80.0
+offset_right = -80.0
+lane_id = 1
+lane_autoplay_hit_lingers = true
+
+[node name="Lane3" parent="UILayer/UI/Opponent" unique_id=1718760279 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 80.0
+offset_right = 80.0
+lane_id = 2
+lane_autoplay_hit_lingers = true
+
+[node name="Lane4" parent="UILayer/UI/Opponent" unique_id=1812422955 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 240.0
+offset_right = 240.0
+lane_id = 3
+lane_autoplay_hit_lingers = true
+
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=1260029130]
+anchors_preset = 0
+anchor_left = 0.75
+anchor_top = 1.0
+anchor_right = 0.75
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("16_qjn5g")
+chart = ExtResource("20_c2x22")
+note_overrides = ExtResource("18_q4aag")
+inputs = ExtResource("21_n4sc2")
+
+[node name="Lane" parent="UILayer/UI/Player" unique_id=1816272593 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -240.0
+offset_right = -240.0
+
+[node name="Lane2" parent="UILayer/UI/Player" unique_id=321412488 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -80.0
+offset_right = -80.0
+lane_id = 1
+
+[node name="Lane3" parent="UILayer/UI/Player" unique_id=247941200 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 80.0
+offset_right = 80.0
+lane_id = 2
+
+[node name="Lane4" parent="UILayer/UI/Player" unique_id=36231693 instance=ExtResource("19_yyu5c")]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 240.0
+offset_right = 240.0
+lane_id = 3
+
+[node name="PlayerCameraPoint" type="Marker2D" parent="." unique_id=678093669]
+position = Vector2(870, 12.5)
+
+[node name="OpponentCameraPoint" type="Marker2D" parent="." unique_id=2136321578]
+position = Vector2(390, -275)
+
+[node name="GirlfriendCameraPoint" type="Marker2D" parent="." unique_id=1415379390]
+position = Vector2(-150, -700)
+
+[node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=650026476]
+position = Vector2(390, -275)
+zoom = Vector2(1.5, 1.5)
+script = ExtResource("22_agfhu")
+position_interpolate_target = Vector2(390, -275)
+position_interpolate_speed = 1.0
+zoom_interpolate_target = Vector2(1.5, 1.5)
+
+[node name="RubiconPositionSetter" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=705714826 node_paths=PackedStringArray("point_map")]
+script = ExtResource("23_gr6te")
+point_map = {
+&"Girlfriend": NodePath("../../GirlfriendCameraPoint"),
+&"Opponent": NodePath("../../OpponentCameraPoint"),
+&"Player": NodePath("../../PlayerCameraPoint")
+}
+_current_point = &"Opponent"
+
+[node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=1377345757]
+script = ExtResource("24_r67sv")
+bump_every = 1
+bump_interval = 4
+bump_amount = 0.0
+
+[node name="RubiconHealthModule" type="Node" parent="." unique_id=1423485119 node_paths=PackedStringArray("note_controller")]
+script = ExtResource("25_x7g4n")
+note_controller = NodePath("../UILayer/UI/Player")
+starting_health = 50.0
+starting_health = 50.0
+
+[node name="MobileControls" type="CanvasLayer" parent="." unique_id=1458603391 instance=ExtResource("26_oev1w")]
+layer = 15
+script = ExtResource("27_31e32")
+opacity = 0.4
+
+[editable path="Stage"]
+[editable path="Stage/Madoka"]
+[editable path="Stage/Mami"]
+[editable path="Stage/KyubeySpeaker"]
+[editable path="Stage/Kyubey"]
+[editable path="UILayer/UI/HealthBar"]

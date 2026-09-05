@@ -1,0 +1,17 @@
+<!DOCTYPE codename-engine-character>
+<character x="729" y="-165" flipX="true" camx="-900" camy="150" isPlayer="true" icon="gf" color="#A5004D" applyStageMatrix="true">
+	<anim name="idle" anim="GFESATLAS" indices="0..27" loop="true"/>
+	<anim name="singLEFT" anim="GFESATLAS" indices="28..42"/>
+	<anim name="singLEFT-end" anim="GFESATLAS" indices="42..45"/>
+	<anim name="singRIGHT" anim="GFESATLAS" indices="46..59"/>
+	<anim name="singRIGHT-end" anim="GFESATLAS" indices="60..63"/>
+	<anim name="singUP" anim="GFESATLAS" indices="64..77"/>
+	<anim name="singUP-end" anim="GFESATLAS" indices="78..81"/>
+	<anim name="singDOWN" anim="GFESATLAS" indices="82..95"/>
+	<anim name="singDOWN-end" anim="GFESATLAS" indices="96..99"/>
+	<anim name="singLEFTmiss" anim="GFESATLAS" indices="100..113"/>
+	<anim name="singRIGHTmiss" anim="GFESATLAS" indices="114..127"/>
+	<anim name="singUPmiss" anim="GFESATLAS" indices="128..141"/>
+	<anim name="singDOWNmiss" anim="GFESATLAS" indices="142..155"/>
+	<anim name="transition" anim="GFESATLAS" indices="170..225"/>
+</character>

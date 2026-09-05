@@ -1,0 +1,135 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/game/speakersmain.png" id="1_avedn"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smxnm"]
+atlas = ExtResource("1_avedn")
+region = Rect2(2, 2, 739, 332)
+margin = Rect2(8, 0, 16, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d3at1"]
+atlas = ExtResource("1_avedn")
+region = Rect2(743, 2, 755, 332)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fsd04"]
+atlas = ExtResource("1_avedn")
+region = Rect2(2, 336, 741, 332)
+margin = Rect2(7, 0, 14, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m8toj"]
+atlas = ExtResource("1_avedn")
+region = Rect2(745, 336, 741, 332)
+margin = Rect2(7, 0, 14, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fp32i"]
+atlas = ExtResource("1_avedn")
+region = Rect2(2, 670, 739, 332)
+margin = Rect2(8, 0, 16, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xr68e"]
+atlas = ExtResource("1_avedn")
+region = Rect2(2, 2, 739, 332)
+margin = Rect2(8, 0, 16, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ypykb"]
+atlas = ExtResource("1_avedn")
+region = Rect2(743, 670, 754, 332)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_085jb"]
+atlas = ExtResource("1_avedn")
+region = Rect2(2, 1004, 754, 332)
+filter_clip = true
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ksfju"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smxnm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d3at1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fsd04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m8toj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fp32i")
+}, {
+"duration": 9.0,
+"texture": SubResource("AtlasTexture_xr68e")
+}],
+"loop": 1,
+"name": &"speaker dancing beat",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 35.0,
+"texture": SubResource("AtlasTexture_ypykb")
+}],
+"loop": 1,
+"name": &"speaker hey",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 35.0,
+"texture": SubResource("AtlasTexture_085jb")
+}],
+"loop": 1,
+"name": &"speaker sad",
+"speed": 24.0
+}]
+
+[sub_resource type="Animation" id="Animation_jjl70"]
+length = 0.5833333507180214
+loop_mode = 1
+step = 0.041666668
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:animation")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["speaker dancing beat"]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:frame")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.041666668, 0.083333336, 0.125, 0.16666667, 0.20833334),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tmh6f"]
+_data = {
+&"bop": SubResource("Animation_jjl70")
+}
+
+[node name="speakersmain" type="Node2D" unique_id=1748413474]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1742522894]
+sprite_frames = SubResource("SpriteFrames_ksfju")
+animation = &"speaker dancing beat"
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=182737747]
+libraries/ = SubResource("AnimationLibrary_tmh6f")
+autoplay = &"bop"

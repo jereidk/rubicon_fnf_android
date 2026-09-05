@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="kyoko.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="kyoko_idle instance 10000" x="2" y="2" width="320" height="528" frameX="-8" frameY="-6" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10001" x="2" y="2" width="320" height="528" frameX="-8" frameY="-6" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10002" x="324" y="2" width="316" height="533" frameX="-11" frameY="-1" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10003" x="324" y="2" width="316" height="533" frameX="-11" frameY="-1" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10004" x="642" y="2" width="332" height="534" frameX="-3" frameY="0" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10005" x="642" y="2" width="332" height="534" frameX="-3" frameY="0" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10006" x="976" y="2" width="342" height="533" frameX="0" frameY="-1" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10007" x="976" y="2" width="342" height="533" frameX="0" frameY="-1" frameWidth="342" frameHeight="534"/>
+	<SubTexture name="kyoko_idle instance 10008" x="1320" y="2" width="342" height="534"/>
+	<SubTexture name="kyoko_idle instance 10009" x="1320" y="2" width="342" height="534"/>
+	<SubTexture name="kyoko_idle instance 10010" x="1320" y="2" width="342" height="534"/>
+	<SubTexture name="kyoko_idle instance 10011" x="1320" y="2" width="342" height="534"/>
+	<SubTexture name="kyoko_idle instance 10012" x="1320" y="2" width="342" height="534"/>
+	<SubTexture name="kyoko_idle instance 10013" x="1320" y="2" width="342" height="534"/>
+</TextureAtlas>

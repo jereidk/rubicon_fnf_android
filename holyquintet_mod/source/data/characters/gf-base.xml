@@ -1,0 +1,30 @@
+<!DOCTYPE codename-engine-character>
+<character x="-850" y="400" flipX="true" camx="700" camy="-700" isPlayer="true" icon="gf"
+	color="#A5004D" applyStageMatrix="true">
+	<anim name="danceLeft" anim="GFATLAS" indices="0..13" />
+	<anim name="danceRight" anim="GFATLAS" indices="14..27" />
+	<anim name="singLEFT" anim="GFATLAS" indices="28..42" />
+	<anim name="singLEFT-end" anim="GFATLAS" indices="42..45" />
+	<anim name="singRIGHT" anim="GFATLAS" indices="46..59" />
+	<anim name="singRIGHT-end" anim="GFATLAS" indices="60..63" />
+	<anim name="singUP" anim="GFATLAS" indices="64..77" />
+	<anim name="singUP-end" anim="GFATLAS" indices="78..81" />
+	<anim name="singDOWN" anim="GFATLAS" indices="82..95" />
+	<anim name="singDOWN-end" anim="GFATLAS" indices="96..99" />
+	<anim name="singLEFTmiss" anim="GFATLAS" indices="100..113" />
+	<anim name="singRIGHTmiss" anim="GFATLAS" indices="114..127" />
+	<anim name="singUPmiss" anim="GFATLAS" indices="128..141" />
+	<anim name="singDOWNmiss" anim="GFATLAS" indices="142..155" />
+	<anim name="dodgeLEFT" anim="GFATLAS" indices="156..173" />
+	<anim name="dodgeRIGHT" anim="GFATLAS" indices="174..191" />
+	<anim name="dodgeUP" anim="GFATLAS" indices="192..215" />
+	<anim name="dodgeDOWN" anim="GFATLAS" indices="216..234" />
+	<anim name="hurt" anim="GFATLAS" indices="235..282" />
+	<anim name="hurt-short" anim="GFATLAS" indices="235..278" />
+	<anim name="idle-dizzy" anim="GFATLAS" indices="283..296" />
+	<anim name="hey" anim="GFATLAS"
+		indices="297..310,310,310,310,310,310,310,310,310,310,310,310,310,310,310..314" />
+	<anim name="shrug" anim="GFATLAS" indices="315..376" />
+	<anim name="ootmidanim" anim="GFATLAS" indices="377..480" />
+	<anim name="hurt-shot" anim="GFATLAS" indices="481..495,526..531" />
+</character>

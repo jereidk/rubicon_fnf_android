@@ -1,0 +1,178 @@
+{
+  "dialogue": [
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "0",
+      "action": "gotonormalintro"
+    },
+    {
+      "name": "mami",
+      "expression": "ehh-casual",
+      "dialogue": "1"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "",
+      "dialogue": "2"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "woah-casual",
+      "dialogue": "3"
+    },
+    {
+      "name": "sayaka",
+      "expression": "ehh-casual",
+      "dialogue": "4"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "5"
+    },
+    {
+      "name": "nagisa",
+      "expression": "yay",
+      "dialogue": "6"
+    },
+    {
+      "name": "mami",
+      "expression": "talk-casual",
+      "dialogue": "7"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "8"
+    },
+    {
+      "name": "nagisa",
+      "expression": "think",
+      "dialogue": "9"
+    },
+    {
+      "name": "nagisa",
+      "expression": "yay",
+      "dialogue": "10"
+    },
+    {
+      "name": "mami",
+      "expression": "ehh-casual",
+      "dialogue": "11"
+    },
+    {
+      "name": "nagisa",
+      "expression": "twiddle",
+      "dialogue": "12"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "13"
+    },
+    {
+      "name": "mami",
+      "expression": "talk-casual",
+      "dialogue": "14"
+    },
+    {
+      "name": "madoka",
+      "expression": "yay-casual",
+      "dialogue": "15"
+    },
+    {
+      "name": "sayaka",
+      "expression": "ehh-casual",
+      "dialogue": "16"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "yes-casual",
+      "dialogue": "17"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "18"
+    },
+    {
+      "name": "mami",
+      "expression": "food-casual",
+      "dialogue": "19"
+    },
+    {
+      "name": "madoka",
+      "expression": "eating-casual",
+      "dialogue": "20"
+    },
+    {
+      "name": "nagisa",
+      "expression": "yay",
+      "dialogue": "21",
+      "action": [
+        "shake"
+      ]
+    },
+    {
+      "name": "sayaka",
+      "expression": "ehh-casual",
+      "dialogue": "22"
+    },
+    {
+      "name": "mami",
+      "expression": "talk-casual",
+      "dialogue": "23"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "eating-casual",
+      "dialogue": "24"
+    },
+    {
+      "name": "mami",
+      "expression": "think-casual",
+      "dialogue": "25"
+    },
+    {
+      "name": "mami",
+      "expression": "think-casual",
+      "dialogue": "27"
+    },
+    {
+      "name": "mami",
+      "expression": "think-casual",
+      "dialogue": "28"
+    },
+    {
+      "name": "madoka",
+      "expression": "ehh-casual",
+      "dialogue": "29"
+    },
+    {
+      "name": "sayaka",
+      "expression": "talk-casual",
+      "dialogue": "30"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "mic-casual",
+      "dialogue": "31"
+    },
+    {
+      "name": "mami",
+      "expression": "mic-casual",
+      "dialogue": "32"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "smile-casual",
+      "dialogue": "33"
+    },
+    {
+      "name": "mami",
+      "expression": "mic-casual",
+      "dialogue": "34"
+    }
+  ]
+}

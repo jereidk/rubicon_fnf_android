@@ -1,0 +1,26 @@
+<!DOCTYPE codename-engine-character>
+<character x="-1300" y="-250" camx="1050" camy="100" icon="homura" color="#3A3A3A" applyStageMatrix="true">
+	<anim name="idle" anim="HOMURAATLAS" indices="0..13"/>
+	<anim name="singLEFT" anim="HOMURAATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="HOMURAATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="HOMURAATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="HOMURAATLAS" indices="46..49"/>
+	<anim name="singUP" anim="HOMURAATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="HOMURAATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="HOMURAATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="HOMURAATLAS" indices="82..85"/>
+	<anim name="transition" anim="HOMURAATLAS" indices="86..125"/>
+	<anim name="idle-pissed" anim="HOMURAATLAS" indices="126..139"/>
+	<anim name="singLEFT-pissed" anim="HOMURAATLAS" indices="140..153"/>
+	<anim name="singLEFT-pissed-end" anim="HOMURAATLAS" indices="154..157"/>
+	<anim name="singRIGHT-pissed" anim="HOMURAATLAS" indices="158..171"/>
+	<anim name="singRIGHT-pissed-end" anim="HOMURAATLAS" indices="172..175"/>
+	<anim name="singUP-pissed" anim="HOMURAATLAS" indices="176..189"/>
+	<anim name="singUP-pissed-end" anim="HOMURAATLAS" indices="190..193"/>
+	<anim name="singDOWN-pissed" anim="HOMURAATLAS" indices="194..207"/>
+	<anim name="singDOWN-pissed-end" anim="HOMURAATLAS" indices="208..211"/>
+	<anim name="shoot" anim="HOMURAATLAS" indices="212..227"/>
+	<anim name="timestop" anim="HOMURAATLAS" indices="228..245"/>
+	<anim name="hairflip" anim="HOMURAATLAS" indices="246..295"/>
+	<anim name="ootmidanim" anim="HOMURAATLAS" indices="296..393"/>
+</character>

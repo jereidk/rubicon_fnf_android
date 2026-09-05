@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="GEEF.png">
+	<!-- Created with Adobe Animate version 22.0.6.202 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="megucagf_Dead confirm0000" x="0" y="0" width="246" height="180" frameX="-136" frameY="-116" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0001" x="274" y="0" width="279" height="157" frameX="-119" frameY="-136" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0002" x="581" y="0" width="286" height="177" frameX="-116" frameY="-123" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0003" x="895" y="0" width="286" height="177" frameX="-116" frameY="-125" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0004" x="1209" y="0" width="286" height="177" frameX="-116" frameY="-127" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0005" x="1523" y="0" width="354" height="292" frameX="-92" frameY="-87" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0006" x="1905" y="0" width="354" height="292" frameX="-92" frameY="-87" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0007" x="2287" y="0" width="516" height="470" frameX="-2" frameY="0" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0008" x="2831" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0009" x="3145" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0010" x="3459" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0011" x="3773" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0012" x="4087" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0013" x="4401" y="0" width="286" height="213" frameX="-116" frameY="-110" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0014" x="4715" y="0" width="286" height="216" frameX="-116" frameY="-106" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0015" x="5029" y="0" width="328" height="211" frameX="-74" frameY="-147" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0016" x="5385" y="0" width="354" height="262" frameX="-48" frameY="-147" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0017" x="5767" y="0" width="452" height="176" frameX="-35" frameY="-238" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0018" x="5767" y="0" width="452" height="176" frameX="-35" frameY="-238" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0019" x="6247" y="0" width="514" height="201" frameX="-7" frameY="-212" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0020" x="6247" y="0" width="514" height="201" frameX="-7" frameY="-212" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0021" x="6789" y="0" width="517" height="194" frameX="0" frameY="-219" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0022" x="6789" y="0" width="517" height="194" frameX="0" frameY="-219" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0023" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0024" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0025" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0026" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0027" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0028" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0029" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_Dead confirm0030" x="7334" y="0" width="281" height="106" frameX="-62" frameY="-307" frameWidth="521" frameHeight="470"/>
+	<SubTexture name="megucagf_dalt0000" x="7643" y="0" width="503" height="322" frameX="0" frameY="-59" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0001" x="7643" y="0" width="503" height="322" frameX="0" frameY="-59" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0002" x="0" y="498" width="433" height="367" frameX="-44" frameY="-20" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0003" x="0" y="498" width="433" height="367" frameX="-44" frameY="-20" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0004" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0005" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0006" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0007" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0008" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0009" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0010" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0011" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0012" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dalt0013" x="461" y="498" width="416" height="384" frameX="-56" frameY="0" frameWidth="503" frameHeight="387"/>
+	<SubTexture name="megucagf_dead loop0000" x="905" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0001" x="1237" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0002" x="1571" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0003" x="1905" y="498" width="322" height="262" frameX="-35" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0004" x="2255" y="498" width="322" height="262" frameX="-35" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0005" x="2605" y="498" width="350" height="257" frameX="0" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0006" x="2605" y="498" width="350" height="257" frameX="0" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0007" x="2983" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0008" x="2983" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0009" x="3317" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0010" x="3317" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0011" x="2983" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0012" x="2983" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0013" x="2255" y="498" width="322" height="262" frameX="-35" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0014" x="2983" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0015" x="3649" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0016" x="3983" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0017" x="4315" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0018" x="4647" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0019" x="4981" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0020" x="5315" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0021" x="5649" y="498" width="306" height="257" frameX="-44" frameY="-3" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dead loop0022" x="5983" y="498" width="304" height="262" frameX="-45" frameY="0" frameWidth="357" frameHeight="262"/>
+	<SubTexture name="megucagf_dies0000" x="6315" y="498" width="383" height="442" frameX="-166" frameY="-117" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0001" x="6315" y="498" width="383" height="442" frameX="-166" frameY="-117" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0002" x="6726" y="498" width="482" height="405" frameX="-110" frameY="-154" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0003" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0004" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0005" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0006" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0007" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0008" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0009" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0010" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0011" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0012" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0013" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0014" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0015" x="7236" y="498" width="425" height="384" frameX="-174" frameY="-175" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0016" x="7689" y="498" width="420" height="378" frameX="-174" frameY="-178" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0017" x="0" y="968" width="414" height="373" frameX="-174" frameY="-180" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0018" x="442" y="968" width="409" height="367" frameX="-173" frameY="-183" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0019" x="879" y="968" width="405" height="362" frameX="-173" frameY="-186" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0020" x="1312" y="968" width="404" height="359" frameX="-173" frameY="-188" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0021" x="1744" y="968" width="404" height="355" frameX="-172" frameY="-191" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0022" x="2176" y="968" width="403" height="352" frameX="-172" frameY="-193" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0023" x="2607" y="968" width="401" height="348" frameX="-172" frameY="-195" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0024" x="3036" y="968" width="400" height="345" frameX="-172" frameY="-198" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0025" x="3464" y="968" width="400" height="344" frameX="-171" frameY="-200" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0026" x="3892" y="968" width="398" height="346" frameX="-171" frameY="-200" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0027" x="4318" y="968" width="397" height="350" frameX="-171" frameY="-198" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0028" x="4743" y="968" width="396" height="354" frameX="-171" frameY="-196" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0029" x="5167" y="968" width="397" height="358" frameX="-170" frameY="-194" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0030" x="5592" y="968" width="398" height="362" frameX="-170" frameY="-192" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0031" x="6018" y="968" width="399" height="368" frameX="-170" frameY="-190" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0032" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0033" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0034" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0035" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0036" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0037" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0038" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0039" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0040" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0041" x="6445" y="968" width="400" height="380" frameX="-170" frameY="-187" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0042" x="6873" y="968" width="682" height="962"/>
+	<SubTexture name="megucagf_dies0043" x="0" y="1958" width="682" height="962"/>
+	<SubTexture name="megucagf_dies0044" x="710" y="1958" width="565" height="794" frameX="-63" frameY="0" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0045" x="710" y="1958" width="565" height="794" frameX="-63" frameY="0" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0046" x="1303" y="1958" width="496" height="776" frameX="-63" frameY="-45" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0047" x="1303" y="1958" width="496" height="776" frameX="-63" frameY="-45" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0048" x="1827" y="1958" width="478" height="822" frameX="-63" frameY="-26" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0049" x="1827" y="1958" width="478" height="822" frameX="-63" frameY="-26" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0050" x="2333" y="1958" width="438" height="873" frameX="-72" frameY="-17" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0051" x="2333" y="1958" width="438" height="873" frameX="-72" frameY="-17" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0052" x="2799" y="1958" width="523" height="900" frameX="-63" frameY="-17" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0053" x="2799" y="1958" width="523" height="900" frameX="-63" frameY="-17" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0054" x="3350" y="1958" width="445" height="155" frameX="-105" frameY="0" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0055" x="3350" y="1958" width="445" height="155" frameX="-105" frameY="0" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0056" x="3823" y="1958" width="454" height="110" frameX="-123" frameY="-9" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dies0057" x="3823" y="1958" width="454" height="110" frameX="-123" frameY="-9" frameWidth="682" frameHeight="962"/>
+	<SubTexture name="megucagf_dmiss0000" x="4305" y="1958" width="554" height="320" frameX="0" frameY="-58" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0001" x="4887" y="1958" width="554" height="320" frameX="0" frameY="-58" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0002" x="5469" y="1958" width="495" height="344" frameX="-15" frameY="-36" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0003" x="5992" y="1958" width="495" height="344" frameX="-15" frameY="-36" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0004" x="6515" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0005" x="7002" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0006" x="6515" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0007" x="7002" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0008" x="6515" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0009" x="7002" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0010" x="6515" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0011" x="7002" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0012" x="6515" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_dmiss0013" x="7002" y="1958" width="459" height="378" frameX="-33" frameY="0" frameWidth="554" frameHeight="380"/>
+	<SubTexture name="megucagf_down0000" x="7489" y="1958" width="606" height="313" frameX="0" frameY="-35" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0001" x="7489" y="1958" width="606" height="313" frameX="0" frameY="-35" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0002" x="0" y="2948" width="529" height="350" frameX="-44" frameY="-18" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0003" x="0" y="2948" width="529" height="350" frameX="-44" frameY="-18" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0004" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0005" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0006" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0007" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0008" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0009" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0010" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0011" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0012" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_down0013" x="557" y="2948" width="492" height="358" frameX="-68" frameY="0" frameWidth="606" frameHeight="368"/>
+	<SubTexture name="megucagf_idle0000" x="1077" y="2948" width="411" height="343" frameX="0" frameY="-34" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0001" x="1077" y="2948" width="411" height="343" frameX="0" frameY="-34" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0002" x="1516" y="2948" width="398" height="351" frameX="-1" frameY="-26" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0003" x="1516" y="2948" width="398" height="351" frameX="-1" frameY="-26" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0004" x="1942" y="2948" width="351" height="361" frameX="-36" frameY="-16" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0005" x="1942" y="2948" width="351" height="361" frameX="-36" frameY="-16" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0006" x="2321" y="2948" width="346" height="369" frameX="-34" frameY="-8" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0007" x="2321" y="2948" width="346" height="369" frameX="-34" frameY="-8" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0008" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0009" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0010" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0011" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0012" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_idle0013" x="2695" y="2948" width="369" height="377" frameX="-22" frameY="0" frameWidth="411" frameHeight="377"/>
+	<SubTexture name="megucagf_lalt0000" x="3092" y="2948" width="534" height="381" frameX="0" frameY="0" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0001" x="3092" y="2948" width="534" height="381" frameX="0" frameY="0" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0002" x="3654" y="2948" width="460" height="384" frameX="-37" frameY="-9" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0003" x="3654" y="2948" width="460" height="384" frameX="-37" frameY="-9" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0004" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0005" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0006" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0007" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0008" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0009" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0010" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0011" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0012" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_lalt0013" x="4142" y="2948" width="419" height="376" frameX="-63" frameY="-17" frameWidth="534" frameHeight="393"/>
+	<SubTexture name="megucagf_left0000" x="4589" y="2948" width="598" height="388" frameX="0" frameY="-15" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0001" x="4589" y="2948" width="598" height="388" frameX="0" frameY="-15" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0002" x="5215" y="2948" width="499" height="400" frameX="-50" frameY="-12" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0003" x="5215" y="2948" width="499" height="400" frameX="-50" frameY="-12" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0004" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0005" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0006" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0007" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0008" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0009" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0010" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0011" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0012" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_left0013" x="5742" y="2948" width="456" height="414" frameX="-59" frameY="0" frameWidth="598" frameHeight="414"/>
+	<SubTexture name="megucagf_lmiss0000" x="6226" y="2948" width="507" height="341" frameX="0" frameY="-39" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0001" x="6761" y="2948" width="507" height="341" frameX="0" frameY="-39" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0002" x="7296" y="2948" width="443" height="369" frameX="-38" frameY="-12" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0003" x="0" y="3390" width="443" height="369" frameX="-38" frameY="-12" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0004" x="471" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0005" x="920" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0006" x="471" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0007" x="920" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0008" x="471" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0009" x="920" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0010" x="471" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0011" x="920" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0012" x="471" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_lmiss0013" x="920" y="3390" width="421" height="383" frameX="-61" frameY="0" frameWidth="507" frameHeight="383"/>
+	<SubTexture name="megucagf_ralt0000" x="1369" y="3390" width="425" height="408" frameX="0" frameY="-11" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0001" x="1369" y="3390" width="425" height="408" frameX="0" frameY="-11" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0002" x="1822" y="3390" width="365" height="414" frameX="-20" frameY="-8" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0003" x="1822" y="3390" width="365" height="414" frameX="-20" frameY="-8" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0004" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0005" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0006" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0007" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0008" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0009" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0010" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0011" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0012" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_ralt0013" x="2215" y="3390" width="369" height="389" frameX="-7" frameY="0" frameWidth="425" frameHeight="422"/>
+	<SubTexture name="megucagf_right0000" x="2612" y="3390" width="506" height="415" frameX="0" frameY="-14" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0001" x="2612" y="3390" width="506" height="415" frameX="0" frameY="-14" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0002" x="3146" y="3390" width="439" height="418" frameX="-53" frameY="-10" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0003" x="3146" y="3390" width="439" height="418" frameX="-53" frameY="-10" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0004" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0005" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0006" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0007" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0008" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0009" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0010" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0011" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0012" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_right0013" x="3613" y="3390" width="432" height="424" frameX="-71" frameY="0" frameWidth="506" frameHeight="429"/>
+	<SubTexture name="megucagf_rmiss0000" x="4073" y="3390" width="381" height="401" frameX="-72" frameY="-10" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0001" x="4482" y="3390" width="381" height="401" frameX="-72" frameY="-10" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0002" x="4891" y="3390" width="390" height="405" frameX="-25" frameY="-1" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0003" x="5309" y="3390" width="390" height="405" frameX="-25" frameY="-1" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0004" x="5727" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0005" x="6161" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0006" x="5727" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0007" x="6161" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0008" x="5727" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0009" x="6161" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0010" x="5727" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0011" x="6161" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0012" x="5727" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_rmiss0013" x="6161" y="3390" width="406" height="399" frameX="0" frameY="0" frameWidth="453" frameHeight="411"/>
+	<SubTexture name="megucagf_ualt0000" x="6595" y="3390" width="449" height="456" frameX="-47" frameY="0" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0001" x="6595" y="3390" width="449" height="456" frameX="-47" frameY="0" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0002" x="7072" y="3390" width="489" height="434" frameX="0" frameY="-34" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0003" x="7072" y="3390" width="489" height="434" frameX="0" frameY="-34" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0004" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0005" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0006" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0007" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0008" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0009" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0010" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0011" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0012" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_ualt0013" x="7589" y="3390" width="403" height="412" frameX="-90" frameY="-53" frameWidth="496" frameHeight="468"/>
+	<SubTexture name="megucagf_umiss0000" x="0" y="3874" width="469" height="452" frameX="-18" frameY="0" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0001" x="497" y="3874" width="469" height="452" frameX="-18" frameY="0" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0002" x="994" y="3874" width="477" height="423" frameX="0" frameY="-27" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0003" x="1499" y="3874" width="477" height="423" frameX="0" frameY="-27" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0004" x="2004" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0005" x="2444" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0006" x="2004" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0007" x="2444" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0008" x="2004" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0009" x="2444" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0010" x="2004" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0011" x="2444" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0012" x="2004" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_umiss0013" x="2444" y="3874" width="412" height="435" frameX="-63" frameY="-22" frameWidth="487" frameHeight="457"/>
+	<SubTexture name="megucagf_up0000" x="2884" y="3874" width="379" height="440" frameX="-37" frameY="0" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0001" x="2884" y="3874" width="379" height="440" frameX="-37" frameY="0" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0002" x="3291" y="3874" width="396" height="439" frameX="-19" frameY="-27" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0003" x="3291" y="3874" width="396" height="439" frameX="-19" frameY="-27" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0004" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0005" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0006" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0007" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0008" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0009" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0010" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0011" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0012" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+	<SubTexture name="megucagf_up0013" x="3715" y="3874" width="416" height="404" frameX="0" frameY="-62" frameWidth="416" frameHeight="466"/>
+</TextureAtlas>

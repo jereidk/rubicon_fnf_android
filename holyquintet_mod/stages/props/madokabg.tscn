@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="1_6x6bc"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="2_gagdu"]
+[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="3_kjgol"]
+[ext_resource type="AnimationLibrary" path="res://holyquintet_mod/characters/madokabg_library.tres" id="4_1jopc"]
+
+[sub_resource type="Resource" id="Resource_l053y"]
+script = ExtResource("3_kjgol")
+folder_path = "res://holyquintet_mod/source/images/stages/resonance/madokabg/"
+format = "adobe"
+
+[node name="madokabg" type="Node2D" unique_id=1020122038]
+
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=2068340240]
+script = ExtResource("1_6x6bc")
+symbol = "madoka resvibe"
+centered = false
+atlases = Array[ExtResource("2_gagdu")]([SubResource("Resource_l053y")])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1943842667]
+libraries/ = ExtResource("4_1jopc")
+autoplay = &"bop"

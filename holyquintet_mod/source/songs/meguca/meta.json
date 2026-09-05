@@ -1,0 +1,26 @@
+{
+	"customValues": {
+		"charters": "BlackMaskly",
+		"portrait": "madoka-meguca",
+		"composers": "akoy! & Sp0re",
+		"diffStars": "3",
+		"artists": "Kixel & Sector",
+		"uiStyle": "MegucaUI",
+		"gjid": "1098968",
+		"unlockCond": "UnlockCondPrev",
+		"coders": "Sector"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "madoka-meguca",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Meguca",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 205
+}

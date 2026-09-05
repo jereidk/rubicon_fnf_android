@@ -1,0 +1,15 @@
+<!DOCTYPE codename-engine-character>
+<character x="300" y="100" sprite="og/magicalgf" flipX="true" camx="-150" camy="-50" isPlayer="true" color="#00FF00">
+	<anim name="idle" anim="gf_idle" loop="true"/>
+	<anim name="singLEFT" anim="gf_left" x="139" y="-21"/>
+	<anim name="singDOWN" anim="gf_down" x="89" y="-47"/>
+	<anim name="singUP" anim="gf_up" x="26" y="23"/>
+	<anim name="singRIGHT" anim="gf_right" x="-58" y="-8"/>
+	<anim name="singLEFTmiss" anim="gf lmiss" x="159" y="-14"/>
+	<anim name="singRIGHTmiss" anim="gf rmiss"/>
+	<anim name="singUPmiss" anim="gf umiss" x="7" y="22"/>
+	<anim name="singDOWNmiss" anim="gf dmiss" x="130" y="-41"/>
+	<anim name="firstDeath" anim="gf dies" x="34" y="51"/>
+	<anim name="deadLoop" anim="gf Dead Loop" x="-3" y="68" loop="true"/>
+	<anim name="deathConfirm" anim="gf Dead confirm" x="-3" y="15"/>
+</character>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="madoka.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="madoka instance 10000" x="2" y="2" width="233" height="419" frameX="-3" frameY="-3" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10001" x="2" y="2" width="233" height="419" frameX="-3" frameY="-3" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10002" x="237" y="2" width="227" height="420" frameX="-4" frameY="-2" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10003" x="237" y="2" width="227" height="420" frameX="-4" frameY="-2" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10004" x="466" y="2" width="226" height="421" frameX="-3" frameY="-1" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10005" x="466" y="2" width="226" height="421" frameX="-3" frameY="-1" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10006" x="694" y="2" width="228" height="422" frameX="-1" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10007" x="694" y="2" width="228" height="422" frameX="-1" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10008" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10009" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10010" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10011" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10012" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+	<SubTexture name="madoka instance 10013" x="2" y="426" width="230" height="422" frameX="0" frameY="0" frameWidth="236" frameHeight="422"/>
+</TextureAtlas>

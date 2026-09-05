@@ -1,0 +1,34 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://br18o6380o2bc"
+path="res://.godot/imported/madoka face ref april 2025.png-17f5232fb6c0dc03f2695b82ec8200cc.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://holyquintet_mod/source/images/ui/gallery/art/Madoka/madoka face ref april 2025.png"
+dest_files=["res://.godot/imported/madoka face ref april 2025.png-17f5232fb6c0dc03f2695b82ec8200cc.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1

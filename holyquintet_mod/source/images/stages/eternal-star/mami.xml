@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="mami.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="MamiES0000" x="2" y="2" width="305" height="725" frameX="-70" frameY="-8" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0001" x="2" y="2" width="305" height="725" frameX="-70" frameY="-8" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0002" x="309" y="2" width="304" height="724" frameX="-70" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0003" x="309" y="2" width="304" height="724" frameX="-70" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0004" x="615" y="2" width="310" height="728" frameX="-59" frameY="-5" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0005" x="615" y="2" width="310" height="728" frameX="-59" frameY="-5" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0006" x="927" y="2" width="312" height="729" frameX="-56" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0007" x="927" y="2" width="312" height="729" frameX="-56" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0008" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0009" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0010" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0011" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0012" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0013" x="1241" y="2" width="315" height="729" frameX="-53" frameY="-4" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0014" x="1558" y="2" width="452" height="723" frameX="-73" frameY="-10" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0015" x="1558" y="2" width="452" height="723" frameX="-73" frameY="-10" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0016" x="2012" y="2" width="451" height="724" frameX="-72" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0017" x="2012" y="2" width="451" height="724" frameX="-72" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0018" x="2465" y="2" width="360" height="731" frameX="-66" frameY="-2" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0019" x="2465" y="2" width="360" height="731" frameX="-66" frameY="-2" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0020" x="2827" y="2" width="343" height="732" frameX="-59" frameY="-1" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0021" x="2827" y="2" width="343" height="732" frameX="-59" frameY="-1" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0022" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0023" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0024" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0025" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0026" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0027" x="3172" y="2" width="342" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0028" x="3516" y="2" width="366" height="724" frameX="0" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0029" x="3516" y="2" width="366" height="724" frameX="0" frameY="-9" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0030" x="2" y="737" width="370" height="726" frameX="0" frameY="-7" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0031" x="2" y="737" width="370" height="726" frameX="0" frameY="-7" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0032" x="374" y="737" width="303" height="731" frameX="-64" frameY="-2" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0033" x="374" y="737" width="303" height="731" frameX="-64" frameY="-2" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0034" x="679" y="737" width="345" height="732" frameX="-59" frameY="-1" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0035" x="679" y="737" width="345" height="732" frameX="-59" frameY="-1" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0036" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0037" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0038" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0039" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0040" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+	<SubTexture name="MamiES0041" x="1026" y="737" width="350" height="733" frameX="-58" frameY="0" frameWidth="525" frameHeight="733"/>
+</TextureAtlas>

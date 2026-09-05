@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="sayaka.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="SayakaES0000" x="2" y="2" width="434" height="605" frameX="-186" frameY="-207" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0001" x="2" y="2" width="434" height="605" frameX="-186" frameY="-207" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0002" x="438" y="2" width="428" height="610" frameX="-188" frameY="-203" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0003" x="438" y="2" width="428" height="610" frameX="-188" frameY="-203" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0004" x="868" y="2" width="441" height="616" frameX="-192" frameY="-196" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0005" x="868" y="2" width="441" height="616" frameX="-192" frameY="-196" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0006" x="1311" y="2" width="451" height="618" frameX="-192" frameY="-194" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0007" x="1311" y="2" width="451" height="618" frameX="-192" frameY="-194" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0008" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0009" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0010" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0011" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0012" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0013" x="1764" y="2" width="452" height="619" frameX="-193" frameY="-193" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0014" x="2218" y="2" width="678" height="735" frameX="0" frameY="-77" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0015" x="2218" y="2" width="678" height="735" frameX="0" frameY="-77" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0016" x="2898" y="2" width="683" height="740" frameX="-24" frameY="-72" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0017" x="2898" y="2" width="683" height="740" frameX="-24" frameY="-72" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0018" x="2" y="744" width="597" height="807" frameX="-66" frameY="-5" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0019" x="2" y="744" width="597" height="807" frameX="-66" frameY="-5" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0020" x="601" y="744" width="541" height="811" frameX="-119" frameY="-1" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0021" x="601" y="744" width="541" height="811" frameX="-119" frameY="-1" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0022" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0023" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0024" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0025" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0026" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+	<SubTexture name="SayakaES0027" x="1144" y="744" width="532" height="812" frameX="-124" frameY="0" frameWidth="707" frameHeight="813"/>
+</TextureAtlas>

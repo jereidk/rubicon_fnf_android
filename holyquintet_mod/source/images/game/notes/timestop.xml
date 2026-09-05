@@ -1,0 +1,50 @@
+backend.scripting.events.sprite.PlayAnimEvent;
+import openfl.display.BlendMode;
+import util.GenUtil;
+
+public var timeStopNoteHit:Bool = false;
+var timeStopLength:Float = 1.5;
+var timeStopDuration:Float = 0.0;
+public var frozenPlayer:Character;
+var timestopShaderTween:FlxTween;
+
+function create()
+{
+	frozenPlayer = new Character(bf.x, bf.y, 'gf-base', true);
+	insert(members.indexOf(bf), frozenPlayer);
+	frozenPlayer.visible = false;
+
+	if (Options.gameplayShaders)
+	{
+		bnwShader = new CustomShader("Grayscale");
+		frozenPlayer.shader = bnwShader;
+		bnwShader.grayness = 1.0;
+
+		timestopShader = new CustomShader("Timestop");
+		timestopShader.scale = 0.0;
+	}
+}
+
+function postCreate()
+{
+	if (Options.gameplayShaders)
+		FlxG.camera.addShader(timestopShader);
+	// strumLines.members[1].characters.push(frozenPlayer);
+}
+
+var totalElapsed:Float = 0.0;
+
+function update(elapsed:Float)
+{
+	if (Options.gameplayShaders)
+		timestopShader.iTime = totalElapsed;
+
+	totalElapsed += elapsed;
+}
+
+function onNoteCreation(e)
+{
+	if (e.noteType == 'Timestop Note')
+	{
+		e.note.avoid = true;
+		e.noteSpri

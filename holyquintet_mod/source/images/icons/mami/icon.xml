@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="icon.png">
+	<!-- Created with Adobe Animate version 24.0.12.3 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="MAMI-L0000" x="1" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-L0001" x="1" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-L0002" x="1" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-L0003" x="167" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-L0004" x="167" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-L0005" x="167" y="1" width="165" height="164"/>
+	<SubTexture name="MAMI-LTN0000" x="333" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0001" x="333" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0002" x="498" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0003" x="498" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0004" x="663" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0005" x="828" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0006" x="828" y="1" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0007" x="661" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-LTN0008" x="661" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-N0000" x="1" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-N0001" x="1" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-N0002" x="1" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-N0003" x="166" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-N0004" x="166" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-N0005" x="166" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0000" x="331" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0001" x="496" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0002" x="496" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0003" x="661" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0004" x="661" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0005" x="826" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0006" x="826" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0007" x="1" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-NTL0008" x="331" y="166" width="164" height="164"/>
+	<SubTexture name="MAMI-NTW0000" x="661" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-NTW0001" x="661" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-NTW0002" x="166" y="331" width="165" height="164"/>
+	<SubTexture name="MAMI-NTW0003" x="166" y="331" width="165" height="164"/>
+	<SubTexture name="MAMI-NTW0004" x="332" y="331" width="165" height="164"/>
+	<SubTexture name="MAMI-NTW0005" x="498" y="331" width="165" height="164"/>
+	<SubTexture name="MAMI-NTW0006" x="498" y="331" width="165" height="164"/>
+	<SubTexture name="MAMI-NTW0007" x="1" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-NTW0008" x="1" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-W0000" x="664" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-W0001" x="664" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-W0002" x="664" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-W0003" x="829" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-W0004" x="829" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-W0005" x="829" y="331" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0000" x="1" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0001" x="1" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0002" x="166" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0003" x="166" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0004" x="331" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0005" x="496" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0006" x="496" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0007" x="661" y="496" width="164" height="164"/>
+	<SubTexture name="MAMI-WTN0008" x="661" y="496" width="164" height="164"/>
+</TextureAtlas>

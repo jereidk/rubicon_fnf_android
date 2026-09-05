@@ -1,0 +1,25 @@
+<!DOCTYPE codename-engine-character>
+<character x="-2100" y="-400" camx="1850" camy="-100" icon="sayaka" color="#72AEDA" applyStageMatrix="true">
+	<anim name="idle" anim="SAYAKAATLAS" loop="true" indices="0..13"/>
+	<anim name="singLEFT" anim="SAYAKAATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="SAYAKAATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="SAYAKAATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="SAYAKAATLAS" indices="46..49"/>
+	<anim name="singUP" anim="SAYAKAATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="SAYAKAATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="SAYAKAATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="SAYAKAATLAS" indices="82..85"/>
+	<anim name="healstart" anim="SAYAKAATLAS" indices="86..117"/>
+	<anim name="idle-alt" anim="SAYAKAATLAS" loop="true" indices="118..131"/>
+	<anim name="singLEFT-alt" anim="SAYAKAATLAS" indices="132..145"/>
+	<anim name="singLEFT-alt-end" anim="SAYAKAATLAS" indices="146..149"/>
+	<anim name="singRIGHT-alt" anim="SAYAKAATLAS" indices="150..163"/>
+	<anim name="singRIGHT-alt-end" anim="SAYAKAATLAS" indices="164..167"/>
+	<anim name="singUP-alt" anim="SAYAKAATLAS" indices="168..181"/>
+	<anim name="singUP-alt-end" anim="SAYAKAATLAS" indices="182..185"/>
+	<anim name="singDOWN-alt" anim="SAYAKAATLAS" indices="186..199"/>
+	<anim name="singDOWN-alt-end" anim="SAYAKAATLAS" indices="200..203"/>
+	<anim name="healend" anim="SAYAKAATLAS" indices="204..230"/>
+	<anim name="letsgo" anim="0 - SAYAKA/sayaka voiceline" x="-402" y="-99"/>
+	<anim name="bow" anim="0 - SAYAKA/sayaka end" x="-402" y="-99"/>
+</character>

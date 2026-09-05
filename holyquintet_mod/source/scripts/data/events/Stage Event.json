@@ -1,0 +1,19 @@
+{
+	"params": [
+		{
+			"name": "Event",
+			"type": "String",
+			"defaultValue": ""
+		},
+		{
+			"name": "Variable 1",
+			"type": "String",
+			"defaultValue": ""
+		},
+		{
+			"name": "Variable 2",
+			"type": "String",
+			"defaultValue": ""
+		}
+	]
+}

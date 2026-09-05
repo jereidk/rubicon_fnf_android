@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="star_flame.png">
+	<!-- Created with Adobe Animate version 21.0.7.42652 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="flame0000" x="2" y="2" width="158" height="195"/>
+	<SubTexture name="flame0001" x="162" y="2" width="158" height="195"/>
+	<SubTexture name="flame0002" x="162" y="2" width="158" height="195"/>
+	<SubTexture name="flame0003" x="322" y="2" width="158" height="195"/>
+	<SubTexture name="flame0004" x="322" y="2" width="158" height="195"/>
+	<SubTexture name="flame0005" x="482" y="2" width="158" height="195"/>
+	<SubTexture name="flame0006" x="642" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0007" x="642" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0008" x="714" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0009" x="714" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0010" x="786" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0011" x="786" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0012" x="858" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0013" x="858" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0014" x="930" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+	<SubTexture name="flame0015" x="930" y="2" width="70" height="136" frameX="-65" frameY="-7" frameWidth="158" frameHeight="195"/>
+</TextureAtlas>

@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"artists": "Kixel, RevDev, TAU",
+		"charters": "BlackMaskly & Flootena",
+		"diffStars": "6",
+		"coders": "Sector",
+		"unlockCond": "UnlockCondStory",
+		"gjid": "1098967",
+		"portrait": "homura",
+		"composers": "Sp0re"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "homura",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Out-of-Time",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 190
+}

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="madoka.png">
+	<!-- Created with Adobe Animate version 24.0.11.4 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="madoka_mami_vibe instance 10000" x="2" y="2" width="341" height="471" frameX="0" frameY="-6" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10001" x="2" y="2" width="341" height="471" frameX="0" frameY="-6" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10002" x="345" y="2" width="343" height="474" frameX="0" frameY="-4" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10003" x="345" y="2" width="343" height="474" frameX="0" frameY="-4" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10004" x="2" y="478" width="334" height="478" frameX="-6" frameY="-1" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10005" x="2" y="478" width="334" height="478" frameX="-6" frameY="-1" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10006" x="338" y="478" width="329" height="480" frameX="-8" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10007" x="338" y="478" width="329" height="480" frameX="-8" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10008" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10009" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10010" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10011" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10012" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+	<SubTexture name="madoka_mami_vibe instance 10013" x="669" y="478" width="328" height="479" frameX="-10" frameY="0" frameWidth="343" frameHeight="480"/>
+</TextureAtlas>

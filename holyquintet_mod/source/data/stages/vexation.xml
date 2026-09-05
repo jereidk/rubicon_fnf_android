@@ -1,0 +1,4 @@
+<stage zoom="0.75" name="resonance" folder="stages/resonance/" startCamPosX="0" startCamPosY="0">
+<boyfriend x="900" y="-370" camxoffset="-350" camyoffset="-100"/>
+<dad x="0" y="-420" camxoffset="0" camyoffset="50"/>
+</stage>

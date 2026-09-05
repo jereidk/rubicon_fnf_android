@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AdobeAtlas" format=3]
+
+[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="1_bwoj4"]
+
+[resource]
+script = ExtResource("1_bwoj4")
+folder_path = "res://holyquintet_mod/source/images/characters/gf-base/"
+format = "adobe"

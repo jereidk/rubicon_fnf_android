@@ -1,0 +1,4 @@
+<stage zoom="0.9" name="reconnect" folder="stages/reconnect/" startCamPosX="1490" startCamPosY="-100">
+<boyfriend x="900" y="-370" camxoffset="-200" camyoffset="0"/>
+<dad x="0" y="-420" camxoffset="200" camyoffset="0"/>
+</stage>

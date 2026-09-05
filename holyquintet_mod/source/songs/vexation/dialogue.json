@@ -1,0 +1,162 @@
+{
+  "dialogue": [
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "0",
+      "action": "graphic",
+      "params": [
+        "vex1",
+        "fadein"
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "1",
+      "action": "graphic",
+      "params": [
+        "vex2",
+        "shake"
+      ]
+    },
+    {
+      "name": "sayaka",
+      "expression": "angry",
+      "dialogue": "2",
+      "action": "gotonormal"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "3"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "stress",
+      "dialogue": "4"
+    },
+    {
+      "name": "mami",
+      "expression": "ehh",
+      "dialogue": "5"
+    },
+    {
+      "name": "sayaka",
+      "expression": "ehh",
+      "dialogue": "6"
+    },
+    {
+      "name": "madoka",
+      "expression": "ok",
+      "dialogue": "7"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "ow",
+      "dialogue": "8"
+    },
+    {
+      "name": "kyoko",
+      "expression": "",
+      "dialogue": "9",
+      "action": "overwritename"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "10"
+    },
+    {
+      "name": "mami",
+      "expression": "shock",
+      "dialogue": "11",
+      "action": "unshilo"
+    },
+    {
+      "name": "sayaka",
+      "expression": "think",
+      "dialogue": "12"
+    },
+    {
+      "name": "kyoko",
+      "expression": "down",
+      "dialogue": "13"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "14"
+    },
+    {
+      "name": "kyoko",
+      "expression": "talk",
+      "dialogue": "15"
+    },
+    {
+      "name": "sayaka",
+      "expression": "pissed",
+      "dialogue": "16"
+    },
+    {
+      "name": "kyoko",
+      "expression": "talk",
+      "dialogue": "17"
+    },
+    {
+      "name": "kyoko",
+      "expression": "talk",
+      "dialogue": "18"
+    },
+    {
+      "name": "kyoko",
+      "expression": "talk",
+      "dialogue": "19"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "20"
+    },
+    {
+      "name": "kyoko",
+      "expression": "fist",
+      "dialogue": "21"
+    },
+    {
+      "name": "sayaka",
+      "expression": "angry",
+      "dialogue": "22"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "mic",
+      "dialogue": "23"
+    },
+    {
+      "name": "kyoko",
+      "expression": "annoyed",
+      "dialogue": "24"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "25"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "talk",
+      "dialogue": "26"
+    },
+    {
+      "name": "kyoko",
+      "expression": "talk",
+      "dialogue": "27"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "28"
+    }
+  ]
+}
