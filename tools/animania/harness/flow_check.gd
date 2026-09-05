@@ -299,6 +299,20 @@ func _init() -> void:
 	_check(menu._selected == -1, "el raton selecciono un boton bloqueado")
 
 	menu._hover(Vector2(-500.0, -500.0))
+
+	# handleInput line 821: with nothing selected, UP or DOWN passes 0 to changeItem, and
+	# FlxMath.wrap(-1, 0, 7) is 7 - the LAST button. LEFT and RIGHT have no such branch.
+	menu.change_item(0, true)
+	_check(String(menu.BUTTONS[menu._selected]) == "exit",
+		"desde -1 arriba tendria que dar exit, no %s" % menu.BUTTONS[menu._selected])
+
+	menu.deselect()
+	menu.change_item(1, true)
+	_check(String(menu.BUTTONS[menu._selected]) == "storymode",
+		"desde -1 derecha tendria que dar storymode, no %s"
+			% menu.BUTTONS[menu._selected])
+
+	menu.deselect()
 	menu.change_item(2, true)
 	await process_frame
 	_check(String(menu.BUTTONS[menu._selected]) == "freeplay",

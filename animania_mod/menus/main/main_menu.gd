@@ -154,7 +154,12 @@ const EXIT_CURTAIN_DOWN := 350.0 * 1920.0 / 1280.0
 ## He is the only thing on the screen the exit moves besides the curtains and the camera.
 @export var dude: Node2D
 
-var _selected: int = 0
+## `curSelected` is a class STATIC (0x7e568a8), and the only place that writes 0 to it is
+## `__boot()` - once, when the program starts. `__construct` does not touch it. So it
+## survives leaving the menu and coming back: go into freeplay, come back, and the plaque
+## you left from is still the one lit up. This port had it as an instance field, so every
+## return to the menu snapped back to storymode.
+static var _selected: int = 0
 var _confirmed: bool = false
 var _beat: int = -1
 ## Which state each button is showing, so the idle driver knows what to skip and how long
@@ -179,7 +184,13 @@ var _exit_offset := Vector2.ZERO
 
 func _ready() -> void:
 	_finalize_setup()
+	# finalizeSetup line 611 (0x1803c57) is `changeItem()` with both defaults - huh = 0 and
+	# no blocked skip. The wrap moves nothing, but everything past it still runs: the
+	# forEach paints the selection, and line 849 has already made `huh` a hard +1 by the
+	# time line 853 asks whether to play the sound, so the mod really does click once as
+	# the menu opens.
 	_refresh()
+	_play(SOUND_SWITCH)
 	_start_intro()
 
 
@@ -375,9 +386,12 @@ func _beat_hit(beat: int) -> void:
 ## curtains finish. The guard used to look at whatever moment the frames happened to land on
 ## and call it "during the intro"; it names the moment now.
 func change_item(amount: int, skip_blocked: bool = false) -> void:
-	if _confirmed or amount == 0 or not _live():
+	if _confirmed or not _live():
 		return
-	var step: int = signi(amount)
+	# `amount == 0` is NOT refused: finalizeSetup calls changeItem() with the defaults to
+	# paint the first selection, and handleInput calls changeItem(0, true) to land on the
+	# last button from nothing at all. Only line 848's wrap decides whether anything moves.
+	var step: int = 1 if amount >= 0 else -1
 	var at: int = wrapi(_selected + amount, 0, BUTTONS.size())
 	if skip_blocked:
 		# At most one full lap: if every other button were blocked this would otherwise spin.
@@ -1064,6 +1078,29 @@ func _create_seasonal_effects() -> void:
 		fade.tween_property(_bells, "volume_db", 0.0, BELLS_FADE)
 
 
+## The mod splits this across create() and finalizeSetup (0x1803be0); this port keeps one
+## method because the split does not change anything observable. finalizeSetup itself is
+## short:
+##
+##     611  changeItem();                                    // see _ready()
+##     612  startIntroAnimation();
+##     614  if (Save.instance.animania.seenMainMenuHelp == 0)
+##     615      spawnHelpMouseText();
+##     617  refresh();                                       // MusicBeatState.refresh
+##     618  changePresence(RANDOM_MESSAGES[FlxG.random.int(0, RANDOM_MESSAGES.length - 1)],
+##     619                 'MainMenu Screen', ...);
+##
+## `refresh()` (vtable 0x370) is MusicBeatState's zIndex sort of the WHOLE state, not just
+## the buttons - here it is covered by construction, because build_main_menu.gd emits the
+## scene already in draw order and _sort_by_z() handles the one group that reorders.
+##
+## `changePresence` (vtable 0x388) is Discord Rich Presence, picking one of the statics in
+## RANDOM_MESSAGES (0x7e568b0). There is no Discord on a phone and nothing to port.
+##
+## Two more things handleInput can reach that are deliberately not here: a `ManagerPlayState`
+## behind a field at 0x1a8 that is only ever WRITTEN false (__construct 0x17fe8bd,
+## createNewsButton 0x180c8da, handleInput 0x180ef84 - never set true anywhere), and
+## `DebugMenuSubState` on the DEBUG_MENU action. Both are dev doors.
 func _finalize_setup() -> void:
 	_create_seasonal_effects()
 	_sort_by_z()
@@ -1196,14 +1233,32 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _confirmed or not event.is_pressed() or not _live():
 		return
 
-	# handleInput's own branches pass `true` for the blocked skip on every keyboard and
-	# wheel path (0x180f1da, 0x180f2c9): those walk the list, so they have to step over a
-	# locked plaque rather than stop on it.
+	# handleInput (0x180ee10) reads the four UI actions as TWO pairs, and they are not the
+	# same code:
+	#
+	#     815  if (UI_LEFT_P || UI_RIGHT_P)            // Controls 0x38 / 0x40
+	#     816      changeItem(UI_LEFT_P ? -1 : 1, true);
+	#     818  if (UI_DOWN_P || UI_UP_P) {             // Controls 0x48 / 0x30
+	#     821      if (curSelected == -1) changeItem(0, true);
+	#     823      else changeItem(UI_UP_P ? -1 : 1, true); }
+	#
+	# Line 821 is the one that was missing. With nothing selected, up or down does NOT step
+	# by one - it passes 0, and `FlxMath.wrap(-1, 0, 7)` is 7, so it lands on the LAST
+	# button. Left and right have no such branch and step from -1 the ordinary way.
+	# (0x30 is UI_UP: OptionsSubMenu.update, a plain vertical list, tests that same offset
+	# for its own -1 at 0x3f7a736.)
+	#
+	# Both pairs pass `true` for the blocked skip (0x180f1da, 0x180f2c9): they walk the
+	# list, so they have to step over a locked plaque rather than stop on it.
 	if event is InputEventKey:
 		match (event as InputEventKey).keycode:
-			KEY_UP, KEY_LEFT, KEY_W, KEY_A:
+			KEY_UP, KEY_W:
+				change_item(0 if _selected < 0 else -1, true)
+			KEY_DOWN, KEY_S:
+				change_item(0 if _selected < 0 else 1, true)
+			KEY_LEFT, KEY_A:
 				change_item(-1, true)
-			KEY_DOWN, KEY_RIGHT, KEY_S, KEY_D:
+			KEY_RIGHT, KEY_D:
 				change_item(1, true)
 			KEY_ENTER, KEY_SPACE, KEY_KP_ENTER:
 				do_select()

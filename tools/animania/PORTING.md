@@ -558,6 +558,34 @@ number already in the port.
   animation's own 18 frames at 24fps — a plausible number that cut the confirm animation off
   a quarter of the way in. Where the frame count and the binary disagree, the binary wins.
 
+**`handleInput` (0x180ee10) and `finalizeSetup` (0x1803be0).** Four more findings, and one
+of them is the kind you only see by leaving the screen and coming back.
+
+- **`curSelected` is a class STATIC** (0x7e568a8) and the only write of 0 to it is in
+  `__boot()` — once, at program start. `__construct` never touches it. So the selection
+  survives leaving the menu and returning: go into freeplay, come back, and the plaque you
+  left from is still lit. The port had it as an instance field, so every return snapped back
+  to `storymode`. It is a `static var` now, and a probe confirms a fresh instantiation of the
+  scene keeps the value.
+- **`handleInput` reads the four UI actions as two pairs that are not the same code.** Left
+  and right (Controls 0x38 / 0x40) step by ∓1 and nothing else. Up and down (0x48 / 0x30)
+  first ask `if (curSelected == -1)` and, when nothing is selected, pass **0** — and
+  `FlxMath.wrap(-1, 0, 7)` is 7, so up or down from nothing lands on the **last** button.
+  The port stepped by one on all four. (0x30 is `UI_UP`: `OptionsSubMenu.update`, a plain
+  vertical list, tests that same offset for its own -1 at 0x3f7a736.)
+- **`finalizeSetup` line 611 is `changeItem()` with both defaults**, and everything past the
+  wrap still runs — including line 853's sound test, which line 849 has already made
+  unconditional. The mod clicks once as the menu opens. The port did not.
+- `changeItem` has **no `amount == 0` guard** in the binary, which is what makes both of the
+  above work. The port had added one.
+
+Deliberately left out of these two: `refresh()` (vtable 0x370, MusicBeatState's zIndex sort
+of the whole state — covered here by construction, since the builder emits the scene in draw
+order), `changePresence` (vtable 0x388, Discord Rich Presence off `RANDOM_MESSAGES` at
+0x7e568b0), a `ManagerPlayState` behind a field at 0x1a8 that is **only ever written false**
+(0x17fe8bd, 0x180c8da, 0x180ef84 — nothing in the binary sets it true), and
+`DebugMenuSubState` on the DEBUG_MENU action. The last two are dev doors.
+
 That dispatcher is also where the destinations diverge: only `freeplay` and `options` reach
 `startTransitionToMenu` (0x180ad15, 0x180af65). `storymode` allocates
 `StoryMenuSelectSubState` over a menu that is still standing — no curtain run at all, which
