@@ -5,6 +5,7 @@
 extends Node2D
 
 const MENU := "res://animania_mod/menus/main/main_menu.tscn"
+const NEWS_SEATED := 1.9
 
 var _menu: Node
 var _step: int = 0
@@ -28,6 +29,12 @@ func _shoot(tag: String) -> void:
 func _flush() -> void:
 	if _pending.is_empty():
 		return
+	# do_select() ends by changing scene, which frees the menu under us. Without this the
+	# next _flush() throws before _step advances and the harness spins for ever.
+	if not is_instance_valid(_menu):
+		_pending = ""
+		get_tree().quit()
+		return
 	var image: Image = get_viewport().get_texture().get_image()
 	image.save_png("user://menu_%s.png" % _pending)
 	var order: Array = []
@@ -45,6 +52,8 @@ func _flush() -> void:
 
 func _process(delta: float) -> void:
 	_flush()
+	if not is_instance_valid(_menu):
+		return
 	_t += delta
 	if _wait > 0.0:
 		_wait -= delta
@@ -56,7 +65,10 @@ func _process(delta: float) -> void:
 				return
 			_shoot("01intro")
 		1:
-			if _menu._intro >= 0.0:
+			# createNewsButton's entrance is startDelay 1 s + 0.65 s expoOut, so the banner
+			# is still off the left edge when the intro ends. Hold until it is seated, or
+			# the settled shot shows a menu with no bottom-left icon in it.
+			if _menu._intro >= 0.0 or _t < NEWS_SEATED:
 				return
 			_shoot("02settled")
 		2:

@@ -650,6 +650,7 @@ func _create_news_button() -> void:
 	if _news_button == null:
 		return
 	var rest: float = _news_button.position.x
+	_news_button.set_meta(&"rest_x", rest)
 	_news_button.position.x = rest - NEWS_SLIDE * FUNKIN_TO_RUBICON
 	var slide := create_tween()
 	slide.tween_property(_news_button, "position:x", rest, NEWS_TIME) \
@@ -1560,9 +1561,19 @@ func _news_hit(at: Vector2) -> bool:
 		return false
 	# The rect travels with the slide: it is authored at the banner's seat and the entrance
 	# moves the node, so the tap target follows rather than sitting where the art will end up.
+	# initHitbox offsets it from the sprite's own x/y, so keep that offset when re-seating.
 	var rect: Rect2 = _news_button.get_meta(&"touch_rect") as Rect2
-	rect.position = _news_button.position
+	rect.position += _news_button.position - _news_seat()
 	return rect.has_point(at)
+
+
+## Where the banner was authored, before the entrance slide and the OST push moved it.
+func _news_seat() -> Vector2:
+	if _news_button == null:
+		return Vector2.ZERO
+	if _news_button.has_meta(&"rest_x"):
+		return Vector2(float(_news_button.get_meta(&"rest_x")), _news_button.position.y)
+	return _news_button.position
 
 
 ## The URL of whichever open OST button was hit, or "".

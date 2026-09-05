@@ -1025,6 +1025,65 @@ The general lesson is (1) and (3) together: **a guard that checks a flag is not 
 checks the screen.** Every constant on this screen had been read against the binary and half of them
 corrected, and the whole sequence they drive was still not running.
 
+### The news banner: an invented scale, and a probe that measured the camera
+
+"The bottom-left icon is missing" turned out to be one number nobody had read out of the
+binary. `build_main_menu.gd` carried `NEWS_SCALE := 0.5` with a comment claiming
+`createNewsButton` placed the banner "at (-70, 620) at scale 0.5". The position was real; the
+scale was not. Read line by line, `createNewsButton` (0x18017a0, Haxe lines 401-417) is:
+
+```
+401  newsButton = new FunkinSprite(-70, 620, Paths.getLibraryPath('menus/changelog/news_button'))
+403  anim.addByFrameLabel('idle',     'loop white',  24, true)
+404  anim.addByFrameLabel('selected', 'loop white2', 24, ...)
+405  anim.addByFrameLabel('open',     'open',        24, ...)
+406  anim.play('idle')
+407  anim.updateTimelineBounds()
+408  scrollFactor.set(0.5, 0.5)
+409  zIndex = 26
+410  zoomFactor = 0.875
+411  add(newsButton)
+413  initHitbox(-10, 10, 215, 90)
+414  x -= 350
+415  FlxTween.tween(this, {x: x + 350}, 0.65, {startDelay: 1, ease: expoOut})
+417  FlxMouseEventManager.add(newsButton, over, out, down, up)
+```
+
+There is no `setGraphicSize`, no `scale`, nothing between the constructor and `add` that
+touches size. The banner draws at the atlas' own 213x104. At 0.5 it became a 160x78 sliver
+that sat almost entirely past the left edge, which is exactly what "missing" looked like.
+
+Two conventions worth keeping from the read:
+
+- **The constructor's two `Dynamic(int)`s are built right to left.** `Dynamic(620)` is
+  constructed first and `Dynamic(-70)` second, and the call then passes `-70` in `rdx` and
+  `620` in `rcx`: the LAST parameter is the FIRST Dynamic built, so the first one you see in
+  the disassembly is Y, not X.
+- **`initHitbox` is not the art.** `FunkinSprite::initHitbox` (vtable +0x440) allocates a
+  `FunkinAttachedSprite` into field 0x290 and it is that rectangle - offset (-10, 10), size
+  215x90, in Funkin px relative to the sprite's own x/y - that `FlxMouseEventManager` gets.
+  The port's `touch_rect` had been guessed from `new_update_bub.png` being 1184x106, a
+  flattened copy of the same banner that the screen never loads.
+
+And a trap in the measuring, not in the code. The first probe moved the node to a known
+point, tinted it magenta and read the drawn bounding box, and reported the art landing about
+215 px LEFT of the node origin - which would have meant the symbol needed a corner
+compensation like the title logo's `LOGO_CORNER`. It needed none. Two things were wrong with
+the probe: it left the menu's own `Camera2D` in place (zoom and offset both non-unit, and the
+menu jitters the camera every frame), and it compared a bounding box in VIEWPORT pixels
+against a node position in WORLD pixels. The window override makes those differ by
+1365/1920 = 0.711. Neutralise the camera and divide by that ratio and the art sits at the node
+origin, +10 px of transparent margin, exactly where `centered = false` says it should.
+
+So: when a probe reports a placement, it has to report the viewport size and the camera it
+measured through, or the number it gives back is a number about the camera.
+
+One more thing the render itself caught: `menu_states.gd` shot "02settled" the moment the
+intro ended, at about t=1.4 s. The banner's entrance is `startDelay 1` plus `0.65` of expoOut,
+so at that instant it is still legitimately off the left edge. The harness now holds until
+t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
+that the animation is broken.
+
 ### Getting a font out of the executable
 
 `Blueprint.ttf` is not on disk — `assets/fonts/` does not exist in the build and
@@ -1306,6 +1365,15 @@ four frames is then 0.066s and means it.
   `get_process_delta_time()`. Wait in wall clock with `Time.get_ticks_msec()`.
 - `reload_current_scene()` only works when the scene under test *is* the running scene, so
   that check belongs in `flow_check` and nowhere else.
+- **A harness that drives a screen into a scene change loses the node it is holding.**
+  `menu_states.gd` calls `do_select()`, which ends by changing scene and freeing the menu;
+  its next `_flush()` then threw on `_menu.BUTTONS` before `_step` could advance, so the
+  process spun until it was killed - after having already written every screenshot. Check
+  `is_instance_valid()` and quit. An exit code of 0 with the PNGs on disk is not proof the
+  harness terminated on its own.
+- **A shot taken before an animation finishes is not evidence.** Key a screenshot to the
+  thing you are looking at, not to the nearest flag: the news banner's entrance ends 1.65 s
+  in, well after the intro flag clears.
 
 ---
 

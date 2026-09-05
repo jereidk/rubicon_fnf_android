@@ -198,11 +198,33 @@ func _init() -> void:
 			name, int(data["id"]), pos[0], pos[1], pos[2], pos[3],
 			symbol.position.x, symbol.position.y])
 
-	# createNewsButton (0x18017a0): the changelog banner, at (-70, 620) at scale 0.5, with
-	# its three states taken off FRAME LABELS rather than symbols - see build_news_button.gd.
-	# createSpecialElements calls it before createMusicSocial, so it draws under the disc.
+	# createNewsButton (0x18017a0): the changelog banner, with its three states taken off
+	# FRAME LABELS rather than symbols - see build_news_button.gd. createSpecialElements
+	# calls it before createMusicSocial, so it draws under the disc.
+	#
+	# Read out of the compiled method line by line (Haxe lines 401-417):
+	#   401  newsButton = new FunkinSprite(-70, 620, Paths.getLibraryPath('menus/changelog/news_button'))
+	#   403  anim.addByFrameLabel('idle',     'loop white',  24, true)
+	#   404  anim.addByFrameLabel('selected', 'loop white2', 24, ...)
+	#   405  anim.addByFrameLabel('open',     ...,           24, ...)
+	#   406  anim.play('idle')
+	#   407  anim.updateTimelineBounds()
+	#   408  scrollFactor.set(0.5, 0.5)
+	#   409  zIndex = 26
+	#   410  zoomFactor = 0.875
+	#   411  add(newsButton)
+	#   413  initHitbox(-10, 10, 215, 90)
+	#   414  x -= 350
+	#   415  FlxTween.tween(this, {x: x + 350}, 0.65, {startDelay: 1, ease: expoOut})
+	#   417  FlxMouseEventManager.add(newsButton, ...)
+	# There is NO setGraphicSize and NO scale anywhere in it: the banner draws at the
+	# atlas' own size. An earlier guess of 0.5 shrank it to a 160x78 sliver that fell off
+	# the left edge, which is why the bottom-left icon looked missing.
 	const NEWS_POS := Vector2(-70.0, 620.0)
-	const NEWS_SCALE := 0.5
+	const NEWS_SCALE := 1.0
+	# initHitbox's four ints, in Funkin px, relative to the sprite's own x/y.
+	const NEWS_HIT_OFFSET := Vector2(-10.0, 10.0)
+	const NEWS_HIT_SIZE := Vector2(215.0, 90.0)
 	var news_atlas: Resource = load("%s/news_button_atlas.tres" % DIR)
 	var news_library: AnimationLibrary = load("%s/news_button_library.tres" % DIR)
 	if news_atlas != null and news_library != null:
@@ -213,11 +235,11 @@ func _init() -> void:
 		news.centered = false
 		news.scale = Vector2.ONE * (NEWS_SCALE * FUNKIN_TO_RUBICON)
 		news.position = (NEWS_POS + WORLD_OFFSET) * FUNKIN_TO_RUBICON
-		# AnimateSymbol has no bounds to ask for, so the tap rect comes from the mod's own
-		# flattened copy of the same banner: new_update_bub.png is 1184x106, which is the
-		# composition at scale 1 (its spritemap is 1183 wide).
-		news.set_meta(&"touch_rect", Rect2(news.position,
-			Vector2(1184.0, 106.0) * NEWS_SCALE * FUNKIN_TO_RUBICON))
+		# The tap rect is initHitbox's own rectangle, not the drawn art: FlxMouseEventManager
+		# is handed the attached hitbox sprite that initHitbox builds at field 0x290.
+		news.set_meta(&"touch_rect", Rect2(
+			news.position + NEWS_HIT_OFFSET * FUNKIN_TO_RUBICON,
+			NEWS_HIT_SIZE * FUNKIN_TO_RUBICON))
 		_add(news)
 		var news_player := AnimationPlayer.new()
 		news_player.name = "AnimationPlayer"
