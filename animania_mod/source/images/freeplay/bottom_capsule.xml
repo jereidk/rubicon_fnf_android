@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="bottom capsule.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="mp3 capsule образец 10000" x="2" y="2" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10001" x="2" y="2" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10002" x="2" y="58" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10003" x="2" y="58" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10004" x="2" y="114" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10005" x="2" y="114" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10006" x="2" y="170" width="382" height="54"/>
+	<SubTexture name="mp3 capsule образец 10007" x="2" y="170" width="382" height="54"/>
+</TextureAtlas>

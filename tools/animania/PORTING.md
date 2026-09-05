@@ -2104,36 +2104,66 @@ in those constructors: that is the skin, this is the freeplay character that com
 `rememberedCharacterId`. `initCharacters` never writes it, so the port must not either.
 
 
-## 8f. postHeader: read, not yet built
+## 8f. postHeader: the bottom capsule and the info strip
 
-`postHeader` (0x34cb6e0, lines 1550-1594) builds the bottom info capsule and the
-difficulty dots. Read so far:
+`postHeader` (0x34cb6e0, lines 1550-1594) builds the difficulty dots and the bottom info
+capsule. The geometry is now fully traced — no approximations left in it.
 
-- **dotsGrp**: zIndex 70, `scrollFactor.set(...)`, a y involving 20, `visible = false`,
-  then `loadDots(...)`, `setDots([...])`, `set_curDiff(...)`.
-- **songInfoCapsule**: `createSparrow('animania-freeplay/bottom capsule')`,
-  `addByPrefix` with `'m'` / `'y'` at 24 fps, zIndex 650, `scrollFactor.set(0,0)`, and an
-  x/y worked out from its own `get_width` (slot 0x230) times 0.5 and `get_height`.
-- **three `FlxFixedText`**: field width 300, `y = songInfoCapsule.y + 23`, placeholder text
-  `'epic'` / `'dude'` / `'bro'` → `infoBpmText`, `infoTitleText`, `infoDiffText`;
-  alignments `'left'`, `'center'`, `'right'`; font `'assets/fonts/' + 'DS-DIGIB.TTF'`;
-  size 28; one colour is 0xFFCCFFFF; zIndex 652.
-- **line 1593**: alpha `0.0001` on `infoBpmText`, `infoTitleText`, `infoDiffText`,
-  `highScoreSpr`, `clearBoxSprite`, `freeplayScore` and `completionText` — the whole
-  header starts invisible-but-present, not hidden.
-- **line 1594**: `dotsGrp.visible = false`.
+```
+1564  songInfoCapsule.zIndex = 650
+1565  scrollFactor.set(0, 0)
+1566  x = tvSprite.x + tvSprite.width * 0.5 - capsule.width * 0.5
+1567  y = FlxG.height - capsule.height + 1
+1574  all THREE texts share one x: capsule.x + capsule.width * 0.5 - 153
+1580  y = capsule.y + 23, field width 300
+1576  infoBpmText   → 'left'
+1577  infoTitleText → 'center'
+1578  infoDiffText  → 'right'
+1585  size 28        1586  zIndex 652        1588  colour 0xFFCCFFFF
+1593  alpha 0.0001 on the seven header items   1594  dotsGrp.visible = false
+```
 
-Two things block building it as read, and both are named rather than guessed:
+Two things in there took tracing rather than reading:
 
-- The three info labels currently sit at invented positions in the builder — a vertical
-  stack at x 100 — when the real ones are a **horizontal row on the bottom capsule**, at
-  `capsule.y + 23`, 300 wide, aligned left/center/right. The capsule's own x and y come
-  out of `get_width`/`get_height` arithmetic through vtable setters that still need
-  tracing. Do not move the labels until that arithmetic is pinned.
-- `DS-DIGIB.TTF` is **not in the build** — no `.ttf` anywhere in it, so the font is inside
-  the executable or a packed archive. The port has `VCR OSD Mono Cyr.ttf`, which is a
-  plausible stand-in for a seven-segment digital face but is not the same font. Whatever
-  is used, it is a substitution and has to be marked as one.
+- **`r12` is `tvSprite`.** The function opens with `lea 0x1e0(%rbx),%r12` and never
+  reassigns it, so line 1566's `x + width*0.5` is the *television's* centre. The capsule is
+  centred under the TV, not on the screen.
+- **The three texts share one x**, from a single `get_width` and a single `subsd 153.0`.
+  That is not a misreading: it is one 300-wide box with three alignments — BPM flush left,
+  title centred, difficulty flush right — which is how the strip is built. 153 is half of
+  306, the capsule's 382 minus the 38 of margin on each side.
+
+The TV frame is 727 wide at mod (-40, -132) and the capsule art is 382×54, so the capsule
+lands at (132.5, 667) and the text box at (170.5, 690), all in the mod's 1280×720.
+
+### The font is a substitution, and it costs a size
+
+`DS-DIGIB.TTF` is **not in the build** — there is no `.ttf` anywhere in it, so it lives in
+the executable or a packed archive. The port substitutes `VCR OSD Mono Cyr.ttf`:
+monospace, CRT-ish, and it covers the Cyrillic the art on this screen uses.
+
+It is also much wider than a seven-segment face, and because the three strings share one
+box that shows up immediately as overlap. Measured, not guessed:
+
+| size (port px) | left + centre + right | of 450 |
+|---|---|---|
+| 42 (the read 28×1.5) | 196 + 246 + 270 = 712 | collides |
+| 32 | 150 + 188 + 206 = 544 | collides |
+| 28 | 132 + 164 + 181 = 477 | collides |
+| 24 | 112 + 140 + 154 = 406 | "fits" — but see below |
+| 20 | 94 + 118 + 129 = 341 | fits |
+
+**Summing widths is not enough when one of the three is centred.** At 24 the total fits in
+450, and the strings still touch: the centred title occupies 155-295 and the
+right-aligned one starts at 296. At 20 the left ends at 94, the title runs 166-284 and the
+right starts at 321 — 72 and 37 px of air. That is the size the port uses, through a
+`FONT_SUBSTITUTE_NARROW` constant so the read 28 stays visible and the fudge has a name
+instead of being baked into it.
+
+### Still not built
+
+- **`dotsGrp`** (zIndex 70, `loadDots`, `setDots`, `set_curDiff`) — the difficulty dots.
+  `_post_header` hides a `UI/DotsGrp` if it finds one; nothing creates it yet.
 
 
 ## 8g. updateDataStuff, and three labels with two writers each

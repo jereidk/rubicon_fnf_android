@@ -21,6 +21,35 @@ extends SceneTree
 const OUT := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const DIR := "res://animania_mod/menus/freeplay"
 const ART := "res://animania_mod/source/images/freeplay"
+
+## postHeader, todo en el espacio 1280x720 del mod. Ver el comentario de la capsula.
+const CAPSULE_SIZE := Vector2(382.0, 54.0)
+const TV_AT_X := -40.0
+const TV_WIDTH := 727.0
+const CAPSULE_AT := Vector2(
+	TV_AT_X + TV_WIDTH * 0.5 - CAPSULE_SIZE.x * 0.5,   # 1566
+	720.0 - CAPSULE_SIZE.y + 1.0)                      # 1567
+const TEXT_WIDTH := 300.0
+const TEXT_HEIGHT := 40.0
+const TEXT_AT := Vector2(
+	CAPSULE_AT.x + CAPSULE_SIZE.x * 0.5 - 153.0,       # 1574
+	CAPSULE_AT.y + 23.0)                               # 1580
+const TEXT_SIZE := 28.0                                # 1585
+## Las tres etiquetas comparten UNA caja de 300 con tres alineaciones, asi que el ancho de
+## la fuente decide si caben. La del mod, DS-DIGIB, es una de siete segmentos y estrecha;
+## VCR OSD Mono Cyr es monoespaciada y bastante mas ancha, y a 28 los tres textos suman
+## 477 px sobre una caja de 450 y se pisan -medido, no supuesto: a 42/36/32/28 chocan-.
+##
+## A 24 suman 406 y "caben", pero la del centro va CENTRADA, no pegada a la izquierda:
+## ocupa de 155 a 295 y la de la derecha arranca en 296, asi que se tocan igual. Sumar
+## anchos no basta cuando una de las tres esta centrada. A 20 la izquierda acaba en 94, la
+## del centro va de 166 a 284 y la derecha arranca en 321: 72 y 37 px de aire.
+##
+## La constante leida sigue siendo 28; esto es el precio de la sustitucion y va con
+## nombre propio en vez de escondido dentro del 28.
+const FONT_SUBSTITUTE_NARROW := 20.0 / (28.0 * 1.5)
+const TEXT_COLOR := Color8(0xcc, 0xff, 0xff)           # 1588, 0xFFCCFFFF
+const TEXT_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
 const SCREEN := Vector2(1920.0, 1080.0)
 
 ## Funkin is 1280x720 and this project is 1920x1080. buildBg places everything against
@@ -42,6 +71,8 @@ func _init() -> void:
 	_build_split_frames("characters", "freeplay_characters", "character button")
 	# initHeader 1523: addByPrefix('y', 'highscore small instance 1'), 27 fotogramas.
 	_build_frames("highscore", "freeplay_highscore", 24.0, ".")
+	# postHeader linea 1561: la capsula de info de abajo.
+	_build_frames("bottom_capsule", "freeplay_capsule", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
 	_build_frames("phone", "freeplay_phone", 24.0, ".")
 
@@ -275,9 +306,48 @@ func _init() -> void:
 	clear_box.z_index = 52
 	ui.add_child(clear_box)
 	clear_box.owner = _root
-	_label(ui, "InfoTitle", Rect2(100.0, 30.0, 500.0, 40.0), "").z_index = 53
-	_label(ui, "InfoBpm", Rect2(100.0, 70.0, 500.0, 40.0), "").z_index = 53
-	_label(ui, "InfoDifficulty", Rect2(100.0, 110.0, 500.0, 40.0), "Normal").z_index = 53
+	# postHeader (0x34cb6e0), leido linea a linea. Ya no son posiciones aproximadas.
+	#
+	#   1564  songInfoCapsule.zIndex = 650      1565  scrollFactor.set(0, 0)
+	#   1566  x = tvSprite.x + tvSprite.width*0.5 - capsula.width*0.5
+	#   1567  y = FlxG.height - capsula.height + 1
+	#   1574  las TRES etiquetas comparten x: capsula.x + capsula.width*0.5 - 153
+	#   1580  y = capsula.y + 23, ancho de campo 300
+	#   1576-1578  infoBpmText a la izquierda, infoTitleText al centro, infoDiffText a
+	#              la derecha: es UNA caja de 300 con las tres alineaciones, no tres
+	#              cajas separadas. Por eso comparten x.
+	#   1586  zIndex 652
+	#
+	# El televisor esta en (-40, -132) del mod y su fotograma mide 727 de ancho; la
+	# capsula mide 382x54. De ahi salen los numeros de abajo.
+	var capsule := AnimatedSprite2D.new()
+	capsule.name = "SongInfoCapsule"
+	capsule.sprite_frames = load("%s/freeplay_capsule_frames.tres" % DIR)
+	capsule.animation = capsule.sprite_frames.get_animation_names()[0]
+	capsule.centered = false
+	capsule.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	capsule.position = CAPSULE_AT * FUNKIN_TO_RUBICON
+	capsule.z_index = 650
+	ui.add_child(capsule)
+	capsule.owner = _root
+
+	# La fila. Las tres en la misma caja de 300 de ancho, a capsula.y + 23.
+	var row := Rect2(TEXT_AT * FUNKIN_TO_RUBICON,
+		Vector2(TEXT_WIDTH, TEXT_HEIGHT) * FUNKIN_TO_RUBICON)
+	for pair: Array in [["InfoBpm", HORIZONTAL_ALIGNMENT_LEFT],
+			["InfoTitle", HORIZONTAL_ALIGNMENT_CENTER],
+			["InfoDifficulty", HORIZONTAL_ALIGNMENT_RIGHT]]:
+		var label := _label(ui, pair[0] as String, row, "")
+		label.horizontal_alignment = pair[1] as HorizontalAlignment
+		label.z_index = 652
+		# `?` La fuente del mod es DS-DIGIB.TTF y NO esta en el build -no hay ni un .ttf
+		# dentro-, asi que va en el ejecutable o en un empaquetado. VCR OSD Mono Cyr es
+		# la sustitucion: es monoespaciada, de aire de pantalla, y cubre el cirilico que
+		# lleva el arte de esta pantalla. No es la misma fuente.
+		label.add_theme_font_override("font", load(TEXT_FONT))
+		label.add_theme_font_size_override("font_size",
+			int(TEXT_SIZE * FUNKIN_TO_RUBICON * FONT_SUBSTITUTE_NARROW))
+		label.add_theme_color_override("font_color", TEXT_COLOR)
 	_label(ui, "CompletionText", Rect2(1500.0, 140.0, 200.0, 40.0), "100").z_index = 53
 	var stars := Node2D.new()
 	stars.name = "DifficultyStars"

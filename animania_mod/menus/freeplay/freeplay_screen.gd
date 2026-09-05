@@ -191,6 +191,9 @@ var prev_displayed_completion: float = 0.0
 ## (0x1c0). El puerto los tenia cruzados: high_score_spr apuntaba a la etiqueta y
 ## freeplay_score a un nodo "UI/FreeplayScore" que no existe, asi que el marcador no
 ## se pintaba nunca y nadie se enteraba porque _resolve_nodes usa get_node_or_null.
+## songInfoCapsule (campo 0x260). La construye postHeader y la esconde/enseña
+## updateDataStuff con el resto de la cabecera.
+var song_info_capsule: AnimatedSprite2D
 var high_score_spr: AnimatedSprite2D
 var clear_box_sprite: Sprite2D
 
@@ -279,6 +282,7 @@ func _resolve_nodes() -> void:
 	tv_sprite = get_node_or_null("Tv") as AnimatedSprite2D
 	shadows_on_bed = get_node_or_null("ShadowsOnBed")
 	dark_overlay = get_node_or_null("DarkOverlay") as ColorRect
+	song_info_capsule = get_node_or_null("UI/SongInfoCapsule") as AnimatedSprite2D
 	high_score_spr = get_node_or_null("UI/HighScoreSpr") as AnimatedSprite2D
 	tv_noise_forward = get_node_or_null("TvNoiseForward") as AnimatedSprite2D
 	clear_box_sprite = get_node_or_null("UI/ClearBox") as Sprite2D
@@ -929,18 +933,15 @@ func _handle_exit() -> void:
 func _init_header() -> void:
 	# The header elements are created in the scene or added here.
 	# Position them at the top of the screen.
-	# El alfa ya no se toca aqui: lo fija postHeader en 0.0001 (linea 1593) y lo sube
-	# updateDataStuff (1117). Tener dos sitios escribiendo el mismo alfa es como se
-	# esconden los fallos.
+	# Este metodo ya no toca las tres etiquetas de info, ni su sitio ni su alfa. No son
+	# suyas: las coloca postHeader (lineas 1574-1580) y las construye el builder con esa
+	# geometria, y el alfa lo reparten postHeader (0.0001) y updateDataStuff (1).
 	#
-	# Las tres `y` siguen siendo invencion: las de verdad son una FILA sobre la capsula
-	# de abajo, a capsula.y + 23 y de 300 de ancho, no una columna. Ver PORTING.md 8f.
-	if info_title != null:
-		info_title.position.y = HEADER_BOTTOM_Y
-	if info_bpm_text != null:
-		info_bpm_text.position.y = HEADER_BOTTOM_Y + CAPSULE_SPACING
-	if info_difficulty != null:
-		info_difficulty.position.y = HEADER_BOTTOM_Y + CAPSULE_SPACING * 2
+	# Lo que habia aqui era una columna inventada en la esquina de arriba -"colocarlas en
+	# lo alto de la pantalla"- que se ejecutaba DESPUES del builder y las devolvia ahi.
+	# Cuarto sitio en este fichero con dos escritores para la misma propiedad. Cuando algo
+	# se coloca donde no debe, el sospechoso no es quien lo coloca bien.
+	pass
 
 
 ## ─── postHeader (0x34cb6e0, lineas 1550-1594) ──────────────────────────────

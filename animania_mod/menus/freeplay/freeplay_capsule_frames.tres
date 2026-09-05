@@ -1,0 +1,55 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bottom_capsule.png" id="1_o8nvh"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c8sbh"]
+atlas = ExtResource("1_o8nvh")
+region = Rect2(2, 2, 382, 54)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gv5es"]
+atlas = ExtResource("1_o8nvh")
+region = Rect2(2, 58, 382, 54)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iubj7"]
+atlas = ExtResource("1_o8nvh")
+region = Rect2(2, 114, 382, 54)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ciira"]
+atlas = ExtResource("1_o8nvh")
+region = Rect2(2, 170, 382, 54)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c8sbh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c8sbh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gv5es")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gv5es")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iubj7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iubj7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ciira")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ciira")
+}],
+"loop": 1,
+"name": &"mp3 capsule образец ",
+"speed": 24.0
+}]
