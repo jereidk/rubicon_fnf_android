@@ -75,6 +75,24 @@ func _init() -> void:
 	props.owner = _root
 	_root.move_child(props, 2)
 
+	# create() lines 186-206: nonIntroGroup, and the two FallCharacters in it. Both are
+	# screenCenter()ed and then moved - BF left by FlxG.width/3, GF right by the same, both
+	# up 100 - and each gets addByPrefix('fall', '<who> fall', 24) off title/fallguys. They
+	# are two of the three pieces update()'s confirm branch flings off screen.
+	var non_intro := Node2D.new()
+	non_intro.name = "NonIntro"
+	non_intro.visible = false
+	_root.add_child(non_intro)
+	non_intro.owner = _root
+	_root.move_child(non_intro, 3)
+
+	var fall_frames: SpriteFrames = _sparrow(
+		"res://animania_mod/source/images/title/fallguys.png")
+	if fall_frames != null:
+		ResourceSaver.save(fall_frames, "%s/fallguys_frames.tres" % DIR)
+		_fall(non_intro, "FallBF", fall_frames, &"bf fall", -1.0)
+		_fall(non_intro, "FallGF", fall_frames, &"gf fall", 1.0)
+
 	# The intro text is screen-space: the camera zooms on beats 28-31 and the line must not
 	# zoom with it, the same way Funkin puts it on a camera of its own.
 	var layer := CanvasLayer.new()
@@ -123,6 +141,47 @@ func _init() -> void:
 		err = ResourceSaver.save(packed, OUT)
 	print("OUT %s %s" % ["saved" if err == OK else "FAILED", OUT])
 	quit(0 if err == OK else 1)
+
+
+## FlxG.width / 3 and the 100 are in Funkin's 1280x720; the third is a fraction of the
+## screen either way, the 100 takes the project's 1.5x.
+const FALL_RISE := 100.0
+
+
+func _fall(parent: Node2D, node_name: String, frames: SpriteFrames,
+		animation: StringName, side: float) -> void:
+	if not frames.has_animation(animation):
+		push_error("fallguys no tiene la animacion [%s]" % animation)
+		return
+	var sprite := AnimatedSprite2D.new()
+	sprite.name = node_name
+	sprite.sprite_frames = frames
+	sprite.animation = animation
+	sprite.autoplay = String(animation)
+	sprite.centered = false
+	sprite.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	var art: Vector2 = Vector2(frames.get_frame_texture(animation, 0).get_size()) \
+		* FUNKIN_TO_RUBICON
+	sprite.position = Vector2(
+		(SCREEN.x - art.x) * 0.5 + side * SCREEN.x / 3.0,
+		(SCREEN.y - art.y) * 0.5 - FALL_RISE * FUNKIN_TO_RUBICON)
+	parent.add_child(sprite)
+	sprite.owner = _root
+
+
+func _sparrow(png: String) -> SpriteFrames:
+	if not ResourceLoader.exists(png):
+		push_error("no existe %s" % png)
+		return null
+	var data := SparrowImporterSpriteData.new()
+	data.texture = load(png)
+	data.atlas_path = png.get_basename() + ".xml"
+	data.fps = 24
+	data.loop = true
+	data.use_frame_duration = false
+	var importer: SpriteImporter = load(
+		"res://addons/sprite_importer/importers/sparrow.gd").new()
+	return importer.convert_sprite([data])
 
 
 func _add(node: Node) -> void:

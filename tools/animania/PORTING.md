@@ -940,8 +940,36 @@ cleanup, and `if (playingLoveJingle) FunkinSound.playMusic(Constants.defaultThem
 — leaving the title while the cheat's jingle plays puts the normal theme back so the next
 screen does not inherit it. Ported.
 
-That is `TitleScreen` read end to end. What is named and still missing is all layout: the two
-`FallCharacter`s, the six props' placement beyond `title_props.gd`, and the two texts.
+**The two `FallCharacter`s, and the fling they exist for.** create() lines 186-206:
+
+    186  nonIntroGroup = new FlxTypedSpriteGroup(...);
+    189  fallBF = new FallCharacter();  loadFrames('title/fallguys');
+    191      screenCenter();                      // (FlxG.width - width) * 0.5, same for y
+    192      animation.addByPrefix('fall', 'bf fall', 24);
+    194      x -= FlxG.width / 3;   y -= 100;
+    198  fallGF = the same, with 'gf fall', x += FlxG.width / 3, and moves = false (0x250)
+
+`fallguys.xml` has six subtextures, three frames each. Both are built into the scene now,
+under a `NonIntro` node that stays hidden until the intro's 31 beats are done — which is
+what `nonIntroGroup` means.
+
+They exist for the outro. The driver at 0x2b213a0 gives, exactly: the setter is vtable
+**0x218**, which is `set_y`, so the fling is **vertical**; the travel is **1400** times that
+piece's own `FlxG.random.float(0.25, 1.75)`; and the curve is a `pow` whose exponent is the
+0.75 loaded beside it, behind a NaN guard on `1.5 * r`. How the pow's base and the sprite's
+resting y combine into the final `set_y` is this port's reading — the registers cross a call
+boundary the dump does not resolve — so it is written as `y = rest - 1400 * r * pow(t, 0.75)`,
+the only arrangement of those three that leaves the piece at rest when `t = 0`. The three
+pieces are `fallBF`, `fallGF` and `logoTV`; all three are wired.
+
+Two stale comment blocks in `title_screen.gd` were removed rather than left to contradict the
+code: the `follows_singer` claim, and the old cheat sequence. A comment that disagrees with
+its own function is worse than no comment — it is what sent this audit chasing a wrong
+binary in the first place.
+
+Still missing on this screen: the six props' placement beyond what `title_props.gd` carries,
+and the two texts (`txtVersion` in vcr, `titleText` in `Blueprint.ttf`, which is not on disk —
+like Inconsolata-Black it ships inside the executable).
 
 ---
 

@@ -27,18 +27,15 @@ const ACCENT := Color8(0xAA, 0xD2, 0xFF)
 const BOIL_INTERVAL := 1.0 / 24.0
 
 ## Logo scale: 0.32, exact from rodata doubles at 0x2ed2ba8 and 0x2ed2b94 in create().
-## The logo does NOT bump on beats — the update() method has no logo scale manipulation.
-## The only post-intro visual is the camera lerp below.
+## The logo does NOT bump on beats - update() has no logo scale manipulation. It does
+## MOVE, though: it is one of the three pieces the confirm branch flings. See _fling_pieces().
 const LOGO_SCALE := 0.32
 
-## Camera lerp: from update(). The camera's field at offset 0x110 (likely zoom or offset)
-## is interpolated toward 0.885 (rodata at 0x2ed0b8e) with a factor derived from:
-##   factor = -3.125 * dt  (rodata at 0x2ed0bb4)
-##   then passed through exp() (call to 0x8bd2d0, which is expf/expd)
-##   result = 0.885 + (current - 0.885) * exp(-3.125 * dt)
-## This is exponential decay toward 0.885 — the camera eases back to its rest position.
-## The lerp is SKIPPED when [this + 0x158] != 0, which is the follows_singer flag:
-## when the chart has camera events, the follow-the-singer fallback is off.
+## Camera lerp, update() line 369: the camera's 0x110 - `zoom`, named by the `set_zoom` it
+## is handed to - eased toward 0.885 by `exp(-3.125 * dt)`. There is NO skip condition; the
+## "skipped when [this + 0x158] != 0, which is the follows_singer flag" this block used to
+## carry was invented. 0x158 is `lerpOutroFactor`, the weight of the scrollAngle lerp on the
+## line above it. See _update_camera().
 const CAMERA_LERP_TARGET := 0.885
 const CAMERA_LERP_RATE := -3.125
 
@@ -148,9 +145,6 @@ const JINGLE_PATH := "res://animania_mod/source/sounds/gfLoveJingle.ogg"
 const CONFIRM_SOUND_PATH := "res://animania_mod/source/sounds/confirmMenu.ogg"
 const INTRO_SOUND_PATH := "res://animania_mod/source/sounds/introSound.ogg"
 
-## Cheat code: from the binary's codePress/cheatCodeShit system. The title screen
-## listens for an 8-key arrow sequence stored in .rodata at 0x5ba9a40, memcpy'd
-## into the cheatCodeArray field. Sequence: UP, RIGHT, UP, RIGHT, DOWN, LEFT, DOWN, LEFT.
 ## The cheat is real and lives in the binary, not in the HScript. `cheatCodeShit` (line 514,
 ## 0x2b265b0) polls EIGHT Controls actions - the four arrows at 0x30/0x38/0x40/0x48 and four
 ## more at 0x90/0x98/0xa0/0xa8, which are the gameplay lane keys, so either set works - and
@@ -502,6 +496,10 @@ func _finish() -> void:
 	_ready_at = _elapsed + CONFIRM_DELAY
 	intro_text.visible = false
 	title.visible = true
+	# nonIntroGroup - the group whose whole point is that it is not the intro.
+	var non_intro: Node2D = get_node_or_null(^"NonIntro") as Node2D
+	if non_intro != null:
+		non_intro.visible = true
 
 	# playIntro's flash: fade from black to transparent over FLASH_DURATION.
 	_trigger_flash()
@@ -593,6 +591,8 @@ const CONFIRM_FLASH := 0.75
 ## The three flung pieces travel up to 1400 scaled by their own FlxG.random.float(0.25, 1.75).
 const OUTRO_THROW := 1400.0
 const OUTRO_SPREAD := Vector2(0.25, 1.75)
+## The exponent the driver's `pow` is given, loaded right beside the comparison it guards.
+const OUTRO_THROW_POWER := 0.75
 
 
 ## destroy() (0x2b2bc20, line 488): super.destroy(), a FlxSound cleanup, and then
@@ -603,6 +603,38 @@ const OUTRO_SPREAD := Vector2(0.25, 1.75)
 ##
 ## - leaving the title while the cheat's jingle is playing puts the normal theme back, so the
 ## next screen does not inherit it. This port had no teardown here at all.
+## The driver at 0x2b213a0, once per piece. What the assembly gives exactly: the setter is
+## vtable **0x218**, which is `set_y`, so the fling is vertical; the travel is **1400** times
+## that piece's own `FlxG.random.float(0.25, 1.75)`; and the curve is a `pow` whose exponent
+## is the 0.75 loaded beside it, behind a NaN guard on `1.5 * r`.
+##
+## How the pow's base and the sprite's resting y combine into the final `set_y` is this
+## port's reading - the registers cross a call boundary the dump does not resolve - so it is
+## written as `y = rest - 1400 * r * pow(t, 0.75)`, which is the only arrangement of those
+## three that leaves the piece at rest when t = 0.
+func _fling_pieces() -> void:
+	var pieces: Array[Node2D] = []
+	var non_intro: Node2D = get_node_or_null(^"NonIntro") as Node2D
+	if non_intro != null:
+		for child: Node in non_intro.get_children():
+			pieces.append(child as Node2D)
+	if title != null:
+		pieces.append(title.get_node_or_null(^"Logo") as Node2D)
+
+	for piece: Node2D in pieces:
+		if piece == null:
+			continue
+		var rest: float = piece.position.y
+		var reach: float = OUTRO_THROW * FUNKIN_TO_RUBICON \
+			* randf_range(OUTRO_SPREAD.x, OUTRO_SPREAD.y)
+		var fling := create_tween()
+		fling.tween_method(
+			func(t: float) -> void:
+				if is_instance_valid(piece):
+					piece.position.y = rest - reach * pow(t, OUTRO_THROW_POWER),
+			0.0, 1.0, OUTRO_SECONDS)
+
+
 func _exit_tree() -> void:
 	if not _playing_love_jingle:
 		return
@@ -640,7 +672,10 @@ func confirm() -> void:
 	# FlxTween.num(0, 1, 1.8, {ease: cubeIn}) - the progress the whole outro reads, and the
 	# weight that swings the camera from its wobble to outroAngle.
 	var outro := create_tween()
-	outro.tween_property(self, "_lerp_outro_factor", 1.0, OUTRO_SECONDS) 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	outro.tween_property(self, "_lerp_outro_factor", 1.0, OUTRO_SECONDS) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+
+	_fling_pieces()
 
 	await get_tree().create_timer(OUTRO_SECONDS).timeout
 	if not is_inside_tree():
