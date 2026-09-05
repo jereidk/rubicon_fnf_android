@@ -151,8 +151,27 @@ const INTRO_SOUND_PATH := "res://animania_mod/source/sounds/introSound.ogg"
 ## Cheat code: from the binary's codePress/cheatCodeShit system. The title screen
 ## listens for an 8-key arrow sequence stored in .rodata at 0x5ba9a40, memcpy'd
 ## into the cheatCodeArray field. Sequence: UP, RIGHT, UP, RIGHT, DOWN, LEFT, DOWN, LEFT.
-const CHEAT_CODE := [KEY_UP, KEY_RIGHT, KEY_UP, KEY_RIGHT,
-	KEY_DOWN, KEY_LEFT, KEY_DOWN, KEY_LEFT]
+## The cheat is real and lives in the binary, not in the HScript. `cheatCodeShit` (line 514,
+## 0x2b265b0) polls EIGHT Controls actions - the four arrows at 0x30/0x38/0x40/0x48 and four
+## more at 0x90/0x98/0xa0/0xa8, which are the gameplay lane keys, so either set works - and
+## calls `codePress(flag)` with one of four bits per direction. `codePress` (line 526) walks
+## `cheatArray` against `curCheatPos` and fires `doJingle()` on the last one (0x2b26532).
+##
+## `cheatArray` is built in __construct from `_hx_array_data_46b436b0_1` (0x5ba9a40), eight
+## ints: **[1, 16, 1, 16, 256, 4096, 256, 4096]**. Pairing those flags with the order the
+## eight actions are polled in gives 1 = UP, 16 = DOWN, 256 = RIGHT, 4096 = LEFT, so the
+## sequence is UP DOWN UP DOWN RIGHT LEFT RIGHT LEFT - a Konami riff. This port had the right
+## SHAPE (A B A B C D C D) with the wrong letters.
+##
+## The flag-to-direction pairing is read off how the compiler grouped the eight polls into
+## four flag-emitting tails; that the result comes out as a recognisable Konami variant is
+## the corroboration, not the derivation.
+const CHEAT_CODE := [KEY_UP, KEY_DOWN, KEY_UP, KEY_DOWN,
+	KEY_RIGHT, KEY_LEFT, KEY_RIGHT, KEY_LEFT]
+## The mod accepts the lane keys for the same steps, so this port does too.
+const CHEAT_ALIASES := {
+	KEY_UP: [KEY_W], KEY_DOWN: [KEY_S], KEY_LEFT: [KEY_A], KEY_RIGHT: [KEY_D],
+}
 
 @export var music: AudioStreamPlayer
 @export var intro_text: RichTextLabel
@@ -172,6 +191,8 @@ var _ready_at: float = INF
 # Music fade-in
 var _music_volume: float = 0.0
 var _music_fading: bool = false
+## `playingLoveJingle`, field 0x175 - the flag destroy() reads on the way out.
+var _playing_love_jingle: bool = false
 
 # Flash overlay (black, from playIntro)
 var _flash_rect: ColorRect = null
@@ -514,10 +535,13 @@ func _do_jingle() -> void:
 func _check_cheat_code(keycode: int) -> void:
 	if _cheat_index >= CHEAT_CODE.size():
 		return
-	if keycode == CHEAT_CODE[_cheat_index]:
+	var wanted: int = CHEAT_CODE[_cheat_index]
+	var accepted: Array = [wanted]
+	accepted.append_array(CHEAT_ALIASES.get(wanted, []))
+	if accepted.has(keycode):
 		_cheat_index += 1
 		if _cheat_index >= CHEAT_CODE.size():
-			print("CHEAT CODE: Solo Time!")
+			_playing_love_jingle = true
 			_do_jingle()
 			_cheat_index = 0
 	else:
@@ -569,6 +593,25 @@ const CONFIRM_FLASH := 0.75
 ## The three flung pieces travel up to 1400 scaled by their own FlxG.random.float(0.25, 1.75).
 const OUTRO_THROW := 1400.0
 const OUTRO_SPREAD := Vector2(0.25, 1.75)
+
+
+## destroy() (0x2b2bc20, line 488): super.destroy(), a FlxSound cleanup, and then
+##
+##     if (playingLoveJingle)
+##         FunkinSound.playMusic(Constants.defaultThemeTrack,
+##                               {overrideExisting: true, restartTrack: true});
+##
+## - leaving the title while the cheat's jingle is playing puts the normal theme back, so the
+## next screen does not inherit it. This port had no teardown here at all.
+func _exit_tree() -> void:
+	if not _playing_love_jingle:
+		return
+	if _jingle_player != null:
+		_jingle_player.stop()
+	for node: Node in get_tree().get_nodes_in_group("menu_music"):
+		var player: AudioStreamPlayer = node as AudioStreamPlayer
+		if player != null and not player.playing:
+			player.play()
 
 
 func confirm() -> void:

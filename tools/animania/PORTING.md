@@ -920,7 +920,28 @@ what `title_props.gd` already carries, the two `FallCharacter`s (which are two o
 pieces the outro flings), and the two texts. `Blueprint.ttf` is not on disk; like
 Inconsolata-Black it ships inside the executable and would have to be extracted.
 
-Still unread on this screen: `cheatCodeShit` / `codePress` (the easter egg) and `destroy`.
+**The cheat code comes out of the binary whole.** `cheatCodeShit` (line 514, 0x2b265b0)
+polls **eight** Controls actions — the four arrows at 0x30/0x38/0x40/0x48 (named by the
+main-menu audit) and four more at 0x90/0x98/0xa0/0xa8, which are the gameplay lane keys, so
+either set works — and calls `codePress(flag)` with one of four bits per direction.
+`codePress` (line 526) is not only a script dispatch: it walks `cheatArray` (0x168) against
+`curCheatPos` (0x170) and fires `doJingle()` on the last one (0x2b26532). `__construct`
+builds the array from `_hx_array_data_46b436b0_1` at 0x5ba9a40, eight ints:
+
+    [1, 16, 1, 16, 256, 4096, 256, 4096]
+
+Pairing those against the order the eight polls appear in gives 1 = UP, 16 = DOWN,
+256 = RIGHT, 4096 = LEFT — so the sequence is **UP DOWN UP DOWN RIGHT LEFT RIGHT LEFT**, a
+Konami riff. This port had the right SHAPE (A B A B C D C D) with the wrong letters, which is
+what a guess looks like when it is close. Fixed, lane-key aliases included.
+
+`destroy()` (line 488) is short and had no equivalent here: `super.destroy()`, a FlxSound
+cleanup, and `if (playingLoveJingle) FunkinSound.playMusic(Constants.defaultThemeTrack, ...)`
+— leaving the title while the cheat's jingle plays puts the normal theme back so the next
+screen does not inherit it. Ported.
+
+That is `TitleScreen` read end to end. What is named and still missing is all layout: the two
+`FallCharacter`s, the six props' placement beyond `title_props.gd`, and the two texts.
 
 ---
 
