@@ -49,14 +49,22 @@ func _init() -> void:
 	# what the diorama sits on, and why nothing behind it can show through.
 	var backdrop := ColorRect.new()
 	backdrop.name = "Backdrop"
-	backdrop.color = Color.BLACK
+	# buildBg linea 1195: makeGraphic(..., 0xFF18121C). No es negro puro.
+	backdrop.color = Color8(0x18, 0x12, 0x1C)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_add(backdrop)
 	backdrop.set(&"layout_mode", 0)
 	backdrop.size = Vector2.ONE * 1500.0 * FUNKIN_TO_RUBICON
 	backdrop.position = (SCREEN - backdrop.size) * 0.5
 
-	_sprite("Backwall", "bg/freeplay backwall.png", Vector2(0.0, 18.75))
+	# El orden de dibujo es el zIndex de cada pieza en buildBg, no el orden del arbol:
+	# bgWall 1, bgBed 2, shadowsOnBed 3, tvGlow 7, darkOverlay 8, tvBg 10, diskPlayer 16,
+	# grpDisks 19, tvBackBG 20, diskPlayerMask 24, tvNoiseBack 26, albumRoll 27,
+	# tvNoiseForward 28, tvSpriteFlash 29, tvSprite 30, difficultyStars 35,
+	# selectorsGroup 100, bossfightSkull 900. El puerto los tenia todos en 0 y se apoyaba
+	# en el orden del arbol, lo que dejaba DarkOverlay -que va en 8, por DEBAJO del tele y
+	# de los discos- encima de todo por ser el ultimo.
+	_sprite("Backwall", "bg/freeplay backwall.png", Vector2(0.0, 18.75)).z_index = 1
 
 	# The bed. Three frames that are three STATES rather than a cycle. buildBg names them
 	# with addByIndices: `light` -> [0], `normal` -> [1], `none` -> [2] (the third one is
@@ -69,6 +77,7 @@ func _init() -> void:
 	var bed: AnimatedSprite2D = _sparrow("Bed", "freeplay_bed", "bed", Vector2(0.0, 254.0))
 	bed.autoplay = ""
 	bed.frame = 2
+	bed.z_index = 2
 
 	# shadowsOnBed is a funkin.graphics.framebuffer.FlxLayerGroup (buildBg line 1216), and
 	# shakeShadows scales its matrix. Nothing is inside it yet - the shadow art rides on
@@ -76,6 +85,7 @@ func _init() -> void:
 	# it up and it has to exist. It sits between the bed and the glow in draw order.
 	var shadows := Node2D.new()
 	shadows.name = "ShadowsOnBed"
+	shadows.z_index = 3
 	_add(shadows)
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
@@ -85,7 +95,7 @@ func _init() -> void:
 	# 1280 screen, which leaves 368 of nothing to the right, and the TV is 727 wide. Put
 	# its right edge on the screen's, at x = 553, and it covers that gap exactly while
 	# overlapping the wall by the rest. The glow is 997 wide and lands the same way.
-	_sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0))
+	_sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0)).z_index = 7
 
 	# La pantalla del televisor, leida de buildBg linea por linea. Todo lo de dentro
 	# comparte esquina en (117, 128) y el rectangulo mide 375x305; el zIndex de cada pieza
@@ -157,11 +167,13 @@ func _init() -> void:
 	tv.frame = TV_FRAME
 
 	# The VCR and the layer that goes over it, four pixels left and ten down from it.
-	_sparrow("Player", "freeplay_player", "player", Vector2(50.0, 505.0))
-	_sprite("PlayerLayer", "bg/player-layer.png", Vector2(45.75, 515.0))
+	# `diskPlayer` en el mod, con addByPrefix('y', 'player') a 24 fps.
+	_sparrow("Player", "freeplay_player", "player", Vector2(50.0, 505.0)).z_index = 16
+	_sprite("PlayerLayer", "bg/player-layer.png", Vector2(45.75, 515.0)).z_index = 24
 
 	var disks := Node2D.new()
 	disks.name = "Disks"
+	disks.z_index = 19
 	_add(disks)
 
 	var songs: Array = _root.get_script().get_script_constant_map()["SONGS"]
@@ -192,6 +204,10 @@ func _init() -> void:
 	# rebuild wiped them. Anything the script resolves has to be built HERE.
 	var ui := Node2D.new()
 	ui.name = "UI"
+	# PROVISIONAL: initHeader y postHeader, que son quienes dan su zIndex a cada cosa de
+	# arriba, aun no se han leido. 50 la deja por encima de difficultyStars (35) y por
+	# debajo de selectorsGroup (100), que es donde parece caer, pero es una eleccion mia.
+	ui.z_index = 50
 	_add(ui)
 	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0")
 	var clear_box := Sprite2D.new()
@@ -204,13 +220,19 @@ func _init() -> void:
 	_label(ui, "InfoTitle", Rect2(100.0, 30.0, 500.0, 40.0), "")
 	_label(ui, "InfoBpm", Rect2(100.0, 70.0, 500.0, 40.0), "")
 	_label(ui, "InfoDifficulty", Rect2(100.0, 110.0, 500.0, 40.0), "Normal")
+	# buildBg 1338-1341: new DifficultyStars(525, 120), zIndex 35.
 	var stars := Node2D.new()
 	stars.name = "DifficultyStars"
-	stars.position = Vector2(100.0, 130.0)
+	stars.position = Vector2(525.0, 120.0) * FUNKIN_TO_RUBICON
+	stars.z_index = 35 - 50
 	ui.add_child(stars)
 	stars.owner = _root
+	# buildBg 1319-1324: albumRoll.y = -100, albumId 'animania05', zIndex 27, y un
+	# GaussianBlurShader con amount 0.1. Su x no es constante.
 	var album := Node2D.new()
 	album.name = "AlbumRoll"
+	album.position = Vector2(0.0, -100.0 * FUNKIN_TO_RUBICON)
+	album.z_index = 27 - 50
 	ui.add_child(album)
 	album.owner = _root
 	var help := Sprite2D.new()
@@ -219,16 +241,18 @@ func _init() -> void:
 	ui.add_child(help)
 	help.owner = _root
 
-	# fadeOut / doIntroAnim drive this; it is opaque black at rest and the intro clears it.
+	# buildBg 1240-1245: color 0xFF000000, alpha 0.4, zIndex 8. El puerto lo tenia opaco y
+	# el ultimo del arbol, o sea tapando el tele, los discos y el mueble entero.
 	var dark := ColorRect.new()
 	dark.name = "DarkOverlay"
+	dark.z_index = 8
 	dark.set(&"layout_mode", 0)
 	dark.offset_left = -200.0
 	dark.offset_top = -200.0
 	dark.offset_right = 2120.0
 	dark.offset_bottom = 1280.0
 	dark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dark.color = Color(0.0, 0.0, 0.0, 1.0)
+	dark.color = Color(0.0, 0.0, 0.0, 0.4)
 	_add(dark)
 
 	var sfx := AudioStreamPlayer.new()

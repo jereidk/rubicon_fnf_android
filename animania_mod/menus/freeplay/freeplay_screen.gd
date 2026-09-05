@@ -388,8 +388,11 @@ const DISK_OFFSET_X := -20.0
 const DISK_CURVE_X := 1.5
 const DISK_CURVE_Y := 6.0
 const DISK_BASE_Y := 520.0
-const DISK_Z := 5
-const DISK_Z_SELECTED := 10
+## En el mod son 5 y 10, pero eso es el zIndex DENTRO de grpDisks, que solo decide el
+## orden entre discos; el grupo entero ocupa el 19. En Godot el z de un hijo se suma al
+## del padre, asi que aqui van 0 y 1: mismo orden relativo, mismo hueco para el grupo.
+const DISK_Z := 0
+const DISK_Z_SELECTED := 1
 
 
 ## DiskSpr.intendedY (0x200c7a0), con `d` en pasos de seleccion.

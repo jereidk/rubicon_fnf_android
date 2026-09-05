@@ -1084,6 +1084,36 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### `buildBg`, read as a table
+
+14 018 bytes and about 200 Haxe lines, but almost all of it is state: a sprite, its
+position, its `zIndex`, sometimes an alpha or a colour. Dumping it as one line per Haxe
+line — field written, `zIndex` immediate, `esi` constructor ints, rip-relative strings and
+doubles, vtable slot — turns it into something readable in one pass, and that table is what
+found the rest of this screen's mistakes. Worth doing before reading a big builder method
+instruction by instruction.
+
+What it gave up:
+
+- **The draw order is a `zIndex` per sprite, not the tree order**: bgWall 1, bgBed 2,
+  shadowsOnBed 3, tvGlow 7, darkOverlay 8, tvBg 10, diskPlayer 16, grpDisks 19, tvBackBG 20,
+  diskPlayerMask 24, tvNoiseBack 26, albumRoll 27, tvNoiseForward 28, tvSpriteFlash 29,
+  tvSprite 30, difficultyStars 35, selectorsGroup 100, bossfightSkull 900. The port had
+  every node at 0 and leaned on tree order, which put `DarkOverlay` — an 8, i.e. *under* the
+  television and the disks — on top of the entire screen because it was added last.
+- **`darkOverlay` is 0xFF000000 at alpha 0.4** (1241-1244), not opaque.
+- **The backdrop is 0xFF18121C** (1195), not black.
+- `albumRoll.y = -100` with `albumId 'animania05'` and a GaussianBlur of 0.1 (1319-1324);
+  `DifficultyStars(525, 120)` (1338); `bossfightSkull` at (105, -200) with its own
+  `freeplay/bossIndicator` sound (1345-1357).
+
+A Godot detail that matters when copying a flixel `zIndex` table: **a child's `z_index` is
+relative to its parent's** unless `z_as_relative` is off. The disks are `5`/`10` inside
+`grpDisks` in the mod, but that only orders them among themselves — the group occupies slot
+19. Ported literally as `z_index = 5` under a parent at 19 they would sit at 24, on top of
+`diskPlayerMask`. They are `0`/`1` here, which keeps both the relative order and the group's
+slot.
+
 ### What `update` actually does, and where the port had put it
 
 `FreeplayScreen.update` (0x34d7200) is short, and three of the seven things the port's
@@ -1630,6 +1660,13 @@ Recorded so the next person does not go looking for a bug that is not there.
   `optimize_atlas.py` (below), vendored, and wired as `TvBg`, `TvNoiseBack`,
   `TvNoiseForward`, `TvBackBG` and `TvSpriteFlash`, with `shakeShadows` hanging off the
   forward noise's frame changes the way `buildBg` line 1337 does it.
+- **Freeplay's intro reveal.** `buildBg` leaves eleven things INVISIBLE — `shadowsOnBed`
+  (1219), `tvGlow` (1236), `diskPlayer` (1266), `diskPlayerMask` (1274), `tvSprite` (1282),
+  `tvBackBG` (1292), `tvSpriteFlash` (1302), `tvNoiseBack` (1315), `tvNoiseForward` (1336),
+  `grpDisks` (1367) and one more at 1395 — and its last line (1396) calls `doIntroAnim`,
+  which is two `FlxTimer`s at 0.5 s and 1 s whose closures are 2325 and 5211 bytes of
+  reveal. The port builds them all visible. Porting the `visible = false` half without the
+  reveal half would leave an empty screen, so both wait until those closures are read.
 - **Freeplay's shadow art.** `shadowsOnBed` is a `FlxLayerGroup` and `shakeShadows` scales
   its matrix, but nothing has been put inside it: the shadows ride on `tvNoiseBack` and have
   not been separated out. The transform is ported and correct; it is simply invisible.
