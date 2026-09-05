@@ -1084,6 +1084,41 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### `handleInput`: read in outline, deliberately not ported
+
+Read far enough to describe and not far enough to port, which is a distinction worth
+writing down rather than papering over. Lines 1802-1867, in source order:
+
+```
+1802  scrollCooldown  (leido/descontado)
+1811  curSelectedFloat
+1813  selectorsGroup.<vt+0xc8>
+1818  if (scrollCooldown <= 0)
+1823  changeSelection(...);  scrollCooldown = 0.01;
+1828  UI_LEFT.checkPressed()   ... spamTimer
+1835  <accion>.checkPressed()
+1844  ACCEPT.checkPressed()  -> changeSelection(...)
+1847  spamTimer
+1854  UI_DOWN.checkJustPressed()
+1856  UI_DOWN.checkJustPressed() -> changeDiff(...)
+1859  currentDifficulty
+1861  handleExit()
+1864  mouseEvents
+1866  curSelectedFloat, NextState.fromMaker(...)
+```
+
+The shape is a held-key repeat gated by `scrollCooldown` and `spamTimer`/`spamming`
+(fields 0x2f0, 0x2e0, 0x2e8) — but the compiler reorders the blocks, so pairing each
+`checkPressed` with its action means tracking which register holds the `Controls` object
+through the reordering, and two of the seven calls did not resolve that way. **Input is
+the one thing the player touches, so a half-read port of it is worse than none**: the
+remaining actions and the exact repeat timing need a register-accurate pass before this
+moves.
+
+For reference when that happens, the action offsets on `Controls`, recovered earlier from
+`OptionsSubMenu::update`: 0x30 UI_UP, 0x38 UI_LEFT, 0x40 UI_RIGHT, 0x48 UI_DOWN,
+0x108 ACCEPT, 0x110 BACK, 0x158 DEBUG_MENU.
+
 ### `hxlines.py`: read a big method as a table first
 
 Three methods in a row were read by hand-rolling the same script, so it is now

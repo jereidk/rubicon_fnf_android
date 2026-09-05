@@ -89,12 +89,6 @@ const BED_STATES := {"light": 0, "normal": 1, "none": 2}
 ## BED_RATIO_FACTOR = 0.5 from binary.
 const BED_RATIO_FACTOR := 0.5
 
-## ─── Camera scroll ───────────────────────────────────────────────────────────
-
-## From binary: updateCameraScroll uses 3.0 as a speed multiplier.
-const SCROLL_SPEED := 3.0
-const SCROLL_LERP := 0.02
-
 ## ─── Intro animation ────────────────────────────────────────────────────────
 
 ## From binary: doIntroAnim uses 0.5 and 1.0.
@@ -536,21 +530,36 @@ func _check_bed(state: String) -> void:
 	bed.frame = BED_STATES[state]
 
 
-## ─── updateCameraScroll (from binary at 0x34bdcd0) ─────────────────────────
-## Slow sinusoidal camera drift for parallax feel.
-## From binary: uses 3.0 as speed multiplier.
+## ─── updateCameraScroll (0x34bdcd0, lineas 1713-1718) ──────────────────────
+## Es paralaje de RATON, no una deriva sola:
+##
+##   var t = elapsed * 3;                                                     // 1713
+##   FlxG.camera.scroll.x += FlxMath.remapToRange(FlxG.mouse.x, 0, FlxG.width,  3, -6) * t;
+##   FlxG.camera.scroll.y += FlxMath.remapToRange(FlxG.mouse.y, 0, FlxG.height, 1, -1) * t;
+##
+## El puerto tenia en su lugar un sin/cos del reloj, o sea una camara que se mueve sola
+## cuando en el mod no se mueve nada si el raton esta quieto. Y llevaba un scroll_cooldown
+## que aqui no pinta nada: ese campo es de handleInput, para el repetido de la seleccion.
+##
+## En un telefono no hay puntero, asi que esto queda inerte igual que el paralaje del menu
+## principal. Se portea con la formula real -no con una invencion que si se mueve- para
+## que en escritorio haga lo que hace el mod y en Android, correctamente, nada.
+
+## Los cuatro extremos de los dos remapToRange, y el multiplicador del tiempo.
+const SCROLL_RANGE_X := Vector2(3.0, -6.0)
+const SCROLL_RANGE_Y := Vector2(1.0, -1.0)
+const SCROLL_SPEED := 3.0
+
 
 func _update_camera_scroll(delta: float) -> void:
 	var cam: Camera2D = get_node_or_null("Camera2D") as Camera2D
 	if cam == null:
 		return
-	if scroll_cooldown > 0.0:
-		scroll_cooldown -= delta
-		return
-	var time: float = Time.get_ticks_msec() / 1000.0
-	var target_x: float = sin(time * 0.3) * SCROLL_SPEED
-	var target_y: float = cos(time * 0.2) * SCROLL_SPEED * 0.5
-	cam.offset = cam.offset.lerp(Vector2(target_x, target_y), SCROLL_LERP)
+	var mouse: Vector2 = cam.get_local_mouse_position() + cam.position
+	var step: float = delta * SCROLL_SPEED
+	cam.offset += Vector2(
+		remap(mouse.x, 0.0, SCREEN.x, SCROLL_RANGE_X.x, SCROLL_RANGE_X.y),
+		remap(mouse.y, 0.0, SCREEN.y, SCROLL_RANGE_Y.x, SCROLL_RANGE_Y.y)) * step
 
 
 ## ─── updateDataStuff (0x34c5f50) ───────────────────────────────────────────
@@ -820,13 +829,14 @@ func _init_characters() -> void:
 	current_player = "bf"
 
 
-## ─── showStickers (from binary at 0x34bb090) ────────────────────────────────
-## Shows the sticker transition effects.
-
+## ─── showStickers (0x34bb090, lineas 410-416) ──────────────────────────────
+## Corto: lee `currentCharacter` (campo 0xe8), llama a un metodo virtual de la propia
+## pantalla (hueco 0x290 de su vtable) y termina en `currentCharacter.degenStickers(...)`.
+##
+## Sin portear a proposito: cuelga entero de `currentCharacter`, que en el puerto es una
+## cadena y no el objeto de personaje del mod, y de un sistema de pegatinas que no existe
+## aqui. Queda como hueco declarado y no como un `pass` sin explicacion.
 func _show_stickers() -> void:
-	# Stickers are decorative elements that appear during transitions.
-	# In the full mod, these are loaded from a sticker sheet.
-	# For now, this is a placeholder.
 	pass
 
 
