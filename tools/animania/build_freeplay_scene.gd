@@ -92,6 +92,27 @@ const BOSS_VOLUME := 0.25
 ## es una onda, `sin(i / 3.5) * 10 - 10`, y la escala es el 0.281843 de la linea 29.
 ##
 ## Once cuadra con los datos: dadbattle en hard tiene rating 11, que las llena todas.
+## El banner de dificultad, buildBg lineas 1378-1388. Es un BUCLE: crea un
+## `new DifficultySprite(<id>)` por cada dificultad -que carga
+## 'animania-freeplay/diffs/<id>text'-, los deja todos apilados en el mismo sitio y solo
+## le sube el alfa a 1 (hueco 0x3a8) al que coincide con currentDifficulty.
+##
+##   1382  scale.set(0.95, 0.95)          1383  updateHitbox()
+##   1384  x = tvSprite.x + tvSprite.width*0.5 - self.width*0.5   (0x1e0 es tvSprite)
+##   1385  y = 70
+##   1388  if (height > 85) offset.y += abs(height - 85)
+##
+## Esa ultima linea alinea por abajo los banners altos. Con los cinco que trae el mod
+## ninguno pasa de 85 despues del 0.95 -el mas alto es standarttext, 89*0.95 = 84.5- asi
+## que la rama no se dispara nunca y no se portea.
+##
+## Ni el bucle ni nada cerca le pone zIndex, asi que hereda el del estado. Va por encima
+## del televisor, que es 30, porque asi sale en el mod.
+const DIFF_BANNERS := ["easy", "normal", "hard", "standart", "legacy"]
+const DIFF_BANNER_SCALE := 0.95
+const DIFF_BANNER_Y := 70.0
+const DIFF_BANNER_Z := 31
+
 const STAR_COUNT := 11
 const STAR_STEP_X := 40.0
 const STAR_WAVE_PERIOD := 3.5
@@ -534,6 +555,27 @@ func _init() -> void:
 	capsule.z_index = 650
 	ui.add_child(capsule)
 	capsule.owner = _root
+
+	# Los cinco banners de dificultad, apilados y centrados sobre el televisor.
+	var banners := Node2D.new()
+	banners.name = "DifficultyBanners"
+	ui.add_child(banners)
+	banners.owner = _root
+	for id: String in DIFF_BANNERS:
+		var b := Sprite2D.new()
+		b.name = "Diff_%s" % id
+		b.texture = load("%s/diffs/%stext.png" % [ART, id])
+		b.centered = false
+		b.scale = Vector2.ONE * FUNKIN_TO_RUBICON * DIFF_BANNER_SCALE
+		var w: float = b.texture.get_width() * DIFF_BANNER_SCALE
+		b.position = Vector2(
+			TV_AT_X + TV_WIDTH * 0.5 - w * 0.5, DIFF_BANNER_Y) * FUNKIN_TO_RUBICON
+		b.z_index = DIFF_BANNER_Z
+		b.z_as_relative = false
+		b.modulate.a = 0.0
+		b.set_meta(&"diff", id)
+		banners.add_child(b)
+		b.owner = _root
 
 	# El grupo de puntos. Nace invisible (linea 1554); lo enciende doIntroAnim.
 	var dots := Node2D.new()

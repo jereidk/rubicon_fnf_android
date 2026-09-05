@@ -842,6 +842,7 @@ func _update_data_stuff(_force: bool) -> void:
 
 	# Linea 1113: difficultyStars.difficulty. Ver _update_stars.
 	_update_stars()
+	_update_diff_banner()
 
 	# Lineas 1114-1115: los puntos de dificultad. setDots deja visibles solo los ids que
 	# la cancion trae, y set_curDiff enciende el de la dificultad actual.
@@ -1167,6 +1168,23 @@ func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	_update_data_stuff(false)
 	if play_sound:
 		_play_sound(SOUND_DIFF_CHANGE, SWITCH_VOLUME)
+
+
+## El banner de dificultad, buildBg 1378-1388. Los cinco existen a la vez, apilados sobre
+## el televisor, y solo el de la dificultad actual tiene alfa 1: el bucle le sube el alfa
+## (hueco 0x3a8) al que coincide con currentDifficulty y a los demas no les toca el suyo,
+## que nace en 0.
+func _update_diff_banner() -> void:
+	var row := get_node_or_null("UI/DifficultyBanners") as Node2D
+	if row == null:
+		return
+	var id: String = ""
+	if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
+		id = current_diffs_ids[current_difficulty]
+	for child: Node in row.get_children():
+		var b := child as Sprite2D
+		if b != null:
+			b.modulate.a = 1.0 if String(b.get_meta(&"diff", "")) == id else 0.0
 
 
 ## ─── FreeplayScore / ScoreNum ──────────────────────────────────────────────
