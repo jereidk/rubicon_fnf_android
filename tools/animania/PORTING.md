@@ -1143,6 +1143,43 @@ directions, 0xf0 MECHANIC, 0x108 ACCEPT, 0x110 BACK, 0x118 PAUSE, 0x120 RESET,
 0x160 DEBUG_CHART, 0x168 DEBUG_STAGE. Note that freeplay uses the generic UI_LEFT/UI_RIGHT
 and not `FREEPLAY_LEFT`/`FREEPLAY_RIGHT`, which exist and are for something else.
 
+### The small methods are where the assumptions hide
+
+Seven of the shortest methods left in `FreeplayScreen`, read properly rather than skimmed.
+Three of them said something the port had got wrong, and one of them said nothing at all —
+which was itself the finding.
+
+- **`openHelp` (0x34bc930, line 1685) is EMPTY.** Its 312 bytes are the hxcpp stack-frame
+  prologue and epilogue and not one instruction between them. The port's `pass` was right
+  by accident: its comment said "in the full mod, `FreeplayScreenHelp` manages this", when
+  in fact this method calls nobody. `FreeplayScreenHelp` exists — 22 symbols — and
+  something else opens it.
+- **`destroy` (1981-1998)** ends with `FunkinSound.playMusic(Constants.defaultThemeTrack,
+  {overrideExisting: true, restartTrack: false})`. `defaultThemeTrack` lives in `.bss`, so
+  it cannot be read out of the file — it is read out of `Constants_obj::__boot` at
+  0x1f8dec7, and it is `'animaniaLOOP'` (length 12, matching the `movl $0xc` beside it).
+  Both anon fields are read too, not assumed: `overrideExisting` true, `restartTrack` false.
+- **`fadeOut` (line 877)** does exactly one thing: `FlxTween.cancel` on the sound, then a
+  volume tween with an `onComplete`. The port had `_load_songs` + `_refresh` +
+  `_init_characters` + `_update_data_stuff` bolted onto the end of it "from the HScript
+  bridge pattern" — not in this method, not anywhere on this screen.
+- **`getCurrentDisk` (579-586)** is a bounds-checked accessor, and the port was indexing
+  `disks.get_child(cur_selected)` — the same child-index-versus-ID confusion `updateDisks`
+  had.
+
+And a tool bug that would have quietly corrupted all of this: `hxlines.py` matched symbols
+by SUBSTRING, so asking for `build` returned `buildBg` — 460 bytes of one method reported as
+14 018 bytes of another, with no warning. It now matches the method name exactly.
+
+**The near-miss worth recording.** Porting `destroy`'s music restore, I wrote
+`get_node_or_null("/root/MenuMusic")` — an autoload this project does not have (its three
+are `ErrorLog`, `MusicFilter`, `DebugOverlay`). It would have compiled, returned null, and
+done nothing for ever while looking ported. The real answer is that this line has no port at
+all: the mod has one global `FlxG.sound.music` that freeplay must hand back, while here
+each scene owns its own players and the main menu rebuilds them in `_init_music` on the way
+back in. A line with no counterpart should be written down as having none, not aimed at an
+invented node.
+
 ### `initHeader`: the z-order is read, the positions cannot be
 
 `initHeader` (0x34cca20, lines 1428-1545) builds the top-right furniture, and it settles

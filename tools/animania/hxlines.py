@@ -145,10 +145,16 @@ def resolve(name):
     """Direccion y tamano de un simbolo por nombre parcial."""
     out = subprocess.run(["nm", "-C", "--defined-only", "--print-size", str(BINARY)],
                          capture_output=True, text=True).stdout
+    # Empareja el nombre EXACTO del metodo: `build` es subcadena de `buildBg`, y sin esto
+    # pedir uno devuelve el otro sin decir nada. Se acepta "Clase::metodo" o "metodo".
+    want = name.split("::")[-1]
     hits = []
     for line in out.splitlines():
         parts = line.split(" ", 3)
         if len(parts) < 4 or name not in parts[3]:
+            continue
+        symbol = parts[3].split("(")[0]
+        if symbol.split("::")[-1] != want:
             continue
         if "_dyn" in parts[3] or "[clone .cold]" in parts[3]:
             continue

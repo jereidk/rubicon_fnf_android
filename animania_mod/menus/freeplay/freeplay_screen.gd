@@ -938,12 +938,13 @@ func _show_stickers() -> void:
 	pass
 
 
-## ─── openHelp (from binary at 0x34bca70) ────────────────────────────────────
-## Opens the help overlay.
-
+## ─── openHelp (0x34bc930, linea 1685) ──────────────────────────────────────
+## Esta VACIO en el mod. Los 312 bytes del metodo son el prologo y el epilogo del marco
+## de pila de hxcpp -empujar la posicion, comprobar el limite, sacarla- y entre medias no
+## hay ni una instruccion. El `pass` del puerto era correcto, pero por la razon
+## equivocada: no es que falte portear FreeplayScreenHelp, es que este metodo no llama a
+## nadie. La clase FreeplayScreenHelp existe (22 simbolos) y la abre otro sitio.
 func _open_help() -> void:
-	# The help button shows a tutorial overlay for new players.
-	# In the full mod, FreeplayScreenHelp manages this.
 	pass
 
 
@@ -1157,13 +1158,18 @@ func _change_theme(disk: Node2D, _data: Variant) -> void:
 ## selector's song list at vtable offset 0x68 and reads the current entry.
 ## References the "." path for relative access.
 
+## ─── getCurrentDisk (0x34bf330, lineas 579-586) ────────────────────────────
+## Un acceso con dos comprobaciones y poco mas. Aqui se busca por el meta `index`, no por
+## la posicion en el arbol, por lo mismo que en updateDisks: el ID del disco es estable y
+## su sitio en el arbol no tiene por que serlo.
 func _get_current_disk() -> Node2D:
-	if disks == null or cur_selected < 0 or cur_selected >= disks.get_child_count():
+	if disks == null:
 		return null
-	# In the binary, this reads from the selector's internal song list
-	# at vtable offset 0x68. Here, we directly return the disk node.
-	_current_disk_cache = disks.get_child(cur_selected) as Node2D
-	return _current_disk_cache
+	for child: Node in disks.get_children():
+		if int(child.get_meta(&"index", -1)) == cur_selected:
+			_current_disk_cache = child as Node2D
+			return _current_disk_cache
+	return null
 
 
 ## ─── fadeOut (from binary at 0x34bbc50) ─────────────────────────────────────
@@ -1174,22 +1180,30 @@ func _get_current_disk() -> Node2D:
 ## In practice, this triggers a fade-out of the current music and
 ## reinitializes the screen state.
 
+## ─── fadeOut (0x34bb860, linea 877) ────────────────────────────────────────
+## Corto y solo hace una cosa: cancela el tween que ya tuviera ese sonido
+## (FlxTween.cancel), lee su volumen (campo 0xd8) y lanza un tween de volumen con
+## FlxSound.volumeTween y un `onComplete`. Nada mas.
+##
+## El puerto le habia colgado detras un _load_songs + _refresh + _init_characters +
+## _update_data_stuff "del patron del puente de HScript", que no esta en el metodo ni en
+## ninguna parte de esta pantalla. Fuera.
+##
+## `?` La duracion del tween no es un literal del metodo: llega por la via del Dynamic y
+## no la he trazado. Se deja el 0.5 que ya habia, marcado como no leido.
+const FADE_SECONDS := 0.5
+
+
 func _fade_out(sound: Variant = null) -> void:
-	# Fade out the specified sound, or the main sfx player.
 	var target: Node = sound as Node if sound is Node else sfx
-	if target == null:
+	if target == null or not (target is AudioStreamPlayer):
 		return
-	if target is AudioStreamPlayer:
-		var player: AudioStreamPlayer = target as AudioStreamPlayer
-		if player.playing:
-			var tween: Tween = create_tween()
-			tween.tween_property(player, "volume_db", -40.0, 0.5)
-			tween.tween_callback(func() -> void: player.stop())
-	# After fade, reinitialize the screen state (from the HScript bridge pattern).
-	_load_songs()
-	_refresh(true)
-	_init_characters()
-	_update_data_stuff(true)
+	var player: AudioStreamPlayer = target as AudioStreamPlayer
+	if not player.playing:
+		return
+	var tween: Tween = create_tween()
+	tween.tween_property(player, "volume_db", -40.0, FADE_SECONDS)
+	tween.tween_callback(func() -> void: player.stop())
 
 
 ## ─── preloadThemes (from binary at 0x34ba820) ───────────────────────────────
@@ -1231,11 +1245,27 @@ func _preload_themes() -> void:
 ## Cleanup when the screen is destroyed.
 ## From binary: references "overrideExisting", "restartTrack".
 
+## ─── destroy (0x34d7890, lineas 1981-1998) ─────────────────────────────────
+##   1981  <cache>.clearCache()
+##   1982  super.destroy()
+##   1998  FunkinSound.playMusic(Constants.defaultThemeTrack,
+##             {overrideExisting: true, restartTrack: false});
+##
+## O sea que al salir de freeplay se vuelve a poner el tema del menu. El valor de
+## Constants.defaultThemeTrack esta en .bss, asi que no se lee del fichero: se lee de su
+## __boot (0x1f8dec7), y es 'animaniaLOOP' -longitud 12, que cuadra con el movl $0xc de
+## al lado-. Los dos campos del objeto anonimo tambien estan leidos: overrideExisting
+## true (byte a 1 en 0x30) y restartTrack false (byte a 0 en 0x58).
+## Lo de la musica NO se portea, y no por olvido. El mod tiene una musica global
+## (FlxG.sound.music), asi que al destruir freeplay hay que volver a ponerla a mano. En el
+## puerto la musica es de cada escena: el menu principal la crea en su _init_music y la
+## crea otra vez al volver a entrar, asi que `playMusic(..., restartTrack: false)` aqui no
+## tendria a quien hablarle. Escribir un get_node("/root/MenuMusic") -que es lo que estuve
+## a punto de dejar aqui- habria sido inventarse un autoload que este proyecto no tiene:
+## los suyos son ErrorLog, MusicFilter y DebugOverlay.
 func _destroy() -> void:
-	# Stop any playing music.
 	if sfx != null and sfx.playing:
 		sfx.stop()
-	# Clear references.
 	_current_disk_cache = null
 
 
