@@ -2136,6 +2136,72 @@ Two things block building it as read, and both are named rather than guessed:
   is used, it is a substitution and has to be marked as one.
 
 
+## 8g. updateDataStuff, and three labels with two writers each
+
+`updateDataStuff(bool)` (0x34c5f50, lines 1081-1176) is the header's whole content: it
+loads the score, writes the three info texts, raises the difficulty stars and the dots, and
+kicks the television static. Two branches — a song is selected, or none is.
+
+| line | what |
+|---|---|
+| 1088-1089 | `songData.currentDifficulty = currentDifficulty`; `songData.updateValues(currentCharacter)` |
+| 1090-1092 | `getSongScore(...)` → `score`; the percentage from `tallies.good`, `.sick`, `.totalNotes` |
+| 1097-1098 | `albumRoll.albumId = …`, `albumRoll.skipIntro()` |
+| 1100-1102 | `cancelTweensOf(tvNoiseForward, ['alpha'])`; `alpha = 0.7`; tween to **0.45 over 0.25 s, sineInOut** |
+| 1104-1106 | `cancelTweensOf(infoTitleText)`; `amount = 2`; tween `amount` to 0.1, same 0.25 s |
+| 1113-1115 | `difficultyStars.difficulty`, `dotsGrp.setDots(currentDiffsIds)`, `songInfoCapsule.curDiff` |
+| 1117-1118 | alpha **1** on the seven header items; `visible = true` |
+| 1120-1125 | `'BPM: ' + bpm`, the title, `'DIF: ' + difficulty` |
+| 1131-1133 | bossfightSkull: `cancelTweensOf`, alpha tween over **0.1 backOut**, `play('y')` |
+| 1165-1173 | the no-song branch: same setters, alpha **0.0001**, `visible = false` |
+| 1176 | `dispatch('onUpdateDataStuff')` |
+
+The seven are the same seven `postHeader` line 1593 leaves at 0.0001: `infoBpmText`,
+`infoTitleText`, `infoDiffText`, `highScoreSpr`, `clearBoxSprite`, `freeplayScore`,
+`completionText`. So the header does not start hidden by `visible` — it starts at an alpha
+of essentially zero, and `updateDataStuff` raises it. That is what makes it appear when a
+song is picked instead of being there from the first frame.
+
+### What this turned up in the port
+
+Three node references were wrong, and every one of them failed **silently** because
+`_resolve_nodes` uses `get_node_or_null`:
+
+- `freeplay_score` pointed at `UI/FreeplayScore`, **a node that does not exist**. It is the
+  score number, and the code that writes it has been running against `null`, so the score
+  never displayed at all.
+- `high_score_spr` pointed at the `UI/HighScore` *Label*. `highScoreSpr` (field 0x218) is
+  the sprite; the number is `freeplayScore` (0x1c0). The two were crossed.
+- `tv_noise_forward` was **declared and never assigned**.
+
+And three properties had two writers each, with the invented one winning because it ran
+later:
+
+- **alpha**: `_init_header` set `HEADER_ALPHA` on the info labels; alpha belongs to
+  `postHeader` (0.0001) and `updateDataStuff` (1).
+- **BPM**: `_update_song_info` — a method with no counterpart in the mod — set
+  `info_bpm_text.text = ""` with the comment "BPM would come from the song data". Called
+  from `_refresh`, i.e. *after* `updateDataStuff`, so the BPM was blanked every time. The
+  title survived only by coincidence: `"phone-call".capitalize()` happens to give
+  `"Phone Call"`.
+- **difficulty**: `_update_difficulty_display` wrote the bare name; line 1125 writes it
+  with a `'DIF: '` prefix.
+
+One writer per property. When a value is wrong and there are two writers, the bug is
+almost never in the one you are reading.
+
+### Not ported, and why
+
+- **The score and the completion percentage.** They come from `getSongScore` over a save
+  this project does not have — the story menu hardcodes its score to 0 too. The formula is
+  in the table above; the values stay at zero.
+- **The title tween (line 1106).** `amount` is a property of the mod's `FlxFixedText`, an
+  effect over the glyphs. The port's labels are Godot `Label`s with no equivalent.
+- **The bossfight skull.** `BossfightSkull` is not in the scene, so `bossfight_skull` is
+  null; the ported code guards for it. None of the port's four songs is a boss fight, so
+  only the fade-out branch would run today anyway.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

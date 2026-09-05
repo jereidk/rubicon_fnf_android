@@ -13,6 +13,11 @@ extends Node2D
 
 ## ─── Song list ───────────────────────────────────────────────────────────────
 
+## `bpm` y `title` los pinta updateDataStuff (lineas 1120 y 1122) y salen de
+## <id>-metadata.json del mod: el bpm del primer timeChange y `songName`. El campo `disk`
+## es el nombre del fichero del disco, que no es lo mismo -"phone call" frente a
+## "Phone Call"-, asi que el titulo no se puede sacar de ahi.
+##
 ## `theme` y `layer` son los dos campos que decide changeTheme, y salen tal cual de
 ## assets/data/songs/<id>/<id>-metadata.json del mod: `freeplayTheme` y `freeplayLayer`.
 ## No se deducen del personaje rival -eso lo supuse en su dia y era falso: dadbattle tiene
@@ -24,24 +29,32 @@ const SONGS: Array[Dictionary] = [
 		"disk": "phone call",
 		"scene": "res://songs/phone-call/phone_call.tscn",
 		"layer": "komi",
+		"bpm": 152,
+		"title": "Phone Call",
 	},
 	{
 		"id": "bopeebo",
 		"disk": "bopeebo",
 		"scene": "res://songs/bopeebo/bopeebo.tscn",
 		"layer": "dad",
+		"bpm": 110,
+		"title": "Bopeebo",
 	},
 	{
 		"id": "fresh",
 		"disk": "fresh",
 		"scene": "res://songs/fresh/fresh.tscn",
 		"layer": "dad",
+		"bpm": 120,
+		"title": "Fresh",
 	},
 	{
 		"id": "dadbattle",
 		"disk": "dadbattle",
 		"scene": "res://songs/dadbattle/dadbattle.tscn",
 		"layer": "dad",
+		"bpm": 180,
+		"title": "DadBattle",
 	},
 ]
 
@@ -149,7 +162,7 @@ var tv_intro_done: bool = false
 ## TV sprites.
 var tv_sprite: AnimatedSprite2D
 var tv_noise_back: Sprite2D  ## TV noise back layer.
-var tv_noise_forward: Sprite2D  ## TV noise forward layer.
+var tv_noise_forward: AnimatedSprite2D  ## TV noise forward layer.
 var tv_back_bg: Sprite2D  ## TV background.
 
 ## Shadows on bed.
@@ -174,7 +187,11 @@ var intended_score: int = 0
 var intended_completion: float = 0.0
 var prev_displayed_score: int = 0
 var prev_displayed_completion: float = 0.0
-var high_score_spr: Label
+## highScoreSpr (campo 0x218) es el SPRITE del marcador; el numero es freeplayScore
+## (0x1c0). El puerto los tenia cruzados: high_score_spr apuntaba a la etiqueta y
+## freeplay_score a un nodo "UI/FreeplayScore" que no existe, asi que el marcador no
+## se pintaba nunca y nadie se enteraba porque _resolve_nodes usa get_node_or_null.
+var high_score_spr: AnimatedSprite2D
 var clear_box_sprite: Sprite2D
 
 ## Characters.
@@ -262,7 +279,8 @@ func _resolve_nodes() -> void:
 	tv_sprite = get_node_or_null("Tv") as AnimatedSprite2D
 	shadows_on_bed = get_node_or_null("ShadowsOnBed")
 	dark_overlay = get_node_or_null("DarkOverlay") as ColorRect
-	high_score_spr = get_node_or_null("UI/HighScore") as Label
+	high_score_spr = get_node_or_null("UI/HighScoreSpr") as AnimatedSprite2D
+	tv_noise_forward = get_node_or_null("TvNoiseForward") as AnimatedSprite2D
 	clear_box_sprite = get_node_or_null("UI/ClearBox") as Sprite2D
 	info_title = get_node_or_null("UI/InfoTitle") as Label
 	info_bpm_text = get_node_or_null("UI/InfoBpm") as Label
@@ -279,7 +297,7 @@ func _resolve_nodes() -> void:
 	bossfight_skull = get_node_or_null("BossfightSkull") as Sprite2D
 	selector = get_node_or_null("Selector")
 	completion_text = get_node_or_null("UI/CompletionText") as Label
-	freeplay_score = get_node_or_null("UI/FreeplayScore") as Label
+	freeplay_score = get_node_or_null("UI/HighScore") as Label
 	grp_disks = get_node_or_null("Disks") as Node2D
 	tv_bg = get_node_or_null("TvBg") as Sprite2D
 	tv_sprite_flash = get_node_or_null("TvSpriteFlash") as Sprite2D
@@ -663,17 +681,104 @@ func _update_camera_scroll(delta: float) -> void:
 		remap(mouse.y, 0.0, SCREEN.y, SCROLL_RANGE_Y.x, SCROLL_RANGE_Y.y)) * step
 
 
-## ─── updateDataStuff (0x34c5f50) ───────────────────────────────────────────
+## ─── updateDataStuff (0x34c5f50, lineas 1081-1176) ─────────────────────────
 ## NO corre por frame: el grafo de llamadas del binario lo saca de changeDiff y de
 ## changeSelection y de ningun otro sitio. Lo que hacia aqui -interpolar el marcador con
-## un factor 0.1 y un umbral- era de update, y ya esta donde le toca, en _drive_score.
+## un factor 0.1 y un umbral- era de update, y ya esta en _drive_score.
 ##
-## Sus 6883 bytes siguen sin leer. Por el tamano y por quien lo llama, es donde se
-## cargan del guardado la puntuacion, el porcentaje, la caja de completado y las
-## estrellas de dificultad de la cancion elegida. Aqui solo queda su papel: fijar los
-## `intended*` que update persigue.
+## Ya leido. Son 6883 bytes con dos ramas, la de "hay cancion" y la de "no la hay":
+##
+##   1088  songData.currentDifficulty = currentDifficulty
+##   1089  songData.updateValues(currentCharacter)
+##   1090  <guardado>.getSongScore(<cancion>, currentDifficulty)
+##   1091  score = <eso>.score
+##   1092  el porcentaje sale de tallies.good, tallies.sick y tallies.totalNotes
+##   1097  albumRoll.albumId = ...        1098  albumRoll.skipIntro()
+##   1100  FlxTween.cancelTweensOf(tvNoiseForward, ['alpha'])
+##   1101  tvNoiseForward.alpha = 0.7
+##   1102  FlxTween.tween(tvNoiseForward, {alpha: 0.45}, 0.25, {ease: sineInOut})
+##   1104  FlxTween.cancelTweensOf(infoTitleText, ...)
+##   1105  infoTitleText.<amount> = 2
+##   1106  FlxTween.tween(infoTitleText, {amount: 0.1}, 0.25, {ease: sineInOut})
+##   1113  difficultyStars.difficulty = ...      1114  dotsGrp.setDots(currentDiffsIds)
+##   1115  songInfoCapsule.curDiff = currentDifficulty
+##   1117  alpha 1 sobre los siete de la cabecera    1118  visible = true
+##   1120  infoBpmText.text  = 'BPM: ' + <bpm>
+##   1122  infoTitleText.text = <titulo>
+##   1125  infoDiffText.text = 'DIF: ' + <dificultad>
+##   1131  FlxTween.cancelTweensOf(bossfightSkull, [...])
+##   1132  FlxTween.tween(bossfightSkull, {alpha: ...}, 0.1, {ease: backOut})
+##   1133  bossfightSkull.animation.play('y')
+##   1137  bossSound ...        1142-1148  si no suena: pause, y alpha del craneo a 0
+##   1148  'N/A'
+##   -- la rama sin cancion --
+##   1165  dotsGrp.setDots(...)   1166  curDiff   1169 albumId   1170 difficulty
+##   1172  alpha 0.0001 sobre los mismos siete      1173  visible = false
+##   1176  dispatch('onUpdateDataStuff')
+##
+## Los siete de las lineas 1117/1172 son los mismos que postHeader deja en 0.0001 al
+## construir: infoBpmText, infoTitleText, infoDiffText, highScoreSpr, clearBoxSprite,
+## freeplayScore y completionText. O sea que la cabecera no se oculta con visible, se
+## queda en un alfa practicamente cero y updateDataStuff la sube a 1.
+##
+## `?` Sin portear, y dicho: la puntuacion y el porcentaje. Salen de getSongScore sobre
+## un guardado que este proyecto no tiene -el menu de historia tambien deja su marcador
+## a 0-, asi que la formula queda escrita arriba y los valores se quedan en cero.
+## `?` Tampoco se portea el tween de la linea 1106: `amount` es una propiedad del
+## FlxFixedText del mod -un efecto sobre el texto-, y aqui las etiquetas son Labels de
+## Godot y no tienen nada equivalente.
+const NOISE_KICK := 0.7
+const NOISE_REST := 0.45
+const NOISE_SETTLE := 0.25
+const HEADER_HIDDEN := 0.0001
+const SKULL_FADE := 0.1
+
+
 func _update_data_stuff(_force: bool) -> void:
+	var has_song: bool = cur_selected >= 0 and cur_selected < current_filtered_songs.size()
+
+	# Lineas 1117/1118 y 1172/1173: los siete de la cabecera a 1 o a 0.0001.
+	var alpha: float = 1.0 if has_song else HEADER_HIDDEN
+	for node: CanvasItem in [info_bpm_text, info_title, info_difficulty, high_score_spr,
+			clear_box_sprite, freeplay_score, completion_text]:
+		if node != null:
+			node.modulate.a = alpha
+			node.visible = has_song
+
+	if not has_song:
+		return
+
 	_update_score_for_selection()
+
+	var song: Dictionary = current_filtered_songs[cur_selected]
+	# Lineas 1120 y 1125. El titulo (1122) va sin prefijo.
+	if info_title != null:
+		info_title.text = String(song.get("title", song.get("id", "")))
+	if info_bpm_text != null:
+		info_bpm_text.text = "BPM: %s" % str(song.get("bpm", ""))
+	# Linea 1125. En el mod `currentDifficulty` es una cadena; aqui es el indice, asi que
+	# el nombre sale de la tabla.
+	if info_difficulty != null:
+		var name: String = DIFFICULTIES[current_difficulty] \
+			if current_difficulty >= 0 and current_difficulty < DIFFICULTIES.size() \
+			else str(current_difficulty)
+		info_difficulty.text = "DIF: %s" % name
+
+	# Lineas 1100-1102: el ruido del televisor pega un golpe a 0.7 y se asienta en 0.45.
+	# Es lo que se ve al cambiar de cancion.
+	if tv_noise_forward != null:
+		var kick: Tween = create_tween()
+		tv_noise_forward.modulate.a = NOISE_KICK
+		kick.tween_property(tv_noise_forward, "modulate:a", NOISE_REST, NOISE_SETTLE) \
+			.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+
+	# Lineas 1131-1133 y 1148: el craneo de jefe. Ninguna de las cuatro canciones del
+	# puerto es de jefe, asi que hoy solo se recorre la rama de apagarlo.
+	if bossfight_skull != null:
+		var boss: bool = bool(song.get("bossfight", false))
+		var fade: Tween = create_tween()
+		fade.tween_property(bossfight_skull, "modulate:a", 1.0 if boss else 0.0,
+			SKULL_FADE).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 
 ## ─── doIntroAnim (from binary at 0x34bbf20) ────────────────────────────────
@@ -824,26 +929,53 @@ func _handle_exit() -> void:
 func _init_header() -> void:
 	# The header elements are created in the scene or added here.
 	# Position them at the top of the screen.
+	# El alfa ya no se toca aqui: lo fija postHeader en 0.0001 (linea 1593) y lo sube
+	# updateDataStuff (1117). Tener dos sitios escribiendo el mismo alfa es como se
+	# esconden los fallos.
+	#
+	# Las tres `y` siguen siendo invencion: las de verdad son una FILA sobre la capsula
+	# de abajo, a capsula.y + 23 y de 300 de ancho, no una columna. Ver PORTING.md 8f.
 	if info_title != null:
 		info_title.position.y = HEADER_BOTTOM_Y
-		info_title.modulate.a = HEADER_ALPHA
 	if info_bpm_text != null:
 		info_bpm_text.position.y = HEADER_BOTTOM_Y + CAPSULE_SPACING
-		info_bpm_text.modulate.a = HEADER_ALPHA
 	if info_difficulty != null:
 		info_difficulty.position.y = HEADER_BOTTOM_Y + CAPSULE_SPACING * 2
-		info_difficulty.modulate.a = HEADER_ALPHA
 
 
-## ─── postHeader (from binary at 0x34cb6e0) ──────────────────────────────────
-## Finalizes the header after all elements are created.
-## From binary: uses 20.0, 24.0, 2.0, and "animania-freeplay/bottom capsule".
-
+## ─── postHeader (0x34cb6e0, lineas 1550-1594) ──────────────────────────────
+## Leido entero, construido a medias. Lo que hace: el grupo de puntos de dificultad
+## (zIndex 70), la capsula de abajo -sparrow 'animania-freeplay/bottom capsule', zIndex
+## 650- y las tres etiquetas de info encima de ella (ancho 300, y = capsula.y + 23,
+## alineadas izquierda/centro/derecha, fuente DS-DIGIB.TTF a 28).
+##
+## De todo eso aqui solo va lo que esta pinchado sin ambiguedad, que son las dos ultimas
+## lineas del metodo:
+##
+##   1593  alpha = 0.0001 en infoBpmText, infoTitleText, infoDiffText, highScoreSpr,
+##         clearBoxSprite, freeplayScore y completionText
+##   1594  dotsGrp.visible = false
+##
+## O sea: la cabecera NO nace oculta con visible, nace con un alfa practicamente cero, y
+## quien la sube a 1 es updateDataStuff. Eso es lo que hace que aparezca al elegir
+## cancion en vez de estar puesta desde el principio.
+##
+## `?` La capsula, los puntos y la fila de etiquetas siguen sin construir, por dos
+## motivos concretos: la x/y de la capsula sale de aritmetica con get_width/get_height a
+## traves de setters de vtable que falta trazar, y DS-DIGIB.TTF no esta en el build -no
+## hay ni un .ttf en el-, asi que la fuente sera una sustitucion. Ver PORTING.md 8f.
 func _post_header() -> void:
-	# Update the difficulty display.
 	_update_difficulty_display()
-	# Update the song info.
 	_update_song_info()
+	# Linea 1593.
+	for node: CanvasItem in [info_bpm_text, info_title, info_difficulty, high_score_spr,
+			clear_box_sprite, freeplay_score, completion_text]:
+		if node != null:
+			node.modulate.a = HEADER_HIDDEN
+	# Linea 1594.
+	var dots := get_node_or_null("UI/DotsGrp") as CanvasItem
+	if dots != null:
+		dots.visible = false
 
 
 ## ─── changeDiff (from binary at 0x34c7a40) ──────────────────────────────────
@@ -886,8 +1018,10 @@ func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 
 
 func _update_difficulty_display() -> void:
-	if info_difficulty != null and current_difficulty < DIFFICULTIES.size():
-		info_difficulty.text = DIFFICULTIES[current_difficulty]
+	# El texto ya no se escribe aqui. Lo escribe updateDataStuff (linea 1125) y con el
+	# prefijo 'DIF: '; esto lo ponia crudo y, al correr despues, se lo comia. Tercer sitio
+	# en este fichero donde dos funciones escribian la misma propiedad -el alfa de la
+	# cabecera, el BPM y ahora la dificultad-, y las tres veces ganaba la inventada.
 	# Update stars if they exist.
 	if difficulty_stars != null:
 		for i: int in difficulty_stars.get_child_count():
@@ -952,10 +1086,12 @@ func _update_song_info() -> void:
 		return
 	var song: Dictionary = current_filtered_songs[cur_selected]
 	song_info = song
-	if info_title != null:
-		info_title.text = String(song.get("id", "")).capitalize()
-	if info_bpm_text != null:
-		info_bpm_text.text = ""  # BPM would come from the song data.
+	# Aqui habia dos lineas que pisaban las etiquetas: el titulo con
+	# `id.capitalize()` y el BPM con la cadena vacia, "el BPM vendria de los datos de la
+	# cancion". No son de ningun metodo del mod -quien escribe esos textos es
+	# updateDataStuff, lineas 1120-1125-, y como _refresh llama a esto DESPUES, el BPM
+	# acababa siempre en blanco por mucho que updateDataStuff lo rellenara. Fuera.
+	# El titulo colaba porque capitalize() sobre "phone-call" da justo "Phone Call".
 
 
 ## ─── _update_score_for_selection ─────────────────────────────────────────────
