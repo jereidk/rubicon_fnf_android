@@ -3,10 +3,10 @@ extends Control
 
 var options: Array[String] = ["Story", "Freeplay", "Settings", "Credits"]
 var destinations: Dictionary = {
-	"Story": "res://songs/test/test.tscn",
-	"Freeplay": "res://animania_mod/menus/freeplay/freeplay_screen.tscn",
-	"Settings": "res://animania_mod/menus/options/options_screen.tscn",
-	"Credits": "res://animania_mod/menus/credits/credits_menu.tscn",
+	"Story": "res://holyquintet_mod/menus/freeplay/freeplay_screen.tscn",
+	"Freeplay": "res://holyquintet_mod/menus/freeplay/freeplay_screen.tscn",
+	"Settings": "res://holyquintet_mod/menus/settings/settings_screen.tscn",
+	"Credits": "res://holyquintet_mod/menus/credits/credits_screen.tscn",
 }
 var cur_sel: int = 0
 var can_control: bool = true

@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="1"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/credits/credits_screen.gd" id="2"]
+
+[node name="HQCredits" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.03, 0.1, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 50.0
+offset_top = 40.0
+offset_right = 500.0
+offset_bottom = 110.0
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 56
+text = "Credits"
+
+[node name="CreditsLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 50.0
+offset_top = 130.0
+offset_right = 1200.0
+offset_bottom = 950.0
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 28
+autowrap_mode = 2
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
