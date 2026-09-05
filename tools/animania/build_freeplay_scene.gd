@@ -96,7 +96,14 @@ const STAR_COUNT := 11
 const STAR_STEP_X := 40.0
 const STAR_WAVE_PERIOD := 3.5
 const STAR_WAVE_AMPLITUDE := 10.0
-const STAR_SCALE := 0.281843
+## NO hay escala. El 0.281843 que habia aqui es un double que generateSprites carga junto
+## a dos contadores de bucle, y la clase declara `fastDelayTime` y `delayTime`: es un
+## RETARDO, no un tamaño. Tomarlo por escala dejaba las estrellas a 12 px cuando el
+## fotograma de `difficulty star` mide 43x45 y el de `difficulty dot` 17x17.
+##
+## A tamaño nativo, once estrellas de 43 px con paso de 40 se tocan y forman una fila
+## continua sobre el cuerpo del televisor, que es como sale en el mod.
+const STAR_SCALE := 1.0
 
 ## El marcador. initHeader linea 1540 crea FreeplayScore(0, 61, 7) -la x es un
 ## `pxor %xmm0,%xmm0`, o sea cero; la y el double 61.0; y el 7 va en %edx-, y el bucle de
@@ -572,7 +579,12 @@ func _init() -> void:
 	_label(ui, "CompletionText", Rect2(1500.0, 140.0, 200.0, 40.0), "100").z_index = 53
 	var stars := Node2D.new()
 	stars.name = "DifficultyStars"
-	stars.position = Vector2(525.0, 120.0) * FUNKIN_TO_RUBICON
+	# EJES CAMBIADOS. Esto decia (525, 120) y era invencion del builder viejo que nunca
+	# comprobe. buildBg linea 1340 hace `new DifficultyStars(120, 525)`: el 120.0 esta en
+	# 0x59faf28 y va en xmm0 (la x), el 525.0 en 0x59fb1f8 y va en xmm1 (la y). O sea que
+	# la fila va ABAJO A LA IZQUIERDA, sobre el cuerpo del televisor y bajo su pantalla,
+	# que es donde sale en el mod. Con los ejes cambiados aparecia arriba del todo.
+	stars.position = Vector2(120.0, 525.0) * FUNKIN_TO_RUBICON
 	stars.z_index = 35
 	ui.add_child(stars)
 	stars.owner = _root

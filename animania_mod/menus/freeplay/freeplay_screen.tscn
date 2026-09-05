@@ -32,16 +32,16 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_boss_frames.tres" id="30_c2g3b"]
 [ext_resource type="AudioStream" path="res://animania_mod/source/sounds/freeplay/bossIndicator.ogg" id="31_sepfn"]
 
-[node name="FreeplayScreen" type="Node2D" unique_id=174534212 node_paths=PackedStringArray("disks", "sfx", "bed")]
+[node name="FreeplayScreen" type="Node2D" unique_id=486843286 node_paths=PackedStringArray("disks", "sfx", "bed")]
 script = ExtResource("1_gksxy")
 disks = NodePath("Disks")
 sfx = NodePath("Sfx")
 bed = NodePath("Bed")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1382223611]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=475203148]
 position = Vector2(960, 540)
 
-[node name="Backdrop" type="ColorRect" parent="." unique_id=511944334]
+[node name="Backdrop" type="ColorRect" parent="." unique_id=604089106]
 offset_left = -165.0
 offset_top = -585.0
 offset_right = 2085.0
@@ -49,14 +49,14 @@ offset_bottom = 1665.0
 mouse_filter = 2
 color = Color(0.09411765, 0.07058824, 0.10980392, 1)
 
-[node name="Backwall" type="Sprite2D" parent="." unique_id=2025198775]
+[node name="Backwall" type="Sprite2D" parent="." unique_id=1192813998]
 z_index = 1
 position = Vector2(0, 28.125)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_krwhp")
 centered = false
 
-[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=998234949]
+[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=334242315]
 z_index = 2
 position = Vector2(0, 381)
 scale = Vector2(1.5, 1.5)
@@ -65,11 +65,11 @@ animation = &"bed"
 frame = 2
 centered = false
 
-[node name="ShadowsOnBed" type="Node2D" parent="." unique_id=1080703173]
+[node name="ShadowsOnBed" type="Node2D" parent="." unique_id=1145169543]
 visible = false
 z_index = 3
 
-[node name="Phone" type="AnimatedSprite2D" parent="ShadowsOnBed" unique_id=1336367981]
+[node name="Phone" type="AnimatedSprite2D" parent="ShadowsOnBed" unique_id=1218983316]
 visible = false
 z_index = 6
 z_as_relative = false
@@ -79,7 +79,7 @@ sprite_frames = ExtResource("4_m0fky")
 animation = &"Phone fall"
 centered = false
 
-[node name="Girlfriend" type="Node2D" parent="ShadowsOnBed" unique_id=735065460]
+[node name="Girlfriend" type="Node2D" parent="ShadowsOnBed" unique_id=569795037]
 z_index = 4
 z_as_relative = false
 position = Vector2(1015.5, 336)
@@ -87,11 +87,11 @@ scale = Vector2(1.5, 1.5)
 script = ExtResource("5_uir5s")
 atlases = Array[ExtResource("6_emhyr")]([ExtResource("7_d8j3u")])
 
-[node name="Anims" type="AnimationPlayer" parent="ShadowsOnBed/Girlfriend" unique_id=1177013012]
+[node name="Anims" type="AnimationPlayer" parent="ShadowsOnBed/Girlfriend" unique_id=403395851]
 libraries/ = ExtResource("8_5wewy")
 autoplay = &"freeplay_gf_idle"
 
-[node name="Player2" type="Node2D" parent="ShadowsOnBed" unique_id=211898447]
+[node name="Player2" type="Node2D" parent="ShadowsOnBed" unique_id=1716796726]
 z_index = 5
 z_as_relative = false
 position = Vector2(759, 360)
@@ -99,11 +99,11 @@ scale = Vector2(1.5, 1.5)
 script = ExtResource("5_uir5s")
 atlases = Array[ExtResource("6_emhyr")]([ExtResource("9_8f43m")])
 
-[node name="Anims" type="AnimationPlayer" parent="ShadowsOnBed/Player2" unique_id=884444299]
+[node name="Anims" type="AnimationPlayer" parent="ShadowsOnBed/Player2" unique_id=369655672]
 libraries/ = ExtResource("10_lq05b")
 autoplay = &"freeplay_bf_idle"
 
-[node name="PhoneCallPhone" type="AnimatedSprite2D" parent="ShadowsOnBed" unique_id=1352973547]
+[node name="PhoneCallPhone" type="AnimatedSprite2D" parent="ShadowsOnBed" unique_id=907010216]
 visible = false
 z_index = 5
 z_as_relative = false
@@ -113,7 +113,7 @@ sprite_frames = ExtResource("4_m0fky")
 animation = &"Phone fall"
 centered = false
 
-[node name="TvGlow" type="Sprite2D" parent="." unique_id=1078302835]
+[node name="TvGlow" type="Sprite2D" parent="." unique_id=1485087982]
 visible = false
 z_index = 7
 position = Vector2(424.5, 739.5)
@@ -121,7 +121,7 @@ scale = Vector2(1.5, 1.5)
 texture = ExtResource("11_gju2i")
 centered = false
 
-[node name="TvBg" type="AnimatedSprite2D" parent="." unique_id=304438221]
+[node name="TvBg" type="AnimatedSprite2D" parent="." unique_id=809130719]
 z_index = 10
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("12_d5xig")
@@ -129,7 +129,7 @@ animation = &"pink"
 autoplay = "pink"
 centered = false
 
-[node name="TvBackBG" type="ColorRect" parent="." unique_id=1488603490]
+[node name="TvBackBG" type="ColorRect" parent="." unique_id=1557533064]
 visible = false
 z_index = 20
 offset_left = 175.5
@@ -139,7 +139,7 @@ offset_bottom = 649.5
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="TvNoiseBack" type="AnimatedSprite2D" parent="." unique_id=1630526914]
+[node name="TvNoiseBack" type="AnimatedSprite2D" parent="." unique_id=233771050]
 visible = false
 z_index = 26
 position = Vector2(175.5, 192)
@@ -149,7 +149,7 @@ animation = &"noise sprite"
 autoplay = "noise sprite"
 centered = false
 
-[node name="TvNoiseForward" type="AnimatedSprite2D" parent="." unique_id=1969417193]
+[node name="TvNoiseForward" type="AnimatedSprite2D" parent="." unique_id=1750424926]
 visible = false
 modulate = Color(1, 1, 1, 0.45)
 z_index = 28
@@ -160,7 +160,7 @@ animation = &"noise sprite"
 autoplay = "noise sprite"
 centered = false
 
-[node name="TvSpriteFlash" type="ColorRect" parent="." unique_id=2028446261]
+[node name="TvSpriteFlash" type="ColorRect" parent="." unique_id=638676493]
 visible = false
 z_index = 29
 offset_left = 175.5
@@ -169,7 +169,7 @@ offset_right = 738.0
 offset_bottom = 649.5
 mouse_filter = 2
 
-[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=1251433183]
+[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=2042596995]
 visible = false
 z_index = 30
 position = Vector2(-90, -297)
@@ -179,7 +179,7 @@ animation = &"freeplay tv образец "
 frame = 2
 centered = false
 
-[node name="Player" type="AnimatedSprite2D" parent="." unique_id=701866916]
+[node name="Player" type="AnimatedSprite2D" parent="." unique_id=1306180066]
 visible = false
 z_index = 16
 position = Vector2(75, 757.5)
@@ -188,7 +188,7 @@ sprite_frames = ExtResource("15_x26rw")
 animation = &"player"
 centered = false
 
-[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=1559950361]
+[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=576791015]
 visible = false
 z_index = 24
 position = Vector2(68.625, 772.5)
@@ -196,11 +196,11 @@ scale = Vector2(1.5, 1.5)
 texture = ExtResource("16_djkj1")
 centered = false
 
-[node name="Disks" type="Node2D" parent="." unique_id=1059429255]
+[node name="Disks" type="Node2D" parent="." unique_id=1708073283]
 visible = false
 z_index = 19
 
-[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=1827987211]
+[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=1804992623]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("17_kft5f")
 centered = false
@@ -210,7 +210,7 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=199130246]
+[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=693320804]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("18_8xxdr")
 centered = false
@@ -220,7 +220,7 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=1577976359]
+[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=300403321]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("19_da57u")
 centered = false
@@ -230,7 +230,7 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk3" type="Sprite2D" parent="Disks" unique_id=645139615]
+[node name="Disk3" type="Sprite2D" parent="Disks" unique_id=984339588]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("20_d1xg7")
 centered = false
@@ -240,9 +240,9 @@ metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="UI" type="Node2D" parent="." unique_id=1887786545]
+[node name="UI" type="Node2D" parent="." unique_id=514861583]
 
-[node name="HighScore" type="Label" parent="UI" unique_id=13249815]
+[node name="HighScore" type="Label" parent="UI" unique_id=16166187]
 z_index = 54
 offset_left = 1400.0
 offset_top = 50.0
@@ -250,18 +250,18 @@ offset_right = 1850.0
 offset_bottom = 90.0
 text = "0"
 
-[node name="FreeplayScore" type="Node2D" parent="UI" unique_id=354888068]
+[node name="FreeplayScore" type="Node2D" parent="UI" unique_id=2136539137]
 z_index = 54
 position = Vector2(1315.5, 91.5)
 
-[node name="Digit0" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=2119491547]
+[node name="Digit0" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1570523702]
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
 animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit1" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=198356766]
+[node name="Digit1" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=266745726]
 position = Vector2(67.5, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -269,7 +269,7 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit2" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1163964909]
+[node name="Digit2" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1340639870]
 position = Vector2(135, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -277,7 +277,7 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit3" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=2100090196]
+[node name="Digit3" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1472300122]
 position = Vector2(202.5, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -285,7 +285,7 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit4" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=545212762]
+[node name="Digit4" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=234788961]
 position = Vector2(270, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -293,7 +293,7 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit5" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1914349882]
+[node name="Digit5" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1045937667]
 position = Vector2(337.5, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -301,7 +301,7 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="Digit6" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=351514298]
+[node name="Digit6" type="AnimatedSprite2D" parent="UI/FreeplayScore" unique_id=1875837104]
 position = Vector2(405, 0)
 scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("21_5xfj7")
@@ -309,13 +309,13 @@ animation = &"ZERO DIGITAL"
 autoplay = "ZERO DIGITAL"
 centered = false
 
-[node name="ClearBox" type="Sprite2D" parent="UI" unique_id=59597678]
+[node name="ClearBox" type="Sprite2D" parent="UI" unique_id=1163108047]
 z_index = 52
 position = Vector2(1500, 100)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("22_clu28")
 
-[node name="SongInfoCapsule" type="AnimatedSprite2D" parent="UI" unique_id=1730206111]
+[node name="SongInfoCapsule" type="AnimatedSprite2D" parent="UI" unique_id=1082471983]
 z_index = 650
 position = Vector2(198.75, 1000.5)
 scale = Vector2(1.5, 1.5)
@@ -323,12 +323,12 @@ sprite_frames = ExtResource("23_5plxf")
 animation = &"mp3 capsule образец "
 centered = false
 
-[node name="DotsGrp" type="Node2D" parent="UI" unique_id=1180643793]
+[node name="DotsGrp" type="Node2D" parent="UI" unique_id=2054839316]
 visible = false
 z_index = 70
 position = Vector2(482.25, 30)
 
-[node name="Dot0" type="Sprite2D" parent="UI/DotsGrp" unique_id=1158348663]
+[node name="Dot0" type="Sprite2D" parent="UI/DotsGrp" unique_id=1217419191]
 modulate = Color(0.424902, 0.54784316, 0.1919608, 0.9)
 position = Vector2(-78.75, 0)
 scale = Vector2(1.5, 1.5)
@@ -336,7 +336,7 @@ texture = ExtResource("24_jlabv")
 centered = false
 metadata/diff = "easy"
 
-[node name="Dot1" type="Sprite2D" parent="UI/DotsGrp" unique_id=1482563889]
+[node name="Dot1" type="Sprite2D" parent="UI/DotsGrp" unique_id=1861808828]
 modulate = Color(0.54784316, 0.49392158, 0.14450982, 0.9)
 position = Vector2(-26.25, 0)
 scale = Vector2(1.5, 1.5)
@@ -344,7 +344,7 @@ texture = ExtResource("24_jlabv")
 centered = false
 metadata/diff = "normal"
 
-[node name="Dot2" type="Sprite2D" parent="UI/DotsGrp" unique_id=1657061107]
+[node name="Dot2" type="Sprite2D" parent="UI/DotsGrp" unique_id=673697696]
 modulate = Color(0.54784316, 0.07764707, 0.22000001, 0.9)
 position = Vector2(26.25, 0)
 scale = Vector2(1.5, 1.5)
@@ -352,7 +352,7 @@ texture = ExtResource("24_jlabv")
 centered = false
 metadata/diff = "hard"
 
-[node name="InfoBpm" type="Label" parent="UI" unique_id=1517287204]
+[node name="InfoBpm" type="Label" parent="UI" unique_id=878279173]
 z_index = 652
 offset_left = 255.75
 offset_top = 1035.0
@@ -362,7 +362,7 @@ theme_override_fonts/font = ExtResource("25_ytur7")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.8, 1, 1, 1)
 
-[node name="InfoTitle" type="Label" parent="UI" unique_id=146949351]
+[node name="InfoTitle" type="Label" parent="UI" unique_id=2063630042]
 z_index = 652
 offset_left = 255.75
 offset_top = 1035.0
@@ -373,7 +373,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.8, 1, 1, 1)
 horizontal_alignment = 1
 
-[node name="InfoDifficulty" type="Label" parent="UI" unique_id=1915788440]
+[node name="InfoDifficulty" type="Label" parent="UI" unique_id=1041298650]
 z_index = 652
 offset_left = 255.75
 offset_top = 1035.0
@@ -384,7 +384,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.8, 1, 1, 1)
 horizontal_alignment = 2
 
-[node name="CompletionText" type="Label" parent="UI" unique_id=1445169209]
+[node name="CompletionText" type="Label" parent="UI" unique_id=418491345]
 z_index = 53
 offset_left = 1500.0
 offset_top = 140.0
@@ -392,92 +392,92 @@ offset_right = 1700.0
 offset_bottom = 180.0
 text = "100"
 
-[node name="DifficultyStars" type="Node2D" parent="UI" unique_id=316608550]
+[node name="DifficultyStars" type="Node2D" parent="UI" unique_id=1550775305]
 z_index = 35
-position = Vector2(787.5, 180)
+position = Vector2(180, 787.5)
 
-[node name="Star0" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1547692508]
+[node name="Star0" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1152224150]
 position = Vector2(0, -15)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star1" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=432404010]
+[node name="Star1" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=594700071]
 position = Vector2(60, -10.772357)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star2" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1045101855]
+[node name="Star2" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=343568612]
 position = Vector2(120, -6.8874865)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star3" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=398582958]
+[node name="Star3" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1665276675]
 position = Vector2(180, -3.6603694)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star4" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1520999084]
+[node name="Star4" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=853358611]
 position = Vector2(240, -1.3526564)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star5" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=951463768]
+[node name="Star5" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1676820652]
 position = Vector2(300, -0.15145385)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star6" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=323343163]
+[node name="Star6" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=189033827]
 position = Vector2(360, -0.15415427)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star7" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1520354861]
+[node name="Star7" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1187183058]
 position = Vector2(420, -1.3605386)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star8" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=2062272799]
+[node name="Star8" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=666947694]
 position = Vector2(480, -3.6727946)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star9" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=506667676]
+[node name="Star9" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1413262277]
 position = Vector2(540, -6.903447)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="Star10" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1440755169]
+[node name="Star10" type="AnimatedSprite2D" parent="UI/DifficultyStars" unique_id=1064676109]
 position = Vector2(600, -10.790559)
-scale = Vector2(0.4227645, 0.4227645)
+scale = Vector2(1.5, 1.5)
 sprite_frames = ExtResource("26_52owu")
 animation = &"difficulty dot"
 centered = false
 
-[node name="AlbumRoll" type="Node2D" parent="UI" unique_id=418780903]
+[node name="AlbumRoll" type="Node2D" parent="UI" unique_id=1393680690]
 z_index = 27
 position = Vector2(0, -150)
 
-[node name="HelpButton" type="AnimatedSprite2D" parent="UI" unique_id=1763798515]
+[node name="HelpButton" type="AnimatedSprite2D" parent="UI" unique_id=1472646118]
 modulate = Color(1, 1, 1, 0.4)
 z_index = 52
 position = Vector2(1724, 1000)
@@ -486,7 +486,7 @@ sprite_frames = ExtResource("27_8mh8s")
 animation = &"idle"
 centered = false
 
-[node name="CharactersButtons" type="AnimatedSprite2D" parent="UI" unique_id=107931898]
+[node name="CharactersButtons" type="AnimatedSprite2D" parent="UI" unique_id=1681495295]
 z_index = 52
 position = Vector2(1572, 1000)
 scale = Vector2(1.5, 1.5)
@@ -494,7 +494,7 @@ sprite_frames = ExtResource("28_ik8jv")
 animation = &"idle"
 centered = false
 
-[node name="HighScoreSpr" type="AnimatedSprite2D" parent="UI" unique_id=1600357777]
+[node name="HighScoreSpr" type="AnimatedSprite2D" parent="UI" unique_id=1436531359]
 z_index = 55
 position = Vector2(1400, 40)
 scale = Vector2(1.5, 1.5)
@@ -503,7 +503,7 @@ animation = &"highscore small instance "
 frame = 26
 centered = false
 
-[node name="BossfightSkull" type="AnimatedSprite2D" parent="." unique_id=1020682964]
+[node name="BossfightSkull" type="AnimatedSprite2D" parent="." unique_id=141612738]
 modulate = Color(1, 1, 1, 0)
 z_index = 900
 position = Vector2(157.5, -300)
@@ -512,11 +512,11 @@ sprite_frames = ExtResource("30_c2g3b")
 animation = &"bossfight indicator"
 centered = false
 
-[node name="BossSound" type="AudioStreamPlayer" parent="." unique_id=1799303239]
+[node name="BossSound" type="AudioStreamPlayer" parent="." unique_id=1278562653]
 stream = ExtResource("31_sepfn")
 volume_db = -12.0412
 
-[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1544555178]
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1452075505]
 z_index = 8
 offset_left = -200.0
 offset_top = -200.0
@@ -525,10 +525,10 @@ offset_bottom = 1280.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.4)
 
-[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=2019478382]
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1195914818]
 
-[node name="ThemeMusic" type="AudioStreamPlayer" parent="." unique_id=662792071]
+[node name="ThemeMusic" type="AudioStreamPlayer" parent="." unique_id=1607142922]
 bus = &"Music"
 
-[node name="LayerSound" type="AudioStreamPlayer" parent="." unique_id=1799097231]
+[node name="LayerSound" type="AudioStreamPlayer" parent="." unique_id=162781009]
 bus = &"Music"
