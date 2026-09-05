@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="0023"]
 [ext_resource type="PackedScene" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="0024"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="0025"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_event_dispatcher.gd" id="0026_evtd"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -225,6 +226,10 @@ script = ExtResource("0023")
 note_controller = NodePath("../UILayer/UI/Player")
 starting_health = 50.0
 
+
+[node name="HQEventDispatcher" type="Node" parent="."]
+script = ExtResource("0026_evtd")
+events_path = "holyquintet_mod/source/songs/initium/events.json"
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=52809089 instance=ExtResource("0024")]
 layer = 15
 script = ExtResource("0025")
