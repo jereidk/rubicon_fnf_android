@@ -93,6 +93,30 @@ func _init() -> void:
 		_fall(non_intro, "FallBF", fall_frames, &"bf fall", -1.0)
 		_fall(non_intro, "FallGF", fall_frames, &"gf fall", 1.0)
 
+	# create() lines 229-241, the two texts.
+	#
+	#     229  txtVersion = new FlxFixedText(10, 10, ?, 'Animania! Mod ' + VERSION_clear);
+	#     230      font = 'assets/fonts/vcr.ttf';
+	#     231      x = FlxG.initialWidth - x - width;      // right edge, same 10 margin
+	#     232      alpha = 0.9;                            // vtable 0x3a8
+	#     237  titleText = new FlxFixedText(0, 0, FlxG.width, 'ANIMANIA!CREW');
+	#     238      alignment = 'center';
+	#     240      font = 'Blueprint.ttf';
+	#
+	# `VERSION_clear` is 'v' + the manifest's version, and the binary carries 0.6.0.
+	# 'Hello there! :>' is NOT a text field - it is the Discord presence string that goes
+	# with 'Title Screen' through changePresence at line 137, which is why it sits next to
+	# these in .rodata.
+	#
+	# Both go under NonIntro rather than under Title: same visibility timing, and Title
+	# carries the boil displacement, which is not something to run text through.
+	_text(non_intro, "TitleText", "ANIMANIA!CREW", BLUEPRINT_FONT, TITLE_TEXT_SIZE,
+		1.0, HORIZONTAL_ALIGNMENT_CENTER, Vector2(0.0, 0.0), SCREEN.x)
+	_text(non_intro, "TxtVersion", "Animania! Mod v%s" % MOD_VERSION, VCR_FONT,
+		VERSION_TEXT_SIZE, 0.9, HORIZONTAL_ALIGNMENT_RIGHT,
+		Vector2(0.0, TEXT_MARGIN * FUNKIN_TO_RUBICON),
+		SCREEN.x - TEXT_MARGIN * FUNKIN_TO_RUBICON)
+
 	# The intro text is screen-space: the camera zooms on beats 28-31 and the line must not
 	# zoom with it, the same way Funkin puts it on a camera of its own.
 	var layer := CanvasLayer.new()
@@ -146,6 +170,34 @@ func _init() -> void:
 ## FlxG.width / 3 and the 100 are in Funkin's 1280x720; the third is a fraction of the
 ## screen either way, the 100 takes the project's 1.5x.
 const FALL_RISE := 100.0
+
+const BLUEPRINT_FONT := "res://animania_mod/source/fonts/Blueprint.ttf"
+const VCR_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
+## The 10 both of txtVersion's coordinates are given, in Funkin's space.
+const TEXT_MARGIN := 10.0
+## The two Null<int> sizes are not resolved in the dump, so these are this port's.
+const TITLE_TEXT_SIZE := 48
+const VERSION_TEXT_SIZE := 24
+## Constants.VERSION_clear is 'v' + the manifest version; the binary carries 0.6.0.
+const MOD_VERSION := "0.6.0"
+
+
+func _text(parent: Node2D, node_name: String, body: String, font_path: String,
+		size: int, alpha: float, align: int, at: Vector2, width: float) -> void:
+	var label := Label.new()
+	label.name = node_name
+	label.text = body
+	label.horizontal_alignment = align
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.position = at
+	label.size = Vector2(width, float(size) * 1.6)
+	if ResourceLoader.exists(font_path):
+		label.add_theme_font_override("font", load(font_path))
+	label.add_theme_font_size_override("font_size", size)
+	label.modulate.a = alpha
+	parent.add_child(label)
+	label.owner = _root
+
 
 
 func _fall(parent: Node2D, node_name: String, frames: SpriteFrames,

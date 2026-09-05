@@ -967,9 +967,44 @@ code: the `follows_singer` claim, and the old cheat sequence. A comment that dis
 its own function is worse than no comment — it is what sent this audit chasing a wrong
 binary in the first place.
 
-Still missing on this screen: the six props' placement beyond what `title_props.gd` carries,
-and the two texts (`txtVersion` in vcr, `titleText` in `Blueprint.ttf`, which is not on disk —
-like Inconsolata-Black it ships inside the executable).
+**The two texts, and how to get a font out of the executable.** create() lines 229-241:
+
+    229  txtVersion = new FlxFixedText(10, 10, ?, 'Animania! Mod ' + VERSION_clear);
+    230      font = 'assets/fonts/vcr.ttf';
+    231      x = FlxG.initialWidth - x - width;      // right edge, the same 10 margin
+    232      alpha = 0.9;
+    237  titleText = new FlxFixedText(0, 0, FlxG.width, 'ANIMANIA!CREW');
+    238      alignment = 'center';
+    240      font = 'Blueprint.ttf';
+
+`VERSION_clear` is `'v'` plus the manifest's version, and the binary carries `0.6.0`. Note
+what **'Hello there! :>'** is not: it sits beside these two in .rodata and reads like a third
+caption, but it is the Discord presence string that goes with `'Title Screen'` through
+`changePresence` at line 137. Adjacent strings are not related strings.
+
+### Getting a font out of the executable
+
+`Blueprint.ttf` is not on disk — `assets/fonts/` does not exist in the build and
+`find -name '*.ttf'` over it returns nothing, because Lime packs fonts INTO the binary. But
+an sfnt is self-describing: a header, a table directory, and a `name` table carrying the
+family. So they can all be found by scanning for the signature and validating the directory.
+`tools/animania/extract_font.py` does it:
+
+    python3 tools/animania/extract_font.py --list
+    python3 tools/animania/extract_font.py Blueprint animania_mod/source/fonts/Blueprint.ttf
+
+That listed **forty** embedded faces — VCR OSD Mono, six weights of Inconsolata, Blueprint,
+Comic Sans MS, Impact, CCMeanwhile, 5by7, DS-Digital, Quantico, Fafo Sans, Ruthless Sketch,
+Dephunked BRK, Linglong, Brusnika, Monsterrat, Nokia Cellphone FC, Pixel Arial 11, MP Manga,
+Funkin-options — so the next font this port needs is one command, not an investigation.
+
+A newly extracted asset needs `--headless --path . --import` before a builder can `load()` it,
+and that run rewrites `animania_mod/source/icon.png.import` with a fresh uid that no longer
+matches `project.godot`'s `config/icon`. Revert that one file afterwards; it is the same trap
+this file already warns about.
+
+Still missing on this screen: only the six props' placement beyond what `title_props.gd`
+already carries.
 
 ---
 

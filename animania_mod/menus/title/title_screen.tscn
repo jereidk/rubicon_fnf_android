@@ -1,40 +1,42 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://animania_mod/menus/title/title_screen.gd" id="1_7yoh1"]
-[ext_resource type="Shader" path="res://animania_mod/menus/title/boil.gdshader" id="2_fneq6"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/boil_texture.png" id="3_or7m5"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/void gradient.png" id="4_131y4"]
-[ext_resource type="Script" path="res://animania_mod/menus/title/title_props.gd" id="5_hque6"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/title/props_frames.tres" id="6_2mloa"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/fallguys.png" id="7_upg6s"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="8_majus"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="9_bibgd"]
-[ext_resource type="Resource" path="res://animania_mod/menus/title/logo_atlas.tres" id="10_sk1xt"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/logo_library.tres" id="11_i2das"]
-[ext_resource type="Resource" path="res://animania_mod/menus/title/press_enter_atlas.tres" id="12_wqfhy"]
-[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/press_enter_library.tres" id="13_dj81x"]
-[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaINTRO/animaniaINTRO.ogg" id="14_qi70p"]
+[ext_resource type="Script" path="res://animania_mod/menus/title/title_screen.gd" id="1_or7m5"]
+[ext_resource type="Shader" path="res://animania_mod/menus/title/boil.gdshader" id="2_131y4"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/boil_texture.png" id="3_hque6"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/void gradient.png" id="4_2mloa"]
+[ext_resource type="Script" path="res://animania_mod/menus/title/title_props.gd" id="5_upg6s"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/title/props_frames.tres" id="6_majus"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/title/fallguys.png" id="7_bibgd"]
+[ext_resource type="FontFile" path="res://animania_mod/source/fonts/Blueprint.ttf" id="8_sk1xt"]
+[ext_resource type="FontFile" path="res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf" id="9_i2das"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="10_wqfhy"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="11_dj81x"]
+[ext_resource type="Resource" path="res://animania_mod/menus/title/logo_atlas.tres" id="12_qi70p"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/logo_library.tres" id="13_iqntt"]
+[ext_resource type="Resource" path="res://animania_mod/menus/title/press_enter_atlas.tres" id="14_2xgbg"]
+[ext_resource type="AnimationLibrary" path="res://animania_mod/menus/title/press_enter_library.tres" id="15_ofxq1"]
+[ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaINTRO/animaniaINTRO.ogg" id="16_o48b3"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_iqntt"]
-shader = ExtResource("2_fneq6")
-shader_parameter/boil_texture = ExtResource("3_or7m5")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cqkyw"]
+shader = ExtResource("2_131y4")
+shader_parameter/boil_texture = ExtResource("3_hque6")
 shader_parameter/amount = null
 shader_parameter/boil_offset = null
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cmw8h"]
-atlas = ExtResource("7_upg6s")
+atlas = ExtResource("7_bibgd")
 region = Rect2(350, 2, 305, 301)
 margin = Rect2(3, 2, 3, 2)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_elthi"]
-atlas = ExtResource("7_upg6s")
+atlas = ExtResource("7_bibgd")
 region = Rect2(306, 305, 305, 297)
 margin = Rect2(0, 4, 3, 6)
 filter_clip = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i5een"]
-atlas = ExtResource("7_upg6s")
+atlas = ExtResource("7_bibgd")
 region = Rect2(2, 271, 302, 302)
 margin = Rect2(4, 0, 6, 1)
 filter_clip = true
@@ -64,12 +66,12 @@ data = {
 image = SubResource("Image_0ps4s")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_onvo2"]
-atlas = ExtResource("7_upg6s")
+atlas = ExtResource("7_bibgd")
 region = Rect2(657, 2, 265, 343)
 margin = Rect2(1, 5, 2, 5)
 filter_clip = true
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_2xgbg"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_kb3sh"]
 animations = [{
 "frames": [{
 "duration": 1.0,
@@ -100,76 +102,94 @@ animations = [{
 "speed": 24.0
 }]
 
-[node name="TitleScreen" type="Node2D" unique_id=1235960036 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
-script = ExtResource("1_7yoh1")
+[node name="TitleScreen" type="Node2D" unique_id=1848842884 node_paths=PackedStringArray("music", "intro_text", "title", "camera")]
+script = ExtResource("1_or7m5")
 music = NodePath("Music")
 intro_text = NodePath("IntroLayer/IntroText")
 title = NodePath("Title")
 camera = NodePath("Camera2D")
-boil = SubResource("ShaderMaterial_iqntt")
+boil = SubResource("ShaderMaterial_cqkyw")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=2027332248]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=257313472]
 position = Vector2(960, 540)
 
-[node name="Background" type="Sprite2D" parent="." unique_id=838126380]
+[node name="Background" type="Sprite2D" parent="." unique_id=1203389848]
 scale = Vector2(1920, 1.728)
-texture = ExtResource("4_131y4")
+texture = ExtResource("4_2mloa")
 centered = false
 
-[node name="Props" type="Node2D" parent="." unique_id=1821582244]
-script = ExtResource("5_hque6")
-frames = ExtResource("6_2mloa")
+[node name="Props" type="Node2D" parent="." unique_id=15901123]
+script = ExtResource("5_upg6s")
+frames = ExtResource("6_majus")
 
-[node name="NonIntro" type="Node2D" parent="." unique_id=503799900]
+[node name="NonIntro" type="Node2D" parent="." unique_id=409049348]
 visible = false
 
-[node name="FallBF" type="AnimatedSprite2D" parent="NonIntro" unique_id=545691412]
+[node name="FallBF" type="AnimatedSprite2D" parent="NonIntro" unique_id=520210193]
 position = Vector2(89, 162.75)
 scale = Vector2(1.5, 1.5)
-sprite_frames = SubResource("SpriteFrames_2xgbg")
+sprite_frames = SubResource("SpriteFrames_kb3sh")
 animation = &"bf fall"
 autoplay = "bf fall"
 centered = false
 
-[node name="FallGF" type="AnimatedSprite2D" parent="NonIntro" unique_id=1864534426]
+[node name="FallGF" type="AnimatedSprite2D" parent="NonIntro" unique_id=1116100814]
 position = Vector2(1399.75, 129)
 scale = Vector2(1.5, 1.5)
-sprite_frames = SubResource("SpriteFrames_2xgbg")
+sprite_frames = SubResource("SpriteFrames_kb3sh")
 animation = &"gf fall"
 autoplay = "gf fall"
 centered = false
 
-[node name="Title" type="Node2D" parent="." unique_id=522110236]
-visible = false
-material = SubResource("ShaderMaterial_iqntt")
+[node name="TitleText" type="Label" parent="NonIntro" unique_id=1735023476]
+offset_right = 1920.0
+offset_bottom = 76.8
+theme_override_fonts/font = ExtResource("8_sk1xt")
+theme_override_font_sizes/font_size = 48
+text = "ANIMANIA!CREW"
+horizontal_alignment = 1
 
-[node name="Logo" type="Node2D" parent="Title" unique_id=801916138]
+[node name="TxtVersion" type="Label" parent="NonIntro" unique_id=1361044685]
+modulate = Color(1, 1, 1, 0.9)
+offset_top = 15.0
+offset_right = 1905.0
+offset_bottom = 53.4
+theme_override_fonts/font = ExtResource("9_i2das")
+theme_override_font_sizes/font_size = 24
+text = "Animania! Mod v0.6.0"
+horizontal_alignment = 2
+
+[node name="Title" type="Node2D" parent="." unique_id=1422390368]
+visible = false
+material = SubResource("ShaderMaterial_cqkyw")
+
+[node name="Logo" type="Node2D" parent="Title" unique_id=63837216]
 position = Vector2(291.81982, 14.461351)
 scale = Vector2(0.65733415, 0.65733415)
-script = ExtResource("8_majus")
+script = ExtResource("10_wqfhy")
 symbol = "Logolol"
 centered = false
-atlases = Array[ExtResource("9_bibgd")]([ExtResource("10_sk1xt")])
+atlases = Array[ExtResource("11_dj81x")]([ExtResource("12_qi70p")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=1779887550]
-libraries/ = ExtResource("11_i2das")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/Logo" unique_id=476222671]
+libraries/ = ExtResource("13_iqntt")
 autoplay = &"logo_idle"
 
-[node name="PressEnter" type="Node2D" parent="Title" unique_id=157847051]
+[node name="PressEnter" type="Node2D" parent="Title" unique_id=1542952109]
 position = Vector2(331.5, 765)
 scale = Vector2(1.5, 1.5)
-script = ExtResource("8_majus")
+script = ExtResource("10_wqfhy")
 symbol = "main"
 centered = false
-atlases = Array[ExtResource("9_bibgd")]([ExtResource("12_wqfhy")])
+atlases = Array[ExtResource("11_dj81x")]([ExtResource("14_2xgbg")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=116207143]
-libraries/ = ExtResource("13_dj81x")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Title/PressEnter" unique_id=1507803939]
+libraries/ = ExtResource("15_ofxq1")
 autoplay = &"press_enter_loop"
 
-[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=1816157211]
+[node name="IntroLayer" type="CanvasLayer" parent="." unique_id=25857240]
 
-[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=860779056]
+[node name="IntroText" type="RichTextLabel" parent="IntroLayer" unique_id=538908824]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -182,5 +202,5 @@ theme_override_constants/outline_size = 16
 bbcode_enabled = true
 scroll_active = false
 
-[node name="Music" type="AudioStreamPlayer" parent="." unique_id=884472791]
-stream = ExtResource("14_qi70p")
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1934405331]
+stream = ExtResource("16_o48b3")
