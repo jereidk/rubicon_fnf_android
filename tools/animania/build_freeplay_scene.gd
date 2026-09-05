@@ -31,6 +31,11 @@ var _root: Node2D
 
 
 func _init() -> void:
+	# Los dos atlas de televisor los adelgaza tools/animania/optimize_atlas.py; sus
+	# SpriteFrames se generan aqui para que la escena no dependa de un .tres a mano.
+	_build_frames("TVNOISE", "freeplay_tvnoise", 24.0)
+	_build_frames("TVBACK", "freeplay_tvback", 24.0)
+
 	_root = Node2D.new()
 	_root.name = "FreeplayScreen"
 	_root.set_script(load("res://animania_mod/menus/freeplay/freeplay_screen.gd"))
@@ -81,7 +86,75 @@ func _init() -> void:
 	# its right edge on the screen's, at x = 553, and it covers that gap exactly while
 	# overlapping the wall by the rest. The glow is 997 wide and lands the same way.
 	_sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0))
-	_sparrow("Tv", "freeplay_tv", "freeplay tv образец ", Vector2(553.0, 60.0))
+
+	# La pantalla del televisor, leida de buildBg linea por linea. Todo lo de dentro
+	# comparte esquina en (117, 128) y el rectangulo mide 375x305; el zIndex de cada pieza
+	# sale de su `movl $N,0x28(%rax)` y es lo que decide el orden:
+	#
+	#   1247-1255  tvBg           createSparrow(0, 0, 'bg/TVBACK'), anim 'a' de 'pink' @24, z 10
+	#   1289-1297  tvBackBG       makeGraphic(375, 305, 0xFF000000), invisible, z 20
+	#   1299-1307  tvSpriteFlash  makeGraphic(375, 305, 0xFFFFFFFF), invisible, z 29
+	#   1309-1317  tvNoiseBack    createSparrow(117, 128, 'bg/TVNOISE'), 'noise sprite' @24, z 26
+	#   1327-1336  tvNoiseForward igual, alpha 0.45, z 28
+	#   1337       tvNoiseForward.animation.onFrameChange.add(_ -> shakeShadows())
+	#
+	# La animacion de tvBg se llama 'a' en el mod (addByPrefix('a', 'pink')); aqui se queda
+	# con el nombre del prefijo, que es como las nombra el importador de sparrow.
+	#
+	# El orden completo del diorama, por si hace falta: bgWall 1, bgBed 2, shadowsOnBed 3,
+	# tvGlow 7, darkOverlay 8, tvBg 10, diskPlayer 16, grpDisks 19, tvBackBG 20,
+	# diskPlayerMask 24, tvNoiseBack 26, albumRoll 27, tvNoiseForward 28, tvSpriteFlash 29,
+	# tvSprite 30, difficultyStars 35, selectorsGroup 100, bossfightSkull 900.
+	const TV_INNER := Vector2(117.0, 128.0)
+	const TV_INNER_SIZE := Vector2(375.0, 305.0)
+
+	var tv_bg: AnimatedSprite2D = _sparrow("TvBg", "freeplay_tvback", "pink", Vector2.ZERO)
+	tv_bg.z_index = 10
+
+	var tv_back_bg := _panel("TvBackBG", TV_INNER, TV_INNER_SIZE, Color(0, 0, 0, 1))
+	tv_back_bg.z_index = 20
+	tv_back_bg.visible = false
+
+	var noise_back: AnimatedSprite2D = _sparrow(
+		"TvNoiseBack", "freeplay_tvnoise", "noise sprite", TV_INNER)
+	noise_back.z_index = 26
+
+	var noise_forward: AnimatedSprite2D = _sparrow(
+		"TvNoiseForward", "freeplay_tvnoise", "noise sprite", TV_INNER)
+	noise_forward.z_index = 28
+	noise_forward.modulate.a = 0.45
+
+	var tv_flash := _panel("TvSpriteFlash", TV_INNER, TV_INNER_SIZE, Color(1, 1, 1, 1))
+	tv_flash.z_index = 29
+	tv_flash.visible = false
+
+	# El televisor NO estaba en (553, 60) ni mostraba el fotograma que toca. Esa x se habia
+	# colocado por aritmetica -"el muro mide 912 de 1280, quedan 368 a la derecha y el tele
+	# mide 727"- porque buildBg lo posiciona con setters en vez de con constantes. Pero las
+	# piezas de DENTRO si son constantes, y son ellas las que lo fijan.
+	#
+	# El sparrow trae seis fotogramas en tres tamanos: 727x627 con la pantalla opaca y un
+	# halo azul, y dos pares huecos de 451x473 y 466x457. buildBg hace addByPrefix('f'),
+	# que casa con los seis, y luego finish() (linea 1281), que deja la animacion en el
+	# ULTIMO: el 466x457, cuya pantalla es un agujero transparente. El puerto se quedaba en
+	# el primero, con la pantalla tapada, y por eso nada de lo de dentro se veia.
+	#
+	# La posicion es la del constructor, linea 1277: new FunkinSprite(-60, -198). Cuadra
+	# hasta el pixel una vez se tiene en cuenta que el sparrow viene RECORTADO: los seis
+	# fotogramas declaran frameWidth 727 x frameHeight 749, y el hueco de 466x457 se pega
+	# dentro de ese lienzo en (135, 288). El agujero de su pantalla va de (60, 49) a
+	# (402, 326), o sea (195, 337) + 342x277 dentro del lienzo; con el sprite en (-60, -198)
+	# eso cae en (135, 139)-(477, 416), justo dentro del rectangulo de (117, 128)+375x305,
+	# que sobresale unos pixeles por cada lado para que el bisel redondeado no deje huecos.
+	#
+	# El importador de sparrow rellena los tres fotogramas al lienzo comun, asi que aqui son
+	# tres de 727x749 y el hueco es el indice 2.
+	const TV_FRAME := 2
+	var tv: AnimatedSprite2D = _sparrow(
+		"Tv", "freeplay_tv", "freeplay tv образец ", Vector2(-60.0, -198.0))
+	tv.z_index = 30
+	tv.autoplay = ""
+	tv.frame = TV_FRAME
 
 	# The VCR and the layer that goes over it, four pixels left and ten down from it.
 	_sparrow("Player", "freeplay_player", "player", Vector2(50.0, 505.0))
@@ -171,6 +244,41 @@ func _init() -> void:
 	var err: int = ResourceSaver.save(packed, OUT)
 	print("OUT %s %s" % ["saved" if err == OK else "FAILED", OUT])
 	quit(0 if err == OK else 1)
+
+
+## makeGraphic(w, h, color): un rectangulo liso, colocado por su esquina como todo aqui.
+## Genera un SpriteFrames a partir de un sparrow vendorizado. Se reconstruye siempre, sin
+## comprobar si ya existe: un builder que se salta su propio trabajo cuando encuentra la
+## version anterior es la trampa de siempre.
+func _build_frames(source_name: String, basename: String, fps: float) -> void:
+	var data := SparrowImporterSpriteData.new()
+	data.texture = load("%s/bg/%s.png" % [ART, source_name])
+	data.atlas_path = "%s/bg/%s.xml" % [ART, source_name]
+	data.fps = fps
+	data.loop = true
+	# Igual que en build_icons.gd: sparrow.gd revienta con las duraciones puestas cuando
+	# hay fotogramas repetidos, y TVBACK trae doce.
+	data.use_frame_duration = false
+	var importer: SpriteImporter = load("res://addons/sprite_importer/importers/sparrow.gd").new()
+	var frames: SpriteFrames = importer.convert_sprite([data])
+	var out := "%s/%s_frames.tres" % [DIR, basename]
+	var err: int = ResourceSaver.save(frames, out)
+	print("OUT %s %s  %s" % ["frames" if err == OK else "FALLO", out,
+		str(frames.get_animation_names())])
+
+
+func _panel(node_name: String, at: Vector2, size: Vector2, color: Color) -> ColorRect:
+	var panel := ColorRect.new()
+	panel.name = node_name
+	panel.set(&"layout_mode", 0)
+	panel.offset_left = at.x * FUNKIN_TO_RUBICON
+	panel.offset_top = at.y * FUNKIN_TO_RUBICON
+	panel.offset_right = (at.x + size.x) * FUNKIN_TO_RUBICON
+	panel.offset_bottom = (at.y + size.y) * FUNKIN_TO_RUBICON
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.color = color
+	_add(panel)
+	return panel
 
 
 func _label(parent: Node, node_name: String, box: Rect2, text: String) -> Label:

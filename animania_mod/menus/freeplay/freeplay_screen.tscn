@@ -1,28 +1,30 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://animania_mod/menus/freeplay/freeplay_screen.gd" id="1_6g38l"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/freeplay backwall.png" id="2_tqdln"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_bed_frames.tres" id="3_8bujw"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/tv glow.png" id="4_a7llm"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_tv_frames.tres" id="5_67l72"]
-[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_player_frames.tres" id="6_ae7x2"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/player-layer.png" id="7_6aqfe"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/phone call.png" id="8_o0dt4"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/bopeebo.png" id="9_n3w4l"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/fresh.png" id="10_14quj"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/dadbattle.png" id="11_hdg0u"]
-[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/clearBox.png" id="12_qy135"]
+[ext_resource type="Script" path="res://animania_mod/menus/freeplay/freeplay_screen.gd" id="1_8bujw"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/freeplay backwall.png" id="2_a7llm"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_bed_frames.tres" id="3_67l72"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/tv glow.png" id="4_ae7x2"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_tvback_frames.tres" id="5_6aqfe"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_tvnoise_frames.tres" id="6_o0dt4"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_tv_frames.tres" id="7_n3w4l"]
+[ext_resource type="SpriteFrames" path="res://animania_mod/menus/freeplay/freeplay_player_frames.tres" id="8_14quj"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/player-layer.png" id="9_hdg0u"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/phone call.png" id="10_qy135"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/bopeebo.png" id="11_wdim7"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/fresh.png" id="12_n01tp"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/disks/dadbattle.png" id="13_17suc"]
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/bg/clearBox.png" id="14_pghmw"]
 
-[node name="FreeplayScreen" type="Node2D" unique_id=1023060671 node_paths=PackedStringArray("disks", "sfx", "bed")]
-script = ExtResource("1_6g38l")
+[node name="FreeplayScreen" type="Node2D" unique_id=1667882667 node_paths=PackedStringArray("disks", "sfx", "bed")]
+script = ExtResource("1_8bujw")
 disks = NodePath("Disks")
 sfx = NodePath("Sfx")
 bed = NodePath("Bed")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=793430522]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=399892799]
 position = Vector2(960, 540)
 
-[node name="Backdrop" type="ColorRect" parent="." unique_id=712241573]
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1971417203]
 offset_left = -165.0
 offset_top = -585.0
 offset_right = 2085.0
@@ -30,130 +32,177 @@ offset_bottom = 1665.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Backwall" type="Sprite2D" parent="." unique_id=1104878612]
+[node name="Backwall" type="Sprite2D" parent="." unique_id=41014145]
 position = Vector2(0, 28.125)
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("2_tqdln")
+texture = ExtResource("2_a7llm")
 centered = false
 
-[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=1842979593]
+[node name="Bed" type="AnimatedSprite2D" parent="." unique_id=695542457]
 position = Vector2(0, 381)
 scale = Vector2(1.5, 1.5)
-sprite_frames = ExtResource("3_8bujw")
+sprite_frames = ExtResource("3_67l72")
 animation = &"bed"
 frame = 2
 centered = false
 
-[node name="ShadowsOnBed" type="Node2D" parent="." unique_id=1953783360]
+[node name="ShadowsOnBed" type="Node2D" parent="." unique_id=1148063469]
 
-[node name="TvGlow" type="Sprite2D" parent="." unique_id=1886406455]
+[node name="TvGlow" type="Sprite2D" parent="." unique_id=2129637406]
 position = Vector2(424.5, 739.5)
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("4_a7llm")
+texture = ExtResource("4_ae7x2")
 centered = false
 
-[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=641728333]
-position = Vector2(829.5, 90)
+[node name="TvBg" type="AnimatedSprite2D" parent="." unique_id=190500245]
+z_index = 10
 scale = Vector2(1.5, 1.5)
-sprite_frames = ExtResource("5_67l72")
-animation = &"freeplay tv образец "
-autoplay = "freeplay tv образец "
+sprite_frames = ExtResource("5_6aqfe")
+animation = &"pink"
+autoplay = "pink"
 centered = false
 
-[node name="Player" type="AnimatedSprite2D" parent="." unique_id=1409108546]
+[node name="TvBackBG" type="ColorRect" parent="." unique_id=1709335196]
+visible = false
+z_index = 20
+offset_left = 175.5
+offset_top = 192.0
+offset_right = 738.0
+offset_bottom = 649.5
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TvNoiseBack" type="AnimatedSprite2D" parent="." unique_id=412705570]
+z_index = 26
+position = Vector2(175.5, 192)
+scale = Vector2(1.5, 1.5)
+sprite_frames = ExtResource("6_o0dt4")
+animation = &"noise sprite"
+autoplay = "noise sprite"
+centered = false
+
+[node name="TvNoiseForward" type="AnimatedSprite2D" parent="." unique_id=498892100]
+modulate = Color(1, 1, 1, 0.45)
+z_index = 28
+position = Vector2(175.5, 192)
+scale = Vector2(1.5, 1.5)
+sprite_frames = ExtResource("6_o0dt4")
+animation = &"noise sprite"
+autoplay = "noise sprite"
+centered = false
+
+[node name="TvSpriteFlash" type="ColorRect" parent="." unique_id=676186030]
+visible = false
+z_index = 29
+offset_left = 175.5
+offset_top = 192.0
+offset_right = 738.0
+offset_bottom = 649.5
+mouse_filter = 2
+
+[node name="Tv" type="AnimatedSprite2D" parent="." unique_id=1644213341]
+z_index = 30
+position = Vector2(-90, -297)
+scale = Vector2(1.5, 1.5)
+sprite_frames = ExtResource("7_n3w4l")
+animation = &"freeplay tv образец "
+frame = 2
+centered = false
+
+[node name="Player" type="AnimatedSprite2D" parent="." unique_id=505497492]
 position = Vector2(75, 757.5)
 scale = Vector2(1.5, 1.5)
-sprite_frames = ExtResource("6_ae7x2")
+sprite_frames = ExtResource("8_14quj")
 animation = &"player"
 autoplay = "player"
 centered = false
 
-[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=403537753]
+[node name="PlayerLayer" type="Sprite2D" parent="." unique_id=432985212]
 position = Vector2(68.625, 772.5)
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("7_6aqfe")
+texture = ExtResource("9_hdg0u")
 centered = false
 
-[node name="Disks" type="Node2D" parent="." unique_id=217398817]
+[node name="Disks" type="Node2D" parent="." unique_id=487240655]
 
-[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=940815978]
+[node name="Disk0" type="Sprite2D" parent="Disks" unique_id=1506965693]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("8_o0dt4")
+texture = ExtResource("10_qy135")
 metadata/hitbox = Rect2(-243, -96.75, 486, 193.5)
 metadata/index = 0
 metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=468114840]
+[node name="Disk1" type="Sprite2D" parent="Disks" unique_id=189689407]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("9_n3w4l")
+texture = ExtResource("11_wdim7")
 metadata/hitbox = Rect2(-242.25, -96, 484.5, 192)
 metadata/index = 1
 metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=579375855]
+[node name="Disk2" type="Sprite2D" parent="Disks" unique_id=694713804]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("10_14quj")
+texture = ExtResource("12_n01tp")
 metadata/hitbox = Rect2(-242.25, -96, 484.5, 192)
 metadata/index = 2
 metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="Disk3" type="Sprite2D" parent="Disks" unique_id=388384807]
+[node name="Disk3" type="Sprite2D" parent="Disks" unique_id=1876759535]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("11_hdg0u")
+texture = ExtResource("13_17suc")
 metadata/hitbox = Rect2(-269.25, -119.25, 538.5, 238.5)
 metadata/index = 3
 metadata/target = Vector2(0, 0)
 metadata/scale = 1.0
 metadata/alpha = 1.0
 
-[node name="UI" type="Node2D" parent="." unique_id=1918530149]
+[node name="UI" type="Node2D" parent="." unique_id=535326488]
 
-[node name="HighScore" type="Label" parent="UI" unique_id=2146271824]
+[node name="HighScore" type="Label" parent="UI" unique_id=1253464160]
 offset_left = 1400.0
 offset_top = 50.0
 offset_right = 1850.0
 offset_bottom = 90.0
 text = "0"
 
-[node name="ClearBox" type="Sprite2D" parent="UI" unique_id=383239017]
+[node name="ClearBox" type="Sprite2D" parent="UI" unique_id=1441677333]
 position = Vector2(1500, 100)
 scale = Vector2(0.8, 0.8)
-texture = ExtResource("12_qy135")
+texture = ExtResource("14_pghmw")
 
-[node name="InfoTitle" type="Label" parent="UI" unique_id=1350187340]
+[node name="InfoTitle" type="Label" parent="UI" unique_id=423584698]
 offset_left = 100.0
 offset_top = 30.0
 offset_right = 600.0
 offset_bottom = 70.0
 
-[node name="InfoBpm" type="Label" parent="UI" unique_id=1202764685]
+[node name="InfoBpm" type="Label" parent="UI" unique_id=2006010429]
 offset_left = 100.0
 offset_top = 70.0
 offset_right = 600.0
 offset_bottom = 110.0
 
-[node name="InfoDifficulty" type="Label" parent="UI" unique_id=1494992832]
+[node name="InfoDifficulty" type="Label" parent="UI" unique_id=2071628291]
 offset_left = 100.0
 offset_top = 110.0
 offset_right = 600.0
 offset_bottom = 150.0
 text = "Normal"
 
-[node name="DifficultyStars" type="Node2D" parent="UI" unique_id=1964265004]
+[node name="DifficultyStars" type="Node2D" parent="UI" unique_id=183450468]
 position = Vector2(100, 130)
 
-[node name="AlbumRoll" type="Node2D" parent="UI" unique_id=1929767006]
+[node name="AlbumRoll" type="Node2D" parent="UI" unique_id=1137822196]
 
-[node name="HelpButton" type="Sprite2D" parent="UI" unique_id=1061123117]
+[node name="HelpButton" type="Sprite2D" parent="UI" unique_id=1763767710]
 position = Vector2(1800, 1000)
 
-[node name="DarkOverlay" type="ColorRect" parent="." unique_id=498142579]
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=111115820]
 offset_left = -200.0
 offset_top = -200.0
 offset_right = 2120.0
@@ -161,4 +210,4 @@ offset_bottom = 1280.0
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1757331700]
+[node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1982385204]

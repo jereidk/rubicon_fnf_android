@@ -1084,6 +1084,45 @@ so at that instant it is still legitimately off the left edge. The harness now h
 t=1.9 before that shot - a screenshot taken before an animation has finished is not evidence
 that the animation is broken.
 
+### The television: three port-side guesses, and what the constants said
+
+Wiring the TV's screen exposed that the port had the television in the wrong place, showing
+the wrong frame. All three mistakes came from the same habit — placing something by eye and
+writing the arithmetic down afterwards as if it had been read.
+
+`buildBg` positions the TV housing with setters, so the port had reasoned: "the wall is 912
+wide in a 1280 screen, which leaves 368 to the right, and the TV is 727 wide, so put its
+right edge on the screen's, at x = 553." Plausible, and wrong. **The pieces INSIDE the TV
+are constants, and they are what pins it down**: `tvBackBG`, `tvSpriteFlash`, `tvNoiseBack`
+and `tvNoiseForward` all share a corner at (117, 128), and the first two are
+`makeGraphic(375, 305, ...)` — a black rectangle and a white one, exactly a TV screen and
+its flash. Anything four sprites agree on is not a coincidence.
+
+The frame was wrong too. The `freeplay tv` sparrow holds six frames in three sizes: a
+727×627 pair with an **opaque** screen and a blue halo, and two hollow pairs, 451×473 and
+466×457. `buildBg` does `addByPrefix('f', ...)`, which matches all six, then `finish()`
+(line 1281), which parks the animation on the LAST one — the hollow 466×457. The port sat on
+the first, so the screen was a painted-on rectangle and nothing behind it could ever show.
+
+And the geometry only closes once the sparrow's TRIMMING is taken into account. All six
+frames declare `frameWidth 727 × frameHeight 749`, and the 466×457 region is pasted into
+that canvas at (135, 288) — its `frameX`/`frameY` negated. Its screen hole runs (60, 49) to
+(402, 326), so in canvas space (195, 337) + 342×277. With the sprite at the constructor's
+own **(-60, -198)** that lands at (135, 139)-(477, 416), sitting just inside the
+(117, 128) + 375×305 rectangle, which overhangs a few pixels on each side so the rounded
+bezel leaves no gap. Godot's sparrow importer pads to the same common canvas, so the frame
+index in the port is 2, not 5.
+
+Two lessons worth keeping:
+
+- **A constant beats an inference, even a tidy one.** The arithmetic about the wall was
+  self-consistent and produced a screen that looked fine, which is exactly why it survived.
+  It only fell over when something with real coordinates had to line up with it.
+- **Render after the animation settles, not on frame six.** `doIntroAnim` plays the TV
+  animation, so an early screenshot catches it mid-turn-on and on the wrong frame — the
+  first two renders of this fix looked broken for that reason alone, not because the
+  placement was wrong. `freeplay_shot` now waits.
+
 ### Making a fat atlas thin: measure the content, not the sheet
 
 `TVBACK` (5492×8192 RGBA, 171.6 MB) and `TVNOISE` (5279×2528, 50.9 MB) were the two assets
@@ -1522,10 +1561,17 @@ Recorded so the next person does not go looking for a bug that is not there.
 - **The modchart's `tanWave`.** The formula is recovered exactly —
   `x += clamp(tan(p·π), −6, 6) · 40 · value` — but `p`'s unit is unidentified, so porting it
   would be guessing the sway's scale.
-- ~~**Freeplay's `TVBACK` and `TVNOISE`**~~ — the ART is in, cut from 222.5 MB to 51.1 MB by
-  `optimize_atlas.py` (below). What is still not wired is the screen that uses it: the two
-  noise sprites, `tvBackBG`, and therefore `shakeShadows`, which hangs off the noise
-  animation's `onFrameChange`.
+- ~~**Freeplay's `TVBACK` and `TVNOISE`**~~ — done: cut from 222.5 MB to 51.1 MB by
+  `optimize_atlas.py` (below), vendored, and wired as `TvBg`, `TvNoiseBack`,
+  `TvNoiseForward`, `TvBackBG` and `TvSpriteFlash`, with `shakeShadows` hanging off the
+  forward noise's frame changes the way `buildBg` line 1337 does it.
+- **Freeplay's shadow art.** `shadowsOnBed` is a `FlxLayerGroup` and `shakeShadows` scales
+  its matrix, but nothing has been put inside it: the shadows ride on `tvNoiseBack` and have
+  not been separated out. The transform is ported and correct; it is simply invisible.
+- **Freeplay's disk positions.** `grpDisks` (zIndex 19) draws *behind* the TV housing (30)
+  and in front of `diskPlayer` (16), so the carousel belongs inside the TV screen. The port
+  places the disks off to the right, where they were put to match a TV that was itself in
+  the wrong place. `updateDisks` has not been read yet.
 - ~~**The main menu's mouse furniture**~~ — this entry is out of date. `newsButton`,
   `musicSocial`, `socialButtons`, `updateCameraScroll` and `spawnHelpMouseText` were all
   ported during the fidelity audit: the banner and the OST disc are real screen furniture

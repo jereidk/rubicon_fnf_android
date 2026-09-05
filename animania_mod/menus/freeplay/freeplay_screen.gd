@@ -238,6 +238,10 @@ func _ready() -> void:
 	_init_header()
 	_post_header()
 	_preload_themes()
+	# buildBg linea 1337: shakeShadows cuelga del onFrameChange de la nieve de delante.
+	var noise := get_node_or_null("TvNoiseForward") as AnimatedSprite2D
+	if noise != null:
+		noise.frame_changed.connect(_shake_shadows)
 	# create() (0x34d6cc0) termina en checkBed('none'), linea 360.
 	_check_bed(bed_state)
 	_do_intro_anim.call_deferred()
@@ -285,7 +289,6 @@ func _process(delta: float) -> void:
 	_update_disks(delta)
 	_update_tv_glow(delta)
 	_update_camera_scroll(delta)
-	_shake_shadows(delta)
 	_update_data_stuff(false)
 	_drive_disk_animations(delta)
 
@@ -379,18 +382,46 @@ func _update_tv_glow(delta: float) -> void:
 	tv_glow.modulate.a = lerpf(current, _glow_target_alpha, t)
 
 
-## ─── shakeShadows (from binary at 0x34bd260) ───────────────────────────────
-## Applies a subtle random offset to the shadows_on_bed node.
-## From binary: uses 1.2 as a multiplier constant.
+## ─── shakeShadows (0x34bd260, lineas 1702-1709) ────────────────────────────
+## Leido entero:
+##
+##   var p = FlxPoint.get(FlxG.width / 1.2, FlxG.height * 1.2);
+##   mat.identity();
+##   mat.translate(-p.x, -p.y);
+##   mat.scale(FlxG.random.float(1.1, 1.11), FlxG.random.float(1.1, 1.11));
+##   mat.translate(p.x, p.y);
+##   p.put();
+##
+## Es un ESCALADO aleatorio alrededor de un pivote, no una traslacion: `mat` es la matriz
+## de shadowsOnBed, que buildBg (linea 1216) crea como un FlxLayerGroup de
+## funkin.graphics.framebuffer, no como un sprite. El puerto tenia en su lugar un
+## sin/cos inventado que ademas corria en cada frame.
+##
+## Y no corre por frame: buildBg lo engancha (linea 1337) al onFrameChange de la
+## animacion de tvNoiseForward, asi que se re-sortea cuando avanza la nieve del
+## televisor, a 24 por segundo pero atado a ella.
+##
+## Lo que sigue faltando: el grupo esta VACIO. El arte de las sombras viaja con
+## tvNoiseBack y aun no se ha separado, asi que esto es correcto y no se ve.
 
-func _shake_shadows(delta: float) -> void:
+## FlxG.width / FlxG.height, en pixeles del puerto.
+const SCREEN := Vector2(1920.0, 1080.0)
+const SHADOW_SCALE := Vector2(1.1, 1.11)
+const SHADOW_PIVOT_X_DIVISOR := 1.2
+const SHADOW_PIVOT_Y_FACTOR := 1.2
+
+
+func _shake_shadows() -> void:
 	if shadows_on_bed == null:
 		return
-	# The shadow shake is a subtle jitter that varies with time.
-	var time: float = Time.get_ticks_msec() / 1000.0
-	var shake_x: float = sin(time * 7.3) * 1.2
-	var shake_y: float = cos(time * 5.1) * 0.8
-	shadows_on_bed.position = Vector2(shake_x, shake_y)
+	var pivot := Vector2(
+		SCREEN.x / SHADOW_PIVOT_X_DIVISOR, SCREEN.y * SHADOW_PIVOT_Y_FACTOR)
+	var scale := Vector2(
+		randf_range(SHADOW_SCALE.x, SHADOW_SCALE.y),
+		randf_range(SHADOW_SCALE.x, SHADOW_SCALE.y))
+	# translate(p) * scale(s) * translate(-p), que en un Node2D es esto.
+	shadows_on_bed.scale = scale
+	shadows_on_bed.position = pivot - pivot * scale
 
 
 ## ─── checkBed (0x34bcac0, lineas 1696-1697) ─────────────────────────────────
