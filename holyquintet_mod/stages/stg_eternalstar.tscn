@@ -1,0 +1,63 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/background.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/objects1.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/objects2.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/floor.png" id="4"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/foreground_l.png" id="5"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/eternal-star/foreground_r.png" id="6"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="7"]
+
+[node name="Eternalstar" type="Node2D" unique_id=18549804]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="Scroll_background" type="Parallax2D" parent="." unique_id=26851588]
+scroll_scale = Vector2(0.5, 0.5)
+[node name="background" type="Sprite2D" parent="Scroll_background" unique_id=53935123]
+z_index = 0
+position = Vector2(-300, -800)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("1")
+centered = false
+
+[node name="Scroll_objects1" type="Parallax2D" parent="." unique_id=95309949]
+scroll_scale = Vector2(0.7, 0.7)
+[node name="objects1" type="Sprite2D" parent="Scroll_objects1" unique_id=57264602]
+z_index = 0
+position = Vector2(-300, -1000)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2")
+centered = false
+
+[node name="Scroll_objects2" type="Parallax2D" parent="." unique_id=93178688]
+scroll_scale = Vector2(0.85, 0.85)
+[node name="objects2" type="Sprite2D" parent="Scroll_objects2" unique_id=80884887]
+z_index = 0
+position = Vector2(-300, -700)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("3")
+centered = false
+
+[node name="floor" type="Sprite2D" parent="." unique_id=37970512]
+z_index = 5
+position = Vector2(-800, -500)
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("4")
+centered = false
+
+[node name="foreground_l" type="Sprite2D" parent="." unique_id=94513255]
+z_index = 20
+position = Vector2(-850, -75)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("5")
+centered = false
+
+[node name="foreground_r" type="Sprite2D" parent="." unique_id=14812263]
+z_index = 20
+position = Vector2(1400, -75)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("6")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=51410516]
+script = ExtResource("7")

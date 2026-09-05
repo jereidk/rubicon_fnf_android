@@ -1,0 +1,33 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/vexation/vex_ground.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/vexation/vex_pipes.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/vexation/vex_rays.png" id="3"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="4"]
+
+[node name="Vexation" type="Node2D" unique_id=91825497]
+metadata/camera_zoom = 0.75
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="vex_ground" type="Sprite2D" parent="." unique_id=86488941]
+z_index = 5
+position = Vector2(-500, 0)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1")
+centered = false
+
+[node name="vex_pipes" type="Sprite2D" parent="." unique_id=68301162]
+z_index = 0
+position = Vector2(-500, -300)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("2")
+centered = false
+
+[node name="vex_rays" type="Sprite2D" parent="." unique_id=78662428]
+z_index = 0
+position = Vector2(0, -500)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("3")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=67182315]
+script = ExtResource("4")

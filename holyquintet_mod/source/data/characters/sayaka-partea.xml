@@ -1,12 +1,12 @@
 <!DOCTYPE codename-engine-character>
 <character x="-2000" y="150" camx="2200" camy="-100" icon="madoka" color="#FBA8BC" applyStageMatrix="true">
-	<anim name="idle" anim="MADOKAPARTEAATLAS" indices="0..13"/>
-	<anim name="singLEFT" anim="MADOKAPARTEAATLAS" indices="14..27"/>
-	<anim name="singLEFT-end" anim="MADOKAPARTEAATLAS" indices="28..31"/>
-	<anim name="singRIGHT" anim="MADOKAPARTEAATLAS" indices="32..45"/>
-	<anim name="singRIGHT-end" anim="MADOKAPARTEAATLAS" indices="46..49"/>
-	<anim name="singUP" anim="MADOKAPARTEAATLAS" indices="50..63"/>
-	<anim name="singUP-end" anim="MADOKAPARTEAATLAS" indices="64..67"/>
-	<anim name="singDOWN" anim="MADOKAPARTEAATLAS" indices="68..81"/>
-	<anim name="singDOWN-end" anim="MADOKAPARTEAATLAS" indices="82..85"/>
+	<anim name="idle" anim="SAYAKAPARTEAATLAS" indices="0..13"/>
+	<anim name="singLEFT" anim="SAYAKAPARTEAATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="SAYAKAPARTEAATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="SAYAKAPARTEAATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="SAYAKAPARTEAATLAS" indices="46..49"/>
+	<anim name="singUP" anim="SAYAKAPARTEAATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="SAYAKAPARTEAATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="SAYAKAPARTEAATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="SAYAKAPARTEAATLAS" indices="82..85"/>
 </character>

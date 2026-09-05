@@ -1,0 +1,25 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/meguca/charbgs.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/meguca/posts.png" id="2"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="3"]
+
+[node name="Meguca" type="Node2D" unique_id=43908655]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="charbgs" type="Sprite2D" parent="." unique_id=53656050]
+z_index = 0
+position = Vector2(0, 0)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1")
+centered = false
+
+[node name="posts" type="Sprite2D" parent="." unique_id=98525853]
+z_index = 20
+position = Vector2(0, 0)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=27720592]
+script = ExtResource("3")

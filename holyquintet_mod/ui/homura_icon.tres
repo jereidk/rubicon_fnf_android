@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/icons/homura/icon.png" id="1_icon"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_normal"]
+atlas = ExtResource("1_icon")
+region = Rect2(2, 168, 164, 164)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_losing"]
+atlas = ExtResource("1_icon")
+region = Rect2(168, 168, 164, 164)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_normal")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_losing")
+}],
+"loop": 1,
+"name": &"neutral",
+"speed": 24.0
+}]

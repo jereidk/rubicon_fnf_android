@@ -1,17 +1,17 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_mpftx"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_q8lsj"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_b2nd8"]
-[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4_msh7o"]
-[ext_resource type="AnimationLibrary" path="res://holyquintet_mod/characters/gf-base_library.tres" id="5_8djsx"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_ekqai"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_x8lao"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_r38fd"]
+[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4_x2rvm"]
+[ext_resource type="AnimationLibrary" path="res://holyquintet_mod/characters/homura-base_library.tres" id="5_jekq3"]
 
-[sub_resource type="Resource" id="Resource_xjrx1"]
-script = ExtResource("4_msh7o")
-folder_path = "res://holyquintet_mod/source/images/characters/gf-base/"
+[sub_resource type="Resource" id="Resource_cs0y7"]
+script = ExtResource("4_x2rvm")
+folder_path = "res://holyquintet_mod/source/images/characters/homura-base/"
 format = "adobe"
 
-[sub_resource type="Animation" id="Animation_1h6ph"]
+[sub_resource type="Animation" id="Animation_a6fv3"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -26,7 +26,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_uwrjy"]
+[sub_resource type="Animation" id="Animation_f8y0v"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -36,7 +36,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_danceLeft"),
+"clips": PackedStringArray("homura-base_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -52,7 +52,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_4a8ur"]
+[sub_resource type="Animation" id="Animation_8pdlj"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -62,7 +62,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_danceRight"),
+"clips": PackedStringArray("homura-base_hairflip"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -78,7 +78,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_jmnyc"]
+[sub_resource type="Animation" id="Animation_mm34r"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -88,7 +88,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_dodgeDOWN"),
+"clips": PackedStringArray("homura-base_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -104,7 +104,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_44mxq"]
+[sub_resource type="Animation" id="Animation_h18rk"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -114,7 +114,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_dodgeLEFT"),
+"clips": PackedStringArray("homura-base_idle-pissed"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -130,7 +130,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_o2jyf"]
+[sub_resource type="Animation" id="Animation_vrh7e"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -140,7 +140,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_dodgeRIGHT"),
+"clips": PackedStringArray("homura-base_singDOWN"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -156,7 +156,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_smffi"]
+[sub_resource type="Animation" id="Animation_1uwqk"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -166,7 +166,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_dodgeUP"),
+"clips": PackedStringArray("homura-base_singLEFT"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -182,7 +182,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_5utq7"]
+[sub_resource type="Animation" id="Animation_2dptl"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -192,7 +192,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_hey"),
+"clips": PackedStringArray("homura-base_singRIGHT"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -208,7 +208,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_iv11w"]
+[sub_resource type="Animation" id="Animation_ks0ec"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -218,7 +218,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_hurt"),
+"clips": PackedStringArray("homura-base_singUP"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -234,7 +234,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_lscmb"]
+[sub_resource type="Animation" id="Animation_f8m5w"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -244,7 +244,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_hurt-short"),
+"clips": PackedStringArray("homura-base_ootmidanim"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -260,7 +260,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_84uwj"]
+[sub_resource type="Animation" id="Animation_f17nu"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -270,7 +270,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_hurt-shot"),
+"clips": PackedStringArray("homura-base_shoot"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -286,7 +286,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_aukln"]
+[sub_resource type="Animation" id="Animation_cnlqa"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -296,7 +296,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_idle-dizzy"),
+"clips": PackedStringArray("homura-base_singDOWN"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -312,7 +312,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_j3tlx"]
+[sub_resource type="Animation" id="Animation_nkps5"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -322,7 +322,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singDOWNmiss"),
+"clips": PackedStringArray("homura-base_singDOWN-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -338,7 +338,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_hdjcy"]
+[sub_resource type="Animation" id="Animation_klxok"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -348,7 +348,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singLEFTmiss"),
+"clips": PackedStringArray("homura-base_singDOWN-pissed"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -364,7 +364,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_i652j"]
+[sub_resource type="Animation" id="Animation_dlvfk"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -374,7 +374,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singRIGHTmiss"),
+"clips": PackedStringArray("homura-base_singDOWN-pissed-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -390,7 +390,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_sey5b"]
+[sub_resource type="Animation" id="Animation_mt1na"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -400,7 +400,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singUPmiss"),
+"clips": PackedStringArray("homura-base_singLEFT"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -416,7 +416,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_i2aiy"]
+[sub_resource type="Animation" id="Animation_0salb"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -426,7 +426,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_ootmidanim"),
+"clips": PackedStringArray("homura-base_singLEFT-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -442,7 +442,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ady6b"]
+[sub_resource type="Animation" id="Animation_vc1io"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -452,7 +452,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_shrug"),
+"clips": PackedStringArray("homura-base_singLEFT-pissed"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -468,7 +468,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_5mfrm"]
+[sub_resource type="Animation" id="Animation_f3bbj"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -478,7 +478,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singDOWNmiss"),
+"clips": PackedStringArray("homura-base_singLEFT-pissed-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -494,7 +494,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ngp3u"]
+[sub_resource type="Animation" id="Animation_7guch"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -504,7 +504,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singDOWN"),
+"clips": PackedStringArray("homura-base_singRIGHT"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -520,7 +520,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_q71ci"]
+[sub_resource type="Animation" id="Animation_j3fi6"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -530,7 +530,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singDOWN-end"),
+"clips": PackedStringArray("homura-base_singRIGHT-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -546,7 +546,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_rg7od"]
+[sub_resource type="Animation" id="Animation_rgif3"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -556,7 +556,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singLEFTmiss"),
+"clips": PackedStringArray("homura-base_singRIGHT-pissed"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -572,7 +572,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_i15f5"]
+[sub_resource type="Animation" id="Animation_qgmmk"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -582,7 +582,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singLEFT"),
+"clips": PackedStringArray("homura-base_singRIGHT-pissed-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -598,7 +598,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_65x73"]
+[sub_resource type="Animation" id="Animation_iy2w7"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -608,7 +608,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singLEFT-end"),
+"clips": PackedStringArray("homura-base_singUP"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -624,7 +624,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_hd71s"]
+[sub_resource type="Animation" id="Animation_hmbgl"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -634,7 +634,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singRIGHTmiss"),
+"clips": PackedStringArray("homura-base_singUP-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -650,7 +650,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_i6rtv"]
+[sub_resource type="Animation" id="Animation_4j6p0"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -660,7 +660,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singRIGHT"),
+"clips": PackedStringArray("homura-base_singUP-pissed"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -676,7 +676,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_4syi7"]
+[sub_resource type="Animation" id="Animation_8mpvx"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -686,7 +686,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singRIGHT-end"),
+"clips": PackedStringArray("homura-base_singUP-pissed-end"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -702,7 +702,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ucpn3"]
+[sub_resource type="Animation" id="Animation_s6kvg"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -712,7 +712,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singUPmiss"),
+"clips": PackedStringArray("homura-base_timestop"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -728,7 +728,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_v757a"]
+[sub_resource type="Animation" id="Animation_iqai3"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -738,7 +738,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singUP"),
+"clips": PackedStringArray("homura-base_transition"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -754,74 +754,47 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_3c6gg"]
-length = 0.25
-step = 0.041666668
-tracks/0/type = "animation"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"clips": PackedStringArray("gf-base_singUP-end"),
-"times": PackedFloat32Array(0)
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimateSymbol:offset")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [Vector2(0, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_htwy5"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_qbl3n"]
 _data = {
-&"RESET": SubResource("Animation_1h6ph"),
-&"dance_left": SubResource("Animation_uwrjy"),
-&"dance_right": SubResource("Animation_4a8ur"),
-&"dodge_down": SubResource("Animation_jmnyc"),
-&"dodge_left": SubResource("Animation_44mxq"),
-&"dodge_right": SubResource("Animation_o2jyf"),
-&"dodge_up": SubResource("Animation_smffi"),
-&"hey": SubResource("Animation_5utq7"),
-&"hurt": SubResource("Animation_iv11w"),
-&"hurt_short": SubResource("Animation_lscmb"),
-&"hurt_shot": SubResource("Animation_84uwj"),
-&"idle_dizzy": SubResource("Animation_aukln"),
-&"miss_down": SubResource("Animation_j3tlx"),
-&"miss_left": SubResource("Animation_hdjcy"),
-&"miss_right": SubResource("Animation_i652j"),
-&"miss_up": SubResource("Animation_sey5b"),
-&"ootmidanim": SubResource("Animation_i2aiy"),
-&"shrug": SubResource("Animation_ady6b"),
-&"sing_dow_nmiss": SubResource("Animation_5mfrm"),
-&"sing_down": SubResource("Animation_ngp3u"),
-&"sing_down_end": SubResource("Animation_q71ci"),
-&"sing_lef_tmiss": SubResource("Animation_rg7od"),
-&"sing_left": SubResource("Animation_i15f5"),
-&"sing_left_end": SubResource("Animation_65x73"),
-&"sing_righ_tmiss": SubResource("Animation_hd71s"),
-&"sing_right": SubResource("Animation_i6rtv"),
-&"sing_right_end": SubResource("Animation_4syi7"),
-&"sing_u_pmiss": SubResource("Animation_ucpn3"),
-&"sing_up": SubResource("Animation_v757a"),
-&"sing_up_end": SubResource("Animation_3c6gg")
+&"RESET": SubResource("Animation_a6fv3"),
+&"dance_idle": SubResource("Animation_f8y0v"),
+&"hairflip": SubResource("Animation_8pdlj"),
+&"idle": SubResource("Animation_mm34r"),
+&"idle_pissed": SubResource("Animation_h18rk"),
+&"miss_down": SubResource("Animation_vrh7e"),
+&"miss_left": SubResource("Animation_1uwqk"),
+&"miss_right": SubResource("Animation_2dptl"),
+&"miss_up": SubResource("Animation_ks0ec"),
+&"ootmidanim": SubResource("Animation_f8m5w"),
+&"shoot": SubResource("Animation_f17nu"),
+&"sing_down": SubResource("Animation_cnlqa"),
+&"sing_down_end": SubResource("Animation_nkps5"),
+&"sing_down_pissed": SubResource("Animation_klxok"),
+&"sing_down_pissed_end": SubResource("Animation_dlvfk"),
+&"sing_left": SubResource("Animation_mt1na"),
+&"sing_left_end": SubResource("Animation_0salb"),
+&"sing_left_pissed": SubResource("Animation_vc1io"),
+&"sing_left_pissed_end": SubResource("Animation_f3bbj"),
+&"sing_right": SubResource("Animation_7guch"),
+&"sing_right_end": SubResource("Animation_j3fi6"),
+&"sing_right_pissed": SubResource("Animation_rgif3"),
+&"sing_right_pissed_end": SubResource("Animation_qgmmk"),
+&"sing_up": SubResource("Animation_iy2w7"),
+&"sing_up_end": SubResource("Animation_hmbgl"),
+&"sing_up_pissed": SubResource("Animation_4j6p0"),
+&"sing_up_pissed_end": SubResource("Animation_8mpvx"),
+&"timestop": SubResource("Animation_s6kvg"),
+&"transition": SubResource("Animation_iqai3")
 }
 
-[node name="gf_base" type="Node2D" unique_id=1731321802 node_paths=PackedStringArray("animation_player")]
-script = ExtResource("1_mpftx")
+[node name="homura_base" type="Node2D" unique_id=1705793596 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_ekqai")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
 singing_repeat_loop_point = 0.08333333333333333
 dancing_measure_step = 0.25
 dancing_force_dance = false
-dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
+dancing_animations = Array[StringName]([&"dance_idle"])
 transition_update_queued_animations = true
 animations = Dictionary[StringName, StringName]({
 &"miss_down": &"miss_down",
@@ -833,27 +806,24 @@ animations = Dictionary[StringName, StringName]({
 &"sing_right": &"sing_right",
 &"sing_up": &"sing_up"
 })
-dancing_animations = Array[StringName]([&"dance_left", &"dance_right"])
-metadata/x = "-850"
-metadata/y = "400"
-metadata/camx = "700"
-metadata/camy = "-700"
-metadata/icon = "gf"
-metadata/color = "#A5004D"
-metadata/flipX = "true"
-metadata/isPlayer = "true"
+dancing_animations = Array[StringName]([&"dance_idle"])
+metadata/x = "-1300"
+metadata/y = "-250"
+metadata/camx = "1050"
+metadata/camy = "100"
+metadata/icon = "homura"
+metadata/color = "#3A3A3A"
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=626403794]
-position = Vector2(226.5, -584)
-scale = Vector2(-1, 1)
-script = ExtResource("2_q8lsj")
-symbol = "GFATLAS"
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=513945856]
+position = Vector2(1300, 250)
+script = ExtResource("2_x8lao")
+symbol = "HOMURAATLAS"
 centered = false
-atlases = Array[ExtResource("3_b2nd8")]([SubResource("Resource_xjrx1")])
+atlases = Array[ExtResource("3_r38fd")]([SubResource("Resource_cs0y7")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1282756890]
-libraries/ = ExtResource("5_8djsx")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1629501309]
+libraries/ = ExtResource("5_jekq3")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1419923277]
-libraries/ = SubResource("AnimationLibrary_htwy5")
-autoplay = &"dance_left"
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=994852961]
+libraries/ = SubResource("AnimationLibrary_qbl3n")
+autoplay = &"dance_idle"

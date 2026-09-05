@@ -1,17 +1,17 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_h3etq"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_7yht1"]
-[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_2pqhy"]
-[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4_v3xl4"]
-[ext_resource type="AnimationLibrary" path="res://holyquintet_mod/characters/kyubey-big-bald_library.tres" id="5_cypyr"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/scene/game/rubicon_character.gd" id="1_yac3a"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_symbol.gd" id="2_wbdvg"]
+[ext_resource type="Script" path="res://addons/gdanimate/animate_atlas.gd" id="3_3hip7"]
+[ext_resource type="Script" path="res://addons/gdanimate/adobe/adobe_atlas.gd" id="4_pcfb6"]
+[ext_resource type="AnimationLibrary" path="res://holyquintet_mod/characters/kyubey-big_library.tres" id="5_k7fic"]
 
-[sub_resource type="Resource" id="Resource_8mhn8"]
-script = ExtResource("4_v3xl4")
-folder_path = "res://holyquintet_mod/source/images/characters/kyubey-big-bald/"
+[sub_resource type="Resource" id="Resource_dbvo4"]
+script = ExtResource("4_pcfb6")
+folder_path = "res://holyquintet_mod/source/images/characters/kyubey-big/"
 format = "adobe"
 
-[sub_resource type="Animation" id="Animation_trbaf"]
+[sub_resource type="Animation" id="Animation_o3yc5"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -26,7 +26,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_vdj6e"]
+[sub_resource type="Animation" id="Animation_hgbm4"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -36,7 +36,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("kyubey-big-bald_idle"),
+"clips": PackedStringArray("kyubey-big_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -52,7 +52,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_gysg7"]
+[sub_resource type="Animation" id="Animation_vd3ac"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -62,7 +62,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("kyubey-big-bald_hey"),
+"clips": PackedStringArray("kyubey-big_hey"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -78,7 +78,7 @@ tracks/1/keys = {
 "values": [Vector2(39, 120)]
 }
 
-[sub_resource type="Animation" id="Animation_b3bnw"]
+[sub_resource type="Animation" id="Animation_lyk41"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -88,7 +88,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("kyubey-big-bald_idle"),
+"clips": PackedStringArray("kyubey-big_idle"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -104,7 +104,7 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ii3nl"]
+[sub_resource type="Animation" id="Animation_47att"]
 length = 0.25
 step = 0.041666668
 tracks/0/type = "animation"
@@ -114,7 +114,7 @@ tracks/0/path = NodePath("AnimateSymbol/AnimationPlayer")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"clips": PackedStringArray("kyubey-big-bald_sad"),
+"clips": PackedStringArray("kyubey-big_sad"),
 "times": PackedFloat32Array(0)
 }
 tracks/1/type = "value"
@@ -130,17 +130,17 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_xqx84"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ruvpy"]
 _data = {
-&"RESET": SubResource("Animation_trbaf"),
-&"dance_idle": SubResource("Animation_vdj6e"),
-&"hey": SubResource("Animation_gysg7"),
-&"idle": SubResource("Animation_b3bnw"),
-&"sad": SubResource("Animation_ii3nl")
+&"RESET": SubResource("Animation_o3yc5"),
+&"dance_idle": SubResource("Animation_hgbm4"),
+&"hey": SubResource("Animation_vd3ac"),
+&"idle": SubResource("Animation_lyk41"),
+&"sad": SubResource("Animation_47att")
 }
 
-[node name="kyubey_big_bald" type="Node2D" unique_id=1798862582 node_paths=PackedStringArray("animation_player")]
-script = ExtResource("1_h3etq")
+[node name="kyubey_big" type="Node2D" unique_id=898513528 node_paths=PackedStringArray("animation_player")]
+script = ExtResource("1_yac3a")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
 singing_repeat_loop_point = 0.08333333333333333
@@ -156,16 +156,16 @@ metadata/camy = "-75"
 metadata/icon = "kyubey"
 metadata/color = "#FFFFFF"
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=404299600]
-position = Vector2(-165.5, -244)
-script = ExtResource("2_7yht1")
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=1442606868]
+position = Vector2(-950, -100)
+script = ExtResource("2_wbdvg")
 symbol = "KYUBEYATLAS"
 centered = false
-atlases = Array[ExtResource("3_2pqhy")]([SubResource("Resource_8mhn8")])
+atlases = Array[ExtResource("3_3hip7")]([SubResource("Resource_dbvo4")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=400009524]
-libraries/ = ExtResource("5_cypyr")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=566331737]
+libraries/ = ExtResource("5_k7fic")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=895058898]
-libraries/ = SubResource("AnimationLibrary_xqx84")
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=207414644]
+libraries/ = SubResource("AnimationLibrary_ruvpy")
 autoplay = &"dance_idle"

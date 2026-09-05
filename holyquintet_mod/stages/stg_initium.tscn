@@ -1,0 +1,25 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/initium/building.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/initium/stars.png" id="2"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="3"]
+
+[node name="Initium" type="Node2D" unique_id=44168203]
+metadata/camera_zoom = 0.75
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="building" type="Sprite2D" parent="." unique_id=91768921]
+z_index = 0
+position = Vector2(-1550, -200)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1")
+centered = false
+
+[node name="stars" type="Sprite2D" parent="." unique_id=31171630]
+z_index = 0
+position = Vector2(-500, -500)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("2")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=82106393]
+script = ExtResource("3")

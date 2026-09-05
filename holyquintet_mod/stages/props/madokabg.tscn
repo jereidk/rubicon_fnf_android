@@ -10,14 +10,14 @@ script = ExtResource("3_kjgol")
 folder_path = "res://holyquintet_mod/source/images/stages/resonance/madokabg/"
 format = "adobe"
 
-[node name="madokabg" type="Node2D" unique_id=903380923]
+[node name="madokabg" type="Node2D" unique_id=1731913158]
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=1626933262]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=1530658706]
 script = ExtResource("1_6x6bc")
 symbol = "madoka resvibe"
 centered = false
 atlases = Array[ExtResource("2_gagdu")]([SubResource("Resource_l053y")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=2136116286]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1018706148]
 libraries/ = ExtResource("4_1jopc")
 autoplay = &"bop"

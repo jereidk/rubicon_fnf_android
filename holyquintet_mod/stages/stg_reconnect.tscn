@@ -1,0 +1,43 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/reconnect/bg.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/reconnect/bgreflective.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/reconnect/spotsback.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/reconnect/spotsfront.png" id="4"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="5"]
+
+[node name="Reconnect" type="Node2D" unique_id=75775442]
+metadata/camera_zoom = 0.9
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="Scroll_bg" type="Parallax2D" parent="." unique_id=75517485]
+scroll_scale = Vector2(0.5, 0.5)
+[node name="bg" type="Sprite2D" parent="Scroll_bg" unique_id=35592728]
+z_index = 0
+position = Vector2(-500, -800)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1")
+centered = false
+
+[node name="bgreflective" type="Sprite2D" parent="." unique_id=45122484]
+z_index = 5
+position = Vector2(-400, 0)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2")
+centered = false
+
+[node name="spotsback" type="Sprite2D" parent="." unique_id=10848659]
+z_index = 10
+position = Vector2(-500, -500)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("3")
+centered = false
+
+[node name="spotsfront" type="Sprite2D" parent="." unique_id=86903176]
+z_index = 20
+position = Vector2(-500, -500)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("4")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=39985262]
+script = ExtResource("5")

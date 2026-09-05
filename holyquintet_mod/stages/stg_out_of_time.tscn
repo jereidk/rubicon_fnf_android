@@ -1,0 +1,85 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/sky.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/arches.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/farbuildings.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/buildings.png" id="4"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/leftbg.png" id="5"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/rightbuilding.png" id="6"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/below.png" id="7"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/out-of-time/ground.png" id="8"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="9"]
+
+[node name="OutOfTime" type="Node2D" unique_id=44206522]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="Scroll_sky" type="Parallax2D" parent="." unique_id=92091923]
+scroll_scale = Vector2(0.1, 0.1)
+[node name="sky" type="Sprite2D" parent="Scroll_sky" unique_id=44132866]
+z_index = 0
+position = Vector2(300, -100)
+scale = Vector2(2.25, 2.25)
+texture = ExtResource("1")
+centered = false
+
+[node name="Scroll_arches" type="Parallax2D" parent="." unique_id=60468452]
+scroll_scale = Vector2(0.3, 0.3)
+[node name="arches" type="Sprite2D" parent="Scroll_arches" unique_id=65085296]
+z_index = 0
+position = Vector2(-50, -400)
+scale = Vector2(1.05, 1.05)
+texture = ExtResource("2")
+centered = false
+
+[node name="Scroll_farbuildings" type="Parallax2D" parent="." unique_id=40481670]
+scroll_scale = Vector2(0.5, 0.5)
+[node name="farbuildings" type="Sprite2D" parent="Scroll_farbuildings" unique_id=71702382]
+z_index = 0
+position = Vector2(-250, -550)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("3")
+centered = false
+
+[node name="Scroll_buildings" type="Parallax2D" parent="." unique_id=24698532]
+scroll_scale = Vector2(0.7, 0.7)
+[node name="buildings" type="Sprite2D" parent="Scroll_buildings" unique_id=37025264]
+z_index = 0
+position = Vector2(0, -350)
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("4")
+centered = false
+
+[node name="Scroll_leftbg" type="Parallax2D" parent="." unique_id=80745869]
+scroll_scale = Vector2(0.8, 0.8)
+[node name="leftbg" type="Sprite2D" parent="Scroll_leftbg" unique_id=49562669]
+z_index = 0
+position = Vector2(-600, -600)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("5")
+centered = false
+
+[node name="Scroll_rightbuilding" type="Parallax2D" parent="." unique_id=62726763]
+scroll_scale = Vector2(0.8, 0.8)
+[node name="rightbuilding" type="Sprite2D" parent="Scroll_rightbuilding" unique_id=89913563]
+z_index = 0
+position = Vector2(2100, -575)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("6")
+centered = false
+
+[node name="below" type="Sprite2D" parent="." unique_id=39931448]
+z_index = 5
+position = Vector2(-500, 0)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("7")
+centered = false
+
+[node name="ground" type="Sprite2D" parent="." unique_id=38226761]
+z_index = 10
+position = Vector2(0, 0)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("8")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=32477924]
+script = ExtResource("9")

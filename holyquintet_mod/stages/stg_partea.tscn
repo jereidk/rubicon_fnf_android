@@ -1,0 +1,35 @@
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/partea/city.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/partea/inside.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/stages/partea/curtain.png" id="3"]
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="4"]
+
+[node name="Partea" type="Node2D" unique_id=39399600]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+[node name="Scroll_city" type="Parallax2D" parent="." unique_id=44418621]
+scroll_scale = Vector2(0.5, 0.5)
+[node name="city" type="Sprite2D" parent="Scroll_city" unique_id=97247865]
+z_index = 0
+position = Vector2(-500, -800)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1")
+centered = false
+
+[node name="inside" type="Sprite2D" parent="." unique_id=41110321]
+z_index = 5
+position = Vector2(-400, -200)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2")
+centered = false
+
+[node name="curtain" type="Sprite2D" parent="." unique_id=39014961]
+z_index = 15
+position = Vector2(-600, -400)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("3")
+centered = false
+
+[node name="StageBop" type="Node" parent="." unique_id=10318270]
+script = ExtResource("4")

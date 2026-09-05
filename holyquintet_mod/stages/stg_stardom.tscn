@@ -1,0 +1,10 @@
+[ext_resource type="Script" path="res://tools/holyquintet/stage_bop.gd" id="1"]
+
+[node name="Stardom" type="Node2D" unique_id=67785946]
+metadata/camera_zoom = 1.0
+metadata/camera_speed = 1.0
+metadata/start_cam_pos = Vector2(0, 0)
+
+
+[node name="StageBop" type="Node" parent="." unique_id=68369764]
+script = ExtResource("1")

@@ -60,6 +60,84 @@ const CHARACTERS := {
 		"origin": Vector2.ZERO,
 		"prop": true,
 	},
+	"madoka-base": {
+		"atlas": "res://holyquintet_mod/source/images/characters/madoka-base",
+		"xml": "res://holyquintet_mod/source/data/characters/madoka-base.xml",
+		"flip": false,
+		"origin": Vector2(50, 100),
+	},
+	"kyoko-base": {
+		"atlas": "res://holyquintet_mod/source/images/characters/kyoko-base",
+		"xml": "res://holyquintet_mod/source/data/characters/kyoko-base.xml",
+		"flip": false,
+		"origin": Vector2(-3450, -150),
+	},
+	"homura-base": {
+		"atlas": "res://holyquintet_mod/source/images/characters/homura-base",
+		"xml": "res://holyquintet_mod/source/data/characters/homura-base.xml",
+		"flip": false,
+		"origin": Vector2(-1300, -250),
+	},
+	"mami-base": {
+		"atlas": "res://holyquintet_mod/source/images/characters/mami-base",
+		"xml": "res://holyquintet_mod/source/data/characters/mami-base.xml",
+		"flip": false,
+		"origin": Vector2(-1350, -250),
+	},
+	"gf-eternalstar": {
+		"atlas": "res://holyquintet_mod/source/images/characters/gf-eternalstar",
+		"xml": "res://holyquintet_mod/source/data/characters/gf-eternalstar.xml",
+		"flip": true,
+		"origin": Vector2(729, -165),
+	},
+	"gf-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/gf-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/gf-partea.xml",
+		"flip": true,
+		"origin": Vector2(-790, -300),
+	},
+	"kyubey-big": {
+		"atlas": "res://holyquintet_mod/source/images/characters/kyubey-big",
+		"xml": "res://holyquintet_mod/source/data/characters/kyubey-big.xml",
+		"flip": false,
+		"origin": Vector2(950, 100),
+	},
+	"kyubey-small": {
+		"atlas": "res://holyquintet_mod/source/images/characters/kyubey-small",
+		"xml": "res://holyquintet_mod/source/data/characters/kyubey-small.xml",
+		"flip": false,
+		"origin": Vector2(525, 75),
+	},
+	"kyubey-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/kyubey-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/kyubey-partea.xml",
+		"flip": false,
+		"origin": Vector2(-3250, 100),
+	},
+	"madoka-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/madoka-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/madoka-partea.xml",
+		"flip": false,
+		"origin": Vector2(-2700, 150),
+	},
+	"mami-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/mami-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/mami-partea.xml",
+		"flip": false,
+		"origin": Vector2(-375, 25),
+	},
+	"nagisa-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/nagisa-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/nagisa-partea.xml",
+		"flip": false,
+		"origin": Vector2(-2700, 150),
+	},
+	"sayaka-partea": {
+		"atlas": "res://holyquintet_mod/source/images/characters/sayaka-partea",
+		"xml": "res://holyquintet_mod/source/data/characters/sayaka-partea.xml",
+		"flip": false,
+		"origin": Vector2(-2000, 150),
+	},
 }
 
 

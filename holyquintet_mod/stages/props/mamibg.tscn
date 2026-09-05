@@ -10,14 +10,14 @@ script = ExtResource("3_035if")
 folder_path = "res://holyquintet_mod/source/images/stages/resonance/mamibg/"
 format = "adobe"
 
-[node name="mamibg" type="Node2D" unique_id=963841566]
+[node name="mamibg" type="Node2D" unique_id=1262787073]
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=356218737]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=1902072092]
 script = ExtResource("1_lyw1v")
 symbol = "mami resvibe"
 centered = false
 atlases = Array[ExtResource("2_s7pvk")]([SubResource("Resource_sniv7")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1296314156]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=213788703]
 libraries/ = ExtResource("4_gc7hw")
 autoplay = &"bop"

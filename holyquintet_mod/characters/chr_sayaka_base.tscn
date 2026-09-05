@@ -760,7 +760,7 @@ _data = {
 &"sing_up_end": SubResource("Animation_fj1k0")
 }
 
-[node name="sayaka_base" type="Node2D" unique_id=617718933 node_paths=PackedStringArray("animation_player")]
+[node name="sayaka_base" type="Node2D" unique_id=1555403943 node_paths=PackedStringArray("animation_player")]
 script = ExtResource("1_578di")
 animation_player = NodePath("RootAnimationPlayer")
 singing_sing_to_dance_interval = 8
@@ -787,16 +787,16 @@ metadata/camy = "-100"
 metadata/icon = "sayaka"
 metadata/color = "#72AEDA"
 
-[node name="AnimateSymbol" type="Node2D" parent="." unique_id=92722283]
+[node name="AnimateSymbol" type="Node2D" parent="." unique_id=708704198]
 position = Vector2(-244.5, -725)
 script = ExtResource("2_yjo8t")
 symbol = "SAYAKAATLAS"
 centered = false
 atlases = Array[ExtResource("3_rgtbp")]([SubResource("Resource_fsuli")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=1063270460]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimateSymbol" unique_id=594380621]
 libraries/ = ExtResource("5_paiht")
 
-[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=2021973257]
+[node name="RootAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1614436779]
 libraries/ = SubResource("AnimationLibrary_jf73i")
 autoplay = &"dance_idle"
