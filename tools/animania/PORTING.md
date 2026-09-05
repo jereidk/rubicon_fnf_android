@@ -2585,9 +2585,9 @@ bytes of compiled method code.
 | `FreeplayDots` | 7,096 | 5 | **read whole** (8f) |
 | `FreeplaySongData` | 4,004 | 4 | field table read; `updateValues`, `set_currentDifficulty`, `toString` not |
 | `DiskSpr` | 13,045 | 10 | **read whole** (8m); `updateDiskPos` ported |
-| `CharPlayer` | 10,945 | 9 | unread |
+| `CharPlayer` | 10,945 | 9 | **read in part** (8p): the skin pipeline, not the placement |
 | `DifficultyStars` | 9,555 | 6 | **read whole** (8n); the row is built |
-| `FreeplayAtlasHandler` | 6,804 | 6 | unread |
+| `FreeplayAtlasHandler` | 6,804 | 6 | **read** (8p) |
 | `FreeplayScreenHelp` | 4,976 | 5 | **dead in this build** — see 8o |
 | `CharGirlfriend` | 4,048 | 3 | unread |
 | `FreeplayScore` | 2,133 | 3 | **read**, digits built (8o) |
@@ -2774,6 +2774,76 @@ digit came back ZERO — which reads exactly like a broken function. It was the 
 `_drive_score` runs every frame and rewrites the digits from `prev_displayed_score`, which is
 0 because nothing writes a score. Reading state a frame after writing it, in a screen with a
 per-frame driver, measures the driver and not the write.
+
+
+## 8p. The skin system, and one number I did not settle
+
+### How a skin is found
+
+```
+CharPlayer.getData(name) 188  reads data/ui/freeplay/skins/<name>.json  ("TEXT", ".json")
+                         189  if it does not exist, returns nothing
+FreeplayAtlasHandler
+  loadSkinAtlas 14  path = 'animania-freeplay/skinSelector/' + <folder> + <assetPath>
+                16  a cache lookup first, a cache store at 43
+                24  loadAnimate(..., {swfMode, cacheOnLoad, filterQuality}) — an Adobe atlas
+                42  destroyOnNoUse = false
+  preloadFromSongs 49  collects the skins the songs name, pushUnique
+                   55  'bf' and 63 'gf' as the defaults, then _preloadSkin on each
+CharPlayer.loadCharacter 128  returns early if the name is unchanged
+                         137  destroys the previous atlas
+                         143  loadSkinAtlas(data.assetPath)
+                         147  data.position …                      ← see below
+                         150  data.idleName, defaulting to 'idle'
+                         152  animation.play(idle)   153  visible = false
+                         156  alpha = 0.0001
+                         158  data.bed, defaulting to 'light'
+```
+
+Six skins ship, and their JSON is four fields:
+
+| file | position | assetPath | idleName | bed |
+|---|---|---|---|---|
+| bf-animania | [0, 0] | bf-animania | idle | — |
+| bf-standart | [70, 0] | bf-standart | idle | **normal** |
+| bf-xmas | [56, 0] | bf-xmas | idle | — |
+| gf-animania | [-115, -5] | gf-animania | idle | — |
+| gf-standart | [0, 0] | gf-standart | idle | — |
+| gf-xmas | [0, -40] | gf-xmas | idle | — |
+
+Two things fall out of that table. **The skin drives the bed**: `bf-standart` asks for
+`"normal"` and everything else falls through to `'light'`, so `checkBed` — which the port
+already has — is downstream of which skin is loaded. And **`characterFolder` is a field on
+`CharPlayer`**, which is why `'bf'` / `'gf'` in `preloadFromSongs` are folders, not skin
+names: the atlas path is `skinSelector/<folder>/<assetPath>`.
+
+### The number I did not settle
+
+`loadCharacter` line 147 reads `position[0]` and `position[1]` and feeds them, along with a
+255, into the pointer field at **0x320**. I could not pin what 0x320 is. What I did pin is
+that it is **not** `slideOffset`: `set_slideOffset` writes 0x318, and it also writes the
+sprite's own x and y at 0x30/0x38, so sliding moves the character.
+
+This matters concretely. `gf-animania` carries `[-115, -5]`. The port places both characters
+at the coordinates `initCharacters` constructs them with, measured against their drawn
+corner (8i). **If that `position` is added to the character's own, the port's girlfriend is
+115 px too far right.** If it feeds an icon or a transition sprite instead, the port is
+right. I have not resolved which, and I am not going to guess it — this file already carries
+four corrections that started as a plausible guess.
+
+To settle it: identify field 0x320 by crossing `CharPlayer`'s `__GetFields`
+(`currentCharacterName, skinAtlas, skinIconFreeplay, skinIconGlowFreeplay, characterFolder,
+transitionSparrow, bedMode, censureBlock, slideOffset, curSkinData`) against its `__Mark`,
+which marks 0x308, 0x310, 0x320 and 0x328.
+
+### What the port still assumes
+
+8i said the skin is "a choice, not a reading". That stands, and now with a sharper edge: no
+song in this mod declares `songPlayerSkin` or `songGFSkin`, so every song takes the
+`'bf'`/`'gf'` default folder — but which *skin JSON* that resolves to is not read. The port
+uses `bf-animania` / `gf-animania`, which is the mod's own name and the only pair whose
+`position` is near zero for bf. Plausible, unproven, and the sentence above is the reason it
+stays that way.
 
 
 ## 8b. Adding a song, for real
