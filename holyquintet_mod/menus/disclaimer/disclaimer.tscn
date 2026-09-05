@@ -1,0 +1,51 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/disclaimer.png" id="1"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="2"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1"]
+font = ExtResource("2")
+font_size = 42
+font_color = Color(1, 1, 1, 1)
+
+[node name="Disclaimer" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 6
+
+[node name="DiscText" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -600.0
+offset_top = 340.0
+offset_right = 600.0
+offset_bottom = 420.0
+grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 42
+text = "This is a fan-made mod. Friday Night Funkin\' and all related properties belong to their respective owners."
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

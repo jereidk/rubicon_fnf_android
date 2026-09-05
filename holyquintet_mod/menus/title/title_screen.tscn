@@ -1,0 +1,103 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/title/star.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/title/glow.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/title/keyart.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/logo.png" id="4"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/title/pressstartbg.png" id="5"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="6"]
+
+[node name="HQTitle" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Star" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -512.0
+offset_top = -512.0
+offset_right = 512.0
+offset_bottom = 512.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 5
+
+[node name="StarGlow" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -384.0
+offset_top = -384.0
+offset_right = 384.0
+offset_bottom = 384.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+stretch_mode = 5
+
+[node name="KeyArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3")
+stretch_mode = 6
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+offset_left = 110.0
+offset_top = 35.0
+offset_right = 377.0
+offset_bottom = 241.0
+texture = ExtResource("4")
+
+[node name="PressStartBG" type="TextureRect" parent="."]
+layout_mode = 1
+offset_top = 900.0
+offset_right = 1920.0
+offset_bottom = 960.0
+texture = ExtResource("5")
+stretch_mode = 6
+
+[node name="PressStartTxt" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -52.0
+offset_right = 250.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 42
+text = "- Press Enter -"
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]

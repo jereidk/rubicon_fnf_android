@@ -1,0 +1,86 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/background.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/spots.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/logo.png" id="3"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="4"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/main/main_menu.gd" id="5"]
+
+[node name="HQMainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 6
+
+[node name="Spots" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.3)
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+offset_left = 1300.0
+offset_top = 125.0
+offset_right = 1500.0
+offset_bottom = 331.0
+texture = ExtResource("3")
+
+[node name="Buttons" type="VBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 900.0
+offset_bottom = 700.0
+theme_override_constants/separation = 20
+
+[node name="Story" type="Label" parent="Buttons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 48
+text = "► Story"
+
+[node name="Freeplay" type="Label" parent="Buttons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 48
+text = "   Freeplay"
+
+[node name="Settings" type="Label" parent="Buttons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 48
+text = "   Settings"
+
+[node name="Credits" type="Label" parent="Buttons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 48
+text = "   Credits"
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
