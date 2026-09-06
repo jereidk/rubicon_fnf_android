@@ -3892,6 +3892,50 @@ The related older thread is still open underneath this one: the port's tube aver
 27 luma darker than the mod's even with no flash at all.
 
 
+## 8ab. The characters do have a transition, and 8p said they did not
+
+A question worth chasing, because the answer contradicts a `?` this file and the port both
+carried: **moving off the random disk onto a song plays a transition animation on bf and
+gf.**
+
+The port's comment on `_show_characters` said "the only `changeCharacter` in FreeplayScreen
+is the `'none'` on line 903". There are **four**, and the two that matter were never read:
+
+```
+playCurSongPreview 903  currentPlayer.changeCharacter('none')          0x34c3e69
+playCurSongPreview 904  currentGirlfriend.changeCharacter('none')      0x34c3e9f
+changeSelection    842  currentGirlfriend.changeCharacter(songData.songGFSkin)      0x34c93ca
+changeSelection    843  currentPlayer.changeCharacter(songData.songPlayerSkin)      0x34c9412
+```
+
+Both `changeSelection` calls sit right after `changeDiff` and inside the
+`if (songData != null)` opened by the `test %r12,%r12` at 0x34c92f1 — which is why the random
+slot skips them and only the `'none'` pair from `playCurSongPreview` applies there. The
+arguments are FreeplaySongData fields 0x58/0x60 and 0x48/0x50; its `__Field` names them
+**`songGFSkin`** and **`songPlayerSkin`**, so the freeplay skin is chosen per song.
+
+And `CharPlayer.changeCharacter` (0x4cb3640) is not a straight swap:
+
+```
+96   if (id == <current>) return;
+100  loadIcon(id)
+101  alpha = 1
+102  <field 0x108>.play('switch')
+```
+
+So going random → tutorial takes the id from `'none'` to the song's and **fires a `switch`
+animation on both characters**. The class also carries `transitionSparrow` (0x2e8/0x2f0, a
+String — the transition sheet's name, confirmed by the `"transiti"` + `"onSparro"` + `"w"`
+compare at 0x4cb7073) and a `loadSkinChanger()`.
+
+It stays unported, and the reason is unchanged from 8p: this is the whole character-skin
+subsystem — icons, the skin changer, the transition sheet — and on top of that, where
+`songGFSkin` and `songPlayerSkin` actually come from is still unread, because the songs'
+metadata does not declare them. What the port does have is the resting result, checked
+against both captures: no song, empty bed; song, the two of them sitting. What it is missing
+is the transition between those two states.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

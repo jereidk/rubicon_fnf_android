@@ -2231,13 +2231,36 @@ func _play_cur_song_preview(disk: Node2D = null) -> void:
 	old_theme_layer_name = THEME_RANDOM
 
 
-## `?` La mitad de VOLVER a ensenarlos no esta en esta clase. El unico `changeCharacter`
-## de FreeplayScreen es el 'none' de la linea 903, `changeTheme` no toca a los personajes
-## y el HScript de la pantalla tampoco -sus dos funciones solo pausan y reanudan el
-## `skinAtlas` y mueven el `censureBlock`-. Quien pone una skin de verdad esta en el
-## subsistema de personajes del juego base, que este puerto no tiene (ver 8p). Lo que si
-## esta comprobado contra dos capturas del mod es el resultado: sin canción, la cama
-## vacia; con cancion, los dos sentados. Eso es lo que hace esto.
+## La otra mitad SI esta en esta clase, y justo donde este comentario decia que no.
+## `changeCharacter` se llama CUATRO veces desde FreeplayScreen, no una:
+##
+##   playCurSongPreview 903  currentPlayer.changeCharacter('none')
+##   playCurSongPreview 904  currentGirlfriend.changeCharacter('none')
+##   changeSelection    842  currentGirlfriend.changeCharacter(songData.songGFSkin)
+##   changeSelection    843  currentPlayer.changeCharacter(songData.songPlayerSkin)
+##
+## Las dos de changeSelection estan en 0x34c93ca y 0x34c9412, detras de changeDiff y dentro
+## del `if (songData != null)` que abre el `test %r12,%r12` de 0x34c92f1 -por eso el hueco
+## aleatorio no entra-. Los argumentos son los campos 0x58/0x60 y 0x48/0x50 de
+## FreeplaySongData, que su __Field llama `songGFSkin` y `songPlayerSkin`: la skin es POR
+## CANCION.
+##
+## Y `CharPlayer.changeCharacter` (0x4cb3640) no es un cambio seco. Sus lineas 96-102:
+##
+##   96   if (id == <la de ahora>) return;
+##   100  loadIcon(id)
+##   101  alpha = 1
+##   102  <campo 0x108>.play('switch')
+##
+## O sea que pasar del disco aleatorio a una cancion lleva el id de 'none' al de la cancion
+## y DISPARA una animacion de transicion en los dos. La clase tiene ademas el campo
+## `transitionSparrow` -0x2e8/0x2f0, una cadena- y un `loadSkinChanger()`.
+##
+## `?` Nada de eso esta porteado: hace falta el subsistema de skins entero (ver 8p), y de
+## donde salen `songGFSkin` y `songPlayerSkin` tampoco esta leido, porque el metadata de
+## las canciones no los declara. Lo que si esta comprobado contra dos capturas del mod es
+## el resultado EN REPOSO: sin cancion la cama vacia, con cancion los dos sentados. Eso es
+## lo que hace esto, y lo que le falta es la transicion.
 func _show_characters(shown: bool) -> void:
 	for name: String in ["ShadowsOnBed/Girlfriend", "ShadowsOnBed/Player2"]:
 		var node := get_node_or_null(name) as CanvasItem
