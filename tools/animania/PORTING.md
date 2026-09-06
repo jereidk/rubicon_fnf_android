@@ -3424,18 +3424,42 @@ The `?` button's +5 is its own: `helpButton.x = FlxG.width - helpButton.width - 
 port measures that width from frame 0's texture while flixel uses the current frame's
 `frameWidth` — five pixels of trim difference.
 
-### Still different
+### The TV static is not darker; a single frame was
 
-- **The characters button** is on screen in the port and absent from the capture.
-  `initHeader` 1485-1497 builds it with zIndex 52, no alpha and no `visible = false` — the
-  same treatment as the help button, which *does* appear — and lines 1485-1500 contain no
-  `set_alpha` (0x3a8) or `set_visible` (0x128) at all. Code and capture disagree and the
-  reason is not in this method.
-- **The TV screen** renders at mean luma 74 against the capture's 119. Part of that is a
-  global gamma difference (the TV body reads 31 against 44 and the bed 87 against 101,
-  both consistent with ~1.17), but the screen is about 30% darker beyond that. It is not
-  the frame set: the port's 24 TVNOISE frames average 96.9 against the original 111
-  frames' 95.4, and both atlases use the same 373x301 frame. Unexplained.
+The first reading here said the screen rendered at luma 74 against the capture's 119 and
+called it unexplained. That was a measurement mistake, not a port bug: the noise **animates
+at 24 fps** and its frames are nowhere near equally bright, so one sample of one frame says
+nothing. `tools/animania/harness/tv_layers.gd` samples 40 consecutive frames of the port's
+own screen:
+
+    min 70.4   mediana 76.7   max 180.4
+
+The capture's 119 sits inside that range. And the 24 frames the optimizer kept are a
+faithful sample of the original 111, not a dark subset — the whole distribution lines up:
+
+    mod (111)     min 50.6  p25 69.0  mediana 75.7  p75 100.3  max 191.3
+    puerto (24)   min 66.0  p25 69.5  mediana 75.4  p75 100.2  max 173.2
+
+Nothing to fix. The lesson is the one this file keeps re-learning: a single measurement of
+something that moves is not a measurement.
+
+### Still different: the characters button
+
+It is on screen in the port and absent from the capture, and after an exhaustive look it is
+the one place where the binary and the screenshot disagree:
+
+- `initHeader` 1485-1497 builds it with zIndex 52, no alpha and no `visible = false` — the
+  same treatment as the help button, which *does* appear in the capture.
+- Lines 1485-1500 contain no `set_alpha` (0x3a8) and no `set_visible` (0x128) at all.
+- Its idle timer closure (line 1499 → `initHeader::_hx_Closure_1`) is the same shape as the
+  help button's (line 1478 → `_hx_Closure_0`): compare the current animation name, replay
+  it, re-arm with `FlxG.random.float(2, 12)`. Neither touches visibility.
+- Every read of field 0x1a8 across the whole class is in `initHeader` or in the reflection
+  methods (`__Field`, `__Mark`, `__Visit`).
+
+So whatever removes it is outside `FreeplayScreen`, or the capture is from a build where it
+is not there. The port keeps it, because that is what the code says, and this note is here
+so the next person does not "fix" it by guessing.
 
 
 ## 8b. Adding a song, for real
