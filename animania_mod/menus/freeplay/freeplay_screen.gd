@@ -155,7 +155,11 @@ const DIFFICULTIES: PackedStringArray = ["Easy", "Normal", "Hard"]
 var cur_selected: int = 0
 var cur_selected_float: float = 0.0
 var _confirmed: bool = false
-var allow_input: bool = true
+## El constructor del mod lo pone a FALSE -`movb $0x0,0x2d8(%rbx)` en 0x34d327b, dentro de
+## FreeplayScreen::__construct-. Estaba a true aqui, que es lo que dejaba entrar teclas
+## durante el encendido; quien lo abre es introDone cuando el tubo termina su animacion, y
+## el cierre de 1 s lo repite en su linea 1644.
+var allow_input: bool = false
 
 ## TV glow state.
 var tv_glow: Sprite2D  ## Reference to the glow sprite.
@@ -168,7 +172,7 @@ var tv_intro_done: bool = false
 var tv_sprite: AnimatedSprite2D
 var tv_noise_back: Sprite2D  ## TV noise back layer.
 var tv_noise_forward: AnimatedSprite2D  ## TV noise forward layer.
-var tv_back_bg: Sprite2D  ## TV background.
+var tv_back_bg: ColorRect  ## tvBackBG: el rectangulo negro de 375x305 detras del tubo.
 
 ## Shadows on bed.
 var shadows_on_bed: Node2D
@@ -305,8 +309,13 @@ func _resolve_nodes() -> void:
 	album_title = get_node_or_null("UI/AlbumRoll/AlbumTitle") as AnimatedSprite2D
 	if album_art_anims != null:
 		album_art_anims.animation_finished.connect(_on_album_finish)
-	disk_player = get_node_or_null("DiskPlayer") as AnimatedSprite2D
-	disk_player_mask = get_node_or_null("DiskPlayerMask") as Sprite2D
+	# Los tres nombres de nodo estaban MAL y los tres campos salian null sin decir nada:
+	# el reproductor se llama `Player` en la escena, su tapa `PlayerLayer` -que es el
+	# `diskPlayerMask` del mod, zIndex 24- y el fondo del tubo `TvBackBG`. Con doIntroAnim
+	# porteado ya no son campos muertos: las lineas 1601-1607 los tocan a los tres.
+	disk_player = get_node_or_null("Player") as AnimatedSprite2D
+	disk_player_mask = get_node_or_null("PlayerLayer") as Sprite2D
+	tv_back_bg = get_node_or_null("TvBackBG") as ColorRect
 	characters_buttons = get_node_or_null("CharactersButtons")
 	_theme_music = get_node_or_null("ThemeMusic") as AudioStreamPlayer
 	layer_sound = get_node_or_null("LayerSound") as AudioStreamPlayer
@@ -961,24 +970,78 @@ func _do_intro_anim() -> void:
 	get_tree().create_timer(INTRO_SECOND).timeout.connect(_intro_light_up)
 
 
-## El cierre del temporizador de 0.5 s (0x34b8df0, lineas 1601-1607).
+## El cierre del temporizador de 0.5 s (0x34b8df0, lineas 1601-1607). ESTA es la animacion
+## del encendido, y estaba sin portear entera: el puerto solo hacia visibles las dos piezas.
 ##
-##   diskPlayer.visible = true;                            // 1601
-##   diskPlayer.animation.play('y');                       // 1602
-##   tvSprite.visible = true;                              // 1603
-##   tvSprite.animation.onFrameChange.add(...);            // 1605
-##   tvSprite.animation.onFinish.addOnce(...);             // 1606
-##   diskPlayer.animation.onFinish.addOnce(...);           // 1607
+##   diskPlayer.visible = true;                                       // 1601
+##   diskPlayer.animation.play('y');                                  // 1602
+##   tvSprite.visible = true;                                         // 1603
+##   tvSprite.animation.play('y');                                    // 1604
+##   tvSprite.animation.onFrameChange.add(_ -> tvBackBG.visible = true);   // 1605
+##   tvSprite.animation.onFinish.addOnce(_ -> introDone());                // 1606
+##   diskPlayer.animation.onFinish.addOnce(_ -> diskPlayerMask.visible = true);  // 1607
 ##
-## Los tres callbacks encadenan el resto del encendido y no se han leido; lo que si se
-## ve es que el aparato y el televisor aparecen aqui, medio segundo antes que nada mas.
+## El nombre 'y' de la linea 1604 costo una lectura equivocada primero. hxlines decia que
+## buildBg 1279 hacia `addByPrefix('f', ...)`, y con eso el play('y') del televisor no
+## casaba con ninguna animacion suya. Es la HERRAMIENTA la que se equivoca: hxcpp guarda
+## algunos literales en UTF-16 y hxlines los lee como ASCII, asi que
+## `'f\0r\0e\0e\0p\0l\0a\0y\0...'` -o sea 'freeplay tv образец 1', 21 caracteres, que es
+## el PREFIJO- sale por pantalla como una 'f' de una letra que parece un nombre corriente.
+## El nombre de verdad esta en el otro String del sitio de llamada, longitud 1 y puntero
+## 0x5c28aa8, que es 'y'. O sea: `addByPrefix('y', 'freeplay tv образец 1', 24, false)`.
+##
+## Y ese cuarto argumento importa: `looped` va explicito a false -Null<bool> {flag 0,
+## valor 0} en la pila, frente a los {flag 1} de flipX y flipY, que son los nulos-. Tiene
+## que serlo: onFinish en Flixel SOLO se dispara cuando una animacion no ciclica acaba, y
+## el mod cuelga dos callbacks de ahi. Las dos SpriteFrames del puerto venian con loop 1 y
+## se han puesto a 0.
 func _intro_switch_on() -> void:
-	var vcr := get_node_or_null("Player") as AnimatedSprite2D
-	if vcr != null:
-		vcr.visible = true
-		vcr.play(&"player")
+	if disk_player != null:
+		disk_player.visible = true                            # 1601
+		disk_player.frame = 0
+		disk_player.play(&"player")                           # 1602
+		if not disk_player.animation_finished.is_connected(_intro_vcr_done):
+			disk_player.animation_finished.connect(_intro_vcr_done,
+				CONNECT_ONE_SHOT)                             # 1607
 	if tv_sprite != null:
-		tv_sprite.visible = true
+		tv_sprite.visible = true                              # 1603
+		tv_sprite.frame = 0
+		tv_sprite.play(tv_sprite.sprite_frames.get_animation_names()[0])   # 1604
+		# 1605. En el mod es un `add` corriente y se ejecuta en CADA fotograma; poner un
+		# visible que ya esta puesto no hace nada, asi que aqui va de una sola vez.
+		if not tv_sprite.frame_changed.is_connected(_intro_tv_frame):
+			tv_sprite.frame_changed.connect(_intro_tv_frame, CONNECT_ONE_SHOT)
+		if not tv_sprite.animation_finished.is_connected(_intro_done):
+			tv_sprite.animation_finished.connect(_intro_done, CONNECT_ONE_SHOT)  # 1606
+
+
+## Linea 1605: el fondo negro del tubo entra con el primer fotograma del encendido, no
+## antes. Es lo que tapa la pared por detras de la pantalla mientras el tubo se abre.
+func _intro_tv_frame() -> void:
+	if tv_back_bg != null:
+		tv_back_bg.visible = true
+
+
+## Linea 1607: la tapa del reproductor entra cuando SU animacion acaba.
+func _intro_vcr_done() -> void:
+	if disk_player_mask != null:
+		disk_player_mask.visible = true
+
+
+## introDone (0x34bc2a0, lineas 1666-1680), que cuelga del onFinish del televisor:
+##
+##   1666  tvIntroDone = true;  allowInput = true;  freeplayScore.updateScore(0)
+##   1680  callOnScripts('onIntroDone')
+##
+## Los dos booleanos son `movb $0x1` sobre 0x1c8 y 0x2d8. Que `allowInput` se abra AQUI
+## -a los 0.75 s, en cuanto el tubo termina de abrirse- y no en el cierre de 1 s cambia
+## una cosa: cuando la linea 1648 llama a changeSelection, la guarda ya no lo para. El
+## cierre de 1 s vuelve a ponerlo a true en su linea 1644, asi que no se quita de alli.
+func _intro_done() -> void:
+	tv_intro_done = true                                      # 1666
+	allow_input = true                                        # 1666
+	intended_score = 0                                        # updateScore(0)
+	lerp_score = 0.0
 
 
 ## El cierre del temporizador de 1 s (0x34ca150, lineas 1612-1648).
@@ -998,12 +1061,23 @@ func _intro_switch_on() -> void:
 ## El destino del tween de darkOverlay esta comprobado, no supuesto: el Anon de la linea
 ## 1639 lleva nombre de 5 letras -'alpha'-, valor 0 y tipo 3 (entero).
 func _intro_light_up() -> void:
-	# Linea 1612: dotsGrp va en esta lista, es de los primeros que se encienden.
-	for name: String in ["TvGlow", "TvNoiseBack", "TvNoiseForward", "PlayerLayer",
-			"Disks", "ShadowsOnBed", "UI/DotsGrp"]:
+	# Linea 1612, ahora contada: son CINCO receptores y ya no se adivinan. Los cinco
+	# `mov <offset>(%rax),%rax` seguidos de su `call *0x128` en 0x34ca150 leen 0x258
+	# dotsGrp, 0x250 selectorsGroup, 0x178 tvGlow, 0x1d0 tvNoiseBack y 0x1f0
+	# tvNoiseForward. `PlayerLayer` estaba de mas en esta lista: es el diskPlayerMask y
+	# lo enciende el onFinish del reproductor (linea 1607), no esta linea.
+	for name: String in ["UI/DotsGrp", "Selector", "TvGlow", "TvNoiseBack",
+			"TvNoiseForward"]:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
 			node.visible = true
+	# `?` `Disks` no esta en la linea 1612 ni en ninguna otra de este cierre. buildBg 1367
+	# deja grpDisks invisible y quien lo vuelve a encender no lo he encontrado -no hay un
+	# set_visible sobre 0x238 en toda la clase-. Se enciende aqui para que el carrusel se
+	# vea; queda marcado por si aparece el sitio de verdad.
+	var disks := get_node_or_null("Disks") as CanvasItem
+	if disks != null:
+		disks.visible = true
 
 	# El destello blanco: se enciende opaco y se apaga en 0.75 s.
 	if tv_sprite_flash != null:
@@ -1020,20 +1094,29 @@ func _intro_light_up() -> void:
 	# entra en escena.
 	_album_play_intro()
 
-	# El sonido va aqui, no al abrir la pantalla: la linea 1643 lo toca dentro de este
-	# temporizador. Que sea tvOn es lo unico que no esta leido del binario.
+	# El sonido va aqui, no al abrir la pantalla: la linea 1643 esta dentro de este
+	# temporizador y trae su ruta entera: 'animania/menu/freeplay/tvOn'.
 	_play_sound(SOUND_TV_ON, 0.6)
 
+	# Linea 1644: allowInput otra vez a true. Ya lo abrio introDone a los 0.75 s, pero el
+	# mod lo repite aqui y esta linea es la que manda si el televisor no llego a terminar.
+	allow_input = true
+	# Linea 1645. Va DESPUES del sonido, no en la lista de 1612.
+	if shadows_on_bed != null:
+		shadows_on_bed.visible = true
+
+	# Linea 1646: freeplayScore.updateScore(0).
 	intended_score = 0
 	lerp_score = 0.0
-	change_selection(0, false)
+	change_selection(0, false)                                # 1648
 	# Linea 1651: playCurSongPreview otra vez, aparte del que ya lleva changeSelection
-	# dentro. No es redundante: en 1648 `allow_input` todavia es false y changeSelection se
-	# sale por su guarda, asi que esta es la llamada que arranca el tema del primer disco.
+	# dentro. Aqui decia que era la unica que sonaba porque en 1648 `allow_input` seguia
+	# en false; eso era verdad mientras introDone estaba sin portear. Ya no lo es: el
+	# onFinish del televisor abre la entrada a los 0.75 s, changeSelection corre entera en
+	# 1648 y esta llamada queda como lo que es en el mod, una repeticion inofensiva
+	# -_change_theme compara con `old_theme_name` y no reengancha la misma pista-.
 	_play_cur_song_preview()
-	tv_intro_done = true
 	intro_done = true
-	allow_input = true
 	_show_stickers()
 
 

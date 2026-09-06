@@ -394,10 +394,17 @@ func _init() -> void:
 	# piezas de DENTRO si son constantes, y son ellas las que lo fijan.
 	#
 	# El sparrow trae seis fotogramas en tres tamanos: 727x627 con la pantalla opaca y un
-	# halo azul, y dos pares huecos de 451x473 y 466x457. buildBg hace addByPrefix('f'),
-	# que casa con los seis, y luego finish() (linea 1281), que deja la animacion en el
-	# ULTIMO: el 466x457, cuya pantalla es un agujero transparente. El puerto se quedaba en
-	# el primero, con la pantalla tapada, y por eso nada de lo de dentro se veia.
+	# halo azul, y dos pares huecos de 451x473 y 466x457. buildBg 1279 hace
+	# `addByPrefix('y', 'freeplay tv образец 1', 24, false)` -el prefijo casa con los seis-
+	# y luego finish() (linea 1281), que deja la animacion en el ULTIMO: el 466x457, cuya
+	# pantalla es un agujero transparente. El puerto se quedaba en el primero, con la
+	# pantalla tapada, y por eso nada de lo de dentro se veia.
+	#
+	# Esos seis fotogramas SON la animacion del encendido: doIntroAnim la relanza a los
+	# 0.5 s (linea 1604) y de su onFinish cuelga introDone. El cuarto argumento de
+	# addByPrefix va explicito a false, asi que no cicla; freeplay_tv_frames.tres y
+	# freeplay_player_frames.tres estan a `loop: 0` por eso, y no los genera este builder
+	# -son recursos versionados-, asi que si alguien los rehace hay que volver a bajarlo.
 	#
 	# La posicion es la del constructor, linea 1277: new FunkinSprite(-60, -198). Cuadra
 	# hasta el pixel una vez se tiene en cuenta que el sparrow viene RECORTADO: los seis

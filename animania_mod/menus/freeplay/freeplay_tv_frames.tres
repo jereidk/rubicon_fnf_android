@@ -38,7 +38,7 @@ animations = [{
 "duration": 2.0,
 "texture": SubResource("AtlasTexture_vhwjr")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"freeplay tv образец ",
 "speed": 24.0
 }]

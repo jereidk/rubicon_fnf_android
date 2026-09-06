@@ -129,7 +129,27 @@ class Reader:
         for addr, off, size in self.sections:
             if addr and addr <= va < addr + size:
                 self.file.seek(off + va - addr)
-                raw = self.file.read(48)
+                raw = self.file.read(96)
+                # UTF-16 PRIMERO. hxcpp guarda en UTF-16LE todo literal que no sea ASCII
+                # puro, y leer uno de esos como si fuera ASCII no falla: se para en el
+                # primer 0x00 y devuelve su PRIMERA LETRA, que pasa por un nombre corto
+                # perfectamente creible. Asi es como `addByPrefix('y', 'freeplay tv
+                # образец 1', 24)` salia aqui como `addByPrefix('f', ...)` y hacia que el
+                # play('y') del televisor no casara con nada.
+                # Dos caracteres ASCII seguidos con su byte alto a cero es la firma; con
+                # mirar solo el primero, una cadena ASCII de UNA letra seguida de basura
+                # -"y\0\xdd\xbd..."- pasa por UTF-16 y se decodifica como jeroglificos.
+                if (len(raw) >= 6 and raw[1] == 0 and raw[3] == 0
+                        and 32 <= raw[0] < 127 and 32 <= raw[2] < 127):
+                    end = 0
+                    while end + 1 < len(raw) and raw[end:end + 2] != b"\0\0":
+                        end += 2
+                    try:
+                        wide = raw[:end].decode("utf-16-le")
+                    except UnicodeDecodeError:
+                        wide = ""
+                    if 2 <= len(wide) <= 44 and all(ord(c) >= 32 for c in wide):
+                        return "'%s'" % wide
                 text = raw.split(b"\0")[0]
                 if 1 <= len(text) <= 44 and all(32 <= c < 127 for c in text):
                     return "'%s'" % text.decode()
