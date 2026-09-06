@@ -3262,6 +3262,98 @@ painting a white "100" over the diorama while the real one sat in the CLEARED bo
 remembering: `_add`-ing two nodes with the same name never errors.
 
 
+## 8u. The random slot, checked against a capture of the mod
+
+A screenshot of the real mod sitting on the random disc, blended at 50% over the port's
+own render of the same slot, turned four differences into four readings.
+
+### The album is switched off, and updateAlbum is where that lives
+
+`updateDataStuff`'s no-song branch (0x34c5f50, lines 1154-1173) reads:
+
+    1154  FlxTween.cancelTweensOf(bossfightSkull, ['alpha'])
+    1155  bossfightSkull.alpha = 0                  (`pxor %xmm0` before the vt+0x3a8)
+    1156  if bossSound.isPlaying → cleanup;  intendedScore = 0; intendedCompletion = 0
+    1165  dotsGrp.setDots(currentDiffsIds)
+    1166  dotsGrp.curDiff = currentDifficulty       ← the dots stay live
+    1169  albumRoll.albumId = null                  (`movq $0x0` in both halves of the String)
+    1170  difficultyStars.difficulty = null         (a null Dynamic)
+    1172  the six header pieces to alpha 0.0001
+    1173  completionText.visible = false
+
+Line 1169 is what empties the TV, and the mechanism is not in `updateDataStuff` at all —
+it is in `AlbumRoll.updateAlbum`, whose line 73 sets `visible = false` and `albumData =
+null` when the id is null, and whose line 78 sets `visible = true` when it is not. Two
+`call *%rax` with `esi = 0` and `esi = 1`; easy to skim past, and the reason the port's TV
+was showing the cover on a slot where the mod shows only static.
+
+Note the shape of 1172/1173: **six** pieces get alpha 0.0001 and only `completionText`
+gets `visible = false`. The port sets `visible` on all seven; same result on screen,
+written down because it is not the same code.
+
+### The bed is empty because the characters are switched off
+
+`playCurSongPreview` 903-904 calls `changeCharacter('none')` on the player and the
+girlfriend, and with skin `none` there is nothing to draw. The capture confirms it: on the
+random slot the bed is bare.
+
+`?` The other half — putting them back — is **not in this class**. The only
+`changeCharacter` in `FreeplayScreen` is that 'none', `changeTheme` never touches the
+characters, and the state's HScript
+(`assets/data/scripts/states/FreeplayScreen.script`, read in full) only pauses/resumes
+`skinAtlas` and moves `censureBlock`. Whoever sets a real skin lives in the base game's
+character subsystem, which this port does not have (8p). The port hides them on the random
+slot and shows them on a song, which is what both captures show.
+
+### The disks were 1.5x too small
+
+`_apply_disk_pose` wrote `disk.scale = Vector2(at, at)`, where `at` is the mod's own scale
+from `updateDiskPos` line 165 (`1 - abs(angle) * 0.035`). That assignment **overwrote** the
+`FUNKIN_TO_RUBICON` the builder puts on every disk, so the whole carousel drew at two
+thirds. Measured: the selected disc is 310 px wide in the capture and was 207 in the port.
+
+### A row offset that is measured, not read
+
+With the scale fixed, the disc art in the capture measures **exactly 323x133** — the size
+of `random.png` at scale 1, so no zoom and no scaling is involved — sitting at
+**(137, 580)**. The formulas say (-20, 517):
+
+    updateDisks     targetPos.x = (disk.ID - sel) * 225 - 20
+    DiskSpr.intendedY(d) = (d * 1.5)^2 * 6 + 520
+
+Both re-read from the binary for this comparison; both are exactly what the port already
+had. The second visible disc fits the same translation once its own scale is applied, so
+it is a constant offset of the row, not a frame caught mid-lerp (a mid-lerp would need x
+to say 0.7 steps and y to say 2.1, which is not one state).
+
+Where it comes from is **not found**, and the places it could have come from were checked
+and ruled out: `grpDisks` is built with all three coordinates null (buildBg 1364);
+`DiskSpr.__construct` adds its child sprite at (0, 0) (line 47-49); `DiskSpr.init` only
+calls `set_x`/`set_y` when its arguments are non-null and `generateDisksList` passes null
+for both; the two offset fields (0x278/0x280) are filled from the song's own data in
+`changeDisk` line 87 and stay 0 when there is no song; `syncDiskOffsets` and
+`DiskSpr.updateHitbox` both reduce to `origin.set(frameWidth/2, frameHeight/2)` with those
+at 0; and `forcePosition` is just `updateDiskPos(1.0, true)`. The one thread not pulled is
+`grpDisks.useRenderTexture = true` (buildBg 1365) — that group draws through an
+intermediate texture and that path is unread.
+
+So `DISK_ROW_OFFSET` is in the port as a measured constant with that provenance written
+next to it, and the binary's own numbers are left alone.
+
+### Still different, and left alone
+
+- **The dots.** The capture shows FOUR (easy, normal, hard, standart); the port shows
+  three. Line 1156 sets `currentDiffsIds = this.<0xf0>`, and 0xf0 is the offset the field
+  table calls `stickerSubState`, which cannot be right — so the table is wrong there and
+  the default difficulty list has not been identified.
+- **The characters button.** `initHeader` 1485-1497 builds it with no alpha and no
+  `visible = false` — it should be on screen at full opacity — and in the capture it is
+  not there, only the dimmed `?`. Code and screenshot disagree; not resolved.
+- **The bed.** The port's is about 80 px narrower on its left side than the capture's.
+- **The TV static.** Much brighter in the mod. `optimize_atlas.py` cut TVNOISE from 111
+  frames to 24 (8j); the bright frames are probably among the ones dropped.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

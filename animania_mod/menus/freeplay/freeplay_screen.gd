@@ -551,11 +551,19 @@ func _drive_disk_animations(delta: float) -> void:
 ## fotograma y para el salto de _refresh.
 func _apply_disk_pose(disk: Node2D) -> void:
 	# La x del mod, que es la del puerto sin el factor de escala de pantalla.
-	var step: float = (disk.position.x / FUNKIN_TO_RUBICON - DISK_OFFSET_X) / DISK_STEP_X
+	# El paso sale de la x del mod, o sea sin el 1.5 de pantalla y sin la traslacion
+	# medida de la fila; si no se le quita, el disco elegido no sale en el paso 0 y todo
+	# el carrusel gira y encoge desde el sitio equivocado.
+	var step: float = (disk.position.x / FUNKIN_TO_RUBICON - DISK_ROW_OFFSET.x
+		- DISK_OFFSET_X) / DISK_STEP_X
 	var angle: float = step * DISK_ANGLE_PER_STEP
 	disk.rotation = deg_to_rad(angle)
 	var at: float = 1.0 - absf(angle) * DISK_SCALE_PER_DEGREE
-	disk.scale = Vector2(at, at)
+	# El `at` es la escala DEL MOD, y este puerto dibuja a 1.5x. Esto ponia `Vector2(at,
+	# at)` a secas, o sea que pisaba el 1.5 que el builder deja en cada disco y el
+	# carrusel entero salia a dos tercios de su tamano. Se nota comparando con una captura
+	# del mod: el disco elegido mide ahi 310 px de ancho y aqui median 207.
+	disk.scale = Vector2(at, at) * FUNKIN_TO_RUBICON
 	# Linea 168: gris, no alfa. Std.int() trunca y el resultado se recorta a 0..255.
 	var grey: float = clampf(float(int(255.0 * at)), 0.0, 255.0) / 255.0
 	disk.modulate = Color(grey, grey, grey, 1.0)
@@ -587,6 +595,20 @@ func _apply_disk_pose(disk: Node2D) -> void:
 
 const DISK_STEP_X := 225.0
 const DISK_OFFSET_X := -20.0
+## `?` MEDIDO, no leido. Con las constantes de arriba el disco elegido cae en (-20, 517)
+## y en una captura del mod cae en (137, 580) -su arte, `random.png`, mide 323x133 y en
+## esa captura ocupa 323x133 exactos, asi que no hay zoom ni escala de por medio: es una
+## traslacion pura-. El segundo disco visible encaja con la MISMA traslacion una vez se
+## le aplica su propia escala, o sea que es un desplazamiento constante de la fila y no
+## un fotograma pillado a mitad de la interpolacion.
+##
+## De donde sale no lo he encontrado: `updateDisks` es `(ID - sel) * 225 - 20`,
+## `intendedY` es `(d * 1.5)^2 * 6 + 520`, `grpDisks` se construye con las tres
+## coordenadas a null, el DiskSpr mete su sprite hijo en (0, 0) y los dos campos de
+## desplazamiento (0x278/0x280) se quedan a 0 cuando la cancion no trae los suyos. El
+## unico cabo suelto es `grpDisks.useRenderTexture = true` (buildBg 1365): ese grupo se
+## dibuja a traves de una textura intermedia y ese camino no esta leido.
+const DISK_ROW_OFFSET := Vector2(157.0, 63.0)
 const DISK_CURVE_X := 1.5
 const DISK_CURVE_Y := 6.0
 const DISK_BASE_Y := 520.0
@@ -615,8 +637,8 @@ func _update_disks(sel: float) -> void:
 		var chosen: bool = is_zero_approx(away)
 		# Linea 806: el elegido apunta tres pixeles mas arriba. Ver DISK_TOP_OFFSET.
 		var y: float = _disk_y(away) - (DISK_TOP_OFFSET if chosen else 0.0)
-		disk.set_meta(&"target", Vector2(
-			away * DISK_STEP_X + DISK_OFFSET_X, y) * FUNKIN_TO_RUBICON)
+		disk.set_meta(&"target", (Vector2(
+			away * DISK_STEP_X + DISK_OFFSET_X, y) + DISK_ROW_OFFSET) * FUNKIN_TO_RUBICON)
 		disk.z_index = DISK_Z_SELECTED if chosen else DISK_Z
 
 
@@ -848,8 +870,44 @@ func _update_data_stuff(_force: bool) -> void:
 			node.visible = has_song
 
 	if not has_song:
+		# La rama del disco aleatorio, leida entera del binario (0x34c5f50, 1154-1173) y
+		# comparada contra una captura del mod. NO es "no hacer nada":
+		#
+		#   1154  FlxTween.cancelTweensOf(bossfightSkull, ['alpha'])
+		#   1155  bossfightSkull.alpha = 0            <- `pxor %xmm0` antes del vt+0x3a8
+		#   1156  si bossSound suena, cleanup;  intendedScore = 0; intendedCompletion = 0
+		#   1165  dotsGrp.setDots(currentDiffsIds)
+		#   1166  dotsGrp.curDiff = currentDifficulty  <- los puntos SIGUEN vivos
+		#   1169  albumRoll.albumId = null             <- `movq $0x0` en las dos mitades
+		#   1170  difficultyStars.difficulty = null    <- Dynamic nulo
+		#   1172  los seis de la cabecera a alfa 0.0001
+		#   1173  completionText.visible = false
+		#
+		# Lo de la 1169 es lo que apaga la caratula, y no se ve en `updateDataStuff` sino
+		# en `AlbumRoll.updateAlbum`: su linea 73 hace `visible = false` y `albumData =
+		# null` cuando el id es null, y la 78 vuelve a poner `visible = true` cuando no lo
+		# es. O sea que el televisor del hueco aleatorio ensena SOLO ruido, que es
+		# exactamente lo que se ve en la captura del mod.
+		intended_score = 0
+		intended_completion = 0.0
+		lerp_score = 0.0
+		lerp_completion = 0.0
+		_show_score_digits(0)
+		_show_completion_digits(0)
+		_album_set_id("")                                 # 1169
+		_update_stars()                                   # 1170, con difficulty null
+		_update_diff_banner()
+		_set_dots()                                       # 1165-1166
+		# 1154-1155: el craneo de jefe se apaga sin tween -alfa 0 directo-.
+		if bossfight_skull != null:
+			bossfight_skull.modulate.a = 0.0
+		if boss_sound != null and boss_sound.playing:
+			boss_sound.stream_paused = true
 		return
 
+	# Linea 1097: con cancion, el id vuelve a ser el del album del mod y updateAlbum
+	# reenciende el grupo.
+	_album_set_id(ALBUM_ID)
 	_update_score_for_selection()
 
 	var song: Dictionary = current_filtered_songs[cur_selected]
@@ -1164,6 +1222,21 @@ func _intro_light_up() -> void:
 ## y el efecto a 0.1 es un velo muy leve; queda apuntado aqui con su valor por si algun
 ## dia se escribe.
 const ALBUM_TITLE_DELAY := 0.75
+## buildBg 1321 y updateDataStuff 1097: el unico album que este mod pone.
+const ALBUM_ID := "animania05"
+
+
+## AlbumRoll.set_albumId + updateAlbum, reducidos a lo que cambia a la vista.
+##
+## `updateAlbum` (0x364fc80) hace dos cosas segun el id ANTES de mirar los datos: con id
+## null pone `visible = false` y `albumData = null` (linea 73), y con id no nulo pone
+## `visible = true` (linea 78) y sigue. Como en este puerto la caratula es una sola -no
+## hay registro de albums que consultar- lo unico que queda de updateAlbum es ese
+## encendido y apagado, que es justo lo que separa el hueco aleatorio de una cancion.
+func _album_set_id(id: String) -> void:
+	if album_roll == null:
+		return
+	album_roll.visible = not id.is_empty()
 
 
 func _album_play_intro() -> void:
@@ -1907,6 +1980,7 @@ const THEME_RANDOM := "RANDOM"
 func _play_cur_song_preview(disk: Node2D = null) -> void:
 	var target: Node2D = disk if disk != null else _get_current_disk()
 	if target != null and not _song_of(target).is_empty():
+		_show_characters(true)
 		_change_theme(target)
 		return
 
@@ -1914,10 +1988,29 @@ func _play_cur_song_preview(disk: Node2D = null) -> void:
 	_theme_tween = _swap_track(_theme_music, _theme_tween, RANDOM_TRACK,
 		LAYER_TARGET_VOLUME)
 	_layer_tween = _swap_track(layer_sound, _layer_tween, "", 0.0)
+	# Lineas 903-904: changeCharacter('none') sobre el jugador y la novia. Con la skin
+	# 'none' no queda personaje que dibujar, y en la captura del mod sobre el disco
+	# aleatorio la cama esta vacia: ni bf ni gf.
+	current_girlfriend = "none"
 	current_player = "none"
-	_check_bed("none")
+	_show_characters(false)
+	_check_bed("none")                                    # 905
 	old_theme_name = THEME_RANDOM
 	old_theme_layer_name = THEME_RANDOM
+
+
+## `?` La mitad de VOLVER a ensenarlos no esta en esta clase. El unico `changeCharacter`
+## de FreeplayScreen es el 'none' de la linea 903, `changeTheme` no toca a los personajes
+## y el HScript de la pantalla tampoco -sus dos funciones solo pausan y reanudan el
+## `skinAtlas` y mueven el `censureBlock`-. Quien pone una skin de verdad esta en el
+## subsistema de personajes del juego base, que este puerto no tiene (ver 8p). Lo que si
+## esta comprobado contra dos capturas del mod es el resultado: sin canción, la cama
+## vacia; con cancion, los dos sentados. Eso es lo que hace esto.
+func _show_characters(shown: bool) -> void:
+	for name: String in ["ShadowsOnBed/Girlfriend", "ShadowsOnBed/Player2"]:
+		var node := get_node_or_null(name) as CanvasItem
+		if node != null:
+			node.visible = shown
 
 
 ## ─── changeTheme (0x34c2540, lineas 920-970) ───────────────────────────────
