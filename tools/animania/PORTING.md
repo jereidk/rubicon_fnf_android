@@ -4003,6 +4003,76 @@ Measured with `chars_walk.gd`:
 - The `'switch'` transition of 8ab still does not play.
 
 
+## 8ad. set_blend is vtable slot 0x3b8, and buildBg calls it three times
+
+Comparing the tutorial capture against the port block by block — after masking the tube,
+whose difference 8aa already explains — left one hot region: the bottom-right of the bed,
+where the mod measures luma **222** and the port **105**. Chasing that turned up a whole
+mechanism the port had missed, plus a builder bug on the way.
+
+**First, an easier one.** The lock sticker sat 43 px right of the tutorial disk's centre,
+with the disk's pink centre hole peeking out beside it. `initLock` centres it; the builder
+did too, but multiplied the offset by `FUNKIN_TO_RUBICON` — and the lock is a **child** of the
+disk, so Godot already applies the parent's scale. The offset came out 1.5× too big. In local
+units it is just `(disk.texture.get_size() - lock.texture.get_size()) * 0.5`, and the probe
+now reads disk `142..465`, lock `228.5..378.5` — same centre, 303.5.
+
+**Then the real find.** hxlines had been printing `vt+0x3b8` on `tvGlow` and
+`tvNoiseForward` for as long as this file has existed, and nobody resolved it. Reading
+`vtable for funkin::graphics::FunkinSprite_obj` and following that slot gives
+`flixel::FlxSprite_obj::set_blend(Dynamic)`. `buildBg` calls it **three** times:
+
+```
+1234  tvGlow.blend         = Dynamic(0)    -> ADD       (0x34cfa11)
+1242  darkOverlay.blend    = Dynamic(11)   -> OVERLAY   (0x34cfc0c, negro, zIndex 8)
+1335  tvNoiseForward.blend = Dynamic(0)    -> ADD       (0x34d101f)
+```
+
+The index is `openfl.display.BlendMode`, whose abstract numbers its values alphabetically:
+ADD 0, ALPHA 1, … NORMAL 10, OVERLAY 11. That is not left as a deduction — with the forward
+noise additive, the port's tube goes from luma **105.3 to 129.3**, and the mod's settled
+random-slot capture measures **122.5**. **That closes 8s**, which had recorded "the port's
+tube runs about 27 luma darker than the mod's" as unexplained, and confirms the 0 at the same
+time.
+
+Both ADDs are ported (`build_freeplay_scene.gd` gives those two nodes a `CanvasItemMaterial`
+with `BLEND_MODE_ADD`). The overlay on `darkOverlay` is **not**: Godot's `CanvasItemMaterial`
+has no OVERLAY mode, it would need a shader, and that layer only paints during the switch-on
+— `doIntroAnim` 1639 tweens it to alpha 0 in 0.65 s — so it changes nothing in the resting
+picture.
+
+Measured after both: the whole-screen difference drops from 43.7 to 40.3, the tube from a
+79.3 to 110.9, and the bed's bottom-right from 105.2 to 123.7.
+
+### The bed is still 98 luma short, and where that lives
+
+`shadowsOnBed` is not a plain group. buildBg 1216-1226:
+
+```
+1217  shadowsOnBed = new FlxLayerGroup(...)          // funkin.graphics.framebuffer
+1220  zIndex = 3
+1221  colorTransform.set_color(0x1C1A2F)             // 0x34cf830
+1222  alpha 0.8;  blend = Dynamic(11) -> OVERLAY     // 0x34cf860
+1224  new GaussianBlurShader(...)                    // 0x34cf8ac
+1226  shadowsOnBed.add(...)
+1227  shakeShadows()
+```
+
+A framebuffer group, tinted very dark blue, at alpha 0.8, composited with OVERLAY, through a
+**Gaussian blur**. That is exactly the shape of what the captures show and the port does not:
+the mod's bed and the disks near it are visibly *soft*, and there is a wide bright bloom
+across the bottom of the bed in **both** captures — the settled random-slot one included, so
+it is not an intro artefact.
+
+The port renders `ShadowsOnBed` as a plain `Node2D` holding the two characters and the
+phones. Whether the mod's group holds the characters themselves or separate shadow copies is
+**not established** — `initCharacters` 1404 and 1411 add them to a `FlxTypedRatioHandler`, and
+what buildBg 1224-1226 puts into the group is a second allocation this pass did not follow.
+Porting it means reproducing a blurred, tinted, overlay-composited framebuffer layer in Godot,
+which is a `SubViewport` plus a shader, not a property tweak. Left for its own pass; the
+measurement (222 against 123) is the acceptance test for it.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

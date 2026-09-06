@@ -417,6 +417,7 @@ func _init() -> void:
 	# linea de cada set_visible(false) va al lado.
 	var tv_glow: Sprite2D = _sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0))
 	tv_glow.z_index = 7
+	tv_glow.material = _add_blend()  # buildBg 1234
 	tv_glow.visible = false          # buildBg 1236
 
 	# La pantalla del televisor, leida de buildBg linea por linea. Todo lo de dentro
@@ -456,6 +457,7 @@ func _init() -> void:
 		"TvNoiseForward", "freeplay_tvnoise", "noise sprite", TV_INNER)
 	noise_forward.z_index = 28
 	noise_forward.modulate.a = 0.45
+	noise_forward.material = _add_blend()   # buildBg 1335
 	noise_forward.visible = false    # buildBg 1336
 
 	var tv_flash := _panel("TvSpriteFlash", TV_INNER, TV_INNER_SIZE, Color(1, 1, 1, 1))
@@ -569,7 +571,11 @@ func _init() -> void:
 			lock.name = "Lock"
 			lock.texture = load("%s/songs lock.png" % ART)
 			lock.centered = false
-			lock.position = (size - lock.texture.get_size() * FUNKIN_TO_RUBICON) * 0.5
+			# En LOCAL del disco, sin FUNKIN_TO_RUBICON: el candado es hijo suyo y la
+			# escala del padre ya se la aplica Godot. Con el factor puesto el
+			# desplazamiento salia 1.5 veces mayor y el candado se iba 43 px a la derecha
+			# del centro, que es donde se veia el agujero rosa del disco asomando.
+			lock.position = (disk.texture.get_size() - lock.texture.get_size()) * 0.5
 			disk.add_child(lock)
 			lock.owner = _root
 
@@ -1038,6 +1044,29 @@ func _diff_ids() -> PackedStringArray:
 	var script: Script = _root.get_script()
 	var songs: Array = script.get_script_constant_map()["SONGS"]
 	return script.total_diffs_of(songs)
+
+
+## `set_blend` es el hueco 0x3b8 de la vtabla de FlxSprite -resuelto leyendo la vtabla de
+## FunkinSprite y mirando a donde apunta ese hueco-, y buildBg lo llama TRES veces:
+##
+##   1234  tvGlow.blend         = Dynamic(0)     -> ADD
+##   1242  darkOverlay.blend    = Dynamic(11)    -> OVERLAY   (negro, zIndex 8)
+##   1335  tvNoiseForward.blend = Dynamic(0)     -> ADD
+##
+## El indice sale del abstract `openfl.display.BlendMode`, que numera sus valores por orden
+## alfabetico: ADD 0, ALPHA 1, ... NORMAL 10, OVERLAY 11. Y no se queda en la deduccion: con
+## el ruido de delante en aditivo el tubo del puerto pasa de 105.3 a 129.3 de luma, y la
+## captura del mod sobre el disco aleatorio mide 122.5. Eso cierra un hilo que llevaba
+## abierto desde 8s -"el tubo del puerto sale unos 27 de luma mas oscuro"- y de paso
+## confirma el 0.
+##
+## El de darkOverlay no se portea: Godot no trae mezcla OVERLAY en CanvasItemMaterial y
+## haria falta un shader, y esa capa solo pinta durante el encendido -doIntroAnim 1639 la
+## lleva a alfa 0 en 0.65 s- asi que no cambia nada de lo que se ve en reposo. Anotado.
+static func _add_blend() -> CanvasItemMaterial:
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	return mat
 
 
 func _frame_size(basename: String) -> Vector2:
