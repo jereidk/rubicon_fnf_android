@@ -30,11 +30,27 @@ var _cam_modulo_offset: float = 0.0
 var _last_step_bopped: float = -1.0
 var _wait_til_next_step: bool = false
 
+## Subtitle text overlay state.
+var _subtitle_label: Label
+var _subtitle_canvas: CanvasLayer
+
+## Perfect popup state.
+var _perfect_label: Label
+var _perfect_canvas: CanvasLayer
+
+## Sayaka Heal state.
+var _sayaka_healing: bool = false
+var _sayaka_health_drain: float = 0.0
+
 ## Camera Movement state: simple directional nudge on beat.
 var _cam_movement_enabled: bool = false
 var _cam_movement_direction: int = 0  ## 0=right, 1=left
 
 signal stage_event
+
+
+func _process(delta: float) -> void:
+	_apply_sayaka_drain(delta)
 
 
 func _ready() -> void:
@@ -122,12 +138,13 @@ func _fire_event(ev: Dictionary) -> void:
 		"Camera Alpha": _evt_camera_alpha(params)
 		"Camera Movement": _evt_camera_movement(params)
 		"Camera Modulo Change": _evt_camera_modulo_change(params)
-		"BPM Change": pass
-		"Time Signature Change": pass
-		"Perfect": pass
-		"Kyoko Attack": pass
+		"BPM Change": _evt_bpm_change(params)
+		"Time Signature Change": _evt_time_sig_change(params)
+		"Perfect": _evt_perfect(params)
+		"Subtitle": _evt_subtitle(params)
+		"Sayaka Heal": _evt_sayaka_heal(params)
+		"Kyoko Attack": _evt_kyoko_attack(params)
 		_: pass
-
 
 ## ─── Camera Zoom ────────────────────────────────────────────────────────────
 func _evt_camera_zoom(params: Array) -> void:
@@ -364,14 +381,243 @@ func _apply_cam_modulo() -> void:
 		_last_step_bopped = check_step
 
 
+## ─── Perfect ────────────────────────────────────────────────────────────────
+## Params: [] — triggers when player has 0 misses at event time.
+func _evt_perfect(_params: Array) -> void:
+	_ensure_perfect_ui()
+	var scene = get_tree().current_scene
+	if scene == null:
+		return
+	var player = scene.get_node_or_null("UILayer/UI/Player")
+	if player != null and player.performance_hits_miss > 0:
+		return  # Only show when no misses
+	_perfect_label.text = "PERFECT!"
+	_perfect_label.modulate.a = 1.0
+	_perfect_label.scale = Vector2(1.5, 1.5)
+	_perfect_label.visible = true
+	# Flash in
+	var tw := create_tween()
+	tw.tween_property(_perfect_label, "scale", Vector2(1.0, 1.0), 0.3).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.5)
+	tw.tween_property(_perfect_label, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): _perfect_label.visible = false)
+
+
+func _ensure_perfect_ui() -> void:
+	if _perfect_label != null:
+		return
+	_perfect_canvas = CanvasLayer.new()
+	_perfect_canvas.layer = 25
+	get_tree().current_scene.add_child(_perfect_canvas)
+	_perfect_label = Label.new()
+	_perfect_label.text = "PERFECT!"
+	_perfect_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_perfect_label.offset_top = 180
+	_perfect_label.add_theme_font_size_override("font_size", 72)
+	_perfect_label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))
+	_perfect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_perfect_label.visible = false
+	_perfect_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_perfect_canvas.add_child(_perfect_label)
+
+
+## ─── Subtitle ───────────────────────────────────────────────────────────────
+## Params: [text_string] — shows text during gameplay.
+func _evt_subtitle(params: Array) -> void:
+	if params.is_empty():
+		return
+	var text: String = str(params[0])
+	_ensure_subtitle_ui()
+	_subtitle_label.text = text
+	_subtitle_label.visible = text != ""
+	if text != "":
+		_subtitle_label.modulate.a = 1.0
+		var tw := create_tween()
+		tw.tween_property(_subtitle_label, "modulate:a", 0.0, 3.0).set_ease(Tween.EASE_IN).set_delay(2.0)
+
+
+func _ensure_subtitle_ui() -> void:
+	if _subtitle_label != null:
+		return
+	_subtitle_canvas = CanvasLayer.new()
+	_subtitle_canvas.layer = 25
+	get_tree().current_scene.add_child(_subtitle_canvas)
+	_subtitle_label = Label.new()
+	_subtitle_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_subtitle_label.offset_bottom = -80
+	_subtitle_label.offset_top = -160
+	_subtitle_label.size = Vector2(1920, 80)
+	_subtitle_label.add_theme_font_size_override("font_size", 42)
+	_subtitle_label.add_theme_color_override("font_color", Color(1, 1, 0, 1))
+	_subtitle_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_subtitle_label.visible = false
+	_subtitle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_subtitle_canvas.add_child(_subtitle_label)
+
+
+## ─── Sayaka Heal ─────────────────────────────────────────────────────────────
+## Params: [is_healing: bool, drain_rate: float]
+## When healing starts, health drains over time. Visual effects on opponent.
+func _evt_sayaka_heal(params: Array) -> void:
+	if params.is_empty():
+		return
+	var is_healing: bool = params[0]
+	if is_healing:
+		var drain: float = params[1] if params.size() > 1 else 0.01
+		_sayaka_healing = true
+		_sayaka_health_drain = drain
+		# Play healstart animation on opponent
+		AnimaniaModule.play_character_animation(&"opponent", &"healstart", true)
+		# Switch icon
+		var scene = get_tree().current_scene
+		if scene != null:
+			var icon = scene.get_node_or_null("UILayer/UI/HealthBar/OpponentIcon")
+			if icon != null and icon.has_method("set_icon"):
+				icon.set_icon("sayaka-heal")
+	else:
+		_sayaka_healing = false
+		_sayaka_health_drain = 0.0
+		AnimaniaModule.play_character_animation(&"opponent", &"healend", true)
+
+
+func _apply_sayaka_drain(delta: float) -> void:
+	if _sayaka_healing and _sayaka_health_drain > 0.0:
+		var scene = get_tree().current_scene
+		if scene != null:
+			var health = scene.get_node_or_null("RubiconHealthModule")
+			if health != null and health.has_method("change_health"):
+				health.change_health(-_sayaka_health_drain * delta)
+
+
+## ─── Kyoko Attack ────────────────────────────────────────────────────────────
+## Params: [damage: float]
+## Dodge mechanic: player must press dodge key to avoid damage.
+var _kyoko_can_dodge: bool = false
+var _kyoko_result: String = ""
+
+func _evt_kyoko_attack(params: Array) -> void:
+	if params.is_empty():
+		return
+	var damage: float = params[0]
+	_kyoko_can_dodge = true
+	_kyoko_result = "miss-early"
+	# Show warning popup
+	_show_kyoko_warning(Color.YELLOW)
+	# After 4 steps, opponent attacks
+	var dur_4 := 4.0 * _step_crochet()
+	var tw := create_tween()
+	tw.tween_interval(dur_4)
+	tw.tween_callback(func():
+		AnimaniaModule.play_character_animation(&"opponent", &"attack", true)
+		_show_kyoko_warning(Color.RED)
+	)
+	# After 8 steps, dodge window opens
+	var dur_8 := 8.5 * _step_crochet()
+	var tw2 := create_tween()
+	tw2.tween_interval(dur_8)
+	tw2.tween_callback(func(): _kyoko_result = "dodge")
+	# After 11.5 steps, perfect dodge window
+	var dur_11 := 11.5 * _step_crochet()
+	var tw3 := create_tween()
+	tw3.tween_interval(dur_11)
+	tw3.tween_callback(func(): _kyoko_result = "dodge-perfect")
+	# After 13 steps, execute result
+	var dur_13 := 13.0 * _step_crochet()
+	var tw4 := create_tween()
+	tw4.tween_interval(dur_13)
+	tw4.tween_callback(func():
+		_execute_kyoko_result(damage)
+	)
+
+
+func _show_kyoko_warning(col: Color) -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 25
+	get_tree().current_scene.add_child(canvas)
+	var label := Label.new()
+	label.text = "⚠ WARNING ⚠"
+	label.set_anchors_preset(Control.PRESET_CENTER)
+	label.add_theme_font_size_override("font_size", 80)
+	label.add_theme_color_override("font_color", col)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(label)
+	var tw := create_tween()
+	tw.tween_property(label, "scale", Vector2(1.5, 1.5), 0.3).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.5)
+	tw.tween_property(label, "scale", Vector2(0.0, 0.0), 0.3).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): canvas.queue_free())
+
+
+func _execute_kyoko_result(damage: float) -> void:
+	_kyoko_can_dodge = false
+	# Player dodge will have set _kyoko_result
+	var result := _kyoko_result
+	match result:
+		"miss-early", "miss-late":
+			# Player took damage
+			var scene = get_tree().current_scene
+			if scene != null:
+				var health = scene.get_node_or_null("RubiconHealthModule")
+				if health != null and health.has_method("change_health"):
+					health.change_health(-damage)
+				# Play hurt animation on BF
+				var bf = scene.get_node_or_null("Stage/Boyfriend")
+				if bf != null and bf.has_method("play_anim"):
+					bf.play_anim(&"hurt-short", true)
+		"dodge", "dodge-perfect":
+			if result == "dodge-perfect":
+				var scene = get_tree().current_scene
+				if scene != null:
+					var health = scene.get_node_or_null("RubiconHealthModule")
+					if health != null and health.has_method("change_health"):
+						health.change_health(0.05)
+	_kyoko_result = ""
+
+
+## ─── BPM Change ─────────────────────────────────────────────────────────────
+## Params: [bpm: float]
+func _evt_bpm_change(params: Array) -> void:
+	if params.is_empty():
+		return
+	var new_bpm: float = params[0]
+	if _clock != null and _clock.has_method("set_bpm"):
+		_clock.set_bpm(new_bpm)
+
+
+## ─── Time Signature Change ──────────────────────────────────────────────────
+## Params: [numerator: int, denominator: int]
+func _evt_time_sig_change(params: Array) -> void:
+	if params.size() < 2:
+		return
+	# Time signature changes affect step calculations, simplified
+	pass
+
+
 ## ─── Gameplay Configuration ─────────────────────────────────────────────────
 func _evt_gameplay_config(params: Array) -> void:
 	pass
 
 
 ## ─── Scroll Speed Change ────────────────────────────────────────────────────
+## Params: [speed: float, tween: bool, duration: float]
 func _evt_scroll_speed(params: Array) -> void:
-	pass
+	if params.is_empty():
+		return
+	var target_speed: float = params[0]
+	var scene = get_tree().current_scene
+	if scene == null:
+		return
+	# Find note controllers and update their scroll speed
+	for child in scene.get_children():
+		if child.has_method("set") and "scroll_speed" in child:
+			child.scroll_speed = target_speed
+	# Also try to find via UILayer/UI/Player
+	var player_ui = scene.get_node_or_null("UILayer/UI/Player")
+	if player_ui != null and "scroll_speed" in player_ui:
+		player_ui.scroll_speed = target_speed
 
 
 ## ─── Helpers ────────────────────────────────────────────────────────────────
