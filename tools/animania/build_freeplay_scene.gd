@@ -415,7 +415,12 @@ func _init() -> void:
 	# overlapping the wall by the rest. The glow is 997 wide and lands the same way.
 	# buildBg deja media pantalla invisible y doIntroAnim la va encendiendo; el numero de
 	# linea de cada set_visible(false) va al lado.
-	var tv_glow: Sprite2D = _sprite("TvGlow", "bg/tv glow.png", Vector2(283.0, 493.0))
+	# buildBg 1233: `FunkinSprite.create(FlxG.width - 800, 493, 'bg/tv glow')`. El 800 es el
+	# `sub $0x320,%eax` de 0x34cf9f0 sobre FlxG.width y el 493 el doble en 0x59fb658, o sea
+	# (480, 493). Aqui ponia 283, 197 px a la izquierda, y con el brillo midiendo 997 de
+	# ancho eso dejaba su nucleo en mitad de la pantalla en vez de sobre la cama: la esquina
+	# de abajo a la derecha se quedaba sin el resplandor que la captura del mod si tiene.
+	var tv_glow: Sprite2D = _sprite("TvGlow", "bg/tv glow.png", Vector2(480.0, 493.0))
 	tv_glow.z_index = 7
 	tv_glow.material = _add_blend()  # buildBg 1234
 	tv_glow.visible = false          # buildBg 1236

@@ -4044,7 +4044,27 @@ picture.
 Measured after both: the whole-screen difference drops from 43.7 to 40.3, the tube from a
 79.3 to 110.9, and the bed's bottom-right from 105.2 to 123.7.
 
-### The bed is still 98 luma short, and where that lives
+### And the glow was 197 px to the left
+
+The bed being dark turned out to be mostly one wrong number. `buildBg` 1233 creates it as
+`FunkinSprite.create(FlxG.width - 800, 493, 'bg/tv glow')` — the 800 is the `sub $0x320,%eax`
+on `FlxG.width` at 0x34cf9f0 and the 493 is the double at 0x59fb658, so **(480, 493)**. The
+port had **(283, 493)**, and with the glow 997 px wide that put its core in the middle of the
+screen instead of over the bed, leaving the bottom-right corner without the wash the captures
+clearly have.
+
+Subtracting the two renders on the random slot — no characters, so the residual is clean —
+showed exactly that: a soft **mint** patch missing from the bottom-right corner, the colour of
+`tv glow.png` (162,255,216). With the x corrected:
+
+```
+                dif global   sin tubo   cama-derecha   cama-media
+puerto x=283       29.6        24.0        131.1         140.7
+puerto x=480       26.8        21.3        195.1         123.3
+mod                                        224.2         172.4
+```
+
+### What is left, and where it lives
 
 `shadowsOnBed` is not a plain group. buildBg 1216-1226:
 
@@ -4064,13 +4084,35 @@ the mod's bed and the disks near it are visibly *soft*, and there is a wide brig
 across the bottom of the bed in **both** captures — the settled random-slot one included, so
 it is not an intro artefact.
 
-The port renders `ShadowsOnBed` as a plain `Node2D` holding the two characters and the
-phones. Whether the mod's group holds the characters themselves or separate shadow copies is
-**not established** — `initCharacters` 1404 and 1411 add them to a `FlxTypedRatioHandler`, and
-what buildBg 1224-1226 puts into the group is a second allocation this pass did not follow.
-Porting it means reproducing a blurred, tinted, overlay-composited framebuffer layer in Godot,
-which is a `SubViewport` plus a shader, not a property tweak. Left for its own pass; the
-measurement (222 against 123) is the acceptance test for it.
+Every constant in that block is now read: the colour is `0x1C1A2F` = rgb(28, 26, 47)
+(0x34cf830), the `alphaMultiplier` is the double 0.8 at 0x59fa588, the blend is 11 = OVERLAY,
+and the shader is `GaussianBlurShader(2.0)` — the double at 0x59fa710. And the group holds the
+characters **themselves**: `initCharacters` 1405 and 1412 call `shadowsOnBed.add(...)` on
+`currentGirlfriend` and `currentPlayer` (the `mov 0x180(%rbx),%rsi` at 0x34c1961 is the group),
+and 1423 does the same for `currentPhone` — *in addition to* the plain `add()` that puts each
+one on screen at its own zIndex. So each character is drawn twice: once normally at z 4 / 5,
+and once through this layer at z 3, blurred and flattened to a dark silhouette. That is the
+shadow.
+
+`set_color` in OpenFL zeroes the three multipliers and puts the colour in the three offsets,
+so what the layer contributes is the character's **silhouette** in flat colour — only the
+alpha of the texture matters.
+
+The blur is not guessed either. The GLSL is a string literal in the binary, so it comes out
+verbatim (fragment at 0x5aac3d8, vertex at 0x5aac618): seven taps with weights
+`0.00443 / 0.05399 / 0.24197 / 0.39894 / 0.24197 / 0.05399 / 0.00443` at offsets
+`±1.0, ±0.75, ±0.5, 0`.
+
+`animania_mod/menus/freeplay/freeplay_shadows.gdshader` implements that — the seven taps on
+both axes in one pass, the flat tint, the 0.8, and OVERLAY done by hand against
+`hint_screen_texture` because Godot's `CanvasItemMaterial` has no overlay mode. **It is not
+wired up yet**: that needs the characters moved into a `SubViewport` whose texture is drawn
+twice, and the paths in `freeplay_screen.gd` moved with them.
+
+One thing this will *not* fix: the layer darkens, and the remaining difference on the bed is
+the mod being **brighter** (224 against 195). On the random slot the characters are hidden, so
+the layer draws nothing at all there, and the mod is still brighter. So the residual is
+something else again.
 
 
 ## 8b. Adding a song, for real
