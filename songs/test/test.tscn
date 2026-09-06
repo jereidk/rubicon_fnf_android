@@ -24,6 +24,7 @@
 [ext_resource type="Resource" uid="uid://csifqf5pyurw8" path="res://songs/test/data/test_Player.tres" id="22_7o1jy"]
 [ext_resource type="Resource" uid="uid://d3gd5egsmfwfp" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_lseq1"]
 [ext_resource type="PackedScene" uid="uid://mobile_controls" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="24_mobile"]
+[ext_resource type="Script" path="res://animania_mod/songs/difficulty_charts.gd" id="difficulty_charts"]
 
 [sub_resource type="Resource" id="Resource_pwsoq"]
 script = ExtResource("4_gd4mu")
@@ -477,3 +478,6 @@ offset_bottom = 974.3529
 lane_id = 3
 
 [node name="MobileControls" parent="." instance=ExtResource("24_mobile")]
+
+[node name="DifficultyCharts" type="Node" parent="."]
+script = ExtResource("difficulty_charts")

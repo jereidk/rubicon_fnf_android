@@ -134,6 +134,11 @@ const BLACKOUT_TIME := 2.0
 ## arguments; set them through go_to().
 static var target_scene: String = ""
 static var target_song: String = ""
+## La dificultad elegida en el freeplay, por su id ('easy', 'normal', 'hard', ...). En el
+## mod viaja dentro del objeto que `LoadingState.loadPlayState` recibe -`targetDifficulty`,
+## capsuleOnConfirmDefault linea 653-; aqui viaja igual de lejos y quien la aplica es el
+## nodo `DifficultyCharts` de la escena de cancion. Vacia = la que la escena traiga cocida.
+static var target_difficulty: String = ""
 
 @export var background: Sprite2D
 @export var noodle: Sprite2D
@@ -156,9 +161,11 @@ var _cam: Camera2D = null
 
 ## The one way in. Anything that used to call change_scene_to_file() with a song
 ## goes through here instead.
-static func go_to(tree: SceneTree, scene: String, song: String = "") -> void:
+static func go_to(tree: SceneTree, scene: String, song: String = "",
+		difficulty: String = "") -> void:
 	target_scene = scene
 	target_song = song
+	target_difficulty = difficulty
 	tree.change_scene_to_file(SCENE)
 
 

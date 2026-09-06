@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/rubicon_mobile_controls.gd" id="25_s8ehy"]
 [ext_resource type="PackedScene" path="res://animania_mod/menus/pause/pause_menu.tscn" id="26_xbd1o"]
 [ext_resource type="Script" path="res://animania_mod/menus/pause/pause_menu.gd" id="27_ur6qj"]
+[ext_resource type="Script" path="res://animania_mod/songs/difficulty_charts.gd" id="difficulty_charts"]
 
 [sub_resource type="Animation" id="Animation_rwo4n"]
 
@@ -393,6 +394,9 @@ dim = NodePath("Dim")
 buttons = NodePath("Buttons")
 sfx = NodePath("Sfx")
 music = NodePath("Music")
+
+[node name="DifficultyCharts" type="Node" parent="."]
+script = ExtResource("difficulty_charts")
 
 [editable path="Stage"]
 [editable path="UILayer/UI/HealthBar"]

@@ -31,7 +31,8 @@ const SONGS: Array[Dictionary] = [
 		"layer": "komi",
 		"bpm": 152,
 		"title": "Phone Call",
-		"ratings": {"easy": 4, "normal": 4, "hard": 4},
+		"difficulties": ["standart"],
+		"ratings": {"standart": 4},
 	},
 	{
 		"id": "bopeebo",
@@ -40,6 +41,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 110,
 		"title": "Bopeebo",
+		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 5, "normal": 7, "hard": 9},
 	},
 	{
@@ -49,6 +51,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 120,
 		"title": "Fresh",
+		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 5, "normal": 7, "hard": 8},
 	},
 	{
@@ -58,6 +61,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 180,
 		"title": "DadBattle",
+		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 7, "normal": 9, "hard": 11},
 	},
 ]
@@ -141,7 +145,17 @@ const CAPSULE_SCALE := 2.0
 
 ## ─── Difficulty ──────────────────────────────────────────────────────────────
 
-const DIFFICULTIES: PackedStringArray = ["Easy", "Normal", "Hard"]
+## `Constants.DEFAULT_DIFFICULTY`: su __boot escribe la cadena 'hard' (longitud 4) en
+## 0x7ed6990. Es con lo que arranca `currentDifficulty` y es tambien el segundo intento de
+## `changeDiff` cuando la cancion elegida no ofrece la dificultad que traiamos.
+const DEFAULT_DIFFICULTY := "hard"
+
+## La tabla ["Easy", "Normal", "Hard"] que habia aqui se ha ido y con ella el indice.
+## `currentDifficulty` es una CADENA en el mod -el par 0x108/0x110, que es como hxcpp
+## guarda un String- y changeDiff la busca por `String::eq` dentro de `currentDiffsIds`,
+## nunca por posicion. Con un indice, una cancion de una sola dificultad -phone-call, que
+## solo declara `standart`- no tenia representacion posible.
+##
 ## El constructor pone `currentDiffsIds = Constants.DEFAULT_DIFFICULTY_LIST_FULL`, que en
 ## este mod son SIETE ids: su __boot los mete con longitudes 4, 6, 4, 6, 8, 5 y 9. De esos,
 ## `FreeplayDots.loadDots` solo crea punto para los que su mapa de colores conoce -linea 47
@@ -195,13 +209,16 @@ var bed_state: String = "none"
 var current_filtered_songs: Array = []
 var selectable_disks: Array = []
 var song_info: Dictionary = {}
-var total_diffs: int = 3
+## `totalDiffs` (campo 0x104) NO se portea, y no por descuido: en todo el rango de codigo
+## de FreeplayScreen (0x34b0000-0x34e0000) no hay una sola instruccion que lo lea ni que lo
+## escriba. Existe en la clase y esta muerto; quien manda es `currentDiffsIds.length`.
+##
 ## `Constants.DEFAULT_DIFFICULTY` no es 'normal' en este mod: su __boot escribe la cadena
 ## 'hard' (longitud 4) en 0x7ed6990, y el constructor de FreeplayScreen copia esa constante
-## a `currentDifficulty` (el par 0x108/0x110). Estaba en 1 -normal- y por eso el puerto
-## abria con el banner NORMAL cuando el mod abre con HARD. doIntroAnim linea 1614 lo repite
-## sobre los puntos: `dotsGrp.curDiff = 'hard'`.
-var current_difficulty: int = 2
+## a `currentDifficulty` (el par 0x108/0x110). El puerto abria con el banner NORMAL cuando
+## el mod abre con HARD. doIntroAnim linea 1614 lo repite sobre los puntos:
+## `dotsGrp.curDiff = 'hard'`.
+var current_difficulty: String = DEFAULT_DIFFICULTY
 var current_diffs_ids: PackedStringArray = DIFF_IDS_FULL
 
 ## Score/completion.
@@ -912,9 +929,12 @@ func _update_data_stuff(_force: bool) -> void:
 		_album_set_id("")                                 # 1169
 		_update_stars()                                   # 1170, con difficulty null
 		_update_diff_banner()
-		# Linea 1165: en el hueco aleatorio los puntos son los del arranque, no los de una
-		# cancion. Ver DIFF_IDS_FULL.
-		current_diffs_ids = DIFF_IDS_FULL
+		# Linea 1165. `updateDataStuff` LEE `currentDiffsIds` y no lo escribe nunca -no hay
+		# un solo `=>currentDiffsIds` en sus 6883 bytes-, asi que aqui no se toca: quien la
+		# fija es changeDiff, y en el hueco aleatorio no la toca porque su songData es
+		# null. O sea que los puntos del disco aleatorio son los de la ultima cancion por
+		# la que se paso, y en el arranque los del constructor. Aqui habia una asignacion
+		# a DIFF_IDS_FULL que borraba eso.
 		_set_dots()                                       # 1165-1166
 		# 1154-1155: el craneo de jefe se apaga sin tween -alfa 0 directo-.
 		if bossfight_skull != null:
@@ -934,13 +954,18 @@ func _update_data_stuff(_force: bool) -> void:
 		info_title.text = String(song.get("title", song.get("id", "")))
 	if info_bpm_text != null:
 		info_bpm_text.text = "BPM: %s" % str(song.get("bpm", ""))
-	# Linea 1125. En el mod `currentDifficulty` es una cadena; aqui es el indice, asi que
-	# el nombre sale de la tabla.
+	# Linea 1125, leida instruccion a instruccion en 0x34c698e: lo que se concatena detras
+	# de 'DIF: ' NO es el nombre de la dificultad. Es `songData.difficultyRating`, el campo
+	# 0x80 de FreeplaySongData -un int; el codigo lo mete en un Dynamic y le llama al hueco
+	# 0x58 de su vtable, que es el __ToString-. El nombre ya lo ensena el cartel grande
+	# sobre el televisor, asi que la capsula da el numero: 'BPM: 110' / 'DIF: 9'.
+	#
+	# Ese numero es el mismo `ratings` del metadata que usa _update_stars, porque
+	# `updateValues` lo copia desde la dificultad elegida (0x148 -> 0x80, en 0x2516f9f).
+	# El puerto ensenaba 'DIF: Hard'.
 	if info_difficulty != null:
-		var name: String = DIFFICULTIES[current_difficulty] \
-			if current_difficulty >= 0 and current_difficulty < DIFFICULTIES.size() \
-			else str(current_difficulty)
-		info_difficulty.text = "DIF: %s" % name
+		var ratings: Dictionary = song.get("ratings", {}) as Dictionary
+		info_difficulty.text = "DIF: %d" % int(ratings.get(current_difficulty, 0))
 
 	# Lineas 1097-1098: la caratula. El albumId no cambia -el mod solo pasa 'animania05'-
 	# asi que lo que queda es el cambio de disco de la propia caratula.
@@ -1040,9 +1065,6 @@ func _set_dots() -> void:
 	var dots := get_node_or_null("UI/DotsGrp") as Node2D
 	if dots == null:
 		return
-	var current: String = ""
-	if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
-		current = current_diffs_ids[current_difficulty]
 	for dot: Node in dots.get_children():
 		var sprite := dot as Sprite2D
 		if sprite == null:
@@ -1051,7 +1073,7 @@ func _set_dots() -> void:
 		# Linea 66: el que la cancion no ofrece se apaga del todo.
 		sprite.visible = current_diffs_ids.has(id)
 		var base: Color = DIFF_COLORS.get(id, Color.WHITE)
-		sprite.modulate = Color(base, 1.0) if id == current \
+		sprite.modulate = Color(base, 1.0) if id == current_difficulty \
 			else Color(base * DOT_DARKEN, DOT_DIM_ALPHA)
 
 
@@ -1439,10 +1461,54 @@ func _post_header() -> void:
 func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	if _confirmed or not allow_input:
 		return
-	current_difficulty = wrapi(current_difficulty + amount, 0, total_diffs)
+	# Lineas 977-982. Lo primero que hace changeDiff es TRAERSE la lista de dificultades
+	# de la cancion que hay debajo del disco elegido:
+	#
+	#   977  if (selectableDisks.length != 0)
+	#   978    var songData = selectableDisks[curSelected].songData   // campo 0x268
+	#          if (songData != null) {
+	#   981      currentDiffsIds = songData.songDifficulties          // campo 0x88
+	#   982      rememberedSongId = songData.id
+	#          }
+	#
+	# `songDifficulties` sale del metadata de cada cancion (`playData.difficulties`), que
+	# es por lo que phone-call tiene UNA dificultad y se llama `standart`. El hueco
+	# aleatorio no entra: su songData es null y la lista se queda como estaba -en el
+	# arranque, la de siete del constructor, que es la que dibuja los cuatro puntos-.
+	if cur_selected >= 0 and cur_selected < selectable_disks.size():
+		var song: Dictionary = selectable_disks[cur_selected]
+		if not song.is_empty():
+			current_diffs_ids = PackedStringArray(song.get("difficulties", DIFF_IDS_FULL))
+			_freeplay_remembered_song_id = String(song.get("id", ""))
+
+	# Linea 985: la posicion actual se busca POR CADENA -un bucle de String::eq sobre la
+	# lista-, no se guarda. Linea 987: si no aparece, se reintenta con DEFAULT_DIFFICULTY,
+	# y si tampoco, el indice se queda en -1.
+	var index: int = current_diffs_ids.find(current_difficulty)
+	if index == -1:
+		index = current_diffs_ids.find(DEFAULT_DIFFICULTY)
+
+	# Lineas 989-990. `MathUtil.curSelectionWrap(index, amount, currentDiffsIds)` es
+	# `FlxMath.wrap(index + amount, 0, lista.length - 1)`: da la vuelta, y con el -1 de
+	# arriba cae en el ULTIMO id de la cancion, que para phone-call es su unico.
+	if current_diffs_ids.is_empty():
+		return
+	index = _cur_selection_wrap(index, amount, current_diffs_ids.size())
+	current_difficulty = current_diffs_ids[index]
+	_freeplay_remembered_difficulty = current_difficulty
+
 	_update_data_stuff(false)
 	if play_sound:
 		_play_sound(SOUND_DIFF_CHANGE, SWITCH_VOLUME)
+
+
+## `MathUtil.curSelectionWrap` (0x18891f0). Lee `length` del tercer argumento por
+## reflexion, le resta uno y llama a `FlxMath.wrap(cur + change, 0, ese maximo)`, que es
+## un envolver inclusivo por los dos lados.
+func _cur_selection_wrap(current: int, change: int, length: int) -> int:
+	if length <= 0:
+		return 0
+	return wrapi(current + change, 0, length)
 
 
 ## El banner de dificultad, buildBg 1378-1388. Los cinco existen a la vez, apilados sobre
@@ -1453,13 +1519,11 @@ func _update_diff_banner() -> void:
 	var row := get_node_or_null("UI/DifficultyBanners") as Node2D
 	if row == null:
 		return
-	var id: String = ""
-	if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
-		id = current_diffs_ids[current_difficulty]
 	for child: Node in row.get_children():
 		var b := child as Sprite2D
 		if b != null:
-			b.modulate.a = 1.0 if String(b.get_meta(&"diff", "")) == id else 0.0
+			b.modulate.a = 1.0 \
+				if String(b.get_meta(&"diff", "")) == current_difficulty else 0.0
 
 
 ## ─── FreeplayScore / ScoreNum ──────────────────────────────────────────────
@@ -1560,10 +1624,7 @@ func _update_stars() -> void:
 	if cur_selected >= 0 and cur_selected < current_filtered_songs.size():
 		var song: Dictionary = current_filtered_songs[cur_selected]
 		var table: Dictionary = song.get("ratings", {}) as Dictionary
-		var id: String = ""
-		if current_difficulty >= 0 and current_difficulty < current_diffs_ids.size():
-			id = current_diffs_ids[current_difficulty]
-		rating = int(table.get(id, 0))
+		rating = int(table.get(current_difficulty, 0))
 	for i: int in difficulty_stars.get_child_count():
 		var star := difficulty_stars.get_child(i) as AnimatedSprite2D
 		if star == null:
@@ -1675,7 +1736,7 @@ func _update_score_for_selection() -> void:
 
 ## El getSongScore de la linea 1090. Sin guardado devuelve vacio, que es lo mismo que
 ## devuelve el mod cuando la cancion no se ha jugado.
-func _song_score(_song_id: String, _difficulty: int) -> Dictionary:
+func _song_score(_song_id: String, _difficulty: String) -> Dictionary:
 	return {}
 
 
@@ -1852,7 +1913,11 @@ func confirm() -> void:
 	_bend_pitch(CONFIRM_PITCH)
 
 	await get_tree().create_timer(CONFIRM_TIME).timeout
-	LoadingScreen.go_to(get_tree(), String(song["scene"]), String(song.get("id", "")))
+	# Linea 653: `loadPlayState({targetSong, targetDifficulty, targetVariation, ...})`. La
+	# dificultad va con la cancion, que es lo que hace que elegir HARD en la cabecera
+	# signifique algo: sin ella la escena juega siempre el chart que le cocieron.
+	LoadingScreen.go_to(get_tree(), String(song["scene"]), String(song.get("id", "")),
+		_difficulty_id())
 
 
 ## Los dos tweens de tono de capsuleOnConfirmDefault, lineas 640 y 643. En Godot el tono
@@ -1862,6 +1927,13 @@ func confirm() -> void:
 ## Los dos que baja el mod son la MUSICA -el tema que changeTheme dejo sonando- y su capa.
 ## Aqui decia `sfx`, que es el reproductor de efectos: bajarle el tono a un efecto que ya
 ## termino no hace nada, y el tema, que es lo que se oye, se quedaba igual.
+## El id de la dificultad que se lleva a la cancion. Desde que `currentDifficulty` es la
+## cadena que es en el mod esto no traduce nada, pero se queda como el sitio por el que
+## sale la dificultad de esta pantalla.
+func _difficulty_id() -> String:
+	return current_difficulty
+
+
 func _bend_pitch(to: float) -> void:
 	for player: Node in [_theme_music, layer_sound]:
 		if player is AudioStreamPlayer and (player as AudioStreamPlayer).playing:
@@ -1958,7 +2030,7 @@ func disk_at(at: Vector2) -> int:
 ## ─── Static persistence (from binary __boot) ────────────────────────────────
 
 static var _freeplay_remembered_song_id: String = ""
-static var _freeplay_remembered_difficulty: int = 1
+static var _freeplay_remembered_difficulty: String = DEFAULT_DIFFICULTY
 static var _freeplay_remembered_character_id: String = "bf"
 
 
@@ -1969,15 +2041,33 @@ static var _freeplay_remembered_character_id: String = "bf"
 func _capsule_on_confirm_random() -> void:
 	if _confirmed or not allow_input:
 		return
-	if SONGS.is_empty():
+	# Linea 560, leida en 0x34c9885: el sorteo NO va sobre todas las canciones. Recorre
+	# `selectableDisks` y se queda solo con los discos cuyo `songData` no es null -eso deja
+	# fuera al propio disco aleatorio- Y cuyo `songDifficulties` (campo 0x88) CONTIENE la
+	# `currentDifficulty` que hay puesta, comparando por String::eq. Si no queda ninguno,
+	# la 564 escribe un `FlxG.log.warn("HOW???")` y no se elige nada.
+	#
+	# Esto importa: sin el filtro, el aleatorio podia caer en phone-call llevando 'hard'
+	# -que phone-call no ofrece- o en bopeebo llevando 'standart', y la cancion acababa
+	# jugando el chart que le tocara.
+	var pool: Array[int] = []
+	for i: int in current_filtered_songs.size():
+		var song: Dictionary = current_filtered_songs[i]
+		if song.is_empty():
+			continue
+		if PackedStringArray(song.get("difficulties", [])).has(current_difficulty):
+			pool.append(i)
+	if pool.is_empty():
+		push_warning("HOW??? ninguna cancion ofrece la dificultad %s" % current_difficulty)
 		return
-	# El sorteo va sobre las canciones DE VERDAD: el hueco 0 es el propio disco aleatorio
-	# y sortearlo se sortearia a si mismo.
-	var new_index: int = 1 + randi() % SONGS.size()
-	cur_selected = new_index
+
+	# Lineas 573-575: `curSelected = elegido.ID` a pelo, luego `changeSelection(...)` y
+	# despues `capsuleOnConfirmDefault(elegido, 0.2)`, o sea la misma confirmacion que un
+	# disco cualquiera. Aqui `confirm()` es ese capsuleOnConfirmDefault.
+	cur_selected = pool[randi() % pool.size()]
 	cur_selected_float = float(cur_selected)
+	change_selection(0, false)
 	_refresh(false)
-	# Now confirm the random selection.
 	confirm()
 
 

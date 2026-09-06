@@ -3505,6 +3505,118 @@ Three things changed in the port:
   actually hear — was left alone.
 
 
+## 8x. The difficulty was a lie: an index where the mod has a string
+
+Picking HARD in freeplay and then playing the `normal` chart is not a rendering nit, and it
+had been true the whole time. Two separate things were wrong.
+
+**The song scenes bake one difficulty.** `build_song_scene.gd`'s `_build_ui(difficulty)`
+loads `<song>-<difficulty>_{Player,Opponent}.tres` and writes it into the scene, and every
+scene in the port was generated with `normal`. Freeplay never passed its choice anywhere.
+In the mod the difficulty travels with the song: `capsuleOnConfirmDefault` line 653 calls
+`LoadingState.loadPlayState({targetSong, targetDifficulty, targetVariation, ...})`. The
+port now does the same through `LoadingScreen.target_difficulty`, and a small node,
+`animania_mod/songs/difficulty_charts.gd`, hangs off each song scene and swaps both
+`RubiconLevelNoteController.chart` resources in `_ready` — early enough, because `chart` is
+an `@export` with a setter that only marks `_chart_dirty` and the controller reads it in its
+first `NOTIFICATION_INTERNAL_PROCESS`. It derives the target path from the chart the scene
+already carries (`...-normal_Player.tres` → `...-hard_Player.tres`), so it needs no table,
+and a song whose chart has no difficulty suffix — phone-call, `test` — is left alone.
+
+Two traps on the way there:
+
+- **`PackedScene.instantiate()` + `pack()` is not the identity.** The first version of the
+  injector loaded each song scene, added the node and re-packed it. `bopeebo.tscn` went from
+  330 lines to 102 **without a single error**: nodes that come from an instanced sub-scene
+  lose their overrides. Reverted with `git checkout -- songs/` and rewritten as
+  `tools/animania/add_difficulty_node.py`, which edits the `.tscn` as text — one
+  `ext_resource` line, one node block — and never re-serialises what it does not understand.
+- The node block goes **before** the trailing `[editable path=...]` lines. Godot loads it
+  either way, but those always sit last in a file the editor wrote.
+
+**`currentDifficulty` is a `String`, not an index.** This is the deeper one. The port kept
+an integer into a hardcoded `["Easy", "Normal", "Hard"]`. `changeDiff` (0x34c7a40) says
+otherwise, and the lines are unambiguous:
+
+```
+977  if (selectableDisks.length != 0)
+978    var songData = selectableDisks[curSelected].songData      // DiskSpr 0x268
+       if (songData != null) {
+981      currentDiffsIds  = songData.songDifficulties            // FreeplaySongData 0x88
+982      rememberedSongId = songData.id
+       }
+985  var i = currentDiffsIds.indexOf(currentDifficulty)          // bucle de String::eq
+987  if (i == -1) i = currentDiffsIds.indexOf(Constants.DEFAULT_DIFFICULTY)   // 'hard'
+     if (i == -1) i = -1
+989  i = MathUtil.curSelectionWrap(i, amount, currentDiffsIds)
+990  currentDifficulty = currentDiffsIds[i]
+     rememberedDifficulty = currentDifficulty
+```
+
+Field 0x88 is `songDifficulties`: `__Field` compares `0x66666944676e6f73` / `0x736569746c756369`
+— `"songDiff"` + `"iculties"` — and then loads `0x88(%rdi)`. It comes from each song's
+metadata, `playData.difficulties`, so **the list is per song**: bopeebo, fresh, dadbattle and
+tutorial declare easy/normal/hard, and phone-call declares exactly one, `standart`. With an
+index into a fixed table of three, phone-call had no representable difficulty at all — which
+is also why its `ratings` had been padded to `{easy: 4, normal: 4, hard: 4}` when the
+metadata says `{standart: 4}`.
+
+`MathUtil.curSelectionWrap(cur, change, arr)` (0x18891f0) reads `length` off its third
+argument by reflection, subtracts one, and calls `FlxMath.wrap(cur + change, 0, that)`. So
+the `-1` from a difficulty the song does not offer lands on the **last** id in the list.
+
+What the port does now, and what each piece proves:
+
+- `current_difficulty` is a `String`, starting at `DEFAULT_DIFFICULTY` = `"hard"`.
+- `change_diff` pulls `current_diffs_ids` from the selected song, then does the two-step
+  `find` and the wrap. Carrying `hard` into a song that has it keeps it; carrying `standart`
+  into bopeebo falls back to `hard`; phone-call's single `standart` is a fixed point.
+- `totalDiffs` (field 0x104) is **not** ported, and not by oversight: there is not one
+  instruction in the whole `FreeplayScreen` code range (0x34b0000-0x34e0000) that reads or
+  writes it. It is dead in the mod too.
+- `updateDataStuff` never writes `currentDiffsIds` — there is no `=>currentDiffsIds` in its
+  6883 bytes. The port had an invented `current_diffs_ids = DIFF_IDS_FULL` in the random
+  branch; it is gone. The random slot shows the dots of the last song you passed, and at
+  boot the constructor's list, which is what the capture shows.
+
+**`capsuleOnConfirmRandom` filters by difficulty** (line 560, read at 0x34c9885). It walks
+`selectableDisks`, keeps only the disks whose `songData` is non-null *and* whose
+`songDifficulties` contains the current `currentDifficulty`, and picks from that. If nothing
+survives, line 564 logs `"HOW???"` and nothing is chosen. Without the filter the random disk
+could hand `hard` to phone-call or `standart` to bopeebo.
+
+**And the info capsule was showing the wrong thing entirely.** Line 1125, read instruction by
+instruction at 0x34c698e: what is concatenated after `'DIF: '` is not the difficulty name.
+It is `songData.difficultyRating` — field 0x80, an **int**; the code wraps it in a `Dynamic`
+and calls vtable slot 0x58, the `__ToString`. `updateValues` copies it from the chosen
+difficulty's own record (0x148 → 0x80, at 0x2516f9f), so it is the same `ratings` number that
+drives the stars. The name is already on the big banner over the TV; the capsule gives the
+number. `BPM: 110` / `DIF: 9`. The port said `DIF: Hard`.
+
+Measured, with `tools/animania/harness/diff_walk.gd` (walk the carousel, spin the difficulty
+at every slot) and `random_pick.gd` (sample the random disk 40 times per difficulty):
+
+```
+0  al llegar  diff=hard      lista=["easy","normal","hard","standart"]  capsula=''
+1  al llegar  diff=standart  lista=["standart"]              capsula='DIF: 4'   estrellas=4
+2  al llegar  diff=hard      lista=["easy","normal","hard"]  capsula='DIF: 9'   estrellas=9
+4  +1         diff=hard      lista=["easy","normal","hard"]  capsula='DIF: 11'  estrellas=11
+
+llevando 'hard'     -> bopeebo/hard, dadbattle/hard, fresh/hard
+llevando 'standart' -> phone-call/standart
+llevando 'nightmare'-> HOW??? ninguna cancion ofrece la dificultad nightmare
+```
+
+and end to end with `diff_probe.gd`, which instantiates every song scene once per
+difficulty and prints the chart that actually landed in each controller:
+
+```
+bopeebo.tscn   'hard'      Opponent=bopeebo-hard_Opponent.tres, Player=bopeebo-hard_Player.tres
+bopeebo.tscn   'standart'  (aviso, se queda normal — bopeebo no tiene ese chart)
+phone_call.tscn 'hard'     Opponent=phone-call_Opponent.tres  (un solo chart, se deja)
+```
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
