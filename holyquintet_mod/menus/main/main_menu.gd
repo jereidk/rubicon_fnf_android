@@ -44,6 +44,7 @@ func _update_selection() -> void:
 
 func _select() -> void:
 	can_control = false
+	HQSaves.is_story_mode = options[cur_sel] == "Story"
 	var dest = destinations.get(options[cur_sel], "")
 	if dest.is_empty():
 		can_control = true

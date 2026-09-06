@@ -231,6 +231,15 @@ func note_changed(result:RubiconLevelNoteHitResult, has_ending_row:bool = false)
 		return
 
 	_last_result = result
+
+	# Notes flagged suppress_sing (mod "No Animation" kinds, bullet/timestop
+	# mechanics) never drive a sing animation. Misses are left alone: the
+	# mod still shows the normal miss anim, and the health module already
+	# handles their health on its own.
+	var note_meta : RubiconLevelNoteMetadata = result.handler.metadata_for_result(result) if result.handler != null else null
+	if result.scoring_rating != RubiconLevelNoteHitResult.Judgment.JUDGMENT_MISS 		and note_meta != null and note_meta.suppress_sing:
+		return
+
 	_last_sing_anim = get_anim_alias_from_result(_last_result)
 	_last_sing_step = floori(level_note_controller.get_level_clock().time_step)
 

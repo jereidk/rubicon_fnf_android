@@ -73,7 +73,14 @@ func _ready() -> void:
 func note_changed(result:RubiconLevelNoteHitResult, has_ending_row:bool = false) -> void:
 	if result.scoring_hit == RubiconLevelNoteHitResult.Hit.HIT_NONE:
 		return
-	
+
+	# Bullet/Timestop mechanics manage their own health (damage, bleed, and
+	# the freezer's non-damaging miss), so the stock per-rating addition is
+	# skipped for them.
+	var note_meta : RubiconLevelNoteMetadata = result.handler.metadata_for_result(result) if result.handler != null else null
+	if note_meta != null and note_meta.suppress_health:
+		return
+
 	if result.scoring_rating != RubiconLevelNoteHitResult.Judgment.JUDGMENT_NONE:
 		var rating_name:StringName = RubiconLevelNoteHitResult.Judgment.find_key(result.scoring_rating)
 		var health_addition:float = get(&"%s_health_addition" % [rating_name.to_lower().erase(0, 9)])

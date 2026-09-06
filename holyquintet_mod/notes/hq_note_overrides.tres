@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="RubiconLevelNoteDatabase" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_note_metadata.gd" id="1_meta"]
+[ext_resource type="Script" path="res://addons/rubicon/scripts/data/game/rubicon_level_note_database.gd" id="2_db"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/notes/bullet_note.tscn" id="3_bullet"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/notes/timestop_note.tscn" id="4_timestop"]
+[ext_resource type="PackedScene" path="res://resources/levels/ui/funkin/mania/Note.tscn" id="5_funkin"]
+
+[sub_resource type="Resource" id="Resource_mania"]
+script = ExtResource("1_meta")
+scene = ExtResource("5_funkin")
+
+[sub_resource type="Resource" id="Resource_bullet"]
+script = ExtResource("1_meta")
+scene = ExtResource("3_bullet")
+behavior = 1
+suppress_sing = true
+suppress_health = true
+
+[sub_resource type="Resource" id="Resource_timestop"]
+script = ExtResource("1_meta")
+scene = ExtResource("4_timestop")
+behavior = 2
+suppress_sing = true
+suppress_health = true
+
+[sub_resource type="Resource" id="Resource_noanim"]
+script = ExtResource("1_meta")
+scene = ExtResource("5_funkin")
+suppress_sing = true
+
+[resource]
+script = ExtResource("2_db")
+defines = Dictionary[StringName, ExtResource("1_meta")]({
+&"mania": SubResource("Resource_mania"),
+&"Bullet Note_mania": SubResource("Resource_bullet"),
+&"Timestop Note_mania": SubResource("Resource_timestop"),
+&"No Animation_mania": SubResource("Resource_noanim"),
+&"No Anim Note_mania": SubResource("Resource_noanim")
+})

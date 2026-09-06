@@ -32,6 +32,9 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_dialogue_display.gd" id="96_dialogue_hq"]
 
+[ext_resource type="Resource" path="res://holyquintet_mod/notes/hq_note_overrides.tres" id="95_notes_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_note_mechanics.gd" id="94_mech_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gauntlet_runtime.gd" id="93_gaunt_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -138,7 +141,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0015")
 chart = ExtResource("0016")
-note_overrides = ExtResource("0017")
+note_overrides = ExtResource("95_notes_hq")
 autoplay = true
 
 [node name="Lane" parent="UILayer/UI/Opponent" unique_id=22901434 instance=ExtResource("0018")]
@@ -184,7 +187,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0015")
 chart = ExtResource("0019")
-note_overrides = ExtResource("0017")
+note_overrides = ExtResource("95_notes_hq")
 inputs = ExtResource("0020")
 
 [node name="Lane" parent="UILayer/UI/Player" unique_id=79462480 instance=ExtResource("0018")]
@@ -267,6 +270,17 @@ dialogue_path = "holyquintet_mod/source/songs/out-of-time/dialogue.json"
 song_name = "out-of-time"
 [node name="HQGameOverHandler" type="Node" parent="."]
 script = ExtResource("99_go_hq")
+[node name="HQNoteMechanics" type="Node" parent="."]
+script = ExtResource("94_mech_hq")
+health_path = NodePath("RubiconHealthModule")
+player_controller_path = NodePath("UILayer/UI/Player")
+boyfriend_path = NodePath("Stage/Boyfriend")
+opponent_path = NodePath("Stage/Homura")
+vocals_player_path = NodePath("RubiconLevelSongModule/VocalsPlayer")
+vocals_opponent_path = NodePath("RubiconLevelSongModule/VocalsOpponent")
+
+[node name="HQGauntletRuntime" type="Node" parent="."]
+script = ExtResource("93_gaunt_hq")
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=75223674 instance=ExtResource("0025")]
 layer = 15
 script = ExtResource("0026")

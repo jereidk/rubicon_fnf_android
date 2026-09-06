@@ -29,6 +29,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
 
+[ext_resource type="Resource" path="res://holyquintet_mod/notes/hq_note_overrides.tres" id="95_notes_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -129,7 +130,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0013")
 chart = ExtResource("0014")
-note_overrides = ExtResource("0015")
+note_overrides = ExtResource("95_notes_hq")
 autoplay = true
 
 [node name="Lane" parent="UILayer/UI/Opponent" unique_id=42974417 instance=ExtResource("0016")]
@@ -175,7 +176,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0013")
 chart = ExtResource("0017")
-note_overrides = ExtResource("0015")
+note_overrides = ExtResource("95_notes_hq")
 inputs = ExtResource("0018")
 
 [node name="Lane" parent="UILayer/UI/Player" unique_id=32140023 instance=ExtResource("0016")]

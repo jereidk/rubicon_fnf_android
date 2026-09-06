@@ -31,6 +31,11 @@ var is_gauntlet_mode: bool = false
 var gauntlet_ending: bool = false
 var is_story_mode: bool = false
 
+## Per-run mechanic flags (not persisted), read by HQAchievements.
+## Mirrors the mod's bulletNoteMissed / timeStopNoteHit for YoureOnMyTime.
+var hq_bullet_note_missed: bool = false
+var hq_timestop_note_hit: bool = false
+
 
 func _ready() -> void:
 	load_data()

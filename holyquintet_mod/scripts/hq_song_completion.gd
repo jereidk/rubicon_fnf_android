@@ -9,19 +9,31 @@ var _has_finished: bool = false
 var results_scene: PackedScene = preload("res://holyquintet_mod/menus/results/results_screen.tscn")
 
 
+var _resonance_health_below_060: bool = false
+
 func _ready() -> void:
 	await get_tree().process_frame
 	var scene = get_tree().current_scene
 	if scene == null:
 		return
+	HQSaves.hq_bullet_note_missed = false
+	HQSaves.hq_timestop_note_hit = false
 	_clock = scene.get_node_or_null("RubiconLevelClock")
 	_song_module = scene.get_node_or_null("RubiconLevelSongModule")
+	var health = scene.get_node_or_null("RubiconHealthModule")
+	if health != null and health.has_signal("health_changed"):
+		health.health_changed.connect(_on_health_changed.bind(health))
 	if _clock == null:
 		push_warning("HQSongCompletion: no RubiconLevelClock found")
 		return
 	var anim_player = _clock.get_node_or_null("AnimationPlayer")
 	if anim_player != null:
 		anim_player.animation_finished.connect(_on_song_finished)
+
+
+func _on_health_changed(health: Node) -> void:
+	if float(health.health) <= 0.6:
+		_resonance_health_below_060 = true
 
 
 func _on_song_finished(_anim_name: StringName) -> void:
@@ -99,7 +111,7 @@ func _try_achievements() -> void:
 	if player == null:
 		return
 	var misses := player.performance_hits_miss
-	var song := scene.name.to_lower()
+	var song := _normalize_song_name(scene.name)
 	var hard_clear := misses == 0 and HQSaves.cur_story_diff == "hard"
 	if hard_clear:
 		match song:
@@ -112,6 +124,18 @@ func _try_achievements() -> void:
 			"meguca": HQSaves.unlock_achievement("FCMeguca")
 			"reconnect": HQSaves.unlock_achievement("FCReconnect")
 			"stardom": HQSaves.unlock_achievement("FCStardom")
+	# ResOutheal: completed resonance without health dropping to 60%.
+	if song == "resonance" and not _resonance_health_below_060:
+		HQSaves.unlock_achievement("ResOutheal")
+	# YoureOnMyTime: out-of-time without pressing timestop or missing bullets.
+	if song == "out-of-time" 		and not HQSaves.hq_timestop_note_hit and not HQSaves.hq_bullet_note_missed:
+		HQSaves.unlock_achievement("YoureOnMyTime")
+	# CompleteAct1: story mode clear of out-of-time.
+	if song == "out-of-time" and HQSaves.is_story_mode:
+		HQSaves.unlock_achievement("CompleteAct1")
+	# Tenacious: died 15+ times (mod: DeathCounter >= 15 at song end).
+	if HQSaves.death_counter >= 15:
+		HQSaves.unlock_achievement("Tenacious")
 	# Devoted progress
 	HQSaves.devoted_progress += 1
 	if HQSaves.devoted_progress >= 25:
@@ -121,3 +145,10 @@ func _try_achievements() -> void:
 	if HQSaves.pinpoint_accuracy_progress >= 5000:
 		HQSaves.unlock_achievement("PinpointAccuracy")
 	HQSaves.save_data()
+
+
+func _normalize_song_name(raw: String) -> String:
+	var lowered := raw.to_lower()
+	if lowered == "outoftime":
+		return "out-of-time"
+	return lowered

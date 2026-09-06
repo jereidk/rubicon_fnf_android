@@ -241,6 +241,12 @@ func update_performance() -> void:
 	for result in results:
 		total_value += result.scoring_value
 
+		# An unjudged note (JUDGMENT_NONE) is not a hit and not a miss - the
+		# HQ timestop mechanics erase a passed note this way. It never touches
+		# the combo, exactly like the mod's "delete, no penalty" behaviour.
+		if result.scoring_rating == RubiconLevelNoteHitResult.Judgment.JUDGMENT_NONE:
+			continue
+
 		# A misplay breaks the combo at the note it happened next to, even
 		# though that note's own judgment may be fine.
 		if result.handler.break_combo_indexes.has(result.data_index):
@@ -282,6 +288,8 @@ func update_performance() -> void:
 		var handler : RubiconLevelNoteHandler = note_handlers[key]
 		for i: int in handler.note_hit_index:
 			var result: RubiconLevelNoteHitResult = handler.results[i]
+			if result.scoring_rating == RubiconLevelNoteHitResult.Judgment.JUDGMENT_NONE:
+				continue
 			accuracy_hits += result.get_accuracy_value()
 			total_hits += 1
 

@@ -31,6 +31,8 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
 
+[ext_resource type="Resource" path="res://holyquintet_mod/notes/hq_note_overrides.tres" id="95_notes_hq"]
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gauntlet_runtime.gd" id="93_gaunt_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -137,7 +139,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0015")
 chart = ExtResource("0016")
-note_overrides = ExtResource("0017")
+note_overrides = ExtResource("95_notes_hq")
 autoplay = true
 
 [node name="Lane" parent="UILayer/UI/Opponent" unique_id=81945697 instance=ExtResource("0018")]
@@ -183,7 +185,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("0015")
 chart = ExtResource("0019")
-note_overrides = ExtResource("0017")
+note_overrides = ExtResource("95_notes_hq")
 inputs = ExtResource("0020")
 
 [node name="Lane" parent="UILayer/UI/Player" unique_id=80924574 instance=ExtResource("0018")]
@@ -261,6 +263,8 @@ script = ExtResource("97_stage_hq")
 song_name = "reconnect"
 [node name="HQGameOverHandler" type="Node" parent="."]
 script = ExtResource("99_go_hq")
+[node name="HQGauntletRuntime" type="Node" parent="."]
+script = ExtResource("93_gaunt_hq")
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=59348310 instance=ExtResource("0025")]
 layer = 15
 script = ExtResource("0026")

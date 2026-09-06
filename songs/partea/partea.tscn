@@ -32,6 +32,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_dialogue_display.gd" id="96_dialogue_hq"]
 
+[ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gauntlet_runtime.gd" id="93_gaunt_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -267,6 +268,8 @@ dialogue_path = "holyquintet_mod/source/songs/partea/dialogue.json"
 song_name = "partea"
 [node name="HQGameOverHandler" type="Node" parent="."]
 script = ExtResource("99_go_hq")
+[node name="HQGauntletRuntime" type="Node" parent="."]
+script = ExtResource("93_gaunt_hq")
 [node name="MobileControls" type="CanvasLayer" parent="." unique_id=54582465 instance=ExtResource("0025")]
 layer = 15
 script = ExtResource("0026")

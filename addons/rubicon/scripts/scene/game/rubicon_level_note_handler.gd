@@ -573,6 +573,18 @@ func _notification(what: int) -> void:
 func _should_process() -> bool:
 	return not data.is_empty() and settings != null and _controller != null and _controller.get_level_clock() != null
 
+## The database entry for the note a result came from, or null when the
+## chart's note type is not overridden. Resolved through the same
+## "<type>_<mode>" key the pool and the spawner use, so a song that layers a
+## custom database over the default gets its behaviour here too.
+func metadata_for_result(result : RubiconLevelNoteHitResult) -> RubiconLevelNoteMetadata:
+	var database : Dictionary = get_controller().get_note_database()
+	var note_type : StringName = data[result.data_index].type if result.data_index < data.size() else &""
+	var key : StringName = get_mode_id()
+	if not note_type.is_empty():
+		key = StringName("%s_%s" % [note_type, key])
+	return database.get(key) as RubiconLevelNoteMetadata
+
 func _process(delta: float) -> void:
 	if not _should_process():
 		return

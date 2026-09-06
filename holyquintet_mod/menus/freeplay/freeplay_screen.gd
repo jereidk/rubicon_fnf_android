@@ -67,6 +67,7 @@ func _update_display() -> void:
 
 func _play_song() -> void:
 	can_control = false
+	HQSaves.cur_story_diff = "hard" if cur_diff == 1 else "easy"
 	var song = song_list[cur_sel]
 	var scene_path = "res://songs/" + song["name"] + "/" + song["name"].replace("-", "_") + ".tscn"
 	if not ResourceLoader.exists(scene_path):
