@@ -74,7 +74,9 @@ const DIFF_COLORS := {
 	"standart": Color8(0x6c, 0xe7, 0xc3),
 }
 ## Las dificultades que el puerto ofrece hoy, en el mismo orden que su tabla.
-const DOT_IDS := ["easy", "normal", "hard"]
+## Cuatro, no tres: en la captura del mod sobre el disco aleatorio salen easy, normal,
+## hard y el turquesa (`standart`). Ver DIFF_IDS_FULL en freeplay_screen.gd.
+const DOT_IDS := ["easy", "normal", "hard", "standart"]
 ## Flixel getDarkened(f) multiplica el RGB por (1 - f). Aqui f = 0.45.
 const DOT_DARKEN := 1.0 - 0.45
 const DOT_DIM_ALPHA := 0.9
@@ -110,6 +112,9 @@ const BOSS_VOLUME := 0.25
 ## del televisor, que es 30, porque asi sale en el mod.
 const DIFF_BANNERS := ["easy", "normal", "hard", "standart", "legacy"]
 const DIFF_BANNER_SCALE := 0.95
+## buildBg 1277: `new FunkinSprite(-60, -198)`. La x del sprite del televisor, que no es lo
+## mismo que TV_AT_X -aquella es donde EMPIEZA el arte visible dentro de su lienzo-.
+const TV_SPRITE_X := -60.0
 const DIFF_BANNER_Y := 70.0
 const DIFF_BANNER_Z := 31
 
@@ -257,7 +262,19 @@ func _init() -> void:
 	# selectorsGroup 100, bossfightSkull 900. El puerto los tenia todos en 0 y se apoyaba
 	# en el orden del arbol, lo que dejaba DarkOverlay -que va en 8, por DEBAJO del tele y
 	# de los discos- encima de todo por ser el ultimo.
-	_sprite("Backwall", "bg/freeplay backwall.png", Vector2(0.0, 18.75)).z_index = 1
+	# La pared y la cama NO estan en x = 0, que es donde el puerto las tenia. buildBg las
+	# coloca contra el borde DERECHO igual que la cabecera, y las dos cuentas estan leidas:
+	#
+	#   1203  bgWall.x = FlxG.width - bgWall.width - 230     -> 1280 - 912 - 230 = 138
+	#   1214  bgBed.x  = FlxG.width - bgBed.width  + 10      -> 1280 - 742 +  10 = 548
+	#
+	# En las dos, `cvtsi2sd` sobre el entero de FlxG.width, `call *0x230` para el ancho y
+	# un `subsd`/`addsd` con el literal. Con las dos en 0 la cama caia medio dormitorio a
+	# la izquierda y por eso en la superposicion contra el mod los postes no cuadraban.
+	const WALL_WIDTH := 912.0
+	const BED_WIDTH := 742.0
+	_sprite("Backwall", "bg/freeplay backwall.png",
+		Vector2(1280.0 - WALL_WIDTH - 230.0, 18.75)).z_index = 1
 
 	# The bed. Three frames that are three STATES rather than a cycle. buildBg names them
 	# with addByIndices: `light` -> [0], `normal` -> [1], `none` -> [2] (the third one is
@@ -267,7 +284,9 @@ func _init() -> void:
 	# `pause()` here did nothing to the saved scene: _sparrow sets `autoplay`, which the
 	# packed scene keeps, so the bed came back cycling all three frames at 24 fps on load.
 	# Clear autoplay, or the bed flickers through its own states for ever.
-	var bed: AnimatedSprite2D = _sparrow("Bed", "freeplay_bed", "bed", Vector2(0.0, 254.0))
+	# Linea 1206 le da la y (254) y la 1214 la x. Ver el bloque de la pared arriba.
+	var bed: AnimatedSprite2D = _sparrow("Bed", "freeplay_bed", "bed",
+		Vector2(1280.0 - BED_WIDTH + 10.0, 254.0))
 	bed.autoplay = ""
 	bed.frame = 2
 	bed.z_index = 2
@@ -700,9 +719,13 @@ func _init() -> void:
 		b.texture = load("%s/diffs/%stext.png" % [ART, id])
 		b.centered = false
 		b.scale = Vector2.ONE * FUNKIN_TO_RUBICON * DIFF_BANNER_SCALE
+		# buildBg 1384: `banner.x = tvSprite.x + tvSprite.width * 0.5 - banner.width * 0.5`.
+		# El `tvSprite.x` es el -60 literal de la linea 1277, no el TV_AT_X de -40 que se
+		# usa para colocar la capsula y los puntos: aquello es una medida del arte, esto es
+		# la x del sprite. Con -40 el banner salia 20 px a la derecha.
 		var w: float = b.texture.get_width() * DIFF_BANNER_SCALE
 		b.position = Vector2(
-			TV_AT_X + TV_WIDTH * 0.5 - w * 0.5, DIFF_BANNER_Y) * FUNKIN_TO_RUBICON
+			TV_SPRITE_X + TV_WIDTH * 0.5 - w * 0.5, DIFF_BANNER_Y) * FUNKIN_TO_RUBICON
 		b.z_index = DIFF_BANNER_Z
 		b.z_as_relative = false
 		b.modulate.a = 0.0

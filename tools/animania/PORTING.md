@@ -3354,6 +3354,90 @@ next to it, and the binary's own numbers are left alone.
   frames to 24 (8j); the bright frames are probably among the ones dropped.
 
 
+## 8v. Making the random slot identical, by measuring instead of squinting
+
+The 50% blend showed *that* things were off. A brute-force alignment search — for a region
+of the capture, try every (dx, dy) and keep the lowest mean absolute error — showed *by how
+much*, and turned five eyeballed "looks a bit left" into five numbers. Everything below was
+found that way and then read back out of the binary.
+
+### The wall and the bed are not at x = 0
+
+They are placed against the RIGHT edge, exactly like the header:
+
+    buildBg 1203   bgWall.x = FlxG.width - bgWall.width - 230   →  1280 - 912 - 230 = 138
+    buildBg 1214   bgBed.x  = FlxG.width - bgBed.width  + 10    →  1280 - 742 +  10 = 548
+
+Both are `cvtsi2sd` on the int `FlxG.width`, `call *0x230` for the width, and one literal.
+The port had both at 0, which put the bed half a bedroom to the left; the aligner had been
+reporting nonsense for it (+84 with a ±90 search) precisely because the true offset was
+outside the search window and it locked onto the wrong post.
+
+### currentDifficulty is 'hard', not 'normal'
+
+`funkin.util.Constants.__boot` writes the 4-character string `'hard'` into
+`DEFAULT_DIFFICULTY` (0x7ed6990), and `FreeplayScreen.__construct` copies that constant
+into `currentDifficulty` (the pair 0x108/0x110). Animania changed it from the base game's
+`'normal'`. `doIntroAnim` 1614 says the same thing a second time on the dots:
+`dotsGrp.curDiff = 'hard'`. That is why the capture opens on the HARD banner with the pink
+dot lit, and the port opened on NORMAL.
+
+### Four dots, not three
+
+The same constructor sets `currentDiffsIds = Constants.DEFAULT_DIFFICULTY_LIST_FULL` — the
+`movups` at 0x34d3374 writes both halves at once, so the String and the list come from two
+adjacent constants. That list is **seven** ids (its `__boot` pushes lengths 4, 6, 4, 6, 8,
+5, 9 — easy, normal, hard, legacy, standart, erect, nightmare by length), and
+`FreeplayDots.loadDots` only creates a dot for the ids its colour map knows (line 47 is a
+`get` on that map). Four survive in the capture: easy, normal, hard and the teal one,
+`standart`.
+
+`?` Which filter drops the other three is not read: `loadDots` takes the field at 0xf0,
+which `__construct` creates as an empty Array and which nothing in this class visibly
+fills. The four in the port are the four in the capture.
+
+### The difficulty banner uses tvSprite.x, which is -60 and not -40
+
+    buildBg 1384   banner.x = tvSprite.x + tvSprite.width * 0.5 - banner.width * 0.5
+    buildBg 1385   banner.y = 70
+
+The port was using `TV_AT_X` (-40), which is a measurement of where the TV's *art* starts
+inside its canvas, for a formula that wants the *sprite's* x (-60, the literal in buildBg
+1277). Twenty pixels, and the aligner saw them: the banner sat at +28 while everything
+else sat at +8.
+
+### The residue is one number, and it is not the port's
+
+After those, every landmark measures the same:
+
+    marco TV        +8, 0        poste de la cama  +10, +1
+    disco RANDOM    +8, 0        puntos            +10, 0
+    banner          +8, 0        boton ?            +5, 0
+
+A single global ~8 px, which is `updateCameraScroll`: it *accumulates*
+`remapToRange(mouse.x, 0, FlxG.width, 3, -6) * elapsed * 3` every frame, so wherever the
+player's pointer was resting, the mod's camera had drifted a few pixels by the time the
+screenshot was taken. Nothing to port. (`cam_probe.gd` confirms the port's own camera sits
+at exactly (960, 540) and its sprites at exactly the coordinates above.)
+
+The `?` button's +5 is its own: `helpButton.x = FlxG.width - helpButton.width - 7`, and the
+port measures that width from frame 0's texture while flixel uses the current frame's
+`frameWidth` — five pixels of trim difference.
+
+### Still different
+
+- **The characters button** is on screen in the port and absent from the capture.
+  `initHeader` 1485-1497 builds it with zIndex 52, no alpha and no `visible = false` — the
+  same treatment as the help button, which *does* appear — and lines 1485-1500 contain no
+  `set_alpha` (0x3a8) or `set_visible` (0x128) at all. Code and capture disagree and the
+  reason is not in this method.
+- **The TV screen** renders at mean luma 74 against the capture's 119. Part of that is a
+  global gamma difference (the TV body reads 31 against 44 and the bed 87 against 101,
+  both consistent with ~1.17), but the screen is about 30% darker beyond that. It is not
+  the frame set: the port's 24 TVNOISE frames average 96.9 against the original 111
+  frames' 95.4, and both atlases use the same 373x301 frame. Unexplained.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

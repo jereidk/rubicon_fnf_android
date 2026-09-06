@@ -142,6 +142,16 @@ const CAPSULE_SCALE := 2.0
 ## ─── Difficulty ──────────────────────────────────────────────────────────────
 
 const DIFFICULTIES: PackedStringArray = ["Easy", "Normal", "Hard"]
+## El constructor pone `currentDiffsIds = Constants.DEFAULT_DIFFICULTY_LIST_FULL`, que en
+## este mod son SIETE ids: su __boot los mete con longitudes 4, 6, 4, 6, 8, 5 y 9. De esos,
+## `FreeplayDots.loadDots` solo crea punto para los que su mapa de colores conoce -linea 47
+## es un `get` sobre el mapa- y en la captura del mod salen CUATRO: easy, normal, hard y el
+## turquesa, que es `standart`.
+##
+## `?` Los otros tres (legacy, erect, nightmare por sus longitudes) no salen, y cual es el
+## filtro exacto no esta leido: `loadDots` recibe el campo 0xf0, que el constructor crea
+## vacio y que no he encontrado quien rellena. Los cuatro de aqui son los de la captura.
+const DIFF_IDS_FULL: PackedStringArray = ["easy", "normal", "hard", "standart"]
 
 ## ─── Exports ─────────────────────────────────────────────────────────────────
 
@@ -186,8 +196,13 @@ var current_filtered_songs: Array = []
 var selectable_disks: Array = []
 var song_info: Dictionary = {}
 var total_diffs: int = 3
-var current_difficulty: int = 1
-var current_diffs_ids: PackedStringArray = ["easy", "normal", "hard"]
+## `Constants.DEFAULT_DIFFICULTY` no es 'normal' en este mod: su __boot escribe la cadena
+## 'hard' (longitud 4) en 0x7ed6990, y el constructor de FreeplayScreen copia esa constante
+## a `currentDifficulty` (el par 0x108/0x110). Estaba en 1 -normal- y por eso el puerto
+## abria con el banner NORMAL cuando el mod abre con HARD. doIntroAnim linea 1614 lo repite
+## sobre los puntos: `dotsGrp.curDiff = 'hard'`.
+var current_difficulty: int = 2
+var current_diffs_ids: PackedStringArray = DIFF_IDS_FULL
 
 ## Score/completion.
 var lerp_score: float = 0.0
@@ -608,7 +623,7 @@ const DISK_OFFSET_X := -20.0
 ## desplazamiento (0x278/0x280) se quedan a 0 cuando la cancion no trae los suyos. El
 ## unico cabo suelto es `grpDisks.useRenderTexture = true` (buildBg 1365): ese grupo se
 ## dibuja a traves de una textura intermedia y ese camino no esta leido.
-const DISK_ROW_OFFSET := Vector2(157.0, 63.0)
+const DISK_ROW_OFFSET := Vector2(162.0, 57.0)
 const DISK_CURVE_X := 1.5
 const DISK_CURVE_Y := 6.0
 const DISK_BASE_Y := 520.0
@@ -897,6 +912,9 @@ func _update_data_stuff(_force: bool) -> void:
 		_album_set_id("")                                 # 1169
 		_update_stars()                                   # 1170, con difficulty null
 		_update_diff_banner()
+		# Linea 1165: en el hueco aleatorio los puntos son los del arranque, no los de una
+		# cancion. Ver DIFF_IDS_FULL.
+		current_diffs_ids = DIFF_IDS_FULL
 		_set_dots()                                       # 1165-1166
 		# 1154-1155: el craneo de jefe se apaga sin tween -alfa 0 directo-.
 		if bossfight_skull != null:
