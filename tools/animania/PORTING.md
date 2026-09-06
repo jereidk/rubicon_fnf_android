@@ -3928,12 +3928,79 @@ animation on both characters**. The class also carries `transitionSparrow` (0x2e
 String — the transition sheet's name, confirmed by the `"transiti"` + `"onSparro"` + `"w"`
 compare at 0x4cb7073) and a `loadSkinChanger()`.
 
-It stays unported, and the reason is unchanged from 8p: this is the whole character-skin
-subsystem — icons, the skin changer, the transition sheet — and on top of that, where
-`songGFSkin` and `songPlayerSkin` actually come from is still unread, because the songs'
-metadata does not declare them. What the port does have is the resting result, checked
-against both captures: no song, empty bed; song, the two of them sitting. What it is missing
-is the transition between those two states.
+Where `songGFSkin` and `songPlayerSkin` come from is 8ac.
+
+
+## 8ac. The freeplay skin is per song, and phone-call has none
+
+Chasing where `songGFSkin` / `songPlayerSkin` are filled turned up a behaviour the port had
+plainly wrong.
+
+`FreeplaySongData.updateValues` copies them out of the `SongDifficulty` for the chosen
+difficulty — the same bulk copy that carries `difficultyRating` in 8x. At 0x2516f3d and
+0x2516f46 (line 131):
+
+```
+songPlayerSkin (0x48/0x50) = difficulty.<0xd8/0xe0>
+songGFSkin     (0x58/0x60) = difficulty.<0xe8/0xf0>
+```
+
+and `SongDifficulty.__Field` names those two **`playerSkin`** (the `"kin"` tail compared at
+offset 7 of a 10-char name, 0x2940ce1) and **`girlfriendSkin`** (`"endSkin"` at offset 7 of a
+14-char name, 0x294092d). The object is a `SongDifficulty` for certain — `getStartingBPM()`
+is called on the same pointer at 0x2516eed.
+
+They come straight from each song's metadata, and the reason the first look missed them is
+that they sit at the **top level** of the JSON, not inside `playData` where every other
+freeplay field lives:
+
+```
+bopeebo, dadbattle, fresh     bf-standart / gf-standart
+cocoa, eggnog, winter-horrorland  bf-xmas / gf-xmas
+manager                       bf-animania / gf-animania
+phone-call                    none / none
+test, tutorial                (no declaran el campo)
+```
+
+**`'none'` is the empty skin.** That is not a guess: it is the same value
+`playCurSongPreview` 903-904 passes on the random disk, and the capture of the random slot
+shows the bed bare. So in the mod **phone-call is shown with no bf and no gf** — which is
+obviously the intent, since its whole composition is the phone lying alone on the bed. The
+port was drawing both characters on top of it, because `_play_cur_song_preview` did a blanket
+`_show_characters(true)` for anything with a song.
+
+Ported, as much as the port can:
+
+- `SONGS` carries `player_skin` / `gf_skin` per song, from the vendored metadata.
+- `_change_character` is `CharPlayer.changeCharacter` lines 96 and 101 — the early return
+  when the id has not changed, and the visibility that follows from `'none'`. Lines 100
+  (`loadIcon`) and 102 (`play('switch')`) are **not** ported.
+- It is called from where the mod calls it: `change_selection` 842-843 inside the
+  `songData != null` guard, and the random branch of `_play_cur_song_preview` 903-904.
+- Both fields start at `'none'`, because `initCharacters` builds both characters with it, and
+  the builder now creates the two nodes invisible to match. That matters: with the early
+  return, starting them at `"bf"`/`"gf"` would leave the nodes however the builder left them
+  on a boot that lands on the random slot.
+
+Measured with `chars_walk.gd`:
+
+```
+0 <aleatorio>  skins=none/none         gf=false bf=false
+1 tutorial     skins=/                 gf=true  bf=true
+2 bopeebo      skins=bf-standart/...   gf=true  bf=true
+5 phone-call   skins=none/none         gf=false bf=false
+```
+
+### Still open
+
+- **Only one skin is vendored** (`bf-animania` / `gf-animania`), so the id is carried but does
+  not pick art: bopeebo, fresh and dadbattle ask for `bf-standart` / `gf-standart` and get the
+  animania one. Switching between real skins is the 8p subsystem — icons, `loadSkinChanger`,
+  the `transitionSparrow` sheet — and none of it is ported.
+- **What an absent field defaults to** is unread. tutorial and test declare neither, and the
+  tutorial capture shows the characters, so absent is clearly not `'none'`; which skin it
+  resolves to is not established, and the port simply keeps showing the one it has.
+- The `'switch'` transition of 8ab still does not play.
 
 
 ## 8b. Adding a song, for real

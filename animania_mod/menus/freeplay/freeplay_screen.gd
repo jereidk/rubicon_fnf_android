@@ -50,6 +50,11 @@ const SONGS: Array[Dictionary] = [
 		"locked": true,
 		"bpm": 100,
 		"title": "Tutorial",
+		# `playerSkin` / `girlfriendSkin`, del NIVEL SUPERIOR del metadata -no de playData,
+		# que es donde los busque la primera vez y por eso parecian no existir-. tutorial
+		# no los declara. Ver 8ac.
+		"player_skin": "",
+		"gf_skin": "",
 		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 0, "normal": 0, "hard": 1},
 	},
@@ -60,6 +65,8 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 110,
 		"title": "Bopeebo",
+		"player_skin": "bf-standart",
+		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 5, "normal": 7, "hard": 9},
 	},
@@ -70,6 +77,8 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 120,
 		"title": "Fresh",
+		"player_skin": "bf-standart",
+		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 5, "normal": 7, "hard": 8},
 	},
@@ -80,6 +89,8 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 180,
 		"title": "DadBattle",
+		"player_skin": "bf-standart",
+		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 7, "normal": 9, "hard": 11},
 	},
@@ -90,6 +101,11 @@ const SONGS: Array[Dictionary] = [
 		"layer": "komi",
 		"bpm": 152,
 		"title": "Phone Call",
+		# phone-call declara 'none' en las dos, y 'none' es la skin vacia: la misma con la
+		# que playCurSongPreview 903-904 deja la cama pelada en el disco aleatorio. O sea
+		# que en el mod phone-call se ensena SIN bf y SIN gf.
+		"player_skin": "none",
+		"gf_skin": "none",
 		"difficulties": ["standart"],
 		"ratings": {"standart": 4},
 	},
@@ -285,8 +301,13 @@ var clear_box_sprite: Sprite2D
 ## Characters.
 var current_character: String = "bf"
 var current_character_id: String = "bf"
-var current_girlfriend: String = "gf"
-var current_player: String = "bf"
+## Los dos arrancan en la skin VACIA, que es como los construye initCharacters -sus lineas
+## 1401 y 1407 pasan 'none' a los dos constructores-. Importa por la salida temprana de
+## `_change_character`: si empezaran en "bf"/"gf", el 'none' del hueco aleatorio si haria
+## trabajo, pero al revés -arrancar en el aleatorio y que nadie llame- los nodos se
+## quedarian como los dejo el builder. Por eso el builder tambien los crea apagados.
+var current_girlfriend: String = SKIN_NONE
+var current_player: String = SKIN_NONE
 var current_phone: String = ""
 var characters_buttons: Node2D
 
@@ -1766,6 +1787,14 @@ func change_selection(amount: int, play_sound: bool = true) -> void:
 	# defecto. Cambiar de cancion vuelve a fijar la dificultad para la nueva, que es lo
 	# que trae su puntuacion y su porcentaje.
 	change_diff()
+
+	# Lineas 842-843, dentro del `if (songData != null)` que abre el `test %r12,%r12` de
+	# 0x34c92f1 -por eso el hueco aleatorio no entra aqui y se queda con el 'none' que le
+	# pone playCurSongPreview-.
+	var song: Dictionary = current_filtered_songs[cur_selected]
+	if not song.is_empty():
+		_change_character(true, String(song.get("gf_skin", "")))        # 842
+		_change_character(false, String(song.get("player_skin", "")))   # 843
 	_refresh(false)
 	# Linea 855: cambiar de disco cambia el tema que suena. Va al final, despues de
 	# changeDiff.
@@ -2212,7 +2241,10 @@ const THEME_RANDOM := "RANDOM"
 func _play_cur_song_preview(disk: Node2D = null) -> void:
 	var target: Node2D = disk if disk != null else _get_current_disk()
 	if target != null and not _song_of(target).is_empty():
-		_show_characters(true)
+		# Con cancion, playCurSongPreview 911 solo llama a changeTheme: los personajes ya
+		# los ha puesto changeSelection en sus lineas 842-843. Aqui habia un
+		# `_show_characters(true)` que los encendia a todos por igual y por eso phone-call
+		# salia con bf y gf cuando en el mod su metadata pide 'none' en las dos.
 		_change_theme(target)
 		return
 
@@ -2223,9 +2255,8 @@ func _play_cur_song_preview(disk: Node2D = null) -> void:
 	# Lineas 903-904: changeCharacter('none') sobre el jugador y la novia. Con la skin
 	# 'none' no queda personaje que dibujar, y en la captura del mod sobre el disco
 	# aleatorio la cama esta vacia: ni bf ni gf.
-	current_girlfriend = "none"
-	current_player = "none"
-	_show_characters(false)
+	_change_character(false, SKIN_NONE)                   # 903
+	_change_character(true, SKIN_NONE)                    # 904
 	_check_bed("none")                                    # 905
 	old_theme_name = THEME_RANDOM
 	old_theme_layer_name = THEME_RANDOM
@@ -2266,6 +2297,41 @@ func _show_characters(shown: bool) -> void:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
 			node.visible = shown
+
+
+## La skin vacia. `initCharacters` construye a los dos con ella y `playCurSongPreview`
+## 903-904 vuelve a ponerla en el hueco aleatorio; la captura del mod sobre ese hueco
+## ensena la cama pelada, asi que 'none' es "no hay personaje que dibujar".
+const SKIN_NONE := "none"
+
+
+## `CharPlayer.changeCharacter` (0x4cb3640), la parte que este puerto puede hacer.
+##
+##   96   if (id == <la de ahora>) return;
+##   100  loadIcon(id)
+##   101  alpha = 1
+##   102  <campo 0x108>.play('switch')
+##
+## De las cuatro, aqui estan la 96 -la salida temprana, que es lo que hace que moverse
+## entre dos canciones con la misma skin no dispare nada- y el efecto de la 101 sobre lo
+## unico que el puerto sabe dibujar: que se vea o no.
+##
+## `?` La 100 y la 102 NO estan: no hay iconos ni hoja de transicion (`transitionSparrow`,
+## campo 0x2e8), y sobre todo no hay mas que UNA skin vendorizada -bf-animania y
+## gf-animania-, asi que el id se guarda pero no elige arte. bopeebo, fresh y dadbattle
+## piden `bf-standart`/`gf-standart` y aqui salen con la de animania. Ver 8p y 8ac.
+func _change_character(is_girlfriend: bool, id: String) -> void:
+	var current: String = current_girlfriend if is_girlfriend else current_player
+	if id == current:
+		return
+	if is_girlfriend:
+		current_girlfriend = id
+	else:
+		current_player = id
+	var node := get_node_or_null(
+		"ShadowsOnBed/Girlfriend" if is_girlfriend else "ShadowsOnBed/Player2") as CanvasItem
+	if node != null:
+		node.visible = id != SKIN_NONE
 
 
 ## ─── changeTheme (0x34c2540, lineas 920-970) ───────────────────────────────

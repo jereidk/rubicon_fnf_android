@@ -376,6 +376,9 @@ func _init() -> void:
 		sym.scale = Vector2.ONE * FUNKIN_TO_RUBICON * CHAR_SCALE
 		sym.z_index = who[3] as int
 		sym.z_as_relative = false
+		# initCharacters construye a los dos con la skin 'none', que no dibuja nada. Quien
+		# los enciende es `_change_character` cuando llega una skin de verdad.
+		sym.visible = false
 		shadows.add_child(sym)
 		sym.owner = _root
 		var anims := AnimationPlayer.new()
