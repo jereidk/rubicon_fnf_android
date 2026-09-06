@@ -244,6 +244,15 @@ var tv_noise_forward: AnimatedSprite2D  ## TV noise forward layer.
 var tv_back_bg: ColorRect  ## tvBackBG: el rectangulo negro de 375x305 detras del tubo.
 
 ## Shadows on bed.
+## Los personajes viven dentro de un SubViewport y su textura se dibuja dos veces, que es
+## como se reproduce el FlxLayerGroup del mod sin duplicar nodos ni animaciones. Ver el
+## bloque de shadowsOnBed en build_freeplay_scene.gd y freeplay_shadows.gdshader.
+const CHAR_GF_PATH := "CharsViewport/Girlfriend"
+const CHAR_BF_PATH := "CharsViewport/Player2"
+
+## La capa de sombra: el sprite del zIndex 3, no el grupo que contiene a los personajes.
+## `_shake_shadows` le aplica la matriz de shakeShadows, que en el mod sacude el
+## framebuffer del grupo y no a los personajes -que es lo que sacudia este puerto-.
 var shadows_on_bed: Node2D
 var _shadow_shake_amount: float = 0.0
 
@@ -1137,7 +1146,7 @@ func _on_change_selection(song: Dictionary) -> void:
 	# El script se sale entero si el intro no ha terminado.
 	if not tv_intro_done:
 		return
-	var phone := get_node_or_null("ShadowsOnBed/PhoneCallPhone") as AnimatedSprite2D
+	var phone := get_node_or_null("PhoneCallPhone") as AnimatedSprite2D
 	if phone == null:
 		return
 	if String(song.get("id", "")) == "phone-call":
@@ -1345,9 +1354,13 @@ func _intro_light_up() -> void:
 	# Linea 1644: allowInput otra vez a true. Ya lo abrio introDone a los 0.75 s, pero el
 	# mod lo repite aqui y esta linea es la que manda si el televisor no llego a terminar.
 	allow_input = true
-	# Linea 1645. Va DESPUES del sonido, no en la lista de 1612.
-	if shadows_on_bed != null:
-		shadows_on_bed.visible = true
+	# Linea 1645. Va DESPUES del sonido, no en la lista de 1612. Son DOS nodos porque el
+	# grupo del mod se dibuja dos veces: `ShadowsOnBed` es la sombra -la textura del
+	# SubViewport pasada por el shader- y `CharsView` los personajes tal cual.
+	for name: String in ["ShadowsOnBed", "CharsView"]:
+		var node := get_node_or_null(name) as CanvasItem
+		if node != null:
+			node.visible = true
 
 	# Linea 1646: freeplayScore.updateScore(0).
 	intended_score = 0
@@ -1484,7 +1497,8 @@ func _handle_exit() -> void:
 	_play_sound(SOUND_TV_OFF, 1.0)
 
 	# Se apaga lo que doIntroAnim habia encendido.
-	for name: String in ["ShadowsOnBed", "TvGlow", "TvNoiseBack", "TvNoiseForward"]:
+	for name: String in ["ShadowsOnBed", "CharsView", "TvGlow", "TvNoiseBack",
+			"TvNoiseForward"]:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
 			node.visible = false
@@ -2293,7 +2307,7 @@ func _play_cur_song_preview(disk: Node2D = null) -> void:
 ## el resultado EN REPOSO: sin cancion la cama vacia, con cancion los dos sentados. Eso es
 ## lo que hace esto, y lo que le falta es la transicion.
 func _show_characters(shown: bool) -> void:
-	for name: String in ["ShadowsOnBed/Girlfriend", "ShadowsOnBed/Player2"]:
+	for name: String in [CHAR_GF_PATH, CHAR_BF_PATH]:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
 			node.visible = shown
@@ -2329,7 +2343,7 @@ func _change_character(is_girlfriend: bool, id: String) -> void:
 	else:
 		current_player = id
 	var node := get_node_or_null(
-		"ShadowsOnBed/Girlfriend" if is_girlfriend else "ShadowsOnBed/Player2") as CanvasItem
+		CHAR_GF_PATH if is_girlfriend else CHAR_BF_PATH) as CanvasItem
 	if node != null:
 		node.visible = id != SKIN_NONE
 

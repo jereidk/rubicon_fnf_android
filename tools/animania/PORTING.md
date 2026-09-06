@@ -4105,14 +4105,72 @@ verbatim (fragment at 0x5aac3d8, vertex at 0x5aac618): seven taps with weights
 
 `animania_mod/menus/freeplay/freeplay_shadows.gdshader` implements that — the seven taps on
 both axes in one pass, the flat tint, the 0.8, and OVERLAY done by hand against
-`hint_screen_texture` because Godot's `CanvasItemMaterial` has no overlay mode. **It is not
-wired up yet**: that needs the characters moved into a `SubViewport` whose texture is drawn
-twice, and the paths in `freeplay_screen.gd` moved with them.
+`hint_screen_texture` because Godot's `CanvasItemMaterial` has no overlay mode. See 8ae for
+how it is wired.
 
-One thing this will *not* fix: the layer darkens, and the remaining difference on the bed is
-the mod being **brighter** (224 against 195). On the random slot the characters are hidden, so
-the layer draws nothing at all there, and the mod is still brighter. So the residual is
-something else again.
+
+## 8ae. shadowsOnBed as a SubViewport, and what it did not fix
+
+A `FlxLayerGroup` draws its members into a framebuffer and composites that once. In Godot the
+equivalent is a `SubViewport` whose texture is drawn twice — which is also what keeps the
+characters from being duplicated as nodes, with two animation players to hold in sync:
+
+```
+CharsViewport (SubViewport, 1920x1080, transparent, UPDATE_ALWAYS)
+  Girlfriend, Player2, Phone       <- los tres que initCharacters mete en el grupo
+ShadowsOnBed (Sprite2D, z 3)       <- esa textura, por freeplay_shadows.gdshader
+CharsView    (Sprite2D, z 5)       <- esa textura, tal cual
+PhoneCallPhone (z 5)               <- suelto: es del HScript, no del grupo
+```
+
+`PhoneCallPhone` moved out because it comes from the screen's HScript (`createPost`), not from
+`initCharacters`, so it is not in the layer and must not be drawn twice. The character z
+values collapse from 4 / 5 / 6 into one sprite at 5; nothing is drawn between those three in
+that part of the screen, so no order changes.
+
+Two things fell out of doing it:
+
+- **`shakeShadows` was shaking the wrong thing.** It scales the layer's matrix by 1.1-1.11
+  about a pivot — in the mod that shakes the *framebuffer*, so the shadow drifts out from
+  behind the characters, which is the only reason it is visible at all. The port had the
+  characters themselves inside `ShadowsOnBed`, so it was shaking *them*. Now it shakes the
+  shadow sprite, and the runtime probe reads scale (1.1035, 1.1014) at position
+  (-165.7, -131.5) — the shadow sits up and left of the pair, as it should.
+- **A composition mistake worth writing down.** The first version output
+  `vec4(mix(base, over, a), 1.0)` — alpha 1 over the sprite's whole rect. That is arithmetically
+  the same blend, but it pushes *everything already drawn below z 3* through a round trip to
+  the screen texture, and the gamma does not survive it: the whole bed came out **brighter**
+  instead of darker. Emitting `vec4(over, a)` and letting `blend_mix` do the interpolation
+  touches only the shadow's own pixels.
+
+Measured with the layer toggled on and off, tutorial selected:
+
+```
+                puerto sin   puerto con   mod
+detras de bf       51.9         39.8      62.1
+detras de gf       32.8         28.1      49.0
+almohada izq       75.0         64.2      82.0
+```
+
+### And it made the comparison worse, which is the finding
+
+The port is **already darker than the mod** in all three of those regions before the layer is
+drawn, and the layer darkens further. So the shadow is not what that difference was, and
+turning it off to chase the numbers would be fixing the measurement instead of the port. It
+stays on: every constant in it is read from the binary, and the structure now matches.
+
+What is *not* settled, and would change how it looks:
+
+- **The blur radius.** `GaussianBlurShader(2.0)` is read, but 2.0 as a pixel radius gives a
+  silhouette with a 2 px fringe, and the mod's shadow is visibly much softer. What `amount`
+  scales in that shader is not read — its GLSL is in the binary but its Haxe wrapper is not.
+  It is a uniform on the material, so it is one number to change once someone knows.
+- **Whether OpenFL draws OVERLAY at all.** Its GL renderer implements only a handful of blend
+  modes with fixed-function state and falls back to NORMAL for the rest; whether index 11
+  survives was not established — `OpenGLRenderer.__setBlendMode` dispatches through a chain of
+  `Dynamic::operator==` that this pass did not finish untangling. If it falls back, plain
+  alpha blending would be the faithful choice and the hand-rolled overlay is wrong.
+- The room being generally darker than the mod's, which is the same thread 8ad left open.
 
 
 ## 8b. Adding a song, for real

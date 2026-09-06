@@ -55,5 +55,11 @@ void fragment() {
 	vec3 base = texture(screen_tex, SCREEN_UV).rgb;
 	vec3 src = tint.rgb;
 	vec3 over = mix(2.0 * base * src, 1.0 - 2.0 * (1.0 - base) * (1.0 - src), step(vec3(0.5), base));
-	COLOR = vec4(mix(base, over, a), 1.0);
+	// Se saca el resultado con el alfa de la silueta y se deja que `blend_mix` haga la
+	// interpolacion contra lo que ya hay: `over*a + fondo*(1-a)`, que es la mezcla que
+	// toca. Sacarlo con alfa 1 -o sea reescribiendo `base` en toda la pantalla- tambien
+	// "funciona" en teoria, pero pasa TODO lo pintado debajo por un viaje de ida y vuelta
+	// a la textura de pantalla, y eso desplaza la gamma: el primer intento subia el brillo
+	// de la cama entera en vez de bajarlo.
+	COLOR = vec4(over, a);
 }

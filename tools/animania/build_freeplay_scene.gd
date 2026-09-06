@@ -324,15 +324,58 @@ func _init() -> void:
 	bed.frame = 2
 	bed.z_index = 2
 
-	# shadowsOnBed is a funkin.graphics.framebuffer.FlxLayerGroup (buildBg line 1216), and
-	# shakeShadows scales its matrix. Nothing is inside it yet - the shadow art rides on
-	# tvNoiseBack, which is not ported - so this is an empty seat, but _resolve_nodes looks
-	# it up and it has to exist. It sits between the bed and the glow in draw order.
-	var shadows := Node2D.new()
+	# shadowsOnBed es un funkin.graphics.framebuffer.FlxLayerGroup (buildBg 1216): un grupo
+	# que dibuja a sus miembros a un framebuffer y compone ese framebuffer de una vez, con
+	# color 0x1C1A2F, alphaMultiplier 0.8, blend OVERLAY y un GaussianBlurShader(2.0). Y sus
+	# miembros son los personajes MISMOS -initCharacters 1405, 1412 y 1423 hacen
+	# `shadowsOnBed.add(...)` ADEMAS del `add()` que los pone en pantalla-, asi que cada uno
+	# se dibuja dos veces: normal en su zIndex y otra por la capa, en el 3, borroso y
+	# aplanado a silueta. Eso es la sombra sobre la cama.
+	#
+	# En Godot eso es un SubViewport: los personajes viven dentro, se dibujan UNA vez, y su
+	# textura se pinta dos -en el 3 con el shader de sombra y en el 5 tal cual-. El
+	# alternativo, duplicar los nodos, obligaria a mantener dos animaciones en sincronia.
+	#
+	# El SubViewport no hereda la transformada de camara del padre. Aqui da igual porque la
+	# camara del puerto esta clavada en (960, 540) -medido con cam_probe- y no deriva como
+	# la del mod; el dia que se mueva, esto hay que mirarlo.
+	var chars_vp := SubViewport.new()
+	chars_vp.name = "CharsViewport"
+	chars_vp.size = Vector2i(int(SCREEN.x), int(SCREEN.y))
+	chars_vp.transparent_bg = true
+	chars_vp.disable_3d = true
+	chars_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_add(chars_vp)
+
+	# El grupo, en el zIndex 3 de la linea 1220. Nace invisible como en la 1219.
+	var shadows := Sprite2D.new()
 	shadows.name = "ShadowsOnBed"
+	shadows.centered = false
 	shadows.z_index = 3
 	shadows.visible = false          # buildBg 1219
+	shadows.material = ShaderMaterial.new()
+	(shadows.material as ShaderMaterial).shader = load(
+		"res://animania_mod/menus/freeplay/freeplay_shadows.gdshader")
 	_add(shadows)
+
+	# Y los personajes tal cual, en el zIndex del jugador. La novia va en el 4 y el
+	# telefono en el 6, pero entre el 4 y el 6 no se dibuja nada mas en esa zona, asi que
+	# aplanarlos en uno no cambia el orden de nada.
+	var chars_view := Sprite2D.new()
+	chars_view.name = "CharsView"
+	chars_view.centered = false
+	chars_view.z_index = 5
+	chars_view.visible = false
+	_add(chars_view)
+
+	# Los dos miran a la MISMA textura del SubViewport, que es lo que hace que los
+	# personajes se dibujen una sola vez. `resource_local_to_scene` es obligatorio: sin el,
+	# la ruta no se resuelve al cargar la escena y la textura sale vacia.
+	for target: Sprite2D in [shadows, chars_view]:
+		var vp_tex := ViewportTexture.new()
+		vp_tex.resource_local_to_scene = true
+		vp_tex.viewport_path = _root.get_path_to(chars_vp)
+		target.texture = vp_tex
 
 	# initCharacters (0x34c1800, lineas 1415-1422): el telefono del selector de skins.
 	#   1415  currentPhone = new FunkinSprite(FlxG.width - 517.6, 265.9,
@@ -357,7 +400,7 @@ func _init() -> void:
 	phone.z_index = 6
 	phone.z_as_relative = false
 	phone.visible = false            # initCharacters 1420
-	shadows.add_child(phone)
+	chars_vp.add_child(phone)
 	phone.owner = _root
 
 	# Los dos personajes del dormitorio. Ver GF_AT / BF_AT arriba para las medidas.
@@ -379,7 +422,7 @@ func _init() -> void:
 		# initCharacters construye a los dos con la skin 'none', que no dibuja nada. Quien
 		# los enciende es `_change_character` cuando llega una skin de verdad.
 		sym.visible = false
-		shadows.add_child(sym)
+		chars_vp.add_child(sym)
 		sym.owner = _root
 		var anims := AnimationPlayer.new()
 		anims.name = "Anims"
@@ -403,8 +446,9 @@ func _init() -> void:
 	call_phone.z_index = 5
 	call_phone.z_as_relative = false
 	call_phone.visible = false
-	shadows.add_child(call_phone)
-	call_phone.owner = _root
+	# Suelto, NO dentro del grupo: este telefono es del HScript de la pantalla (createPost),
+	# no de initCharacters, asi que no entra en la capa de sombra ni se dibuja dos veces.
+	_add(call_phone)
 
 	# Only tv glow's y is a constant; its x is worked out from something buildBg computes
 	# earlier, and the TV's placement is not a constant at all - it is created through
