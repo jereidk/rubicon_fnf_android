@@ -4173,6 +4173,125 @@ What is *not* settled, and would change how it looks:
 - The room being generally darker than the mod's, which is the same thread 8ad left open.
 
 
+## 8af. The 50 % overlay of the tutorial slot, and what it turned up
+
+The request was the plain one: put the mod's capture and the port's render on top of each
+other at half opacity and say what does not line up. The capture is the same file as 8y
+(verified byte-identical, mean difference 0.00), so no new evidence was needed on that side.
+
+**The port render has to be reproducible before any of this means anything.** Two runs of
+the *same* build disagreed: the headboard came out at 87.0 and then at 99.3, the TV tube at
+126.5 and then at 117.8. Animations advance on wall-clock time, and BF's idle pose moves the
+silhouette that `shadowsOnBed` projects, so any "this layer costs 25 points of brightness"
+measured across two such runs is measuring the clock. The first fix tried was to freeze every
+`AnimatedSprite2D` at frame 0; that is worse than the disease, because **frame 0 of the
+television is the set switched off** — the tube drops to 26 and the cabinet to 15 and the
+shot compares nothing. What works is `--fixed-fps 60`: the delta stops depending on the
+clock, two passes give the same tube to the decimal (109.3 and 109.3), and the scene's state
+is untouched. `slot_shot.gd` now says so, and grew a `hide=<Node,Node>` argument, which is
+the only way to price one layer: take the same shot with and without it and subtract.
+
+Aligned by the 15 px camera drift, whole-screen mean absolute difference is 42.2, or 33.6
+with the tube masked. Region by region the port and the mod agree on position everywhere —
+every landmark box lands on (+15, 0) — with two apparent exceptions that are not real: GF and
+the headboard "match" at (+12, +14) and (+16, +13), but their difference surfaces are flat
+(33.1 to 36.2 over the entire search), so the search is sliding down a brightness gradient,
+not finding a shift. Two exceptions *are* real, and both were worth the pass.
+
+### The star row: ten slots, not eleven, and the wave is off by one
+
+`generateSprites` builds the difficulty row. The port built eleven slots at
+`y = sin(i / 3.5) * 10 - 10`. The binary:
+
+    39de20b  movl $0x0,-0x130(%rbp)     x acumulada, nace en 0
+    39de21d  movl $0x1,-0x12c(%rbp)     el CONTADOR NACE EN 1
+    39de6ac  addl $0x1,-0x12c(%rbp)     i++
+    39de6b9  addl $0x28,-0x130(%rbp)    x += 40
+    39de6c0  cmp  $0xb,%eax / je fin    sale cuando i vale 11
+    39de6d1  divsd 3.5 / call sin / mulsd 10 / subsd 10
+
+A counter that starts at 1 and leaves at 11 runs **ten** times, and the sine uses that same
+`i`, so slot `k` (0-based) sits at `x = 40k` but at `y = sin((k+1) / 3.5) * 10 - 10`.
+
+The capture says the same thing before the disassembly does. Ten centres at
+129.5, 168.5, 208.5 … 489.0 — step 40, and the port's eleventh hung off the end of the
+cabinet at 529. The ten y's measure 526.0, 528.9, 531.0, 532.6, 533.3, 533.2, 532.5, 531.0,
+528.9, 526.1, which is `sin((k+1)/3.5)*10-10` to a tenth of a pixel and is *not*
+`sin(k/3.5)*10-10`. After the fix the nine dots match within 0.3 px in x and 0.1 px in y.
+
+That dadbattle declares `hard: 11` against ten slots is not a porting bug: `i < rating`
+lights them all and the extra point has nowhere to go, in the mod exactly as here.
+
+### A lit star is centred on the dot it replaces
+
+`difficulty star` is a 43x45 frame and `difficulty dot` is 17x17, neither trimmed (no
+`frameX`/`frameY` in `diffstars.xml`). Anchored by the corner — Flixel's default, and what
+the port did — the star grows down and to the right: the port's was at (143.0, 539.1) where
+the mod's is at (129.5, 526.0). Thirteen and fourteen are exactly half the difference between
+the two frames, so in the mod the star ends up **centred on the slot**.
+
+The mechanism is the mod's own, and this class is not the literal re-export of the base one
+that the old note claimed — that was only ever true of `generateSprites`. `playSprAnim`
+consults a static `StringMap` of per-animation offsets:
+
+    39dc849  mov animania::…::DifficultyStars_obj::starsAnimsOffsets,%rsi
+    39dc884  call haxe::ds::StringMap_obj::get(String)
+    39dc925  mov 0x168(%rax),%rbp        <- el `offset` del sprite
+    39dc9e7  call *0x118(%rax) / *0x120  <- set_x y set_y del punto, linea 131
+
+with keys `dot`, `star` and `flame`. `__boot` creates all three as `FlxPoint.get(null, null)`,
+i.e. (0, 0), so **where the real values get written was not found** — flagged, not guessed.
+What is measured is the effect, and the effect is centring, so the port does it with
+`centered = true` and half a dot frame (`STAR_SLOT_HALF`).
+
+A 2 px residual in the star's y survives. It is the centroid of the thresholded white core,
+not the frame: the mod's capture is native 1280 and the port's is a Lanczos reduction from
+1920, the cores differ by 6 % in pixel count, and a star has more mass in its upper arms.
+
+### The disks past the second one do not agree, and this is not explained
+
+Found by the red label at each vinyl's centre, which is the one landmark on a disk that
+rotation and greying do not wash out:
+
+| disk | step | mod | port | delta |
+|---|---|---|---|---|
+| bopeebo | 1 | (512, 561) | (511, 561) | (0, 0) |
+| fresh | 2 | (753, 696) | (697, 645) | (-56, -51) |
+
+Step 0 and step 1 land on top of each other; step 2 is 56 px left and 51 px up in the port,
+and the port shows a fourth disk (dadbattle) at the bottom right where the mod shows none —
+consistent with the mod's row spreading faster, so its step 3 is already off-screen.
+
+`updateDisks` is `x = (ID - sel) * 225 - 20` and `intendedY(d)` is `(d * 1.5)^2 * 6 + 520`,
+both read and both ported. A constant that is wrong cannot agree at step 1 and disagree at
+step 2, so the suspects are the ones that scale with distance: `intendedY` beyond |d| = 1, or
+the rotation — `angle = step * -5.5` swings a disk about its node origin, and if the mod's
+`DiskSpr` rotates about the sprite's centre while the port rotates about its corner, the
+apparent displacement grows with the angle and is zero-ish at 5.5 degrees. Not resolved here.
+Correlation is useless on these disks (best r = 0.77, and the peak jumps between four
+different places across scales) because the mod's copy is blurred and the port's is not.
+
+### The differences that stay open, and are not new
+
+- **The whole room is brighter in the mod by a near-constant ~13/255.** Not a gamma: the
+  mod-minus-port difference holds at 15, 14, 13, 12 across the 5th, 25th, 50th and 75th
+  percentiles of the bed and wall. A constant lift over a whole region is what an additive
+  layer does, which points back at the ADD blends of 8ad rather than at any curve.
+- **What looks like a blur on the mod is the port's missing brightness.** Side by side over
+  the bottom band the mod's characters and bed read as soft and the port's as crisp, which
+  invites the conclusion that the port is missing a background blur. Gradient energy says the
+  opposite about *where* the difference is: port over mod is 0.60 on the characters and 0.87
+  on the bed, but 0.99 on the TV body, 0.94 on the selected disk and 1.46 on the info capsule.
+  Edge energy scales with contrast, and the two regions that lost it are exactly the two the
+  port draws too dark. So this is the same ~13/255 thread above, not a missing blur -- worth
+  writing down because the crop argues convincingly for the wrong answer.
+- **The info capsule's typeface.** The mod draws `BPM: 100` and `DIF: 1` in the LCD face from
+  `digital_numbers`; the port draws them in a plain one, and writes the song name in the
+  middle where the mod's capture shows nothing.
+- The tube, which 8aa already explains, and the shadow silhouettes being harder than the
+  mod's, which is 8ae.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

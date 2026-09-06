@@ -46,6 +46,27 @@ func _process(delta: float) -> void:
 	# que si no es imposible de reproducir a mano: el destello dura 0.75 s con circOut y
 	# pasa por ese valor en los primeros 25 ms.
 	var args: PackedStringArray = OS.get_cmdline_user_args()
+	# Repetibilidad: NO congelar nada aqui. Dos tomas seguidas del mismo codigo no
+	# coincidian -el cabecero salio a 87.0 y a 99.3, el tubo a 126.5 y a 117.8- porque las
+	# animaciones avanzan con el tiempo real. La primera idea, poner cada AnimatedSprite2D
+	# en el frame 0, es peor que el problema: el frame 0 del televisor es el APAGADO, asi
+	# que la toma sale con el tubo a 26 y el mueble a 15 y ya no compara nada. Lo que si
+	# vale es lanzar godot con `--fixed-fps 60`: el delta deja de depender del reloj y dos
+	# pasadas dan el mismo tubo (109.3 y 109.3) sin tocar el estado de la escena.
+	# Argumento opcional: nombres de nodos del freeplay a ocultar antes del disparo,
+	# separados por comas. Es lo unico que aisla la aportacion de una capa concreta -
+	# `ShadowsOnBed`, por ejemplo- cuando la diferencia contra el mod es de brillo y no de
+	# posicion: se toma la misma foto con y sin ella y se restan.
+	for a: String in args:
+		if not a.begins_with("hide="):
+			continue
+		for nm: String in a.substr(5).split(",", false):
+			var n := _screen.get_node_or_null(NodePath(nm)) as CanvasItem
+			if n == null:
+				push_warning("hide: no existe %s" % nm)
+				continue
+			n.visible = false
+		await get_tree().process_frame
 	if args.size() > 1 and args[1].is_valid_float():
 		var flash := _screen.get_node_or_null("TvSpriteFlash") as ColorRect
 		if flash != null:

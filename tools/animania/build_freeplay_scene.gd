@@ -118,10 +118,46 @@ const TV_SPRITE_X := -60.0
 const DIFF_BANNER_Y := 70.0
 const DIFF_BANNER_Z := 31
 
-const STAR_COUNT := 11
+## DIEZ huecos, no once, y la onda va desfasada un hueco. Los dos salen del mismo sitio:
+##
+##   39de21d  movl $0x1,-0x12c(%rbp)     <- el contador NACE EN 1, no en 0
+##   39de20b  movl $0x0,-0x130(%rbp)     <- la x si nace en 0
+##   39de6ac  addl $0x1,-0x12c(%rbp)     i++
+##   39de6b9  addl $0x28,-0x130(%rbp)    x += 40
+##   39de6c0  cmp  $0xb,%eax / je fin    <- sale cuando i vale 11
+##   39de6d1  divsd 3.5 / sin / *10 / -10
+##
+## Con i de 1 a 10 son diez vueltas, y el seno usa esa i: el hueco k (0..9) queda en
+## x = 40k pero con y = sin((k+1)/3.5)*10 - 10. Confirmado contra la captura del mod, que
+## es donde se vio primero: los diez centros salen en x = 129.5, 168.5 ... 489.0 -paso 40,
+## el once del puerto sobraba y colgaba fuera del mueble- y las y miden 526.0, 528.9,
+## 531.0, 532.6, 533.3, 533.2, 532.5, 531.0, 528.9, 526.1, que es sin((k+1)/3.5)*10-10
+## clavado y NO sin(k/3.5)*10-10.
+##
+## Que dadbattle en hard tenga rating 11 y solo haya diez huecos no es un fallo del
+## puerto: `i < rating` los enciende todos y el punto de mas no se ve, igual que en el mod.
+const STAR_COUNT := 10
 const STAR_STEP_X := 40.0
 const STAR_WAVE_PERIOD := 3.5
 const STAR_WAVE_AMPLITUDE := 10.0
+## El fotograma de `difficulty star` mide 43x45 y el de `difficulty dot` 17x17. Anclando
+## los dos por la esquina -que es lo que hace Flixel de serie- la estrella crece hacia
+## abajo y a la derecha, y asi salia el puerto: su estrella caia en (143.0, 539.1) cuando
+## la del mod esta en (129.5, 526.0), o sea 13 px a la derecha y 13 abajo. Trece y catorce
+## son justo la mitad de la diferencia de tamaño entre los dos fotogramas: en el mod la
+## estrella queda CENTRADA sobre el punto que sustituye.
+##
+## El mecanismo es `starsAnimsOffsets`, un StringMap estatico de la clase (0x80aa9c8) con
+## las claves 'dot', 'star' y 'flame' que playSprAnim consulta para escribir `offset`:
+##
+##   39dc849  mov starsAnimsOffsets,%rsi     39dc884  StringMap::get(String)
+##   39dc925  mov 0x168(%rax),%rbp           <- el `offset` del sprite
+##   39dc9e7  call *0x118(%rax) / *0x120     <- set_x y set_y del punto, linea 131
+##
+## El __boot los crea los tres con `FlxPoint.get(null, null)`, o sea (0,0), asi que los
+## valores se escriben en algun sitio que NO encontre. Lo que si esta medido es el efecto,
+## y es exactamente centrar: aqui se hace con `centered` y medio fotograma de punto.
+const STAR_SLOT_HALF := Vector2(8.5, 8.5)
 ## NO hay escala. El 0.281843 que habia aqui es un double que generateSprites carga junto
 ## a dos contadores de bucle, y la clase declara `fastDelayTime` y `delayTime`: es un
 ## RETARDO, no un tamaño. Tomarlo por escala dejaba las estrellas a 12 px cuando el
@@ -896,19 +932,21 @@ func _init() -> void:
 	stars.z_index = 35
 	ui.add_child(stars)
 	stars.owner = _root
-	# Los once huecos. Nacen todos en `dot`; set_difficulty enciende los que toquen.
+	# Los diez huecos. Nacen todos en `dot`; set_difficulty enciende los que toquen.
 	var star_frames: SpriteFrames = load("%s/freeplay_stars_frames.tres" % DIR)
 	for i: int in STAR_COUNT:
 		var star := AnimatedSprite2D.new()
 		star.name = "Star%d" % i
 		star.sprite_frames = star_frames
 		star.animation = &"difficulty dot"
-		star.centered = false
+		# Centrado, no anclado por la esquina: ver STAR_SLOT_HALF. El punto y la estrella
+		# tienen fotogramas de distinto tamaño y en el mod comparten centro.
+		star.centered = true
 		star.scale = Vector2.ONE * FUNKIN_TO_RUBICON * STAR_SCALE
-		star.position = Vector2(
+		star.position = (Vector2(
 			float(i) * STAR_STEP_X,
-			sin(float(i) / STAR_WAVE_PERIOD) * STAR_WAVE_AMPLITUDE - STAR_WAVE_AMPLITUDE
-		) * FUNKIN_TO_RUBICON
+			sin(float(i + 1) / STAR_WAVE_PERIOD) * STAR_WAVE_AMPLITUDE - STAR_WAVE_AMPLITUDE
+		) + STAR_SLOT_HALF) * FUNKIN_TO_RUBICON
 		stars.add_child(star)
 		star.owner = _root
 	# ─── La caratula del televisor: funkin.ui.freeplay.AlbumRoll ────────────────

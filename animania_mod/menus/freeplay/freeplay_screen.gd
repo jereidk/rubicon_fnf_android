@@ -1743,14 +1743,16 @@ func _show_score_digits(value: int) -> void:
 ##                   41  addByPrefix('star', 'difficulty star', 1)
 ##                   48  addByIndices('flame',     'difficulty fire', [...])
 ##                   49  addByIndices('flameloop', ...)
-##                   42  once huecos, paso 40 px, y = sin(i/3.5)*10 - 10
+##                   42  DIEZ huecos, paso 40 px, y = sin((k+1)/3.5)*10 - 10. El contador
+##                       nace en 1 y sale al llegar a 11; ver build_freeplay_scene.gd.
 ##   set_difficulty  66  Std.int(...) y updateStars()
 ##   updateStars     87-90  el que se apaga: cancelTweensOf, scale 1.15/1.1 y un tween
 ##                          de 0.4 con quartOut
 ##                   110    el que se enciende: tween de 0.25 con quartOut y un
 ##                          startDelay, mas un +-0.05 al azar
 ##
-## PORTEADO: los once huecos con su onda y su escala, y el reparto dot/star por el rating.
+## PORTEADO: los diez huecos con su onda y su escala, el reparto dot/star por el rating y
+## el centrado de la estrella sobre el punto que sustituye.
 ## `?` SIN portear: los tweens de encendido y apagado de updateStars y la llama. La llama
 ## son doce fotogramas que en el mod se disparan al SUBIR de dificultad, y eso cuelga de
 ## los tweens; sin ellos seria una llama fija, que es peor que ninguna.
@@ -1777,8 +1779,9 @@ func _update_stars() -> void:
 ## Hacia dos cosas y las dos eran invencion que pisaba a lo leido: escribia el texto de
 ## dificultad sin el prefijo 'DIF: ' que pone updateDataStuff en su linea 1125, y encendia
 ## `current_difficulty + 1` estrellas por VISIBILIDAD -entre una y tres- cuando en el mod
-## son once huecos que pasan de punto a estrella segun el RATING de la cancion, que llega
-## a 11. Lo primero lo hace updateDataStuff y lo segundo _update_stars, los dos desde donde
+## son diez huecos que pasan de punto a estrella segun el RATING de la cancion. dadbattle
+## en hard trae rating 11 y solo hay diez huecos: se encienden todos, como en el mod.
+## Lo primero lo hace updateDataStuff y lo segundo _update_stars, los dos desde donde
 ## el binario los llama. Un metodo que solo existe para que sus llamadas no fallen es peor
 ## que ninguno: parece que algo se hace.
 
