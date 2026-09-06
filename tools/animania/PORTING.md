@@ -3740,14 +3740,71 @@ its animation, but `visible = false`.
   bright with dark bands versus dark with bright speckles. It is not the album (the album is
   off in both, per the lock) and it is not the 1100-1102 alpha kick, which only moves the
   noise between 0.7 and 0.45. Unexplained; not guessed at.
-- **The two characters are too big and too close together.** In the capture BF and GF sit
-  apart with a gap; in the port they overlap and read larger. The edge-correlation aligner
-  is useless here — three boxes over the same pair returned scales 1.15, 0.88 and 0.87 at
-  r = 0.23, 0.19 and 0.12 — so this needs a landmark measurement, not a correlation. The
-  placement it would be testing is already flagged `?` in `build_freeplay_scene.gd`: the
-  atlas corners are measured rather than read, and the skin (`bf-animania` / `gf-animania`)
-  is a choice, because `initCharacters` builds both with `'none'` and the real one comes
-  from a save the port does not have.
+- ~~The two characters are too big and too close together.~~ **Measured and fixed** — see
+  below.
+
+
+## 8z. Measuring the two characters, when edge correlation cannot
+
+The pair on the bed read visibly wrong against the tutorial capture — bigger and squashed
+together where the mod has them apart — and the first attempt to quantify it failed in a way
+worth writing down. `align3.py` correlates **edge magnitude** over a region and searches
+scale plus translation. On the diorama it is decisive (TV, disks, header and stars all agree
+on scale 1.000, dx +14, dy 0, at r ≈ 0.28-0.47). On the characters it returned three
+different answers for three boxes over the same pair — 1.15, 0.88, 0.87 — at r = 0.23, 0.19
+and 0.12. Soft cel-shaded art, a green glow over it, and two figures overlapping give it
+nothing to lock onto. Three contradictory numbers at r ≈ 0.15 are not a measurement, and
+acting on any of them would have been guessing with extra steps.
+
+What works is **masked normalised cross-correlation with the port's own art as the
+template**:
+
+1. `tools/animania/harness/char_solo.gd` renders each character alone on black, with the
+   idle **frozen at frame 0** — bf's arm moves the bounding box about 20 px between frames,
+   so without freezing it the measurement does not repeat and the local corner derived from
+   it is worthless. It prints the exact box and saves the cutout.
+2. `match.py` searches that cutout in the capture over scale and translation, scoring only
+   the pixels inside the character's mask (the framebuffer grab is opaque, so the mask is
+   "not black", the same test `char_solo` uses). The black surround never enters the score,
+   which is what makes a whole-figure template usable at all.
+
+```
+   bf  escala 0.910  r 0.599      gf  escala 0.910  r 0.857
+```
+
+Two independent templates landing on the same scale is the thing that makes this
+trustworthy, and a second pass after applying it confirmed both at 0.990 (total 0.9009) with
+the same correlations. So the port was drawing both characters about **11 % too large**.
+
+The positions could not simply be read. `initCharacters` (0x34c1800) is unambiguous about
+its own numbers —
+
+```
+1401  currentGirlfriend = new CharGirlfriend(FlxG.width - 508, 230, 'none')
+1407  currentPlayer     = new CharPlayer(FlxG.width - 780, 235, 'none', ...)
+```
+
+(508 is the `sub $0x1fc,%eax` at 0x34c188e, 780 the `sub $0x30c` at 0x34c19ea, and the two
+y values are the doubles 230.0 and 235.0 at 0x59fb610 / 0x59fb618) — but between that x and
+the pixels that land on screen sit the skin JSON's `position`, the Adobe symbol's own
+origin, and whatever `CharPlayer.loadCharacter` does, none of which is ported. The port's
+old constants tried to reconstruct that chain (`772 - 115 + 20` for gf) and came out roughly
+200 px off. So the art is pinned by its **measured box** instead, the same way the wall and
+the bed were pinned in 8v:
+
+```
+nodo = caja_destino - escala * esquina_local
+```
+
+with the target box being the capture's plus 7 px in x — the diorama sits 14 px right in the
+port (camera drift), and the characters hang off `shadowsOnBed`, which `initCharacters` adds
+to the `FlxTypedRatioHandler` at ratio 0.5 (lines 1404 and 1411), so half the drift. That
+gives `CHAR_SCALE = 0.9009`, `BF_AT = (683.9, 318.3)`, `GF_AT = (960.1, 287.3)`.
+
+Verified by re-running the whole loop on the result: both characters now match the capture at
+scale 1.010 and 1.000, landing within 7 px and 2 px of the target — the 7 being exactly the
+drift correction. The correlations do not improve past 0.599 and 0.857 because the remaining
+difference is the idle pose and the mod's darker grade, not placement.
 
 
 ## 8b. Adding a song, for real

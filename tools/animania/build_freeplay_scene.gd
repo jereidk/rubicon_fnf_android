@@ -184,25 +184,48 @@ const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEV
 
 ## Los dos personajes del dormitorio y el SEGUNDO telefono, el del script.
 ##
-## initCharacters coloca por la esquina como todo Flixel, pero un atlas de Adobe no trae
-## tamano: gdanimate lo dibuja de un arbol de simbolos. Asi que la esquina se MIDE, con
-## tools/animania/harness/measure_freeplay_chars.gd, que lo pinta y cuenta pixeles opacos.
-## Medido: bf esquina local (-6, -5) y 383x423; gf esquina local (-20, 1) y 310x383. La
-## posicion del nodo es el destino menos esa esquina.
-## CORREGIDO. A las coordenadas de initCharacters hay que sumarles el `position` del JSON
-## de la skin, porque loadCharacter linea 147 crea el sprite que se ve
-## -`skinAtlas = new FunkinSprite(position[0], position[1], ...)`, guardado en 0x2c0, que
-## el __Field de CharPlayer identifica como skinAtlas- en esa posicion RELATIVA al grupo.
+## initCharacters (0x34c1800) da sus dos posiciones sin ninguna duda:
 ##
-## Que es relativa se ve en los propios datos: bf-standart pide [70,0] y gf-animania
-## [-115,-5], y como coordenadas de mundo eso seria fuera de la pantalla.
+##   1401  currentGirlfriend = new CharGirlfriend(FlxG.width - 508, 230, 'none')
+##   1407  currentPlayer     = new CharPlayer(FlxG.width - 780, 235, 'none', ...)
 ##
-## bf-animania trae [0,0], asi que bf no se mueve. gf-animania trae [-115,-5], asi que la
-## novia estaba 115 px a la derecha y 5 abajo de donde le toca.
-const GF_AT := Vector2(772.0 - 115.0 + 20.0, 230.0 - 5.0 - 1.0)   # 1401 + position
-const BF_AT := Vector2(500.0 + 0.0 + 6.0, 235.0 + 0.0 + 5.0)      # 1407 + position
-## data/scripts/states/FreeplayScreen.script, createPost: un sparrow aparte del que crea
-## initCharacters, en otro sitio y con otro zIndex, y ESTE si se enseña.
+## -el 508 es el `sub $0x1fc,%eax` de 0x34c188e, el 780 el `sub $0x30c` de 0x34c19ea, y
+## las dos y son dobles: 230.0 en 0x59fb610 y 235.0 en 0x59fb618-. Lo que NO se puede
+## deducir de ahi es donde caen los pixeles: entre esa x y el arte que se ve estan la
+## `position` del JSON de la skin, el origen del simbolo de Adobe y lo que haga
+## CharPlayer.loadCharacter por dentro, y nada de eso esta porteado.
+##
+## Asi que la colocacion se MIDE contra la captura del mod sobre tutorial, igual que se
+## midio la pared y la cama en 8v. Como: char_solo.gd saca cada personaje solo sobre negro
+## -que da su caja exacta en el puerto y un recorte limpio con su mascara- y match.py lo
+## busca en la captura por correlacion normalizada CON MASCARA, contando solo los pixeles
+## del personaje. Los dos dan el mismo resultado por separado:
+##
+##   bf  escala 0.910  r 0.599     gf  escala 0.910  r 0.857
+##
+## y con la colocacion ya corregida y la POSE CONGELADA -char_solo para el idle en el
+## fotograma 0, porque el brazo de bf mueve la caja unos 20 px de un fotograma a otro y sin
+## eso la medida no repite- una segunda pasada afina el resto:
+##
+##   bf  escala 0.990  r 0.587   caja de la captura x 647..1018  y 262..675
+##   gf  escala 0.990  r 0.853   caja de la captura x 903..1232  y 240..605
+##
+## O sea 0.910 * 0.990 = 0.9009 en total. Dos plantillas independientes cayendo en la misma
+## escala, dos veces seguidas, es lo que hace fiable esto; el alineador por bordes daba
+## 1.15, 0.88 y 0.87 segun la caja que se le diera, con r de 0.23, 0.19 y 0.12.
+##
+## A la x de la captura se le suman 7: el diorama del puerto sale 14 px a la derecha del
+## de la captura -deriva de updateCameraScroll, medida sobre el televisor, los discos, la
+## cabecera y las estrellas-, y los personajes cuelgan de shadowsOnBed, que initCharacters
+## anade al FlxTypedRatioHandler con razon 0.5 (lineas 1404 y 1411), o sea media deriva.
+##
+## De ahi, con la esquina local del arte que da char_solo con la pose congelada -bf
+## (-33.22, -62.45) y gf (-55.60, -52.53) respecto al nodo, a escala 1-, sale el nodo:
+##
+##   nodo = caja_destino - escala * esquina_local
+const CHAR_SCALE := 0.9009
+const GF_AT := Vector2(960.1, 287.3)
+const BF_AT := Vector2(683.9, 318.3)
 const PHONE_CALL_AT := Vector2(1280.0 - 510.0, 300.0)
 const SCREEN := Vector2(1920.0, 1080.0)
 
@@ -350,7 +373,7 @@ func _init() -> void:
 		sym.name = who[0] as String
 		sym.atlases = [load("%s/%s_atlas.tres" % [DIR, who[1]])] as Array[AnimateAtlas]
 		sym.position = (who[2] as Vector2) * FUNKIN_TO_RUBICON
-		sym.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		sym.scale = Vector2.ONE * FUNKIN_TO_RUBICON * CHAR_SCALE
 		sym.z_index = who[3] as int
 		sym.z_as_relative = false
 		shadows.add_child(sym)
