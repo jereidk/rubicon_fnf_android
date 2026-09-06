@@ -3189,6 +3189,79 @@ because the only way it becomes wrong is if `freeplayScore.width` is not the 6*4
 width this assumes.
 
 
+## 8t. The carousel starts on the random disk, and how the closures proved it
+
+`generateDisksList` (0x34d4070) has **two** blocks that build a `DiskSpr`, at source lines
+519-527 and 535-548. Reading them in source-line order says the first is the loop body and
+the second is something extra. That is backwards, and the thing that settles it is not the
+line numbers — the optimizer moved the blocks around — but what each one's closure calls:
+
+    line 520  disk.<0x250> = _hx_Closure_0   →  0x34c9d80 calls capsuleOnConfirmRandom
+    line 545  disk.<0x250> = _hx_Closure_1   →  0x34c13d0 calls capsuleOnConfirmDefault
+
+So lines 519-527 are the **random** disk, built once before the loop, and 535-548 are the
+per-song loop body. The back edge confirms it: the jump at 0x34d4a35 (inside the 535-548
+block) goes back to the loop header at 0x34d469c.
+
+### `disk.ID` is the carousel slot after all
+
+`updateDisks(sel)` (0x34bb470, lines 800-807) is the only thing that positions the row:
+
+    targetPos.x = (disk.ID - sel) * 225 - 20
+    targetPos.y = disk.intendedY(disk.ID - sel)
+    disk.zIndex = 5
+    if (sel == disk.ID) { targetPos.y -= 3; disk.zIndex = 10 }
+
+and it reads `disk.ID` — the Int at offset 8. Line 523 writes that field with an immediate
+`movl $0x0`, which read alone says every disk gets ID 0 and the whole row stacks on one
+spot. It doesn't: line 523 belongs to the random disk, whose slot really is 0, and the
+loop's own store is at 0x34d49f0 — `mov -0xd8(%rbp),%eax; mov %eax,0x8(%rbx)` with a
+counter incremented at 0x34d4a16, after the disk is pushed into `selectableDisks`.
+
+The row is therefore **[random, song0, song1, …]**, and the port's per-disk `index` meta
+was right; it just started one slot too early.
+
+### What that fixes
+
+`updateDataStuff` has two branches, and the port had the second one written out but
+unreachable — lines 1165-1173, the one that puts the seven header pieces back to alpha
+0.0001 and `visible = false`. It is not a defensive case. It is the random disk: with slot
+0 selected there is no song, so the header, the stars, the difficulty banner and the info
+capsule all go away, and `playCurSongPreview` takes its line-891 branch
+(`disk.songData == null`) and plays `freeplayRandomAnimania` instead of a theme. All of
+that logic already existed in the port and none of it could ever run.
+
+In the port slot 0 is an empty `Dictionary` in `current_filtered_songs`; `_is_random_slot`
+is the one question every call site asks, and `confirm()` on slot 0 goes to
+`_capsule_on_confirm_random` (which now draws from slots 1..n, since slot 0 is itself).
+
+`tools/animania/harness/carousel_shot.gd` walks every slot and prints what the header
+shows, which is how this was checked rather than assumed:
+
+    0  cur=0  song=<aleatorio>  titulo=            visible=false
+    1  cur=1  song=phone-call   titulo=Phone Call  visible=true
+    2  cur=2  song=bopeebo      titulo=Bopeebo     visible=true
+
+### Also read while in there, and already correct
+
+- `DiskSpr.init(x, y, songData)` (0x200bb40): both coordinates arrive **null** from
+  `generateDisksList`, so the two offset fields (0x278/0x280) stay 0 and
+  `syncDiskOffsets` reduces to `origin.set(frameWidth * 0.5, frameHeight * 0.5)` — the
+  plain centre, which is what the port already rotates about.
+- `changeDisk(null)` (line 117) is what loads `animania-freeplay/disks/random`; with a
+  song it loads `animania-freeplay/disks/<id>`, no scaling either way.
+- `initLock()` (0x2009bc0) adds `animania-freeplay/songs lock` centred on the disk, and
+  `generateDisksList` calls it under `cmpb $0x0,0x90(%r15)` — a locked-song flag. None of
+  the four songs in this port is locked, so it stays unported and written down here.
+
+### A duplicate node name, found the hard way
+
+The old invented `CompletionText` Label at (1500, 140) survived the header rewrite
+alongside the new one. Godot renames the second node silently, so the leftover kept
+painting a white "100" over the diorama while the real one sat in the CLEARED box. Worth
+remembering: `_add`-ing two nodes with the same name never errors.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

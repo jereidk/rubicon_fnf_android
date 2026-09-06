@@ -352,12 +352,28 @@ func _resolve_nodes() -> void:
 ## salen layerSound, oldThemeName y oldThemeLayerName, y de ahi vive changeTheme. En el
 ## build hay 22 MB de assets/music/freeplayThemes/ y el puerto no reproduce ninguno.
 func _load_songs() -> void:
+	# El hueco 0 es el disco ALEATORIO y va SIN cancion detras: generateDisksList lo crea
+	# antes del bucle y le pone ID 0, y su DiskSpr nace con `songData` null. Aqui ese
+	# hueco es un diccionario vacio, que es lo que `_song_of` ya devolvia para un disco
+	# sin cancion y lo que `_play_cur_song_preview` usa para irse a su rama aleatoria.
 	current_filtered_songs.clear()
+	current_filtered_songs.append(RANDOM_SLOT)
 	for song: Dictionary in SONGS:
 		current_filtered_songs.append(song)
 	selectable_disks.clear()
 	for i: int in current_filtered_songs.size():
 		selectable_disks.append(current_filtered_songs[i])
+
+
+## El hueco del disco aleatorio. Vacio a proposito: es el `songData == null` del mod.
+const RANDOM_SLOT := {}
+
+
+## Si el hueco elegido es el aleatorio. Es la misma pregunta que hace la linea 891 de
+## playCurSongPreview y la que decide las dos ramas de updateDataStuff.
+func _is_random_slot(index: int) -> bool:
+	return index <= 0 or index >= current_filtered_songs.size() \
+		or (current_filtered_songs[index] as Dictionary).is_empty()
 
 
 ## ─── Process ─────────────────────────────────────────────────────────────────
@@ -819,7 +835,9 @@ const DOT_DIM_ALPHA := 0.9
 
 
 func _update_data_stuff(_force: bool) -> void:
-	var has_song: bool = cur_selected >= 0 and cur_selected < current_filtered_songs.size()
+	# La rama de "no hay cancion" (lineas 1165-1173) es la del disco aleatorio, no un caso
+	# imposible: con el hueco 0 elegido, la cabecera entera se va a alfa 0.0001.
+	var has_song: bool = not _is_random_slot(cur_selected)
 
 	# Lineas 1117/1118 y 1172/1173: los siete de la cabecera a 1 o a 0.0001.
 	var alpha: float = 1.0 if has_song else HEADER_HIDDEN
@@ -1480,9 +1498,9 @@ func _update_stars() -> void:
 func change_selection(amount: int, play_sound: bool = true) -> void:
 	if _confirmed or not allow_input:
 		return
-	if SONGS.size() < 2:
+	if current_filtered_songs.size() < 2:
 		return
-	cur_selected = wrapi(cur_selected + amount, 0, SONGS.size())
+	cur_selected = wrapi(cur_selected + amount, 0, current_filtered_songs.size())
 	cur_selected_float = float(cur_selected)
 	# El sonido va al principio, linea 824, no al final.
 	if play_sound and can_play_switch_sound:
@@ -1592,7 +1610,7 @@ func _completion_of(record: Dictionary) -> float:
 ## -recordar, seleccionar, fijar dificultad- si se portea; la creacion de los DiskSpr no
 ## hace falta porque aqui los discos ya estan en la escena.
 func _generate_disks_list() -> void:
-	if cur_selected < 0 or cur_selected >= SONGS.size():
+	if cur_selected < 0 or cur_selected >= current_filtered_songs.size():
 		cur_selected = 0
 	cur_selected_float = float(cur_selected)
 	_remember_selection()
@@ -1678,8 +1696,9 @@ func _open_help() -> void:
 func _remember_selection() -> void:
 	# In the full mod, this writes to a save file.
 	# For now, store in static variables.
-	if cur_selected >= 0 and cur_selected < SONGS.size():
-		_freeplay_remembered_song_id = SONGS[cur_selected].get("id", "")
+	# El aleatorio no se recuerda: no tiene id.
+	if not _is_random_slot(cur_selected):
+		_freeplay_remembered_song_id = current_filtered_songs[cur_selected].get("id", "")
 	_freeplay_remembered_difficulty = current_difficulty
 	_freeplay_remembered_character_id = current_character_id
 
@@ -1698,7 +1717,12 @@ func _capsule_on_confirm_default() -> void:
 func confirm() -> void:
 	if _confirmed or not allow_input:
 		return
-	var song: Dictionary = SONGS[cur_selected]
+	# El hueco 0 no es una cancion: es el disco aleatorio, y su confirmacion es otra
+	# -generateDisksList le cuelga el cierre que llama a capsuleOnConfirmRandom-.
+	if _is_random_slot(cur_selected):
+		_capsule_on_confirm_random()
+		return
+	var song: Dictionary = current_filtered_songs[cur_selected]
 	if not ResourceLoader.exists(String(song["scene"])):
 		_play_sound(SOUND_LOCKED, 1.0)
 		return
@@ -1841,11 +1865,9 @@ func _capsule_on_confirm_random() -> void:
 		return
 	if SONGS.is_empty():
 		return
-	# Pick a random song index, different from the current one if possible.
-	var new_index: int = cur_selected
-	if SONGS.size() > 1:
-		while new_index == cur_selected:
-			new_index = randi() % SONGS.size()
+	# El sorteo va sobre las canciones DE VERDAD: el hueco 0 es el propio disco aleatorio
+	# y sortearlo se sortearia a si mismo.
+	var new_index: int = 1 + randi() % SONGS.size()
 	cur_selected = new_index
 	cur_selected_float = float(cur_selected)
 	_refresh(false)

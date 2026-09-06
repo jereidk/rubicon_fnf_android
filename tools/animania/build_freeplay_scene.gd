@@ -461,11 +461,34 @@ func _init() -> void:
 	disks.visible = false            # buildBg 1367
 	_add(disks)
 
+	# El carrusel NO empieza en la primera cancion: empieza en el disco ALEATORIO.
+	#
+	# generateDisksList tiene dos bloques que crean un DiskSpr, y cual es cual lo dicen sus
+	# cierres, no el orden en que estan escritos: el de las lineas 519-527 cuelga el
+	# `_hx_Closure_0`, cuyo `__run` llama a `capsuleOnConfirmRandom` (0x34c9d80 ->
+	# 0x34c9790), y el de las 535-548 cuelga el `_hx_Closure_1`, que llama a
+	# `capsuleOnConfirmDefault`. O sea: el PRIMERO es el aleatorio, creado una sola vez, y
+	# el segundo es el cuerpo del bucle de canciones.
+	#
+	# De ahi salen los indices. La linea 523 hace `disk.ID = 0` con un inmediato -es el
+	# aleatorio- y el bucle hace `disk.ID = <contador>` en 0x34d49f0 con el contador que
+	# se incrementa DESPUES de meter el disco en selectableDisks. Asi que la fila es
+	# [aleatorio, cancion0, cancion1, ...] y `updateDisks` -que compara `disk.ID` con
+	# `curSelectedFloat`- da al aleatorio el hueco 0.
+	#
+	# Esto tambien explica una rama que el puerto tenia escrita y nunca ejecutaba: la de
+	# updateDataStuff sin cancion (lineas 1165-1173, la que deja la cabecera en alfa
+	# 0.0001). No es un caso raro, es el disco aleatorio.
+	#
+	# El aleatorio no lleva `songData` -init(null, null, null)-, y changeDisk con null se
+	# va a su rama de la linea 117 y carga 'animania-freeplay/disks/random'.
 	var songs: Array = _root.get_script().get_script_constant_map()["SONGS"]
-	for i: int in songs.size():
-		var song: Dictionary = songs[i]
+	var carousel: Array = [{"disk": "random"}]
+	carousel.append_array(songs)
+	for i: int in carousel.size():
+		var song: Dictionary = carousel[i]
 		var disk := Sprite2D.new()
-		disk.name = "Disk%d" % i
+		disk.name = "DiskRandom" if i == 0 else "Disk%d" % (i - 1)
 		disk.texture = load("%s/disks/%s.png" % [ART, song["disk"]])
 		# updateDisks (linea 800) escribe disk.x, y en flixel eso es el borde IZQUIERDO:
 		# la fila se alinea por ahi, no por el centro, y los discos no miden todos igual.
@@ -728,7 +751,10 @@ func _init() -> void:
 		label.add_theme_font_size_override("font_size",
 			int(TEXT_SIZE * FUNKIN_TO_RUBICON * FONT_SUBSTITUTE_NARROW))
 		label.add_theme_color_override("font_color", TEXT_COLOR)
-	_label(ui, "CompletionText", Rect2(1500.0, 140.0, 200.0, 40.0), "100").z_index = 53
+	# `CompletionText` ya no se crea aqui: la etiqueta inventada de (1500, 140) se ha ido y
+	# en su sitio esta el AtlasText de tres digitos que cuelga de la caja de CLEARED, con
+	# la posicion que da initHeader 1514. Dos nodos con el mismo nombre y Godot renombra
+	# uno en silencio, que es como esta etiqueta seguia pintando su "100" en blanco.
 	var stars := Node2D.new()
 	stars.name = "DifficultyStars"
 	# EJES CAMBIADOS. Esto decia (525, 120) y era invencion del builder viejo que nunca
