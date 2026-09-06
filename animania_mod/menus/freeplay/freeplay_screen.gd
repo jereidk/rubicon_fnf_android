@@ -680,7 +680,10 @@ func _apply_disk_pose(disk: Node2D) -> void:
 	# El paso sale de la x del mod, o sea sin el 1.5 de pantalla y sin la traslacion
 	# medida de la fila; si no se le quita, el disco elegido no sale en el paso 0 y todo
 	# el carrusel gira y encoge desde el sitio equivocado.
-	var step: float = (disk.position.x / FUNKIN_TO_RUBICON - DISK_ROW_OFFSET.x
+	# El sprite esta CENTRADO -ver el builder-, asi que su `position` es el centro y hay
+	# que quitarle medio fotograma para volver a la x de flixel antes de sacar el paso.
+	var half: Vector2 = disk.get_meta(&"half", Vector2.ZERO) as Vector2
+	var step: float = (disk.position.x / FUNKIN_TO_RUBICON - half.x - DISK_ROW_OFFSET.x
 		- DISK_OFFSET_X) / DISK_STEP_X
 	var angle: float = step * DISK_ANGLE_PER_STEP
 	disk.rotation = deg_to_rad(angle)
@@ -763,8 +766,11 @@ func _update_disks(sel: float) -> void:
 		var chosen: bool = is_zero_approx(away)
 		# Linea 806: el elegido apunta tres pixeles mas arriba. Ver DISK_TOP_OFFSET.
 		var y: float = _disk_y(away) - (DISK_TOP_OFFSET if chosen else 0.0)
+		# Mas medio fotograma: el nodo esta centrado y updateDisks escribe el borde.
+		var half: Vector2 = disk.get_meta(&"half", Vector2.ZERO) as Vector2
 		disk.set_meta(&"target", (Vector2(
-			away * DISK_STEP_X + DISK_OFFSET_X, y) + DISK_ROW_OFFSET) * FUNKIN_TO_RUBICON)
+			away * DISK_STEP_X + DISK_OFFSET_X, y) + DISK_ROW_OFFSET + half)
+			* FUNKIN_TO_RUBICON)
 		disk.z_index = DISK_Z_SELECTED if chosen else DISK_Z
 
 

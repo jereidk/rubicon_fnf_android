@@ -26,30 +26,50 @@ const ART := "res://animania_mod/source/images/freeplay"
 const CAPSULE_SIZE := Vector2(382.0, 54.0)
 const TV_AT_X := -40.0
 const TV_WIDTH := 727.0
+## buildBg 1277: `new FunkinSprite(-60, -198)`. La x del SPRITE del televisor, que no es lo
+## mismo que TV_AT_X -aquella es donde empieza el arte visible dentro de su lienzo-.
+const TV_SPRITE_X := -60.0
+## La 1566 es `x = tvSprite.x + tvSprite.width*0.5 - capsula.width*0.5`, y ese `tvSprite`
+## es el campo 0x1e0, el mismo que usa el banner de dificultad:
+##
+##   34cb6fb  lea 0x1e0(%rbx),%r12          <- tvSprite
+##   34cbb27  movl $0x61e,-0x40(%rbp)       <- linea 1566
+##   34cbb3a  movsd 0x30(%rax),%xmm3        <- tvSprite.x, el campo, no get_x()
+##   34cbb55  call *0x230(%rax) / mulsd 0.5 <- + tvSprite.width * 0.5
+##   34cbb9b  call *0x230(%rax) / subsd     <- - capsula.width * 0.5
+##
+## O sea que va con el -60, no con el -40. Con el -40 la capsula salia 20 px a la derecha,
+## exactamente el mismo tropiezo que ya se corrigio en el banner. Medido contra la captura
+## del mod casando el arte `bottom capsule` en las dos: esquina en x=132 en el mod y en
+## x=151 en el puerto, misma escala y misma y.
 const CAPSULE_AT := Vector2(
-	TV_AT_X + TV_WIDTH * 0.5 - CAPSULE_SIZE.x * 0.5,   # 1566
-	720.0 - CAPSULE_SIZE.y + 1.0)                      # 1567
+	TV_SPRITE_X + TV_WIDTH * 0.5 - CAPSULE_SIZE.x * 0.5,   # 1566
+	720.0 - CAPSULE_SIZE.y + 1.0)                          # 1567
 const TEXT_WIDTH := 300.0
 const TEXT_HEIGHT := 40.0
 const TEXT_AT := Vector2(
 	CAPSULE_AT.x + CAPSULE_SIZE.x * 0.5 - 153.0,       # 1574
 	CAPSULE_AT.y + 23.0)                               # 1580
 const TEXT_SIZE := 28.0                                # 1585
-## Las tres etiquetas comparten UNA caja de 300 con tres alineaciones, asi que el ancho de
-## la fuente decide si caben. La del mod, DS-DIGIB, es una de siete segmentos y estrecha;
-## VCR OSD Mono Cyr es monoespaciada y bastante mas ancha, y a 28 los tres textos suman
-## 477 px sobre una caja de 450 y se pisan -medido, no supuesto: a 42/36/32/28 chocan-.
+## La fuente ES la del mod, y ya no hay sustitucion ni recorte de tamaño.
 ##
-## A 24 suman 406 y "caben", pero la del centro va CENTRADA, no pegada a la izquierda:
-## ocupa de 155 a 295 y la de la derecha arranca en 296, asi que se tocan igual. Sumar
-## anchos no basta cuando una de las tres esta centrada. A 20 la izquierda acaba en 94, la
-## del centro va de 166 a 284 y la derecha arranca en 321: 72 y 37 px de aire.
+## Decia aqui que DS-DIGIB.TTF "no esta en el build -no hay ni un .ttf dentro-". Lo
+## primero es cierto y lo segundo enganoso: no hay ficheros sueltos porque OpenFL los
+## EMPOTRA en el ejecutable, y un `strings` da
+## `__ASSET__assets_fonts_ds_digib_ttf_obj` junto al aviso de derechos de la propia
+## tipografia. Un sfnt es autodescriptivo -cabecera 00 01 00 00, tantas tablas, y cada
+## una con su desplazamiento y su tamaño-, asi que se localiza y se recorta sin adivinar
+## nada: esta en 0x71c1264 y mide 25480 bytes. Su tabla `name` dice DS-Digital Bold
+## Italic, que es lo que DS-DIGIB.TTF resulta ser en este mod. Es el UNICO corte de la
+## familia que el binario lleva; los otros diez sfnt que hay son otras fuentes.
 ##
-## La constante leida sigue siendo 28; esto es el precio de la sustitucion y va con
-## nombre propio en vez de escondido dentro del 28.
-const FONT_SUBSTITUTE_NARROW := 20.0 / (28.0 * 1.5)
+## Con la de verdad el 28 leido cabe: era la anchura de VCR OSD Mono Cyr la que obligaba
+## a bajar a 20, y esa concesion -FONT_SUBSTITUTE_NARROW- se ha ido.
+##
+## Aviso: la tipografia es de Dusit Supasawat y su cadena de copyright dice "All Rights
+## Reserved". Se vendoriza porque el mod la lleva, igual que su arte.
 const TEXT_COLOR := Color8(0xcc, 0xff, 0xff)           # 1588, 0xFFCCFFFF
-const TEXT_FONT := "res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf"
+const TEXT_FONT := "res://animania_mod/source/fonts/DS-DIGIB.ttf"
 
 ## Los puntos de dificultad, FreeplayDots (0x4090f60 y alrededores). Leido:
 ##   postHeader 1550  new FreeplayDots(tvSprite.x + tvSprite.width*0.5 - 2, null)
@@ -112,9 +132,6 @@ const BOSS_VOLUME := 0.25
 ## Ni el bucle ni nada cerca le pone zIndex, asi que hereda el del estado. Va por encima
 ## del televisor, que es 30, porque asi sale en el mod.
 const DIFF_BANNER_SCALE := 0.95
-## buildBg 1277: `new FunkinSprite(-60, -198)`. La x del sprite del televisor, que no es lo
-## mismo que TV_AT_X -aquella es donde EMPIEZA el arte visible dentro de su lienzo-.
-const TV_SPRITE_X := -60.0
 const DIFF_BANNER_Y := 70.0
 const DIFF_BANNER_Z := 31
 
@@ -250,6 +267,16 @@ const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEV
 ## escala, dos veces seguidas, es lo que hace fiable esto; el alineador por bordes daba
 ## 1.15, 0.88 y 0.87 segun la caja que se le diera, con r de 0.23, 0.19 y 0.12.
 ##
+## Y ESE 0.9009 IBA AL REVES. Repetida la medida sobre el render final del puerto -no sobre
+## char_solo, que dibuja al personaje solo y en otro espacio, que es donde se colo el
+## factor- y contra la misma captura, las dos correlaciones dan un pico limpio y unimodal
+## en 1.11, no en 0.9:
+##
+##   bf  escala mod/puerto 1.11  r 0.794      gf  escala mod/puerto 1.10  r 0.962
+##
+## 1 / 1.11 = 0.9009: el mismo numero, aplicado al reves, encogiendo lo que habia que
+## dejar quieto. Los personajes van a FUNKIN_TO_RUBICON pelado.
+##
 ## A la x de la captura se le suman 7: el diorama del puerto sale 14 px a la derecha del
 ## de la captura -deriva de updateCameraScroll, medida sobre el televisor, los discos, la
 ## cabecera y las estrellas-, y los personajes cuelgan de shadowsOnBed, que initCharacters
@@ -259,9 +286,22 @@ const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEV
 ## (-33.22, -62.45) y gf (-55.60, -52.53) respecto al nodo, a escala 1-, sale el nodo:
 ##
 ##   nodo = caja_destino - escala * esquina_local
-const CHAR_SCALE := 0.9009
-const GF_AT := Vector2(960.1, 287.3)
-const BF_AT := Vector2(683.9, 318.3)
+##
+## Con la escala ya en 1.0 se vuelve a medir la POSICION contra la misma captura, cada
+## personaje por su cuenta y con la plantilla sacada del render final del puerto:
+##
+##   bf  r 0.899  el puerto lo tiene 39 px a la derecha y 58 abajo
+##   gf  r 0.959  el puerto la tiene 11 px a la derecha y 60 abajo
+##
+## De la x hay que devolver 7.5: cmp.py corre el puerto 15 px para cancelar la deriva de
+## camara del FONDO, y los personajes cuelgan de shadowsOnBed, que va en el ratio handler
+## a 0.5, o sea que en el mod solo derivan la mitad. La y no lleva correccion. Que a bf le
+## toquen 31.5 y a gf 3.5 -28 px de diferencia- dice que esto no es un desplazamiento
+## comun del grupo sino la colocacion de cada uno, que es justo lo que se saco de la
+## medida vieja con la escala equivocada.
+const CHAR_SCALE := 1.0
+const GF_AT := Vector2(956.6, 227.3)
+const BF_AT := Vector2(652.4, 260.3)
 const PHONE_CALL_AT := Vector2(1280.0 - 510.0, 300.0)
 const SCREEN := Vector2(1920.0, 1080.0)
 
@@ -632,15 +672,23 @@ func _init() -> void:
 		var disk := Sprite2D.new()
 		disk.name = "DiskRandom" if i == 0 else "Disk%d" % (i - 1)
 		disk.texture = load("%s/disks/%s.png" % [ART, song["disk"]])
-		# updateDisks (linea 800) escribe disk.x, y en flixel eso es el borde IZQUIERDO:
-		# la fila se alinea por ahi, no por el centro, y los discos no miden todos igual.
-		disk.centered = false
+		# CENTRADO, y no por gusto: updateDisks escribe `disk.x`, que en flixel es el borde
+		# izquierdo, pero el GIRO y la ESCALA de updateDiskPos van sobre `origin`, que en
+		# FlxSprite nace en el centro del fotograma. Un Sprite2D con `centered = false`
+		# gira y encoge sobre su esquina, y eso desplaza el arte tanto mas cuanto mas
+		# lejos este el disco del elegido -que es exactamente lo que se midio contra la
+		# captura: el disco elegido clavado y los demas desviados sin que su TAMAÑO
+		# cambie-. Centrando el sprite el pivote vuelve a ser el centro; a cambio la
+		# posicion que se le da tiene que ser la del centro, o sea la x de flixel mas
+		# medio fotograma SIN escalar, que es lo que guarda el meta `half`.
+		disk.centered = true
 		disk.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		disk.set_meta(&"half", disk.texture.get_size() * 0.5)
 		# The rect a tap has to land in, around the disk's own middle - the sprite is
 		# centred, so this is too. Kept in the disk's LOCAL space so the carousel can move
 		# it without the hitbox drifting.
 		var size: Vector2 = disk.texture.get_size() * FUNKIN_TO_RUBICON
-		disk.set_meta(&"hitbox", Rect2(Vector2.ZERO, size))
+		disk.set_meta(&"hitbox", Rect2(-size * 0.5, size))
 		disk.set_meta(&"index", i)
 		disk.set_meta(&"target", Vector2.ZERO)
 		disk.set_meta(&"scale", 1.0)
@@ -660,7 +708,10 @@ func _init() -> void:
 			# escala del padre ya se la aplica Godot. Con el factor puesto el
 			# desplazamiento salia 1.5 veces mayor y el candado se iba 43 px a la derecha
 			# del centro, que es donde se veia el agujero rosa del disco asomando.
-			lock.position = (disk.texture.get_size() - lock.texture.get_size()) * 0.5
+			#
+			# Y ahora el origen del disco es su CENTRO, no su esquina, asi que centrar el
+			# candado es dejarlo en menos medio candado y ya.
+			lock.position = -lock.texture.get_size() * 0.5
 			disk.add_child(lock)
 			lock.owner = _root
 
@@ -909,13 +960,10 @@ func _init() -> void:
 		var label := _label(ui, pair[0] as String, row, "")
 		label.horizontal_alignment = pair[1] as HorizontalAlignment
 		label.z_index = 652
-		# `?` La fuente del mod es DS-DIGIB.TTF y NO esta en el build -no hay ni un .ttf
-		# dentro-, asi que va en el ejecutable o en un empaquetado. VCR OSD Mono Cyr es
-		# la sustitucion: es monoespaciada, de aire de pantalla, y cubre el cirilico que
-		# lleva el arte de esta pantalla. No es la misma fuente.
+		# La DS-DIGIB.TTF del mod, sacada del ejecutable. Ver TEXT_FONT.
 		label.add_theme_font_override("font", load(TEXT_FONT))
 		label.add_theme_font_size_override("font_size",
-			int(TEXT_SIZE * FUNKIN_TO_RUBICON * FONT_SUBSTITUTE_NARROW))
+			int(TEXT_SIZE * FUNKIN_TO_RUBICON))
 		label.add_theme_color_override("font_color", TEXT_COLOR)
 	# `CompletionText` ya no se crea aqui: la etiqueta inventada de (1500, 140) se ha ido y
 	# en su sitio esta el AtlasText de tres digitos que cuelga de la caja de CLEARED, con

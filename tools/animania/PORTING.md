@@ -4292,6 +4292,110 @@ different places across scales) because the mod's copy is blurred and the port's
   mod's, which is 8ae.
 
 
+## 8ag. The rest of the overlay: background, characters, disks, capsule
+
+8af stopped at the two things the star row turned up. This is the other four the capture was
+asked about, and three of them were real bugs. Whole-screen mean absolute difference went
+from 42.2 to 35.0, and from 33.6 to 25.3 with the tube masked.
+
+### The background is not the problem
+
+Measured before anything was changed, by taking a patch of the port's own render and
+searching the capture for it across scale:
+
+| landmark | scale mod/port | r | offset |
+|---|---|---|---|
+| bedpost | 1.00 | 0.993 | (-3, 0) |
+| headboard corner | 0.98 | 0.886 | (+1, 0) |
+| left pillow | 0.98 | 0.681 | (+2, +3) |
+
+So the room is in the right place at the right size, and what is left on it is the ~13/255
+brightness deficit of 8af. One apparent exception on the left edge is not one: the rack of
+coloured bands beside the television reads olive-yellow in the capture and cyan/magenta in
+the port, but `TVBACK.xml` has a single 98-frame `pink` animation whose frames cycle through
+green, cyan, orange, yellow and near-black. Two captures of an animation, not two artworks.
+
+### BF and GF were 10 % small, from a factor applied backwards
+
+`CHAR_SCALE = 0.9009` came from matching `char_solo` renders -- each character alone on black,
+in its own space -- against the capture. Repeating the measurement on the port's *final*
+render, in the same 1280 space as the capture, gives a clean unimodal peak the other way:
+
+    bf  escala mod/puerto 1.11  r 0.794        gf  1.10  r 0.962
+
+and 1/1.11 = 0.9009. The same number, applied as a shrink where nothing should have been
+applied at all. With `CHAR_SCALE = 1.0` both characters measure 1.00 against the capture.
+
+Their positions were then re-measured, one character at a time, and they needed different
+corrections -- bf 31.5 px and gf 3.5 px in x -- so this was never a group offset but each
+one's own placement, inherited from the bad-scale fit. Residual after the fix is (-8, +1) and
+(-7, 0), which is the +7.5 the comparison script itself introduces: it rolls the port 15 px to
+cancel the *background's* camera drift, and the characters hang off `shadowsOnBed`, which sits
+in the ratio handler at 0.5 and so drifts half as far. BF's correlation went 0.899 -> 0.967.
+
+### The disks rotated about the wrong point
+
+The symptom was specific: the selected disk landed exactly, and the others were displaced
+without their **size** changing.
+
+| step | before | after |
+|---|---|---|
+| -1 random | letters ~2 px low | (0, +2) |
+| 0 tutorial | (0, -1) r 0.898 | (0, 0) r 0.978 |
+| 1 bopeebo | (+27, +32) | (+1, +1) |
+| 2 fresh | (+57, +51) r 0.782 | (-5, +2) r 0.898 |
+
+Everything read from the binary was already right -- `updateDisks` is `(ID - sel) * 225 - 20`,
+and `intendedY` really is `(d*1.5)^2 * 6 + 520` (0x200c808 multiplies by 1.5, 0x200c81e by 6.0,
+0x200c826 adds 520.0, all three read out of `.rodata`). What was wrong was the pivot.
+`updateDiskPos` also sets `angle` and `scale`, and in Flixel both turn about `origin`, which
+`FlxSprite` puts at the centre of the frame. The port's disk was a `Sprite2D` with
+`centered = false`, so Godot turned and shrank it about its top-left corner. The further a
+disk is from the selected one the bigger its angle, so the error grows with the step and
+vanishes at step 0 -- exactly the pattern measured.
+
+The fix is to centre the sprite and give it the centre as its position: `x` from `updateDisks`
+is still Flixel's left edge, so the node carries `x + frameWidth/2` (a `half` meta, per disk,
+because the artworks are not all the same size), and `_apply_disk_pose` subtracts it back
+before working out the step. The lock sticker, being a child, moves from `(disk - lock)/2` to
+`-lock/2`.
+
+Worth recording what this pattern is *not*: a wrong step width, a wrong y curve, or the
+per-song `diskOffsets` in the metadata (dadbattle carries [30, 28]; tutorial, bopeebo and
+fresh carry nothing). All three were checked and none of them fits a displacement that grows
+with the step while the size stays right.
+
+### The capsule, and getting the mod's own font out of the executable
+
+Matching the `bottom capsule` artwork in both put the port's copy 19 px right of the mod's, at
+the same size and the same y. Line 1566 is
+`x = tvSprite.x + tvSprite.width*0.5 - capsula.width*0.5`, and `tvSprite` is the field at
+0x1e0 (`34cb6fb  lea 0x1e0(%rbx),%r12`, then `34cbb3a  movsd 0x30(%rax),%xmm3` for its x).
+That is the -60 of buildBg 1277, not the -40 of `TV_AT_X` -- the same 20 px the difficulty
+banner had already been caught on. Both now sit at (114, 666).
+
+The note here used to say DS-DIGIB.TTF "is not in the build -- there is not one .ttf inside".
+True about loose files, misleading about the font: OpenFL embeds its assets in the executable,
+and `strings` shows `__ASSET__assets_fonts_ds_digib_ttf_obj` next to the typeface's own
+copyright line. An sfnt is self-describing -- `00 01 00 00`, a table count, then each table's
+offset and length -- so it can be located and cut out without guessing: 25480 bytes at
+0x71c1264, and its `name` table says DS-Digital Bold Italic, which is what DS-DIGIB.TTF turns
+out to be in this mod. It is the only cut of that family the binary carries; the other ten
+sfnts in there are other fonts.
+
+With the real font the read size of 28 fits, so `FONT_SUBSTITUTE_NARROW` -- the drop to 20 that
+VCR OSD Mono Cyr's width had forced -- is gone. `BPM: 100` now measures x 146..242 against the
+mod's 145..242, and `DIF: 1` matches at 400..456 in both. The font is Dusit Supasawat's and its
+copyright string says All Rights Reserved; it is vendored because the mod ships it, on the same
+footing as the mod's art.
+
+The one capsule difference left is the port writing `TUTORIAL` in the middle where the capture
+shows an empty screen, and that is the capture, not the port: `tutorial-metadata.json` does say
+`songName: "Tutorial"`, updateDataStuff line 1122 does write it, and lines 1105-1106 set
+`infoTitleText.<amount>` to 2 and tween it to 0.1 over 0.25 s. The same capture is mid
+switch-on flash (8aa), so it is inside that quarter second with the title still smeared.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
