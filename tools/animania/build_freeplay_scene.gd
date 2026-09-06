@@ -127,6 +127,12 @@ const STAR_WAVE_AMPLITUDE := 10.0
 const STAR_SCALE := 1.0
 ## AlbumRoll.buildAlbumTitle linea 185: scale.set(0.75, 0.75) sobre el titulo del album.
 const ALBUM_TITLE_SCALE := 0.75
+## initHeader 1514: completionText nace en clearBox + (12, 22).
+const COMPLETION_OFFSET := Vector2(12.0, 22.0)
+const COMPLETION_DIGITS := 3
+## `?` El avance entre glifos de un AtlasText sale del codigo del juego base y no de
+## ningun dato del build. Esto es una eleccion.
+const COMPLETION_KERNING := 1.0
 
 ## El marcador. initHeader linea 1540 crea FreeplayScore(0, 61, 7) -la x es un
 ## `pxor %xmm0,%xmm0`, o sea cero; la y el double 61.0; y el 7 va en %edx-, y el bucle de
@@ -141,12 +147,22 @@ const ALBUM_TITLE_SCALE := 0.75
 ## marcador va pegado al borde DERECHO, debajo del HIGHSCORE, no en la esquina izquierda
 ## encima del televisor, que es donde lo puso el 0 a secas.
 ##
-## El ancho es el de la caja de los siete: 6*45 mas el fotograma mas ancho, que son 138.
+## Los tres numeros salen ya del binario y no de una medida a ojo:
+##
+##   initHeader 1540   new FreeplayScore(0, 61, 7, ...)   <- `mov $0x7,%edx`, xmm1 = 61
+##   FreeplayScore 38  el bucle crea ScoreNum en x + 45*i  <- `add $0x2d,%ebx`
+##   ScoreNum 107      setGraphicSize(Std.int(width * 0.4))
+##   ScoreNum 110      color = 0xFF66FFFF
+##
+## O sea que cada digito va al 40% y en cian, no a tamano completo y en gris, que es como
+## los tenia el puerto: siete bloques enormes que se comian media cabecera. El ancho del
+## grupo -el que usa la linea 1543- es 6*45 mas el fotograma ya encogido, asi que se mide
+## de la textura en vez de escribirlo.
 const SCORE_DIGITS := 7
 const SCORE_STEP_X := 45.0
-const SCORE_FRAME_W := 138.0
-const SCORE_WIDTH := (SCORE_DIGITS - 1) * SCORE_STEP_X + SCORE_FRAME_W
-const SCORE_AT := Vector2(1280.0 - SCORE_WIDTH + 5.0, 61.0)
+const SCORE_DIGIT_SCALE := 0.4
+const SCORE_COLOR := Color8(0x66, 0xff, 0xff)
+const SCORE_Y := 61.0
 ## Los prefijos del atlas, en orden de digito.
 const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
 	"EIGHT", "NINE"]
@@ -209,6 +225,9 @@ func _init() -> void:
 	# importador nombra cada animacion por el prefijo sin los digitos, que da justo
 	# `idle` y `switch`.
 	_build_frames("animania05-text", "freeplay_album_title", 24.0, "albumRoll")
+	# initHeader 1514: completionText es un AtlasText con la fuente 'freeplay-clear', que
+	# no es una fuente: es un sparrow de DIEZ glifos, los digitos 0-9, de unos 25x24.
+	_build_frames("freeplay-clear", "freeplay_clear", 24.0, "fonts")
 
 	_root = Node2D.new()
 	_root.name = "FreeplayScreen"
@@ -468,48 +487,125 @@ func _init() -> void:
 	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
 	# were hand-added to the scene once and this builder did not know about them, so a
 	# rebuild wiped them. Anything the script resolves has to be built HERE.
-	# La capa de arriba. Los zIndex ya NO son una eleccion mia: initHeader los reparte
-	# entre 50 y 55 -el panel de fondo 50, helpButton/charactersButtons/clearBox 52,
-	# completionText 53, freeplayScore 54, highScoreSpr 55- y esos son los que van aqui.
+	# La capa de arriba. Los zIndex ya no son una eleccion mia y las POSICIONES tampoco:
+	# initHeader esta leida entera (lineas 1427-1543) y coloca cada pieza a partir de la
+	# ANCHURA de la anterior, encadenadas de derecha a izquierda sobre una franja de 76.
 	#
-	# Las POSICIONES en cambio siguen siendo aproximadas, y no por dejadez: initHeader no
-	# usa constantes, coloca cada pieza a partir de `albumRoll.width`, de
-	# `highScoreSpr.height` y de un margen de 76. Mientras albumRoll no exista en el
-	# puerto -es un funkin.ui.freeplay.AlbumRoll- esas cuentas no se pueden evaluar, asi
-	# que no hay numeros que leer. Lo unico literal es el 76.
-	const HEADER_MARGIN := 76.0
+	#   1428-1438  <franja> makeGraphic(1,1,0xFF000000); scale.set(FlxG.width, 76);
+	#              updateHitbox(); screenCenter(); y = 0; scrollFactor.set(0,0); z 50
+	#   1450       helpButton.x        = FlxG.width - helpButton.width - 7
+	#   1451       helpButton.y        = 76 - helpButton.height - 1
+	#   1494       charactersButtons.x = helpButton.x - charactersButtons.width - 13
+	#   1495       charactersButtons.y = 76 - charactersButtons.height - 3
+	#   1506       clearBoxSprite      = FunkinSprite.create(0, 76, '.../bg/clearBox')
+	#   1510       clearBoxSprite.x    = FlxG.width - clearBoxSprite.width
+	#   1514       completionText      = new AtlasText(clearBox.x + 12, clearBox.y + 22,
+	#                                                  '100', 'freeplay-clear')
+	#   1516       completionText.zoomFactor = 0        1517  z 53
+	#   1529       highScoreSpr.x      = clearBox.x - highScoreSpr.width - 5
+	#   1530       highScoreSpr.y      = clearBox.y + clearBox.height * 0.5
+	#                                    - highScoreSpr.height * 0.5
+	#   1540-1543  freeplayScore = new FreeplayScore(..., 61, ...);
+	#              freeplayScore.x = FlxG.width - freeplayScore.width + 5
+	#
+	# El 76 de las lineas 1430/1451/1495 es el MISMO numero: la altura de la franja negra.
+	# Los "widths" son los del sparrow ya cargado, asi que aqui se miden de la textura en
+	# vez de escribirse a mano; `_frame_size` es eso.
+	#
+	# Antes decia que estas cuentas no se podian evaluar "mientras albumRoll no exista".
+	# Eso era un error de lectura: initHeader no menciona albumRoll ni una vez.
+	const HEADER_HEIGHT := 76.0
 	var ui := Node2D.new()
 	ui.name = "UI"
 	_add(ui)
-	_label(ui, "HighScore", Rect2(1400.0, 50.0, 450.0, 40.0), "0").z_index = 54
 
-	# Los siete digitos del marcador. Ver SCORE_AT / SCORE_STEP_X.
+	# Lineas 1428-1438. Una franja negra opaca de 1280x76 pegada arriba, y todo lo demas
+	# de la cabecera va encima (z 52 a 55 contra su 50).
+	var header_bar := ColorRect.new()
+	header_bar.name = "HeaderBar"
+	header_bar.set(&"layout_mode", 0)
+	header_bar.offset_left = 0.0
+	header_bar.offset_top = 0.0
+	header_bar.offset_right = 1280.0 * FUNKIN_TO_RUBICON
+	header_bar.offset_bottom = HEADER_HEIGHT * FUNKIN_TO_RUBICON
+	header_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header_bar.color = Color(0.0, 0.0, 0.0, 1.0)
+	header_bar.z_index = 50
+	ui.add_child(header_bar)
+	header_bar.owner = _root
+
+	# Los siete digitos del marcador. Ver SCORE_DIGITS / SCORE_DIGIT_SCALE arriba.
+	var digit_frames: SpriteFrames = load("%s/freeplay_digits_frames.tres" % DIR)
+	var digit_w: float = _frame_size("freeplay_digits").x * SCORE_DIGIT_SCALE
+	var score_width: float = (SCORE_DIGITS - 1) * SCORE_STEP_X + digit_w
 	var score := Node2D.new()
 	score.name = "FreeplayScore"
-	score.position = SCORE_AT * FUNKIN_TO_RUBICON
+	score.position = Vector2(1280.0 - score_width + 5.0, SCORE_Y) * FUNKIN_TO_RUBICON
 	score.z_index = 54
 	ui.add_child(score)
 	score.owner = _root
-	var digit_frames: SpriteFrames = load("%s/freeplay_digits_frames.tres" % DIR)
 	for i: int in SCORE_DIGITS:
 		var d := AnimatedSprite2D.new()
 		d.name = "Digit%d" % i
 		d.sprite_frames = digit_frames
 		d.animation = StringName("%s DIGITAL" % DIGIT_WORDS[0])
 		d.centered = false
-		d.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		d.scale = Vector2.ONE * FUNKIN_TO_RUBICON * SCORE_DIGIT_SCALE
+		d.modulate = SCORE_COLOR
 		d.position = Vector2(float(i) * SCORE_STEP_X, 0.0) * FUNKIN_TO_RUBICON
 		d.autoplay = d.animation
 		score.add_child(d)
 		d.owner = _root
+	print("OUT marcador: digito %.1f  ancho %.1f  x %.1f"
+		% [digit_w, score_width, 1280.0 - score_width + 5.0])
+	# Lineas 1506-1510: la caja de CLEARED. Su y sale del constructor -76, o sea justo
+	# debajo de la franja- y su x del borde derecho menos su propia anchura.
 	var clear_box := Sprite2D.new()
 	clear_box.name = "ClearBox"
 	clear_box.texture = load("%s/bg/clearBox.png" % ART)
-	clear_box.position = Vector2(1500.0, 100.0)
-	clear_box.scale = Vector2.ONE * 0.8
+	var clear_size: Vector2 = clear_box.texture.get_size()
+	var clear_at := Vector2(1280.0 - clear_size.x, HEADER_HEIGHT)
+	clear_box.centered = false
+	clear_box.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	clear_box.position = clear_at * FUNKIN_TO_RUBICON
 	clear_box.z_index = 52
 	ui.add_child(clear_box)
 	clear_box.owner = _root
+
+	# Lineas 1514-1517: el porcentaje. No es una etiqueta: es un AtlasText sobre
+	# 'freeplay-clear', que son diez glifos de digito de unos 25x24 y NADA MAS -no hay
+	# signo de porcentaje ni letras en ese atlas-. Tres huecos, que es lo que cabe en
+	# 0-100, colocados por su propia anchura en tiempo de ejecucion.
+	#
+	# `?` El avance entre glifos de un AtlasText de Funkin sale de una tabla que vive en
+	# el codigo del juego base, no en ningun dato del build. Aqui cada digito avanza su
+	# propia anchura mas COMPLETION_KERNING, que es una eleccion.
+	var completion := Node2D.new()
+	completion.name = "CompletionText"
+	completion.position = (clear_at + COMPLETION_OFFSET) * FUNKIN_TO_RUBICON
+	completion.z_index = 53
+	ui.add_child(completion)
+	completion.owner = _root
+	# Los diez glifos se llaman "00000".."90000" y el importador los nombra por el prefijo
+	# sin los digitos finales, o sea "" para los diez: salen como UNA animacion de diez
+	# fotogramas en orden. Eso deja el indice de fotograma igual al digito, que es justo
+	# lo que hace falta.
+	var clear_frames: SpriteFrames = load("%s/freeplay_clear_frames.tres" % DIR)
+	var clear_names: PackedStringArray = clear_frames.get_animation_names()
+	for i: int in COMPLETION_DIGITS:
+		var d := AnimatedSprite2D.new()
+		d.name = "Digit%d" % i
+		d.sprite_frames = clear_frames
+		d.animation = StringName(clear_names[0])
+		d.autoplay = ""
+		d.frame = 0
+		d.centered = false
+		d.visible = false
+		d.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		completion.add_child(d)
+		d.owner = _root
+	print("OUT clearBox %dx%d en (%d, %d)  glifos=%s"
+		% [clear_size.x, clear_size.y, clear_at.x, clear_at.y, str(clear_names)])
 	# El craneo de jefe, buildBg 0x34d1170, lineas 1347-1355:
 	#
 	#   1347  bossfightSkull = new FunkinSprite(105, -200, ...)
@@ -742,23 +838,37 @@ func _init() -> void:
 	title.owner = _root
 
 	# helpButton: addByIndices idle/pressed sobre `help button`, play('idle'), finish(),
-	# zIndex 52 y alpha 0.4 (initHeader 1440-1453).
+	# zIndex 52 y alpha 0.4 (initHeader 1440-1453). Su sitio son las lineas 1450-1451:
+	# pegado al borde derecho menos 7, y apoyado en la base de la franja menos 1.
+	var help_size: Vector2 = _frame_size("freeplay_help")
+	var help_at := Vector2(1280.0 - help_size.x - 7.0,
+		HEADER_HEIGHT - help_size.y - 1.0)
 	var help := _ui_sparrow(ui, "HelpButton", "freeplay_help",
-		Vector2(1800.0, 1000.0) - Vector2(HEADER_MARGIN, 0.0))
+		help_at * FUNKIN_TO_RUBICON)
 	help.z_index = 52
 	help.modulate.a = 0.4
 
-	# charactersButtons: lo mismo sobre `character button` (1485-1497).
+	# charactersButtons: lo mismo sobre `character button` (1485-1497). Lineas 1494-1495:
+	# a la IZQUIERDA del boton de ayuda, 13 de hueco, y 3 sobre la base en vez de 1.
+	var chars_size: Vector2 = _frame_size("freeplay_characters")
+	var chars_at := Vector2(help_at.x - chars_size.x - 13.0,
+		HEADER_HEIGHT - chars_size.y - 3.0)
 	var chars := _ui_sparrow(ui, "CharactersButtons", "freeplay_characters",
-		Vector2(1800.0, 1000.0) - Vector2(HEADER_MARGIN * 3.0, 0.0))
+		chars_at * FUNKIN_TO_RUBICON)
 	chars.z_index = 52
 
 	# highScoreSpr: addByPrefix('y', 'highscore small instance 1') y finish(), que lo deja
-	# en el ultimo fotograma (1521-1532).
+	# en el ultimo fotograma (1521-1532). Lineas 1529-1530: a la izquierda de la caja de
+	# CLEARED con 5 de hueco, y CENTRADO en vertical contra esa caja.
+	var spr_size: Vector2 = _frame_size("freeplay_highscore")
+	var spr_at := Vector2(clear_at.x - spr_size.x - 5.0,
+		clear_at.y + clear_size.y * 0.5 - spr_size.y * 0.5)
 	var score_spr := _ui_sparrow(ui, "HighScoreSpr", "freeplay_highscore",
-		Vector2(1400.0, 40.0))
+		spr_at * FUNKIN_TO_RUBICON)
 	score_spr.z_index = 55
 	score_spr.frame = score_spr.sprite_frames.get_frame_count(score_spr.animation) - 1
+	print("OUT cabecera: help %s  chars %s  highscore %s (%dx%d)"
+		% [str(help_at), str(chars_at), str(spr_at), spr_size.x, spr_size.y])
 
 	# buildBg 1240-1245: color 0xFF000000, alpha 0.4, zIndex 8. El puerto lo tenia opaco y
 	# el ultimo del arbol, o sea tapando el tele, los discos y el mueble entero.
@@ -802,6 +912,16 @@ func _init() -> void:
 
 
 ## makeGraphic(w, h, color): un rectangulo liso, colocado por su esquina como todo aqui.
+## El tamano LOGICO de un fotograma de un sparrow ya generado. initHeader coloca media
+## cabecera restando `sprite.width`, y en Flixel eso es el fotograma con su recorte
+## deshecho; el importador de sparrow rellena cada fotograma hasta ese lienzo, asi que la
+## textura mide justo lo que mide el `width` del mod.
+func _frame_size(basename: String) -> Vector2:
+	var frames: SpriteFrames = load("%s/%s_frames.tres" % [DIR, basename])
+	var anim: StringName = StringName(frames.get_animation_names()[0])
+	return frames.get_frame_texture(anim, 0).get_size()
+
+
 ## Genera un SpriteFrames a partir de un sparrow vendorizado. Se reconstruye siempre, sin
 ## comprobar si ya existe: un builder que se salta su propio trabajo cuando encuentra la
 ## version anterior es la trampa de siempre.

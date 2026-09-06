@@ -246,10 +246,15 @@ var old_theme_name: String = ""
 var old_theme_layer_name: String = ""
 var _alpha_target: float = 1.0
 ## Completion text display.
-var completion_text: Label
+## completionText: en el mod es un AtlasText sobre 'freeplay-clear' -diez glifos de
+## digito y nada mas-, asi que aqui es un Node2D con tres huecos, no una etiqueta.
+var completion_text: Node2D
 
 ## Freeplay score display.
-var freeplay_score: Label
+## freeplayScore (campo 0x1c0) es el GRUPO de digitos que crea initHeader 1540, no una
+## etiqueta. El puerto tenia ademas una etiqueta `UI/HighScore` con el numero en texto que
+## no existe en el mod; se ha ido y este campo apunta ya al grupo de verdad.
+var freeplay_score: Node2D
 
 ## Disk group node (alias for disks).
 var grp_disks: Node2D
@@ -322,8 +327,8 @@ func _resolve_nodes() -> void:
 	boss_sound = get_node_or_null("BossSound") as AudioStreamPlayer
 	bossfight_skull = get_node_or_null("BossfightSkull") as AnimatedSprite2D
 	selector = get_node_or_null("Selector")
-	completion_text = get_node_or_null("UI/CompletionText") as Label
-	freeplay_score = get_node_or_null("UI/HighScore") as Label
+	completion_text = get_node_or_null("UI/CompletionText") as Node2D
+	freeplay_score = get_node_or_null("UI/FreeplayScore") as Node2D
 	grp_disks = get_node_or_null("Disks") as Node2D
 	tv_bg = get_node_or_null("TvBg") as Sprite2D
 	tv_sprite_flash = get_node_or_null("TvSpriteFlash") as Sprite2D
@@ -465,12 +470,9 @@ func _drive_score(delta: float) -> void:
 	if is_nan(lerp_completion):
 		lerp_completion = intended_completion
 	prev_displayed_score = int(lerp_score)
-	if freeplay_score != null:
-		freeplay_score.text = str(prev_displayed_score)
 	_show_score_digits(prev_displayed_score)
 	prev_displayed_completion = floor(lerp_completion * 100.0)
-	if completion_text != null:
-		completion_text.text = str(int(prev_displayed_completion))
+	_show_completion_digits(int(prev_displayed_completion))
 
 
 ## MathUtil.smoothLerpPrecision (0x188bb20). Interpola de forma que a los `duration`
@@ -1370,6 +1372,33 @@ func _update_diff_banner() -> void:
 ## digitos. No he leido si set_scoreShit los oculta.
 const SCORE_DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
 	"EIGHT", "NINE"]
+
+
+## El porcentaje de la caja de CLEARED. Los diez glifos de 'freeplay-clear' entraron como
+## una sola animacion de diez fotogramas en orden, asi que el indice de fotograma ES el
+## digito. Se colocan de izquierda a derecha avanzando la anchura de cada glifo, porque
+## los glifos de esta fuente NO miden lo mismo -el 1 mide 10 y el resto 24 o 25-.
+const COMPLETION_KERNING := 1.0
+
+
+func _show_completion_digits(value: int) -> void:
+	if completion_text == null:
+		return
+	var text: String = str(clampi(value, 0, 999))
+	var pen: float = 0.0
+	for i: int in completion_text.get_child_count():
+		var digit := completion_text.get_child(i) as AnimatedSprite2D
+		if digit == null:
+			continue
+		if i >= text.length():
+			digit.visible = false
+			continue
+		digit.visible = true
+		digit.frame = text.unicode_at(i) - 48
+		digit.position = Vector2(pen, 0.0) * FUNKIN_TO_RUBICON
+		var glyph: Texture2D = digit.sprite_frames.get_frame_texture(
+			digit.animation, digit.frame)
+		pen += glyph.get_width() + COMPLETION_KERNING
 
 
 func _show_score_digits(value: int) -> void:

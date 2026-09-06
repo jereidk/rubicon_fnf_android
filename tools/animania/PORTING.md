@@ -3118,6 +3118,77 @@ prints each sprite's frame, so the animation can be watched rather than assumed:
     t=1.01  tv(vis=true frame=2 playing=false)  back=true  mask=true  allow=true
 
 
+## 8s. initHeader: the whole header was invented, and now it is not
+
+The note that used to sit in `build_freeplay_scene.gd` said the header's positions "cannot
+be evaluated while albumRoll does not exist in the port, because initHeader places each
+piece from `albumRoll.width`". That was a misreading twice over: `initHeader` never
+mentions `albumRoll`, and every one of its positions is computable. Lines 1427-1543 read
+in full:
+
+    1428-1438  <bar> = new FunkinSprite(); makeGraphic(1, 1, 0xFF000000)
+               scale.set(FlxG.width, 76); updateHitbox(); screenCenter(); y = 0
+               scrollFactor.set(0, 0); zIndex = 50; add(bar)
+    1450       helpButton.x        = FlxG.width - helpButton.width - 7
+    1451       helpButton.y        = 76 - helpButton.height - 1
+    1494       charactersButtons.x = helpButton.x - charactersButtons.width - 13
+    1495       charactersButtons.y = 76 - charactersButtons.height - 3
+    1506       clearBoxSprite      = FunkinSprite.create(0, 76, '<...>/bg/clearBox')
+    1510       clearBoxSprite.x    = FlxG.width - clearBoxSprite.width
+    1514       completionText      = new AtlasText(clearBox.x + 12, clearBox.y + 22,
+                                                  '100', 'freeplay-clear')
+    1516       completionText.zoomFactor = 0            1517  zIndex 53
+    1529       highScoreSpr.x      = clearBox.x - highScoreSpr.width - 5
+    1530       highScoreSpr.y      = clearBox.y + clearBox.height * 0.5
+                                     - highScoreSpr.height * 0.5
+    1540       freeplayScore       = new FreeplayScore(0, 61, 7, ...)
+    1543       freeplayScore.x     = FlxG.width - freeplayScore.width + 5
+
+The recurring 76 is one number: the height of a **black opaque bar** across the top of the
+screen at zIndex 50, which the port did not have at all. Everything else in the header
+sits on it (52 to 55).
+
+### How the arithmetic reads on the page
+
+Each of those lines opens by loading the field being SET into a stack slot, and the `.x`
+read that follows is on a register set up earlier — the PREVIOUS element. Reading the two
+as one object is the easy mistake here and it makes line 1494 look like
+`charactersButtons.x = charactersButtons.x - ...`. The chain is right-to-left across the
+bar: help button hard against the right edge, characters button to its left.
+
+`FreeplayScore`'s own numbers came out of two more methods:
+
+    FreeplayScore.__construct 38   loop creating ScoreNum at x + 45*i   (`add $0x2d,%ebx`)
+    ScoreNum.__construct      107  setGraphicSize(Std.int(width * 0.4))
+    ScoreNum.__construct      110  color = 0xFF66FFFF
+
+So the seven digits are at **40%** and **cyan**. The port drew them at full size in grey —
+seven 139-px slabs that ate the whole header. The digit count 7 and the y 61 are literal
+at the call site (`mov $0x7,%edx`, xmm1 = 61).
+
+`completionText` is not a label: `freeplay-clear` is a sparrow of **ten glyphs, the digits
+0-9 and nothing else** (no percent sign, no letters), about 25x24 each and not all the same
+width — the `1` is 10 wide. The port draws three digit slots and advances each by its own
+glyph width. The kerning is a `?`: an AtlasText's per-font spacing lives in base-game code,
+not in any file in the build.
+
+### What the port also dropped along the way
+
+`UI/HighScore`, a Label showing the score as text, was invented — the mod has no such
+thing; `freeplayScore` (field 0x1c0) *is* the digit group. The field now points at the
+group and the Label is gone.
+
+### One reading that looks wrong and is not
+
+With these numbers the seven digits (x 959 to 1285) overlap both the HIGHSCORE art
+(883-1172, zIndex 55, so it draws over them) and the CLEARED box (1177-1280, zIndex 52,
+so it draws under them). That is not a porting slip: the three x's come from three
+different bases, each read instruction by instruction from 0x34cca20, and they land where
+they land. Worth re-checking against a screenshot of the real mod before "fixing" it,
+because the only way it becomes wrong is if `freeplayScore.width` is not the 6*45 + digit
+width this assumes.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
