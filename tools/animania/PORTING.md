@@ -3662,6 +3662,94 @@ phone_call.tscn 'hard'     Opponent=phone-call_Opponent.tres  (un solo chart, se
 ```
 
 
+## 8y. The slot after the random disk, against a second capture
+
+A capture of the mod sitting on carousel slot 1 — the one behind the random disk — turned
+out to settle six separate things, three of which the port had wrong and one of which had
+been sitting in this file with a `?` for two sections.
+
+**The slot is `tutorial`, and that fixes the song order.** The capsule reads `BPM: 100` and
+`DIF: 1`, the disk says "Tutorial", and `tutorial-metadata.json` has bpm 100 and
+`ratings.hard = 1`. So `loadAllAvalaibleSongs` walks tutorial first and week 1 after it —
+the same order `SONG_SCENES` already had in the story menu. The port listed **phone-call**
+first, which moved the whole carousel and, through the `pushUnique` of 8x, made `standart`
+the first dot when the mod's first dot is the green one. `SONGS` is now
+tutorial, bopeebo, fresh, dadbattle, phone-call.
+
+**`DIF:` really is the rating number.** 8x read that off the disassembly
+(`songData.difficultyRating`, field 0x80, an int). This capture confirms it from the other
+side: tutorial on HARD shows `DIF: 1`, and its metadata rating for hard is 1. One star lit
+out of eleven, too.
+
+**The dot row re-centres, it does not just hide dots.** `setDots` ends at line 80 with
+`repositionDots()`, and `repositionDots` (0x4091f50, lines 87-91) is
+
+```
+dot.x = group.x - visibles * separacion * 0.5 + i * separacion
+dot.y = group.y
+```
+
+read straight off the `cvtsi2sd` / `mulsd 0.5` / `subsd` / `addsd` chain. The two captures
+measure it: four dots on the random slot at 262.5, 297.5, 333.0, 368.0; three dots on
+tutorial at 281.5, 317.0, 351.5. Same spacing (35), same centre (315.2 vs 316.5, inside the
+camera drift) — the row closes up over the dots that remain. The port baked the positions at
+build time and only toggled `visible`, so its three dots sat in the first three slots of a
+four-slot row. `_set_dots` now calls `_reposition_dots` with the survivors.
+
+**The score digits were 61 px too high.** `FreeplayScore` is a `FlxTypedSpriteGroup`: its
+constructor (0x3532f20) calls `FlxTypedSpriteGroup.__construct(x, y)` — the group goes to
+(0, 61) — and then creates each `ScoreNum(x + 45*i, y, ...)` with **the same y** and adds it.
+`FlxTypedSpriteGroup.preAdd` adds the group's position to the child, so every digit lands at
+`61 + 61 = 122`. Measured: the capture's digits have their top edge at y = 132 and the port
+put them at 71. `HIGHSCORE`, which is not a group, needed one y and was already right
+(81..120 in the capture, 80..121 in the port).
+
+**Tutorial is locked, and that is why its TV has no cover.** `FreeplaySongData` field 0x90 is
+`isLocked` (`__Field` compares the literal at 0x251514d). Three places read it:
+
+```
+updateDataStuff       0x34c6bed  if (isLocked) salta el bloque del album (1096-1098)
+capsuleOnConfirmRandom 0x34c9895  la cancion bloqueada no entra en el sorteo
+generateDisksList      0x34d49c8  if (isLocked) disk.initLock()
+```
+
+`initLock` (0x2009bc0) loads `animania-freeplay/songs lock` and centres it on the disk (its
+lines 69-70 are `x = ancho*0.5 - candado.ancho*0.5` and the same for y). That sprite is the
+gem-with-a-keyhole sitting on the tutorial disk in **both** captures — it was there in the
+random-slot one too and I had read it as decoration. Because tutorial is locked,
+`albumRoll.albumId` is never assigned, so the TV shows no cover and there is no album title
+beside it, which is exactly what the capture shows and what the port did not do: it set the
+cover the moment there was a song. Nothing checks `isLocked` on confirm, so a locked song is
+still playable — the lock is cosmetic, plus the album and the random-pool exclusions.
+
+**The characters button: the capture wins over the code.** 8v left this open. This capture
+closes it as an observation even though the code still does not explain it: the header is
+fully lit here (HIGHSCORE, CLEARED, the digits, the capsule), the help button is visible at
+its `alpha = 0.4`, and where the characters button should be there is black. What was
+checked and rules nothing out: `initHeader` 1485-1497 gives it `zIndex` 52 — the same as the
+help button — and contains no `set_alpha` (slot 0x3a8) and no `set_visible` (0x128);
+`characters.png` has all six poses drawn, so the frame is not blank; its x is
+`helpButton.x - width - 13`, on screen; and every read of field 0x1a8 in the class is in
+`initHeader` or the reflection methods. The port still builds it, in its measured place with
+its animation, but `visible = false`.
+
+### Still open on this slot
+
+- **The TV noise is white in the mod and dark in the port.** Measured over the tube:
+  mean luma 227 in the capture against 100 in the port, and the two are near inverses —
+  bright with dark bands versus dark with bright speckles. It is not the album (the album is
+  off in both, per the lock) and it is not the 1100-1102 alpha kick, which only moves the
+  noise between 0.7 and 0.45. Unexplained; not guessed at.
+- **The two characters are too big and too close together.** In the capture BF and GF sit
+  apart with a gap; in the port they overlap and read larger. The edge-correlation aligner
+  is useless here — three boxes over the same pair returned scales 1.15, 0.88 and 0.87 at
+  r = 0.23, 0.19 and 0.12 — so this needs a landmark measurement, not a correlation. The
+  placement it would be testing is already flagged `?` in `build_freeplay_scene.gd`: the
+  atlas corners are measured rather than read, and the skin (`bf-animania` / `gf-animania`)
+  is a choice, because `initCharacters` builds both with `'none'` and the real one comes
+  from a save the port does not have.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

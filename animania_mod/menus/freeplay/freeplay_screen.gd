@@ -23,16 +23,35 @@ extends Node2D
 ## No se deducen del personaje rival -eso lo supuse en su dia y era falso: dadbattle tiene
 ## de rival a `dad-beast` y declara la capa `dad`-. Cuando la cancion no declara ninguno
 ## valen los respaldos THEME_DEFAULT / LAYER_DEFAULT.
+## EL ORDEN IMPORTA, y no es decorativo. `loadAllAvalaibleSongs` recorre los niveles que
+## `listSortedLevelIds` le da y dentro de cada uno sus canciones, y de ese recorrido salen
+## tres cosas: el orden del carrusel, `rememberedSongId` y -por el `pushUnique` de su linea
+## 491- el orden de `totalDiffs`, o sea el de los puntos y los carteles de dificultad.
+##
+## Una captura del mod sobre el hueco 1 -el de detras del aleatorio- lo fija: ensena un
+## disco que pone "Tutorial", `BPM: 100` y `DIF: 1`, que es exactamente el metadata de
+## tutorial (bpm 100, ratings.hard = 1). O sea que el primero es tutorial y detras va
+## week1. Es el mismo orden que ya tenia SONG_SCENES en el menu de historia: tutorial,
+## week1 (bopeebo, fresh, dadbattle), week5 y KomiCantCommunicate (phone-call). Aqui
+## phone-call iba primero, y eso movia el carrusel entero y ponia `standart` como primer
+## punto cuando en la captura del mod el primero es el verde de `easy`.
 const SONGS: Array[Dictionary] = [
 	{
-		"id": "phone-call",
-		"disk": "phone call",
-		"scene": "res://songs/phone-call/phone_call.tscn",
-		"layer": "komi",
-		"bpm": 152,
-		"title": "Phone Call",
-		"difficulties": ["standart"],
-		"ratings": {"standart": 4},
+		"id": "tutorial",
+		"disk": "tutorial",
+		"scene": "res://songs/tutorial/tutorial.tscn",
+		# Su metadata no declara `freeplayLayer`, asi que le toca el respaldo.
+		"layer": LAYER_DEFAULT,
+		# `FreeplaySongData.isLocked`, el campo 0x90 -__Field compara "isLocked" en
+		# 0x251514d-. En la captura del mod tutorial lleva encima la pegatina de
+		# 'songs lock', que es lo que dibuja `initLock`, y por eso su televisor sale sin
+		# caratula: updateDataStuff solo pone `albumRoll.albumId` cuando NO esta bloqueada.
+		# En el mod esto sale del guardado; el puerto no tiene, asi que va escrito.
+		"locked": true,
+		"bpm": 100,
+		"title": "Tutorial",
+		"difficulties": ["easy", "normal", "hard"],
+		"ratings": {"easy": 0, "normal": 0, "hard": 1},
 	},
 	{
 		"id": "bopeebo",
@@ -63,6 +82,16 @@ const SONGS: Array[Dictionary] = [
 		"title": "DadBattle",
 		"difficulties": ["easy", "normal", "hard"],
 		"ratings": {"easy": 7, "normal": 9, "hard": 11},
+	},
+	{
+		"id": "phone-call",
+		"disk": "phone call",
+		"scene": "res://songs/phone-call/phone_call.tscn",
+		"layer": "komi",
+		"bpm": 152,
+		"title": "Phone Call",
+		"difficulties": ["standart"],
+		"ratings": {"standart": 4},
 	},
 ]
 
@@ -972,12 +1001,18 @@ func _update_data_stuff(_force: bool) -> void:
 			boss_sound.stream_paused = true
 		return
 
-	# Linea 1097: con cancion, el id vuelve a ser el del album del mod y updateAlbum
-	# reenciende el grupo.
-	_album_set_id(ALBUM_ID)
-	_update_score_for_selection()
-
 	var song: Dictionary = current_filtered_songs[cur_selected]
+
+	# Lineas 1096-1098, y el `if` va DELANTE: en 0x34c6bed hay un `cmpb $0x0,0x90(%rax)`
+	# sobre el songData -el campo 0x90 es `isLocked`- y cuando vale 1 salta a la linea
+	# 1108, o sea que se salta el `albumRoll.albumId = ...` y el `skipIntro()` enteros.
+	# Con la cancion bloqueada la caratula NO se toca: se queda como estuviera, y viniendo
+	# del disco aleatorio eso es apagada. Es lo que ensena la captura del mod sobre
+	# tutorial -televisor sin caratula y sin el titulo del album a su derecha-, y es lo
+	# que el puerto no hacia: ponia la caratula en cuanto habia cancion.
+	if not bool(song.get("locked", false)):
+		_album_set_id(ALBUM_ID)
+	_update_score_for_selection()
 	# Lineas 1120 y 1125. El titulo (1122) va sin prefijo.
 	if info_title != null:
 		info_title.text = String(song.get("title", song.get("id", "")))
@@ -1090,20 +1125,55 @@ func _on_change_selection(song: Dictionary) -> void:
 ## setDots (0x4092250, lineas 64-80) y set_curDiff (0x4091910, 25-29) juntos: cual se ve
 ## y cual esta encendido. En el mod son dos metodos de FreeplayDots porque el grupo es una
 ## clase; aqui los puntos son hijos de un Node2D y esto es todo lo que hacen.
+##
+## Lo que faltaba era la linea 80: al terminar, setDots llama a `repositionDots`, y esa
+## RECOLOCA. No es un detalle: se mide en las dos capturas del mod. Con el disco aleatorio
+## se ven cuatro puntos centrados en 262.5, 297.5, 333.0 y 368.0; con tutorial elegido -que
+## solo ofrece tres dificultades- se ven tres, y no en los tres primeros huecos de aquella
+## fila sino en 281.5, 317.0 y 351.5. La separacion es la misma, 35, y el centro tambien
+## (315.2 contra 316.5, dentro de la deriva de camara); la fila se vuelve a centrar sobre
+## los que quedan.
 func _set_dots() -> void:
 	var dots := get_node_or_null("UI/DotsGrp") as Node2D
 	if dots == null:
 		return
+	var shown: Array[Sprite2D] = []
 	for dot: Node in dots.get_children():
 		var sprite := dot as Sprite2D
 		if sprite == null:
 			continue
 		var id: String = String(sprite.get_meta(&"diff", ""))
-		# Linea 66: el que la cancion no ofrece se apaga del todo.
+		# Linea 66: el que la cancion no ofrece se apaga del todo y SALE de la lista con
+		# la que repositionDots trabaja -es el `RemoveElement` de la 67-.
 		sprite.visible = current_diffs_ids.has(id)
+		if sprite.visible:
+			shown.append(sprite)
 		var base: Color = DIFF_COLORS.get(id, Color.WHITE)
 		sprite.modulate = Color(base, 1.0) if id == current_difficulty \
 			else Color(base * DOT_DARKEN, DOT_DIM_ALPHA)
+	_reposition_dots(shown)
+
+
+## repositionDots (0x4091f50, lineas 87-91). Por cada punto que quede visible:
+##
+##   dot.x = grupo.x - visibles * separacion * 0.5 + i * separacion
+##   dot.y = grupo.y
+##
+## leido tal cual del desensamblado: `cvtsi2sd` del numero de visibles, `mulsd` por el
+## campo 0x228 -la separacion- y por 0.5, `subsd` a la x del grupo (0x30), y luego
+## `cvtsi2sd` del indice por la separacion otra vez y `addsd`. Las posiciones que deja
+## build_freeplay_scene.gd son las de la fila completa; esto las rehace en cuanto una
+## cancion ofrece menos dificultades.
+func _reposition_dots(shown: Array[Sprite2D]) -> void:
+	var half: float = float(shown.size()) * DOT_DISTANCE * 0.5
+	for i: int in shown.size():
+		shown[i].position = Vector2(
+			(float(i) * DOT_DISTANCE - half) * FUNKIN_TO_RUBICON, 0.0)
+
+
+## El campo 0x228 de FreeplayDots. build_freeplay_scene.gd usa el mismo numero para dejar
+## la fila puesta de fabrica.
+const DOT_DISTANCE := 35.0
 
 
 ## ─── doIntroAnim (from binary at 0x34bbf20) ────────────────────────────────
@@ -2083,6 +2153,10 @@ func _capsule_on_confirm_random() -> void:
 	for i: int in current_filtered_songs.size():
 		var song: Dictionary = current_filtered_songs[i]
 		if song.is_empty():
+			continue
+		# El `cmpb $0x0,0x90(%rbx)` de 0x34c9895, entre el null de songData y el bucle de
+		# String::eq: una cancion bloqueada tampoco entra en el sorteo.
+		if bool(song.get("locked", false)):
 			continue
 		if PackedStringArray(song.get("difficulties", [])).has(current_difficulty):
 			pool.append(i)

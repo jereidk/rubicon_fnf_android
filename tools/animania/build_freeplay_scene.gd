@@ -167,7 +167,17 @@ const SCORE_DIGITS := 7
 const SCORE_STEP_X := 45.0
 const SCORE_DIGIT_SCALE := 0.4
 const SCORE_COLOR := Color8(0x66, 0xff, 0xff)
-const SCORE_Y := 61.0
+## Y la y son 61 DOS VECES, no una. `FreeplayScore` es un FlxTypedSpriteGroup: su
+## constructor (0x3532f20) llama primero a `FlxTypedSpriteGroup.__construct(x, y)` -o sea
+## que el grupo queda en (0, 61)- y despues crea cada `ScoreNum(x + 45*i, y, ...)`, con la
+## MISMA y, y se los anade. Y `FlxTypedSpriteGroup.preAdd` le suma al hijo la posicion del
+## grupo, asi que cada digito acaba en `61 + 61 = 122`.
+##
+## No es una deduccion: la captura del mod sobre tutorial mide los digitos con el borde de
+## arriba en y = 132 y el puerto los sacaba en 71, exactamente 61 px mas arriba. El
+## HIGHSCORE, que no es un grupo, cae en su sitio con una sola y (81..120 en la captura,
+## 80..121 en el puerto).
+const SCORE_Y := 61.0 * 2.0
 ## Los prefijos del atlas, en orden de digito.
 const DIGIT_WORDS := ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN",
 	"EIGHT", "NINE"]
@@ -524,7 +534,21 @@ func _init() -> void:
 		disk.set_meta(&"alpha", 1.0)
 		disks.add_child(disk)
 		disk.owner = _root
-		print("OUT disco %d: %s %dx%d" % [i, song["disk"], size.x, size.y])
+
+		# generateDisksList 535-542: `if (songData.isLocked) disk.initLock()`. initLock
+		# (0x2009bc0) carga 'animania-freeplay/songs lock' y lo CENTRA sobre el disco -sus
+		# lineas 69 y 70 son `x = ancho*0.5 - candado.ancho*0.5` y lo mismo con el alto-.
+		if bool(song.get("locked", false)):
+			var lock := Sprite2D.new()
+			lock.name = "Lock"
+			lock.texture = load("%s/songs lock.png" % ART)
+			lock.centered = false
+			lock.position = (size - lock.texture.get_size() * FUNKIN_TO_RUBICON) * 0.5
+			disk.add_child(lock)
+			lock.owner = _root
+
+		print("OUT disco %d: %s %dx%d%s" % [i, song["disk"], size.x, size.y,
+			"  bloqueado" if song.get("locked", false) else ""])
 
 	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
 	# were hand-added to the scene once and this builder did not know about them, so a
@@ -907,6 +931,21 @@ func _init() -> void:
 	var chars := _ui_sparrow(ui, "CharactersButtons", "freeplay_characters",
 		chars_at * FUNKIN_TO_RUBICON)
 	chars.z_index = 52
+	# Y NO SE VE. Esto no sale del binario, sale de dos capturas del mod: en la del disco
+	# aleatorio y en la de tutorial la esquina de arriba a la derecha tiene el boton de
+	# ayuda -gris, con su alfa 0.4 de la linea 1449- y a su izquierda, donde este boton
+	# tendria que estar, negro.
+	#
+	# Lo comprobado, y ninguno lo explica: initHeader 1485-1497 lo crea con zIndex 52 -el
+	# mismo que el de ayuda- y en esas lineas no hay ni un `set_alpha` (hueco 0x3a8) ni un
+	# `set_visible` (0x128); su hoja `characters.png` tiene las seis poses dibujadas, o sea
+	# que el fotograma no esta en blanco; su x sale de `helpButton.x - ancho - 13`, que cae
+	# dentro de la pantalla; y todas las lecturas del campo 0x1a8 en la clase estan en
+	# initHeader o en los metodos de reflexion.
+	#
+	# Asi que se deja construido -con su sitio y su animacion, para el dia que se entienda-
+	# pero apagado, porque la captura manda sobre una lectura incompleta del codigo.
+	chars.visible = false
 
 	# highScoreSpr: addByPrefix('y', 'highscore small instance 1') y finish(), que lo deja
 	# en el ultimo fotograma (1521-1532). Lineas 1529-1530: a la izquierda de la caja de
