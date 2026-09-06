@@ -125,6 +125,8 @@ const STAR_WAVE_AMPLITUDE := 10.0
 ## A tamaño nativo, once estrellas de 43 px con paso de 40 se tocan y forman una fila
 ## continua sobre el cuerpo del televisor, que es como sale en el mod.
 const STAR_SCALE := 1.0
+## AlbumRoll.buildAlbumTitle linea 185: scale.set(0.75, 0.75) sobre el titulo del album.
+const ALBUM_TITLE_SCALE := 0.75
 
 ## El marcador. initHeader linea 1540 crea FreeplayScore(0, 61, 7) -la x es un
 ## `pxor %xmm0,%xmm0`, o sea cero; la y el double 61.0; y el 7 va en %edx-, y el bucle de
@@ -202,6 +204,11 @@ func _init() -> void:
 	_build_frames("digital_numbers", "freeplay_digits", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
 	_build_frames("phone", "freeplay_phone", 24.0, ".")
+	# AlbumRoll.buildAlbumTitle lineas 183-184: addByPrefix('idle', 'idle0', 24) y
+	# addByPrefix('switch', 'switch0', 24) sobre el sparrow del titulo del album. El
+	# importador nombra cada animacion por el prefijo sin los digitos, que da justo
+	# `idle` y `switch`.
+	_build_frames("animania05-text", "freeplay_album_title", 24.0, "albumRoll")
 
 	_root = Node2D.new()
 	_root.name = "FreeplayScreen"
@@ -645,12 +652,87 @@ func _init() -> void:
 		) * FUNKIN_TO_RUBICON
 		stars.add_child(star)
 		star.owner = _root
+	# ─── La caratula del televisor: funkin.ui.freeplay.AlbumRoll ────────────────
+	#
+	# El mod NO trae copia propia de esta clase -grep de `animania::...::AlbumRoll_obj`
+	# da cero-, asi que la que corre es la del juego base con las lineas que Animania le
+	# metio encima. buildBg 1319-1325 la coloca:
+	#
+	#   1319  albumRoll = new AlbumRoll()
+	#   1320  albumRoll.y = -100            <- solo la y; la x se queda en 0
+	#   1321  albumRoll.albumId = 'animania05'
+	#   1322  albumRoll.zIndex = 27
+	#   1323  albumRoll.scrollFactor.set(0, 0)
+	#   1324  albumRoll.<blur>.amount = 0.1
+	#   1325  add(albumRoll)
+	#
+	# Y el constructor de AlbumRoll (lineas 50-56):
+	#
+	#   52  albumArt = FunkinSprite.createTextureAtlas('animania-freeplay/albumRoll/roll')
+	#   53  albumArt.visible = false
+	#   54  albumArt.onAnimationFinish.add(onAlbumFinish)
+	#   55  albumArt.offset.set(-190, -250)
+	#   56  add(albumArt)
+	#
+	# Flixel dibuja en `x - offset.x`, o sea que ese offset negativo EMPUJA la caratula
+	# 190 a la derecha y 250 abajo dentro del grupo. Aqui va como posicion local, que es
+	# lo mismo con un solo sprite dentro.
+	#
+	# updateAlbum (lineas 78-94) es lo que hace que la caratula sea la de este mod:
+	# lee assets/data/ui/freeplay/albums/animania05.json, saca `albumArtAsset` y hace
+	# `albumArt.replaceFrameGraphic('mini album', Paths.imageGraphic(...))`. El atlas
+	# `roll` trae UN simbolo, `mini album`, y su spritemap es la portada de OTRO album
+	# -"MINI EXPANSION VOL.1"-, que en el juego no se ve nunca porque se sustituye al
+	# vuelo por animania05.png. El vendorizado hace esa sustitucion de una vez: el
+	# spritemap1.png del puerto ES animania05.png pegado en (1,1), que es donde el
+	# spritemap1.json pone su unico recorte.
 	var album := Node2D.new()
 	album.name = "AlbumRoll"
-	album.position = Vector2(0.0, -100.0 * FUNKIN_TO_RUBICON)
+	album.position = Vector2(0.0, -100.0) * FUNKIN_TO_RUBICON
 	album.z_index = 27
 	ui.add_child(album)
 	album.owner = _root
+
+	# La composicion `ALBUM ALL4` son nueve fotogramas con tres etiquetas en su linea de
+	# tiempo -intro 0-2, switch 3-5, idle 6-8-, no tres simbolos. Por eso la libreria se
+	# genera con tramos (ver build_adobe_character.gd). Nace invisible: la enciende
+	# playIntro al final de doIntroAnim.
+	var art := AnimateSymbol.new()
+	art.name = "AlbumArt"
+	art.atlases = [load("%s/freeplay_album_atlas.tres" % DIR)] as Array[AnimateAtlas]
+	art.position = Vector2(190.0, 250.0) * FUNKIN_TO_RUBICON
+	art.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+	art.visible = false              # AlbumRoll 53
+	album.add_child(art)
+	art.owner = _root
+	var art_anims := AnimationPlayer.new()
+	art_anims.name = "Anims"
+	art_anims.add_animation_library(&"", load("%s/freeplay_album_library.tres" % DIR))
+	art.add_child(art_anims)
+	art_anims.owner = _root
+	art_anims.root_node = art_anims.get_path_to(art)
+
+	# buildAlbumTitle (lineas 181-187): createSparrow(425, 200, <albumTitleAsset>),
+	# visible = false, las dos animaciones, scale.set(0.75, 0.75) y updateHitbox(). Ese
+	# updateHitbox es lo que deja la esquina quieta: recoloca el offset justo lo que el
+	# origen centrado encoge, asi que el arte sigue empezando en (425, 200) y no hay que
+	# compensar nada al portarlo.
+	var title := AnimatedSprite2D.new()
+	title.name = "AlbumTitle"
+	title.sprite_frames = load("%s/freeplay_album_title_frames.tres" % DIR)
+	title.animation = &"idle"
+	title.autoplay = &"idle"          # buildAlbumTitle 194
+	title.centered = false
+	title.position = Vector2(425.0, 200.0) * FUNKIN_TO_RUBICON
+	title.scale = Vector2.ONE * FUNKIN_TO_RUBICON * ALBUM_TITLE_SCALE
+	title.visible = false            # buildAlbumTitle 182
+	# buildAlbumTitle 196: `movl $0x3e8,0x28(%r13)` -> zIndex 1000, y en la misma linea el
+	# shader de desenfoque. Ese 1000 ordena DENTRO del grupo -refresh() ordena sus
+	# miembros por zIndex- y no saca la caratula del zIndex 27 del grupo, asi que el
+	# frontal del televisor (zIndex 30) le sigue pasando por delante. Aqui el orden de
+	# hermanos hace lo mismo: el titulo despues del arte.
+	album.add_child(title)
+	title.owner = _root
 
 	# helpButton: addByIndices idle/pressed sobre `help button`, play('idle'), finish(),
 	# zIndex 52 y alpha 0.4 (initHeader 1440-1453).

@@ -1,0 +1,63 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://animania_mod/source/images/freeplay/albumRoll/animania05-text.png" id="1_x3h14"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ob2vb"]
+atlas = ExtResource("1_x3h14")
+region = Rect2(289, 1, 285, 115)
+margin = Rect2(1, 0, 2, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3nsaq"]
+atlas = ExtResource("1_x3h14")
+region = Rect2(1, 1, 287, 117)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ob2vb")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3nsaq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3nsaq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3nsaq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3nsaq")
+}],
+"loop": 1,
+"name": &"switch",
+"speed": 24.0
+}]

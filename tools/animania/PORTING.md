@@ -2869,6 +2869,148 @@ uses `bf-animania` / `gf-animania`, which is the mod's own name and the only pai
 stays that way.
 
 
+## 8q. AlbumRoll: the cover inside the TV, and a placeholder nobody sees
+
+`AlbumRoll` is one of the classes the mod does **not** re-declare. `nm -C Animania | grep
+-cE "animania::.*(AlbumRoll)_obj"` returns 0, so what runs is `funkin::ui::freeplay::
+AlbumRoll_obj` — the base game's class, with whatever lines Animania edited into the
+source it built from. Its file hash is `eaf73791b1e33e8e`, and every line number below
+comes from a `movl $N` into that method's line slot.
+
+### Where it goes
+
+`buildBg` 1319-1325 is the whole placement:
+
+    1319  albumRoll = new AlbumRoll()
+    1320  albumRoll.y = -100                 <- only y; x stays 0
+    1321  albumRoll.albumId = 'animania05'
+    1322  albumRoll.zIndex = 27
+    1323  albumRoll.scrollFactor.set(0, 0)
+    1324  albumRoll.<0x270>.amount = 0.1     <- a GaussianBlurShader
+    1325  add(albumRoll)
+
+The `-100.0` is at `0x59fac58`, the `0.1` at `0x59fa8a8`, and the album id string
+`'animania05'` at `0x5c298ea`, fed straight into `set_albumId` at `0x34d0d59`.
+
+The constructor (lines 50-56) builds one sprite:
+
+    52  albumArt = FunkinSprite.createTextureAtlas('animania-freeplay/albumRoll/roll')
+    53  albumArt.visible = false
+    54  albumArt.onAnimationFinish.add(onAlbumFinish)
+    55  albumArt.offset.set(-190, -250)
+    56  add(albumArt)
+
+`offset` is `0x160` on FlxSprite (see the field block in 8-not-ported: `0x158 origin,
+0x160 offset, 0x168 frameOffset, 0x170 scale`), and flixel draws at `x - offset.x`, so a
+NEGATIVE offset pushes the art 190 right and 250 down. In the port that is just the
+child's local position, which is the same thing when there is one sprite in the group.
+
+### The placeholder that is never on screen
+
+`updateAlbum` (78-94) is what makes the cover this mod's cover:
+
+    80  albumData = AlbumRegistry.instance.fetchEntry(albumId)
+    84  if null: 'Could not find album data for album ID: ' + albumId
+    89  Paths.imageGraphic(albumData.getAlbumArtAssetKey())
+    90  albumArt.<vt 0x4d0>(<that graphic>, ..., "mini album")
+    92  buildAlbumTitle(albumData.getAlbumTitleAssetKey(),
+                        albumData.getAlbumTitleAnimationData())
+    94  refresh()
+
+The `"mini album"` in line 90 is not a Haxe string constant lying around: it is the class's
+own String field, kept as the pair `0x238` (length 10) + `0x240` (pointer). That is worth
+saying out loud because the pair looks like two unrelated fields until you notice
+`len("mini album") == 10` — hxcpp's `String` is `{int length; const char* ptr}` and a
+16-byte stack argument built from those two offsets is one String, not two members.
+
+And `"mini album"` is the name of the ONLY symbol in
+`assets/images/animania-freeplay/albumRoll/roll/Animation.json`. So line 90 replaces that
+symbol's graphic with the album art. The atlas ships with a placeholder inside it: its
+`spritemap1.png` is the cover of a **different** album, `MINI EXPANSION VOL.1`, which the
+game overwrites at load and no player ever sees.
+
+`assets/data/ui/freeplay/albums/animania05.json` is what it overwrites it with:
+
+    "albumArtAsset":   "animania-freeplay/albumRoll/animania05"
+    "albumTitleAsset": "animania-freeplay/albumRoll/animania05-text"
+
+The port does that substitution **once, at vendoring time**: the vendored
+`spritemap1.png` IS `animania05.png` pasted at (1, 1), which is where the atlas's single
+`spritemap1.json` entry puts its 263x263 cut. There is no runtime graphic swap, and there
+is no placeholder shipped that would show if the swap ever failed to run.
+
+### Three labels on one timeline, not three symbols
+
+`ALBUM ALL4` is nine frames with three labels in its layer: `intro` 0-2, `switch` 3-5,
+`idle` 6-8. `build_adobe_character.gd` used to emit one animation per symbol, which here
+would have produced a single nine-frame animation running all three back to back. It now
+takes `name=symbol:a-b` and slices the frame track, so the library carries
+`freeplay_album_intro` / `_switch` / `_idle`.
+
+### The four methods that drive it
+
+    playIntro     138  albumTitle.visible = false
+                  140  albumArt.visible = true
+                  141  albumArt.playAnimation('intro')
+                  144  new FlxTimer().start(0.75, _ -> showTitle())
+    showTitle     167  albumTitle.visible = true
+    skipIntro     155  albumArt.playAnimation('switch')
+                  159  albumTitle.animation.play('switch')
+    onAlbumFinish  64  if (name != 'idle') albumArt.playAnimation('idle')
+
+The `if` in `onAlbumFinish` is read, not guessed: at `0x364d3c0` the `String::eq` against
+`'idle'` jumps to the EPILOGUE when it succeeds, so the replay only happens when the name
+is something else. That is what chains `intro -> idle` and `switch -> idle` without `idle`
+relaunching itself forever.
+
+`playIntro` is called from `doIntroAnim`'s one-second timer (line 1640) and `skipIntro`
+from `updateDataStuff` (1098). Note the order inside that timer: 1640 `playIntro`, then
+1648 `changeSelection`, which reaches `updateDataStuff` and immediately cuts the intro
+short with `switch`. That is the mod's own order and the port keeps it.
+
+### buildAlbumTitle
+
+    179  animData defaults to a two-element Array<Float>
+    181  albumTitle = FunkinSprite.createSparrow(425, 200, <titleAsset>)
+    182  albumTitle.visible = false
+    183  animation.addByPrefix('idle', 'idle0', 24)
+    184  animation.addByPrefix('switch', 'switch0', 24)
+    185  albumTitle.scale.set(0.75, 0.75)
+    186  albumTitle.updateHitbox()
+    187  add(albumTitle)
+    189  albumTitle.animation.onFinish.add(<closure>)
+    194  albumTitle.animation.play('idle')
+    196  albumTitle.zIndex = 1000;  albumTitle.<0x1a0 shader> = <the blur>
+    199  albumTitle.x += animData[0]
+    200  albumTitle.y += animData[1]
+
+Line 185+186 together are why the port does NOT compensate for the scale. `updateHitbox`
+sets `offset` to exactly half of what the scaled size lost, and flixel's matrix scales
+about `origin`, which `centerOrigin` put at the frame's centre; the two cancel and the
+art's top-left stays on (425, 200). Worked out: `425 - 35.875 + 143.5*(1 - 0.75) = 425`.
+A Godot `AnimatedSprite2D` with `centered = false` at (425, 200) and `scale = 0.75` lands
+in the same place, and the harness measures it there — ink at funkin (433.3, 100.7),
+215x87, against a predicted 215.25x87.75 with the group's `y = -100` applied.
+
+That `zIndex = 1000` on line 196 is a trap worth naming. It does **not** lift the title
+above the TV. `refresh()` (which is just `sort(SortUtil.byZIndex)` over the group's own
+members) uses it to put the title above the art INSIDE the group; the group itself is
+still 27 in the state, and `tvSprite` is 30. So in the mod, as in the port, the TV's front
+panel covers the left half of the album title and only what falls in the screen hole or
+past the TV's right edge is visible. It looks like a bug in a screenshot and it is not.
+
+`animania05.json` declares no `albumTitleAnimationData`, so lines 199-200 add the default
+array and move nothing.
+
+### What is not ported, and why
+
+The `GaussianBlurShader`. `AlbumRoll` builds one (declaration line 203), `buildBg` sets its
+`amount` to 0.1, and `playIntro`/`skipIntro` assign it to both sprites (`0x1a0` is
+FlxSprite's `shader`). It is a base-game shader this project does not have and at 0.1 the
+effect is a very light veil; the value is written down here so it can be added later
+without re-reading anything.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

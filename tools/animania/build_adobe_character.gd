@@ -7,8 +7,15 @@
 # ever plays. This does the same tracks (`:symbol`, `:frame`, `:offset`) but only for the
 # symbols asked for, and names them after the character rather than after the symbol path.
 #
+# Un simbolo puede pedirse ENTERO -`name=symbol`- o por TRAMO -`name=symbol:a-b`, con a y b
+# fotogramas inclusive-. El tramo existe porque una composicion de Adobe puede llevar sus
+# animaciones como ETIQUETAS dentro de una sola linea de tiempo en vez de como simbolos
+# sueltos: la caratula del freeplay es un unico `ALBUM ALL4` de nueve fotogramas partido en
+# `intro` 0-2, `switch` 3-5 e `idle` 6-8, y sin tramos saldria una sola animacion que las
+# encadena las tres.
+#
 #   godot --headless --path . --script tools/animania/build_adobe_character.gd \
-#       -- <atlas_folder> <out_dir> <basename> <name=symbol> [name=symbol ...]
+#       -- <atlas_folder> <out_dir> <basename> <name=symbol[:a-b]> [...]
 extends SceneTree
 
 
@@ -59,7 +66,16 @@ func _init() -> void:
 	for i: int in range(3, args.size()):
 		var pair: PackedStringArray = args[i].split("=", true, 1)
 		var anim_name: String = pair[0]
-		var symbol: StringName = StringName(pair[1])
+		var spec: String = pair[1]
+		var first: int = 0
+		var last: int = -1
+		var colon: int = spec.rfind(":")
+		if colon != -1 and spec.substr(colon + 1).contains("-"):
+			var range_text: PackedStringArray = spec.substr(colon + 1).split("-", true, 1)
+			first = range_text[0].to_int()
+			last = range_text[1].to_int()
+			spec = spec.substr(0, colon)
+		var symbol: StringName = StringName(spec)
 
 		# A composition's top level is not in the symbol dictionary: it lives in
 		# `stage_symbol`, taken from the Animation.json's AN.SN. gdanimate plays it by
@@ -72,7 +88,15 @@ func _init() -> void:
 			missing.append(String(symbol))
 			continue
 
-		var length: int = atlas.get_length_of(symbol)
+		var total: int = atlas.get_length_of(symbol)
+		if last < 0:
+			last = total - 1
+		if first < 0 or last < first or last >= total:
+			push_error("%s: tramo %d-%d fuera de los %d fotogramas de %s"
+				% [anim_name, first, last, total, symbol])
+			quit(1)
+			return
+		var length: int = last - first + 1
 		var animation := Animation.new()
 		animation.step = 1.0 / fps
 		animation.length = maxf(float(length) / fps, animation.step)
@@ -88,11 +112,12 @@ func _init() -> void:
 		animation.value_track_set_update_mode(frame_track, Animation.UPDATE_DISCRETE)
 		animation.track_set_interpolation_type(frame_track, Animation.INTERPOLATION_NEAREST)
 		for f: int in length:
-			animation.track_insert_key(frame_track, float(f) / fps, f)
+			animation.track_insert_key(frame_track, float(f) / fps, first + f)
 
 		library.add_animation("%s_%s" % [basename, anim_name], animation)
-		print("OUT %-16s frames=%-4d length=%.3fs  <- %s%s" % [
-			anim_name, length, animation.length, symbol, " (stage)" if is_stage else ""])
+		print("OUT %-16s frames=%-4d [%d..%d] length=%.3fs  <- %s%s" % [
+			anim_name, length, first, last, animation.length, symbol,
+			" (stage)" if is_stage else ""])
 
 	if not missing.is_empty():
 		push_error("symbols not in the atlas: %s" % ", ".join(missing))

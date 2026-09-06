@@ -218,6 +218,9 @@ var help_button: Sprite2D
 var difficulty_stars: Node2D
 var selector: Node2D
 var album_roll: Node2D
+var album_art: AnimateSymbol
+var album_art_anims: AnimationPlayer
+var album_title: AnimatedSprite2D
 var sticker_sub_state: Node2D
 var dark_overlay: ColorRect
 var clear_freeplay: bool = false
@@ -297,6 +300,11 @@ func _resolve_nodes() -> void:
 	help_button = get_node_or_null("UI/HelpButton") as Sprite2D
 	difficulty_stars = get_node_or_null("UI/DifficultyStars")
 	album_roll = get_node_or_null("UI/AlbumRoll")
+	album_art = get_node_or_null("UI/AlbumRoll/AlbumArt") as AnimateSymbol
+	album_art_anims = get_node_or_null("UI/AlbumRoll/AlbumArt/Anims") as AnimationPlayer
+	album_title = get_node_or_null("UI/AlbumRoll/AlbumTitle") as AnimatedSprite2D
+	if album_art_anims != null:
+		album_art_anims.animation_finished.connect(_on_album_finish)
 	disk_player = get_node_or_null("DiskPlayer") as AnimatedSprite2D
 	disk_player_mask = get_node_or_null("DiskPlayerMask") as Sprite2D
 	characters_buttons = get_node_or_null("CharactersButtons")
@@ -829,6 +837,10 @@ func _update_data_stuff(_force: bool) -> void:
 			else str(current_difficulty)
 		info_difficulty.text = "DIF: %s" % name
 
+	# Lineas 1097-1098: la caratula. El albumId no cambia -el mod solo pasa 'animania05'-
+	# asi que lo que queda es el cambio de disco de la propia caratula.
+	_album_skip_intro()
+
 	# Lineas 1100-1102: el ruido del televisor pega un golpe a 0.7 y se asienta en 0.45.
 	# Es lo que se ve al cambiar de cancion.
 	if tv_noise_forward != null:
@@ -1004,6 +1016,10 @@ func _intro_light_up() -> void:
 		create_tween().tween_property(dark_overlay, "modulate:a", 0.0, INTRO_DARK) \
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CIRC)
 
+	# Linea 1640: aqui, entre el tween del velo y el del destello, es donde la caratula
+	# entra en escena.
+	_album_play_intro()
+
 	# El sonido va aqui, no al abrir la pantalla: la linea 1643 lo toca dentro de este
 	# temporizador. Que sea tvOn es lo unico que no esta leido del binario.
 	_play_sound(SOUND_TV_ON, 0.6)
@@ -1019,6 +1035,71 @@ func _intro_light_up() -> void:
 	intro_done = true
 	allow_input = true
 	_show_stickers()
+
+
+## ─── AlbumRoll: playIntro / showTitle / skipIntro / onAlbumFinish ───────────
+##
+## Las cuatro leidas del binario, que son cuatro lineas contadas:
+##
+##   playIntro     138  albumTitle.visible = false
+##                 140  albumArt.visible = true
+##                 141  albumArt.playAnimation('intro')
+##                 144  new FlxTimer().start(0.75, _ -> showTitle())
+##   showTitle     167  albumTitle.visible = true
+##   skipIntro     155  albumArt.playAnimation('switch')
+##                 159  albumTitle.animation.play('switch')
+##   onAlbumFinish  64  if (name != 'idle') albumArt.playAnimation('idle')
+##
+## La polaridad del `if` esta comprobada, no supuesta: en 0x364d3c0 el `String::eq` con
+## 'idle' salta al epilogo cuando da CIERTO, o sea que la animacion solo se relanza
+## cuando el nombre NO es 'idle'. Asi encadenan intro -> idle y switch -> idle sin que
+## idle se relance a si misma cada vuelta.
+##
+## `?` Sin portear y dicho: el desenfoque. AlbumRoll construye un GaussianBlurShader
+## (linea 203 de su fichero) que buildBg deja en `amount = 0.1`, y playIntro y skipIntro
+## se lo asignan a los dos sprites. Es un shader del juego base que este puerto no tiene
+## y el efecto a 0.1 es un velo muy leve; queda apuntado aqui con su valor por si algun
+## dia se escribe.
+const ALBUM_TITLE_DELAY := 0.75
+
+
+func _album_play_intro() -> void:
+	if album_title != null:
+		album_title.visible = false          # playIntro 138
+	if album_art != null:
+		album_art.visible = true             # playIntro 140
+	_album_play(&"intro")                    # playIntro 141
+	# playIntro 144: el titulo no entra con la caratula, entra 0.75 s despues.
+	var timer := get_tree().create_timer(ALBUM_TITLE_DELAY)
+	timer.timeout.connect(_album_show_title)
+
+
+func _album_show_title() -> void:
+	if album_title != null:
+		album_title.visible = true           # showTitle 167
+
+
+## updateDataStuff 1097-1098. El albumId es siempre 'animania05' -es el unico que el mod
+## le pasa- asi que aqui solo queda el cambio de disco.
+func _album_skip_intro() -> void:
+	_album_play(&"switch")                   # skipIntro 155
+	if album_title != null:
+		album_title.play(&"switch")          # skipIntro 159
+
+
+func _album_play(anim: StringName) -> void:
+	if album_art_anims == null:
+		return
+	var full := "freeplay_album_%s" % anim
+	if album_art_anims.has_animation(full):
+		album_art_anims.play(full)
+
+
+func _on_album_finish(anim: StringName) -> void:
+	# onAlbumFinish 64. El nombre que llega aqui lleva el prefijo de la libreria.
+	if String(anim).ends_with("_idle"):
+		return
+	_album_play(&"idle")
 
 
 ## ─── handleExit (from binary at 0x34c5330) ──────────────────────────────────
