@@ -3571,9 +3571,10 @@ What the port does now, and what each piece proves:
 - `change_diff` pulls `current_diffs_ids` from the selected song, then does the two-step
   `find` and the wrap. Carrying `hard` into a song that has it keeps it; carrying `standart`
   into bopeebo falls back to `hard`; phone-call's single `standart` is a fixed point.
-- `totalDiffs` (field 0x104) is **not** ported, and not by oversight: there is not one
-  instruction in the whole `FreeplayScreen` code range (0x34b0000-0x34e0000) that reads or
-  writes it. It is dead in the mod too.
+- `totalDiffs` is **not** an int and not at 0x104 — the port's field table had that wrong,
+  and it cost a paragraph of this section before the check caught it. `__SetField` settles
+  it: it compares `"totalDif"` + `"fs"` (0x34d93b7) and stores through
+  `Array<String>::setDynamic` into **0xf0** (0x34d9eb2). See below.
 - `updateDataStuff` never writes `currentDiffsIds` — there is no `=>currentDiffsIds` in its
   6883 bytes. The port had an invented `current_diffs_ids = DIFF_IDS_FULL` in the random
   branch; it is gone. The random slot shows the dots of the last song you passed, and at
@@ -3606,6 +3607,50 @@ llevando 'hard'     -> bopeebo/hard, dadbattle/hard, fresh/hard
 llevando 'standart' -> phone-call/standart
 llevando 'nightmare'-> HOW??? ninguna cancion ofrece la dificultad nightmare
 ```
+
+### `totalDiffs` decides which dots and which banners exist
+
+The port had a hand-written `DIFF_IDS_FULL = ["easy","normal","hard","standart"]` with a `?`
+next to it, because `FreeplayDots.loadDots` is handed field `0xf0`, the constructor creates
+that field empty (`Array_obj<String>::__new(0, 0)` at 0x34d337b), and nothing seemed to fill
+it. The missing writer is **`loadAllAvalaibleSongs`**, which reads `0xf0` twice (0x34bfeec,
+0x34bff38) and calls `ArrayTools.pushUnique` on it at line 491 — once per difficulty of
+every song it loads. So `totalDiffs` is the **union of every available song's difficulties,
+in load order**, and two places consume it:
+
+```
+buildBg    1378  a DifficultySprite (a banner) per entry
+postHeader 1557  dotsGrp.loadDots(totalDiffs)   -> a dot sprite per entry
+```
+
+Which dots and banners *exist* comes from there; which are *visible* comes from
+`setDots(...)` — `postHeader` 1558 passes `Constants.DEFAULT_DIFFICULTY_LIST_FULL` (all of
+them on), and `updateDataStuff` 1114 passes `currentDiffsIds` (the current song's). That is
+why the random slot in the capture shows all four dots lit-or-dimmed rather than none.
+
+`Constants.DEFAULT_DIFFICULTY_LIST_FULL` itself is now read rather than guessed. Its backing
+array `_hx_array_data_e10030a0_35` is filled by Constants.cpp's static initialiser at
+0xc2f4ab with seven strings of lengths 4, 6, 4, 6, 8, 5, 9, and the literals sit
+consecutively in .rodata from 0x5af6c88:
+
+```
+["easy", "normal", "hard", "legacy", "standart", "erect", "nightmare"]
+```
+
+`FreeplayDots.diffColors` (built in its `__boot` closure at 0x4090f60) knows five of those
+seven, and the port's `DIFF_COLORS` already matched them exactly:
+easy `C5FE59`, normal `FEE543`, hard `FE2466`, legacy `7F6AF7`, standart `6CE7C3`.
+
+**One visible consequence, flagged rather than smoothed over.** `build_freeplay_scene.gd` now
+asks `FreeplayScreen.total_diffs_of(SONGS)` for the dot and banner list instead of carrying
+its own copy. The mod's capture shows the dots in the order easy, normal, hard, standart,
+because the first song the mod loads offers easy/normal/hard and phone-call (`standart`)
+comes later. The port's `SONGS` lists **phone-call first**, so the same rule gives
+`standart, easy, normal, hard` and the dot row now reads teal, green, yellow, pink. Same
+four dots, same colours, same behaviour — different order, entirely because the port's
+catalogue is four songs and the mod's is ten. Moving phone-call below the week-1 songs in
+`SONGS` restores the capture's order; that is a decision about the carousel, not about
+fidelity to `loadAllAvalaibleSongs`.
 
 and end to end with `diff_probe.gd`, which instantiates every song scene once per
 difficulty and prints the chart that actually landed in each controller:

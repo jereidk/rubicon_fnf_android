@@ -73,10 +73,11 @@ const DIFF_COLORS := {
 	"legacy": Color8(0x7f, 0x6a, 0xf7),
 	"standart": Color8(0x6c, 0xe7, 0xc3),
 }
-## Las dificultades que el puerto ofrece hoy, en el mismo orden que su tabla.
-## Cuatro, no tres: en la captura del mod sobre el disco aleatorio salen easy, normal,
-## hard y el turquesa (`standart`). Ver DIFF_IDS_FULL en freeplay_screen.gd.
-const DOT_IDS := ["easy", "normal", "hard", "standart"]
+## Cuantos puntos y cuantos carteles de dificultad EXISTEN no es una lista escrita a mano:
+## sale de `totalDiffs`, la union de las dificultades de todas las canciones. En el mod la
+## llena `loadAllAvalaibleSongs` con pushUnique (linea 491) y la consumen buildBg 1378 -un
+## cartel por entrada- y postHeader 1557 -`loadDots`, un punto por entrada-. Aqui se pide
+## la misma cuenta a `FreeplayScreen.total_diffs_of` para no tener dos reglas.
 ## Flixel getDarkened(f) multiplica el RGB por (1 - f). Aqui f = 0.45.
 const DOT_DARKEN := 1.0 - 0.45
 const DOT_DIM_ALPHA := 0.9
@@ -110,7 +111,6 @@ const BOSS_VOLUME := 0.25
 ##
 ## Ni el bucle ni nada cerca le pone zIndex, asi que hereda el del estado. Va por encima
 ## del televisor, que es 30, porque asi sale en el mod.
-const DIFF_BANNERS := ["easy", "normal", "hard", "standart", "legacy"]
 const DIFF_BANNER_SCALE := 0.95
 ## buildBg 1277: `new FunkinSprite(-60, -198)`. La x del sprite del televisor, que no es lo
 ## mismo que TV_AT_X -aquella es donde EMPIEZA el arte visible dentro de su lienzo-.
@@ -708,12 +708,13 @@ func _init() -> void:
 	ui.add_child(capsule)
 	capsule.owner = _root
 
-	# Los cinco banners de dificultad, apilados y centrados sobre el televisor.
+	# Los banners de dificultad, apilados y centrados sobre el televisor. buildBg 1378
+	# recorre `totalDiffs`, asi que son tantos como dificultades ofrezca el catalogo.
 	var banners := Node2D.new()
 	banners.name = "DifficultyBanners"
 	ui.add_child(banners)
 	banners.owner = _root
-	for id: String in DIFF_BANNERS:
+	for id: String in _diff_ids():
 		var b := Sprite2D.new()
 		b.name = "Diff_%s" % id
 		b.texture = load("%s/diffs/%stext.png" % [ART, id])
@@ -742,7 +743,8 @@ func _init() -> void:
 	ui.add_child(dots)
 	dots.owner = _root
 	var dot_texture: Texture2D = load("%s/dot.png" % ART)
-	for i: int in DOT_IDS.size():
+	var dot_ids: PackedStringArray = _diff_ids()
+	for i: int in dot_ids.size():
 		var dot := Sprite2D.new()
 		dot.name = "Dot%d" % i
 		dot.texture = dot_texture
@@ -750,10 +752,10 @@ func _init() -> void:
 		dot.scale = Vector2.ONE * FUNKIN_TO_RUBICON
 		# repositionDots lineas 87-91, en local al grupo.
 		dot.position = Vector2(
-			(float(i) - DOT_IDS.size() * 0.5) * DOT_DISTANCE, 0.0) * FUNKIN_TO_RUBICON
+			(float(i) - dot_ids.size() * 0.5) * DOT_DISTANCE, 0.0) * FUNKIN_TO_RUBICON
 		# Nacen todos apagados; updateDataStuff enciende el que toque.
-		dot.modulate = Color(DIFF_COLORS[DOT_IDS[i]] * DOT_DARKEN, DOT_DIM_ALPHA)
-		dot.set_meta(&"diff", DOT_IDS[i])
+		dot.modulate = Color(DIFF_COLORS[dot_ids[i]] * DOT_DARKEN, DOT_DIM_ALPHA)
+		dot.set_meta(&"diff", dot_ids[i])
 		dots.add_child(dot)
 		dot.owner = _root
 
@@ -965,6 +967,14 @@ func _init() -> void:
 ## cabecera restando `sprite.width`, y en Flixel eso es el fotograma con su recorte
 ## deshecho; el importador de sparrow rellena cada fotograma hasta ese lienzo, asi que la
 ## textura mide justo lo que mide el `width` del mod.
+## `totalDiffs`: la union de las dificultades de todas las canciones, en el orden en que
+## SONGS las lista. La regla vive en freeplay_screen.gd y aqui solo se le pregunta.
+func _diff_ids() -> PackedStringArray:
+	var script: Script = _root.get_script()
+	var songs: Array = script.get_script_constant_map()["SONGS"]
+	return script.total_diffs_of(songs)
+
+
 func _frame_size(basename: String) -> Vector2:
 	var frames: SpriteFrames = load("%s/%s_frames.tres" % [DIR, basename])
 	var anim: StringName = StringName(frames.get_animation_names()[0])

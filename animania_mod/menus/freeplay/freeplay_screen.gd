@@ -156,16 +156,16 @@ const DEFAULT_DIFFICULTY := "hard"
 ## nunca por posicion. Con un indice, una cancion de una sola dificultad -phone-call, que
 ## solo declara `standart`- no tenia representacion posible.
 ##
-## El constructor pone `currentDiffsIds = Constants.DEFAULT_DIFFICULTY_LIST_FULL`, que en
-## este mod son SIETE ids: su __boot los mete con longitudes 4, 6, 4, 6, 8, 5 y 9. De esos,
-## `FreeplayDots.loadDots` solo crea punto para los que su mapa de colores conoce -linea 47
-## es un `get` sobre el mapa- y en la captura del mod salen CUATRO: easy, normal, hard y el
-## turquesa, que es `standart`.
+## `Constants.DEFAULT_DIFFICULTY_LIST_FULL`, leida entera del binario: el inicializador
+## estatico de Constants.cpp (0xc2f4ab) llena `_hx_array_data_e10030a0_35` con siete
+## Strings de longitudes 4, 6, 4, 6, 8, 5 y 9, y los literales estan uno detras de otro en
+## .rodata a partir de 0x5af6c88. Es lo que el constructor de FreeplayScreen copia a
+## `currentDiffsIds` (`movups %xmm0,0x110(%rbx)`, 0x34d3374).
 ##
-## `?` Los otros tres (legacy, erect, nightmare por sus longitudes) no salen, y cual es el
-## filtro exacto no esta leido: `loadDots` recibe el campo 0xf0, que el constructor crea
-## vacio y que no he encontrado quien rellena. Los cuatro de aqui son los de la captura.
-const DIFF_IDS_FULL: PackedStringArray = ["easy", "normal", "hard", "standart"]
+## No es la lista de puntos: los puntos salen de `totalDiffs`. Esta es solo con lo que se
+## arranca antes de que changeDiff traiga la de la primera cancion.
+const DEFAULT_DIFFICULTY_LIST_FULL: PackedStringArray = ["easy", "normal", "hard",
+	"legacy", "standart", "erect", "nightmare"]
 
 ## ─── Exports ─────────────────────────────────────────────────────────────────
 
@@ -209,17 +209,32 @@ var bed_state: String = "none"
 var current_filtered_songs: Array = []
 var selectable_disks: Array = []
 var song_info: Dictionary = {}
-## `totalDiffs` (campo 0x104) NO se portea, y no por descuido: en todo el rango de codigo
-## de FreeplayScreen (0x34b0000-0x34e0000) no hay una sola instruccion que lo lea ni que lo
-## escriba. Existe en la clase y esta muerto; quien manda es `currentDiffsIds.length`.
+## `totalDiffs` NO es un entero: es un `Array<String>`, el campo 0xf0, y __SetField lo dice
+## sin ambiguedad -compara "totalDif"+"fs" en 0x34d93b7 y guarda con
+## `Array<String>::setDynamic` en 0xf0 (0x34d9eb2)-. La tabla de campos de este puerto lo
+## tenia en 0x104 y como int, y de ahi salio media confusion.
 ##
+## Es la UNION de las dificultades de todas las canciones disponibles: el constructor lo
+## crea vacio (`Array_obj<String>::__new(0, 0)`, 0x34d337b) y `loadAllAvalaibleSongs` linea
+## 491 le hace `ArrayTools.pushUnique(totalDiffs, dificultad)` por cada una de cada cancion
+## que carga. Manda en dos sitios:
+##
+##   buildBg    1378  un DifficultySprite -un cartel- por cada entrada
+##   postHeader 1557  dotsGrp.loadDots(totalDiffs)  -> un punto por cada entrada
+##
+## O sea que cuantos puntos y cuantos carteles EXISTEN sale de aqui, y cuales se VEN sale
+## de setDots(currentDiffsIds). En el mod la union da easy, normal, hard y standart, que
+## son los cuatro puntos de la captura, en ese orden porque week1 se carga antes que
+## KomiCantCommunicate. Aqui el orden lo marca SONGS, donde phone-call va primero.
+var total_diffs: PackedStringArray = []
+
 ## `Constants.DEFAULT_DIFFICULTY` no es 'normal' en este mod: su __boot escribe la cadena
 ## 'hard' (longitud 4) en 0x7ed6990, y el constructor de FreeplayScreen copia esa constante
 ## a `currentDifficulty` (el par 0x108/0x110). El puerto abria con el banner NORMAL cuando
 ## el mod abre con HARD. doIntroAnim linea 1614 lo repite sobre los puntos:
 ## `dotsGrp.curDiff = 'hard'`.
 var current_difficulty: String = DEFAULT_DIFFICULTY
-var current_diffs_ids: PackedStringArray = DIFF_IDS_FULL
+var current_diffs_ids: PackedStringArray = DEFAULT_DIFFICULTY_LIST_FULL
 
 ## Score/completion.
 var lerp_score: float = 0.0
@@ -395,6 +410,20 @@ func _load_songs() -> void:
 	selectable_disks.clear()
 	for i: int in current_filtered_songs.size():
 		selectable_disks.append(current_filtered_songs[i])
+	total_diffs = total_diffs_of(SONGS)
+
+
+## Linea 491 de loadAllAvalaibleSongs: `pushUnique` de cada dificultad de cada cancion, en
+## el orden en que las canciones se cargan. Es `static` porque build_freeplay_scene.gd
+## necesita la misma cuenta para saber cuantos puntos y cuantos carteles crear, y dos
+## copias de esta regla se separarian a la primera cancion nueva.
+static func total_diffs_of(songs: Array) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for song: Dictionary in songs:
+		for id: String in PackedStringArray(song.get("difficulties", [])):
+			if not out.has(id):
+				out.append(id)
+	return out
 
 
 ## El hueco del disco aleatorio. Vacio a proposito: es el `songData == null` del mod.
@@ -934,7 +963,7 @@ func _update_data_stuff(_force: bool) -> void:
 		# fija es changeDiff, y en el hueco aleatorio no la toca porque su songData es
 		# null. O sea que los puntos del disco aleatorio son los de la ultima cancion por
 		# la que se paso, y en el arranque los del constructor. Aqui habia una asignacion
-		# a DIFF_IDS_FULL que borraba eso.
+		# a una lista fija que borraba eso.
 		_set_dots()                                       # 1165-1166
 		# 1154-1155: el craneo de jefe se apaga sin tween -alfa 0 directo-.
 		if bossfight_skull != null:
@@ -1478,7 +1507,7 @@ func change_diff(amount: int = 0, play_sound: bool = false) -> void:
 	if cur_selected >= 0 and cur_selected < selectable_disks.size():
 		var song: Dictionary = selectable_disks[cur_selected]
 		if not song.is_empty():
-			current_diffs_ids = PackedStringArray(song.get("difficulties", DIFF_IDS_FULL))
+			current_diffs_ids = PackedStringArray(song.get("difficulties", []))
 			_freeplay_remembered_song_id = String(song.get("id", ""))
 
 	# Linea 985: la posicion actual se busca POR CADENA -un bucle de String::eq sobre la
