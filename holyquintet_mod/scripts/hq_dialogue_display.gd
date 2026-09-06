@@ -62,8 +62,7 @@ func _ready() -> void:
 	# Stop the song clock animation and audio until dialogue ends
 	if _anim_player != null and _anim_player.has_animation("scene"):
 		_anim_player.stop()
-	# Stop any audio that autoplay may have triggered
-	var scene = get_tree().current_scene
+	# Stop any audio that autoplay may have triggered (scene already resolved above)
 	if scene != null:
 		var song_module = scene.get_node_or_null("RubiconLevelSongModule")
 		if song_module != null:

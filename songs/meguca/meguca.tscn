@@ -31,6 +31,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gameover_handler.gd" id="99_go_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/menus/pause/pause_meguca.tscn" id="91_pause_meguca"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -269,3 +270,12 @@ script = ExtResource("99_go_hq")
 layer = 15
 script = ExtResource("0027")
 opacity = 0.4
+[node name="HQPauseMeguca" type="Control" parent="." instance=ExtResource("91_pause_meguca")]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false

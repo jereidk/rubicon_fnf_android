@@ -28,6 +28,7 @@ func _on_song_finished(_anim_name: StringName) -> void:
 	if _has_finished:
 		return
 	_has_finished = true
+	_try_achievements()
 
 	# Collect score data from the player note controller.
 	var scene = get_tree().current_scene
@@ -71,8 +72,52 @@ func _on_song_finished(_anim_name: StringName) -> void:
 	fade.color = Color.BLACK
 	fade.modulate.a = 0.0
 	layer.add_child(fade)
+	var dest := "res://holyquintet_mod/menus/results/results_screen.tscn"
+	if HQSaves.is_gauntlet_mode:
+		var pl = scene.get_node_or_null("UILayer/UI/Player") if scene != null else null
+		if pl != null:
+			HQSaves.campaign_score += pl.performance_score_value
+			HQSaves.campaign_misses += pl.performance_hits_miss
+		if HQSaves.campaign_songs_left.size() > 0:
+			HQSaves.campaign_songs_left.pop_front()
+		HQSaves.gauntlet_ending = HQSaves.campaign_songs_left.is_empty()
+		dest = "res://holyquintet_mod/menus/gauntlet/gauntlet_transition.tscn"
 	var tw := create_tween()
 	tw.tween_property(fade, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
-		get_tree().change_scene_to_file("res://holyquintet_mod/menus/results/results_screen.tscn")
+		get_tree().change_scene_to_file(dest)
 	)
+
+
+
+## Achievement unlocks, mirroring the mod's AchievementHandler.onSongEnd.
+func _try_achievements() -> void:
+	var scene = get_tree().current_scene
+	if scene == null or HQSaves.is_gauntlet_mode or HQSaves.goduka_enabled:
+		return
+	var player = scene.get_node_or_null("UILayer/UI/Player")
+	if player == null:
+		return
+	var misses := player.performance_hits_miss
+	var song := scene.name.to_lower()
+	var hard_clear := misses == 0 and HQSaves.cur_story_diff == "hard"
+	if hard_clear:
+		match song:
+			"initium": HQSaves.unlock_achievement("FCInitium")
+			"resonance": HQSaves.unlock_achievement("FCResonance")
+			"partea": HQSaves.unlock_achievement("FCPartea")
+			"eternalstar": HQSaves.unlock_achievement("FCEternalStar")
+			"vexation": HQSaves.unlock_achievement("FCVexation")
+			"out-of-time": HQSaves.unlock_achievement("FCOutOfTime")
+			"meguca": HQSaves.unlock_achievement("FCMeguca")
+			"reconnect": HQSaves.unlock_achievement("FCReconnect")
+			"stardom": HQSaves.unlock_achievement("FCStardom")
+	# Devoted progress
+	HQSaves.devoted_progress += 1
+	if HQSaves.devoted_progress >= 25:
+		HQSaves.unlock_achievement("Devoted")
+	# Pinpoint accuracy progress: count perfect hits
+	HQSaves.pinpoint_accuracy_progress += player.performance_hits_perfect
+	if HQSaves.pinpoint_accuracy_progress >= 5000:
+		HQSaves.unlock_achievement("PinpointAccuracy")
+	HQSaves.save_data()

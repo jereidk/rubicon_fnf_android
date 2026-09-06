@@ -1,0 +1,100 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/intro/borders.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/intro/yes.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/intro/no.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/intro/selector2.png" id="4"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/kaisho-S.otf" id="5"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/intro/intro_screen.gd" id="6"]
+
+[node name="HQIntro" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.02, 0.08, 1)
+
+[node name="TitleCard" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.4)
+
+[node name="QuestionLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 685.0
+offset_right = 1920.0
+offset_bottom = 740.0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 42
+text = "Make a wish?"
+horizontal_alignment = 1
+visible = false
+
+[node name="YesLabel" type="Label" parent="."]
+offset_left = 619.0
+offset_top = 700.0
+offset_right = 969.0
+offset_bottom = 780.0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 60
+text = "Yes"
+horizontal_alignment = 1
+visible = false
+
+[node name="NoLabel" type="Label" parent="."]
+offset_left = 619.0
+offset_top = 730.0
+offset_right = 969.0
+offset_bottom = 810.0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 60
+text = "No"
+horizontal_alignment = 1
+visible = false
+
+[node name="Selector" type="TextureRect" parent="."]
+offset_left = 1075.0
+offset_top = 600.0
+offset_right = 1250.0
+offset_bottom = 780.0
+texture = ExtResource("4")
+stretch_mode = 6
+visible = false
+
+[node name="SubtitleLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 900.0
+offset_right = 1920.0
+offset_bottom = 950.0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 42
+text = ""
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

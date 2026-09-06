@@ -58,6 +58,10 @@ func _toggle_option() -> void:
 
 func _go_back() -> void:
 	can_control = false
+	var dest := "res://holyquintet_mod/menus/main/main_menu.tscn"
+	if not HQSaves.settings_return_scene.is_empty():
+		dest = HQSaves.settings_return_scene
+		HQSaves.settings_return_scene = ""
 	var tw = create_tween()
 	tw.tween_property(fade_rect, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func(): get_tree().change_scene_to_file("res://holyquintet_mod/menus/main/main_menu.tscn"))
+	tw.tween_callback(func(): get_tree().change_scene_to_file(dest))

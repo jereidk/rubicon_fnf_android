@@ -1,0 +1,115 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/background_gj.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/back_straight.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/border.png" id="3"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="4"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/achievements/achievements_screen.gd" id="5"]
+
+[node name="HQAchievements" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+modulate = Color(0.45, 0.45, 0.45, 1)
+stretch_mode = 6
+
+[node name="BackStraight" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+modulate = Color(0, 0, 0, 0.7)
+flip_h = true
+stretch_mode = 6
+
+[node name="PreviewFrame" type="TextureRect" parent="."]
+offset_left = 120.0
+offset_top = 250.0
+offset_right = 470.0
+offset_bottom = 610.0
+stretch_mode = 6
+
+[node name="PreviewIcon" type="TextureRect" parent="."]
+offset_left = 170.0
+offset_top = 300.0
+offset_right = 420.0
+offset_bottom = 560.0
+stretch_mode = 6
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 640.0
+offset_right = 550.0
+offset_bottom = 690.0
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 32
+text = "Achievement Name"
+horizontal_alignment = 1
+
+[node name="DescLabel" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 695.0
+offset_right = 550.0
+offset_bottom = 740.0
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 22
+text = "Description"
+horizontal_alignment = 1
+modulate = Color(0.8, 0.8, 0.8, 1)
+autowrap_mode = 2
+
+[node name="TrackerLabel" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 748.0
+offset_right = 550.0
+offset_bottom = 790.0
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+text = "0 / 5000"
+horizontal_alignment = 1
+visible = false
+
+[node name="Selector" type="TextureRect" parent="."]
+offset_left = 545.0
+offset_top = 95.0
+offset_right = 730.0
+offset_bottom = 290.0
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.45)
+
+[node name="TopBorder" type="TextureRect" parent="."]
+texture = ExtResource("3")
+offset_bottom = 90.0
+stretch_mode = 6
+
+[node name="BtmBorder" type="TextureRect" parent="."]
+texture = ExtResource("3")
+offset_top = 990.0
+offset_bottom = 1080.0
+flip_v = true
+stretch_mode = 6
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

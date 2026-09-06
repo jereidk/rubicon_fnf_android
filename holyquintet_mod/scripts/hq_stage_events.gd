@@ -278,7 +278,7 @@ func _setup_out_of_time() -> void:
 	_oot_aurora_overlay.position = Vector2(0, 0)
 	_oot_aurora_overlay.size = Vector2(1920, 1080)
 	_oot_aurora_overlay.modulate.a = 0.0
-	_oot_aurora_overlay.blend = CanvasItem.BLEND_ADD
+	_oot_aurora_overlay.blend_mode = 1
 	_stage.add_child(_oot_aurora_overlay)
 
 	# Flashback overlay (warm flash)
@@ -288,7 +288,7 @@ func _setup_out_of_time() -> void:
 	_oot_flashback_overlay.size = Vector2(1920, 1080)
 	_oot_flashback_overlay.modulate.a = 0.0
 	_oot_flashback_overlay.visible = false
-	_oot_flashback_overlay.blend = CanvasItem.BLEND_ADD
+	_oot_flashback_overlay.blend_mode = 1
 	_stage.add_child(_oot_flashback_overlay)
 
 	# Rain overlay (subtle blue tint)
@@ -721,7 +721,7 @@ func _setup_vexation() -> void:
 	_vx_sparks_overlay.position = Vector2(-1920, -1080)
 	_vx_sparks_overlay.size = Vector2(5760, 3240)
 	_vx_sparks_overlay.modulate.a = 0.0
-	_vx_sparks_overlay.blend = CanvasItem.BLEND_ADD
+	_vx_sparks_overlay.blend_mode = 1
 	_vx_sparks_overlay.z_index = 100
 	_stage.add_child(_vx_sparks_overlay)
 

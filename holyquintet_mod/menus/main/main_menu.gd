@@ -1,12 +1,15 @@
 extends Control
 ## HQ Main Menu — Story, Freeplay, Settings, Credits
 
-var options: Array[String] = ["Story", "Freeplay", "Settings", "Credits"]
+var options: Array[String] = ["Story", "Freeplay", "Gauntlet", "Accolades", "Gallery", "Credits", "Settings"]
 var destinations: Dictionary = {
 	"Story": "res://holyquintet_mod/menus/freeplay/freeplay_screen.tscn",
 	"Freeplay": "res://holyquintet_mod/menus/freeplay/freeplay_screen.tscn",
-	"Settings": "res://holyquintet_mod/menus/settings/settings_screen.tscn",
+	"Gauntlet": "res://holyquintet_mod/menus/gauntlet/gauntlet_screen.tscn",
+	"Accolades": "res://holyquintet_mod/menus/achievements/achievements_screen.tscn",
+	"Gallery": "res://holyquintet_mod/menus/gallery/gallery_screen.tscn",
 	"Credits": "res://holyquintet_mod/menus/credits/credits_screen.tscn",
+	"Settings": "res://holyquintet_mod/menus/settings/settings_screen.tscn",
 }
 var cur_sel: int = 0
 var can_control: bool = true

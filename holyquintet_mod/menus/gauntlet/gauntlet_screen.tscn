@@ -1,0 +1,123 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/bgs/peaceful/bg.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/bgs/fog.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/counterbg.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/meter_bar.png" id="4"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/meter.png" id="5"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="6"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/gauntlet/gauntlet_screen.gd" id="7"]
+
+[node name="HQGauntlet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7")
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 6
+
+[node name="Fog" type="TextureRect" parent="."]
+offset_top = 700.0
+offset_bottom = 1080.0
+texture = ExtResource("2")
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.5)
+
+[node name="RightPanel" type="Control" parent="."]
+offset_left = 1150.0
+offset_top = 60.0
+offset_right = 1850.0
+offset_bottom = 1020.0
+
+[node name="CounterBG" type="TextureRect" parent="RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3")
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.85)
+
+[node name="ModList" type="VBoxContainer" parent="RightPanel"]
+layout_mode = 1
+offset_left = 30.0
+offset_top = 90.0
+offset_right = 670.0
+offset_bottom = 920.0
+theme_override_constants/separation = 14
+
+[node name="StatDisplay" type="Control" parent="."]
+offset_left = 40.0
+offset_top = 30.0
+offset_right = 700.0
+offset_bottom = 260.0
+
+[node name="MultLabel" type="Label" parent="StatDisplay"]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 400.0
+offset_bottom = 90.0
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 64
+text = "x1.00"
+
+[node name="BestLabel" type="Label" parent="StatDisplay"]
+offset_left = 0.0
+offset_top = 110.0
+offset_right = 660.0
+offset_bottom = 160.0
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 32
+text = "Best: 0"
+
+[node name="MeterBG" type="TextureRect" parent="."]
+offset_left = 19.0
+offset_top = 780.0
+offset_right = 519.0
+offset_bottom = 880.0
+texture = ExtResource("5")
+stretch_mode = 6
+modulate = Color(1, 1, 1, 0.5)
+
+[node name="MeterBar" type="TextureProgressBar" parent="."]
+offset_left = 106.0
+offset_top = 814.0
+offset_right = 506.0
+offset_bottom = 846.0
+texture_progress = ExtResource("4")
+max_value = 1.0
+value = 0.1
+stretch_mode = 0
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="StartLabel" type="Label" parent="."]
+offset_left = 1435.0
+offset_top = 940.0
+offset_right = 1820.0
+offset_bottom = 1000.0
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 40
+text = "   Start"
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

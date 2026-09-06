@@ -1,12 +1,12 @@
 extends Node
 ## HQ Gameover Handler — connects RubiconHealthModule.health_depleted to
-## the HQ gameover screen overlay. Add as a child of any HQ song scene.
-##
-## Inspired by phone_call's DeathSequence but simplified for HQ: no
-## character-specific death poses, just fade to gameover overlay.
+## the HQ gameover screen overlay. Uses the meguca variant for meguca and
+## can offer the Goduka prompt after repeated deaths, like the mod.
 
 var _health_module: Node
 var _gameover_scene: PackedScene = preload("res://holyquintet_mod/menus/gameover/gameover_screen.tscn")
+var _gameover_meguca_scene: PackedScene = preload("res://holyquintet_mod/menus/gameover/gameover_meguca.tscn")
+var _goduka_scene: PackedScene = preload("res://holyquintet_mod/menus/goduka/goduka_prompt.tscn")
 var _is_dead: bool = false
 var _gameover_layer: CanvasLayer
 
@@ -32,13 +32,9 @@ func _on_health_depleted() -> void:
 		return
 	_is_dead = true
 
-	# Stop all audio players in the scene.
 	_stop_audio()
-
-	# Hide mobile controls.
 	_hide_mobile_controls()
 
-	# Fade to black briefly, then show gameover.
 	_gameover_layer = CanvasLayer.new()
 	_gameover_layer.layer = 100
 	get_tree().current_scene.add_child(_gameover_layer)
@@ -49,26 +45,22 @@ func _on_health_depleted() -> void:
 	fade.modulate.a = 0.0
 	_gameover_layer.add_child(fade)
 
-	# Pause the game tree so notes stop falling.
 	get_tree().paused = true
 
-	# Fade in.
 	var tw := create_tween()
 	tw.tween_property(fade, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_IN)
-	tw.tween_callback(_show_gameover)
+	tw.tween_callback(func(): _show_gameover())
 
 
 func _stop_audio() -> void:
 	var scene = get_tree().current_scene
 	if scene == null:
 		return
-	# Stop the RubiconLevelSongModule's audio players.
 	var song_module = scene.get_node_or_null("RubiconLevelSongModule")
 	if song_module != null:
 		for child in song_module.get_children():
 			if child is AudioStreamPlayer:
 				child.stop()
-	# Also stop any other AudioStreamPlayers in the scene.
 	for node in scene.get_children():
 		if node is AudioStreamPlayer and node.playing:
 			node.stop()
@@ -84,9 +76,27 @@ func _hide_mobile_controls() -> void:
 
 
 func _show_gameover() -> void:
-	# Unpause tree so the gameover screen can receive input.
 	get_tree().paused = false
 
-	var go = _gameover_scene.instantiate()
+	var scene = get_tree().current_scene
+	var song_name := scene.name.to_lower() if scene != null else ""
+
+	var use_meguca := song_name == "meguca"
+	var use_goduka := not use_meguca \
+		and not HQSaves.is_gauntlet_mode \
+		and HQSaves.death_counter > 3 \
+		and not HQSaves.goduka_enabled \
+		and HQSaves.goduka_cooldown <= 1
+
+	var go: Control
+	if use_goduka:
+		go = _goduka_scene.instantiate()
+	elif use_meguca:
+		HQSaves.death_counter += 1
+		go = _gameover_meguca_scene.instantiate()
+	else:
+		if HQSaves.death_counter <= 3:
+			HQSaves.death_counter += 1
+		go = _gameover_scene.instantiate()
 	go.process_mode = Node.PROCESS_MODE_ALWAYS
 	_gameover_layer.add_child(go)

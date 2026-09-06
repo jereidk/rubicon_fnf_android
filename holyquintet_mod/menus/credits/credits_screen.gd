@@ -30,6 +30,7 @@ func _ready() -> void:
 	fade_rect.modulate.a = 1.0
 	var tw = create_tween()
 	tw.tween_property(fade_rect, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN_OUT)
+	HQSaves.unlock_achievement("ThanksForPlaying")
 	_update_display()
 
 func _process(_delta: float) -> void:

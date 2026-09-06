@@ -1,0 +1,71 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/gradient.png" id="1"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/leftwindow.png" id="2"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/name.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/banner.png" id="4"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/arial.ttf" id="5"]
+[ext_resource type="Script" path="res://holyquintet_mod/menus/pause/pause_meguca.gd" id="6"]
+
+[node name="HQPauseMeguca" type="Control" process_mode=3]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="Gradient" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1")
+stretch_mode = 6
+
+[node name="LeftWindow" type="TextureRect" parent="."]
+offset_left = 100.0
+offset_top = 174.0
+offset_right = 600.0
+offset_bottom = 906.0
+texture = ExtResource("2")
+stretch_mode = 6
+
+[node name="MenuLabel" type="Label" parent="LeftWindow"]
+layout_mode = 1
+offset_left = 30.0
+offset_top = 80.0
+offset_right = 470.0
+offset_bottom = 400.0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 42
+text = ">  Resume\n   Restart\n   Settings\n   Quit"
+theme_override_colors/font_color = Color(0.533, 0.031, 0, 1)
+
+[node name="CreditsTitle" type="TextureRect" parent="."]
+offset_left = 860.0
+offset_top = 40.0
+offset_right = 1060.0
+offset_bottom = 140.0
+texture = ExtResource("3")
+stretch_mode = 6
+
+[node name="Banner" type="TextureRect" parent="."]
+offset_left = 625.0
+offset_top = 150.0
+offset_right = 1295.0
+offset_bottom = 252.0
+texture = ExtResource("4")
+stretch_mode = 6

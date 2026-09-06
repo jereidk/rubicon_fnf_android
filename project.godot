@@ -47,6 +47,7 @@ ErrorLog="*res://animania_mod/scripts/debug/animania_error_log.gd"
 MusicFilter="*res://animania_mod/scripts/music_filter.gd"
 
 DebugOverlay="*res://animania_mod/scripts/debug_overlay.gd"
+HQSaves="*res://holyquintet_mod/scripts/hq_saves.gd"
 
 [rubicon]
 
