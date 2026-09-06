@@ -1323,9 +1323,9 @@ const EXIT_FADE := 1.0
 const CONFIRM_DELAY := 0.2
 const CONFIRM_TIME := 1.0
 const CONFIRM_PITCH := 0.9
-## `?` La altura del salto no es un literal del metodo; sale de la propia posicion del
-## disco. Este 60 es una eleccion mia, marcada.
-const CONFIRM_JUMP := 60.0
+## Linea 635: `disk.y - 145`. Ya no es una eleccion: el 145.0 esta en 0x59faa40 y el
+## `subsd` que lo resta a `0x38(%rax)` -la y del disco- esta en el cierre de 0x34c4180.
+const CONFIRM_JUMP := 145.0
 
 
 func _handle_exit() -> void:
@@ -1823,20 +1823,31 @@ func confirm() -> void:
 	_play_sound(SOUND_CONFIRM, 1.0)
 	_remember_selection()
 
-	# capsuleOnConfirmDefault (0x34c0a20, lineas 627-645):
-	#   627  new FlxTimer().start(0.5, ...)
-	#   634  <disco>.forcePosition()
-	#   635  FlxTween.tween(<disco>, {y: ...}, 1, {startDelay: 0.2, ease: backInOut})
-	#   640  FlxTween.tween(<musica>, {pitch: 0.9}, ..., {ease: quadInOut})
-	#   643  lo mismo sobre layerSound
-	#   645  new FlxTimer().start(1, ...)   <- y aqui se cambia de pantalla
-	# O sea: el disco salta con un backInOut de un segundo tras 0.2 de espera, la musica
-	# baja de tono a 0.9, y la transicion tarda UN segundo, no 0.6.
+	# capsuleOnConfirmDefault son DOS metodos, y el que trae los numeros no es el que lleva
+	# el nombre: 0x34c0a20 solo despacha 'onNormalConfirm', busca la cancion y la
+	# dificultad -con sus dos avisos de "could not find ... with id ("- y arranca un
+	# FlxTimer cuya espera llega como el SEGUNDO argumento (linea 624, un
+	# `Dynamic::operator double`). Lo que se ve esta en el cierre de ese temporizador
+	# (0x34c4180, lineas 627-645):
+	#
+	#   634  disk.forcePosition()
+	#   635  FlxTween.tween(disk, {y: disk.y - 145}, 1, {startDelay: 0.2, ease: backInOut})
+	#   640  FlxTween.tween(<tema>,     {pitch: 0.9}, ..., {ease: quadInOut})
+	#   643  FlxTween.tween(layerSound, {pitch: 0.9}, ..., {ease: quadInOut})
+	#   645  new FlxTimer().start(1, ...)  -> LoadingState.loadPlayState(...)
+	#
+	# El salto son 145 pixeles, leidos: `movsd 0x38(%rax),%xmm0` sobre el disco y
+	# `subsd 145.0`. El puerto tenia 60 puestos a ojo y marcados como eleccion.
 	var disk: Node2D = _get_selected_disk()
 	if disk != null:
+		# Linea 634: el disco salta desde su DESTINO, no desde donde le pille la
+		# interpolacion. forcePosition() es `updateDiskPos(1, true)`, o sea la rama que
+		# copia targetPos tal cual.
+		disk.position = disk.get_meta(&"target", disk.position) as Vector2
+		_apply_disk_pose(disk)
 		var jump := create_tween()
 		jump.tween_property(disk, "position:y",
-			disk.position.y - CONFIRM_JUMP, CONFIRM_TIME) \
+			disk.position.y - CONFIRM_JUMP * FUNKIN_TO_RUBICON, CONFIRM_TIME) \
 			.set_delay(CONFIRM_DELAY).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BACK)
 	_bend_pitch(CONFIRM_PITCH)
 
@@ -1847,17 +1858,21 @@ func confirm() -> void:
 ## Los dos tweens de tono de capsuleOnConfirmDefault, lineas 640 y 643. En Godot el tono
 ## de un AudioStreamPlayer es pitch_scale, no una propiedad interpolable de un tween de
 ## flixel, pero el destino y la curva son los mismos.
+##
+## Los dos que baja el mod son la MUSICA -el tema que changeTheme dejo sonando- y su capa.
+## Aqui decia `sfx`, que es el reproductor de efectos: bajarle el tono a un efecto que ya
+## termino no hace nada, y el tema, que es lo que se oye, se quedaba igual.
 func _bend_pitch(to: float) -> void:
-	for player: Node in [sfx, layer_sound]:
+	for player: Node in [_theme_music, layer_sound]:
 		if player is AudioStreamPlayer and (player as AudioStreamPlayer).playing:
 			create_tween().tween_property(player, "pitch_scale", to, CONFIRM_TIME) \
 				.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_QUAD)
 
 
+## Por el meta `index`, no por la posicion en el arbol: es la misma razon que en
+## `_get_current_disk` y en `_update_disks`, el ID del disco es estable y su sitio no.
 func _get_selected_disk() -> Node2D:
-	if disks == null or cur_selected < 0 or cur_selected >= disks.get_child_count():
-		return null
-	return disks.get_child(cur_selected) as Node2D
+	return _get_current_disk()
 
 
 ## ─── back (updated) ─────────────────────────────────────────────────────────

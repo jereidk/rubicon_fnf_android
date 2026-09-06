@@ -3462,6 +3462,49 @@ is not there. The port keeps it, because that is what the code says, and this no
 so the next person does not "fix" it by guessing.
 
 
+## 8w. capsuleOnConfirmDefault is two methods, and the numbers are in the other one
+
+`hxlines "FreeplayScreen_obj::capsuleOnConfirmDefault"` reports thirty matching symbols and
+picks the largest, which is **not** the method — it is
+`capsuleOnConfirmDefault::_hx_Closure_2::_hx_run` at 0x34c4180. The method itself is at
+0x34c0a20 and does the boring half:
+
+    593  dispatch('onNormalConfirm', [...])
+    602  <registry>.instance …
+    605  trace('WARN: could not find song with id (' + … + ')')
+    617  trace('WARN: could not find difficulty with id (' + … + ')')
+    624  new FlxTimer().start(<the method's SECOND argument>, Closure_2)
+
+The delay on 624 is a `Dynamic::operator double` on the second parameter, so it comes from
+the caller, not from a literal here.
+
+Everything visible is in that closure (lines 627-645):
+
+    634  disk.forcePosition()
+    635  FlxTween.tween(disk, {y: disk.y - 145}, 1, {startDelay: 0.2, ease: backInOut})
+    640  FlxTween.tween(<theme>,    {pitch: 0.9}, …, {ease: quadInOut})
+    643  FlxTween.tween(layerSound, {pitch: 0.9}, …, {ease: quadInOut})
+    645  new FlxTimer().start(1, Closure_1)
+
+and `Closure_1` (0x34b9cb0, lines 647-653) is the transition:
+`PlayStatePlaylist.emptyPartialQueue()`, `setCurrentLevel(…)`, and
+`LoadingState.loadPlayState({targetSong, targetDifficulty, targetVariation,
+targetInstrumental, practiceMode, minimalMode, botPlayMode})`.
+
+Three things changed in the port:
+
+- **The jump is 145, not 60.** The port had 60 with a `?` saying "the height is not a
+  literal of the method, it comes from the disk's own position". It is a literal: 145.0 at
+  0x59faa40, `subsd`-ed from `0x38(%rax)`, the disk's y.
+- **`forcePosition()` first.** It is `updateDiskPos(1.0, true)` — the branch that copies
+  `targetPos` straight across — so the disk jumps from where it is *heading*, not from
+  wherever the lerp had got to.
+- **The pitch bend was on the wrong players.** The mod bends the theme music and its layer;
+  the port was bending `sfx` (the sound-effect player) and the layer. Bending a
+  sound-effect player that has already finished does nothing, and the music — the thing you
+  actually hear — was left alone.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:
