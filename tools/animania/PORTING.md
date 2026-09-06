@@ -3735,11 +3735,8 @@ its animation, but `visible = false`.
 
 ### Still open on this slot
 
-- **The TV noise is white in the mod and dark in the port.** Measured over the tube:
-  mean luma 227 in the capture against 100 in the port, and the two are near inverses —
-  bright with dark bands versus dark with bright speckles. It is not the album (the album is
-  off in both, per the lock) and it is not the 1100-1102 alpha kick, which only moves the
-  noise between 0.7 and 0.45. Unexplained; not guessed at.
+- ~~The TV noise is white in the mod and dark in the port.~~ **Explained and fixed** — see
+  8aa.
 - ~~The two characters are too big and too close together.~~ **Measured and fixed** — see
   below.
 
@@ -3805,6 +3802,94 @@ Verified by re-running the whole loop on the result: both characters now match t
 scale 1.010 and 1.000, landing within 7 px and 2 px of the target — the 7 being exactly the
 drift correction. The correlations do not improve past 0.599 and 0.857 because the remaining
 difference is the idle pose and the mod's darker grade, not placement.
+
+
+## 8aa. The white TV, and a whole class of silent bug
+
+The tutorial capture has the tube **white** — mean luma 225.7 against 122.5 on the random
+slot — with the same noise underneath, only washed out. Both captures have the album off
+(tutorial is locked), so it is not the cover, and it is not the 1100-1102 alpha kick, which
+only moves `tvNoiseForward` between 0.7 and 0.45.
+
+`buildBg` names the only white thing inside the tube:
+
+```
+1290  tvBackBG      z=20  makeGraphic(..., 0xff000000)   negro
+1300  tvSpriteFlash z=29  makeGraphic(375, 305, 0xffffffff)  BLANCO, visible = false
+1307  tvNoiseBack   z=26  sparrow TVNOISE, visible = false
+1319  albumRoll     z=27
+1327  tvNoiseForward z=28 sparrow TVNOISE, alpha 0.45, visible = false
+```
+
+and `doIntroAnim` turns it on:
+
+```
+1641  tvSpriteFlash.alpha = 1
+1642  FlxTween.tween(tvSpriteFlash, {alpha: 0}, 0.75, {ease: circOut})
+1643  FunkinSound.playOnce('animania/menu/freeplay/tvOn')
+1645  shadowsOnBed.visible = true
+1646  freeplayScore.updateScore(0)
+1648  changeSelection(...)
+```
+
+So the capture is not a different *state* — it is a **frame of the switch-on**, taken while
+the flash is still fading. Everything else in it agrees: the header is lit and the characters
+are on the bed because 1645-1648 run in the same breath as the flash, and `updateDataStuff`
+sets the header alphas outright rather than tweening them.
+
+**The port had the flash and never once played it.** `TvSpriteFlash` is a `ColorRect` in the
+scene and the script asked for it as a `Sprite2D`:
+
+```gdscript
+tv_sprite_flash = get_node_or_null("TvSpriteFlash") as Sprite2D   # -> null, siempre
+```
+
+In GDScript a mismatched `as` does not raise — it returns null — and every use sits behind
+`if tv_sprite_flash != null`, so the whole effect vanished without one line of output. This
+is the **seventh** time this exact shape has cost something in this port (`disk_player`,
+`disk_player_mask`, `tv_back_bg` were three earlier ones), so it now has a checker:
+`tools/animania/check_node_casts.py` parses every `get_node_or_null("X") as T` against the
+node types in the matching `.tscn`. It found three live ones — `TvSpriteFlash` (ColorRect),
+`TvBg` and `UI/HelpButton` (both AnimatedSprite2D) — and nothing else. Nodes carrying a
+`script =` are skipped, because a `.tscn` only records their base class.
+
+With the cast fixed, `tv_flash.gd` traces the tube through the intro and the flash is there:
+luma 195.7 at alpha 0.603, decaying to about 77.
+
+### What did not reconcile, and the arithmetic that says so
+
+Holding the flash at the alpha that reproduces the capture's **mean** does not reproduce its
+**spread**. Measured over the same window:
+
+```
+                       media     p5    p95
+mod (tutorial)         225.7  154.0  255.0
+puerto, normal a=0.78  222.1  208.3  239.3
+puerto, aditivo a=0.45 211.0  160.5  255.0
+```
+
+A normal alpha blend is a contraction toward 255, and that pins the two gaps together:
+
+```
+media - p5   = (1-a) * (N_media - N_p5)   = 71.7
+255  - media = (1-a) * (255 - N_media)    = 29.3
+```
+
+so `N_media - N_p5 = 2.45 * (255 - N_media)`, and with `N_p5 >= 0` that forces
+`N_media >= 181`. The mod's own tube without the flash averages **122.5**. So a normal blend
+cannot produce that histogram over that noise, no matter which alpha is chosen. An additive
+one can, and does, to within the port's known tube-brightness gap.
+
+It stays **unported**, because there is no evidence for it in the code: `blend` is field
+0x178 of `FlxSprite` (from its `__Field`, comparing `"blen"` + `"d"` at 0x513adc7), and
+neither `buildBg` 1300-1306 nor `doIntroAnim` writes it on `tvSpriteFlash` — buildBg's only
+other stores there are a null into 0x260 and a `true` into 0x279. Fitting a blend mode to one
+screenshot's histogram with nothing in the binary behind it is the kind of invention this
+audit exists to catch. The measurement is recorded so the next capture, or a `blend` write
+found elsewhere, can settle it.
+
+The related older thread is still open underneath this one: the port's tube averages about
+27 luma darker than the mod's even with no flash at all.
 
 
 ## 8b. Adding a song, for real

@@ -294,7 +294,7 @@ var characters_buttons: Node2D
 var info_title: Label
 var info_bpm_text: Label
 var info_difficulty: Label
-var help_button: Sprite2D
+var help_button: AnimatedSprite2D
 var difficulty_stars: Node2D
 var selector: Node2D
 var album_roll: Node2D
@@ -342,10 +342,16 @@ var leaving_to_not_play: bool = false
 var mouse_events: bool = true
 
 ## TV background sprite.
-var tv_bg: Sprite2D
+var tv_bg: AnimatedSprite2D
 
-## TV sprite flash overlay.
-var tv_sprite_flash: Sprite2D
+## El rectangulo BLANCO que tapa el tubo durante el encendido. buildBg 1300 lo crea con
+## `makeGraphic(..., 0xffffffff)` y zIndex 29, por encima de las dos capas de ruido (26 y
+## 28) y de la caratula (27), y doIntroAnim 1641-1642 lo enciende opaco y lo apaga en
+## 0.75 s con circOut, a la vez que suena `tvOn`.
+##
+## Es un ColorRect en la escena, no un Sprite2D, y pedirlo como Sprite2D devolvia null sin
+## un solo aviso: el destello no se hacia nunca. Ver check_node_casts.py.
+var tv_sprite_flash: ColorRect
 
 var intro_done: bool = false
 var boss_sound: AudioStreamPlayer
@@ -382,7 +388,7 @@ func _resolve_nodes() -> void:
 	info_title = get_node_or_null("UI/InfoTitle") as Label
 	info_bpm_text = get_node_or_null("UI/InfoBpm") as Label
 	info_difficulty = get_node_or_null("UI/InfoDifficulty") as Label
-	help_button = get_node_or_null("UI/HelpButton") as Sprite2D
+	help_button = get_node_or_null("UI/HelpButton") as AnimatedSprite2D
 	difficulty_stars = get_node_or_null("UI/DifficultyStars")
 	album_roll = get_node_or_null("UI/AlbumRoll")
 	album_art = get_node_or_null("UI/AlbumRoll/AlbumArt") as AnimateSymbol
@@ -406,8 +412,8 @@ func _resolve_nodes() -> void:
 	completion_text = get_node_or_null("UI/CompletionText") as Node2D
 	freeplay_score = get_node_or_null("UI/FreeplayScore") as Node2D
 	grp_disks = get_node_or_null("Disks") as Node2D
-	tv_bg = get_node_or_null("TvBg") as Sprite2D
-	tv_sprite_flash = get_node_or_null("TvSpriteFlash") as Sprite2D
+	tv_bg = get_node_or_null("TvBg") as AnimatedSprite2D
+	tv_sprite_flash = get_node_or_null("TvSpriteFlash") as ColorRect
 
 
 ## ─── loadAllAvalaibleSongs (0x34bf580, lineas 422-491) ─────────────────────

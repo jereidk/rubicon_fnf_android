@@ -40,6 +40,18 @@ func _process(delta: float) -> void:
 	while wait < HOLD:
 		await get_tree().process_frame
 		wait += get_process_delta_time()
+	# Segundo argumento opcional: el alfa al que dejar `tvSpriteFlash`, el rectangulo blanco
+	# del encendido. Sirve para comparar contra una captura del mod tomada DURANTE el
+	# destello -la de tutorial lo esta, a un alfa de 0.78 medido por el brillo del tubo-,
+	# que si no es imposible de reproducir a mano: el destello dura 0.75 s con circOut y
+	# pasa por ese valor en los primeros 25 ms.
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() > 1 and args[1].is_valid_float():
+		var flash := _screen.get_node_or_null("TvSpriteFlash") as ColorRect
+		if flash != null:
+			flash.visible = true
+			flash.modulate.a = args[1].to_float()
+			await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var songs: Array = _screen.get("current_filtered_songs") as Array
 	var song: Dictionary = songs[_screen.get("cur_selected")]
