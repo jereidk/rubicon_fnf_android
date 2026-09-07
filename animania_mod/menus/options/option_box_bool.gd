@@ -17,7 +17,14 @@ var display_name: String  ## Shown label
 var cur_value: bool = false
 var change_func: Callable  ## Called with new value on change
 var label: Label
-var checkmark: Sprite2D
+## AnimatedSprite2D, no Sprite2D. Estaba declarado como Sprite2D y las cuatro lineas que
+## siguen -sprite_frames, animation, frame- son propiedades que un Sprite2D no tiene, asi
+## que Godot las rechazaba en tiempo de ejecucion: "Invalid assignment of property
+## 'sprite_frames' ... on a base object of type 'Sprite2D'". Resultado, la marca de cada
+## opcion booleana no se dibujaba nunca. Salio al instanciar la pantalla de opciones en el
+## arnes del mando de menus; es de la misma familia que los casteos silenciosos que caza
+## check_node_casts.py, solo que aqui el nodo se crea por codigo y no hay .tscn que mirar.
+var checkmark: AnimatedSprite2D
 var _is_selected: bool = false
 var _drill_sound: AudioStreamPlayer
 
@@ -40,7 +47,7 @@ func _ready() -> void:
 	add_child(label)
 
 	# Checkmark
-	checkmark = Sprite2D.new()
+	checkmark = AnimatedSprite2D.new()
 	checkmark.name = "Checkmark"
 	checkmark.position = Vector2(350, 0)
 	_setup_checkmark_frames()

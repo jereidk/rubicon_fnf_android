@@ -21,6 +21,7 @@ extends SceneTree
 const OUT := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const DIR := "res://animania_mod/menus/freeplay"
 const ART := "res://animania_mod/source/images/freeplay"
+const MENU_PAD := "res://animania_mod/ui/menu_virtual_pad.tscn"
 
 ## postHeader, todo en el espacio 1280x720 del mod. Ver el comentario de la capsula.
 const CAPSULE_SIZE := Vector2(382.0, 54.0)
@@ -1233,6 +1234,18 @@ func _init() -> void:
 	dark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dark.color = Color(0.0, 0.0, 0.0, 0.4)
 	_add(dark)
+
+	# El mando de menus. No sale del binario -el mod es de escritorio-; ver
+	# menu_virtual_pad.gd. Va AQUI y no por el parcheador de escenas como los demas menus
+	# porque esta escena la genera este builder, y un builder que no conoce un nodo lo borra
+	# en la siguiente pasada.
+	#
+	# `Full`: en esta pantalla izquierda y derecha cambian la DIFICULTAD, que sin ellas no
+	# hay forma de tocar con un dedo.
+	var pad: CanvasLayer = (load(MENU_PAD) as PackedScene).instantiate() as CanvasLayer
+	pad.name = "MenuVirtualPad"
+	pad.set("layout", "Full")
+	_add(pad)
 
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"

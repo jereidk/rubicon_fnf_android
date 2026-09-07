@@ -4614,6 +4614,81 @@ excluded twice.
 exactly what makes it worth doing, and it moves the compensation onto whoever draws the atlas.
 
 
+## 8aj. A D-pad for the menus, which the port never had
+
+Everything up to here is a port of something that exists in the binary. This is not: the mod
+is a desktop build and has no touch controls at all, so there is nothing to read and the
+decisions are choices. They are written where they are made rather than dressed up as
+readings.
+
+**What was already there, and what was missing.** Gameplay has had touch since early on:
+`rubicon_mobile_controls` draws four invisible full-height columns that light up when
+pressed, and every song scene instances it. That part is fine and stays as it is. The menus
+also each have a `_touch(position)` that hits-tests the screen's own artwork. What has no
+answer on a phone is **navigating**: half the mod's screens are lists with nothing to aim at
+-- the options rows, the week selector, the credits pages -- and even on the main menu, where
+the eight plaques are tappable, there is no way to go back, and no way to move the difficulty
+in freeplay. Those are keyboard-only paths.
+
+So: a D-pad, in the shape Psych Engine's Android forks use. The artwork is Indie Cross's own
+`virtualpad` (jereidk/Indie-Cross-Public), which in that repo ships already converted to
+ASTC; what is vendored here is the PNG from before that conversion, 1584x508, sixteen buttons
+of three frames each at 132x127 (idle and two pressed). The art is grey and the colour comes
+from `modulate`, exactly as the `FlxVirtualPad` it comes from tints it.
+
+**How a press reaches a menu.** By synthesising an `InputEventKey` through
+`Input.parse_input_event`, which is the same trick the gameplay hitbox already uses. The
+menus of this port read `InputEventKey` and its `keycode` directly -- `KEY_UP`, `KEY_ENTER`,
+`KEY_ESCAPE` -- so a synthetic key reaches them with no menu changed, and the options screens,
+which read the `ui_left` / `ui_right` *actions* instead, get it too through the default
+InputMap. Not one menu script was touched.
+
+**Two things the measurement caught that reading would not have.**
+
+A `CanvasLayer` does **not** inherit visibility from whatever it hangs off: to the rendering
+server they are sibling layers, and `visible = false` on the parent leaves the child drawn.
+The pause menu is exactly that shape -- it starts hidden and only shows while the tree is
+paused -- so its pad sat on top of gameplay. `pad_leak_probe.gd` measured it in a real song:
+`pausa visible=false, mando visible=true`. The pad now follows its parent's visibility.
+
+And instancing the options screen for the probe printed `Invalid assignment of property
+'sprite_frames' ... on a base object of type 'Sprite2D'`, four times. That one is **not**
+mine and predates this work: `option_box_bool.gd` declares its checkmark as a `Sprite2D` and
+then assigns `sprite_frames`, `animation` and `frame` to it, so **the tick of every boolean
+option had never drawn**. Same family as the silent casts `check_node_casts.py` hunts, except
+this node is built in code and there is no `.tscn` for that tool to look at. Fixed here
+because it turned up here; it is a two-line change and the ticks render now.
+
+**Where it is wired, and why per screen.** `tools/animania/add_menu_pad.py` text-patches the
+menu scenes -- same reason as `add_difficulty_node.py`, since `instantiate()` + `pack()` loses
+sub-scene overrides. Freeplay is deliberately not on that list: its scene is *generated* by
+`build_freeplay_scene.gd`, and a builder that does not know about a node deletes it, so its
+pad is mounted there instead. The layout is `Full` (with left and right) where a screen
+actually reads them and `Vertical` where it does not -- a button that does nothing is worse
+than no button.
+
+| pantalla | layout | por que |
+|---|---|---|
+| main_menu | Full | `changeItem` con UI_LEFT/UI_RIGHT, handleInput 815-816 |
+| freeplay | Full | izquierda y derecha cambian la dificultad |
+| story_menu | Full | la fila de semanas |
+| credits_menu | Full | las paginas |
+| options_screen | Full | el valor de cada fila se mueve a los lados |
+| pause_menu | Vertical | es una lista y ya |
+
+`menu_pad_probe.gd` presses every button on a real menu scene and checks both ends of the
+path -- the button's box and the keycode that arrives -- plus two fingers at once, which is
+what breaks a badly written pad. Zero failures on main_menu, story_menu, options_screen and
+freeplay_screen. Two screens it cannot test and says so: credits, because accepting or going
+back navigates away from under it, and pause, because its `process_mode` is `WHEN_PAUSED` and
+the harness's tree is not paused.
+
+It hides itself where there are no fingers (`DisplayServer.is_touchscreen_available()` or the
+`mobile` feature), so nothing changes on desktop. `Engine`'s `force_menu_pad` meta is the
+override the harnesses use, and without it there would be no way to test any of this on a
+machine with no touchscreen -- which is the same as not testing it.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

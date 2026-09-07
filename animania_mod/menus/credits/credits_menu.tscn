@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/x.png" id="10_ttpsm"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/soundcloud.png" id="11_b5708"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/menus/credits/buttons/newgrounds.png" id="12_owcfe"]
+[ext_resource type="PackedScene" path="res://animania_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="CreditsMenu" type="Node2D" unique_id=1794355003 node_paths=PackedStringArray("sfx")]
 script = ExtResource("1_bqami")
@@ -119,3 +120,6 @@ texture = ExtResource("12_owcfe")
 centered = false
 
 [node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=860654853]
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+layout = "Full"

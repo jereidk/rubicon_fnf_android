@@ -13,6 +13,7 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/source/images/storymenu/ui/arrows_frames.tres" id="11_arrow_frames"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/storymenu/difficulties/hard.png" id="14_diff_hard"]
 [ext_resource type="FontFile" path="res://animania_mod/source/fonts/VCR OSD Mono Cyr.ttf" id="16_font"]
+[ext_resource type="PackedScene" path="res://animania_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lock"]
 atlas = ExtResource("9_lock")
@@ -280,3 +281,6 @@ texture = SubResource("AtlasTexture_lock")
 [node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=1876249755]
 
 [node name="BassSound" type="AudioStreamPlayer" parent="." unique_id=774756934]
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+layout = "Full"

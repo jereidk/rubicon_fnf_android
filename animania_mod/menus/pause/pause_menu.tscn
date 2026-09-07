@@ -8,6 +8,7 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_options_frames.tres" id="6_8d2gd"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/pause/pause_exit_frames.tres" id="7_g20xf"]
 [ext_resource type="AudioStream" path="res://animania_mod/source/music/breakfast/breakfast-phonecall.ogg" id="8_u23ue"]
+[ext_resource type="PackedScene" path="res://animania_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=859432915 node_paths=PackedStringArray("dim", "buttons", "sfx", "music")]
 layer = 40
@@ -76,3 +77,6 @@ metadata/hitbox = Rect2(-94.87501, -53.625004, 189.75002, 107.25001)
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=401895662]
 stream = ExtResource("8_u23ue")
 bus = &"Music"
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+layout = "Vertical"
