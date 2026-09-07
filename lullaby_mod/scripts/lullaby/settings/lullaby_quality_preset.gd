@@ -2,7 +2,50 @@ class_name LullabyQualityPreset extends Resource
 
 @export var name: String = "Default"
 
+## Como se sube el pase 3D desde su resolucion reducida hasta la del viewport.
+##
+## NO cambia cuanto se dibuja: con `render_scale = 0.5` el 3D se renderiza a
+## media resolucion en los dos casos, y esto solo decide el filtrado del blit
+## final. NEAREST (5) ahorra las muestras de ese filtrado y a cambio sube el
+## resultado a bloques.
+##
+## `qol_very_low` y `qol_low` llevaban NEAREST desde que nacieron, y el commit
+## que las creo -a5abb305, que documenta el atlas de sombras, el filtrado, el
+## post-procesado y como verifico todo lo demas- no lo menciona ni una vez. Los
+## que vinieron despues y si midieron, como f40ace8a llevando render_scale de
+## 0.55 a 0.50 contra 31,9ms medidos en el g53, tampoco lo tocan. Era un valor
+## sin razon registrada, no una decision defendida.
+##
+## BILINEAR ahora en las cuatro. Con el 2D dibujandose a resolucion nativa
+## encima -ver `render_scale` justo debajo-, un 3D subido sin filtrar deja un
+## fondo a bloques bajo unos sprites y un HUD afilados, y esa mezcla se nota
+## mucho mas que un 3D suavizado. Lo que cuesta son cuatro muestras por pixel en
+## vez de una sobre el blit final; barato, pero en un movil con el ancho de banda
+## justo no se afirma que sea gratis sin medirlo en el aparato.
 @export var scaling_3d_mode: Viewport.Scaling3DMode = Viewport.Scaling3DMode.SCALING_3D_MODE_BILINEAR
+
+## La resolucion interna del pase 3D, como fraccion del viewport.
+##
+## SOLO EL 3D. Es `Viewport.scaling_3d_scale`, y el 2D del viewport principal no
+## se entera: el HUD, las notas, el marcador y cada sprite de personaje se
+## siguen dibujando a la resolucion real del panel. En este juego eso no es
+## decoracion - Serena entera son sprites 2D - asi que a 0.50 no se dibuja
+## "medio fotograma", se dibuja medio pase 3D y un 2D entero.
+##
+## Comprobado, no supuesto: el proyecto usa `window/stretch/mode="canvas_items"`,
+## donde `content_scale_size` (1920x1080) es solo el sistema de coordenadas en el
+## que escribe el 2D, y el viewport toma el tamaño de la ventana. Medido en un
+## proyecto limpio con esta misma configuracion.
+##
+## La palanca que faltaria para el 2D es `content_scale_factor` con
+## `CONTENT_SCALE_MODE_VIEWPORT`, y no es de una linea: mueve las coordenadas del
+## raton, los anclajes de la UI y `rubicon_mobile_controls`, que es la unica
+## entrada que tiene el dispositivo. Antes de eso hace falta un log de juego real
+## que diga cuanto del fotograma es 2D - la fila `rend=[3d=... 2d=...]` lo trae
+## por fotograma.
+##
+## Los SubViewport son el otro caso y si escalan enteros, 2D incluido, por `size`
+## y `stretch_shrink`: ver `Settings._apply_subviewport_render_scale()`.
 @export var render_scale: float = 1.0
 @export var shadows_enabled: bool = true
 @export var positional_shadow_atlas_size: int = 4096
