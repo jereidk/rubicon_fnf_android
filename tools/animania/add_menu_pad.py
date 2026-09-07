@@ -22,6 +22,12 @@ PAD = "res://animania_mod/ui/menu_virtual_pad.tscn"
 NAME = "MenuVirtualPad"
 RES_ID = "menu_virtual_pad"
 
+# El menu de SEMANAS tampoco esta, y por lo mismo: se maneja entero con lo que ya hay
+# dibujado. Las dos flechas del cartel cambian la dificultad, el titulo de una semana la
+# elige y BF es el entrar. Volver lo hace el boton de atras del telefono, que story_menu.gd
+# ya atiende (NOTIFICATION_WM_GO_BACK_REQUEST). No queda una sola accion que necesite un
+# boton dibujado encima.
+#
 # El menu PRINCIPAL tampoco esta, y no por olvido: esa pantalla esta pensada para tocarla.
 # Sus ocho placas son rectangulos con su `_touch` y el disco de la OST tambien; ponerle
 # encima un mando de flechas es repetir con botones lo que la pantalla ya hace mejor, y
@@ -35,12 +41,6 @@ RES_ID = "menu_virtual_pad"
 # La escena -> (cruz, acciones), y por que. Entre parentesis, lo que usa Indie Cross en la
 # pantalla equivalente, que casi siempre coincide.
 LAYOUTS = {
-    # La dificultad se cambia TOCANDO sus dos flechas, y la semana tocando su titulo -las
-    # dos cosas ya estaban en pantalla-, asi que del mando solo queda lo que no se puede
-    # tocar. Y con media cruz basta: `change_level` y `change_difficulty` dan la vuelta, o
-    # sea que abajo recorre las semanas y la izquierda las dificultades sin dejar nada
-    # fuera. Las acciones arriba a la derecha porque abajo esta el cartel de la dificultad.
-    "animania_mod/menus/story/story_menu.tscn": ("LEFT_DOWN", "A_B_TOP"),
     # Las filas se mueven con ui_up/ui_down y el VALOR de cada una con ui_left/ui_right
     # -base_sub_menu 68-84-, asi que aqui hacen falta las cuatro. (alli: LEFT_FULL, A_B_C)
     "animania_mod/menus/options/options_screen.tscn": ("LEFT_FULL", "A_B_TOP"),

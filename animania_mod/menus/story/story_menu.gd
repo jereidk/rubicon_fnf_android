@@ -483,8 +483,18 @@ func week_at(at: Vector2) -> int:
 	return -1
 
 
-## Las flechas ANTES que los titulos: se dibujan encima y sus cajas, ya crecidas al minimo
-## del dedo, muerden el area de la semana de al lado. Manda lo que se ve encima.
+## Esta pantalla NO lleva mando: se maneja con lo que ya hay dibujado en ella. Las flechas
+## de los lados del cartel cambian la dificultad, el titulo de una semana la elige, y BF
+## -el de en medio de los tres, el que tu llevas- es el ENTRAR.
+##
+## El orden importa y no es alfabetico: las flechas primero, porque se dibujan encima y sus
+## cajas -crecidas al minimo del dedo- muerden el area de la semana de al lado; BF despues,
+## porque es el unico que confirma y mas vale que gane el que hace algo irreversible.
+##
+## Tocar la semana YA elegida no hace nada, a proposito. En el resto del puerto el segundo
+## toque sobre lo elegido es el confirmar, pero aqui el confirmar tiene su propio sitio y
+## dos formas de entrar en una semana es una de mas: la mitad de esta pantalla son titulos
+## grandes y el dedo aterriza en ellos constantemente.
 func _touch(at: Vector2) -> void:
 	var arrow: AnimatedSprite2D = arrow_at(at)
 	if arrow != null:
@@ -492,13 +502,51 @@ func _touch(at: Vector2) -> void:
 		_press_arrow(arrow)
 		return
 
-	var i: int = week_at(at)
-	if i < 0:
-		return
-	if i == selected_level:
+	if player_prop_at(at) != null:
 		select_level()
-	else:
-		change_level(i - selected_level)
+		return
+
+	var i: int = week_at(at)
+	if i < 0 or i == selected_level:
+		return
+	change_level(i - selected_level)
+
+
+## `true` si ese `assetPath` es el de BF. Por TROZOS y no por `contains`: los nombres son
+## `BF_STANDART_MENU` y `X-MAS_BF_MENU`, y buscar "BF" suelto dentro de la cadena es la
+## clase de regla que un dia casa con otra cosa. Partiendo por lo que no es letra ni numero,
+## `BF` es un trozo entero y `GF_STANDART_MENU` no da falso positivo.
+func _is_player_asset(asset_path: String) -> bool:
+	var name: String = asset_path.get_file().to_upper()
+	var token: String = ""
+	for i: int in name.length():
+		var c: String = name[i]
+		if (c >= "A" and c <= "Z") or (c >= "0" and c <= "9"):
+			token += c
+			continue
+		if token == "BF":
+			return true
+		token = ""
+	return token == "BF"
+
+
+## El prop de BF debajo del dedo, o null. Su caja es el fotograma que se esta dibujando: es
+## un dibujo de casi 500 px de alto, asi que aqui no hace falta el suelo de 132 que si
+## necesitan las flechas.
+func player_prop_at(at: Vector2) -> AnimatedSprite2D:
+	var local: Vector2 = get_viewport().get_canvas_transform().affine_inverse() * at
+	for prop: AnimatedSprite2D in _active_props:
+		if not is_instance_valid(prop) or not prop.visible:
+			continue
+		if not bool(prop.get_meta(&"is_player", false)):
+			continue
+		var tex: Texture2D = prop.sprite_frames.get_frame_texture(prop.animation, prop.frame)
+		if tex == null:
+			continue
+		var size: Vector2 = tex.get_size() * prop.scale
+		if Rect2(prop.position - size * 0.5, size).has_point(local):
+			return prop
+	return null
 
 
 ## Las dos flechas de la dificultad, a los lados del cartel. En el mod son adorno -se cambia
@@ -883,6 +931,12 @@ func update_props() -> void:
 
 		var anim_sprite := AnimatedSprite2D.new()
 		anim_sprite.sprite_frames = frames
+		# Cual de los tres es BF, que en esta pantalla es el boton de ENTRAR. Se saca del
+		# `assetPath` y por TROZOS, no por `contains`: los nombres son BF_STANDART_MENU y
+		# X-MAS_BF_MENU, y buscar "BF" suelto dentro de la cadena es la clase de regla que
+		# un dia casa con otra cosa. Partiendo por lo que no es letra ni numero, BF es un
+		# trozo entero y GF_STANDART_MENU no da falso positivo.
+		anim_sprite.set_meta(&"is_player", _is_player_asset(asset_path))
 		anim_sprite.set_meta(&"frame_offsets", frame_offsets)
 		var rest: StringName = _prop_idle_anim(frames)
 		var rest_offs: PackedVector2Array = frame_offsets.get(rest, PackedVector2Array())

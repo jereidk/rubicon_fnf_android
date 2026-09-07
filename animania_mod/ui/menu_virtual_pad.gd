@@ -73,15 +73,6 @@ const DPADS := {
 		&"up": Vector2(105.0, 345.0), &"left": Vector2(0.0, 243.0),
 		&"right": Vector2(207.0, 243.0), &"down": Vector2(105.0, 135.0),
 	},
-	# ESTE no sale de FlxVirtualPad: es media cruz, la esquina de abajo a la izquierda de
-	# LEFT_FULL, con las esquinas de la referencia sin tocar.
-	#
-	# Y no es un recorte a lo bruto. En el menu de semanas, `change_level` y
-	# `change_difficulty` dan los dos la vuelta -`wrapi` en las lineas 340 y 626-, asi que
-	# UN boton por eje llega a todo: abajo recorre las semanas y la izquierda las
-	# dificultades. Es el mismo argumento que deja UNA flecha de dificultad en freeplay.
-	# Los otros dos no aportaban un destino nuevo, solo tapaban arte.
-	"LEFT_DOWN": {&"left": Vector2(0.0, 243.0), &"down": Vector2(105.0, 135.0)},
 }
 ## Acciones -> boton -> esquina, contra la de abajo a la DERECHA: "tantos pixeles a la
 ## izquierda del borde derecho" y "tantos por encima del de abajo".
@@ -127,8 +118,7 @@ const KEYS := {
 # con lo que hace cada pantalla alli. Lo que decide cual va en cada sitio no es la moda: es
 # que teclas LEE ese menu. Un boton que no hace nada estorba mas que ayuda.
 
-@export_enum("NONE", "UP_DOWN", "LEFT_RIGHT", "LEFT_FULL", "LEFT_DOWN")
-var dpad: String = "UP_DOWN"
+@export_enum("NONE", "UP_DOWN", "LEFT_RIGHT", "LEFT_FULL") var dpad: String = "UP_DOWN"
 @export_enum("NONE", "A", "B", "A_B", "A_B_TOP") var action: String = "A_B_TOP"
 ## Alli `AndroidControls.getOpacity(false)` devuelve 0.6. Aqui va a 0.5: el arte de estos
 ## menus llega hasta los bordes y el mando esta encima de el, no sobre un fondo liso.

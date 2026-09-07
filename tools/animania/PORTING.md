@@ -4677,15 +4677,13 @@ a key is read.
 
 | pantalla | cruz | acciones | por que | Indie Cross |
 |---|---|---|---|---|
-| story_menu | LEFT_DOWN | A_B_TOP | la dificultad y las semanas ya se tocan; ver abajo | LEFT_FULL, A_B_C |
 | options_screen | LEFT_FULL | A_B_TOP | filas con `ui_up`/`ui_down`, valor con `ui_left`/`ui_right` | LEFT_FULL, A_B_C |
 | credits_menu | UP_DOWN | A_B_TOP | una sola lista: la 490 lee izquierda **y** arriba para lo mismo | NONE, A_B_C |
 | pause_menu | UP_DOWN | A_B_TOP | es una lista y ya | UP_DOWN, A_B |
 
-`LEFT_DOWN` and `A_B_TOP` are the two entries that are **not** in `FlxVirtualPad`, and they
-are marked as such in the file. Neither invents a coordinate — both reuse the reference's own
-corners, one drops two buttons and the other hangs the same row off the top instead of the
-bottom.
+`A_B_TOP` is the one entry that is **not** in `FlxVirtualPad`, and it is marked as such in
+the file: the same row the reference puts at the bottom right, hung 87 px below the top edge
+instead, clearing the 76-px score bar. It invents no coordinate of its own.
 
 **Freeplay came back out too, and for the same reason as the main menu.** The pad was
 mounted there first, on the argument that left and right change the difficulty and nothing
@@ -4787,44 +4785,60 @@ the pad *actually has* reordered them and put `b` in the middle. The menu probe 
 only the D-pad; A and B belong to `pad_layout_probe.gd`, which has no menu behind it to
 navigate away. Same story menu, same checks: **4.2 s**.
 
-### The week menu: the pad shrinks because the screen grew
+### The week menu ends with no pad at all
 
-Same move as freeplay, one screen later. The story menu's **difficulty arrows** — the `◄ ►`
-either side of the value — were decoration: `changeDifficulty` is driven by the keyboard and
-the arrows only announce that it can be. They now take a tap, with the same 132 px floor on
-the finger box that freeplay uses (the drawing is 25×49 on screen). The week titles were
-already tappable. Between the two, **nothing on this screen needs a key any more**.
+It got there in two steps, and the first one was wrong in an instructive way.
 
-So the D-pad drops to two buttons: `left` and `down`, the lower-left corner of `LEFT_FULL`
-with its coordinates untouched. Two is enough because both walks **wrap** — `wrapi` in
-`change_level` (line 340) and `change_difficulty` (626) — so `down` reaches every week and
-`left` every difficulty. It is the same argument that leaves freeplay with a single
-difficulty arrow. `up` and `right` reached no destination the other two did not; they only
-covered artwork.
+Step one made the **difficulty arrows** tappable — the `◄ ►` either side of the value, which
+in the mod are decoration (`changeDifficulty` is driven by the keyboard and the arrows only
+announce that it can be), with the same 132 px floor on the finger box that freeplay uses,
+since the drawing is 25×49 on screen. The week titles were already tappable. The pad was then
+cut down to two buttons on the argument that both walks **wrap** (`wrapi` in `change_level`
+line 340 and `change_difficulty` 626), so one button per axis still reaches everything.
 
-**And the action buttons moved because the harness proved they were stealing taps, not just
-sitting on top of things.** `story_touch_probe.gd` measures the overlap in pixels: `b` was on
-20 196 px² of the difficulty sign, `a` on 2 065 px² of it **plus 1 262 px² of the right
-arrow**. That last number is the interesting one. Tapping that arrow changed the difficulty
-*and* fired the pad's `a` underneath it, which is ENTER, which starts the week — and from
-there `change_difficulty` early-returns on `_confirmed`, so the next tap did nothing at all.
-What that looks like from outside is "the left arrow doesn't work", which is exactly how it
-first showed up, and it would never have been diagnosed from a screenshot. `A_B_TOP` hangs
-the same row 87 px below the top edge instead, clearing the 76-px score bar. The probe now
-asserts the empty intersection and that a tap on an arrow does **not** confirm.
+That was still a pad on a screen that no longer needed one. Step two removed it: **the week
+menu is now driven entirely by what it already draws** — tap an arrow to change difficulty,
+tap a week's title to select it, tap **BF** to go in. Going back is the phone's own back
+button, which `story_menu.gd` already answers (`NOTIFICATION_WM_GO_BACK_REQUEST`). The
+`LEFT_DOWN` half-cross that step one added is gone with it; a mode no screen uses is a
+liability, and the reasoning survives here.
 
-Opacity drops from the reference's 0.6 to **0.5**: that pad is drawn over a game whose art
-keeps clear of the corners, and this one's does not.
+Two decisions inside that are worth stating. **Tapping the already-selected week does
+nothing** — everywhere else in this port a second tap on the selection is the confirm, but
+here the confirm has its own place, and half this screen is huge week titles that a thumb
+lands on constantly. And **BF is found by name, in pieces**: the asset paths are
+`BF_STANDART_MENU` and `X-MAS_BF_MENU`, so the prop is matched on a whole `BF` token after
+splitting on non-alphanumerics, not with a `contains("BF")` that will one day match something
+else. `GF_STANDART_MENU` is the reason that matters.
+
+**The action buttons moved before they left, and the harness is why.** While the pad was
+still there, `story_touch_probe.gd` measured the overlap in pixels: `b` sat on 20 196 px² of
+the difficulty sign, `a` on 2 065 px² of it **plus 1 262 px² of the right arrow**. That last
+number is the interesting one. Tapping that arrow changed the difficulty *and* fired the
+pad's `a` underneath it, which is ENTER, which starts the week — and from there
+`change_difficulty` early-returns on `_confirmed`, so the next tap did nothing at all. From
+outside that reads as "the left arrow doesn't work", which is exactly how it first showed up.
+No screenshot would have found it.
+
+The probe now checks the five things the screen promises — each arrow changes the difficulty
+*and does not confirm*, another week's title selects, the selected one does nothing, BF
+confirms — plus that the screen carries no `MenuVirtualPad`, so that re-hanging one shows up
+as a failure. It also lands on a **playable** week before tapping BF: `select_level` plays
+the locked sound and returns when a week has no built songs (line 367), and in this port only
+tutorial is built, so the first version of the check blamed the tap for a locked week.
+
+Opacity for the pads that remain drops from the reference's 0.6 to **0.5**: that pad is drawn
+over a game whose art keeps clear of the corners, and this one's does not.
 
 `menu_pad_probe.gd` presses every button on a real menu scene and checks both ends of the
 path -- the button's box and the keycode that arrives -- plus two fingers at once, which is
-what breaks a badly written pad. Zero failures on story_menu and options_screen — and its two-finger test now takes the first
-two buttons of whatever cross the screen has, because asking the week menu's half-cross for
-an `up` was a null that the harness swallowed in a spin, which is "it hangs" wearing the
-costume of "it is slow" for the second time. (Its default
-target is options_screen now that neither the main menu nor freeplay carries a pad; pointing
-it at either would report a `FALLO` that is not one — freeplay's own coverage is
-`freeplay_touch_probe.gd`.) Two screens it cannot test and says so: credits, because accepting or going
+what breaks a badly written pad. Zero failures on options_screen, which is also its default
+target: the main menu, freeplay and now the week menu carry no pad, so pointing it at any of
+them reports a `FALLO` that is not one — those three have `freeplay_touch_probe.gd` and
+`story_touch_probe.gd` instead. Its two-finger test takes the first two buttons of whatever
+cross the screen has rather than two named ones; asking a two-button cross for an `up` was a
+null the harness swallowed in a spin, which is "it hangs" wearing the costume of "it is slow"
+for the second time. Two screens it cannot test and says so: credits, because accepting or going
 back navigates away from under it, and pause, because its `process_mode` is `WHEN_PAUSED` and
 the harness's tree is not paused.
 

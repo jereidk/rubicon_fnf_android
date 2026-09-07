@@ -1,12 +1,13 @@
-# El menu de semanas: que se maneje con el dedo y que el mando no tape la dificultad.
+# El menu de semanas se maneja ENTERO con lo que ya hay dibujado, sin mando. Esto lo
+# demuestra tocando cada cosa y mirando que cambia:
 #
-# Dos cosas que hay que DEMOSTRAR, no suponer:
-#   1. tocar las flechas de los lados del cartel cambia la dificultad, y tocar un titulo de
-#      semana lo elige (tocar el ya elegido entra, que eso ya estaba)
-#   2. ninguna caja del mando pisa el cartel de la dificultad ni sus dos flechas
+#   flecha derecha / izquierda  -> cambia la dificultad, y NO entra en la semana
+#   titulo de otra semana       -> la elige, y NO entra
+#   titulo de la ya elegida     -> no hace nada (el confirmar tiene su sitio)
+#   BF                          -> entra en la semana elegida
 #
-# Lo segundo es la parte que se me escapaba mirando capturas: "no tapa" es una condicion
-# entre rectangulos y se puede medir, asi que se mide.
+# Y que la pantalla no lleva mando, que es la otra mitad de la decision: si alguien se lo
+# vuelve a colgar, esto lo dice.
 #
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot --resolution 1920x1080 \
 #       --rendering-driver opengl3 --fixed-fps 60 --path . \
@@ -56,54 +57,61 @@ func _run() -> void:
 			_bad += 1
 		_say(spec[0] as String, "%s -> %s" % [before, after], after != before)
 
-	# ── 2. tocar una semana la elige ──────────────────────────────────────
+	# ── 2. tocar otra semana la elige, la ya elegida no hace nada ─────────
 	var titles: Node2D = _menu.get("titles") as Node2D
 	var before_level: int = int(_menu.get("selected_level"))
 	var other: int = wrapi(before_level + 1, 0, int(_menu.call("week_count")))
 	await _tap(to_screen * (titles.get_child(other) as Node2D).position)
-	_say("titulo de semana", "%d -> %d" % [before_level, int(_menu.get("selected_level"))],
-		int(_menu.get("selected_level")) == other)
+	_say("otra semana", "%d -> %d" % [before_level, int(_menu.get("selected_level"))],
+		int(_menu.get("selected_level")) == other and not bool(_menu.get("_confirmed")))
 
-	# ── 3. el mando no tapa la dificultad ─────────────────────────────────
-	var pad := _menu.find_child("MenuVirtualPad", true, false) as MenuVirtualPad
-	if pad == null:
-		print("OUT (esta pantalla no lleva mando)")
+	await _tap(to_screen * (titles.get_child(other) as Node2D).position)
+	_say("la ya elegida", "confirmado=%s" % str(_menu.get("_confirmed")),
+		not bool(_menu.get("_confirmed")))
+
+	# La foto va AQUI y no al final: despues de tocar a BF la pantalla ya esta entrando en
+	# la semana -suena el confirmar y los props se animan- y lo que se guardaria es eso.
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("user://story_touch.png")
+	print("OUT %s" % ProjectSettings.globalize_path("user://story_touch.png"))
+
+	# ── 3. BF es el entrar ────────────────────────────────────────────────
+	#
+	# Antes hay que pararse en una semana QUE SE PUEDA JUGAR. `select_level` se planta y
+	# suena el candado si la semana no tiene ni una cancion construida -linea 367-, y en
+	# este puerto la unica construida es tutorial. Sin esto, el arnes tocaba a BF en Week5
+	# y culpaba al toque de lo que era una semana bloqueada.
+	for step: int in int(_menu.call("week_count")):
+		var title: Node2D = titles.get_child(int(_menu.get("selected_level")))
+		if not (_menu.call("get_songs_filtered", title) as PackedStringArray).is_empty():
+			break
+		_menu.call("change_level", 1, false)
+		await _settle()
+	print("OUT jugable: semana %d" % int(_menu.get("selected_level")))
+
+	var bf: Node2D = null
+	for prop: Node in _menu.get("_active_props"):
+		if bool((prop as Node2D).get_meta(&"is_player", false)):
+			bf = prop as Node2D
+	if bf == null:
+		print("OUT BF                 FALLO: ningun prop dice ser el jugador")
+		_bad += 1
 	else:
-		print("OUT mando: cruz %s, acciones %s" % [pad.dpad, pad.action])
-		var guard := {}
-		for name: String in ["DifficultySprite", "DiffSelector", "LeftArrow", "RightArrow"]:
-			var node := _menu.get_node_or_null(NodePath(name)) as Node2D
-			if node == null or not node.visible:
-				continue
-			guard[name] = _rect_of(node, to_screen)
-		for id: StringName in pad._rects:
-			var box: Rect2 = pad._rects[id] as Rect2
-			for name: String in guard:
-				var over: Rect2 = box.intersection(guard[name] as Rect2)
-				var area: float = over.size.x * over.size.y
-				if area > 0.0:
-					print("OUT   %-6s pisa %-16s %d px2" % [id, name, int(area)])
-					_bad += 1
-		print("OUT   el mando %s la dificultad" % ["NO tapa" if _bad == 0 else "TAPA"])
+		await _tap(to_screen * bf.position)
+		_say("BF", "confirmado=%s" % str(_menu.get("_confirmed")),
+			bool(_menu.get("_confirmed")))
+
+	# ── 4. y esta pantalla no lleva mando ─────────────────────────────────
+	var pad := _menu.find_child("MenuVirtualPad", true, false)
+	_say("sin mando", "encontrado=%s" % str(pad != null), pad == null)
 
 	print("OUT fallos=%d" % _bad)
 	get_tree().quit()
 
 
-## El rectangulo que ocupa un Node2D en la PANTALLA. Los sprites de esta pantalla van
-## centrados, asi que su caja va alrededor de la posicion y no desde ella.
-func _rect_of(node: Node2D, to_screen: Transform2D) -> Rect2:
-	var size := Vector2.ZERO
-	var sprite := node as Sprite2D
-	if sprite != null and sprite.texture != null:
-		size = sprite.texture.get_size() * sprite.scale
-	var anim := node as AnimatedSprite2D
-	if anim != null and anim.sprite_frames != null:
-		var tex: Texture2D = anim.sprite_frames.get_frame_texture(anim.animation, 0)
-		if tex != null:
-			size = tex.get_size() * anim.scale
-	var at: Vector2 = to_screen * (node.position - size * 0.5)
-	return Rect2(at, size)
+func _settle() -> void:
+	for _i: int in 10:
+		await get_tree().process_frame
 
 
 func _tap(at: Vector2) -> void:
