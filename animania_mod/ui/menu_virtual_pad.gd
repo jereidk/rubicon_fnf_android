@@ -10,10 +10,12 @@ extends CanvasLayer
 ## mismo que navegar, y hay media docena de pantallas donde no hay elemento que tocar -las
 ## listas de opciones, el selector de semana, los creditos, la pausa-. Ahi el mando es la
 ## unica forma de moverse sin teclado. Donde SI hay rectangulos con su `_touch` no se pone:
-## el menu principal esta pensado para tocarlo, sus placas y el disco de la OST responden al
-## dedo, y taparle una esquina con flechas seria repetir con botones lo que la pantalla ya
-## hace mejor. Los `_touch` que ya existen se quedan como estan; esto es lo de al lado, para
-## donde no los hay, no un sustituto.
+## el menu principal esta pensado para tocarlo -sus placas y el disco de la OST responden al
+## dedo- y freeplay igual, con sus discos y sus tres flechas. En los dos, taparlo con un
+## mando seria repetir con botones lo que la pantalla ya hace mejor, y ademas taparle el
+## arte: la toma de freeplay con el mando encendido lo enseñaba encima del disco aleatorio,
+## del de tutorial y de una esquina del mueble del televisor. Los `_touch` que ya existen se
+## quedan como estan; esto es lo de al lado, para donde no los hay, no un sustituto.
 ##
 ## Como llega la pulsacion al menu: sintetizando un InputEventKey con
 ## `Input.parse_input_event`, igual que hacen los controles de la partida. Los menus de este
@@ -69,8 +71,8 @@ const MARGIN := Vector2(46.0, 46.0)
 const TOUCH_GROW := 1.30
 
 ## Que botones lleva cada pantalla. `Vertical` es una lista de arriba a abajo -la pausa-;
-## `Full` anade izquierda y derecha, que el freeplay, las semanas, los creditos y las
-## opciones usan para moverse y para cambiar el valor.
+## `Full` anade izquierda y derecha, que las semanas, los creditos y las opciones usan para
+## moverse y para cambiar el valor.
 @export_enum("Vertical", "Full") var layout: String = "Vertical"
 @export_range(0.1, 1.0, 0.05) var opacity: float = 0.55
 ## Se apaga solo donde no hay dedos. Un mando dibujado sobre un monitor sobra, y en el

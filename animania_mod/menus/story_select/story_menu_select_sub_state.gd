@@ -194,6 +194,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# A tap picks the button it lands on and confirms it, the way it does on
 	# every other menu in this port.
+	# Un dedo genera ADEMAS un click izquierdo emulado -Godot trae puesto
+	# `emulate_mouse_from_touch`- y el emulado llega ANTES que el toque, con
+	# `device = -1`. Sin descartarlo, `_touch` corre DOS VECES por dedo: la primera
+	# elige y la segunda confirma sobre lo ya elegido, o sea que un toque entraba
+	# donde solo tenia que posarse. Medido en freeplay con freeplay_touch_probe.gd
+	# (1 -> 3 donde iba 1 -> 2); la explicacion larga esta en freeplay_screen.gd.
+	if event is InputEventMouseButton and (event as InputEventMouseButton).device == -1:
+		return
+
 	if event is InputEventScreenTouch and event.is_pressed():
 		_touch((event as InputEventScreenTouch).position)
 	elif event is InputEventMouseButton and event.is_pressed() \

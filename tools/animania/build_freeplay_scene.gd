@@ -21,7 +21,6 @@ extends SceneTree
 const OUT := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const DIR := "res://animania_mod/menus/freeplay"
 const ART := "res://animania_mod/source/images/freeplay"
-const MENU_PAD := "res://animania_mod/ui/menu_virtual_pad.tscn"
 
 ## postHeader, todo en el espacio 1280x720 del mod. Ver el comentario de la capsula.
 const CAPSULE_SIZE := Vector2(382.0, 54.0)
@@ -32,6 +31,8 @@ const TV_WIDTH := 727.0
 const TV_SPRITE_X := -60.0
 ## buildBg 1361: el grupo de flechas va en el zIndex 100.
 const SELECTOR_Z := 100
+## Lado minimo de la caja del dedo de una flecha. Ver el bloque de `Selectors`.
+const ARROW_TOUCH_MIN := 132.0
 ## buildBg 1373-1374: las dos x literales y la y compartida.
 const SONG_ARROW_LEFT_AT := Vector2(75.0, 605.0)
 const SONG_ARROW_RIGHT_AT := Vector2(475.0, 605.0)
@@ -791,12 +792,24 @@ func _init() -> void:
 	selectors.name = "Selectors"
 	selectors.z_index = SELECTOR_Z
 	_add(selectors)
+	#
+	# Y LO QUE NO SALE DEL BINARIO: las tres responden al dedo. En el mod son adorno -se
+	# navega con el teclado y estos triangulos solo dicen que la fila se mueve-, pero sin
+	# mando en pantalla son el unico sitio donde tocar para moverse. El meta `role` dice
+	# cual es cual y `hitbox` es la caja del dedo, en el espacio LOCAL de la flecha igual
+	# que en los discos.
+	#
+	# La caja NO es el dibujo: el fotograma sale a 93x48 en pantalla y un pulgar no acierta
+	# ahi. Se le pone un minimo de 132, que es justo el lado del boton del mando que se ha
+	# quitado -la medida ya estaba elegida, no hay por que elegirla dos veces-. Al crecer
+	# se solapa con la caja de algun disco de al lado; gana la flecha, que es la que se
+	# dibuja encima (zIndex 100 contra el del carrusel).
 	var sel_frames: SpriteFrames = load("%s/freeplay_selectors_frames.tres" % DIR)
 	for spec: Array in [
-			# nombre, animacion, esquina, flip_h  (flipped del binario entre parentesis)
-			["DiffArrow", "diff arrow down", DIFF_ARROW_AT, false],       # (false)
-			["SongArrowLeft", "songs arrow", SONG_ARROW_LEFT_AT, false],  # (true)
-			["SongArrowRight", "songs arrow", SONG_ARROW_RIGHT_AT, true]]:  # (false)
+			# nombre, animacion, esquina, flip_h, papel  (flipped del binario en parentesis)
+			["DiffArrow", "diff arrow down", DIFF_ARROW_AT, false, "diff"],       # (false)
+			["SongArrowLeft", "songs arrow", SONG_ARROW_LEFT_AT, false, "prev"],  # (true)
+			["SongArrowRight", "songs arrow", SONG_ARROW_RIGHT_AT, true, "next"]]:  # (false)
 		var arrow := AnimatedSprite2D.new()
 		arrow.name = spec[0] as String
 		arrow.sprite_frames = sel_frames
@@ -807,10 +820,13 @@ func _init() -> void:
 		var frame_size: Vector2 = sel_frames.get_frame_texture(spec[1] as String, 0).get_size()
 		arrow.position = ((spec[2] as Vector2) + frame_size * 0.5) * FUNKIN_TO_RUBICON
 		arrow.autoplay = spec[1] as String
+		var box: Vector2 = (frame_size * FUNKIN_TO_RUBICON).max(Vector2.ONE * ARROW_TOUCH_MIN)
+		arrow.set_meta(&"hitbox", Rect2(-box * 0.5, box))
+		arrow.set_meta(&"role", spec[4] as String)
 		selectors.add_child(arrow)
 		arrow.owner = _root
-		print("OUT flecha %-15s esquina %s  fotograma %s" % [spec[0], str(spec[2]),
-			str(frame_size)])
+		print("OUT flecha %-15s esquina %s  fotograma %s  caja %s (%s)" % [spec[0],
+			str(spec[2]), str(frame_size), str(box), spec[4]])
 
 	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
 	# were hand-added to the scene once and this builder did not know about them, so a
@@ -1235,17 +1251,18 @@ func _init() -> void:
 	dark.color = Color(0.0, 0.0, 0.0, 0.4)
 	_add(dark)
 
-	# El mando de menus. No sale del binario -el mod es de escritorio-; ver
-	# menu_virtual_pad.gd. Va AQUI y no por el parcheador de escenas como los demas menus
-	# porque esta escena la genera este builder, y un builder que no conoce un nodo lo borra
-	# en la siguiente pasada.
+	# Aqui estuvo el `MenuVirtualPad` y ya no esta, que es una decision y no un olvido.
 	#
-	# `Full`: en esta pantalla izquierda y derecha cambian la DIFICULTAD, que sin ellas no
-	# hay forma de tocar con un dedo.
-	var pad: CanvasLayer = (load(MENU_PAD) as PackedScene).instantiate() as CanvasLayer
-	pad.name = "MenuVirtualPad"
-	pad.set("layout", "Full")
-	_add(pad)
+	# Esta pantalla YA es tactil de arriba a abajo: los discos tienen su caja -`hitbox`,
+	# mas abajo-, y desde ahora tambien las tres flechas. Tocar un disco lo trae al frente,
+	# tocar el que ya esta elegido entra en la cancion, las dos flechas de los lados mueven
+	# el carrusel y la de abajo del cartel cambia la dificultad. Con eso no queda ni una
+	# accion que solo se pueda hacer con teclado, asi que un mando encima solo taparia el
+	# arte: la toma con el mando encendido lo enseñaba pisando el disco aleatorio, el de
+	# tutorial y una esquina del mueble del televisor.
+	#
+	# La regla es la misma que dejo fuera al menu principal: el mando va donde no hay nada
+	# que tocar.
 
 	var sfx := AudioStreamPlayer.new()
 	sfx.name = "Sfx"

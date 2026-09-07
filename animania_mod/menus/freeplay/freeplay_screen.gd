@@ -444,7 +444,10 @@ func _resolve_nodes() -> void:
 	layer_sound = get_node_or_null("LayerSound") as AudioStreamPlayer
 	boss_sound = get_node_or_null("BossSound") as AudioStreamPlayer
 	bossfight_skull = get_node_or_null("BossfightSkull") as AnimatedSprite2D
-	selector = get_node_or_null("Selector")
+	# `Selectors`, en plural: es como lo nombra el builder. Buscandolo en singular el
+	# campo salia null sin decir nada y la linea 1612 se saltaba el grupo entero -no se
+	# notaba porque el builder no lo deja invisible, pero el enlace estaba roto-.
+	selector = get_node_or_null("Selectors") as Node2D
 	completion_text = get_node_or_null("UI/CompletionText") as Node2D
 	freeplay_score = get_node_or_null("UI/FreeplayScore") as Node2D
 	grp_disks = get_node_or_null("Disks") as Node2D
@@ -1351,7 +1354,7 @@ func _intro_light_up() -> void:
 	# dotsGrp, 0x250 selectorsGroup, 0x178 tvGlow, 0x1d0 tvNoiseBack y 0x1f0
 	# tvNoiseForward. `PlayerLayer` estaba de mas en esta lista: es el diskPlayerMask y
 	# lo enciende el onFinish del reproductor (linea 1607), no esta linea.
-	for name: String in ["UI/DotsGrp", "Selector", "TvGlow", "TvNoiseBack",
+	for name: String in ["UI/DotsGrp", "Selectors", "TvGlow", "TvNoiseBack",
 			"TvNoiseForward"]:
 		var node := get_node_or_null(name) as CanvasItem
 		if node != null:
@@ -2177,6 +2180,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventMouseButton:
+		# CADA TOQUE LLEGABA DOS VECES y esto no se veia mirando el codigo: Godot trae
+		# `input_devices/pointing/emulate_mouse_from_touch` puesto, asi que un dedo genera
+		# ADEMAS un click izquierdo, y el click llega ANTES que el toque. Medido: el
+		# emulado viene con `device = -1` (DEVICE_ID_EMULATION) y el de verdad con 0.
+		#
+		# Con `_touch` corriendo dos veces por dedo, tocar un disco que no era el elegido
+		# lo elegia con el primer evento y CONFIRMABA con el segundo -entraba en la
+		# cancion sin querer-, y una flecha movia el carrusel de dos en dos. Salio al
+		# medirlo con freeplay_touch_probe.gd: 1 -> 3 donde tenia que ir 1 -> 2.
+		#
+		# Se descarta el emulado y se atiende el toque, que es el que trae el dedo de
+		# verdad. La rueda no se emula desde el tacto, asi que no pierde nada.
+		if (event as InputEventMouseButton).device == -1:
+			return
 		var button: int = (event as InputEventMouseButton).button_index
 		if button == MOUSE_BUTTON_WHEEL_UP:
 			change_selection(-1)
@@ -2190,7 +2207,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		_touch((event as InputEventScreenTouch).position)
 
 
+## Toda la pantalla se maneja con el dedo y no hay mando en pantalla que la tape. El orden
+## importa: las flechas ANTES que los discos, porque se dibujan encima -zIndex 100- y sus
+## cajas crecidas invaden la del disco de al lado. Quien se ve encima manda.
 func _touch(at: Vector2) -> void:
+	var arrow: AnimatedSprite2D = arrow_at(at)
+	if arrow != null:
+		match String(arrow.get_meta(&"role", "")):
+			"prev":
+				change_selection(-1)
+			"next":
+				change_selection(1)
+			"diff":
+				# La misma direccion que KEY_DOWN, que es la unica flecha que hay: el
+				# binario monta UN DifficultySelector y su animacion es `diff arrow down`.
+				# changeDiff da la vuelta al llegar al final, asi que con una sola se
+				# recorren todas.
+				change_diff(-1, true)
+		_press_arrow(arrow)
+		return
+
 	var hit: int = disk_at(at)
 	if hit < 0:
 		return
@@ -2200,14 +2236,48 @@ func _touch(at: Vector2) -> void:
 	confirm()
 
 
+func arrow_at(at: Vector2) -> AnimatedSprite2D:
+	if selector == null:
+		return null
+	var local: Vector2 = _to_world(at)
+	for i: int in range(selector.get_child_count() - 1, -1, -1):
+		var arrow := selector.get_child(i) as AnimatedSprite2D
+		if arrow == null or not arrow.visible or not arrow.has_meta(&"hitbox"):
+			continue
+		if (arrow.get_meta(&"hitbox") as Rect2).has_point(local - arrow.position):
+			return arrow
+	return null
+
+
 func disk_at(at: Vector2) -> int:
 	if disks == null:
 		return -1
+	var local: Vector2 = _to_world(at)
 	for i: int in range(disks.get_child_count() - 1, -1, -1):
 		var disk: Node2D = disks.get_child(i)
-		if (disk.get_meta(&"hitbox") as Rect2).has_point(at - disk.position):
+		if (disk.get_meta(&"hitbox") as Rect2).has_point(local - disk.position):
 			return int(disk.get_meta(&"index"))
 	return -1
+
+
+## De donde ha caido el dedo EN LA PANTALLA a donde esta eso en la escena. No es lo mismo
+## aunque casi lo parezca: `_update_camera_scroll` mueve el `offset` de la camara sin parar
+## -los dos remapToRange, de +3 a -6 en x y de +1 a -1 en y-, asi que las cajas viajan unos
+## pixeles respecto al toque. Con los discos, que son grandes, no se notaba; con una flecha
+## esos pixeles son parte del borde.
+func _to_world(at: Vector2) -> Vector2:
+	return get_viewport().get_canvas_transform().affine_inverse() * at
+
+
+## Que se note que le has dado. Esto NO sale del binario -el mod no tiene tacto- y es lo
+## minimo que hace falta: en un movil, un boton que no responde parece roto y se acaba
+## tocando dos veces. Un tirón corto de escala sobre la flecha, y vuelta a la suya.
+func _press_arrow(arrow: AnimatedSprite2D) -> void:
+	var rest: Vector2 = arrow.get_meta(&"rest_scale", arrow.scale) as Vector2
+	arrow.set_meta(&"rest_scale", rest)
+	var pop := create_tween()
+	pop.tween_property(arrow, ^"scale", rest * 1.18, 0.06).set_ease(Tween.EASE_OUT)
+	pop.tween_property(arrow, ^"scale", rest, 0.12).set_ease(Tween.EASE_OUT)
 
 
 ## ─── Static persistence (from binary __boot) ────────────────────────────────

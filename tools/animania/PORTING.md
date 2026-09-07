@@ -4626,8 +4626,8 @@ readings.
 pressed, and every song scene instances it. That part is fine and stays as it is. The menus
 also each have a `_touch(position)` that hits-tests the screen's own artwork. What has no
 answer on a phone is **navigating**: half the mod's screens are lists with nothing to aim at
--- the options rows, the week selector, the credits pages, the pause list -- and in freeplay
-there is no way to move the difficulty. Those are keyboard-only paths.
+-- the options rows, the week selector, the credits pages, the pause list. Those are the
+keyboard-only paths, and those are the ones that get a pad.
 
 So: a D-pad, in the shape Psych Engine's Android forks use. The artwork is Indie Cross's own
 `virtualpad` (jereidk/Indie-Cross-Public), which in that repo ships already converted to
@@ -4677,17 +4677,60 @@ a key is read.
 
 | pantalla | layout | por que |
 |---|---|---|
-| freeplay | Full | izquierda y derecha cambian la dificultad |
 | story_menu | Full | la fila de semanas |
 | credits_menu | Full | las paginas |
 | options_screen | Full | el valor de cada fila se mueve a los lados |
 | pause_menu | Vertical | es una lista y ya |
 
+**Freeplay came back out too, and for the same reason as the main menu.** The pad was
+mounted there first, on the argument that left and right change the difficulty and nothing
+on screen does. Rendering it settled that: `slot_shot.tscn -- 1 pad` put the D-pad straight
+on top of the RANDOM disc, the tutorial disc and a corner of the TV cabinet — the finger
+boxes are 172 px with `TOUCH_GROW` and the carousel sits at exactly that height. The screen
+is wall-to-wall artwork along the bottom; there is nowhere to put a pad that is not on top
+of something.
+
+So the screen became fully touchable instead, which is what it should have been from the
+start. The discs already had their `hitbox` (tap one to bring it forward, tap the selected
+one to go in). The three **arrows now have one too**: `SongArrowLeft` / `SongArrowRight`
+move the carousel and `DiffArrow` changes the difficulty. In the mod they are decoration —
+the `SongSelector`'s only animation is literally called `shine` — and this is the port
+giving them a job, recorded as a choice, not read from the binary. Two details worth
+keeping: the finger box has a **132 px floor** (the drawing is 93×48 on screen, which no
+thumb hits) reusing the button size the deleted pad had already settled, and the arrows are
+hit-tested **before** the discs, because they draw on top (zIndex 100) and their grown boxes
+overlap the neighbouring disc's.
+
+The single `DiffArrow` cycles: the binary constructs **one** `DifficultySelector`, its
+animation is `diff arrow down`, and `changeDiff` wraps at the end of the list — so one
+down-arrow reaches every difficulty.
+
+**And rendering it turned up a bug that reading never would: every tap was firing twice.**
+Godot ships `input_devices/pointing/emulate_mouse_from_touch` on, so one finger also
+produces a left click, and *the click arrives first*. Measured: the emulated event carries
+`device = -1` (`DEVICE_ID_EMULATION`), the real touch `device = 0`. Every menu in this port
+has both a touch branch and a mouse branch, so `_touch` ran twice per finger — a tap on an
+unselected disc selected it with the first event and **confirmed it with the second**,
+walking into a song nobody chose, and an arrow moved the carousel two steps
+(`freeplay_touch_probe.gd`: `1 -> 3` where it should read `1 -> 2`). The emulated event is
+now discarded in freeplay, the main menu, the story menu, the week sub-state, the credits
+and the pause menu. Wheel events are never emulated from touch, so nothing is lost.
+
+`freeplay_touch_probe.gd` taps the centre of each box on the real screen and checks what
+changed — carousel index, difficulty id, `_confirmed` — rather than calling the methods.
+Five checks, zero failures: right arrow `1 -> 2`, left arrow `2 -> 1`, `hard -> normal`,
+a tap on a neighbouring disc selects without confirming, a tap on the selected one confirms.
+
+The one thing on the screen that is *invented* and not read: a 0.06 s scale pop on a tapped
+arrow. On a phone a button that does not answer looks broken and gets tapped again — which,
+before the fix above, is exactly what would have entered a song.
+
 `menu_pad_probe.gd` presses every button on a real menu scene and checks both ends of the
 path -- the button's box and the keycode that arrives -- plus two fingers at once, which is
-what breaks a badly written pad. Zero failures on story_menu, options_screen and
-freeplay_screen (its default target is options_screen now that the main menu carries no pad;
-pointing it at that screen would report a `FALLO` that is not one). Two screens it cannot test and says so: credits, because accepting or going
+what breaks a badly written pad. Zero failures on story_menu and options_screen (its default
+target is options_screen now that neither the main menu nor freeplay carries a pad; pointing
+it at either would report a `FALLO` that is not one — freeplay's own coverage is
+`freeplay_touch_probe.gd`). Two screens it cannot test and says so: credits, because accepting or going
 back navigates away from under it, and pause, because its `process_mode` is `WHEN_PAUSED` and
 the harness's tree is not paused.
 
