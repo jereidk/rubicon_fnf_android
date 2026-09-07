@@ -29,6 +29,11 @@ const TV_WIDTH := 727.0
 ## buildBg 1277: `new FunkinSprite(-60, -198)`. La x del SPRITE del televisor, que no es lo
 ## mismo que TV_AT_X -aquella es donde empieza el arte visible dentro de su lienzo-.
 const TV_SPRITE_X := -60.0
+## buildBg 1361: el grupo de flechas va en el zIndex 100.
+const SELECTOR_Z := 100
+## buildBg 1373-1374: las dos x literales y la y compartida.
+const SONG_ARROW_LEFT_AT := Vector2(75.0, 605.0)
+const SONG_ARROW_RIGHT_AT := Vector2(475.0, 605.0)
 ## La 1566 es `x = tvSprite.x + tvSprite.width*0.5 - capsula.width*0.5`, y ese `tvSprite`
 ## es el campo 0x1e0, el mismo que usa el banner de dificultad:
 ##
@@ -42,6 +47,8 @@ const TV_SPRITE_X := -60.0
 ## exactamente el mismo tropiezo que ya se corrigio en el banner. Medido contra la captura
 ## del mod casando el arte `bottom capsule` en las dos: esquina en x=132 en el mod y en
 ## x=151 en el puerto, misma escala y misma y.
+## `x = spr.x + spr.width*0.5 - 16` (el 16.0 en 0x59fa770), y = 134.
+const DIFF_ARROW_AT := Vector2(TV_SPRITE_X + TV_WIDTH * 0.5 - 16.0, 134.0)
 const CAPSULE_AT := Vector2(
 	TV_SPRITE_X + TV_WIDTH * 0.5 - CAPSULE_SIZE.x * 0.5,   # 1566
 	720.0 - CAPSULE_SIZE.y + 1.0)                          # 1567
@@ -330,6 +337,9 @@ func _init() -> void:
 	_build_frames("bossfightIndicator", "freeplay_boss", 24.0, ".")
 	# DifficultyStars.generateSprites lineas 40-49: dot, star y las dos de la llama.
 	_build_frames("diffstars", "freeplay_stars", 24.0, ".")
+	# Las flechas: `songs arrow` a los lados del disco elegido y `diff arrow down` bajo el
+	# cartel de dificultad. Ver el bloque de `Selectors`.
+	_build_frames("FREEPLAY_ASSETS", "freeplay_selectors", 24.0, ".")
 	# ScoreNum ctor linea 100: diez animaciones "<PALABRA> DIGITAL" a 24.
 	_build_frames("digital_numbers", "freeplay_digits", 24.0, ".")
 	# initCharacters linea 1417: el telefono, un sparrow de una sola animacion.
@@ -717,6 +727,59 @@ func _init() -> void:
 
 		print("OUT disco %d: %s %dx%d%s" % [i, song["disk"], size.x, size.y,
 			"  bloqueado" if song.get("locked", false) else ""])
+
+	# ─── Las flechas: SongSelector y DifficultySelector ────────────────────────
+	#
+	# buildBg 1360-1374. El grupo es el campo 0x250 y se monta asi:
+	#
+	#   34d17c2  set_useRenderTexture(true)            // 1360
+	#   34d17d6  movl $0x64,0x28(%rax)                 // 1361, zIndex = 100
+	#   34d1ab4  new DifficultySelector(<x>, 134, false, controls, this)
+	#   34d1b70  grupo.add(new SongSelector( 75, 605, true,  controls, this))   // 1373
+	#   34d1c04  grupo.add(new SongSelector(475, 605, false, controls, this))   // 1374
+	#
+	# Las dos x de los SongSelector son literales (0x59faa60 = 75.0 y 0x59fb3c0 = 475.0) y
+	# comparten y (0x59fb688 = 605.0). El tercer argumento es el `flipped` del constructor
+	# de la clase base -el de Funkin hace `flipX = flipped`-, o sea que la de la izquierda
+	# va espejada. Cuadra con la captura: dos triangulos, uno a cada lado del disco
+	# elegido, a la altura de la fila.
+	#
+	# El SongSelector (0x3ddeff0) carga 'animania-freeplay/FREEPLAY_ASSETS' por sparrow y
+	# hace `addByPrefix('shine', 'songs arrow0', ...)`. La animacion se llama literalmente
+	# `shine`, que es justo lo que estos triangulos parecen: por eso se me pasaron dos
+	# veces al mirar la captura, tomandolos por un brillo del arte del disco.
+	#
+	# La flecha de dificultad va en `x = spr.x + spr.width*0.5 - 16`, con el 16.0 en
+	# 0x59fa770. Tomando tvSprite como ese `spr` sale 287.5, y en la captura el nucleo azul
+	# de la flecha cae en x 296..342, y 140..160, dentro del fotograma de 62x32 que
+	# empezaria en (287.5, 134). MEDIDO asi: el registro que lleva ese `spr` esta
+	# reutilizado dentro de buildBg y no lo segui hasta el final.
+	#
+	# `centered = true` por lo mismo que los discos: flixel espeja DENTRO de la caja del
+	# fotograma, y un Sprite2D sin centrar espejado se dibuja al otro lado de su origen.
+	var selectors := Node2D.new()
+	selectors.name = "Selectors"
+	selectors.z_index = SELECTOR_Z
+	_add(selectors)
+	var sel_frames: SpriteFrames = load("%s/freeplay_selectors_frames.tres" % DIR)
+	for spec: Array in [
+			["DiffArrow", "diff arrow down", DIFF_ARROW_AT, false],
+			["SongArrowLeft", "songs arrow", SONG_ARROW_LEFT_AT, true],
+			["SongArrowRight", "songs arrow", SONG_ARROW_RIGHT_AT, false]]:
+		var arrow := AnimatedSprite2D.new()
+		arrow.name = spec[0] as String
+		arrow.sprite_frames = sel_frames
+		arrow.animation = StringName(spec[1] as String)
+		arrow.centered = true
+		arrow.flip_h = spec[3] as bool
+		arrow.scale = Vector2.ONE * FUNKIN_TO_RUBICON
+		var frame_size: Vector2 = sel_frames.get_frame_texture(spec[1] as String, 0).get_size()
+		arrow.position = ((spec[2] as Vector2) + frame_size * 0.5) * FUNKIN_TO_RUBICON
+		arrow.autoplay = spec[1] as String
+		selectors.add_child(arrow)
+		arrow.owner = _root
+		print("OUT flecha %-15s esquina %s  fotograma %s" % [spec[0], str(spec[2]),
+			str(frame_size)])
 
 	# The UI layer. These are the placeholders the script's _resolve_nodes() looks up; they
 	# were hand-added to the scene once and this builder did not know about them, so a

@@ -50,6 +50,8 @@ const SONGS: Array[Dictionary] = [
 		"locked": true,
 		"bpm": 100,
 		"title": "Tutorial",
+		# Sin `weekName` en su metadata, y eso IMPORTA: ver _update_data_stuff.
+		"week_name": "",
 		# `playerSkin` / `girlfriendSkin`, del NIVEL SUPERIOR del metadata -no de playData,
 		# que es donde los busque la primera vez y por eso parecian no existir-. tutorial
 		# no los declara. Ver 8ac.
@@ -65,6 +67,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 110,
 		"title": "Bopeebo",
+		"week_name": "WEEK1",
 		"player_skin": "bf-standart",
 		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
@@ -77,6 +80,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 120,
 		"title": "Fresh",
+		"week_name": "WEEK1",
 		"player_skin": "bf-standart",
 		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
@@ -89,6 +93,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "dad",
 		"bpm": 180,
 		"title": "DadBattle",
+		"week_name": "WEEK1",
 		"player_skin": "bf-standart",
 		"gf_skin": "gf-standart",
 		"difficulties": ["easy", "normal", "hard"],
@@ -101,6 +106,7 @@ const SONGS: Array[Dictionary] = [
 		"layer": "komi",
 		"bpm": 152,
 		"title": "Phone Call",
+		"week_name": "TITLE:1",
 		# phone-call declara 'none' en las dos, y 'none' es la skin vacia: la misma con la
 		# que playCurSongPreview 903-904 deja la cama pelada en el disco aleatorio. O sea
 		# que en el mod phone-call se ensena SIN bf y SIN gf.
@@ -1055,9 +1061,29 @@ func _update_data_stuff(_force: bool) -> void:
 	if not bool(song.get("locked", false)):
 		_album_set_id(ALBUM_ID)
 	_update_score_for_selection()
-	# Lineas 1120 y 1125. El titulo (1122) va sin prefijo.
+	# Lineas 1120 y 1125. La del medio (1122) NO es el titulo de la cancion.
+	#
+	#   34c6922  ObjectPtr<FreeplaySongData>::operator->()
+	#   34c6927  cmpq $0x0,0x78(%rax)      <- linea 1121: si el campo es null...
+	#   34c692c  je   ...                  <- ...se salta la 1122 entera
+	#   34c694c  mov 0x70(%rax),%r12d      <- largo de la String
+	#   34c6950  mov 0x78(%rax),%rbp       <- puntero de la String
+	#   34c697c  call *0x460(vtable)       <- set_text sobre this+0x270
+	#
+	# El campo 0x70/0x78 es `weekName`: __GetFields de FreeplaySongData lista song,
+	# levelId, songId, songName, isBoss, songPlayerSkin, songGFSkin, songStartingBpm,
+	# weekName, difficultyRating, songDifficulties, isLocked, ..., y difficultyRating ya
+	# estaba fijado en 0x80 y songDifficulties en 0x88, asi que la String que va justo
+	# antes del 0x80 es weekName. Cuadra con lo que hay en los metadata: WEEK1 para las
+	# tres de week1, WEEK5 para las de week5, TITLE:1 para phone-call y NADA para
+	# tutorial. Por eso la captura del mod ensena la capsula vacia por el medio.
+	#
+	# El `if` se portea tal cual, con su rareza incluida: cuando la cancion no trae
+	# weekName el mod no escribe NI BORRA, asi que se queda lo que hubiera de la anterior.
 	if info_title != null:
-		info_title.text = String(song.get("title", song.get("id", "")))
+		var week_name: String = String(song.get("week_name", ""))
+		if not week_name.is_empty():
+			info_title.text = week_name
 	if info_bpm_text != null:
 		info_bpm_text.text = "BPM: %s" % str(song.get("bpm", ""))
 	# Linea 1125, leida instruccion a instruccion en 0x34c698e: lo que se concatena detras

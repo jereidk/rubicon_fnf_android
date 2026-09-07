@@ -4396,6 +4396,117 @@ shows an empty screen, and that is the capture, not the port: `tutorial-metadata
 switch-on flash (8aa), so it is inside that quarter second with the title still smeared.
 
 
+## 8ah. Four more from the capture: the week name, the arrows, the glow, the wedge
+
+### The capsule's middle text is `weekName`, not the song title
+
+updateDataStuff line 1122 writes the middle label, and the port was writing `songName`.
+Line 1121 is a guard, and it is the whole story:
+
+    34c6922  ObjectPtr<FreeplaySongData>::operator->()
+    34c6927  cmpq $0x0,0x78(%rax)      <- si el campo es null...
+    34c692c  je   ...                  <- ...se salta la 1122 entera
+    34c694c  mov 0x70(%rax),%r12d      <- largo de la String
+    34c6950  mov 0x78(%rax),%rbp       <- puntero de la String
+    34c697c  call *0x460(vtable)       <- set_text sobre this+0x270
+
+The 0x70/0x78 pair is `weekName`. `__GetFields` on `FreeplaySongData` lists song, levelId,
+songId, songName, isBoss, songPlayerSkin, songGFSkin, songStartingBpm, **weekName**,
+difficultyRating, songDifficulties, isLocked, albumId, freeplayTheme, freeplayLayer,
+scoringRank, currentDifficulty, displayedVariations; `difficultyRating` was already pinned at
+0x80 and `songDifficulties` at 0x88, so the String immediately before 0x80 is `weekName`. The
+metadata agrees: WEEK1 for the three of week1, WEEK5 for week5's, TITLE:1 for phone-call, and
+**nothing at all** for tutorial. That is why the mod's capture shows an empty middle screen,
+and 8af's guess -- that the title was mid-tween behind the switch-on flash -- was wrong.
+
+The guard is ported with its quirk intact: with no `weekName` the mod neither writes nor
+clears, so whatever the previous song left stays on screen.
+
+### The arrows: SongSelector and DifficultySelector
+
+Three sprites the port had never drawn. buildBg 1360-1374 builds a `DrawControlSpriteGroup`
+in field 0x250 with `useRenderTexture = true` and zIndex 100, and fills it:
+
+    34d17c2  set_useRenderTexture(true)                                       // 1360
+    34d17d6  movl $0x64,0x28(%rax)                                            // 1361
+    34d19ae  new DifficultySelector(tvSprite.x + tvSprite.width*0.5 - 16, ?)  // zIndex 5
+    34d1ab4  new DifficultySelector(   idem   , 134, false, ...)              // zIndex 15
+    34d1b70  grupo.add(new SongSelector( 75, 605, true,  ...))                // 1373
+    34d1c04  grupo.add(new SongSelector(475, 605, false, ...))                // 1374
+
+75.0 is at 0x59faa60, 475.0 at 0x59fb3c0, the shared 605.0 at 0x59fb688 and the 16.0 at
+0x59fa770. The third argument is the base class's `flipped`, which Funkin's `DifficultySelector`
+turns straight into `flipX` -- so the left one is mirrored.
+
+`SongSelector::__construct` (0x3ddeff0) loads `animania-freeplay/FREEPLAY_ASSETS` through
+Paths.imageGraphic + fromSparrow and calls `addByPrefix('shine', 'songs arrow0', ...)`. **The
+animation is called `shine`**, which is exactly what these triangles look like: they had been
+looked at twice already in earlier passes and dismissed as a highlight painted into the disk
+artwork.
+
+Ported as an AnimatedSprite2D each, `centered = true` for the same reason as the disks -- Flixel
+mirrors *inside* the frame box, and an uncentred Sprite2D with `flip_h` draws on the far side of
+its origin. Measured against the capture afterwards, the teal core of each:
+
+| flecha | mod | port |
+|---|---|---|
+| dificultad | x 296..342, y 140..161 | x 296..342, y 140..161 |
+| izquierda | x 83..125, y 610..655 | x 84..125, y 609..656 |
+| derecha | x 483..525, y 609..655 | x 484..525, y 609..656 |
+
+The difficulty one lands exactly, which also settles the `spr` in `spr.x + spr.width*0.5 - 16`:
+the register carrying it is reused inside buildBg and was not chased to the end, but tvSprite's
+-60 puts the frame at 287.5 and that is where the capture wants it.
+
+Only one of the two DifficultySelectors is placed (the one at y 134, zIndex 15). The other's y
+was not read; it is the up arrow of a pair and nothing in the capture shows it.
+
+### The green light spreads and brightens, and the shadow layer cannot be why
+
+Measured on green pixels (G > R+25, G > 90):
+
+| zona | mod | port |
+|---|---|---|
+| mano de bf | n=7736, G medio 192.0 | n=4273, G medio 163.1 |
+| movil de gf | n=12780, G medio 149.4 | n=9456, G medio 150.6 |
+
+Same peak (255 in both), but the mod's green covers 1.8x the area at bf's hand and 1.35x at
+gf's phone, and is 29 points brighter at bf's. That is a bloom -- a blurred bright copy added
+back -- not a different artwork.
+
+It is **not** `shadowsOnBed`. That layer is `colorTransform.set_color(0x1C1A2F)`, and OpenFL's
+`ColorTransform.color` setter zeroes the multipliers and sets the offsets, so the layer is a
+flat silhouette of rgb(28,26,47). Flat, dark and composited with OVERLAY it can only darken:
+for a source below 0.5 both branches of the overlay formula pull the result down. Hiding the
+port's shadow layer confirms the arithmetic -- bf's green goes from 163.1 to 167.7, a 4-point
+move, nowhere near 29. Left open.
+
+### The black wedge between the television and the bed
+
+The user spotted it and it is real: a translucent dark wedge with a straight diagonal edge,
+sitting right of the television and widening downward, over the bed and under the disks.
+Measured, so it is not going to be lost again:
+
+- The right edge runs 566 at y=460, 581 at y=500, 606 at y=560, 620 at y=600, 656 at y=640 --
+  a straight line of slope ~0.5.
+- At y 470..540, x 540 the mod reads 22.1 against the port's 49.6. Two columns over, at x 500,
+  it is the mod that is brighter (44.0 vs 33.8).
+- It is **static**: the random-slot capture from 8u has it in the same place (right edge 557 at
+  y=440, 573 at 480, 589 at 520, 604 at 560, 619 at 600, 655 at 640).
+- It is not a displacement: aligning that whole strip against the port gives (0, 0) as the best
+  offset, MAE 28.1, with no better minimum anywhere in +-60 px.
+
+What it is not: the bed (its three frames differ only in blanket creases), the TV (its three
+atlas variants have no such shape), TVBACK (its opaque region is only 167 px wide and its
+diagonal edge has slope 0.097, not 0.5), the backwall (opaque and uniformly dark), the VCR or
+its layer (528x131 strips), and `tvGlow` (hiding it changes that strip by 0.2).
+
+The one thread not pulled: `initCharacters` touches the `shadowsOnBed` field (0x180) **eight or
+more times**, where the port's model of that group has only three members -- girlfriend, player
+and phone. Whatever else goes in there is the best remaining candidate, and it is where the next
+pass should start.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

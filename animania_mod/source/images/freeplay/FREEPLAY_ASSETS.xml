@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="FREEPLAY_ASSETS.png">
+	<!-- Created with Adobe Animate version 20.5.1.31044 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="diff arrow down0000" x="117" y="2" width="32" height="58" frameX="-2" frameY="0" frameWidth="62" frameHeight="32" rotated="true"/>
+	<SubTexture name="diff arrow down0001" x="117" y="2" width="32" height="58" frameX="-2" frameY="0" frameWidth="62" frameHeight="32" rotated="true"/>
+	<SubTexture name="diff arrow down0002" x="116" y="62" width="30" height="62" frameX="0" frameY="-2" frameWidth="62" frameHeight="32" rotated="true"/>
+	<SubTexture name="diff arrow down0003" x="116" y="62" width="30" height="62" frameX="0" frameY="-2" frameWidth="62" frameHeight="32" rotated="true"/>
+	<SubTexture name="diff arrow up0000" x="151" y="2" width="29" height="50" frameX="-4" frameY="0" frameWidth="58" frameHeight="29" rotated="true"/>
+	<SubTexture name="diff arrow up0001" x="151" y="2" width="29" height="50" frameX="-4" frameY="0" frameWidth="58" frameHeight="29" rotated="true"/>
+	<SubTexture name="diff arrow up0002" x="148" y="62" width="27" height="58" frameX="0" frameY="-2" frameWidth="58" frameHeight="29" rotated="true"/>
+	<SubTexture name="diff arrow up0003" x="148" y="62" width="27" height="58" frameX="0" frameY="-2" frameWidth="58" frameHeight="29" rotated="true"/>
+	<SubTexture name="songs arrow0000" x="62" y="2" width="53" height="58" frameX="-2" frameY="0" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow0001" x="62" y="2" width="53" height="58" frameX="-2" frameY="0" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow0002" x="2" y="2" width="58" height="59" frameX="0" frameY="-3" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow0003" x="2" y="2" width="58" height="59" frameX="0" frameY="-3" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow образец 20000" x="62" y="62" width="52" height="58" frameX="-3" frameY="0" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow образец 20001" x="62" y="62" width="52" height="58" frameX="-3" frameY="0" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow образец 20002" x="2" y="63" width="58" height="59" frameX="0" frameY="-3" frameWidth="58" frameHeight="62" rotated="false"/>
+	<SubTexture name="songs arrow образец 20003" x="2" y="63" width="58" height="59" frameX="0" frameY="-3" frameWidth="58" frameHeight="62" rotated="false"/>
+</TextureAtlas>
