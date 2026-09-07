@@ -18,8 +18,9 @@ extends Node2D
 
 ## Las combinaciones que usan las pantallas, con el nombre de quien la usa.
 const CASES := [
-	["LEFT_FULL", "A_B", "story_menu / options_screen"],
-	["UP_DOWN", "A_B", "credits_menu / pause_menu"],
+	["LEFT_DOWN", "A_B_TOP", "story_menu"],
+	["LEFT_FULL", "A_B_TOP", "options_screen"],
+	["UP_DOWN", "A_B_TOP", "credits_menu / pause_menu"],
 ]
 ## Las esquinas de FlxVirtualPad.hx tal cual, para comprobar contra ellas y no contra la
 ## misma tabla que usa el mando -si no, esto solo comprobaria que sabe copiar-.
@@ -29,9 +30,17 @@ const REF := {
 		&"right": Vector2(207.0, 720.0 - 243.0), &"down": Vector2(105.0, 720.0 - 135.0),
 	},
 	"UP_DOWN": {&"up": Vector2(0.0, 720.0 - 255.0), &"down": Vector2(0.0, 720.0 - 135.0)},
+	# Media cruz: las dos esquinas de LEFT_FULL que se quedan, sin mover ni un pixel.
+	"LEFT_DOWN": {&"left": Vector2(0.0, 720.0 - 243.0), &"down": Vector2(105.0, 720.0 - 135.0)},
 	"A_B": {
 		&"b": Vector2(1280.0 - 258.0, 720.0 - 135.0),
 		&"a": Vector2(1280.0 - 132.0, 720.0 - 135.0),
+	},
+	# La misma fila colgada de arriba: 87 px por debajo del borde, que deja libre la franja
+	# del marcador.
+	"A_B_TOP": {
+		&"b": Vector2(1280.0 - 258.0, 87.0),
+		&"a": Vector2(1280.0 - 132.0, 87.0),
 	},
 }
 

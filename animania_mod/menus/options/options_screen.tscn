@@ -10,4 +10,4 @@ script = ExtResource("1_script")
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
 dpad = "LEFT_FULL"
-action = "A_B"
+action = "A_B_TOP"

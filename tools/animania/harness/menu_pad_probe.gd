@@ -107,16 +107,22 @@ func _run() -> void:
 		_tap(rect.get_center(), false)
 		await get_tree().process_frame
 
-	# Dos dedos a la vez, que es lo que rompe un mando mal hecho. Arriba y abajo, que estan
-	# en las dos cruces y ninguno se lleva el menu por delante.
-	_seen.clear()
-	_tap((_pad._rects[&"up"] as Rect2).get_center(), true, 0)
-	_tap((_pad._rects[&"down"] as Rect2).get_center(), true, 1)
-	await get_tree().process_frame
-	var both: bool = _seen.has(KEY_UP) and _seen.has(KEY_DOWN)
-	print("OUT dos dedos a la vez: %s  %s" % [str(_seen), "OK" if both else "FALLO"])
-	if not both:
-		bad += 1
+	# Dos dedos a la vez, que es lo que rompe un mando mal hecho. Los DOS PRIMEROS de la
+	# cruz que tenga esta pantalla, no dos elegidos a mano: la de semanas es media cruz
+	# -izquierda y abajo- y pedirle un `up` reventaba con un null que el arnes se comia
+	# dando vueltas, o sea otra vez "parece que tarda" cuando lo que hay es un fallo.
+	if dirs.size() < 2:
+		print("OUT dos dedos a la vez: esta cruz solo tiene %d boton" % dirs.size())
+	else:
+		_seen.clear()
+		_tap((_pad._rects[dirs[0]] as Rect2).get_center(), true, 0)
+		_tap((_pad._rects[dirs[1]] as Rect2).get_center(), true, 1)
+		await get_tree().process_frame
+		var both: bool = _seen.has(wanted[dirs[0]]) and _seen.has(wanted[dirs[1]])
+		print("OUT dos dedos (%s+%s): %s  %s" % [dirs[0], dirs[1], str(_seen),
+			"OK" if both else "FALLO"])
+		if not both:
+			bad += 1
 	_tap(Vector2.ZERO, false, 0)
 	_tap(Vector2.ZERO, false, 1)
 	await get_tree().process_frame

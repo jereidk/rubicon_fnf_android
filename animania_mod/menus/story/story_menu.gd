@@ -483,7 +483,15 @@ func week_at(at: Vector2) -> int:
 	return -1
 
 
+## Las flechas ANTES que los titulos: se dibujan encima y sus cajas, ya crecidas al minimo
+## del dedo, muerden el area de la semana de al lado. Manda lo que se ve encima.
 func _touch(at: Vector2) -> void:
+	var arrow: AnimatedSprite2D = arrow_at(at)
+	if arrow != null:
+		change_difficulty(1 if arrow == right_difficulty_arrow else -1)
+		_press_arrow(arrow)
+		return
+
 	var i: int = week_at(at)
 	if i < 0:
 		return
@@ -491,6 +499,43 @@ func _touch(at: Vector2) -> void:
 		select_level()
 	else:
 		change_level(i - selected_level)
+
+
+## Las dos flechas de la dificultad, a los lados del cartel. En el mod son adorno -se cambia
+## con izquierda y derecha del teclado y estas solo dicen que se puede-, y aqui pasan a ser
+## el mando: con ellas y con los titulos de semana, que ya se tocan, no queda nada en esta
+## pantalla que necesite teclas.
+##
+## La caja no es el dibujo: la flecha sale a poco mas de 60 px de lado y un pulgar no
+## acierta ahi. Se le pone el mismo suelo de 132 que en freeplay, que es el lado del boton
+## del mando -la medida ya estaba elegida, no hay por que elegirla dos veces-.
+const ARROW_TOUCH_MIN := 132.0
+
+
+func arrow_at(at: Vector2) -> AnimatedSprite2D:
+	var local: Vector2 = get_viewport().get_canvas_transform().affine_inverse() * at
+	for arrow: AnimatedSprite2D in [left_difficulty_arrow, right_difficulty_arrow]:
+		if arrow == null or not arrow.visible:
+			continue
+		var tex: Texture2D = arrow.sprite_frames.get_frame_texture(arrow.animation, 0)
+		if tex == null:
+			continue
+		var box: Vector2 = (tex.get_size() * arrow.scale).max(
+			Vector2.ONE * ARROW_TOUCH_MIN)
+		# `centered` por defecto en un AnimatedSprite2D: la caja va alrededor de su posicion.
+		if Rect2(arrow.position - box * 0.5, box).has_point(local):
+			return arrow
+	return null
+
+
+## Que se note que le has dado. Esto no sale del binario y es lo minimo que hace falta: en
+## un movil, un boton que no responde parece roto y se acaba tocando dos veces.
+func _press_arrow(arrow: AnimatedSprite2D) -> void:
+	var rest: Vector2 = arrow.get_meta(&"rest_scale", arrow.scale) as Vector2
+	arrow.set_meta(&"rest_scale", rest)
+	var pop := create_tween()
+	pop.tween_property(arrow, ^"scale", rest * 1.18, 0.06).set_ease(Tween.EASE_OUT)
+	pop.tween_property(arrow, ^"scale", rest, 0.12).set_ease(Tween.EASE_OUT)
 
 
 # ─── getDifficultiesFull (from binary) ───────────────────────────────────

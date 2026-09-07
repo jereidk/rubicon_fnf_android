@@ -35,17 +35,21 @@ RES_ID = "menu_virtual_pad"
 # La escena -> (cruz, acciones), y por que. Entre parentesis, lo que usa Indie Cross en la
 # pantalla equivalente, que casi siempre coincide.
 LAYOUTS = {
-    # Semanas arriba y abajo, dificultad a los lados. (alli: LEFT_FULL, A_B_C)
-    "animania_mod/menus/story/story_menu.tscn": ("LEFT_FULL", "A_B"),
+    # La dificultad se cambia TOCANDO sus dos flechas, y la semana tocando su titulo -las
+    # dos cosas ya estaban en pantalla-, asi que del mando solo queda lo que no se puede
+    # tocar. Y con media cruz basta: `change_level` y `change_difficulty` dan la vuelta, o
+    # sea que abajo recorre las semanas y la izquierda las dificultades sin dejar nada
+    # fuera. Las acciones arriba a la derecha porque abajo esta el cartel de la dificultad.
+    "animania_mod/menus/story/story_menu.tscn": ("LEFT_DOWN", "A_B_TOP"),
     # Las filas se mueven con ui_up/ui_down y el VALOR de cada una con ui_left/ui_right
     # -base_sub_menu 68-84-, asi que aqui hacen falta las cuatro. (alli: LEFT_FULL, A_B_C)
-    "animania_mod/menus/options/options_screen.tscn": ("LEFT_FULL", "A_B"),
+    "animania_mod/menus/options/options_screen.tscn": ("LEFT_FULL", "A_B_TOP"),
     # Los creditos son UNA lista: la 490 lee izquierda Y arriba para lo mismo, y la 492
     # derecha Y abajo. Con arriba y abajo se recorre entera, asi que las de los lados
     # sobran. (alli directamente: NONE, A_B_C)
-    "animania_mod/menus/credits/credits_menu.tscn": ("UP_DOWN", "A_B"),
+    "animania_mod/menus/credits/credits_menu.tscn": ("UP_DOWN", "A_B_TOP"),
     # Lista vertical y ya. (alli: UP_DOWN, A_B, igual)
-    "animania_mod/menus/pause/pause_menu.tscn": ("UP_DOWN", "A_B"),
+    "animania_mod/menus/pause/pause_menu.tscn": ("UP_DOWN", "A_B_TOP"),
 }
 
 
@@ -96,7 +100,7 @@ def main() -> int:
     args = sys.argv[1:]
     targets = [Path(a) for a in args] if args else [Path(p) for p in LAYOUTS]
     for path in targets:
-        modes = LAYOUTS.get(str(path), ("UP_DOWN", "A_B"))
+        modes = LAYOUTS.get(str(path), ("UP_DOWN", "A_B_TOP"))
         print("OUT %-22s %s" % (patch(path, modes), path))
     return 0
 

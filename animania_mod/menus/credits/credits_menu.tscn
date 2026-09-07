@@ -123,4 +123,4 @@ centered = false
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
 dpad = "UP_DOWN"
-action = "A_B"
+action = "A_B_TOP"
