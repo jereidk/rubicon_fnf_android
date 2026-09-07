@@ -8,7 +8,11 @@
 #       --rendering-driver opengl3 --path . res://tools/animania/harness/menu_pad_probe.tscn
 extends Node2D
 
-## Por defecto el menu principal; se le puede pasar otra escena por `--`.
+## Por defecto las opciones; se le puede pasar otra escena por `--`.
+##
+## El menu PRINCIPAL ya no lleva mando -esa pantalla se toca-, asi que apuntarle aqui
+## devolveria un FALLO que no lo es. Las que si lo llevan: semanas, creditos, opciones y
+## pausa.
 ##
 ## Dos pantallas NO se pueden probar asi, y conviene saberlo antes de creerse un FALLO suyo:
 ## los creditos, porque aceptar o volver los saca de pantalla y el arnes se queda esperando
@@ -16,7 +20,7 @@ extends Node2D
 ## arbol no esta pausado, asi que su mando se dibuja pero no recibe nada. Para la pausa lo
 ## que hay que mirar es otra cosa y la mira pad_leak_probe.gd: que su mando NO se vea
 ## mientras se juega.
-const MENU := "res://animania_mod/menus/main/main_menu.tscn"
+const MENU := "res://animania_mod/menus/options/options_screen.tscn"
 const PAD := "res://animania_mod/ui/menu_virtual_pad.tscn"
 const SETTLE := 1.2
 

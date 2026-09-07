@@ -4626,9 +4626,8 @@ readings.
 pressed, and every song scene instances it. That part is fine and stays as it is. The menus
 also each have a `_touch(position)` that hits-tests the screen's own artwork. What has no
 answer on a phone is **navigating**: half the mod's screens are lists with nothing to aim at
--- the options rows, the week selector, the credits pages -- and even on the main menu, where
-the eight plaques are tappable, there is no way to go back, and no way to move the difficulty
-in freeplay. Those are keyboard-only paths.
+-- the options rows, the week selector, the credits pages, the pause list -- and in freeplay
+there is no way to move the difficulty. Those are keyboard-only paths.
 
 So: a D-pad, in the shape Psych Engine's Android forks use. The artwork is Indie Cross's own
 `virtualpad` (jereidk/Indie-Cross-Public), which in that repo ships already converted to
@@ -4667,9 +4666,17 @@ pad is mounted there instead. The layout is `Full` (with left and right) where a
 actually reads them and `Vertical` where it does not -- a button that does nothing is worse
 than no button.
 
+The **main menu** is the one screen that reads left/right (`changeItem` with UI_LEFT/UI_RIGHT,
+handleInput 815-816) and still does not get a pad. It was wired there first and then taken
+back out, on the user's call and for the right reason: *ese menu es estetica y logicamente
+para toques, disenado para ello*. Its eight plaques are rectangles with their own `_touch`,
+and so is the OST disc; a D-pad on top of that repeats with buttons what the screen already
+does better with a finger, and covers a corner of the art doing it. The rule that falls out
+of it is the one worth keeping: **the pad goes where there is nothing to tap**, not wherever
+a key is read.
+
 | pantalla | layout | por que |
 |---|---|---|
-| main_menu | Full | `changeItem` con UI_LEFT/UI_RIGHT, handleInput 815-816 |
 | freeplay | Full | izquierda y derecha cambian la dificultad |
 | story_menu | Full | la fila de semanas |
 | credits_menu | Full | las paginas |
@@ -4678,8 +4685,9 @@ than no button.
 
 `menu_pad_probe.gd` presses every button on a real menu scene and checks both ends of the
 path -- the button's box and the keycode that arrives -- plus two fingers at once, which is
-what breaks a badly written pad. Zero failures on main_menu, story_menu, options_screen and
-freeplay_screen. Two screens it cannot test and says so: credits, because accepting or going
+what breaks a badly written pad. Zero failures on story_menu, options_screen and
+freeplay_screen (its default target is options_screen now that the main menu carries no pad;
+pointing it at that screen would report a `FALLO` that is not one). Two screens it cannot test and says so: credits, because accepting or going
 back navigates away from under it, and pause, because its `process_mode` is `WHEN_PAUSED` and
 the harness's tree is not paused.
 

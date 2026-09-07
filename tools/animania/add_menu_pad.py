@@ -21,14 +21,18 @@ PAD = "res://animania_mod/ui/menu_virtual_pad.tscn"
 NAME = "MenuVirtualPad"
 RES_ID = "menu_virtual_pad"
 
+# El menu PRINCIPAL tampoco esta, y no por olvido: esa pantalla esta pensada para tocarla.
+# Sus ocho placas son rectangulos con su `_touch` y el disco de la OST tambien; ponerle
+# encima un mando de flechas es repetir con botones lo que la pantalla ya hace mejor, y
+# ademas taparle una esquina del arte. Donde hace falta el mando es donde no hay nada que
+# tocar.
+#
 # El freeplay NO esta aqui a proposito: su escena la GENERA build_freeplay_scene.gd, y un
 # builder que no conoce un nodo lo borra en la siguiente pasada. Su mando se monta alli,
 # junto al resto de la pantalla.
 #
 # La escena -> el layout, y por que.
 LAYOUTS = {
-    # changeItem con UI_LEFT/UI_RIGHT ademas de arriba y abajo (handleInput 815-816).
-    "animania_mod/menus/main/main_menu.tscn": "Full",
     # La fila de semanas.
     "animania_mod/menus/story/story_menu.tscn": "Full",
     # Las paginas de creditos.

@@ -17,7 +17,6 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_snow_frames.tres" id="15_e1sij"]
 [ext_resource type="SpriteFrames" path="res://animania_mod/menus/main/menu_leafs_frames.tres" id="16_dx777"]
 [ext_resource type="AudioStream" path="res://animania_mod/source/music/animaniaLOOP/animaniaLOOP.ogg" id="17_7g2nc"]
-[ext_resource type="PackedScene" path="res://animania_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="MainMenu" type="Node2D" unique_id=1803232198 node_paths=PackedStringArray("buttons", "sfx", "music", "camera", "curtain_up", "curtain_down", "dude")]
 script = ExtResource("1_k3maf")
@@ -340,6 +339,3 @@ mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=120120910]
-
-[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
-layout = "Full"
