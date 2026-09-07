@@ -757,15 +757,30 @@ func _init() -> void:
 	#
 	# `centered = true` por lo mismo que los discos: flixel espeja DENTRO de la caja del
 	# fotograma, y un Sprite2D sin centrar espejado se dibuja al otro lado de su origen.
+	#
+	# Y las de cancion van espejadas AL REVES del `flipped` que les pasa el constructor.
+	# Medido por correlacion cruzada del recorte de cada flecha contra la captura,
+	# comparando tal cual contra espejada:
+	#
+	#   izquierda   igual r=0.271   espejada r=0.778     -> el binario le pasa flipped=true
+	#   derecha     igual r=0.276   espejada r=0.820     -> el binario le pasa flipped=false
+	#   dificultad  igual r=0.506   espejada r=0.430     -> flipped=false, y asi se queda
+	#
+	# Las DOS de cancion salian invertidas y la de dificultad no, aunque las tres comparten
+	# constructor. O sea que no es la bandera: es que el ARTE de `songs arrow` mira al otro
+	# lado que el de la clase base, y `flipX = flipped` sale al reves solo con ese dibujo.
+	# Por eso el valor va escrito por flecha, con el del binario al lado, en vez de negar
+	# la bandera para las tres.
 	var selectors := Node2D.new()
 	selectors.name = "Selectors"
 	selectors.z_index = SELECTOR_Z
 	_add(selectors)
 	var sel_frames: SpriteFrames = load("%s/freeplay_selectors_frames.tres" % DIR)
 	for spec: Array in [
-			["DiffArrow", "diff arrow down", DIFF_ARROW_AT, false],
-			["SongArrowLeft", "songs arrow", SONG_ARROW_LEFT_AT, true],
-			["SongArrowRight", "songs arrow", SONG_ARROW_RIGHT_AT, false]]:
+			# nombre, animacion, esquina, flip_h  (flipped del binario entre parentesis)
+			["DiffArrow", "diff arrow down", DIFF_ARROW_AT, false],       # (false)
+			["SongArrowLeft", "songs arrow", SONG_ARROW_LEFT_AT, false],  # (true)
+			["SongArrowRight", "songs arrow", SONG_ARROW_RIGHT_AT, true]]:  # (false)
 		var arrow := AnimatedSprite2D.new()
 		arrow.name = spec[0] as String
 		arrow.sprite_frames = sel_frames

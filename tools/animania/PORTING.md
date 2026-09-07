@@ -4446,7 +4446,24 @@ artwork.
 
 Ported as an AnimatedSprite2D each, `centered = true` for the same reason as the disks -- Flixel
 mirrors *inside* the frame box, and an uncentred Sprite2D with `flip_h` draws on the far side of
-its origin. Measured against the capture afterwards, the teal core of each:
+its origin.
+
+**And the two song arrows come out mirrored the wrong way if `flipped` is used as `flipX`.**
+Cross-correlating each arrow's crop against the capture, straight versus mirrored:
+
+| flecha | binario | igual | espejada |
+|---|---|---|---|
+| izquierda | flipped=true | r 0.271 | r 0.778 |
+| derecha | flipped=false | r 0.276 | r 0.820 |
+| dificultad | flipped=false | r 0.506 | r 0.430 |
+
+Both song arrows were inverted and the difficulty one was not, though all three share a
+constructor -- so it is not the flag, it is that `songs arrow` is drawn facing the other way
+than the base game's `arrow pointer loop`. The value is therefore written per arrow with the
+binary's flag beside it, rather than negating the flag for all three. After the fix the two
+song arrows read r 0.876 and r 0.810 straight, against 0.258 and 0.295 mirrored.
+
+Measured against the capture afterwards, the teal core of each:
 
 | flecha | mod | port |
 |---|---|---|
@@ -4501,10 +4518,34 @@ atlas variants have no such shape), TVBACK (its opaque region is only 167 px wid
 diagonal edge has slope 0.097, not 0.5), the backwall (opaque and uniformly dark), the VCR or
 its layer (528x131 strips), and `tvGlow` (hiding it changes that strip by 0.2).
 
-The one thread not pulled: `initCharacters` touches the `shadowsOnBed` field (0x180) **eight or
-more times**, where the port's model of that group has only three members -- girlfriend, player
-and phone. Whatever else goes in there is the best remaining candidate, and it is where the next
-pass should start.
+**What it is.** Isolating it as a connected component of `mod < 0.62 * port` gives a clean right
+triangle: apex at (554, 432), a *hard vertical* left edge at x = 555-556 held for 180 rows, a
+hypotenuse of slope 0.394, and a base at y = 609 reaching x = 619. Inside it the mod reads 21.6
+against the port's 67.2, and neither the wall nor the glow contributes -- hiding each moves that
+average by 0.5 and 0.0. So what the port draws there is the bed, and the mod is compositing
+something dark on top of it.
+
+Two numbers name it. First the tint: OVERLAY of `0x1C1A2F` at alpha 0.8 -- `shadowsOnBed`'s own
+colour, read in 8ae -- over the port's 73 predicts 30, and the mod measures 21.6 to 41.2 across
+the triangle. Second, and this is the one that settles it, the hard left edge:
+
+    shakeShadows escala el grupo 1.1 sobre el pivote (FlxG.width/1.2, FlxG.height*1.2)
+    el borde izquierdo del contenido del grupo esta en x = 600 (medido en la huella del puerto)
+    1066.7 + 1.1 * (600 - 1066.7) = 553.3
+
+553 against a measured 555. A hard vertical line at a constant x over 180 rows is not a blur and
+not artwork: it is the **edge of the group's framebuffer quad**. `shadowsOnBed` is a
+`FlxLayerGroup`, it renders to a texture sized to its contents, and the tint is applied to that
+whole quad -- not only where the characters' silhouettes are. The hypotenuse is then not an edge
+at all: with a source below 0.5 the overlay formula crushes dark bases and barely touches bright
+ones, so the visible boundary just follows the bed art's own tonal step.
+
+The port's shader does the opposite: it gates the tint on the SubViewport's alpha, so it paints
+silhouettes and nothing else. Making it faithful means tinting the whole quad and bounding that
+quad to the group's contents -- a change that darkens a large region and is worth doing
+deliberately rather than as the tail of a comparison pass, so it is written down here and not
+applied. It is also the same knob as the two things 8ae left open (the blur radius, and whether
+OpenFL honours OVERLAY at all).
 
 
 ## 8b. Adding a song, for real
