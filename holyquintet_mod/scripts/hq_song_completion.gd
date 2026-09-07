@@ -18,6 +18,8 @@ func _ready() -> void:
 		return
 	HQSaves.hq_bullet_note_missed = false
 	HQSaves.hq_timestop_note_hit = false
+	HQSaves.hq_atks_sustained = false
+	HQSaves.hq_dodge_perfects = 0
 	_clock = scene.get_node_or_null("RubiconLevelClock")
 	_song_module = scene.get_node_or_null("RubiconLevelSongModule")
 	var health = scene.get_node_or_null("RubiconHealthModule")
@@ -67,6 +69,7 @@ func _on_song_finished(_anim_name: StringName) -> void:
 			ResultsData.hits_okay = player.performance_hits_okay
 			ResultsData.hits_bad = player.performance_hits_bad
 			ResultsData.hits_miss = player.performance_hits_miss
+			ResultsData.score = player.performance_score_value + HQSaves.hq_dodge_perfects * 500
 
 	# Stop audio
 	if _song_module != null:
@@ -130,6 +133,9 @@ func _try_achievements() -> void:
 	# YoureOnMyTime: out-of-time without pressing timestop or missing bullets.
 	if song == "out-of-time" 		and not HQSaves.hq_timestop_note_hit and not HQSaves.hq_bullet_note_missed:
 		HQSaves.unlock_achievement("YoureOnMyTime")
+	# VexYikes: completed vexation without being hit by any Kyoko Attack.
+	if song == "vexation" and not HQSaves.hq_atks_sustained:
+		HQSaves.unlock_achievement("VexYikes")
 	# CompleteAct1: story mode clear of out-of-time.
 	if song == "out-of-time" and HQSaves.is_story_mode:
 		HQSaves.unlock_achievement("CompleteAct1")

@@ -35,6 +35,8 @@ var is_story_mode: bool = false
 ## Mirrors the mod's bulletNoteMissed / timeStopNoteHit for YoureOnMyTime.
 var hq_bullet_note_missed: bool = false
 var hq_timestop_note_hit: bool = false
+var hq_atks_sustained: bool = false
+var hq_dodge_perfects: int = 0
 
 
 func _ready() -> void:
@@ -68,6 +70,8 @@ func reset_run_state() -> void:
 	is_story_mode = false
 	cur_gauntlet_mods = []
 	cur_gauntlet_multiplier = 1.0
+	hq_atks_sustained = false
+	hq_dodge_perfects = 0
 
 
 func save_data() -> void:

@@ -51,6 +51,7 @@ signal stage_event
 
 func _process(delta: float) -> void:
 	_apply_sayaka_drain(delta)
+	_poll_dodge()
 
 
 func _ready() -> void:
@@ -492,89 +493,239 @@ func _apply_sayaka_drain(delta: float) -> void:
 
 ## ─── Kyoko Attack ────────────────────────────────────────────────────────────
 ## Params: [damage: float]
-## Dodge mechanic: player must press dodge key to avoid damage.
+## Dodge mechanic (Kyoko Attack.hx): press dodge (SPACE / mobile button) inside
+## the window. Timing decides the result - before 8.5 steps is a miss-early,
+## 8.5-11.5 is a dodge, after 11.5 is a dodge-perfect, never pressing is a
+## miss-late. HarderMechanics narrows the perfect window to 11 steps.
+const KYOKO_DODGE_FRAME_INDEX: Dictionary = {
+	"miss-early": 0,
+	"miss-late": 1,
+	"dodge": 2,
+	"dodge-perfect": 3,
+}
+
 var _kyoko_can_dodge: bool = false
-var _kyoko_result: String = ""
+var _kyoko_current_result: String = ""  ## Advances: miss-early -> dodge -> dodge-perfect
+var _kyoko_dodge_result: String = ""    ## Captured at the moment dodge is pressed.
+
+
+func _ensure_dodge_action() -> void:
+	if InputMap.has_action("dodge"):
+		return
+	InputMap.add_action("dodge")
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_SPACE
+	InputMap.action_add_event("dodge", key)
+
+
+func _poll_dodge() -> void:
+	if not _kyoko_can_dodge:
+		return
+	_ensure_dodge_action()
+	if Input.is_action_just_pressed("dodge"):
+		_kyoko_dodge_result = _kyoko_current_result
+		_kyoko_can_dodge = false
+		_play_bf_dodge_anim()
+
 
 func _evt_kyoko_attack(params: Array) -> void:
 	if params.is_empty():
 		return
 	var damage: float = params[0]
 	_kyoko_can_dodge = true
-	_kyoko_result = "miss-early"
-	# Show warning popup
+	_kyoko_current_result = "miss-early"
+	_kyoko_dodge_result = ""
 	_show_kyoko_warning(Color.YELLOW)
-	# After 4 steps, opponent attacks
-	var dur_4 := 4.0 * _step_crochet()
+	# After 4 steps, Kyoko attacks + second warning.
 	var tw := create_tween()
-	tw.tween_interval(dur_4)
+	tw.tween_interval(4.0 * _step_crochet())
 	tw.tween_callback(func():
-		AnimaniaModule.play_character_animation(&"opponent", &"attack", true)
-		_show_kyoko_warning(Color.RED)
+		_play_kyoko_attack_anim()
+		_show_kyoko_warning(Color.YELLOW)
 	)
-	# After 8 steps, dodge window opens
-	var dur_8 := 8.5 * _step_crochet()
+	# After 8 steps, red warning.
+	var tw1 := create_tween()
+	tw1.tween_interval(8.0 * _step_crochet())
+	tw1.tween_callback(func(): _show_kyoko_warning(Color.RED))
+	# After 8.5 steps, dodge window opens (unchanged on HarderMechanics).
 	var tw2 := create_tween()
-	tw2.tween_interval(dur_8)
-	tw2.tween_callback(func(): _kyoko_result = "dodge")
-	# After 11.5 steps, perfect dodge window
-	var dur_11 := 11.5 * _step_crochet()
-	var tw3 := create_tween()
-	tw3.tween_interval(dur_11)
-	tw3.tween_callback(func(): _kyoko_result = "dodge-perfect")
-	# After 13 steps, execute result
-	var dur_13 := 13.0 * _step_crochet()
-	var tw4 := create_tween()
-	tw4.tween_interval(dur_13)
-	tw4.tween_callback(func():
-		_execute_kyoko_result(damage)
+	tw2.tween_interval(8.5 * _step_crochet())
+	tw2.tween_callback(func():
+		if not HQSaves.cur_gauntlet_mods.has("HarderMechanics"):
+			_kyoko_current_result = "dodge"
 	)
+	# After 11.5 steps (11 on HarderMechanics), perfect dodge window.
+	var window_steps := 11.5
+	if HQSaves.cur_gauntlet_mods.has("HarderMechanics"):
+		window_steps = 11.0
+	var tw3 := create_tween()
+	tw3.tween_interval(window_steps * _step_crochet())
+	tw3.tween_callback(func(): _kyoko_current_result = "dodge-perfect")
+	# After 13 steps, execute the result.
+	var tw4 := create_tween()
+	tw4.tween_interval(13.0 * _step_crochet())
+	tw4.tween_callback(func(): _execute_kyoko_result(damage))
+
+
+func _play_kyoko_attack_anim() -> void:
+	var scene = get_tree().current_scene
+	if scene == null:
+		return
+	var kyoko: Node = scene.get_node_or_null("Stage/Kyoko")
+	if kyoko == null or not kyoko.has_method("play"):
+		return
+	var anim_player: Variant = kyoko.get("animation_player")
+	if anim_player != null and anim_player.has_animation(&"attack"):
+		kyoko.play(&"attack")
+
+
+func _play_bf_dodge_anim() -> void:
+	var scene = get_tree().current_scene
+	if scene == null:
+		return
+	var bf: Node = scene.get_node_or_null("Stage/Boyfriend")
+	if bf == null or not bf.has_method("play"):
+		return
+	var direction := randi_range(0, 3)
+	var candidates: Array[StringName] = [
+		[&"dodgeLEFT", &"dodgeRIGHT", &"dodgeUP", &"dodgeDOWN"][direction],
+		&"dodge",
+		&"hey",
+	]
+	_play_first_available_anim(bf, candidates)
 
 
 func _show_kyoko_warning(col: Color) -> void:
+	var tex_path := "res://holyquintet_mod/source/images/game/mechanics/kyoko/warning.png"
 	var canvas := CanvasLayer.new()
 	canvas.layer = 25
 	get_tree().current_scene.add_child(canvas)
-	var label := Label.new()
-	label.text = "⚠ WARNING ⚠"
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	label.add_theme_font_size_override("font_size", 80)
-	label.add_theme_color_override("font_color", col)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canvas.add_child(label)
+	if not ResourceLoader.exists(tex_path):
+		var label := Label.new()
+		label.text = "WARNING!"
+		label.set_anchors_preset(Control.PRESET_CENTER)
+		label.add_theme_font_size_override("font_size", 80)
+		label.add_theme_color_override("font_color", col)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		canvas.add_child(label)
+		var tw := create_tween()
+		tw.tween_property(label, "scale", Vector2(1.5, 1.5), 0.3).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(0.5)
+		tw.tween_property(label, "scale", Vector2(0.0, 0.0), 0.3).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func(): canvas.queue_free())
+		return
+	var sprite := Sprite2D.new()
+	sprite.texture = load(tex_path)
+	sprite.modulate = col
+	sprite.modulate.a = 0.0
+	sprite.scale = Vector2(1.6, 1.6)
+	sprite.rotation_degrees = randi_range(-5, 5)
+	sprite.position = canvas.get_viewport().get_visible_rect().size / 2.0
+	canvas.add_child(sprite)
 	var tw := create_tween()
-	tw.tween_property(label, "scale", Vector2(1.5, 1.5), 0.3).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(0.5)
-	tw.tween_property(label, "scale", Vector2(0.0, 0.0), 0.3).set_ease(Tween.EASE_IN)
+	tw.tween_property(sprite, "scale", Vector2(1.5, 1.5), 2.0 * _step_crochet()).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(sprite, "modulate:a", 1.0, 2.0 * _step_crochet()).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sprite, "scale", Vector2(0.0, 0.0), 4.0 * _step_crochet()).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(sprite, "rotation_degrees", sprite.rotation_degrees * 15.0, 4.0 * _step_crochet()).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(sprite, "modulate:a", 0.0, 4.0 * _step_crochet()).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): canvas.queue_free())
 
 
 func _execute_kyoko_result(damage: float) -> void:
 	_kyoko_can_dodge = false
-	# Player dodge will have set _kyoko_result
-	var result := _kyoko_result
+	var result := _kyoko_dodge_result
+	if result.is_empty():
+		result = "miss-late"
+	if HQSaves.cur_story_diff == "easy":
+		damage *= 0.5
+	_show_dodge_judgement(result)
+	var scene = get_tree().current_scene
+	var health: Node = null
+	if scene != null:
+		health = scene.get_node_or_null("RubiconHealthModule")
 	match result:
 		"miss-early", "miss-late":
-			# Player took damage
-			var scene = get_tree().current_scene
+			_damage_player(health, damage)
+			HQSaves.hq_atks_sustained = true
 			if scene != null:
-				var health = scene.get_node_or_null("RubiconHealthModule")
-				if health != null and health.has_method("change_health"):
-					health.change_health(-damage)
-				# Play hurt animation on BF
-				var bf = scene.get_node_or_null("Stage/Boyfriend")
-				if bf != null and bf.has_method("play_anim"):
-					bf.play_anim(&"hurt-short", true)
+				var kyubey: Node = scene.get_node_or_null("Stage/Kyubey")
+				if kyubey != null:
+					_play_first_available_anim(kyubey, [&"sad"])
+				_play_first_available_anim(scene.get_node_or_null("Stage/Boyfriend"), [&"hurt-short"])
+			if HQSaves.cur_gauntlet_mods.has("InstantKillMechanics"):
+				_kill_player_via_health(health)
 		"dodge", "dodge-perfect":
+			if scene != null:
+				var kyubey: Node = scene.get_node_or_null("Stage/Kyubey")
+				if kyubey != null:
+					_play_first_available_anim(kyubey, [&"hey"])
 			if result == "dodge-perfect":
-				var scene = get_tree().current_scene
-				if scene != null:
-					var health = scene.get_node_or_null("RubiconHealthModule")
-					if health != null and health.has_method("change_health"):
-						health.change_health(0.05)
-	_kyoko_result = ""
+				_heal_player(health, 0.05)
+				HQSaves.hq_dodge_perfects += 1
+	_kyoko_current_result = ""
+	_kyoko_dodge_result = ""
+
+
+func _damage_player(health: Node, damage: float) -> void:
+	if health == null:
+		return
+	var min_health: Variant = health.get("min_health")
+	var max_health: Variant = health.get("max_health")
+	var low := float(min_health) if min_health != null else 0.0
+	var high := float(max_health) if max_health != null else 100.0
+	health.health = clampf(float(health.health) - damage / 50.0, low, high)
+
+
+func _heal_player(health: Node, amount: float) -> void:
+	if health == null:
+		return
+	var max_health: Variant = health.get("max_health")
+	var high := float(max_health) if max_health != null else 100.0
+	health.health = minf(float(health.health) + amount, high)
+
+
+func _kill_player_via_health(health: Node) -> void:
+	if health == null:
+		return
+	var min_health: Variant = health.get("min_health")
+	health.health = float(min_health) if min_health != null else 0.0
+
+
+func _play_first_available_anim(node: Node, candidates: Array[StringName]) -> void:
+	if node == null or not node.has_method("play"):
+		return
+	var anim_player: Variant = node.get("animation_player")
+	for anim: StringName in candidates:
+		if anim_player != null and anim_player.has_animation(anim):
+			node.play(anim)
+			return
+
+
+func _show_dodge_judgement(result: String) -> void:
+	var tex_path := "res://holyquintet_mod/source/images/game/judgement/dodges.png"
+	if not ResourceLoader.exists(tex_path):
+		return
+	var frame_index: int = KYOKO_DODGE_FRAME_INDEX.get(result, 2)
+	var canvas := CanvasLayer.new()
+	canvas.layer = 24
+	get_tree().current_scene.add_child(canvas)
+	var sprite := Sprite2D.new()
+	sprite.texture = load(tex_path)
+	sprite.region_enabled = true
+	sprite.region_rect = Rect2(0, frame_index * 120.0, 400.0, 120.0)
+	sprite.scale = Vector2(1.25, 1.25)
+	sprite.rotation_degrees = randi_range(-5, 5)
+	sprite.position = canvas.get_viewport().get_visible_rect().size / 2.0
+	sprite.position.x = minf(sprite.position.x * 1.4, canvas.get_viewport().get_visible_rect().size.x - 220.0)
+	canvas.add_child(sprite)
+	var tw := create_tween()
+	tw.tween_property(sprite, "scale", Vector2(1.0, 1.0), 4.0 * _step_crochet()).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(sprite, "modulate:a", 1.0, 4.0 * _step_crochet()).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sprite, "position:y", sprite.position.y - 25.0, 8.0 * _step_crochet()).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(sprite, "modulate:a", 0.0, 8.0 * _step_crochet()).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): canvas.queue_free())
 
 
 ## ─── BPM Change ─────────────────────────────────────────────────────────────
