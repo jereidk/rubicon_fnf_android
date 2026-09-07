@@ -15354,7 +15354,7 @@ script = ExtResource("132")
 animation_player = NodePath("AnimationPlayer")
 animation_name = &"precache"
 extra_sweep_player = NodePath("../Sequences/SequencePlayer")
-extra_sweep_animations = Array[StringName]([&"103_stroll", &"116_hexstare", &"120_closetpicture", &"117_heartbeat", &"122_fall", &"121_closetrunout"])
+extra_sweep_animations = Array[StringName]([&"103_stroll", &"104_photographysesh", &"107_turnaround", &"114_hexapproach", &"116_hexstare", &"120_closetpicture", &"117_heartbeat", &"122_fall", &"121_closetrunout"])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PreloadCamera" unique_id=737729031]
 libraries/ = SubResource("AnimationLibrary_umtp6")
@@ -15370,16 +15370,6 @@ video_path = "res://lullaby_mod/songs/chimera/video/prelude.ogv"
 clock = NodePath("../RubiconLevelClock/AnimationPlayer")
 starts_at = 0.0
 ends_at = 34.708332
-canvas_layer = 0
-
-[node name="PhotoshootVideo" type="Node" parent="." unique_id=785039702 node_paths=PackedStringArray("clock")]
-script = ExtResource("304")
-live_fallback_exists = true
-disable_3d_while_playing = true
-video_path = "res://lullaby_mod/songs/chimera/video/photoshoot.ogv"
-clock = NodePath("../RubiconLevelClock/AnimationPlayer")
-starts_at = 53.7
-ends_at = 111.0
 canvas_layer = 0
 
 [connection signal="body_entered" from="Camera3D/Player" to="Sequences/EscapingMechanic" method="_on_player_body_entered"]

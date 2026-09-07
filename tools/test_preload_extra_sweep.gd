@@ -47,13 +47,17 @@ const SCRIPT_PATH := "res://lullaby_mod/scripts/lullaby/lullaby_preload_camera.g
 const CHIMERA_PATH := "res://lullaby_mod/songs/chimera/sng_chimera.tscn"
 ## La lista era de ocho. Las cinco que faltan
 ## (`101_prelude`, `102_intro`, `104_photographysesh`, `107_turnaround`,
-## `114_hexapproach`) caen enteras dentro de la ventana de uno de los dos videos
-## de Chimera, y los dos llevan `disable_3d_while_playing`, asi que el pase 3D no
-## corre ahi: eran 45 de las 82 poses del barrido calentando encuadres que el
-## jugador no ve en 3D nunca. `116_hexstare` entra por lo contrario - es donde el
-## video del photoshoot devuelve el mando, a los 111.0s, a media reproduccion del
-## clip. Ese reparto lo comprueba `test_sweep_skips_video_windows.gd`
-## derivandolo de la escena; aqui solo se fija el resultado.
+## `114_hexapproach`) caian enteras dentro de la ventana de uno de los DOS videos
+## que Chimera tenia, y los dos llevaban `disable_3d_while_playing`, asi que el
+## pase 3D no corria ahi: eran 45 de las 82 poses del barrido calentando
+## encuadres que el jugador no veia en 3D nunca.
+##
+## Queda un video, el prelude. Al quitarse el del photoshoot, sus tres
+## secuencias volvieron al barrido y `116_hexstare` dejo de ser un caso especial
+## - entraba porque ese video devolvia el mando a los 111.0s, a media
+## reproduccion del clip, y ya no hay tal devolucion. Ese reparto lo comprueba
+## `test_sweep_skips_video_windows.gd` derivandolo de la escena; aqui solo se
+## fija el resultado.
 ##
 ## Ordenada por el PEOR FOTOGRAMA MEDIDO en el dispositivo, del log
 ## 10226-4fe0a6db, que es la primera vez que se pueden atribuir los picos a una

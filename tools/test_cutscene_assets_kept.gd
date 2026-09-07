@@ -85,10 +85,11 @@ const FROZEN := [
 ##
 ## Se lista igualmente para que un video nuevo no pueda entrar sin que alguien
 ## decida en cual de las dos listas va.
-const RERENDERABLE := {
-	"res://lullaby_mod/songs/chimera/video/photoshoot.ogv":
-		"la sesion de fotos: los clips 103-116 siguen vivos en la escena",
-}
+## Vacio ahora mismo, y se queda declarado a proposito: es la mitad de la
+## clasificacion obligatoria de la linea ~342, y borrarlo obligaria a que el
+## proximo video re-renderizable entrara sin que nadie decida en cual de las dos
+## listas va. `photoshoot.ogv` estaba aqui y salio con su nodo.
+const RERENDERABLE := {}
 
 ## Ventanas declaradas mas largas que su propio .ogv, y cuanto se les tolera.
 ##
@@ -161,84 +162,14 @@ func _retired_checks() -> void:
 	_check("[chimera] y 113_reaching sigue pudiendo fundir con Black",
 		chimera.contains('NodePath("../Prelude/Black:modulate")'))
 
-	_chimera_window_checks(chimera)
+	# `_chimera_window_checks()` se fue con el nodo. Comprobaba que la ventana de
+	# PhotoshootVideo terminara donde el reloj despacha `117_heartbeat`, y ya no
+	# hay ventana que comprobar: la sesion de fotos vuelve a dibujarse en vivo.
+	# El resto del fichero sigue vigilando los videos que quedan, y la regla
+	# generica de la linea de abajo -todo video_path clasificado- sigue cubriendo
+	# a cualquiera que se anada.
 
 
-## La ventana de la sesion de fotos casa con el calendario real de clips.
-##
-## `ends_at = 113.140144` no es un numero redondo ni elegido: es el instante
-## EXACTO en que el reloj despacha `117_heartbeat`, o sea cuando el mando vuelve
-## a la mecanica. Lo saque leyendo la pista de despacho, y escrito a mano en la
-## escena no hay nada que lo ate: si alguien recronometra la cancion, el video
-## sigue tapando la pantalla mientras la mecanica de heartbeat ya corre debajo, o
-## la suelta antes y se ve un salto. Ninguna de las dos da error.
-##
-## Asi que se comprueba contra la fuente en vez de repetir la constante.
-func _chimera_window_checks(scene: String) -> void:
-	var found: Array[String] = _blocks_with(scene, 'name="PhotoshootVideo"')
-	_check("[chimera] existe el nodo PhotoshootVideo", not found.is_empty())
-	if found.is_empty():
-		return
-	var block: String = found[0]
-
-	# El `times` que vale es el que acompaña a ESTE `clips`, no el primero del
-	# fichero: la escena tiene decenas de pistas con su propio `times` y buscar a
-	# secas encontraba el de otra, con un solo elemento.
-	var clips_at: int = scene.find('"clips": PackedStringArray(')
-	var clips: PackedStringArray = _string_array(scene, '"clips": PackedStringArray(')
-	var times: PackedFloat32Array = _float_array(
-		scene, '"times": PackedFloat32Array(', clips_at)
-	_check("[chimera] se lee el calendario de clips (%d clips, %d tiempos)"
-		% [clips.size(), times.size()],
-		clips.size() > 0 and clips.size() == times.size())
-	if clips.size() == 0 or clips.size() != times.size():
-		return
-
-	var at: Dictionary = {}
-	for i: int in clips.size():
-		at[clips[i]] = times[i]
-
-	var starts: float = _number(block, "starts_at = ")
-	var ends: float = _number(block, "ends_at = ")
-
-	# NUNCA pasado el arranque de la mecanica, y no necesariamente justo ahi.
-	#
-	# La primera version exigia que `ends_at` fuese exactamente el instante de
-	# `117_heartbeat`. Jugandolo se vio por que eso estaba mal: los ultimos 2.17s
-	# del render eran un fotograma congelado -el movimiento se acaba en 57.30 de
-	# los 59.47- asi que el video se quedaba quieto, soltaba el mando, y la
-	# escena viva reproducia el movimiento de verdad. En pantalla eso es la misma
-	# cosa dos veces seguidas.
-	#
-	# Se corto el video ahi y la ventana con el. Lo que hay que garantizar no es
-	# que termine EN la mecanica, sino que no la pise: pasarse significa tapar
-	# con video una mecanica que ya esta corriendo debajo.
-	_check("[chimera] el video no pisa 117_heartbeat (%.3f <= %.6f)"
-		% [ends, float(at.get("117_heartbeat", -1.0))],
-		at.has("117_heartbeat") and ends <= float(at["117_heartbeat"]) + 0.001)
-
-	_check("[chimera] y ya esta puesto antes de que empiece 104_photographysesh"
-		+ " (%.6f)" % float(at.get("104_photographysesh", -1.0)),
-		at.has("104_photographysesh") and starts <= float(at["104_photographysesh"]))
-
-	# Y que no se quede ningun clip de la tanda fuera por el otro lado.
-	var last_covered: String = ""
-	for name: String in ["104_photographysesh", "105_headingout", "106_cameracheck",
-			"107_turnaround", "108_headphones", "109_backingupback",
-			"110_backingupfront", "111_disorient", "112_disorientidle",
-			"113_reaching", "114_hexapproach", "115_runningaway", "116_hexstare"]:
-		if not at.has(name):
-			_check("[chimera] el clip %s sigue existiendo" % name, false)
-			continue
-		if float(at[name]) >= ends:
-			last_covered = name
-	_check("[chimera] y los trece clips 104-116 caen dentro de la ventana%s"
-		% ("" if last_covered.is_empty() else " - NO: %s empieza en %.3f, fuera"
-			% [last_covered, float(at.get(last_covered, 0.0))]),
-		last_covered.is_empty())
-
-
-## `PackedStringArray("a", "b")` -> los elementos.
 func _string_array(text: String, prefix: String) -> PackedStringArray:
 	var at: int = text.find(prefix)
 	if at < 0:

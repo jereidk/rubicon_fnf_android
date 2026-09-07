@@ -2,25 +2,24 @@ extends SceneTree
 
 ## El barrido del precache no calienta planos que tapa un video.
 ##
-## Chimera dibuja dos de sus cutscenes con video pre-renderizado, y los dos
-## nodos llevan `disable_3d_while_playing = true`, asi que durante su ventana el
-## pase 3D ni corre. `extra_sweep_animations` seguia listando cinco secuencias
-## enteramente dentro de esas ventanas:
+## Chimera dibuja UNA de sus cutscenes con video pre-renderizado - el prelude - y
+## su nodo lleva `disable_3d_while_playing = true`, asi que durante su ventana el
+## pase 3D ni corre. `extra_sweep_animations` no puede listar secuencias que
+## caigan enteras dentro de ella:
 ##
 ##     101_prelude          3.00 - 19.92   entera bajo prelude     16 poses
 ##     102_intro           19.92 - 34.58   entera bajo prelude      2 poses
-##     104_photographysesh 53.78 - 62.33   entera bajo photoshoot   4 poses
-##     107_turnaround      72.50 - 75.88   entera bajo photoshoot  16 poses
-##     114_hexapproach     97.83 - 102.63  entera bajo photoshoot   7 poses
 ##
-## 45 de las 82 poses del barrido, calentando encuadres que el jugador no ve en
-## 3D jamas. Dos de ellas - `104_photographysesh` y `114_hexapproach` - estan
-## entre los cuatro petardeos que motivaron este export; dejaron de petardear
-## porque encima va un video, y el barrido seguia pagandolos igual.
+## Eran cinco, con dos ventanas. `104_photographysesh`, `107_turnaround` y
+## `114_hexapproach` caian bajo `photoshoot`, y VOLVIERON al barrido cuando ese
+## video se quito de la escena: ya no los tapa nada, o sea que la sesion de fotos
+## se dibuja en vivo otra vez y el precache tiene que calentar sus encuadres. Dos
+## de ellos - `104_photographysesh` y `114_hexapproach` - estan entre los cuatro
+## petardeos que motivaron este export, y vuelven a estar expuestos.
 ##
 ## Y al reves: donde un video DEVUELVE el mando a mitad de un clip, ese clip se
-## dibuja en 3D en frio. `photoshoot` acaba en 111.0s, dentro de `116_hexstare`
-## (107.21 - 113.14), que no estaba en la lista.
+## dibuja en 3D en frio. El prelude cierra en 34.708332, dentro de `103_stroll`,
+## que si esta en la lista.
 ##
 ## Las dos reglas se comprueban DERIVANDOLAS de la escena - las ventanas de cada
 ## nodo de video contra la pista de clips del reloj - y no contra una lista
@@ -54,7 +53,11 @@ func _initialize() -> void:
 		return
 
 	var windows: Array = _video_windows(scene)
-	_check(windows.size() == 2, "se encuentran las dos ventanas de video (%d)" % windows.size())
+	# Una, no dos. `photoshoot` se quito de la escena; queda `prelude`. El numero
+	# se afirma en vez de contarse a secas porque es lo que impide que este guard
+	# pase EN VACIO: sin ventanas, las dos reglas derivadas de abajo se cumplen
+	# solas y la poda de la lista dejaria de estar vigilada.
+	_check(windows.size() == 1, "se encuentra la ventana de video (%d)" % windows.size())
 	for w in windows:
 		_check(w["disable_3d"],
 			"%s lleva disable_3d_while_playing, o no tapa el pase 3D" % w["name"])
@@ -92,8 +95,11 @@ func _initialize() -> void:
 	# Y la comprobacion barata que sostiene a las otras dos: que la poda de
 	# verdad ocurrio. Sin esto el guard pasa igual con la lista vieja si alguien
 	# moviera las ventanas de video en vez de la lista.
-	for gone in ["101_prelude", "102_intro", "104_photographysesh",
-			"107_turnaround", "114_hexapproach"]:
+	# Eran cinco. `104_photographysesh`, `107_turnaround` y `114_hexapproach`
+	# VOLVIERON al barrido al quitarse el video del photoshoot: ya no los tapa
+	# nada, asi que la escena los dibuja en 3D y el precache tiene que
+	# calentarlos. Los dos que quedan siguen enteros bajo `prelude`.
+	for gone in ["101_prelude", "102_intro"]:
 		_check(not Array(listed).has(gone),
 			"%s ya no se barre: lo tapa un video de principio a fin" % gone)
 
