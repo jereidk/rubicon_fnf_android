@@ -19,6 +19,15 @@ mirar de qué está hecho cada uno:
            independiente. Tirar fotogramas es gratis; reducir la resolucion no lo
            es, porque cambia el tamano del grano.
 
+AVISO, y sale caro olvidarlo: un reescalado ANISOTROPICO -que es justo lo que hace
+que esto merezca la pena- cambia la relacion de aspecto de los fotogramas, y el xml
+que se escribe lleva el ancho NUEVO. Quien dibuje el atlas tiene que devolver ese
+factor en la escala del nodo, o el arte sale encogido a lo ancho y nadie lo nota
+porque sigue pareciendo arte. Con TVBACK paso: 668 -> 167 sin compensar dejo el fondo
+del televisor a un cuarto de su anchura durante semanas, y lo que faltaba -su borde
+diagonal cayendo entre el televisor y la cama- se llego a investigar como si fuera un
+sprite que el puerto no tenia. Ver 8ai en PORTING.md.
+
 Uso:
 
     python3 tools/animania/optimize_atlas.py ENTRADA.png SALIDA.png \\

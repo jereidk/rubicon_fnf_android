@@ -576,8 +576,23 @@ func _init() -> void:
 	const TV_INNER := Vector2(117.0, 128.0)
 	const TV_INNER_SIZE := Vector2(375.0, 305.0)
 
+	# El atlas vendorizado de TVBACK viene APLASTADO a lo ancho, y hay que devolverlo aqui.
+	#
+	# El TVBACK del mod son 98 fotogramas de 668x721; el del puerto, 98 de 167x721. No es un
+	# recorte ni un error de exportacion: es la optimizacion de 3c9a837, que midio que el
+	# contenido son bandas de scanline -gradiente vertical medio 3.51 contra 0.54 el
+	# horizontal- y por eso reduce SOLO el ancho, a la cuarta parte, sacando 44.9 dB donde un
+	# reescalado isotropico del mismo peso sacaba 40.4. La hoja pasa de 171.6 MB a 40.7.
+	#
+	# Lo que faltaba es lo otro: nadie devolvia ese 4 al dibujar. El puerto pintaba el fondo
+	# del televisor a 167*1.5 = 250 px de ancho cuando le tocan 668*1.5 = 1002, o sea a un
+	# cuarto de lo suyo. Se veia como la franja de colores pegada al borde izquierdo, y todo
+	# lo que va de ahi a la derecha -incluida la parte oscura que cae entre el televisor y la
+	# cama- simplemente no se dibujaba.
+	const TVBACK_SQUASH := 668.0 / 167.0
 	var tv_bg: AnimatedSprite2D = _sparrow("TvBg", "freeplay_tvback", "pink", Vector2.ZERO)
 	tv_bg.z_index = 10
+	tv_bg.scale = Vector2(FUNKIN_TO_RUBICON * TVBACK_SQUASH, FUNKIN_TO_RUBICON)
 
 	var tv_back_bg := _panel("TvBackBG", TV_INNER, TV_INNER_SIZE, Color(0, 0, 0, 1))
 	tv_back_bg.z_index = 20

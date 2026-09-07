@@ -4562,6 +4562,58 @@ all read 120.2 on the tube -- same phase, comparable. Two shots are only compara
 run the same number of frames.
 
 
+## 8ai. The black wedge was the backdrop, drawn a quarter of its width
+
+The user called it: *"debe ser el fondo pues, ese fondo glicheado, solo que esta atras del
+fondo de la cama."* It is `TVBACK`, and the port was drawing it four times too narrow.
+
+    TVBACK.xml en el mod      98 subtexturas de 668x721
+    TVBACK.xml en el puerto   98 subtexturas de 167x721
+
+Not a bad export: commit 3c9a837 squashed it on purpose. The content is scanline bands -- mean
+vertical gradient 3.51 against 0.54 horizontal -- so reducing only the width holds 44.9 dB where
+an isotropic reduction of the same weight holds 40.4, and the sheet drops from 171.6 MB to 40.7.
+The measurement was right. What was missing is the other half: **nobody gave the 4 back at draw
+time.** The port painted the television's backdrop 167 x 1.5 = 250 px wide where it wants
+668 x 1.5 = 1002. All that survived was the strip of coloured bands hugging the left edge; every
+column of it from there rightwards was simply not drawn.
+
+The geometry closes on itself. TVBACK's opaque region has a diagonal right edge running from
+local x = 384 at the top row to x = 664 at the bottom -- slope **0.388** over its 721 rows. The
+wedge measured off the capture in 8ah has slope **0.394**, and drawing the atlas at its proper
+width puts that edge at x = 551.7 for y = 432 and x = 620.4 for y = 609, against the **554** and
+**619** measured. Two independent numbers to within two pixels.
+
+So the wedge was never a missing sprite. It is where the backdrop, which sits at zIndex 10 and
+therefore *over* the bed (zIndex 2), stops covering it: left of the diagonal the bed is under
+TVBACK and dark, right of it the bed shows. It only reads as a triangle because the bed's own
+opaque artwork starts at x = 553-555 and everything left of that is already dark.
+
+Verified by forcing the frame, because this is a 98-frame animation whose brightness in that
+region swings from 9 to 160 and two shots at different phases compare nothing:
+
+| | pantalla | franja TV-cama |
+|---|---|---|
+| antes del estiron | 24.47 | 23.44 |
+| estirado, fase libre | 25.70 | 26.51 |
+| estirado, TvBg en el fotograma 66 | **23.51** | **20.44** |
+| estirado, TvBg en el fotograma 31 | 23.72 | 20.36 |
+
+In the triangle itself the port went from 67.2 to 10.1 against the mod's 21.6 -- the remaining
+spread is which of the 98 frames is showing. `slot_shot.gd` grew a `tvbg=N` flag for that.
+
+Two corrections this drags behind it. 8ag put the whole left-edge colour difference down to the
+animation phase; the phase is real, but so was the backdrop being a quarter of its width, and
+that is why the bands hugged the edge. And 8ah's list of things the wedge "is not" included
+TVBACK, on the grounds that its opaque region was 167 px wide with a diagonal of slope 0.097 --
+both figures measured off the port's own squashed copy instead of the mod's. Checking an
+excluded candidate against the vendored asset rather than the original is how a thing gets
+excluded twice.
+
+`optimize_atlas.py` now carries the warning at the top of the file: an anisotropic rescale is
+exactly what makes it worth doing, and it moves the compensation onto whoever draws the atlas.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

@@ -75,6 +75,15 @@ func _process(delta: float) -> void:
 				continue
 			var v: float = a.substr(5).to_float()
 			mat.set_shader_parameter(&"radius", Vector2(v, v))
+		elif a.begins_with("tvbg="):
+			# El fotograma de `TvBg`. TVBACK son 98 y su brillo en una zona dada va de 9 a
+			# 160, asi que comparar contra una captura sin fijarlo compara fases.
+			var bg := _screen.get_node_or_null(^"TvBg") as AnimatedSprite2D
+			if bg == null:
+				push_warning("tvbg: no existe TvBg")
+				continue
+			bg.pause()
+			bg.frame = a.substr(5).to_int()
 		elif a.begins_with("hide="):
 			for nm: String in a.substr(5).split(",", false):
 				var n := _screen.get_node_or_null(NodePath(nm)) as CanvasItem
