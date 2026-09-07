@@ -13,9 +13,16 @@ const SCREEN := "res://animania_mod/menus/freeplay/freeplay_screen.tscn"
 const SETTLE := 2.5
 var _frames: int = 0
 var _t: float = 0.0
+var _name: String = "freeplay"
 
 
 func _ready() -> void:
+	# `-- pad` para verlo como en un movil: el mando se apaga solo donde no hay dedos, asi
+	# que en esta maquina sin pantalla tactil no saldria. Va ANTES de instanciar, que es
+	# cuando el mando lo lee.
+	if OS.get_cmdline_user_args().has("pad"):
+		Engine.set_meta(&"force_menu_pad", true)
+		_name = "freeplay_pad"
 	add_child(load(SCREEN).instantiate())
 
 
@@ -24,6 +31,7 @@ func _process(_delta: float) -> void:
 	_t += _delta
 	if _frames < 6 or _t < SETTLE:
 		return
-	get_viewport().get_texture().get_image().save_png("user://freeplay.png")
-	print("OUT %s" % ProjectSettings.globalize_path("user://freeplay.png"))
+	var path: String = "user://%s.png" % _name
+	get_viewport().get_texture().get_image().save_png(path)
+	print("OUT %s" % ProjectSettings.globalize_path(path))
 	get_tree().quit()

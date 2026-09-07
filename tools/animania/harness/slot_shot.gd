@@ -19,6 +19,10 @@ var _done: bool = false
 
 
 func _ready() -> void:
+	# `-- pad` para verlo como en un movil. Va ANTES de instanciar, que es cuando el mando
+	# decide si se dibuja; en una maquina sin pantalla tactil se apaga solo.
+	if OS.get_cmdline_user_args().has("pad"):
+		Engine.set_meta(&"force_menu_pad", true)
 	_screen = load(SCREEN).instantiate()
 	add_child(_screen)
 
