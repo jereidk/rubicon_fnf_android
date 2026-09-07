@@ -32,8 +32,25 @@ render_mode blend_mix;
 const float W[7] = float[7](0.00443, 0.05399, 0.24197, 0.39894, 0.24197, 0.05399, 0.00443);
 const float O[7] = float[7](-1.0, -0.75, -0.5, 0.0, 0.5, 0.75, 1.0);
 
-/// `uRadius` del shader del mod. GaussianBlurShader se construye con 2.0.
-uniform vec2 radius = vec2(2.0, 2.0);
+/// `uRadius`. El mod construye `GaussianBlurShader(2.0)` -el double de 0x59fa710-, pero ese
+/// 2.0 NO es un radio en pixeles: puesto tal cual deja una silueta con dos pixeles de orla y
+/// la sombra del mod es mucho mas blanda. Lo que ese `amount` escala dentro del shader del
+/// mod no esta leido, asi que el numero se BARRE contra la captura, midiendo el error medio
+/// de la pantalla (sin el tubo) y el de la zona de personajes y cama:
+///
+///     sin sombra   26.34 / 30.30      radio 14   25.07 / 27.78
+///     radio  2     24.82 / 27.29      radio 20   24.47 / 26.59   <- minimo
+///     radio  8     25.25 / 28.13      radio 26   25.33 / 28.26
+///
+/// El barrido hay que hacerlo con las seis tomas en la MISMA fase de la nieve del televisor
+/// o no mide esto. El primer intento salio con las de referencia desfasadas un fotograma
+/// -cada `await` de mas en el arnes adelanta la animacion- y daba la conclusion contraria,
+/// que la capa empeoraba el parecido. Con las seis a la misma fase (tubo 120.2 en todas) la
+/// capa suma con cualquier radio, y 20 gana por los dos lados.
+///
+/// Va en pixeles de la textura de origen, que es el SubViewport a 1920x1080; en las 1280x720
+/// del mod son 13.3.
+uniform vec2 radius = vec2(20.0, 20.0);
 /// 0x1C1A2F = rgb(28, 26, 47).
 uniform vec4 tint : source_color = vec4(0.10980392, 0.10196078, 0.18431373, 1.0);
 /// `colorTransform.alphaMultiplier`.

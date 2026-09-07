@@ -4518,34 +4518,48 @@ atlas variants have no such shape), TVBACK (its opaque region is only 167 px wid
 diagonal edge has slope 0.097, not 0.5), the backwall (opaque and uniformly dark), the VCR or
 its layer (528x131 strips), and `tvGlow` (hiding it changes that strip by 0.2).
 
-**What it is.** Isolating it as a connected component of `mod < 0.62 * port` gives a clean right
-triangle: apex at (554, 432), a *hard vertical* left edge at x = 555-556 held for 180 rows, a
-hypotenuse of slope 0.394, and a base at y = 609 reaching x = 619. Inside it the mod reads 21.6
-against the port's 67.2, and neither the wall nor the glow contributes -- hiding each moves that
-average by 0.5 and 0.0. So what the port draws there is the bed, and the mod is compositing
-something dark on top of it.
+**What it is, and what it is not.** Isolating it as a connected component of
+`mod < 0.62 * port` gives a clean right triangle: apex at (554, 432), a *hard vertical* left
+edge at x = 555-556 held for 180 rows, a hypotenuse of slope 0.394, and a base at y = 609
+reaching x = 619. Inside it the mod reads 21.6 against the port's 67.2, and neither the wall nor
+the glow contributes -- hiding each moves that average by 0.5 and 0.0. So what the port draws
+there is the bed, and the mod is compositing something dark on top of it.
 
-Two numbers name it. First the tint: OVERLAY of `0x1C1A2F` at alpha 0.8 -- `shadowsOnBed`'s own
-colour, read in 8ae -- over the port's 73 predicts 30, and the mod measures 21.6 to 41.2 across
-the triangle. Second, and this is the one that settles it, the hard left edge:
+The tint arithmetic fits `shadowsOnBed`: OVERLAY of `0x1C1A2F` at alpha 0.8 -- its colour, read
+in 8ae -- over the port's 73 predicts 30, against 21.6 to 41.2 measured across the triangle.
 
-    shakeShadows escala el grupo 1.1 sobre el pivote (FlxG.width/1.2, FlxG.height*1.2)
-    el borde izquierdo del contenido del grupo esta en x = 600 (medido en la huella del puerto)
-    1066.7 + 1.1 * (600 - 1066.7) = 553.3
+**But the layer model does not survive the check, and this is written down so nobody walks the
+same dead end.** The idea was that `shadowsOnBed`, being a `FlxLayerGroup` that renders to a
+framebuffer, tints its whole quad rather than only the silhouettes -- which would explain a
+hard rectangular edge. Two things kill it:
 
-553 against a measured 555. A hard vertical line at a constant x over 180 rows is not a blur and
-not artwork: it is the **edge of the group's framebuffer quad**. `shadowsOnBed` is a
-`FlxLayerGroup`, it renders to a texture sized to its contents, and the tint is applied to that
-whole quad -- not only where the characters' silhouettes are. The hypotenuse is then not an edge
-at all: with a source below 0.5 the overlay formula crushes dark bases and barely touches bright
-ones, so the visible boundary just follows the bed art's own tonal step.
+- The extent is wrong. Take any candidate rectangle and ask where the overlay would even be
+  *visible* (`port - overlay(port) > 20`, i.e. the base is dark enough for it to show). Of those
+  pixels, the fraction the mod actually darkens is **22 %** over x 555..1265 / y 432..609, **3 %**
+  over the headboard and **43 %** over the lower bed. A uniform layer would darken all of them.
+- The hard left edge is not the quad. `1066.7 + 1.1 * (600 - 1066.7) = 553.3` against a measured
+  555 looked like the shake-scaled content bound, and it is a coincidence: the bed artwork's own
+  opaque region starts at local x = 5..7, which is global **553..555**. The edge is where the bed
+  begins, nothing more.
 
-The port's shader does the opposite: it gates the tint on the SubViewport's alpha, so it paints
-silhouettes and nothing else. Making it faithful means tinting the whole quad and bounding that
-quad to the group's contents -- a change that darkens a large region and is worth doing
-deliberately rather than as the tail of a comparison pass, so it is written down here and not
-applied. It is also the same knob as the two things 8ae left open (the blur radius, and whether
-OpenFL honours OVERLAY at all).
+So it is a darkening confined to the bed's lower-left corner, of roughly the right tint, whose
+extent matches no layer in the mod that has been read. Geometrically it sits exactly where a
+shadow cast by the television onto the bed would fall. Still open.
+
+**What the pass did settle: the blur radius.** `GaussianBlurShader(2.0)` is read, but that 2.0
+is not a pixel radius, and what it scales inside the mod's shader is not. Sweeping it against
+the capture puts the minimum at **20** source pixels (13.3 in the mod's 1280x720), which is now
+the shader's default -- see the table in `freeplay_shadows.gdshader`.
+
+That sweep also came with a lesson worth more than the number. Run the first time, it said the
+shadow layer was making the match *worse* than not drawing it at all. It was not: each optional
+flag in `slot_shot.gd` carried its own `await get_tree().process_frame`, so a shot taken with
+`hide=` had run one frame more than a shot taken without it, and the television's snow changes
+completely from one frame to the next. The reference shots were a frame out of phase and the
+comparison was measuring that. The harness now applies every flag in one block with a single
+`await` behind it, taken whether any flag was passed or not, and the six shots of the real sweep
+all read 120.2 on the tube -- same phase, comparable. Two shots are only comparable if they have
+run the same number of frames.
 
 
 ## 8b. Adding a song, for real

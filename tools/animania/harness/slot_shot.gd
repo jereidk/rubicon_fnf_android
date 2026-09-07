@@ -53,26 +53,41 @@ func _process(delta: float) -> void:
 	# que la toma sale con el tubo a 26 y el mueble a 15 y ya no compara nada. Lo que si
 	# vale es lanzar godot con `--fixed-fps 60`: el delta deja de depender del reloj y dos
 	# pasadas dan el mismo tubo (109.3 y 109.3) sin tocar el estado de la escena.
-	# Argumento opcional: nombres de nodos del freeplay a ocultar antes del disparo,
-	# separados por comas. Es lo unico que aisla la aportacion de una capa concreta -
-	# `ShadowsOnBed`, por ejemplo- cuando la diferencia contra el mod es de brillo y no de
-	# posicion: se toma la misma foto con y sin ella y se restan.
+	# TODOS los ajustes van aqui y con UN SOLO `await` detras, se hayan usado o no.
+	#
+	# Esto no es manía: cada `await process_frame` adelanta un fotograma la nieve del
+	# televisor, y esa animacion cambia mucho de un fotograma al siguiente. Con un `await`
+	# dentro de cada bloque, una toma con `hide=` y otra sin el salian con la nieve en
+	# fases distintas y la comparacion entre las dos medía eso ademas de la capa. Costo
+	# real: el primer barrido del radio del desenfoque salio con las tomas de referencia
+	# desfasadas y hubo que tirarlo entero. Dos tomas solo son comparables si han corrido
+	# el mismo numero de fotogramas.
+	#
+	# `blur=N`   el radio del shader de `ShadowsOnBed`, para barrerlo sin reconstruir.
+	# `hide=A,B` nodos a ocultar: es lo unico que aisla lo que aporta una capa concreta.
+	# El segundo argumento suelto, si es un numero, es el alfa de `tvSpriteFlash`.
 	for a: String in args:
-		if not a.begins_with("hide="):
-			continue
-		for nm: String in a.substr(5).split(",", false):
-			var n := _screen.get_node_or_null(NodePath(nm)) as CanvasItem
-			if n == null:
-				push_warning("hide: no existe %s" % nm)
+		if a.begins_with("blur="):
+			var n := _screen.get_node_or_null(^"ShadowsOnBed") as CanvasItem
+			var mat := (n.material if n != null else null) as ShaderMaterial
+			if mat == null:
+				push_warning("blur: ShadowsOnBed no tiene ShaderMaterial")
 				continue
-			n.visible = false
-		await get_tree().process_frame
+			var v: float = a.substr(5).to_float()
+			mat.set_shader_parameter(&"radius", Vector2(v, v))
+		elif a.begins_with("hide="):
+			for nm: String in a.substr(5).split(",", false):
+				var n := _screen.get_node_or_null(NodePath(nm)) as CanvasItem
+				if n == null:
+					push_warning("hide: no existe %s" % nm)
+					continue
+				n.visible = false
 	if args.size() > 1 and args[1].is_valid_float():
 		var flash := _screen.get_node_or_null("TvSpriteFlash") as ColorRect
 		if flash != null:
 			flash.visible = true
 			flash.modulate.a = args[1].to_float()
-			await get_tree().process_frame
+	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var songs: Array = _screen.get("current_filtered_songs") as Array
 	var song: Dictionary = songs[_screen.get("cur_selected")]
