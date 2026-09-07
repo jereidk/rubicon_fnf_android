@@ -283,4 +283,5 @@ texture = SubResource("AtlasTexture_lock")
 [node name="BassSound" type="AudioStreamPlayer" parent="." unique_id=774756934]
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
-layout = "Full"
+dpad = "LEFT_FULL"
+action = "A_B"

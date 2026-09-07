@@ -9,4 +9,5 @@ script = ExtResource("1_script")
 [node name="Sfx" type="AudioStreamPlayer" parent="."]
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
-layout = "Full"
+dpad = "LEFT_FULL"
+action = "A_B"

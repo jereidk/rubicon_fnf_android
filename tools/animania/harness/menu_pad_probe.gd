@@ -14,12 +14,10 @@ extends Node2D
 ## devolveria un FALLO que no lo es. Las que si lo llevan: semanas, creditos, opciones y
 ## pausa.
 ##
-## Dos pantallas NO se pueden probar asi, y conviene saberlo antes de creerse un FALLO suyo:
-## los creditos, porque aceptar o volver los saca de pantalla y el arnes se queda esperando
-## a una escena que ya se fue; y la pausa, porque su `process_mode` es WHEN_PAUSED y aqui el
-## arbol no esta pausado, asi que su mando se dibuja pero no recibe nada. Para la pausa lo
-## que hay que mirar es otra cosa y la mira pad_leak_probe.gd: que su mando NO se vea
-## mientras se juega.
+## Aqui se pulsa SOLO la cruz, nunca A ni B; ver el comentario de `_run`. La pausa ademas no
+## se puede probar asi: su `process_mode` es WHEN_PAUSED y aqui el arbol no esta pausado, asi
+## que su mando se dibuja pero no recibe nada. De la pausa lo que hay que mirar es otra cosa
+## y la mira pad_leak_probe.gd: que su mando NO se vea mientras se juega.
 const MENU := "res://animania_mod/menus/options/options_screen.tscn"
 const PAD := "res://animania_mod/ui/menu_virtual_pad.tscn"
 const SETTLE := 1.2
@@ -65,13 +63,35 @@ func _process(delta: float) -> void:
 
 
 func _run() -> void:
-	var wanted := {
-		&"up": KEY_UP, &"down": KEY_DOWN, &"left": KEY_LEFT, &"right": KEY_RIGHT,
-		&"a": KEY_ENTER, &"b": KEY_ESCAPE,
-	}
+	# Los botones que TIENE, no una lista fija: cada pantalla lleva la cruz que le hace
+	# falta -UP_DOWN en una lista, LEFT_FULL donde tambien se usan los lados- y exigir
+	# izquierda y derecha a un menu que no las lee era inventarse un FALLO.
+	#
+	# Y SOLO la cruz. Pulsar A o B aqui es pegarse un tiro en el pie: son aceptar y volver,
+	# el menu cambia de escena, y al cambiarla se libera la escena actual... que es ESTE
+	# arnes. A partir de ahi `get_tree()` devuelve null, el `await get_tree().process_frame`
+	# de la vuelta siguiente peta, y Godot se queda escupiendo
+	# `Invalid access to property 'process_frame' on a null instance` hasta que lo mata el
+	# timeout. Parecia que el menu de semanas "tardaba tres minutos en cargar"; lo que
+	# pasaba es que el arnes se habia muerto en la quinta pulsacion. Cargarlo cuesta 138 ms
+	# en headless y 1.3 s con pintura, medido aparte.
+	#
+	# La primera version se libraba por casualidad: recorria una lista fija que dejaba la B
+	# la ULTIMA, justo antes de salir. Al pasar a recorrer los botones que el mando tiene de
+	# verdad, el orden cambio, la B quedo en medio y el arnes empezo a colgarse.
+	#
+	# A y B se comprueban en pad_layout_probe.gd, que monta el mando sin menu detras y por
+	# tanto no tiene a donde irse.
+	var wanted := MenuVirtualPad.KEYS
 	var bad: int = 0
-	for id: StringName in wanted:
-		var rect: Rect2 = _pad._rects.get(id, Rect2()) as Rect2
+	print("OUT %s: cruz %s, acciones %s -> %s" % [_name, _pad.dpad, _pad.action,
+		str(_pad._rects.keys())])
+	var dirs: Array[StringName] = []
+	for id: StringName in _pad._rects:
+		if id in [&"up", &"down", &"left", &"right"]:
+			dirs.append(id)
+	for id: StringName in dirs:
+		var rect: Rect2 = _pad._rects[id] as Rect2
 		if rect.size == Vector2.ZERO:
 			print("OUT %-6s FALLO: no tiene caja" % id)
 			bad += 1
@@ -87,18 +107,29 @@ func _run() -> void:
 		_tap(rect.get_center(), false)
 		await get_tree().process_frame
 
-	# Un dedo en dos botones a la vez, que es lo que rompe un mando mal hecho.
+	# Dos dedos a la vez, que es lo que rompe un mando mal hecho. Arriba y abajo, que estan
+	# en las dos cruces y ninguno se lleva el menu por delante.
 	_seen.clear()
 	_tap((_pad._rects[&"up"] as Rect2).get_center(), true, 0)
-	_tap((_pad._rects[&"a"] as Rect2).get_center(), true, 1)
+	_tap((_pad._rects[&"down"] as Rect2).get_center(), true, 1)
 	await get_tree().process_frame
-	var both: bool = _seen.has(KEY_UP) and _seen.has(KEY_ENTER)
+	var both: bool = _seen.has(KEY_UP) and _seen.has(KEY_DOWN)
 	print("OUT dos dedos a la vez: %s  %s" % [str(_seen), "OK" if both else "FALLO"])
 	if not both:
 		bad += 1
 	_tap(Vector2.ZERO, false, 0)
 	_tap(Vector2.ZERO, false, 1)
 	await get_tree().process_frame
+
+	# Las cajas de la cruz se solapan 27 px por el paso de 105 sobre botones de 132. Que se
+	# solapen no es el problema; el problema seria que el centro de un boton cayera dentro
+	# de otro, porque entonces no hay forma de darle. Se comprueba a proposito.
+	for id: StringName in dirs:
+		var mine: Rect2 = _pad._rects[id] as Rect2
+		var got: StringName = _pad._hit(mine.get_center())
+		if got != id:
+			print("OUT %-6s FALLO: su centro cae en %s" % [id, got])
+			bad += 1
 
 	await RenderingServer.frame_post_draw
 	var path: String = "user://menu_pad_%s.png" % _name.get_basename()

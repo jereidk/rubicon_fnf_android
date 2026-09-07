@@ -79,4 +79,5 @@ stream = ExtResource("8_u23ue")
 bus = &"Music"
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
-layout = "Vertical"
+dpad = "UP_DOWN"
+action = "A_B"

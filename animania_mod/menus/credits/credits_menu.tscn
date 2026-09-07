@@ -122,4 +122,5 @@ centered = false
 [node name="Sfx" type="AudioStreamPlayer" parent="." unique_id=860654853]
 
 [node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
-layout = "Full"
+dpad = "UP_DOWN"
+action = "A_B"

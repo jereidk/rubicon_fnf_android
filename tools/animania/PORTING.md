@@ -4675,12 +4675,12 @@ does better with a finger, and covers a corner of the art doing it. The rule tha
 of it is the one worth keeping: **the pad goes where there is nothing to tap**, not wherever
 a key is read.
 
-| pantalla | layout | por que |
-|---|---|---|
-| story_menu | Full | la fila de semanas |
-| credits_menu | Full | las paginas |
-| options_screen | Full | el valor de cada fila se mueve a los lados |
-| pause_menu | Vertical | es una lista y ya |
+| pantalla | cruz | acciones | por que | Indie Cross |
+|---|---|---|---|---|
+| story_menu | LEFT_FULL | A_B | semanas arriba/abajo, dificultad a los lados | LEFT_FULL, A_B_C |
+| options_screen | LEFT_FULL | A_B | filas con `ui_up`/`ui_down`, valor con `ui_left`/`ui_right` | LEFT_FULL, A_B_C |
+| credits_menu | UP_DOWN | A_B | una sola lista: la 490 lee izquierda **y** arriba para lo mismo | NONE, A_B_C |
+| pause_menu | UP_DOWN | A_B | es una lista y ya | UP_DOWN, A_B |
 
 **Freeplay came back out too, and for the same reason as the main menu.** The pad was
 mounted there first, on the argument that left and right change the difficulty and nothing
@@ -4724,6 +4724,63 @@ a tap on a neighbouring disc selects without confirming, a tap on the selected o
 The one thing on the screen that is *invented* and not read: a 0.06 s scale pop on a tapped
 arrow. On a phone a button that does not answer looks broken and gets tapped again — which,
 before the fix above, is exactly what would have entered a song.
+
+**The geometry is read, not invented — the second time round.** The first version of
+`menu_virtual_pad.gd` placed the buttons with a margin, a gap and a cross laid out by eye,
+and what came out was a cross with **down in the middle row**, flanked by left and right,
+with up sitting alone on top. That is the one arrangement a thumb does not expect. There was
+a source all along: `source/android/flixel/FlxVirtualPad.hx` in the same Indie Cross repo the
+artwork came from. Its numbers are now copied into the file verbatim, in its own 1280×720
+space (`Project.xml`: `<window width="1280" height="720">`), and scaled to whatever the
+viewport is:
+
+```
+LEFT_FULL   up (105, H-345)   left (0, H-243)   right (207, H-243)   down (105, H-135)
+UP_DOWN     up (0, H-255)     down (0, H-135)
+A_B         b (W-258, H-135)  a (W-132, H-135)
+```
+
+A real cross: up on top, left and right in the middle, down at the bottom. At 1920×1080 that
+is exactly ×1.5 — `up` lands at (157.5, 562.5), `b` at (1533, 877.5) — and the button is
+198×190 instead of the 132×127 it was drawing before, because `TextureRect` keeps its
+texture's size unless `expand_mode` is `EXPAND_IGNORE_SIZE`: the old `button.size = ...` line
+did nothing at all, and the pad was rendering at two thirds of the reference's scale on every
+screen. The colours are `createButton`'s own (`left` is pure magenta and `down` pure cyan —
+Funkin's note colours, not the mauve and blue I had picked), and the default opacity is
+`AndroidControls.getOpacity(false)`, which is 0.6.
+
+Anchoring is per corner, not per screen size: the D-pad hangs off the bottom-left, the action
+buttons off the bottom-right, and the scale comes from `min(w/1280, h/720)` — so a wider
+phone spreads the two clusters apart instead of inflating them.
+
+**Two things dropped in the rewrite.** `TOUCH_GROW`, which grew every finger box by 30 %
+"for the thumb": the reference's own steps (105 between 132-wide buttons) already overlap by
+27 px, and growing them made the overlap worse, so which button a tap hit depended on
+dictionary order. The boxes are now exactly what is drawn, and `_hit` returns the **nearest
+centre** among the boxes containing the point rather than the first match. And the hardcoded
+row/column table for the atlas: the frames are read from `virtualpad.xml` by name
+(`left_idle0`, `left_press1`), which is how `createButton` asks for them — a parallel table
+is a copy that can go stale without saying so.
+
+**Splitting the probe in two, because one of them was unusably slow.** `menu_pad_probe.gd`
+instantiates a real menu to prove the wiring end to end, and that means loading all of that
+screen's art: over a minute per scene. Layout is what changes often, and it needs none of
+that. `pad_layout_probe.gd` builds the pad on its own, checks every combination against the
+`.hx` numbers (not against the pad's own table — that would only prove it can copy), checks
+that no button's centre falls inside another's box, taps each one for its keycode, and saves
+a PNG of each. **Both layouts, 22 checks, zero failures, 1.2 s.**
+
+And splitting them turned up why the menu-level probe looked so slow. It was not slow: it
+was **killing itself**. `b` is ESCAPE, the menu goes back, going back changes scene, and
+changing scene frees the current scene — which is the harness. From there `get_tree()` is
+null, the next `await get_tree().process_frame` throws, and Godot spins printing
+`Invalid access to property 'process_frame' on a null instance` until the timeout kills it
+two hundred seconds later. Loading that menu costs 138 ms headless and 1.3 s with graphics;
+none of the wait was loading. The first version of the probe got away with it by accident —
+it walked a fixed list that left `b` last, right before quitting — and pressing the buttons
+the pad *actually has* reordered them and put `b` in the middle. The menu probe now presses
+only the D-pad; A and B belong to `pad_layout_probe.gd`, which has no menu behind it to
+navigate away. Same story menu, same checks: **4.2 s**.
 
 `menu_pad_probe.gd` presses every button on a real menu scene and checks both ends of the
 path -- the button's box and the keycode that arrives -- plus two fingers at once, which is

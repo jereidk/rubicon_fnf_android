@@ -5,6 +5,7 @@
 [node name="MenuVirtualPad" type="CanvasLayer"]
 layer = 80
 script = ExtResource("1")
-layout = "Vertical"
-opacity = 0.55
+dpad = "UP_DOWN"
+action = "A_B"
+opacity = 0.6
 only_on_touch = true
