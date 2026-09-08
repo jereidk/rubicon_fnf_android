@@ -5,16 +5,16 @@
 # is WOUND at high speed to a moment and then PLAYED into it, so method keys
 # fire exactly once in order.
 #
-# FIX: Bypass Camera2D entirely — set viewport canvas_transform directly.
-# RubiconInterpolatedCamera2D._set() prevents current=true, and even a plain
-# Camera2D may not work because the level scene already has a Camera2D that
-# auto-grabs "current" first.
+# FIX: The RubiconInterpolatedCamera2D overrides canvas_transform every frame
+# via its _process, preventing our manual canvas_transform from taking effect.
+# Disable it and use the viewport's canvas_transform directly.
 #
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot \
 #       --rendering-driver opengl3 --path . res://tools/holyquintet/level_shot.tscn
 extends Node2D
 
 const LEVEL := "res://songs/resonance/resonance.tscn"
+# Moments with notes on both sides across the song (resonance is 165.6s long).
 const MOMENTS := [
 	[10.0, 0.8], [45.0, 0.8], [65.0, 0.8], [90.0, 0.8], [120.0, 0.8], [150.0, 0.8],
 ]
@@ -33,6 +33,16 @@ func _ready() -> void:
 	_clock = _level.get_node("RubiconLevelClock")
 	for side: String in ["Opponent", "Player"]:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
+
+	# Disable the RubiconInterpolatedCamera2D so it stops overriding
+	# canvas_transform every frame via its _process callback.
+	var interp: Camera2D = _level.get_node_or_null("RubiconInterpolatedCamera2D")
+	if interp:
+		interp.enabled = false
+		interp.position_interpolate_enabled = false
+		interp.zoom_interpolate_enabled = false
+		interp.set_process(false)
+		print("level_shot: disabled RubiconInterpolatedCamera2D")
 
 
 func _wind_step(target: float) -> bool:
