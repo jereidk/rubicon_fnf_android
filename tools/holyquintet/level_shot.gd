@@ -34,15 +34,22 @@ func _ready() -> void:
 	for side: String in ["Opponent", "Player"]:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
-	# Disable the RubiconInterpolatedCamera2D so it stops overriding
-	# canvas_transform every frame via its _process callback.
+	# The RubiconInterpolatedCamera2D._set() override prevents both
+	# enabled=false and making it non-current, and its _process overrides
+	# canvas_transform every frame. Remove it entirely so the viewport uses
+	# no camera and we drive canvas_transform ourselves.
 	var interp: Camera2D = _level.get_node_or_null("RubiconInterpolatedCamera2D")
 	if interp:
-		interp.enabled = false
-		interp.position_interpolate_enabled = false
-		interp.zoom_interpolate_enabled = false
 		interp.set_process(false)
-		print("level_shot: disabled RubiconInterpolatedCamera2D")
+		interp.queue_free()
+		# Give the node a frame to be freed before the first render.
+		await get_tree().process_frame
+		print("level_shot: queued RubiconInterpolatedCamera2D for removal")
+	# Ensure the viewport has NO current camera so our canvas_transform rules.
+	var existing: Camera2D = get_viewport().get_camera_2d()
+	if existing:
+		existing.enabled = false
+	print("level_shot: removed camera, canvas_transform will be driven manually")
 
 
 func _wind_step(target: float) -> bool:
