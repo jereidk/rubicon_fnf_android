@@ -1,34 +1,27 @@
-# Renders songs/resonance/resonance.tscn mid-song: stage, characters (sayaka,
-# gf, boyfriend), strumlines, notes, health bar and judgment all at once.
+# Renders songs/resonance/resonance.tscn mid-song: stage, characters, strumlines, notes,
+# health bar and judgment, all at once.
 #
 # Same technique as tools/animania/harness/level_shot.gd (clock wound + played).
 #
 # RENDER FIX:
-#   The RubiconInterpolatedCamera2D._set() returns false for every property
-#   (including 'current'), so Godot can't make it the viewport's current
-#   camera. Its NOTIFICATION_INTERNAL_PROCESS also runs regardless of
-#   set_process(false) and overwrites the viewport canvas_transform every
-#   frame, which is why every level_shot came out black.
-#
-#   Instead of fighting that camera, we use a fixed plain Camera2D that shows
-#   the full gameplay area (all three characters + stage), like the animania
-#   phone-call shots but with a wider framing.
+#   The RubiconInterpolatedCamera2D is a normal Camera2D — it only lerps its
+#   position/rotation/zoom toward *_interpolate_target in _process; it never
+#   overwrites the viewport canvas_transform. When the level enters the tree and
+#   the interp camera is the only camera, Godot automatically makes it current,
+#   exactly like phone-call. So we keep it in the tree and settle it onto its
+#   interpolate targets right before capture, exactly like the animania harness.
 #
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot \
 #       --rendering-driver opengl3 --path . res://tools/holyquintet/level_shot.tscn
 extends Node2D
 
 const LEVEL := "res://songs/resonance/resonance.tscn"
-# Moments with notes on both sides across the song (resonance is 165.6s long).
+# Moments with notes on both sides across the song (resonance is 171.3s long).
 const MOMENTS := [
-	[10.0, 0.8], [45.0, 0.8], [65.0, 0.8], [90.0, 0.8], [120.0, 0.8], [150.0, 0.8],
+	[10.0, 1.6], [45.0, 1.6], [65.0, 1.6], [90.0, 1.6], [120.0, 1.6], [150.0, 1.6],
 ]
 const WIND_SPEED := 20.0
 const SHOT_DIR := "/tmp/hq_renders"
-
-# Fixed framing that shows Sayaka(120,200), GF(-850,400), BF(1150,225) and the stage.
-const CAM_POS := Vector2(150.0, 50.0)
-const CAM_ZOOM := Vector2(0.55, 0.55)
 
 var _level: Node
 var _clock: Node
@@ -38,17 +31,6 @@ var _frames: int = 0
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(SHOT_DIR)
 	_level = load(LEVEL).instantiate()
-
-	# Remove the RubiconInterpolatedCamera2D before the node ever enters the
-	# tree. Because ScriptEngine only creates the node once it's in the tree,
-	# and its _process override cannot run without being in the tree, removing
-	# it here prevents the black render.
-	var interp := _level.get_node_or_null("RubiconInterpolatedCamera2D")
-	if interp:
-		interp.get_parent().remove_child(interp)
-		interp.queue_free()
-		print("level_shot: removed RubiconInterpolatedCamera2D before entering tree")
-
 	add_child(_level)
 	_clock = _level.get_node("RubiconLevelClock")
 	for side: String in ["Opponent", "Player"]:
@@ -93,17 +75,23 @@ func _process(_delta: float) -> void:
 				_step = Step.SETTLE
 
 		Step.SETTLE:
+			# Drain every tween to its end value, the way a real playthrough is
+			# by now (mirrors the animania harness).
 			for running: Tween in get_tree().get_processed_tweens():
 				running.custom_step(10.0)
 				running.kill()
 
-			# Drive canvas_transform manually with the fixed framing.
-			var vp_size := Vector2(get_viewport().get_visible_rect().size)
-			var half := vp_size / (2.0 * CAM_ZOOM)
-			var origin := CAM_POS - half
-			get_viewport().canvas_transform = Transform2D(
-				Vector2(CAM_ZOOM.x, 0.0), Vector2(0.0, CAM_ZOOM.y), origin)
+			# Settle the interp camera onto its interpolate targets before the
+			# capture frame, exactly like animania phone-call. This is where a
+			# real playthrough sits between bops, and it has to happen on the
+			# frame BEFORE the capture: get_texture() returns what was last
+			# rendered.
+			var camera: Camera2D = get_viewport().get_camera_2d()
+			if camera:
+				camera.zoom = camera.zoom_interpolate_target
+				camera.position = camera.position_interpolate_target
 
+			# One splash nudge per lane so a working effect is not absent.
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
 					if lane.has_signal(&"just_pressed") and lane.results.size() > 0:
@@ -115,14 +103,15 @@ func _process(_delta: float) -> void:
 			var path: String = "%s/resonance_%03d.png" % [SHOT_DIR, int(moment)]
 			image.save_png(path)
 
-			var stage: Node = _level.get_node("Stage")
-			print("OUT t=%5.1fs zoom=%.3f sayaka=%s gf=%s bf=%s lanes=%d/%d -> %s" % [
-				moment, CAM_ZOOM.x,
-				stage.get_node("Sayaka").position,
-				stage.get_node("Girlfriend").position,
-				stage.get_node("Boyfriend").position,
-				_level.get_node("UILayer/UI/Opponent").get_child_count(),
-				_level.get_node("UILayer/UI/Player").get_child_count(),
+			var stage: Node = _level.get_node_or_null("Stage")
+			var cam: Camera2D = get_viewport().get_camera_2d()
+			var cam_info: String = "none"
+			if cam:
+				cam_info = "pos=%s zoom=%s" % [cam.position, cam.zoom]
+			print("OUT t=%5.1fs cam=%s stage_visible=%s stage_mod=%s -> %s" % [
+				moment, cam_info,
+				stage.visible if stage else "n/a",
+				stage.modulate if stage else "n/a",
 				path])
 
 			_index += 1
