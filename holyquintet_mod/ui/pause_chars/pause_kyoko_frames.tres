@@ -1,0 +1,57 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/kyoko.png" id="1_pause_atlas"]
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bo2ec"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 854, 810)
+margin = Rect2(0, 9, 11, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cunol"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(856, 1, 861, 814)
+margin = Rect2(4, 5, 4, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lrul4"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1718, 1, 853, 816)
+margin = Rect2(9, 3, 12, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q4fwg"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2572, 1, 840, 817)
+margin = Rect2(14, 2, 25, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s3hdy"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 819, 835, 819)
+margin = Rect2(16, 0, 30, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_bo2ec")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_cunol")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_lrul4")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_q4fwg")
+}, {
+"duration": 6.0,
+"texture": SubResource("AtlasTexture_s3hdy")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]

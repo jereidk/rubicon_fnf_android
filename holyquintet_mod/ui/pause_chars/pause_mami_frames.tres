@@ -1,0 +1,75 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/mami.png" id="1_pause_atlas"]
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8njpw"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 572, 708)
+margin = Rect2(0, 11, 3, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f3uh5"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(574, 1, 572, 712)
+margin = Rect2(2, 7, 3, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6nbuh"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1147, 1, 572, 716)
+margin = Rect2(3, 3, 3, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_igvdv"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1720, 1, 572, 719)
+margin = Rect2(3, 0, 3, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4jfvp"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2293, 1, 571, 719)
+margin = Rect2(4, 0, 4, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mo32e"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2865, 1, 571, 719)
+margin = Rect2(4, 0, 4, 0)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m7ujp"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(3437, 1, 571, 719)
+margin = Rect2(4, 0, 4, 0)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_8njpw")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_f3uh5")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6nbuh")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_igvdv")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_4jfvp")
+}, {
+"duration": 3.0,
+"texture": SubResource("AtlasTexture_mo32e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m7ujp")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]

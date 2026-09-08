@@ -34,6 +34,7 @@
 
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gauntlet_runtime.gd" id="93_gaunt_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/ui/hq_dodge_button.gd" id="92_dodge_hq"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/menus/pause/pause_screen.tscn" id="89_pause_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -278,3 +279,5 @@ opacity = 0.4
 [node name="HQDodgeButton" type="CanvasLayer" parent="."]
 layer = 16
 script = ExtResource("92_dodge_hq")
+[node name="HQPause" type="Control" parent="." instance=ExtResource("89_pause_hq")]
+pause_char = "kyoko"

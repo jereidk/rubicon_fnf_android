@@ -1,0 +1,84 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/sayaka.png" id="1_pause_atlas"]
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wymgb"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 544, 721)
+margin = Rect2(3, 11, 83, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e5alm"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(546, 1, 618, 721)
+margin = Rect2(3, 11, 9, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b17xe"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1165, 1, 627, 724)
+margin = Rect2(0, 7, 0, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7yf2l"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1793, 1, 626, 724)
+margin = Rect2(0, 7, 1, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ge5qu"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2420, 1, 472, 724)
+margin = Rect2(0, 7, 155, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mac7g"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2893, 1, 463, 729)
+margin = Rect2(14, 2, 164, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_apbdk"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(3357, 1, 461, 731)
+margin = Rect2(17, 0, 166, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wfn5n"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 733, 461, 731)
+margin = Rect2(17, 0, 166, 1)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wymgb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e5alm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b17xe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7yf2l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ge5qu")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_mac7g")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_apbdk")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_wfn5n")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]

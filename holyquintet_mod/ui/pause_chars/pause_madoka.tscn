@@ -1,0 +1,166 @@
+[gd_scene format=3]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kwi02"]
+region = Rect2(1, 1, 524, 765)
+margin = Rect2(25, 16, 81, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y1klf"]
+region = Rect2(526, 1, 524, 773)
+margin = Rect2(20, 8, 81, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_urfyf"]
+region = Rect2(1051, 1, 525, 774)
+margin = Rect2(28, 7, 80, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m1hod"]
+region = Rect2(1577, 1, 522, 771)
+margin = Rect2(38, 10, 83, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8fpmv"]
+region = Rect2(2100, 1, 524, 771)
+margin = Rect2(37, 11, 81, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6n5dj"]
+region = Rect2(2625, 1, 526, 771)
+margin = Rect2(35, 11, 79, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cf6p4"]
+region = Rect2(3152, 1, 534, 766)
+margin = Rect2(42, 15, 71, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4hcp7"]
+region = Rect2(1, 776, 562, 774)
+margin = Rect2(43, 7, 43, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h5v2d"]
+region = Rect2(564, 776, 550, 775)
+margin = Rect2(54, 6, 55, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ytxdm"]
+region = Rect2(1115, 776, 562, 777)
+margin = Rect2(38, 4, 43, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8hfar"]
+region = Rect2(1678, 776, 565, 781)
+margin = Rect2(27, 0, 40, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bs2gl"]
+region = Rect2(2244, 776, 580, 779)
+margin = Rect2(13, 3, 25, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_41v3h"]
+region = Rect2(2825, 776, 593, 779)
+margin = Rect2(0, 3, 12, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0wih1"]
+region = Rect2(3419, 776, 564, 768)
+margin = Rect2(7, 14, 41, 14)
+filter_clip = true
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_x6ch2"]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_kwi02")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_y1klf")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_urfyf")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_m1hod")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_8fpmv")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6n5dj")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_cf6p4")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_4hcp7")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_h5v2d")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ytxdm")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_8hfar")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_bs2gl")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_41v3h")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_0wih1")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]
+
+[sub_resource type="Animation" id="Animation_mx58a"]
+length = 1.1666667014360428
+loop_mode = 1
+step = 0.041666668
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:animation")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["bop"]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:frame")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.083333336, 0.16666667, 0.25, 0.33333334, 0.4166667, 0.5, 0.5833334, 0.6666667, 0.75, 0.8333334, 0.9166667, 1, 1.0833334),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_cue4o"]
+_data = {
+&"bop": SubResource("Animation_mx58a")
+}
+
+[node name="pause_madoka" type="Node2D" unique_id=24014179]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2082592083]
+sprite_frames = SubResource("SpriteFrames_x6ch2")
+animation = &"bop"
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=1913668078]
+libraries/ = SubResource("AnimationLibrary_cue4o")
+autoplay = &"bop"

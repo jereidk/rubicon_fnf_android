@@ -35,6 +35,7 @@
 [ext_resource type="Resource" path="res://holyquintet_mod/notes/hq_note_overrides.tres" id="95_notes_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_note_mechanics.gd" id="94_mech_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gauntlet_runtime.gd" id="93_gaunt_hq"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/menus/pause/pause_screen.tscn" id="89_pause_hq"]
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -285,3 +286,5 @@ script = ExtResource("93_gaunt_hq")
 layer = 15
 script = ExtResource("0026")
 opacity = 0.4
+[node name="HQPause" type="Control" parent="." instance=ExtResource("89_pause_hq")]
+pause_char = "homura"

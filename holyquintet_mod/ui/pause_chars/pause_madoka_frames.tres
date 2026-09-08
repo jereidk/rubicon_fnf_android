@@ -1,0 +1,138 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/madoka.png" id="1_pause_atlas"]
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kwi02"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 524, 765)
+margin = Rect2(25, 16, 81, 17)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y1klf"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(526, 1, 524, 773)
+margin = Rect2(20, 8, 81, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_urfyf"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1051, 1, 525, 774)
+margin = Rect2(28, 7, 80, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m1hod"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1577, 1, 522, 771)
+margin = Rect2(38, 10, 83, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8fpmv"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2100, 1, 524, 771)
+margin = Rect2(37, 11, 81, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6n5dj"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2625, 1, 526, 771)
+margin = Rect2(35, 11, 79, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cf6p4"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(3152, 1, 534, 766)
+margin = Rect2(42, 15, 71, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4hcp7"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 776, 562, 774)
+margin = Rect2(43, 7, 43, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h5v2d"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(564, 776, 550, 775)
+margin = Rect2(54, 6, 55, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ytxdm"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1115, 776, 562, 777)
+margin = Rect2(38, 4, 43, 5)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8hfar"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1678, 776, 565, 781)
+margin = Rect2(27, 0, 40, 1)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bs2gl"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2244, 776, 580, 779)
+margin = Rect2(13, 3, 25, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_41v3h"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(2825, 776, 593, 779)
+margin = Rect2(0, 3, 12, 3)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0wih1"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(3419, 776, 564, 768)
+margin = Rect2(7, 14, 41, 14)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_kwi02")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_y1klf")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_urfyf")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_m1hod")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_8fpmv")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6n5dj")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_cf6p4")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_4hcp7")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_h5v2d")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ytxdm")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_8hfar")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_bs2gl")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_41v3h")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_0wih1")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]

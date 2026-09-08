@@ -29,6 +29,7 @@
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_gameover_handler.gd" id="99_go_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_song_completion.gd" id="98_sc_hq"]
 [ext_resource type="Script" path="res://holyquintet_mod/scripts/hq_stage_events.gd" id="97_stage_hq"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/menus/pause/pause_screen.tscn" id="89_pause_hq"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -261,3 +262,5 @@ script = ExtResource("99_go_hq")
 layer = 15
 script = ExtResource("0025")
 opacity = 0.4
+[node name="HQPause" type="Control" parent="." instance=ExtResource("89_pause_hq")]
+pause_char = "mami"

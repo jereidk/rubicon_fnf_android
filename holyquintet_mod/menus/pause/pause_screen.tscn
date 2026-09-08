@@ -1,0 +1,249 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://holyquintet_mod/menus/pause/pause_screen.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/spots.png" id="2_spots"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/back.png" id="3_back"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/border.png" id="4_border"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/creditsbg.png" id="5_credit"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/button-basic.png" id="6_btn"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/button_highlight-basic.png" id="7_hl"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8_font"]
+
+[node name="HQPause" type="Control" process_mode=3]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_scr")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Spots" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_spots")
+stretch_mode = 6
+
+[node name="Back" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_back")
+stretch_mode = 5
+
+[node name="TopBanner" type="TextureRect" parent="."]
+offset_right = 1920.0
+offset_bottom = 101.0
+texture = ExtResource("4_border")
+stretch_mode = 6
+
+[node name="BottomBanner" type="TextureRect" parent="."]
+offset_top = 979.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("4_border")
+stretch_mode = 6
+
+[node name="Char" type="AnimatedSprite2D" parent="."]
+position = Vector2(765, 187)
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 1
+
+[node name="Btn0" type="Control" parent="Buttons"]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 240.0
+offset_right = 500.0
+offset_bottom = 379.0
+
+[node name="Sprite" type="TextureRect" parent="Buttons/Btn0"]
+layout_mode = 1
+texture = ExtResource("6_btn")
+region_enabled = true
+region_rect = Rect2(0, 0, 450, 139)
+stretch_mode = 6
+
+[node name="Highlight" type="TextureRect" parent="Buttons/Btn0"]
+visible = false
+layout_mode = 1
+texture = ExtResource("7_hl")
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="Buttons/Btn0"]
+layout_mode = 1
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 2
+text = "Resume"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn1" type="Control" parent="Buttons"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 390.0
+offset_right = 540.0
+offset_bottom = 529.0
+
+[node name="Sprite" type="TextureRect" parent="Buttons/Btn1"]
+layout_mode = 1
+texture = ExtResource("6_btn")
+region_enabled = true
+region_rect = Rect2(0, 0, 450, 139)
+stretch_mode = 6
+
+[node name="Highlight" type="TextureRect" parent="Buttons/Btn1"]
+visible = false
+layout_mode = 1
+texture = ExtResource("7_hl")
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="Buttons/Btn1"]
+layout_mode = 1
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 2
+text = "Restart"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn2" type="Control" parent="Buttons"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 540.0
+offset_right = 580.0
+offset_bottom = 679.0
+
+[node name="Sprite" type="TextureRect" parent="Buttons/Btn2"]
+layout_mode = 1
+texture = ExtResource("6_btn")
+region_enabled = true
+region_rect = Rect2(0, 0, 450, 139)
+stretch_mode = 6
+
+[node name="Highlight" type="TextureRect" parent="Buttons/Btn2"]
+visible = false
+layout_mode = 1
+texture = ExtResource("7_hl")
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="Buttons/Btn2"]
+layout_mode = 1
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 2
+text = "Settings"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn3" type="Control" parent="Buttons"]
+layout_mode = 0
+offset_left = 170.0
+offset_top = 690.0
+offset_right = 620.0
+offset_bottom = 829.0
+
+[node name="Sprite" type="TextureRect" parent="Buttons/Btn3"]
+layout_mode = 1
+texture = ExtResource("6_btn")
+region_enabled = true
+region_rect = Rect2(0, 0, 450, 139)
+stretch_mode = 6
+
+[node name="Highlight" type="TextureRect" parent="Buttons/Btn3"]
+visible = false
+layout_mode = 1
+texture = ExtResource("7_hl")
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="Buttons/Btn3"]
+layout_mode = 1
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 2
+text = "Quit"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreditsBottom" type="TextureRect" parent="."]
+offset_left = 1440.0
+offset_top = 811.0
+offset_right = 1920.0
+offset_bottom = 944.0
+texture = ExtResource("5_credit")
+stretch_mode = 6
+
+[node name="CreditsText" type="Label" parent="."]
+offset_left = 466.0
+offset_top = 826.0
+offset_right = 1906.0
+offset_bottom = 940.0
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 3
+text = "Artists - Art\nCoders - Code\nCharters - Chart"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="CreditsTop" type="TextureRect" parent="."]
+offset_left = 1440.0
+offset_top = 152.0
+offset_right = 1920.0
+offset_bottom = 285.0
+texture = ExtResource("5_credit")
+stretch_mode = 6
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = 1440.0
+offset_top = 167.0
+offset_right = 1908.0
+offset_bottom = 227.0
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 3
+text = "Song Name"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="CompLabel" type="Label" parent="."]
+offset_left = 1440.0
+offset_top = 234.0
+offset_right = 1908.0
+offset_bottom = 280.0
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.054902, 1)
+theme_override_constants/outline_size = 3
+text = "Composers"
+horizontal_alignment = 2
+vertical_alignment = 1

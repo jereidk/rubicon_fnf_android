@@ -1,0 +1,76 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/gf.png" id="1_pause_atlas"]
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6x1yy"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fadgv"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(619, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nbe01"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1237, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3sls"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 639, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eo3n3"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_us7k0"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(619, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_87ex1"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1237, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hv4n6"]
+atlas = ExtResource("1_pause_atlas")
+region = Rect2(1, 639, 617, 637)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6x1yy")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_fadgv")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_nbe01")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_i3sls")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_eo3n3")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_us7k0")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_87ex1")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_hv4n6")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]

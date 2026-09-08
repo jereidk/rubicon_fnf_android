@@ -1,0 +1,110 @@
+[gd_scene format=3]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6x1yy"]
+region = Rect2(1, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fadgv"]
+region = Rect2(619, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nbe01"]
+region = Rect2(1237, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3sls"]
+region = Rect2(1, 639, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eo3n3"]
+region = Rect2(1, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_us7k0"]
+region = Rect2(619, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_87ex1"]
+region = Rect2(1237, 1, 617, 637)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hv4n6"]
+region = Rect2(1, 639, 617, 637)
+filter_clip = true
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6b8f1"]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_6x1yy")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_fadgv")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_nbe01")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_i3sls")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_eo3n3")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_us7k0")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_87ex1")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_hv4n6")
+}],
+"loop": 1,
+"name": &"bop",
+"speed": 24.0
+}]
+
+[sub_resource type="Animation" id="Animation_j0ueg"]
+length = 0.6666667
+loop_mode = 1
+step = 0.041666668
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:animation")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["bop"]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:frame")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.083333336, 0.16666667, 0.25, 0.33333334, 0.4166667, 0.5, 0.5833334),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5, 6, 7]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_x63l5"]
+_data = {
+&"bop": SubResource("Animation_j0ueg")
+}
+
+[node name="pause_gf" type="Node2D" unique_id=1372986604]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1154003843]
+sprite_frames = SubResource("SpriteFrames_6b8f1")
+animation = &"bop"
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimatedSprite2D" unique_id=2139662789]
+libraries/ = SubResource("AnimationLibrary_x63l5")
+autoplay = &"bop"
