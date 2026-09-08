@@ -28,6 +28,32 @@ const CONTROLLER_SCRIPT := \
 	"res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd"
 const HEALTH_BAR := "res://animania_mod/ui/health_bar.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
+const ICON_SCRIPT := "res://animania_mod/scripts/animated_health_icon.gd"
+## Alto al que el mod dibuja los iconos, medido sobre una captura suya para phone-call: su
+## arte ocupa y 37..129 de un fotograma de 1280x720, o sea 140 pixeles de este proyecto.
+##
+## `?` Se reusa aqui para los iconos de dadbattle porque son los MISMOS: los amtake
+## animados que monta `AnimaniaStuff.makeAmTakeAnimatedIcon`. No esta medido sobre una
+## captura de dadbattle; si aparece una, este es el numero que hay que comprobar.
+const ICON_HEIGHT := 140.0
+## Los 26 de Funkin, en pixeles de Funkin: `iconP1.x` los resta y el del otro lado los suma,
+## y el algebra deja el mismo `-ancho/2 + 26` en los dos. Ver el comentario del offset.
+const ICON_POSITION_OFFSET := 26.0 * 1920.0 / 1280.0
+## `healthIcon` de cada personaje, del JSON del mod (assets/data/characters/<id>.json):
+## el atlas que le toca, su escala relativa y sus offsets en pixeles de Funkin.
+##
+##   bf         id bf-amtake   scale 1     offsets [ 10, -10]
+##   dad        id dad-amtake  scale 0.9   offsets [-10, -20]
+##   dad-beast  id dad-amtake  scale 1.1   offsets [-10, -20]
+##
+## gf no esta: su healthIcon es `gf` a secas, un PNG de dos fotogramas sin XML, que es otro
+## camino. tutorial es la unica que la pone de oponente y se queda sin iconos hasta
+## entonces, que es lo que ya hacia.
+const ICONS := {
+	"bf": {"frames": "bf_amtake_icon", "scale": 1.0, "offsets": Vector2(10.0, -10.0)},
+	"dad": {"frames": "dad_amtake_icon", "scale": 0.9, "offsets": Vector2(-10.0, -20.0)},
+	"dad-beast": {"frames": "dad_amtake_icon", "scale": 1.1, "offsets": Vector2(-10.0, -20.0)},
+}
 const TIME_BAR_SCRIPT := "res://animania_mod/ui/song_time_bar.gd"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 ## The amtake-base receptors, which is the note style every Animania song uses.
@@ -187,6 +213,8 @@ func _init() -> void:
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
 
+	_dress_icons(ui, health, cast_names)
+
 	# La barra de tiempo necesita dos cosas: el reloj, para saber por donde va, y el
 	# instrumental, para saber cuanto dura. Se cablean aqui y no en _build_ui porque
 	# entonces todavia no existen.
@@ -239,6 +267,70 @@ func _init() -> void:
 	var err: int = ResourceSaver.save(packed, out)
 	print("OUT %s %s" % ["saved" if err == OK else "FAILED", out])
 	quit(0 if err == OK else 1)
+
+
+## Los dos iconos de la barra de vida. Hasta ahora solo los tenia phone-call, porque su
+## builder es otro: las canciones que salen de AQUI llevaban la barra sin una sola cara.
+##
+## Cual va en cada lado: IconL el OPONENTE, IconR el JUGADOR, y el del oponente lee la vida
+## al reves -en Funkin la cara de perder del oponente sale cuando la barra esta llena-.
+## Es el mismo reparto que phone-call, que ademas voltea la barra; aqui no se voltea nada.
+##
+## Sin `set_editable_instance` las sobrescrituras sobre los hijos de una instancia NO se
+## guardan, y la barra seguiria saliendo con lo que trae de fabrica.
+func _dress_icons(ui: Dictionary, health: Node, cast_names: Dictionary) -> void:
+	var bar: Control = ui.get("HealthBar")
+	if bar == null:
+		return
+	# `inverted` es como LEE la vida y `mirrored` es en que LADO se pone; son cosas
+	# distintas y juntarlas puso a bf a la izquierda. En Funkin la barra se llena hacia el
+	# jugador: su icono va a la DERECHA del divisor y el del oponente a la izquierda. Y en
+	# Rubicon el lado sale del signo de scale.x, donde el negativo es la derecha -medido:
+	# con el oponente en negativo salio el jugador a la izquierda-.
+	#
+	#                          nodo     ranura      lee al reves  a la derecha
+	for entry: Array in [["IconL", "opponent", true, false],
+			["IconR", "player", false, true]]:
+		var who: String = String(cast_names.get(entry[1], ""))
+		var spec: Dictionary = ICONS.get(who, {})
+		if spec.is_empty():
+			print("OUT icono: %s no tiene uno declarado, se queda sin cara" % who)
+			continue
+		var icon: AnimatedSprite2D = bar.find_child(entry[0] as String, true, false)
+		if icon == null:
+			print("OUT FALLO: la barra de vida no tiene %s" % entry[0])
+			continue
+		icon.set_script(load(ICON_SCRIPT))
+		icon.sprite_frames = load("%s/%s.tres" % [CHARACTERS, spec["frames"]])
+		icon.animation = &"idle"
+		icon.health_module = health
+		icon.note_controller = ui[_controller_for(entry[1] as String)]
+		icon.clock = _root.get_node("RubiconLevelClock")
+		icon.inverted = entry[2] as bool
+		# Ni inclinacion ni balanceo: los dos salen del onStartSong de phone-call.
+		icon.song_bob_and_tilt = false
+		icon.tilt_degrees = 0.0
+		# Estos iconos no tienen poses de canto -su atlas son estados, no notas-.
+		icon.has_alt_poses = false
+		var frame: Texture2D = icon.sprite_frames.get_frame_texture(&"idle", 0)
+		var fit: float = ICON_HEIGHT * float(spec["scale"]) / float(frame.get_height())
+		# El SIGNO de scale.x es lo que pone a cada icono en su lado: Rubicon coloca los dos
+		# sobre el mismo punto de la barra y los separa por ahi. Con los dos en positivo
+		# salian montados uno encima del otro en mitad de la barra, que es como se vio.
+		var mirrored: bool = entry[3] as bool
+		icon.scale = Vector2(-fit if mirrored else fit, fit)
+		# Y el dibujo se vuelve a voltear, porque el signo de arriba lo ha espejado de paso
+		# y estos personajes traen `flipX: false` en su JSON.
+		icon.flip_h = mirrored
+		# El offset del personaje -healthIcon.offsets, en pixeles de Funkin- mas el medio
+		# ancho que centra el dibujo sobre el punto, mas los 26 de Funkin: la formula de
+		# `iconP1.x` lleva un `- 26` y la del otro lado su simetrico, y el algebra deja el
+		# mismo `-ancho/2 + 26` para los dos. Es el mismo numero que phone-call.
+		icon.offset = Vector2(-frame.get_width() * 0.5 + ICON_POSITION_OFFSET, 0.0) \
+			+ (spec["offsets"] as Vector2) * FUNKIN_TO_RUBICON / fit
+		print("OUT icono %-5s %-14s escala %.3f  alto %.0f" % [entry[0], who, fit,
+			frame.get_height() * fit])
+	_root.set_editable_instance(bar, true)
 
 
 ## Which audio files a song has. The metadata names the vocal characters but the files are

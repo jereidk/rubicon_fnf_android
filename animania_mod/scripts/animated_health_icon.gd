@@ -65,6 +65,14 @@ const PREDEATH_TILT_AT := 0.125
 ## -30 and the opponent's 50 - and the opponent's sprite is mirrored, so both droop the same
 ## way on screen.
 @export var tilt_degrees: float = -30.0
+## El balanceo y la inclinacion son de phone-call, no del icono.
+##
+## El estado -basic/win/lose/predeath y sus transiciones- si es generico: lo monta
+## `AnimaniaStuff.makeAmTakeAnimatedIcon` para cualquier icono amtake. Pero el coseno que
+## los mece y el `icon.angle` que los inclina salen del `onStartSong` de phone-call.script,
+## que es de esa cancion y de ninguna otra. dadbattle no tiene un script asi -su `.hx` solo
+## pone `isBoss = true`-, asi que sus iconos se quedan quietos.
+@export var song_bob_and_tilt: bool = true
 ## onStartSong's `+ Math.cos((health - 1) * 2) * 15` bob, a screen distance so it scales.
 ##
 ## Written as a difference from the cosine's value at NEUTRAL health rather than as the raw
@@ -162,6 +170,8 @@ func _process(delta: float) -> void:
 ## used to ride Rubicon's health-driven PathFollow2D instead, which is Funkin's own
 ## behaviour and not this mod's: Animania's icons never move in x with health at all.
 func _apply_tilt_and_bob() -> void:
+	if not song_bob_and_tilt:
+		return
 	var ratio: float = _ratio()
 	position = _rest_position + Vector2(0.0,
 		(cos((ratio * 2.0 - 1.0) * 2.0) - 1.0) * BOB_AMPLITUDE)

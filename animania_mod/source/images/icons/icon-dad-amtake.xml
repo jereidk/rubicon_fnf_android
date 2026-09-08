@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="icon-dad-amtake.png">
+	<!-- Created with Adobe Animate version 24.0.0.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="basic0000" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="basic-to-lose0000" x="653" y="361" width="146" height="170" frameX="-1" frameY="0" frameWidth="146" frameHeight="170" rotated="false"/>
+	<SubTexture name="basic-to-lose0001" x="653" y="361" width="146" height="170" frameX="-1" frameY="0" frameWidth="146" frameHeight="170" rotated="false"/>
+	<SubTexture name="basic-to-lose0002" x="172" y="184" width="169" height="176" frameX="-1" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="basic-to-lose0003" x="172" y="184" width="169" height="176" frameX="-1" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="basic-to-lose0004" x="342" y="184" width="169" height="176" frameX="-1" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="basic-to-lose0005" x="1" y="184" width="170" height="176"/>
+	<SubTexture name="basic-to-lose0006" x="1" y="184" width="170" height="176"/>
+	<SubTexture name="basic-to-lose0007" x="512" y="184" width="169" height="176" frameX="-1" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="basic-to-lose0008" x="512" y="184" width="169" height="176" frameX="-1" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="basic-to-win0000" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="basic-to-win0001" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="basic-to-win0002" x="1" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0003" x="1" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0004" x="164" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0005" x="327" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0006" x="327" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0007" x="490" y="361" width="162" height="180"/>
+	<SubTexture name="basic-to-win0008" x="490" y="361" width="162" height="180"/>
+	<SubTexture name="lose0000" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0000" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0001" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0002" x="1" y="184" width="170" height="176"/>
+	<SubTexture name="lose-to-basic0003" x="1" y="184" width="170" height="176"/>
+	<SubTexture name="lose-to-basic0004" x="342" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0005" x="172" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0006" x="172" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-basic0007" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="lose-to-basic0008" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="lose-to-predeath0000" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-predeath0001" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="lose-to-predeath0002" x="1" y="1" width="169" height="182"/>
+	<SubTexture name="lose-to-predeath0003" x="1" y="1" width="169" height="182"/>
+	<SubTexture name="lose-to-predeath0004" x="171" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="lose-to-predeath0005" x="340" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="lose-to-predeath0006" x="340" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="lose-to-predeath0007" x="509" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="lose-to-predeath0008" x="509" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath0000" x="509" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0000" x="509" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0001" x="509" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0002" x="340" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0003" x="340" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0004" x="171" y="1" width="168" height="182" frameX="0" frameY="0" frameWidth="169" frameHeight="182" rotated="false"/>
+	<SubTexture name="predeath-to-lose0005" x="1" y="1" width="169" height="182"/>
+	<SubTexture name="predeath-to-lose0006" x="1" y="1" width="169" height="182"/>
+	<SubTexture name="predeath-to-lose0007" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="predeath-to-lose0008" x="512" y="184" width="169" height="176" frameX="0" frameY="0" frameWidth="170" frameHeight="176" rotated="false"/>
+	<SubTexture name="win0000" x="490" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0000" x="490" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0001" x="490" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0002" x="327" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0003" x="327" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0004" x="164" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0005" x="1" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0006" x="1" y="361" width="162" height="180"/>
+	<SubTexture name="win-to-basic0007" x="653" y="361" width="146" height="170"/>
+	<SubTexture name="win-to-basic0008" x="653" y="361" width="146" height="170"/>
+</TextureAtlas>

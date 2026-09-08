@@ -53,9 +53,18 @@ const TADANO_ANIMATIONS := {
 }
 
 
+# bf y dad-beast, los de dadbattle, traen EXACTAMENTE los mismos estados que tadano:
+# basic / lose / win / predeath y las seis transiciones de nueve fotogramas. Se comprobo
+# contando los prefijos de los dos XML antes de reusar la tabla, no por parecido de nombre.
+#
+# Cual le toca a cada uno sale del JSON del personaje: bf declara healthIcon.id
+# `bf-amtake` y dad-beast `dad-amtake`, con sus offsets [10,-10] y [-10,-20] y su escala
+# 1 y 1.1. Los offsets y la escala los aplica quien monta la barra, no esto.
 func _init() -> void:
 	_build("icon-komi", "komi_icon", KOMI_ANIMATIONS)
 	_build("icon-tadano", "tadano_icon", TADANO_ANIMATIONS)
+	_build("icon-bf-amtake", "bf_amtake_icon", TADANO_ANIMATIONS)
+	_build("icon-dad-amtake", "dad_amtake_icon", TADANO_ANIMATIONS)
 	quit(0)
 
 
