@@ -4848,6 +4848,79 @@ override the harnesses use, and without it there would be no way to test any of 
 machine with no touchscreen -- which is the same as not testing it.
 
 
+## 8ak. The HUD's missing pieces: the time bar (and the score text, still missing)
+
+The question was "what does the mod's gameplay HUD have that ours does not", and the answer
+comes out of the binary's own list. `PlayState` has exactly these HUD builders and updaters:
+`initHealthBar` / `updateHealthBar` / `updateHealthBarColors`, `initStrumlines`,
+`initTimeBar` / `updateTimeBar`, `updateScoreText`, and `popUpScore`. The port had the
+health bar (with its icons), the strumlines and the judgement popups. **The time bar and the
+score text were simply absent**, on every song, and nothing anywhere recorded that.
+
+**The time bar, read rather than guessed.** `initTimeBar` at 0x1b52be0, lines 1934-1943:
+
+```
+1934  new FunkinSprite(0, downScroll ? 713 : 0)   // `mov $0x2c9,%esi` in the branch
+1936  makeSolidColor(1, 7, 0xFF808080)            // edx=1, ecx=7, the colour in rcx
+1937  scrollFactor.set(...)
+1939  alpha = 0.8                                 // the 0.8 at 0x59fa588, through vtable
+                                                  // slot 0x3a8 = set_alpha, the same slot
+                                                  // the week menu's arrows use
+1940  zIndex = 999999                             // movl $0xf423f,0x28(%rax)
+1942  cameras = null                              // field 0x260 to null
+1943  visible = Save.instance.options.appearance.showTimeBar
+```
+
+and `updateTimeBar` at 0x1b52390 is one line of arithmetic:
+
+```
+timeBar.scale.x = FlxG.width * (Conductor.instance.songPosition / songLengthMs)
+```
+
+A one-pixel-wide grey rectangle stretched to the screen's width in proportion to how much of
+the song has played. That is the "bar that gets wider every second" — and at 713 with its 7
+of height it lands exactly on 720, which is how you know that branch is the downscroll one.
+
+Three things are marked `?` in `song_time_bar.gd` rather than pretended: `showTimeBar` is a
+save option and this port has no save, so the bar is always on; the downscroll position is
+wired to whatever preference exists; and the CAMERA is a reading I did not finish — slot
+0x260 is taken to be `cameras` from how it is used, not because the name was seen. It matters
+because `cameras = null` means the default camera, **not** camHUD, so in phone-call the bar
+does not go dark with the HUD during the first minute. Here it lives on its own CanvasLayer
+above the HUD so it behaves the same way.
+
+**And rebuilding the song scenes to add it turned up two bugs that had nothing to do with
+the bar.**
+
+`_own(_root, _root)` gives an owner to every ownerless child so `pack()` keeps it — including
+the `AnimaniaModule` that `song_events.gd` creates in its `_init`, which runs at BUILD time
+too, the moment the builder sets the script. `song_events.gd`'s own comment says that child
+stays ownerless precisely so it is not packed; the sweep was undoing that, so a rebuilt
+phone-call shipped a **second, baked module** that nobody uses and that runs `_process`
+forever. Confirmed as pre-existing by rebuilding with the previous builder: same result.
+
+And `build_song_scene.gd` was **moving the health bar** on every rebuild. `layout_mode` is not
+just an inspector hint: saved as 0 on an instanced node it zeroes the anchors on load, and
+saved as a preset number it re-applies that preset and throws the authored offsets away.
+`build_level_scene.gd` had already learned this and left a comment; the generic builder never
+got it. Measured on bopeebo:
+
+| version | health bar | anchors |
+|---|---|---|
+| committed | (-546.0, 67.5) | 0.50 |
+| rebuilt, as it was | (0.0, 0.0) | 0 |
+| with `layout_mode = 1` | (-546.0, 0.0) | 0.50 |
+| with `layout_mode = 1` + `anchors_preset = -1` | (-546.0, 67.5) | 0.50 |
+
+The last row is the fix. It also revealed that **`tutorial.tscn` had shipped with its health
+bar in the top-left corner** — its committed scene reads (0,0) with zero anchors — since
+whenever it was generated. All five songs now measure (-546.0, 67.5).
+
+Still missing and NOT done here: the **score text**. `updateScoreText` builds `"Score: {1}"`
+(localised through `play_score`) from `formatMoney(songScoreInt)`, and there is a "Bot Play
+Enabled" string next to it. Nothing in the port draws either.
+
+
 ## 8b. Adding a song, for real
 
 The pipeline exists now and `tutorial` came out of it end to end. For a new song:

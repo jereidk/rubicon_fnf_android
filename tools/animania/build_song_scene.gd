@@ -28,6 +28,7 @@ const CONTROLLER_SCRIPT := \
 	"res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd"
 const HEALTH_BAR := "res://animania_mod/ui/health_bar.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
+const TIME_BAR_SCRIPT := "res://animania_mod/ui/song_time_bar.gd"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 ## The amtake-base receptors, which is the note style every Animania song uses.
 const LANE := "res://animania_mod/notestyle/Lane.tscn"
@@ -186,6 +187,18 @@ func _init() -> void:
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
 
+	# La barra de tiempo necesita dos cosas: el reloj, para saber por donde va, y el
+	# instrumental, para saber cuanto dura. Se cablean aqui y no en _build_ui porque
+	# entonces todavia no existen.
+	var time_bar: Node = ui.get("TimeBar")
+	if time_bar != null:
+		time_bar.clock = _root.get_node("RubiconLevelClock")
+		var inst: Node = _root.find_child("Instrumental", true, false)
+		if inst != null:
+			time_bar.instrumental = inst
+		print("OUT barra de tiempo: reloj=%s instrumental=%s" % [
+			str(time_bar.clock != null), str(time_bar.instrumental != null)])
+
 	# The chart's camera performance. dadbattle authors 98 events - 42 focus moves, 40
 	# zooms, angles, shakes and bars - and a level that ignores them sits still through the
 	# whole song. phone-call has its own baker; this is the general one.
@@ -261,6 +274,24 @@ func _build_ui(difficulty: String) -> Dictionary:
 
 	var built: Dictionary = {}
 
+	# La barra de progreso de la cancion: initTimeBar / updateTimeBar de PlayState. Va en su
+	# PROPIA capa, por encima del HUD, y no dentro de `UI`: el mod le pone `cameras = null`
+	# -la de por defecto, no camHUD- y un zIndex de 999999, asi que no se apaga cuando se
+	# apaga el HUD. En phone-call eso importa: el HUD no entra hasta el beat 31.
+	# Ver animania_mod/ui/song_time_bar.gd para las lineas del binario.
+	var bar_layer := CanvasLayer.new()
+	bar_layer.name = "TimeBarLayer"
+	bar_layer.layer = layer.layer + 1
+	_root.add_child(bar_layer)
+	bar_layer.owner = _root
+
+	var time_bar := ColorRect.new()
+	time_bar.name = "TimeBar"
+	time_bar.set_script(load(TIME_BAR_SCRIPT))
+	bar_layer.add_child(time_bar)
+	time_bar.owner = _root
+	built["TimeBar"] = time_bar
+
 	var judgment: Control = load(JUDGMENT).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	judgment.name = "Judgment"
 	ui.add_child(judgment)
@@ -270,6 +301,24 @@ func _build_ui(difficulty: String) -> Dictionary:
 	health_bar.name = "HealthBar"
 	ui.add_child(health_bar)
 	health_bar.owner = _root
+	# Las dos lineas que build_level_scene.gd ya habia tenido que aprender, y este builder
+	# no. `layout_mode` NO es solo cosa del inspector: guardado a 0 en un nodo instanciado,
+	# al cargar la escena pone los anclajes a cero y la barra se va a la esquina de arriba a
+	# la izquierda. Y con el 1 solo no basta: Godot elige entonces el preset que casa con
+	# los anclajes -el 5, centrado arriba-, lo guarda, y al cargar lo RE-APLICA tirando los
+	# offsets, con lo que la barra sube 45 px (67.5 aqui) por encima de su sitio. El -1
+	# guarda "a medida" y no mueve nada.
+	#
+	# Medido en bopeebo, reconstruyendo y comparando la posicion de la barra:
+	#   comiteada    (-546.0, 67.5)  anclas 0.5   <- su sitio
+	#   solo rebuild (   0.0,  0.0)  anclas 0     <- esquina
+	#   con layout 1 (-546.0,  0.0)  anclas 0.5   <- centrada pero 67.5 arriba
+	#   con las dos  (-546.0, 67.5)  anclas 0.5   <- su sitio
+	#
+	# Y de paso sale que tutorial.tscn TENIA la barra en la esquina: su escena comiteada da
+	# (0,0) con anclas 0. Llevaba asi desde que se genero.
+	health_bar.set(&"layout_mode", 1)
+	health_bar.set(&"anchors_preset", -1)
 	_root.set_editable_instance(health_bar, true)
 	built["HealthBar"] = health_bar
 

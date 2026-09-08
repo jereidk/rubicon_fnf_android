@@ -42,6 +42,7 @@ const BUMPER_SCRIPT := "res://addons/rubicon_interpolated_camera/scripts/rubicon
 # The amtake-base receptors, not the stock funkin ones. See tools/animania/build_notestyle.gd.
 const LANE := "res://animania_mod/notestyle/Lane.tscn"
 const JUDGMENT := "res://addons/rubicon/resources/levels/ui/default/Judgment.tscn"
+const TIME_BAR_SCRIPT := "res://animania_mod/ui/song_time_bar.gd"
 ## Not Rubicon's funkin bar: Animania's is a drawn stroke that arches and tapers, in the
 ## two characters' own icon colours, and it ships as art rather than as a rectangle. Built
 ## by tools/animania/build_health_bar.gd.
@@ -186,6 +187,18 @@ func _init() -> void:
 	health.note_controller = ui["Player"]
 	health.starting_health = 50.0
 	ui["HealthBar"].health_module = health
+
+	# La barra de tiempo necesita dos cosas: el reloj, para saber por donde va, y el
+	# instrumental, para saber cuanto dura. Se cablean aqui y no en _build_ui porque
+	# entonces todavia no existen.
+	var time_bar: Node = ui.get("TimeBar")
+	if time_bar != null:
+		time_bar.clock = _root.get_node("RubiconLevelClock")
+		var inst: Node = _root.find_child("Instrumental", true, false)
+		if inst != null:
+			time_bar.instrumental = inst
+		print("OUT barra de tiempo: reloj=%s instrumental=%s" % [
+			str(time_bar.clock != null), str(time_bar.instrumental != null)])
 	_dress_icons(ui, health)
 
 	_build_death(health, song)
@@ -356,6 +369,24 @@ func _build_ui() -> Dictionary:
 	layer.add_child(ui)
 
 	var built: Dictionary = {}
+
+	# La barra de progreso de la cancion: initTimeBar / updateTimeBar de PlayState. Va en su
+	# PROPIA capa, por encima del HUD, y no dentro de `UI`: el mod le pone `cameras = null`
+	# -la de por defecto, no camHUD- y un zIndex de 999999, asi que no se apaga cuando se
+	# apaga el HUD. En phone-call eso importa: el HUD no entra hasta el beat 31.
+	# Ver animania_mod/ui/song_time_bar.gd para las lineas del binario.
+	var bar_layer := CanvasLayer.new()
+	bar_layer.name = "TimeBarLayer"
+	bar_layer.layer = layer.layer + 1
+	_root.add_child(bar_layer)
+	bar_layer.owner = _root
+
+	var time_bar := ColorRect.new()
+	time_bar.name = "TimeBar"
+	time_bar.set_script(load(TIME_BAR_SCRIPT))
+	bar_layer.add_child(time_bar)
+	time_bar.owner = _root
+	built["TimeBar"] = time_bar
 
 	var judgment: Control = load(JUDGMENT).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	judgment.name = "Judgment"
@@ -899,8 +930,21 @@ func _build_intro_cover() -> ColorRect:
 	return cover
 
 
+## Da el owner a todo lo que no lo tenga, para que `pack()` lo guarde.
+##
+## Con UNA excepcion: el AnimaniaModule. song_events.gd lo crea en su `_init`, que corre
+## TAMBIEN aqui -en cuanto el builder le pone el script al nodo de eventos-, y su comentario
+## dice literalmente que ese hijo se queda sin owner para que `pack()` no lo guarde. Este
+## barrido se lo daba, asi que la escena salia con un SEGUNDO modulo horneado: al cargarla
+## nacia ese, y encima `_init` creaba el suyo. El que usa el script es el segundo; el
+## horneado se quedaba ahi corriendo `_process` sin camara ni HUD.
+##
+## Comprobado que era de antes y no de este cambio: reconstruyendo con el builder anterior
+## sale igual.
 func _own(node: Node, owner: Node) -> void:
 	for child: Node in node.get_children():
+		if child is AnimaniaModule:
+			continue
 		if child != owner and child.owner == null:
 			child.owner = owner
 		_own(child, owner)

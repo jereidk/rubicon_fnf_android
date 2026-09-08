@@ -33,6 +33,7 @@ func _run() -> void:
 	var hud: Control = _level.get_node("UILayer/UI")
 	var lanes: Control = _level.get_node("UILayer/UI/Player")
 	var opp: Control = _level.get_node("UILayer/UI/Opponent")
+	var bar: ColorRect = _level.get_node_or_null("TimeBarLayer/TimeBar")
 	var events: Node = _level.get_node("PhoneCallEvents")
 
 	print("OUT reproductor: tocando=%s animacion=%s largo=%.2f autoplay=%s" % [
@@ -52,9 +53,10 @@ func _run() -> void:
 			first_seen = t
 		if t >= next:
 			next += SAMPLE
-			print("OUT %6.2f  %8.2f  %6.3f  %6.3f  jugador x=%.0f  oponente x=%.0f a=%.2f" % [
+			print("OUT %6.2f  %8.2f  %6.3f  %6.3f  jugador x=%.0f  oponente x=%.0f a=%.2f  barra=%.1f" % [
 				t, player.current_animation_position, hud.modulate.a, lanes.modulate.a,
-				lanes.position.x, opp.position.x, opp.modulate.a])
+				lanes.position.x, opp.position.x, opp.modulate.a,
+				-1.0 if bar == null else bar.size.x])
 
 	await process_frame
 	var image: Image = root.get_texture().get_image()
