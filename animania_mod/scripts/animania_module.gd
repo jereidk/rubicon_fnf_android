@@ -307,15 +307,39 @@ func fade_in_nodes(nodes: Array[Node], duration: float = 0.35) -> void:
 			create_tween().tween_property(node, "modulate:a", 1.0, duration)
 
 
-func park_lanes_offscreen(distance: float = 0.0) -> void:
-	if distance == 0.0:
-		distance = SCREEN_WIDTH * FUNKIN_TO_RUBICON
-	for entry: Array in [[&"player", player_lanes], [&"opponent", opponent_lanes]]:
-		var lanes: Control = entry[1]
-		if lanes == null or not _lane_homes.has(entry[0]):
-			continue
-		lanes.position.x = _lane_homes[entry[0]].x + distance
-		lanes.modulate.a = 0.0
+## Donde se colocan las dos filas de notas antes de que empiece nada. onCreatePost del
+## script de phone-call, lineas 57-62:
+##
+##   opponentStrumline.alpha = 0;
+##   opponentStrumline.angle = 360;
+##   opponentStrumline.x += FlxG.width;      // una pantalla ENTERA a la derecha
+##   playerStrumline.x -= FlxG.width / 2;    // MEDIA pantalla a la IZQUIERDA
+##   playerStrumline.alpha = 0;
+##
+## No son el mismo gesto y esa es toda la historia. La media pantalla del jugador no es un
+## aparcamiento: es DONDE SE QUEDAN. Nacen dibujadas en 1440 y se van a 480 -la casa del
+## oponente-, y ahi juegan la cancion entera; nada las mueve nunca mas. La del oponente si
+## es un aparcamiento, y de ahi vuelven en el beat 166.
+##
+## Lo que habia aqui sumaba `SCREEN_WIDTH * FUNKIN_TO_RUBICON` a las DOS. Dos errores en
+## una linea: sumar tambien a las del jugador -que van al otro lado y la mitad-, y la
+## conversion doble, porque `FlxG.width` es 1280 alli, o sea UNA PANTALLA, que aqui ya es
+## SCREEN_WIDTH = 1920; multiplicarlo otra vez por 1.5 da 2880.
+##
+## El resultado medido: las notas del jugador acababan en 4320, dos pantallas y cuarto a la
+## derecha, y se quedaban ahi. El HUD SI entraba -su alfa llega a 1 en el segundo 12.27,
+## que es el beat 31- pero no habia nada que ver, porque lo unico que trae ese HUD en esa
+## mitad de la cancion son las notas del jugador. De ahi el "la HUD de phone-call no
+## aparece nunca". phone_hud_probe.gd lo mide en una partida corriendo sola, sin rebobinar.
+func place_lanes_for_intro() -> void:
+	if opponent_lanes != null and _lane_homes.has(&"opponent"):
+		opponent_lanes.position.x = _lane_homes[&"opponent"].x + SCREEN_WIDTH
+		opponent_lanes.modulate.a = 0.0
+		# 360 y no 0: el tween del beat 166 va de aqui a 0, o sea que da una vuelta entera.
+		opponent_lanes.rotation_degrees = 360.0
+	if player_lanes != null and _lane_homes.has(&"player"):
+		player_lanes.position.x = _lane_homes[&"player"].x - SCREEN_WIDTH * 0.5
+		player_lanes.modulate.a = 0.0
 
 
 ## ─── Camera bop (SetCameraBop) ─────────────────────────────────────────────
@@ -377,18 +401,54 @@ func character_slide(target_name: StringName, distance: float,
 
 ## ─── Character swap (mid-song) ─────────────────────────────────────────────
 
+## standUP() del script de phone-call, lineas 227-260. Hace dos cosas a la vez:
+##
+##   - los PERSONAJES. El mod destruye a los del telefono y mete a los de pie EN SU PAPEL:
+##     `characterType = BF/DAD`, `initHealthIcon`, `addCharacter`. Aqui los de pie ya estan
+##     en la escena, nacidos invisibles, asi que el equivalente es pasarles el controlador
+##     de notas del que sale, enseñarlos, esconder al que sale y reapuntar el reparto. El
+##     controlador es la parte que no se ve venir: sin el, los de pie no cantan ni hacen
+##     idle en toda la segunda mitad de la cancion.
+##   - los PROPS. `prop.visible = prop.name.indexOf("stand-") != -1`, que invierte TODOS:
+##     los que llevan el nombre se encienden y los demas se apagan. Aqui el trozo es
+##     `stand_` porque asi los nombra el importador del stage -stand_housesFAR,
+##     stand_houseBACK...-.
+##
+## Lo que habia comparaba los nombres de los nodos contra los prefijos "stand-", "phone-" y
+## "sitting-", y en esta escena no empieza por ninguno NI UN SOLO nodo: los personajes se
+## llaman Tadano, Komi, TadanoStand y KomiStand, y los props llevan `stand_` en medio, no
+## al principio. O sea que no casaba nada y el cambio no cambiaba nada.
 func swap_characters(new_cast: Dictionary[StringName, Node],
-		stage: Node = null, show_prefix: String = "stand-",
-		hide_prefixes: Array[String] = ["phone-", "sitting-"]) -> void:
+		stage: Node = null) -> void:
 	for key: StringName in new_cast:
-		cast[key] = new_cast[key]
+		var incoming: Node = new_cast[key]
+		var outgoing: Node = cast.get(key)
+		# Llamarlo dos veces no puede deshacerlo: al segundo paso el que entra ya es el que
+		# esta, y esconderlo para volver a enseñarlo es como se pierde una pareja entera.
+		if incoming == null or incoming == outgoing:
+			continue
+		if outgoing != null:
+			var controller: Variant = outgoing.get(&"level_note_controller")
+			if controller != null:
+				incoming.set(&"level_note_controller", controller)
+			if outgoing is CanvasItem:
+				(outgoing as CanvasItem).visible = false
+		if incoming is CanvasItem:
+			(incoming as CanvasItem).visible = true
+		cast[key] = incoming
 	if stage != null:
-		for child: Node in stage.get_children():
-			if child.name.begins_with(show_prefix):
-				child.visible = true
-			for hp: String in hide_prefixes:
-				if child.name.begins_with(hp):
-					child.visible = false
+		_invert_props(stage)
+
+
+## El recorrido entero del stage, no solo sus hijos directos: los props cuelgan de los nodos
+## de scroll -Scroll_0p8_0p8 y compañia-, asi que mirar un solo nivel no ve ninguno.
+## Los personajes no tienen un Sprite2D dentro, comprobado, asi que esto no los toca.
+func _invert_props(node: Node) -> void:
+	for child: Node in node.get_children():
+		var sprite := child as Sprite2D
+		if sprite != null:
+			sprite.visible = String(sprite.name).contains("stand_")
+		_invert_props(child)
 
 
 ## ─── Focus change (doDiffFocus) ─────────────────────────────────────────────

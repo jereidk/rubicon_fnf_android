@@ -61,7 +61,7 @@ func opening() -> void:
 		intro_text.modulate.a = 0.0
 	if hud_root != null:
 		hud_root.modulate.a = 0.0
-	module.park_lanes_offscreen()
+	module.place_lanes_for_intro()
 	module.set_keys_enabled(false)
 
 
