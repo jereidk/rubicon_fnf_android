@@ -6,6 +6,10 @@
 # fire exactly once in order. The camera-movement keys for this level are baked
 # into that same animation, so the shots also confirm the camera follows.
 #
+# FIX: RubiconInterpolatedCamera2D overrides _set() and returns false for all
+# properties, which prevents Godot from setting current=true on it. We create
+# a plain Camera2D and sync its position/zoom from the interpolated camera.
+#
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot \
 #       --rendering-driver opengl3 --path . res://tools/holyquintet/level_shot.tscn
 extends Node2D
@@ -21,6 +25,9 @@ const SHOT_DIR := "/tmp/hq_renders"
 var _level: Node
 var _clock: Node
 var _frames: int = 0
+## Plain Camera2D used for rendering (the RubiconInterpolatedCamera2D's _set()
+## override prevents it from becoming the viewport's current camera).
+var _render_camera: Camera2D
 
 
 func _ready() -> void:
@@ -31,14 +38,12 @@ func _ready() -> void:
 	for side: String in ["Opponent", "Player"]:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
-	# Debug: check camera state after one frame.
-	await get_tree().process_frame
-	var cam := get_viewport().get_camera_2d()
-	print("DEBUG CAM: found=", cam != null)
-	if cam:
-		print("  enabled=", cam.enabled, " current=", cam.current,
-			" pos=", cam.position, " zoom=", cam.zoom,
-			" global=", cam.global_position)
+	# Create a plain Camera2D that the viewport can actually use.
+	_render_camera = Camera2D.new()
+	_render_camera.enabled = true
+	_render_camera.make_current()
+	add_child(_render_camera)
+	print("level_shot: plain Camera2D created and made current")
 
 
 func _wind_step(target: float) -> bool:
@@ -83,17 +88,12 @@ func _process(_delta: float) -> void:
 				running.custom_step(10.0)
 				running.kill()
 
-			var camera: Camera2D = get_viewport().get_camera_2d()
-			if camera == null:
-				push_error("level_shot: get_camera_2d() returned null, walking tree")
-				for c in _level.find_children("*", "Camera2D", true, false):
-					camera = c as Camera2D
-					if camera:
-						camera.make_current()
-						break
-			if camera:
-				camera.zoom = camera.zoom_interpolate_target
-				camera.position = camera.position_interpolate_target
+			# Sync our plain camera from the interpolated camera's targets.
+			var interpolated: Camera2D = _level.get_node_or_null("RubiconInterpolatedCamera2D")
+			if interpolated:
+				_render_camera.zoom = interpolated.zoom_interpolate_target
+				_render_camera.position = interpolated.position_interpolate_target
+			_render_camera.make_current()
 
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
@@ -111,7 +111,7 @@ func _process(_delta: float) -> void:
 			var stage: Node = _level.get_node("Stage")
 			print("OUT t=%5.1fs cam=%s zoom=%.3f sayaka=%s gf=%s bf=%s lanes=%d/%d -> %s" % [
 				moment, point,
-				(get_viewport().get_camera_2d() as Camera2D).zoom.x,
+				_render_camera.zoom.x,
 				stage.get_node("Sayaka").position,
 				stage.get_node("Girlfriend").position,
 				stage.get_node("Boyfriend").position,
