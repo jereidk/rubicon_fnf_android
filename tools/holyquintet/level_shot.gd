@@ -31,6 +31,15 @@ func _ready() -> void:
 	for side: String in ["Opponent", "Player"]:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
 
+	# Debug: check camera state after one frame.
+	await get_tree().process_frame
+	var cam := get_viewport().get_camera_2d()
+	print("DEBUG CAM: found=", cam != null)
+	if cam:
+		print("  enabled=", cam.enabled, " current=", cam.current,
+			" pos=", cam.position, " zoom=", cam.zoom,
+			" global=", cam.global_position)
+
 
 func _wind_step(target: float) -> bool:
 	var player: AnimationPlayer = _clock.animation_player
@@ -76,25 +85,15 @@ func _process(_delta: float) -> void:
 
 			var camera: Camera2D = get_viewport().get_camera_2d()
 			if camera == null:
-				# Camera2D may not have auto-become current; walk the tree to find it.
+				push_error("level_shot: get_camera_2d() returned null, walking tree")
 				for c in _level.find_children("*", "Camera2D", true, false):
 					camera = c as Camera2D
-					break
-				if camera == null:
-					push_error("level_shot: no Camera2D found in level")
-					return
-				camera.make_current()
-			print("level_shot SETTLE: cam.pos=", camera.position, " zoom=", camera.zoom,
-				" enabled=", camera.enabled, " current=", camera.current)
-			# Override camera to show the full gameplay area (stage + all characters).
-			# The default zoom 1.5 at OpponentCameraPoint(390,-275) only shows
-			# Y[-635,85] but characters sit at Y=200-400, so they are off-screen.
-			var shot_zoom := Vector2(0.55, 0.55)
-			var shot_pos := Vector2(150.0, 50.0)
-			camera.zoom = shot_zoom
-			camera.zoom_interpolate_target = shot_zoom
-			camera.position = shot_pos
-			camera.position_interpolate_target = shot_pos
+					if camera:
+						camera.make_current()
+						break
+			if camera:
+				camera.zoom = camera.zoom_interpolate_target
+				camera.position = camera.position_interpolate_target
 
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
