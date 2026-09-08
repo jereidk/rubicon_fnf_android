@@ -86,7 +86,7 @@ func _process(_delta: float) -> void:
 				var vp_size := Vector2(get_viewport().get_visible_rect().size)
 				var half := vp_size / (2.0 * cam_zoom)
 				var origin := cam_pos - half
-				get_viewport().canvas_transform = Transform2D(0.0, cam_zoom, origin)
+				get_viewport().canvas_transform = Transform2D(Vector2(cam_zoom.x, 0.0), Vector2(0.0, cam_zoom.y), origin)
 
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
