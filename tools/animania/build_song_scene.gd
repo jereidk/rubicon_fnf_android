@@ -54,6 +54,22 @@ const ICONS := {
 	"dad": {"frames": "dad_amtake_icon", "scale": 0.9, "offsets": Vector2(-10.0, -20.0)},
 	"dad-beast": {"frames": "dad_amtake_icon", "scale": 1.1, "offsets": Vector2(-10.0, -20.0)},
 }
+## El COLOR de cada mitad de la barra, que es `healthIcon.color` del mismo JSON.
+## `createFilledBar(dad.healthIcon.color, boyfriend.healthIcon.color)`.
+##
+## Que la regla es esa esta comprobado del reves: health_bar.tscn trae horneados
+## #794F92 y #7D6EC7 en OpponentFill y PlayerFill, y esos son EXACTAMENTE los colores de
+## komi y de tadano. O sea que la escena compartida lleva puestos los de phone-call, y
+## hasta ahora todas las canciones se pintaban con ellos.
+##
+## gf esta aqui aunque no tenga icono animado: su color si existe y tutorial la pone de
+## oponente.
+const COLORS := {
+	"bf": "#31B0D1",
+	"dad": "#AF66CE",
+	"dad-beast": "#AF66CE",
+	"gf": "#FF0000",
+}
 const TIME_BAR_SCRIPT := "res://animania_mod/ui/song_time_bar.gd"
 const NOTE_OVERRIDES := "res://animania_mod/songs/phone_call_note_overrides.tres"
 ## The amtake-base receptors, which is the note style every Animania song uses.
@@ -330,6 +346,24 @@ func _dress_icons(ui: Dictionary, health: Node, cast_names: Dictionary) -> void:
 			+ (spec["offsets"] as Vector2) * FUNKIN_TO_RUBICON / fit
 		print("OUT icono %-5s %-14s escala %.3f  alto %.0f" % [entry[0], who, fit,
 			frame.get_height() * fit])
+
+	# Y el color de cada mitad. Va por las propiedades de la BARRA, no por el `modulate` de
+	# los dos sprites: su `_repaint` los reescribe en cada cambio de vida, asi que pintarlos
+	# desde aqui no duraba ni un fotograma. Aparte del bucle de arriba porque gf tiene color
+	# pero no icono, y tutorial la pone de oponente.
+	for entry: Array in [["opponent_color", "opponent"], ["player_color", "player"]]:
+		var who: String = String(cast_names.get(entry[1], ""))
+		if not COLORS.has(who):
+			print("OUT color: %s no tiene uno declarado, se queda con el de phone-call" % who)
+			continue
+		bar.set(entry[0] as String, Color(COLORS[who] as String))
+		print("OUT color %-14s %-9s %s" % [entry[1], who, COLORS[who]])
+
+	# Y del lado de Funkin, no del de phone-call: la mitad del jugador crece por la DERECHA.
+	# El volteo de la izquierda es de phone-call -su `healthBar.flipped = true`- y estaba
+	# escrito a fuego en la barra compartida.
+	bar.set("player_on_left", false)
+
 	_root.set_editable_instance(bar, true)
 
 

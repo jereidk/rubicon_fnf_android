@@ -28,10 +28,22 @@ extends RubiconHealthBar
 @export var player_fill: Sprite2D
 @export var opponent_fill: Sprite2D
 
-## tadano.json and komi.json's healthIcon.color. The player's half is the LEFT one - the
-## same swap the strumlines make, and what the capture measures.
+## `healthIcon.color` de cada personaje. Los que traen puestos son los de tadano y komi,
+## que es lo que hasta ahora se pintaba en TODAS las canciones porque la escena de la barra
+## es compartida y nadie los cambiaba.
 @export var player_color: Color = Color("7d6ec7")
 @export var opponent_color: Color = Color("794f92")
+
+## De que lado crece la mitad del jugador.
+##
+## En Funkin es la DERECHA. En phone-call es la izquierda, y no por capricho: esa cancion
+## hace `healthBar.flipped = true` -el mismo intercambio que hacen sus dos filas de notas-
+## y la captura del mod lo confirma, con el #7D6EC7 de tadano a la izquierda de los iconos
+## y el #794F92 de komi a la derecha.
+##
+## Estaba escrito a fuego a la izquierda, o sea con el volteo de phone-call metido dentro
+## de la barra compartida. dadbattle lo pone en false y se ve como en Funkin.
+@export var player_on_left: bool = true
 
 
 func _ready() -> void:
@@ -60,15 +72,22 @@ func _repaint() -> void:
 		return
 
 	var size: Vector2 = texture.get_size()
-	var split: float = roundf(clampf(get_as_ratio(), 0.0, 1.0) * size.x)
+	# Lo que le toca al JUGADOR, siempre medido como anchura, no como lado.
+	var mine: float = roundf(clampf(get_as_ratio(), 0.0, 1.0) * size.x)
 
-	player_fill.region_enabled = true
-	player_fill.region_rect = Rect2(0.0, 0.0, split, size.y)
-	player_fill.modulate = player_color
+	# El de la izquierda empieza en 0 y el de la derecha en la costura; y un Sprite2D dibuja
+	# su region en su propia posicion, asi que el de la derecha tiene que MOVERSE con ella o
+	# se le echa encima al otro.
+	var seam: float = mine if player_on_left else size.x - mine
+	var left: Sprite2D = player_fill if player_on_left else opponent_fill
+	var right: Sprite2D = opponent_fill if player_on_left else player_fill
 
-	# Its region starts at the split, and a Sprite2D draws a region at its own position, so
-	# the node has to move with it or the right half slides over the left.
-	opponent_fill.region_enabled = true
-	opponent_fill.region_rect = Rect2(split, 0.0, size.x - split, size.y)
-	opponent_fill.position.x = split
-	opponent_fill.modulate = opponent_color
+	left.region_enabled = true
+	left.region_rect = Rect2(0.0, 0.0, seam, size.y)
+	left.position.x = 0.0
+	left.modulate = player_color if player_on_left else opponent_color
+
+	right.region_enabled = true
+	right.region_rect = Rect2(seam, 0.0, size.x - seam, size.y)
+	right.position.x = seam
+	right.modulate = opponent_color if player_on_left else player_color
