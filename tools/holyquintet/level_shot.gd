@@ -3,19 +3,18 @@
 #
 # Same technique as tools/animania/harness/level_shot.gd: the clock's animation
 # is WOUND at high speed to a moment and then PLAYED into it, so method keys
-# fire exactly once in order. The camera-movement keys for this level are baked
-# into that same animation, so the shots also confirm the camera follows.
+# fire exactly once in order.
 #
-# FIX: RubiconInterpolatedCamera2D overrides _set() and returns false for all
-# properties, which prevents Godot from setting current=true on it. We create
-# a plain Camera2D and sync its position/zoom from the interpolated camera.
+# FIX: Bypass Camera2D entirely — set viewport canvas_transform directly.
+# RubiconInterpolatedCamera2D._set() prevents current=true, and even a plain
+# Camera2D may not work because the level scene already has a Camera2D that
+# auto-grabs "current" first.
 #
 #   xvfb-run -a --server-args="-screen 0 1920x1080x24" godot \
 #       --rendering-driver opengl3 --path . res://tools/holyquintet/level_shot.tscn
 extends Node2D
 
 const LEVEL := "res://songs/resonance/resonance.tscn"
-# Moments with notes on both sides across the song (resonance is 165.6s long).
 const MOMENTS := [
 	[10.0, 0.8], [45.0, 0.8], [65.0, 0.8], [90.0, 0.8], [120.0, 0.8], [150.0, 0.8],
 ]
@@ -25,9 +24,6 @@ const SHOT_DIR := "/tmp/hq_renders"
 var _level: Node
 var _clock: Node
 var _frames: int = 0
-## Plain Camera2D used for rendering (the RubiconInterpolatedCamera2D's _set()
-## override prevents it from becoming the viewport's current camera).
-var _render_camera: Camera2D
 
 
 func _ready() -> void:
@@ -37,13 +33,6 @@ func _ready() -> void:
 	_clock = _level.get_node("RubiconLevelClock")
 	for side: String in ["Opponent", "Player"]:
 		_level.get_node("UILayer/UI/%s" % side).autoplay = true
-
-	# Create a plain Camera2D that the viewport can actually use.
-	_render_camera = Camera2D.new()
-	_render_camera.enabled = true
-	_render_camera.make_current()
-	add_child(_render_camera)
-	print("level_shot: plain Camera2D created and made current")
 
 
 func _wind_step(target: float) -> bool:
@@ -88,12 +77,16 @@ func _process(_delta: float) -> void:
 				running.custom_step(10.0)
 				running.kill()
 
-			# Sync our plain camera from the interpolated camera's targets.
+			# Read the interpolated camera's target position/zoom.
 			var interpolated: Camera2D = _level.get_node_or_null("RubiconInterpolatedCamera2D")
 			if interpolated:
-				_render_camera.zoom = interpolated.zoom_interpolate_target
-				_render_camera.position = interpolated.position_interpolate_target
-			_render_camera.make_current()
+				var cam_pos: Vector2 = interpolated.position_interpolate_target
+				var cam_zoom: Vector2 = interpolated.zoom_interpolate_target
+				# Build the canvas transform manually.
+				var vp_size := Vector2(get_viewport().get_visible_rect().size)
+				var half := vp_size / (2.0 * cam_zoom)
+				var origin := cam_pos - half
+				get_viewport().canvas_transform = Transform2D(0.0, cam_zoom, origin)
 
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
@@ -109,9 +102,9 @@ func _process(_delta: float) -> void:
 			var setter: Node = _level.get_node("RubiconInterpolatedCamera2D/RubiconPositionSetter")
 			var point: String = setter._current_point
 			var stage: Node = _level.get_node("Stage")
-			print("OUT t=%5.1fs cam=%s zoom=%.3f sayaka=%s gf=%s bf=%s lanes=%d/%d -> %s" % [
-				moment, point,
-				_render_camera.zoom.x,
+			var vp_size := Vector2(get_viewport().get_visible_rect().size)
+			print("OUT t=%5.1fs cam=%s vp=%s sayaka=%s gf=%s bf=%s lanes=%d/%d -> %s" % [
+				moment, point, vp_size,
 				stage.get_node("Sayaka").position,
 				stage.get_node("Girlfriend").position,
 				stage.get_node("Boyfriend").position,
