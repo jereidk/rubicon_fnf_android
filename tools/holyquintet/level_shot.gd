@@ -75,6 +75,15 @@ func _process(_delta: float) -> void:
 				running.kill()
 
 			var camera: Camera2D = get_viewport().get_camera_2d()
+			if camera == null:
+				# Camera2D may not have auto-become current; walk the tree to find it.
+				for c in _level.find_children("*", "Camera2D", true, false):
+					camera = c as Camera2D
+					break
+				if camera == null:
+					push_error("level_shot: no Camera2D found in level")
+					return
+				camera.make_current()
 			# Override camera to show the full gameplay area (stage + all characters).
 			# The default zoom 1.5 at OpponentCameraPoint(390,-275) only shows
 			# Y[-635,85] but characters sit at Y=200-400, so they are off-screen.
