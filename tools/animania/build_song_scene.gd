@@ -499,7 +499,17 @@ func _build_ui(difficulty: String) -> Dictionary:
 ## build_character_scenes.gd). So the position goes on verbatim.
 func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary,
 		ui: Dictionary) -> void:
-	for slot: String in ["opponent", "girlfriend", "player"]:
+	# De MENOS a MAS zIndex, no en el orden de siempre. Los tres caen en el mismo hueco
+	# entre props -en bopeebo, el 9 de 28- y cada insercion empuja a la anterior, asi que
+	# colocarlos en el orden de siempre los dejaba justo al reves entre ellos: bf (30)
+	# debajo de gf (10) y de dad (20).
+	var slots: Array[String] = ["opponent", "girlfriend", "player"]
+	slots.sort_custom(func(a: String, b: String) -> bool:
+		var ka: String = {"player": "bf", "opponent": "dad", "girlfriend": "gf"}[a]
+		var kb: String = {"player": "bf", "opponent": "dad", "girlfriend": "gf"}[b]
+		return int((where.get(ka, {}) as Dictionary).get("zIndex", 0)) \
+			< int((where.get(kb, {}) as Dictionary).get("zIndex", 0)))
+	for slot: String in slots:
 		var who: String = String(cast_names.get(slot, ""))
 		if who.is_empty():
 			continue
@@ -513,6 +523,20 @@ func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary,
 		var key: String = {"player": "bf", "opponent": "dad", "girlfriend": "gf"}[slot]
 		var at: Array = (where.get(key, {}) as Dictionary).get("position", [640, 500])
 		character.position = Vector2(float(at[0]), float(at[1]))
+		# Donde va en la PILA del stage. Sin esto los personajes se cuelgan al final y se
+		# dibujan encima de todo: bf por delante de las cajas y de la niebla -que van en 30
+		# y 35 contra su 22- y gf por delante del cielo, cuando su -19 la pone DETRAS.
+		#
+		# Por orden de hijos y no por `z_index`: ponerselo a los props reordena sus TRIPAS,
+		# porque `z_as_relative` hace que el z del padre se sume al de cada hijo. Con eso
+		# bopeebo salio con un ovalo negro tapando el escenario. El stage deja los zIndex en
+		# el meta `prop_z`, en el mismo orden que sus hijos, y aqui se busca el hueco.
+		var mine: int = int((where.get(key, {}) as Dictionary).get("zIndex", 0))
+		var prop_z: Array = stage.get_meta(&"prop_z", [])
+		var slot_index: int = 0
+		for z: int in prop_z:
+			if z <= mine:
+				slot_index += 1
 		# THE wire. RubiconCharacter subscribes to note_changed and to the clock's
 		# step_change through its level_note_controller, and a character without one plays
 		# nothing at all - not even its idle. The first build of tutorial had both of them
@@ -526,6 +550,10 @@ func _place_cast(stage: Node2D, cast_names: Dictionary, where: Dictionary,
 			character.level_note_controller = ui.get("Opponent")
 		stage.add_child(character)
 		character.owner = _root
+		if not prop_z.is_empty():
+			stage.move_child(character, slot_index)
+		print("OUT %-11s %-12s z=%-4d hueco %d de %d props" % [slot, who, mine,
+			slot_index, prop_z.size()])
 		print("OUT %-11s %-20s en (%.0f, %.0f)" % [
 			slot, who, character.position.x, character.position.y])
 

@@ -12,7 +12,15 @@
 #   * Coordinates stay VERBATIM in Funkin's 1280x720 space. The project's 1.5x belongs on
 #     the level camera; putting it here would resample the art and make every number in the
 #     scene un-diffable against the JSON.
-#   * `zIndex` is the draw order and becomes child order, lowest first.
+#   * `zIndex` is the draw order and becomes child order, lowest first. Y NADA MAS: se
+#     probo ponerselo tambien como `z_index` al nodo, para que el nivel pudiera colocar a
+#     los personajes por numero, y bopeebo salio con un ovalo negro enorme tapando el
+#     escenario. La razon es que `z_as_relative` viene puesto: el z de un prop se SUMA al de
+#     sus hijos, asi que darle 15 a un prop mueve sus tripas por encima de las de otro y el
+#     dibujo se desarma. El orden de hijos no tiene ese problema.
+#
+#     Lo que el nivel necesita para meter a los personajes en su sitio va por metadatos:
+#     `prop_z` lleva los zIndex en el mismo orden que los hijos.
 #
 # The characters block is not built into the scene - it is metadata the LEVEL needs (where
 # each character stands, and the cameraOffsets the stage adds on top of the character's
@@ -51,6 +59,13 @@ func _init() -> void:
 	var props: Array = data.get("props", [])
 	props.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return int(a.get("zIndex", 0)) < int(b.get("zIndex", 0)))
+
+	# Los zIndex en el MISMO orden en que quedan los hijos, para que el nivel pueda calcular
+	# donde va cada personaje sin volver a leer el JSON del stage.
+	var prop_z: Array[int] = []
+	for prop: Dictionary in props:
+		prop_z.append(int(prop.get("zIndex", 0)))
+	root.set_meta(&"prop_z", prop_z)
 
 	var built: int = 0
 	for prop: Dictionary in props:

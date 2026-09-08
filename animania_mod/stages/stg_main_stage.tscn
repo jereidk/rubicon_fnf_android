@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/stagefront.png" id="2_vnnc6"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/stagecurtains.png" id="3_lne8j"]
 
-[node name="MainStage" type="Node2D" unique_id=824536317]
+[node name="MainStage" type="Node2D" unique_id=1970306195]
 metadata/characters = {
 "bf": {
 "cameraOffsets": [0.0, 0.0],
@@ -23,21 +23,22 @@ metadata/characters = {
 }
 }
 metadata/camera_zoom = 1.1
+metadata/prop_z = Array[int]([10, 20, 30])
 
-[node name="StageBack" type="Sprite2D" parent="." unique_id=908312322]
+[node name="StageBack" type="Sprite2D" parent="." unique_id=817566165]
 position = Vector2(-600, -200)
 texture = ExtResource("1_mmuu4")
 centered = false
 metadata/scroll = [0.9, 0.9]
 
-[node name="StageFront" type="Sprite2D" parent="." unique_id=185620287]
+[node name="StageFront" type="Sprite2D" parent="." unique_id=897575401]
 position = Vector2(-650, 600)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("2_vnnc6")
 centered = false
 metadata/scroll = [0.9, 0.9]
 
-[node name="StageCurtains" type="Sprite2D" parent="." unique_id=1016101388]
+[node name="StageCurtains" type="Sprite2D" parent="." unique_id=2050135000]
 position = Vector2(-500, -300)
 scale = Vector2(0.9, 0.9)
 texture = ExtResource("3_lne8j")

@@ -50,7 +50,7 @@ _data = {
 &"fg_red_overlay": SubResource("Animation_vo58u")
 }
 
-[node name="ServiceEnterance" type="Node2D" unique_id=1615265116]
+[node name="ServiceEnterance" type="Node2D" unique_id=612083361]
 metadata/characters = {
 "bf": {
 "cameraOffsets": [-250.0, -200.0],
@@ -71,25 +71,26 @@ metadata/characters = {
 }
 }
 metadata/camera_zoom = 0.46
+metadata/prop_z = Array[int]([-1, 2, 3, 8, 9, 9, 15, 20, 22, 30, 35, 37, 100, 900])
 
-[node name="Skybox" type="Sprite2D" parent="." unique_id=274974310]
+[node name="Skybox" type="Sprite2D" parent="." unique_id=1744401621]
 position = Vector2(-1250, -750)
 texture = ExtResource("1_symsj")
 centered = false
 metadata/scroll = [0.5, 0.5]
 
-[node name="SkyboxCity" type="Node2D" parent="." unique_id=264752978]
+[node name="SkyboxCity" type="Node2D" parent="." unique_id=1821960138]
 position = Vector2(-1700, -1300)
 script = ExtResource("2_hjy6s")
 symbol = "city far"
 centered = false
 atlases = Array[ExtResource("3_myu4d")]([ExtResource("4_p2nbg")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="SkyboxCity" unique_id=906215614]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="SkyboxCity" unique_id=1074460141]
 libraries/ = ExtResource("5_n8qus")
 autoplay = &"city_far_loop"
 
-[node name="BgMist1" type="Sprite2D" parent="." unique_id=897916623]
+[node name="BgMist1" type="Sprite2D" parent="." unique_id=1670109293]
 modulate = Color(1, 1, 1, 0.4)
 material = SubResource("CanvasItemMaterial_rq8vw")
 position = Vector2(-1400, -50)
@@ -97,72 +98,72 @@ texture = ExtResource("6_dasom")
 centered = false
 metadata/scroll = [0.8, 0.8]
 
-[node name="PhillyCars2" type="AnimatedSprite2D" parent="." unique_id=1207861252]
+[node name="PhillyCars2" type="AnimatedSprite2D" parent="." unique_id=996272910]
 modulate = Color(1, 1, 1, 0.5)
 position = Vector2(0, 250)
 sprite_frames = ExtResource("7_j5b0b")
 animation = &"car"
 autoplay = "car"
 
-[node name="Bulbb" type="Node2D" parent="." unique_id=1450885068]
+[node name="Bulbb" type="Node2D" parent="." unique_id=1349437106]
 position = Vector2(-1320, -350)
 script = ExtResource("2_hjy6s")
 symbol = "pillar"
 centered = false
 atlases = Array[ExtResource("3_myu4d")]([ExtResource("8_7jk5p")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Bulbb" unique_id=685653242]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Bulbb" unique_id=266669260]
 libraries/ = ExtResource("9_6v8dl")
 autoplay = &"pillar_loop"
 
-[node name="PhillyCars" type="AnimatedSprite2D" parent="." unique_id=93295023]
+[node name="PhillyCars" type="AnimatedSprite2D" parent="." unique_id=377650196]
 position = Vector2(0, 250)
 sprite_frames = ExtResource("7_j5b0b")
 animation = &"car"
 autoplay = "car"
 
-[node name="StageBg" type="Sprite2D" parent="." unique_id=1625191582]
+[node name="StageBg" type="Sprite2D" parent="." unique_id=1167653703]
 position = Vector2(-1595, -1580)
 texture = ExtResource("10_l7j6e")
 centered = false
 metadata/scroll = [0.95, 0.95]
 
-[node name="VendingLight" type="Sprite2D" parent="." unique_id=1255409321]
+[node name="VendingLight" type="Sprite2D" parent="." unique_id=1525032289]
 material = SubResource("CanvasItemMaterial_tyyaj")
 position = Vector2(1370, -205)
 texture = ExtResource("11_nbq42")
 centered = false
 metadata/scroll = [0.95, 0.95]
 
-[node name="Rain" type="Node2D" parent="." unique_id=2145393474]
+[node name="Rain" type="Node2D" parent="." unique_id=261347275]
 position = Vector2(-1650, 270)
 script = ExtResource("2_hjy6s")
 symbol = "rain spritemap"
 centered = false
 atlases = Array[ExtResource("3_myu4d")]([ExtResource("12_i1ma7")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Rain" unique_id=1118036524]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Rain" unique_id=394227463]
 libraries/ = ExtResource("13_nkrcf")
 autoplay = &"rain_spritemap_loop"
 
-[node name="FgBoxes" type="Node2D" parent="." unique_id=1045377501]
+[node name="FgBoxes" type="Node2D" parent="." unique_id=814186066]
 position = Vector2(400, 520)
 script = ExtResource("2_hjy6s")
 symbol = "ass"
 centered = false
 atlases = Array[ExtResource("3_myu4d")]([ExtResource("14_vqq3x")])
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="FgBoxes" unique_id=66307559]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="FgBoxes" unique_id=1893614836]
 libraries/ = ExtResource("15_jy7kj")
 autoplay = &"fg_boxes_loop"
 
-[node name="FgMist" type="Sprite2D" parent="." unique_id=649907692]
+[node name="FgMist" type="Sprite2D" parent="." unique_id=1635224966]
 position = Vector2(-1450, 500)
 texture = ExtResource("16_tw5bp")
 centered = false
 metadata/scroll = [1.2, 1.2]
 
-[node name="FgOverlay" type="Sprite2D" parent="." unique_id=1446260096]
+[node name="FgOverlay" type="Sprite2D" parent="." unique_id=86100587]
 material = SubResource("CanvasItemMaterial_j4j2k")
 position = Vector2(-1500, 500)
 scale = Vector2(1, 1.25)
@@ -170,19 +171,19 @@ texture = ExtResource("17_f3ww3")
 centered = false
 metadata/scroll = [1.0, 1.0]
 
-[node name="FgRedOverlay" type="Sprite2D" parent="." unique_id=1660468818]
+[node name="FgRedOverlay" type="Sprite2D" parent="." unique_id=187392884]
 position = Vector2(-2400, -250)
 texture = ExtResource("18_og3vs")
 centered = false
 metadata/scroll = [1.1, 1.1]
 
-[node name="Holygrad" type="Sprite2D" parent="." unique_id=1487431844]
+[node name="Holygrad" type="Sprite2D" parent="." unique_id=1812884874]
 modulate = Color(1, 1, 1, 0)
 position = Vector2(-500, -200)
 texture = ExtResource("19_qdnxd")
 centered = false
 metadata/scroll = [0.0, 0.0]
 
-[node name="ScriptTweens" type="AnimationPlayer" parent="." unique_id=1843614950]
+[node name="ScriptTweens" type="AnimationPlayer" parent="." unique_id=1696438099]
 libraries/ = SubResource("AnimationLibrary_2ndg8")
 autoplay = &"fg_red_overlay"

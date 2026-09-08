@@ -4996,6 +4996,56 @@ Three things that bit while building this:
 
 ## 9. Dadbattle: where it stands
 
+**Esta seccion estaba desfasada** y lo que sigue la reemplaza. Decia "la escena no existe
+todavia"; existe desde hace tiempo, con su stage, sus tres personajes, el chart de tres
+dificultades y las 98 llamadas de camara ya horneadas -la camara apunta a 16 sitios
+distintos en los primeros 31 s, contados por song_shot.gd-. Lo que faltaba era otra cosa, y
+salio de mirarla correr en vez de leer la lista:
+
+- **La barra de vida no tenia iconos.** Ni dadbattle ni bopeebo ni fresh ni tutorial: solo
+  phone-call, porque `_dress_icons` vivia en su builder. Ahora los monta el generico
+  leyendo el `healthIcon` de cada personaje. Ver el commit; el lado sale del SIGNO de
+  `scale.x`, que es como Rubicon separa los dos iconos del mismo punto del Path2D.
+- **Los colores de la barra eran los de phone-call en todas.** `health_bar.tscn` trae
+  horneados el #794F92 de komi y el #7D6EC7 de tadano. Ahora cada cancion pone los de su
+  reparto, y el LADO del jugador tambien: la izquierda es el volteo de phone-call, no la
+  norma.
+- **Los personajes se dibujaban encima de todo.** El stage ordena sus props por `zIndex`
+  como orden de hijos, y los personajes se colgaban AL FINAL, asi que bf salia por delante
+  de las cajas y de la niebla -30 y 35 contra su 22- y gf, con su -19, por delante del
+  cielo en vez de detras. Ahora el stage deja los zIndex en el meta `prop_z` y el nivel
+  mete a cada personaje en su hueco, de menos a mas z.
+
+  Se intento primero poniendo `z_index` a cada prop, que parece lo obvio y es peor:
+  `z_as_relative` viene puesto, o sea que el z de un prop se SUMA al de sus hijos, y darle
+  15 a un prop mueve sus tripas por encima de las de otro. bopeebo salio con un ovalo negro
+  enorme tapando el escenario. El orden de hijos no tiene ese problema.
+
+Lo que queda ABIERTO en dadbattle, con lo que se sabe de cada cosa:
+
+- **Un rectangulo blanco sobre la cara de dad-beast**, en algunos fotogramas. NO es del
+  personaje: renderizado solo, sobre verde, 40 fotogramas seguidos, no aparece nunca -lo
+  peor son 26 muestras blancas, que son sus dientes-. En la cancion si, y apagar nodos del
+  HUD lo hace aparecer y desaparecer, o sea que depende de lo que se haya dibujado antes.
+  Sin causa raiz todavia.
+- **Dos huecos de gdanimate**, leidos en el addon y en el JSON del personaje:
+  `parse_optimized` no lee el bloque `C` -el efecto de color de Animate: `{"M":"CA",
+  "AM":0.75}`, o sea alfa al 75%-, y busca los filtros como un diccionario con clave `BLF`
+  cuando el JSON los trae como un ARRAY de objetos `{"N":"BLF","BLX":4,...}`. dad-beast
+  tiene 41 entradas de color y varios desenfoques, asi que sus capas se dibujan opacas y
+  sin difuminar. Los shaders del addon ya tienen `color_multipliers` y `color_offsets`; no
+  hay quien se los ponga.
+- **Los tres scripts de la cancion** -`chromaticAbberation`, `reflections`, `saygex`- estan
+  vendorizados y sin portar.
+- **El video de la solotime** (`DADBATTLE_SOLOTIME_CUTSCENE.mp4`) no esta.
+
+Y dos cosas de BOPEEBO que aparecieron de paso y son de antes -comprobadas volviendo a
+HEAD-: un ovalo negro enorme en mitad del escenario, y su barra de vida no se dibuja (solo
+se ve un trocito vertical a los pies de bf).
+
+
+## 9b. Dadbattle: la lista vieja
+
 Started, not finished. What is **in the repo and done**:
 
 - `animania_mod/source/songs/dadbattle/` — the V-Slice chart and metadata, the three song
