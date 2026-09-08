@@ -31,6 +31,15 @@ var _frames: int = 0
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(SHOT_DIR)
 	_level = load(LEVEL).instantiate()
+	# HQDialogue creates a full-screen opaque black overlay (CanvasLayer 50)
+	# that NEVER hides in headless/CI (no keyboard to advance dialogue).
+	# Remove it before the level enters the tree so it never renders.
+	var dialogue: Node = _level.get_node_or_null("HQDialogue")
+	if dialogue:
+		_level.remove_child(dialogue)
+		dialogue.queue_free()
+		print("level_shot: removed HQDialogue to avoid black overlay")
+
 	add_child(_level)
 	_clock = _level.get_node("RubiconLevelClock")
 	for side: String in ["Opponent", "Player"]:
