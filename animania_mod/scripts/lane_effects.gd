@@ -34,6 +34,19 @@ const COVER_Y_NUDGE := -10.0
 ## amtake-base.json declares two splash variants per lane and Funkin picks between them.
 const SPLASH_VARIANTS := 2
 
+## `NoteSplash.ALPHA`, leido del boot de la clase (0x3832e00 escribe en 0x8092c58 el doble
+## que hay en 0x59fa810: 0x3fe3333333333333 = 0.6).
+##
+## Este puerto lo dibujaba a 1.0. El arte es el mismo -el PNG es identico byte a byte al del
+## mod- pero salia el doble de solido de lo que toca, que es como un salpicon correcto pasa
+## por "el salpicon esta mal".
+const SPLASH_ALPHA := 0.6
+## `NoteSplash.FRAMERATE_DEFAULT` = 24 y `NoteSplash.FRAMERATE_VARIANCE` = 2, del mismo boot
+## (`movl $0x18` y `movl $0x2`). Cada salpicon se reproduce a 24 mas o menos 2, sorteado en
+## el momento: cuatro fotogramas a velocidad fija se notan repetidos cuando caen seguidos.
+const SPLASH_FPS := 24.0
+const SPLASH_FPS_VARIANCE := 2.0
+
 ## AnimaniaModule.onNoteHit splashes the two sides by DIFFERENT rules, and this port had
 ## both on the player's. Funkin splashes the player only on a perfect; the opponent gets
 ## `FlxG.random.bool(60)` - six notes in ten, at random, whatever the judgment.
@@ -62,6 +75,7 @@ func _ready() -> void:
 		return
 
 	_splash = _make_sprite(SPLASH_SCALE, Vector2.ZERO)
+	_splash.modulate.a = SPLASH_ALPHA
 	_cover = _make_sprite(COVER_SCALE, COVER_OFFSET * FUNKIN_TO_RUBICON)
 	# buildNoteHoldCoverSprite: target.flipY = Preferences.downscroll. The flip alone mirrors
 	# the drawing about its own centre and leaves it sitting on the receptor; the cover
@@ -155,6 +169,10 @@ func _on_pressed() -> void:
 			_splash.visible = true
 			_splash.rotation_degrees = randf_range(
 				-ROTATION_VARIANCE, ROTATION_VARIANCE) * 0.5
+			# 24 mas o menos 2, sorteado por salpicon. La animacion esta guardada a 24, asi
+			# que la variacion va por `speed_scale`.
+			_splash.speed_scale = (SPLASH_FPS + randf_range(
+				-SPLASH_FPS_VARIANCE, SPLASH_FPS_VARIANCE)) / SPLASH_FPS
 			_splash.play(name)
 
 	# The cover runs for as long as the note is held, so it starts from the note that was
