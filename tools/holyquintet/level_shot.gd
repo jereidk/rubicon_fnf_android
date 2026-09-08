@@ -75,8 +75,15 @@ func _process(_delta: float) -> void:
 				running.kill()
 
 			var camera: Camera2D = get_viewport().get_camera_2d()
-			camera.zoom = camera.zoom_interpolate_target
-			camera.position = camera.position_interpolate_target
+			# Override camera to show the full gameplay area (stage + all characters).
+			# The default zoom 1.5 at OpponentCameraPoint(390,-275) only shows
+			# Y[-635,85] but characters sit at Y=200-400, so they are off-screen.
+			var shot_zoom := Vector2(0.55, 0.55)
+			var shot_pos := Vector2(150.0, 50.0)
+			camera.zoom = shot_zoom
+			camera.zoom_interpolate_target = shot_zoom
+			camera.position = shot_pos
+			camera.position_interpolate_target = shot_pos
 
 			for side: String in ["Opponent", "Player"]:
 				for lane: Node in _level.get_node("UILayer/UI/%s" % side).get_children():
