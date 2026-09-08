@@ -1,19 +1,19 @@
 extends Node2D
 
 func _ready() -> void:
-	var level := load("res://songs/resonance/resonance.tscn").instantiate()
+	var level: Node = load("res://songs/resonance/resonance.tscn").instantiate()
 
 	# Remove all HQ scripts and problematic nodes before entering tree.
-	for name_str in ["HQSongCompletion", "HQGameOverHandler", "HQEventDispatcher",
+	for name_str: String in ["HQSongCompletion", "HQGameOverHandler", "HQEventDispatcher",
 					 "HQStageEvents", "HQGauntletRuntime", "HQPause", "HQDialogue"]:
-		var n := level.get_node_or_null(name_str)
+		var n: Node = level.get_node_or_null(name_str)
 		if n:
 			n.get_parent().remove_child(n)
 			n.queue_free()
 			print("STRIP: removed ", name_str)
 
 	# Remove Camera2D.
-	var cam := level.get_node_or_null("RubiconInterpolatedCamera2D")
+	var cam: Node = level.get_node_or_null("RubiconInterpolatedCamera2D")
 	if cam:
 		cam.get_parent().remove_child(cam)
 		cam.queue_free()
@@ -38,10 +38,10 @@ func _ready() -> void:
 	await get_tree().create_timer(0.5).timeout
 
 	# Print diagnostic info about Stage children.
-	var stage := level.get_node_or_null("Stage")
+	var stage: Node = level.get_node_or_null("Stage")
 	if stage:
 		print("STRIP: Stage visible=", stage.visible, " modulate=", stage.modulate)
-		for c in stage.get_children():
+		for c: Node in stage.get_children():
 			print("  ", c.name, " visible=", c.visible, " type=", c.get_class(),
 				  " pos=", c.position, " z=", c.z_index)
 
