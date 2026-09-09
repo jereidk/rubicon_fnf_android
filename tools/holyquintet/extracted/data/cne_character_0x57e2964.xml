@@ -1,0 +1,19 @@
+<!DOCTYPE codename-engine-character>
+<character x="-250" y="250" sprite="meguca/GEEF" icon="gf-meguca" flipX="true" camx="450" isPlayer="true" color="#00FF00">
+	<anim name="idle" anim="megucagf_idle"/>
+	<anim name="singLEFT" anim="megucagf_left" x="162" y="13"/>
+	<anim name="singRIGHT" anim="megucagf_right" x="48" y="33"/>
+	<anim name="singUP" anim="megucagf_up" x="8" y="61"/>
+	<anim name="singDOWN" anim="megucagf_down" x="127" y="-41"/>
+	<anim name="singLEFT-alt" anim="megucagf_lalt" x="112" y="-4"/>
+	<anim name="singDOWN-alt" anim="megucagf_dalt" x="55" y="-4"/>
+	<anim name="singRIGHT-alt" anim="megucagf_ralt" x="-6" y="-4"/>
+	<anim name="singUP-alt" anim="megucagf_ualt" x="97" y="66"/>
+	<anim name="singDOWNmiss" anim="megucagf_dmiss" x="77" y="-20"/>
+	<anim name="singLEFTmiss" anim="megucagf_lmiss" x="95" y="-12"/>
+	<anim name="singRIGHTmiss" anim="megucagf_rmiss" x="-17" y="7"/>
+	<anim name="singUPmiss" anim="megucagf_umiss" x="74" y="55"/>
+	<anim name="firstDeath" anim="megucagf_dies" x="186" y="167"/>
+	<anim name="deathLoop" anim="megucagf_dead loop" loop="true"/>
+	<anim name="deathEnd" anim="megucagf_Dead confirm" x="66" y="109"/>
+</character>

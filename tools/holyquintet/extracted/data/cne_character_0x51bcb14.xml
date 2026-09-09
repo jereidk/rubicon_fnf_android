@@ -1,0 +1,13 @@
+<!DOCTYPE codename-engine-character>
+<character x="-1350" y="-250" camx="1150" camy="250" icon="mami" color="#FFED76"
+	applyStageMatrix="true">
+	<anim name="idle" anim="MAMIATLAS" indices="0..13" />
+	<anim name="singLEFT" anim="MAMIATLAS" indices="14..27" />
+	<anim name="singLEFT-end" anim="MAMIATLAS" indices="28..31" />
+	<anim name="singRIGHT" anim="MAMIATLAS" indices="32..45" />
+	<anim name="singRIGHT-end" anim="MAMIATLAS" indices="46..49" />
+	<anim name="singUP" anim="MAMIATLAS" indices="50..63" />
+	<anim name="singUP-end" anim="MAMIATLAS" indices="64..67" />
+	<anim name="singDOWN" anim="MAMIATLAS" indices="68..81" />
+	<anim name="singDOWN-end" anim="MAMIATLAS" indices="82..85" />
+</character>

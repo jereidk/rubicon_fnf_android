@@ -1,0 +1,12 @@
+<!DOCTYPE codename-engine-character>
+<character x="-1650" y="150" camx="1825" camy="-125" icon="sayaka" color="#72AEDA" applyStageMatrix="true">
+	<anim name="idle" anim="SAYAKAPARTEAATLAS" indices="0..13"/>
+	<anim name="singLEFT" anim="SAYAKAPARTEAATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="SAYAKAPARTEAATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="SAYAKAPARTEAATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="SAYAKAPARTEAATLAS" indices="46..49"/>
+	<anim name="singUP" anim="SAYAKAPARTEAATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="SAYAKAPARTEAATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="SAYAKAPARTEAATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="SAYAKAPARTEAATLAS" indices="82..85"/>
+</character>

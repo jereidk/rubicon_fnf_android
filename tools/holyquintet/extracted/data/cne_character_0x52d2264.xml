@@ -1,0 +1,6 @@
+<!DOCTYPE codename-engine-character>
+<character x="-1100" y="-200" icon="kyubey" color="#FFFFFF" applyStageMatrix="true">
+	<anim name="idle" anim="KYUBEYATLAS" indices="0..29" loop="true"/>
+	<anim name="sad" anim="KYUBEYATLAS" indices="30..38"/>
+	<anim name="hey" anim="kyubey happy" x="-39" y="-120"/>
+</character>

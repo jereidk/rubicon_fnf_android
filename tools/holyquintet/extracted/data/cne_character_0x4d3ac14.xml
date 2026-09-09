@@ -1,0 +1,13 @@
+<!DOCTYPE codename-engine-character>
+<character x="50" y="100" camx="-200" camy="-50" icon="madoka" color="#FBA8BC" applyStageMatrix="true">
+	<anim name="danceLeft" anim="MADOKAATLAS" indices="0..13"/>
+	<anim name="danceRight" anim="MADOKAATLAS" indices="14..27"/>
+	<anim name="singLEFT" anim="MADOKAATLAS" indices="28..41"/>
+	<anim name="singLEFT-end" anim="MADOKAATLAS" indices="42..45"/>
+	<anim name="singRIGHT" anim="MADOKAATLAS" indices="46..59"/>
+	<anim name="singRIGHT-end" anim="MADOKAATLAS" indices="60..63"/>
+	<anim name="singUP" anim="MADOKAATLAS" indices="64..77"/>
+	<anim name="singUP-end" anim="MADOKAATLAS" indices="78..81"/>
+	<anim name="singDOWN" anim="0 - madoka/madoka_down" x="-144" y="-66" indices="0..13"/>
+	<anim name="singDOWN-end" anim="0 - madoka/madoka_down" x="-143" y="-66" indices="14..17"/>
+</character>

@@ -1,0 +1,9 @@
+<!DOCTYPE codename-engine-character>
+<character x="-50" y="130" sprite="meguca/COOBIE" flipX="true" camx="50" camy="150" isPlayer="true" color="#FF0000">
+	<anim name="idle" anim="megucacooby_idle"/>
+	<anim name="singLEFT" anim="megucacooby_left" x="17" y="-7"/>
+	<anim name="singDOWN" anim="megucacooby_down" x="-57" y="-145"/>
+	<anim name="singRIGHT" anim="megucacooby_right" x="-331" y="-23"/>
+	<anim name="singUP" anim="megucacooby_up" x="39" y="33"/>
+	<anim name="die" anim="megucacooby_funny" x="-33" y="194"/>
+</character>

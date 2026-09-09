@@ -1,0 +1,12 @@
+<!DOCTYPE codename-engine-character>
+<character x="-3250" y="100" camx="3525" camy="350" icon="kyubey" color="#FFFFFF" applyStageMatrix="true">
+	<anim name="idle" anim="KYUBEYPARTEAATLAS" indices="0..23"/>
+	<anim name="singLEFT" anim="kyubey left" x="-52" y="-157" indices="0..13"/>
+	<anim name="singLEFT-end" anim="kyubey left" x="-52" y="-157" indices="14..17"/>
+	<anim name="singRIGHT" anim="kyubey right" x="-54" y="-157" indices="0..13"/>
+	<anim name="singRIGHT-end" anim="kyubey right" x="-54" y="-157" indices="14..17"/>
+	<anim name="singUP" anim="kyubey up" x="-54" y="-157" indices="0..13"/>
+	<anim name="singUP-end" anim="kyubey up" x="-54" y="-157" indices="14..17"/>
+	<anim name="singDOWN" anim="kyubey down" x="-53" y="-157" indices="0..13"/>
+	<anim name="singDOWN-end" anim="kyubey down" x="-53" y="-157" indices="14..17"/>
+</character>

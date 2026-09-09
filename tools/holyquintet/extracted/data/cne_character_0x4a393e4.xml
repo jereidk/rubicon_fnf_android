@@ -1,0 +1,17 @@
+<!DOCTYPE codename-engine-character>
+<character x="-150" y="400" sprite="cutins/gf" flipX="true" isPlayer="true" icon="gf" color="#A5004D">
+	<anim name="danceLeft" anim="Symbol 32 instance 1" indices="0..13"/>
+	<anim name="danceRight" anim="Symbol 32 instance 1" indices="14..29"/>
+	<anim name="singLEFT" anim="Symbol 32 instance 1" indices="30..43"/>
+	<anim name="singLEFT-end" anim="Symbol 32 instance 1" indices="44,45"/>
+	<anim name="singRIGHT" anim="Symbol 32 instance 1" indices="46..59"/>
+	<anim name="singRIGHT-end" anim="Symbol 32 instance 1" indices="60,61"/>
+	<anim name="singUP" anim="Symbol 32 instance 1" indices="62..75"/>
+	<anim name="singUP-end" anim="Symbol 32 instance 1" indices="76,77"/>
+	<anim name="singDOWN" anim="Symbol 32 instance 1" indices="78..91"/>
+	<anim name="singDOWN-end" anim="Symbol 32 instance 1" indices="92,93"/>
+	<anim name="singLEFTmiss" anim="Symbol 32 instance 1" indices="94,107"/>
+	<anim name="singRIGHTmiss" anim="Symbol 32 instance 1" indices="108..121"/>
+	<anim name="singUPmiss" anim="Symbol 32 instance 1" indices="122..135"/>
+	<anim name="singDOWNmiss" anim="Symbol 32 instance 1" indices="136..145,147..149"/>
+</character>

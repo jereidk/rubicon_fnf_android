@@ -1,0 +1,14 @@
+<!DOCTYPE codename-engine-character>
+<character x="-3450" y="-150" camx="2250" camy="-175" icon="kyoko" color="#A5395A" applyStageMatrix="true">
+	<anim name="intro" anim="KYOKOATLAS" indices="0..113"/>
+	<anim name="idle" anim="KYOKOATLAS" indices="114..126"/>
+	<anim name="singLEFT" anim="KYOKOATLAS" indices="127..140"/>
+	<anim name="singLEFT-end" anim="KYOKOATLAS" indices="141..144"/>
+	<anim name="singRIGHT" anim="KYOKOATLAS" indices="181..194"/>
+	<anim name="singRIGHT-end" anim="KYOKOATLAS" indices="195..198"/>
+	<anim name="singUP" anim="KYOKOATLAS" indices="163..176"/>
+	<anim name="singUP-end" anim="KYOKOATLAS" indices="177..180"/>
+	<anim name="singDOWN" anim="KYOKOATLAS" indices="145..158"/>
+	<anim name="singDOWN-end" anim="KYOKOATLAS" indices="159..162"/>
+	<anim name="attack" anim="KYOKOATLAS" indices="199..242"/>
+</character>

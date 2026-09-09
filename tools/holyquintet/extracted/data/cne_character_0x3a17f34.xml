@@ -1,0 +1,12 @@
+<!DOCTYPE codename-engine-character>
+<character x="-2700" y="150" camx="1825" camy="-125" icon="kyubey" color="#000000" applyStageMatrix="true">
+	<anim name="idle" anim="NAGISAPARTEAATLAS" indices="0..13"/>
+	<anim name="singLEFT" anim="NAGISAPARTEAATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="NAGISAPARTEAATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="NAGISAPARTEAATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="NAGISAPARTEAATLAS" indices="46..49"/>
+	<anim name="singUP" anim="NAGISAPARTEAATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="NAGISAPARTEAATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="NAGISAPARTEAATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="NAGISAPARTEAATLAS" indices="82..85"/>
+</character>

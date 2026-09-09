@@ -1,0 +1,16 @@
+<!DOCTYPE codename-engine-character>
+<character x="-790" y="-300" flipX="true" camx="700" camy="400" isPlayer="true" icon="gf" color="#A5004D" applyStageMatrix="true">
+	<anim name="idle" anim="GFATLAS" loop="true" indices="0..13"/>
+	<anim name="singLEFT" anim="GFATLAS" indices="14..27"/>
+	<anim name="singLEFT-end" anim="GFATLAS" indices="28..31"/>
+	<anim name="singRIGHT" anim="GFATLAS" indices="32..45"/>
+	<anim name="singRIGHT-end" anim="GFATLAS" indices="46..49"/>
+	<anim name="singUP" anim="GFATLAS" indices="50..63"/>
+	<anim name="singUP-end" anim="GFATLAS" indices="64..67"/>
+	<anim name="singDOWN" anim="GFATLAS" indices="68..81"/>
+	<anim name="singDOWN-end" anim="GFATLAS" indices="82..85"/>
+	<anim name="singLEFTmiss" anim="0 - GF/gf left miss" x="-74" y="47"/>
+	<anim name="singRIGHTmiss" anim="0 - GF/gf right miss" x="-74" y="52"/>
+	<anim name="singUPmiss" anim="0 - GF/gf up miss" x="-47" y="56"/>
+	<anim name="singDOWNmiss" anim="0 - GF/gf down miss" x="-47" y="56"/>
+</character>

@@ -1,0 +1,8 @@
+<!DOCTYPE codename-engine-character>
+<character x="-130" y="-85" camx="50" camy="50" sprite="og/Mami" color="#FF0000">
+	<anim name="idle" anim="Mami IDLE"/>
+	<anim name="singLEFT" anim="Mami LEFT"/>
+	<anim name="singRIGHT" anim="Mami RIGHT" x="-58"/>
+	<anim name="singUP" anim="Mami UP"/>
+	<anim name="singDOWN" anim="Mami DOWN"/>
+</character>
