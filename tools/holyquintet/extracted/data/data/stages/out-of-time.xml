@@ -1,0 +1,4 @@
+<stage zoom="1.5" name="out-of-time" folder="stages/out-of-time/" startCamPosX="1490" startCamPosY="-125">
+<boyfriend x="1350" y="-470" camxoffset="-200" camyoffset="-30"/>
+<dad x="100" y="-450" camxoffset="200" camyoffset="0"/>
+</stage>

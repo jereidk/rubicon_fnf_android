@@ -1,0 +1,14 @@
+{
+    "params": [
+        {
+            "name": "Active",
+            "type": "Bool",
+            "defaultValue": false
+        },
+        {
+            "name": "Healing Strength",
+            "type": "Float(0, 2, 0, 4)",
+            "defaultValue": 0.025
+        }
+    ]
+}

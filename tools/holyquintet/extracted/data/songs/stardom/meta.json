@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"charters": "Sector",
+		"artists": "Teri",
+		"diffStars": "1",
+		"coders": "Sector",
+		"unlockCond": "UnlockCondPrev",
+		"composers": "Sp0re (ft. Hirai Yuka)",
+		"portrait": "none",
+		"gjid": "1098970"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "gf",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Stardom",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 180
+}

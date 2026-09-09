@@ -1,0 +1,151 @@
+{
+  "dialogue": [
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "0"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "1",
+      "action": "witches"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "2",
+      "action": "griefseed"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "3",
+      "action": "magicalgirls",
+      "params": [
+        1.0
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "4",
+      "action": "graphic",
+      "params": [
+        "res_gertrud_ow",
+        "shake"
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "5"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "6",
+      "action": "gotonormal"
+    },
+    {
+      "name": "sayaka",
+      "expression": "happy",
+      "dialogue": "7"
+    },
+    {
+      "name": "mami",
+      "expression": "shock",
+      "dialogue": "8"
+    },
+    {
+      "name": "madoka",
+      "expression": "ok",
+      "dialogue": "9"
+    },
+    {
+      "name": "sayaka",
+      "expression": "laugh",
+      "dialogue": "10"
+    },
+    {
+      "name": "mami",
+      "expression": "hmm",
+      "dialogue": "11"
+    },
+    {
+      "name": "sayaka",
+      "expression": "yeah",
+      "dialogue": "12"
+    },
+    {
+      "name": "madoka",
+      "expression": "omg",
+      "dialogue": "13"
+    },
+    {
+      "name": "mami",
+      "expression": "intro",
+      "dialogue": "14"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "talk",
+      "dialogue": "15"
+    },
+    {
+      "name": "sayaka",
+      "expression": "ehh",
+      "dialogue": "16"
+    },
+    {
+      "name": "madoka",
+      "expression": "what",
+      "dialogue": "17"
+    },
+    {
+      "name": "mami",
+      "expression": "intro",
+      "dialogue": "18"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "duh",
+      "dialogue": "19"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "throw",
+      "dialogue": "20"
+    },
+    {
+      "name": "madoka",
+      "expression": "catch",
+      "dialogue": "21"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "mic",
+      "dialogue": "22"
+    },
+    {
+      "name": "sayaka",
+      "expression": "happy",
+      "dialogue": "23"
+    },
+    {
+      "name": "mami",
+      "expression": "yes",
+      "dialogue": "24"
+    },
+    {
+      "name": "sayaka",
+      "expression": "mic",
+      "dialogue": "25"
+    },
+    {
+      "name": "madoka",
+      "expression": "ok",
+      "dialogue": "26"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+	"params": [
+		{
+			"name": "Damage",
+			"type": "Float(0, 100, 0, 2)",
+			"defaultValue": 50.0
+		},
+		{
+			"name": "Is Lethal?",
+			"type": "Bool",
+			"defaultValue": true
+		}
+	]
+}

@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"artists": "Kixel & RetroDetro",
+		"charters": "Flootena",
+		"diffStars": "1",
+		"gjid": "1098983",
+		"unlockCond": "UnlockCondStory",
+		"coders": "Sector",
+		"portrait": "none",
+		"composers": "Sp0re"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "gf",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Initium",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 175
+}

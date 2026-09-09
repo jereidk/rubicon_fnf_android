@@ -1,0 +1,4 @@
+<stage zoom="1.0" name="vexation" folder="stages/vexation/" startCamPosX="0" startCamPosY="0">
+<boyfriend x="1150" y="225" camxoffset="-280" camyoffset="-25"/>
+<dad x="120" y="200" camxoffset="270" camyoffset="-25"/>
+</stage>

@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"diffStars": "2",
+		"charters": "BlackMaskly",
+		"artists": "Kixel, RetroDetro, TAU, EggOverlord",
+		"gjid": "1098969",
+		"unlockCond": "UnlockCondPrev",
+		"coders": "Sector",
+		"composers": "SinnMusic",
+		"portrait": "mami"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "mami",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Reconnect",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 185
+}

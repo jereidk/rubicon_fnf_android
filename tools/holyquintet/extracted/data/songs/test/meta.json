@@ -1,0 +1,23 @@
+{
+	"customValues": {
+		"artists": "[Empty]",
+		"charters": "[Empty]",
+		"diffStars": "3",
+		"unlockCond": "UnlockCondStory",
+		"coders": "[Empty]",
+		"portrait": "none",
+		"composers": "[Empty]"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": true,
+	"icon": "gf",
+	"difficulties": [
+		"hard"
+	],
+	"coopAllowed": true,
+	"stepsPerBeat": 4,
+	"displayName": "Test",
+	"needsVoices": false,
+	"beatsPerMeasure": 4,
+	"bpm": 150
+}

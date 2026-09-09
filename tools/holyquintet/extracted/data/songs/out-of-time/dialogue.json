@@ -1,0 +1,143 @@
+{
+  "dialogue": [
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "0",
+      "action": "graphic",
+      "params": [
+        "oot1",
+        "fadein"
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "1"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "2"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "",
+      "action": "fadeout",
+      "params": [
+        1.0
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "",
+      "action": "fadein",
+      "params": [
+        1.0
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "3",
+      "action": "graphic",
+      "params": [
+        "oot2",
+        "fadein"
+      ]
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "4"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "5"
+    },
+    {
+      "name": "homura",
+      "expression": "cross",
+      "dialogue": "6",
+      "action": "gotonormal"
+    },
+    {
+      "name": "homura",
+      "expression": "annoyed",
+      "dialogue": "7"
+    },
+    {
+      "name": "homura",
+      "expression": "looking",
+      "dialogue": "8"
+    },
+    {
+      "name": "homura",
+      "expression": "point",
+      "dialogue": "9"
+    },
+    {
+      "name": "homura",
+      "expression": "annoyed",
+      "dialogue": "10"
+    },
+    {
+      "name": "homura",
+      "expression": "cross",
+      "dialogue": "11"
+    },
+    {
+      "name": "homura",
+      "expression": "cross",
+      "dialogue": "12"
+    },
+    {
+      "name": "homura",
+      "expression": "annoyed",
+      "dialogue": "13"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "14"
+    },
+    {
+      "name": "homura",
+      "expression": "gun",
+      "dialogue": "15"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "16"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "uhh",
+      "dialogue": "17"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "mic",
+      "dialogue": "18"
+    },
+    {
+      "name": "homura",
+      "expression": "awkward",
+      "dialogue": "19"
+    },
+    {
+      "name": "homura",
+      "expression": "micstare",
+      "dialogue": "20"
+    },
+    {
+      "name": "homura",
+      "expression": "mic",
+      "dialogue": "21"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"diffStars": "4",
+		"charters": "Flootena",
+		"artists": "Kixel, RevDev, TAU",
+		"coders": "Sector",
+		"unlockCond": "UnlockCondStory",
+		"composers": "Sp0re (ft. JordoPrice)",
+		"portrait": "sayaka",
+		"gjid": "1098963"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "sayaka",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Resonance",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 129
+}

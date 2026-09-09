@@ -1,0 +1,80 @@
+{
+  "dialogue": [
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "0",
+      "action": "graphic",
+      "params": [
+        "pre_eternalstar",
+        "fadein"
+      ]
+    },
+    {
+      "name": "sayaka",
+      "expression": "happy",
+      "dialogue": "1",
+      "action": "gotonormal"
+    },
+    {
+      "name": "mami",
+      "expression": "intro",
+      "dialogue": "2"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "mic",
+      "dialogue": "3"
+    },
+    {
+      "name": "sayaka",
+      "expression": "laugh",
+      "dialogue": "4"
+    },
+    {
+      "name": "mami",
+      "expression": "ehh",
+      "dialogue": "5"
+    },
+    {
+      "name": "sayaka",
+      "expression": "think",
+      "dialogue": "6"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "7"
+    },
+    {
+      "name": "madoka",
+      "expression": "what",
+      "dialogue": "8"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "talk",
+      "dialogue": "9"
+    },
+    {
+      "name": "",
+      "expression": "",
+      "dialogue": "10"
+    },
+    {
+      "name": "madoka",
+      "expression": "omg",
+      "dialogue": "11"
+    },
+    {
+      "name": "madoka",
+      "expression": "mic",
+      "dialogue": "12"
+    },
+    {
+      "name": "girlfriend",
+      "expression": "owo",
+      "dialogue": "13"
+    }
+  ]
+}

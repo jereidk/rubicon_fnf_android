@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"diffStars": "3",
+		"charters": "Fade",
+		"artists": "Kixel, Torr, RetroDetro, RevDev",
+		"unlockCond": "UnlockCondStory",
+		"coders": "Sector",
+		"gjid": "1098964",
+		"composers": "Mag (ft. Sp0re)",
+		"portrait": "mami"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"icon": "mami",
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Partea",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 124
+}

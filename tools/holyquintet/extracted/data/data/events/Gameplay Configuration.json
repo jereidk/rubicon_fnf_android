@@ -1,0 +1,19 @@
+{
+	"params": [
+		{
+			"name": "Score Mechanic Drain",
+			"type": "DropDown('No Change', 'Disable Drain', 'Enable Drain')",
+			"defaultValue": "No Change"
+		},
+		{
+			"name": "Player Input",
+			"type": "DropDown('No Change', 'Disable Input', 'Enable Input')",
+			"defaultValue": "No Change"
+		},
+		{
+			"name": "Can Reset",
+			"type": "DropDown('No Change', 'No', 'Yes')",
+			"defaultValue": "No Change"
+		}
+	]
+}

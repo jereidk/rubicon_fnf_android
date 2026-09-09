@@ -1,0 +1,7 @@
+<stage zoom="1.0" name="partea" folder="stages/partea/" startCamPosX="0" startCamPosY="0">
+    <boyfriend x="800" y="-390" camxoffset="-300" camyoffset="-110" />
+    <dad x="-150" y="-420" camxoffset="420" camyoffset="-80" />
+    <character name="madoka-partea" x="450" y="-550" />
+    <character name="sayaka-partea" x="-225" y="-550" />
+    <character name="nagisa-partea" x="-1200" y="-250" />
+</stage>

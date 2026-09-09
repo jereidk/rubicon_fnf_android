@@ -3,60 +3,68 @@
 Fuente: `HolyQuintet.exe` (131.5 MB, PE x64 MSVC, build Codename Engine v1.0.1 +
 `cne-hxcpp` branch `old`) — zip de GameBanana dl/1779909, solo se descomprimió el exe.
 
-## Qué es esto
+## Método: tabla de recursos hxcpp (nombres exactos)
 
-El mod **no incluye carpeta `data/` en el zip**: sus charts, stages, weeks,
-personajes y scripts están embebidos dentro del exe como recursos hxcpp
-(strings UTF-8 en el string pool). Este directorio es el volcado de esos
-recursos, reconstruido escaneando el binario.
+hxcpp registra cada recurso embebido en una tabla `Resource{name, len, ptr}`. Se
+localizó en el binario buscando punteros qword a los strings `__ASSET__:file___ASSET__…`
+y se recuperaron **809 registros válidos (64.2 MB)**: nombre real, longitud y
+puntero al contenido. El exe lleva cada recurso 2× (release + `<nombre>1` debug);
+los pares son byte-idénticos — se deduplicó a 289 únicos → 280 tras el canoneo.
 
-## `scripts/` — 69 scripts HScript únicos (607 KB)
+Los IDs embebidos están **saneados** (lime los pasa a minúsculas con `_`), así que
+el case/guiones reales se restauró con tres fuentes de verdad:
 
-CNE softcode en texto plano (dialecto hscript: `function create()`,
-`postCreate()`, `onEvent()`, `importScript(...)`). Cada bloque se deduplicó por
-SHA-256 (el exe lleva cada script ~2×: pool release + debug). Nombres
-`<hint>_0x<OFFSET>.hx` = heurística de arranque + offset del archivo.
+1. **El zip original** (`bin/assets/…` conserva case/espacios/guiones) — para los 143
+   assets que también viven en el zip: match exacto id→ruta.
+2. **CNE v1.0.1** (repo oficial) — layout y nombres de los archivos del engine
+   (`data/notes/Alt Anim Note.hx`, `data/dialogue/boxes/hating-simulator.xml`,
+   `images/editors/charter/event-spr.xml`, …).
+3. **Strings del exe + contenido** — nombres `HQ*` exactos de los estados
+   (`ModState("HQGauntletTransition")`), `class X` dentro de cada HScript, y los
+   nombres de eventos tal cual los referencian los charts (`Sayaka Heal`,
+   `Kyoko Attack`, `UI Visability`…).
 
-Incluye: tutorial (23 KB con `tutorialProgression`), Sayaka `healthDrain` +
-`whiteShader`, intro en video de Kyubey (`FlxVideoSprite`), gauntlet,
-`godukaEnabled`, `SoulGemUI`, achievements, menús/créditos (41 KB)…
+## `data/` — el mod completo con nombres originales (280 archivos, 31 MB)
 
-## `data/` — 56 archivos únicos
+```
+data/
+├── characters/        26 personajes del mod (madoka, sayaka, homura, kyoko,
+│                      mami, kyubey, nagisa, gf-*, …) — XML codename-engine-character
+├── events/            9 eventos con su .hx + .json de editor (nombres con espacios)
+├── notes/             4 note-types: Alt Anim/Bullet/No Anim/Timestop Note.hx
+├── stages/            9 stages del mod + stage.xml (out-of-time con guión real)
+├── states/            21 estados HQ* softcodeados (HQMainMenu, HQFreeplay, HQPause…)
+├── scripts/           HQTransition.hx, kadeHUD.hx, dropshadow-effect.hx
+├── songs/*.hx         8 scripts globales de gameplay + songs/UIs/{Standard,MegucaUI}.hx
+├── songs/<nombre>/    10 canciones: charts (easy/hard), meta, events, dialogue,
+│                      Inst.ogg, Voices[-X].ogg — ¡audio incluido!
+├── weeks/             8 weeks + week-characters + tutorial
+├── dialogue/          cajas y personajes de diálogo
+├── global.hx          el Global Script (17 KB, corre siempre)
+├── langs/             traducciones en_US + es_US
+└── …                  alphabet, config, splashes, editors, titlescreen, discord.hx
+```
 
-| Tipo | Contenido |
-|---|---|
-| `cne_character_*.xml` ×27 | personajes (`<!DOCTYPE codename-engine-character>`) |
-| `cne_week_*.xml` ×8 | weeks del mod |
-| `cne_stage_*.xml` ×3 (+1 atlas) | stages |
-| `*.json` ×15 | charts Codename (`strumLines`, `events`, `scrollSpeed`): resonance, eternalstar, initium, meguca, out-of-time, partea, reconnect, stardom, vexation |
+También: `source/` (27 **clases Haxe del mod en fuente**: `SongInfoUI`,
+`SoulGemUI`, `GenUtil`, `BlurFilter`… — su capa lógica compilada como scripts),
+`images/` (XMLs de atlas del engine), `modchart/` (shapes CSV), `flixel/sounds/`.
 
-## Inventario del zip original (GameBanana dl/1779909)
+## Verificación
 
-Todo bajo `bin/` (532.7 MB):
+- 56/56 JSON parsean; 95 XML con DOCTYPE correcto (26 character, 9 week,
+  8 week-character, 3 alphabet, 2 splash, 1 stage, 46 sin doctype = layouts)
+- Audio OGG íntegro (`OggS`), charts con `strumLines`/`events`/`noteTypes`
+- Los `.hx` referencian clases del mod (`ui.SoulGemUI`) que existen en `source/`
 
-| Carpeta | Contenido |
-|---|---|
-| `bin/assets/` | **1389 archivos**: images/ 1059 PNG (188 MB), sounds/ 241 OGG (15 MB), videos/ 14 MP4 (51 MB), fonts/ (20 MB OTF/TTF), music/ 26 OGG, shaders/ 35 .frag |
-| `bin/plugins/` | 391 archivos de hxcpp/lime (110 MB) |
-| `bin/lua/` | Scripts .luac de **libvlc** (parsers de playlist youtube/twitch/vimeo) — NO del mod |
-| `bin/mods/` | **Vacía** — confirma que todo el mod va embebido en el exe |
-| `bin/HolyQuintet.exe` | 131.5 MB — el juego completo + data del mod |
+## Qué NO está aquí
 
-División exacta: **exe = código + `data/`** (scripts, charts, stages, weeks,
-personajes), **zip = multimedia** (lo que referencia el `data/`).
+- **El engine (CNE) es open source**: `CodenameCrew/CodenameEngine` v1.0.1 — el
+  `source/` del engine se lee del repo, no del exe.
+- **El multimedia grueso** (PNG spritemaps, videos MP4, fuentes, shaders .frag)
+  sigue en el **zip** (`bin/assets/`: 1059 PNG, 241 OGG, 14 MP4, 35 frag) — el exe
+  solo embebió XMLs/JSON/HX/OGG de data + algunos atlas.
+- `bin/lua/` del zip es de libvlc (parsers de playlist), no del mod; `bin/mods/` está vacía.
 
-## Qué NO está aquí (y dónde sí)
+## División exacta del juego
 
-- **El engine (CNE) sí es open source**: `CodenameCrew/CodenameEngine` v1.0.1 en
-  GitHub — el "source/" del juego se lee del repo, no del exe. El exe solo trae
-  los *paths* `source/funkin/...` como metadatos de compilación hxcpp, no el texto.
-- **Los assets multimedia** (PNG, OGG, videos, shaders .frag) **sí están** en el
-  zip original sin extraer: 762 png, 241 ogg, 13 mp4, 27 frag.
-- Clases Haxe propias del mod compiladas a binario (`ui.SoulGemUI`,
-  `util.GenUtil`…): solo desensamblando; los scripts que las usan están aquí.
-
-## Herramientas
-
-Escaneo con `strings -n N -t x` + heurística de validez (ratio imprimible >95%,
-firmas `function create|postCreate|onEvent...`, `^import (funkin|flixel|util)...`,
-dedup SHA-256). Ver `/tmp/hq_scripts/` para los volcados crudos (218 bloques).
+**exe = código + `data/`** (este volcado) · **zip = multimedia** que el `data/` referencia.

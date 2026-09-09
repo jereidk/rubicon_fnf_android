@@ -1,0 +1,25 @@
+{
+	"customValues": {
+		"diffStars": "7",
+		"charters": "BlackMaskly",
+		"artists": "Kixel & RetroDetro",
+		"gjid": "1098966",
+		"coders": "Sector",
+		"unlockCond": "UnlockCondStory",
+		"composers": "chum-bot",
+		"portrait": "kyoko"
+	},
+	"color": "#000000",
+	"opponentModeAllowed": false,
+	"difficulties": [
+		"easy",
+		"hard"
+	],
+	"icon": "kyoko",
+	"coopAllowed": false,
+	"stepsPerBeat": 4,
+	"displayName": "Vexation",
+	"needsVoices": true,
+	"beatsPerMeasure": 4,
+	"bpm": 140
+}
