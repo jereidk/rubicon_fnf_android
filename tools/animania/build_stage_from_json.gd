@@ -28,6 +28,8 @@
 extends SceneTree
 
 const ART := "res://animania_mod/source/images/stages"
+## Multiply con alfa: ver animania_mod/shaders/multiply_alpha.gdshader.
+const MULT_ALPHA := preload("res://animania_mod/shaders/multiply_alpha.gdshader")
 const DATA := "res://animania_mod/source/data/stages"
 const OUT_DIR := "res://animania_mod/stages"
 
@@ -191,6 +193,12 @@ func _init() -> void:
 ## two vignettes carry both - vin1 is `alpha: 0` (there but invisible) and vin2 is
 ## `alpha: 0.8, blend: multiply` - and ignoring them drew two opaque sheets at zIndex 317,
 ## which is over everything. Half the stage came out black.
+##
+## Y el multiply tiene una segunda trampa: el BLEND_MODE_MUL de Godot ignora el alfa del
+## fragmento, asi que el agujero transparente de una vineta (rgb negro, a 0) multiplica
+## NEGRO en medio del escenario aunque el alpha del JSON este bien aplicado. Flixel
+## ponderaba el multiply por el alfa; el shader multiply_alpha.gdshader lo reproduce y
+## es lo que se usa aqui para `blend: multiply`.
 func _place(node: Node2D, prop: Dictionary) -> void:
 	var position: Array = prop.get("position", [0, 0])
 	node.position = Vector2(float(position[0]), float(position[1]))
@@ -203,19 +211,27 @@ func _place(node: Node2D, prop: Dictionary) -> void:
 	var blend: String = String(prop.get("blend", ""))
 	if blend.is_empty():
 		return
-	var material := CanvasItemMaterial.new()
 	match blend:
 		"multiply":
-			material.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
-		"add", "additive":
-			material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		"subtract":
-			material.blend_mode = CanvasItemMaterial.BLEND_MODE_SUB
+			# El BLEND_MODE_MUL de fabrica es (DST_COLOR, ZERO) a secas: ignora el
+			# alfa del fragmento, y el agujero transparente de una vineta multiplica
+			# NEGRO en vez de dejar pasar el fondo (el ovalo de mainStageAmTake).
+			# El shader re-codifica el alfa en el rgb y compone como Flixel.
+			var mul_mat := ShaderMaterial.new()
+			mul_mat.shader = MULT_ALPHA
+			node.material = mul_mat
 		_:
-			print("OUT %-20s blend '%s' sin equivalente, se deja normal"
-				% [prop["name"], blend])
-			return
-	node.material = material
+			var material := CanvasItemMaterial.new()
+			match blend:
+				"add", "additive":
+					material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+				"subtract":
+					material.blend_mode = CanvasItemMaterial.BLEND_MODE_SUB
+				_:
+					print("OUT %-20s blend '%s' sin equivalente, se deja normal"
+						% [prop["name"], blend])
+					return
+			node.material = material
 
 
 ## What a stage's `.hx` does to its props on top of the JSON.

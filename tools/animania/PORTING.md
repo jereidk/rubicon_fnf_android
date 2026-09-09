@@ -1515,6 +1515,16 @@ and that run rewrites `animania_mod/source/icon.png.import` with a fresh uid tha
 matches `project.godot`'s `config/icon`. Revert that one file afterwards; it is the same trap
 this file already warns about.
 
+**A 2 GiB cgroup kills the full import with OOM (exit 137).** Memory.cgroup.max may cap this
+container, and the importer's parallel threads decompressing big PNGs (`Pizdec.png` is
+4096x8192 = 128 MiB RGBA; the Adobe spritemaps are worse) hit the cap at a few percent per
+run. Nothing in the repo is wrong. What works: import the SUBSET a render needs inside a
+mini-project with identical relative paths - copy `project.godot`, `addons/`, the wanted
+files and their `.import`s - run `--headless --import .` there (loops of `timeout 145` until
+exit 0, completed files are skipped), then copy `.godot/imported/*` back into the repo. The
+artifact hashes depend only on the relative path, so they carry over. Careful with the
+artifact check: `.import`'s `path=` carries a `res://` prefix to strip.
+
 **`updateProps` and its closure (0x2b258f0)**, the last of the screen. The constant list
 `title_props.gd` carried was partly guessed: it claimed "-550, 400" where the packed
 `Null<int>` immediates are -550 and **-440**, and it was missing half of them. Measured:
@@ -4968,7 +4978,10 @@ Three things that bit while building this:
 - **A stage prop's `alpha` and `blend` are easy to miss** because most props carry neither.
   mainStageAmTake's two vignettes carry both - `alpha: 0` on one, `alpha: 0.8` plus
   `blend: multiply` on the other - and ignoring them drew two opaque sheets at zIndex 317,
-  over everything. Half the stage came out black.
+  over everything. Half the stage came out black. And applying them is still not enough:
+  Godot's own multiply blend ignores the FRAGMENT alpha, so vin1's transparent hole kept
+  punching a black oval mid-stage. `animania_mod/shaders/multiply_alpha.gdshader` is the
+  real fix (bopeebo, section 9).
 - **A prop that says `animType: sparrow` may still be a bare PNG** with no atlas beside it
   (the wall, the posters, the floor, the vignettes). Fall back to drawing it whole rather
   than skipping it.
@@ -5040,8 +5053,28 @@ Lo que queda ABIERTO en dadbattle, con lo que se sabe de cada cosa:
 - **El video de la solotime** (`DADBATTLE_SOLOTIME_CUTSCENE.mp4`) no esta.
 
 Y dos cosas de BOPEEBO que aparecieron de paso y son de antes -comprobadas volviendo a
-HEAD-: un ovalo negro enorme en mitad del escenario, y su barra de vida no se dibuja (solo
-se ve un trocito vertical a los pies de bf).
+HEAD-. RESUELTAS ambas, con causa raiz y numeros:
+
+- **El ovalo negro era la vineta vin1, no el orden de hijos.** El `BLEND_MODE_MUL` de Godot
+  es `(DST_COLOR, ZERO)` a secas: ignora el alfa del FRAGMENTO. vin1 es un anillo cuyo
+  centro es totalmente transparente (rgb negro, a=0), y ese agujero multiplicaba por negro
+  todo lo que se veia a traves de el en vez de dejarlo intacto; el multiply de HaxeFlixel
+  SI pesa cada pixel por su alfa. La cura es `animania_mod/shaders/multiply_alpha.gdshader`:
+  re-codifica el alfa dentro del rgb (`mix(vec3(1), tex.rgb, tex.a * COLOR.a)`, con el
+  modulate del nodo dentro del peso) y deja que el blend multiply de fabrica componga, asi
+  que ni toca `blend_mode` ni necesita material de CanvasItem. Las dos escenas que traian
+  `blend_mode = 3` (stg_main_stage_am_take y stg_service_enterance, su `FgOverlay`) y el
+  builder ya lo usan. Medido con song_shot a 2 s: bopeebo paso de luminancia media 44.8 con
+  41 celdas planas negras a 80.0 con 0; el anillo oscurece el borde x0.50 y el centro queda
+  a 0.99, que es el vignetado autentico del mod. fresh, la otra cancion de este escenario,
+  queda igual de limpia (media 79.0, 0 celdas negras).
+- **La barra de vida no tenia nada roto: la afirmacion es anterior a su arreglo.** En el
+  fotograma actual se ven el trazo negro en arco, los dos rellenos teñidos (#31B0D1 el
+  jugador y #AF66CE el oponente, los colores de bopeebo) y los iconos en la costura. La
+  costura cae al ~17% del lado del jugador porque el arnes falla notas a proposito y la
+  vida baja; NO es que no se dibuje. Difiendo contra un fotograma con
+  `hide=UILayer/UI/HealthBar`, el 61% del rectangulo de la barra cambia contra un 25% de
+  ruido de animacion fuera de el.
 
 
 ## 9b. Dadbattle: la lista vieja

@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/bottom_overlay.png" id="17_f3ww3"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/red_stuff.png" id="18_og3vs"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/serviceEnterance/holygrad.png" id="19_qdnxd"]
+[ext_resource type="Shader" path="res://animania_mod/shaders/multiply_alpha.gdshader" id="20_shmul"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rq8vw"]
 blend_mode = 1
@@ -26,8 +27,8 @@ blend_mode = 1
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_tyyaj"]
 blend_mode = 1
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_j4j2k"]
-blend_mode = 3
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fgov"]
+shader = ExtResource("18_shmul")
 
 [sub_resource type="Animation" id="Animation_vo58u"]
 length = 4.0
@@ -164,7 +165,7 @@ centered = false
 metadata/scroll = [1.2, 1.2]
 
 [node name="FgOverlay" type="Sprite2D" parent="." unique_id=86100587]
-material = SubResource("CanvasItemMaterial_j4j2k")
+material = SubResource("ShaderMaterial_fgov")
 position = Vector2(-1500, 500)
 scale = Vector2(1, 1.25)
 texture = ExtResource("17_f3ww3")

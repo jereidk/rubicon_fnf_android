@@ -15,15 +15,16 @@
 [ext_resource type="SpriteFrames" path="res://animania_mod/stages/curtains_frames.tres" id="13_t3kea"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/vin1.png" id="14_0m55i"]
 [ext_resource type="Texture2D" path="res://animania_mod/source/images/stages/mainStageAmTake/vin2.png" id="15_t1y7n"]
+[ext_resource type="Shader" path="res://animania_mod/shaders/multiply_alpha.gdshader" id="16_shmul"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_jj1ih"]
 blend_mode = 1
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_8s0bi"]
-blend_mode = 3
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vin1"]
+shader = ExtResource("16_shmul")
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_l4uxu"]
-blend_mode = 3
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vin2"]
+shader = ExtResource("16_shmul")
 
 [node name="MainStageAmTake" type="Node2D" unique_id=1402801183]
 metadata/characters = {
@@ -217,7 +218,7 @@ animation = &"curtains top "
 autoplay = "curtains top "
 
 [node name="Vin1" type="Sprite2D" parent="." unique_id=1546484896]
-material = SubResource("CanvasItemMaterial_8s0bi")
+material = SubResource("ShaderMaterial_vin1")
 position = Vector2(-820, -450)
 scale = Vector2(1.45, 1.4)
 texture = ExtResource("14_0m55i")
@@ -226,7 +227,7 @@ metadata/scroll = [0.9, 0.9]
 
 [node name="Vin2" type="Sprite2D" parent="." unique_id=16342821]
 modulate = Color(1, 1, 1, 0)
-material = SubResource("CanvasItemMaterial_l4uxu")
+material = SubResource("ShaderMaterial_vin2")
 position = Vector2(-820, -450)
 scale = Vector2(1.4, 1.4)
 texture = ExtResource("15_t1y7n")
