@@ -48,6 +48,44 @@ const LANGUAGE_VALUES: Array[String] = ["en", "es", "pt_BR"]
 ## An OptionButton and not a CheckBox, for the reason the Intro row above
 ## records: Godot's `unchecked` icon is a near-black square at half alpha on a
 ## dark panel, so a box reads as a plain label until it is ticked.
+##
+## THREE states, not two, because GPUSPLIT belongs here and nests inside this
+## one rather than beside it.
+##
+##   0  Off                        no log
+##   1  On                         the log
+##   2  On + GPU split (flashes)   the log, plus the five-way GPU breakdown
+##
+## GPUSPLIT lived only in the console's Misc tab, which is inside the
+## Collector's Shop: switching it on meant entering the shop, crossing to the
+## TV, turning it on, opening Settings, finding Misc and walking back. What it
+## measures is the frames of one particular scene, so half the time the scene
+## somebody wanted to measure was the one they had to cross to reach the
+## switch.
+##
+## It is a third state and not a fourth row for two independent reasons, and
+## the first is the one that matters: GPU split WITHOUT the log does nothing at
+## all. The diagnostics node calls `set_process(false)` and returns when the
+## log is off, so `_step_gpu_split()` never runs - and its output is written
+## into that same log file. Two separate rows would offer a combination that
+## silently does nothing.
+##
+## The second is that the panel had no room. Measured at 1920x1080, the content
+## scale space this project authors in: the options panel is 1080 tall EXACTLY,
+## and a fourth row took it to 1183. The header of this file already records
+## the same wall being hit once before - "two extra rows made it taller than
+## 720px" - so this is the second time the layout has been at its ceiling, and
+## a row that has to exist would have shipped it broken.
+##
+## WHAT GPU SPLIT DOES, so the label is not the only explanation. Every 20
+## seconds it switches one thing off for ONE frame and subtracts: the lighting,
+## the overdraw, the whole 3D pass, the shadows, the post-processing. Five
+## turns rotating, about 100 seconds for a full round, after which `gpu=13.7ms`
+## is five numbers instead of one.
+##
+## The wrong frame is the price and it is on the label. The player reported it
+## without knowing the feature existed - "un flash blanco opaco" - so the
+## option says "flashes" rather than springing it on them.
 @export var log_button: OptionButton
 
 ## The GPU pipeline cache, on the only screen a phone this breaks can reach.
@@ -95,7 +133,10 @@ func _ready() -> void:
 			and Settings.lullaby_force_shop_intro) else 0
 
 	if log_button != null:
-		log_button.selected = 1 if Settings.lullaby_diagnostics_log else 0
+		# El split solo puede estar puesto con el log puesto, asi que el estado 2
+		# implica el 1 y no hace falta comprobar los dos.
+		log_button.selected = (2 if Settings.diagnostics_gpu_split
+			else (1 if Settings.lullaby_diagnostics_log else 0))
 
 	_show_gpu_cache()
 	_show_current_preset()
@@ -136,8 +177,24 @@ func _on_gpu_cache_changed(index: int) -> void:
 ## apply_settings() rather than only writing the var, for the same reason the
 ## language row calls it: the log reads the setting when it decides whether to
 ## open its file, and nothing re-reads it on its own.
+## Index 1 and 2 are both On; 2 adds GPU split. See log_button's docstring.
+##
+## apply_settings() rather than only writing the var, for the same reason the
+## language row calls it: the log reads the setting when it decides whether to
+## open its file, and nothing re-reads it on its own.
+##
+## save() persists the log choice and deliberately does NOT persist the split.
+## That is not an oversight in the ordering: `diagnostics_gpu_split` is the one
+## Settings var with no prefix, and save() only writes prefixed vars, so it is
+## skipped whatever the order. The name has no prefix on purpose - an earlier
+## build shipped the split on by default, it got written into the settings.ini
+## of every phone that ran it, and load_from() restored it over the new default
+## ("el destello blanco sigue" after it had supposedly been turned off). So the
+## row comes back reading Off or On, never On+split, and no install returns
+## flashing.
 func _on_log_changed(index: int) -> void:
-	Settings.lullaby_diagnostics_log = index == 1
+	Settings.lullaby_diagnostics_log = index >= 1
+	Settings.diagnostics_gpu_split = index == 2
 	Settings.apply_settings()
 	Settings.save()
 

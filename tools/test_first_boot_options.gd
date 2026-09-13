@@ -36,6 +36,7 @@ func _initialize() -> void:
 	_check_force(script)
 	_check_preset(scene, script)
 	_check_log_row(scene, script)
+	_check_gpu_split_row(scene, script)
 	_check_gpu_cache_row(scene, script)
 
 	print("first boot options: %d/%d checks passed" % [_checks - _failures, _checks])
@@ -191,10 +192,15 @@ func _check_log_row(scene: String, script: String) -> void:
 	_check(scene.contains('method="_on_log_changed"'), "y su señal conectada")
 	_check(not scene.contains('[node name="LogRow" type="CheckBox"'),
 		"es una fila como las demas, no un CheckBox")
+	_check(scene.contains("item_count = 3\npopup/item_0/text = \"Off\""),
+		"con tres estados: apagado, log, y log mas GPU split")
 
 	var body: String = _func_body(script, "_on_log_changed")
-	_check(_has_statement(body, "Settings\\.lullaby_diagnostics_log = index == 1"),
-		"elegir On enciende el ajuste")
+	# `>= 1` y no `== 1` desde que la fila tiene tres estados: 1 es el log y 2
+	# es el log mas GPU split. Ver _check_gpu_split_row() para por que el split
+	# vive aqui dentro y no en una fila propia.
+	_check(_has_statement(body, "Settings\\.lullaby_diagnostics_log = index >= 1"),
+		"elegir On o On+split enciende el log")
 	_check(_has_statement(body, "Settings\\.apply_settings\\(\\)"), "...lo aplica")
 	_check(_has_statement(body, "Settings\\.save\\(\\)"), "...y lo persiste")
 	_check(_has_statement(_func_body(script, "_ready"), "log_button\\.selected"),
@@ -394,3 +400,69 @@ func _check(condition: bool, label: String) -> void:
 	else:
 		_failures += 1
 		print("  FAIL ", label)
+
+
+## GPU Split, que es el TERCER estado de la fila del log y no una fila propia.
+##
+## GPUSPLIT solo se podia encender desde la pestaña Misc de la consola, que esta
+## dentro de la Tienda del Coleccionista - y lo que mide son los fotogramas de
+## una escena concreta, asi que la mitad de las veces la escena que se queria
+## medir era justo la que habia que cruzar para llegar al interruptor.
+##
+## POR QUE ES UN ESTADO Y NO UNA FILA. Dos razones independientes, y la primera
+## es la que manda: el split SIN el log no hace absolutamente nada. El nodo de
+## diagnostico hace `set_process(false)` y sale cuando el log esta apagado, asi
+## que `_step_gpu_split()` no corre nunca - y su salida se escribe en ese mismo
+## fichero de log. Dos filas separadas ofrecerian una combinacion que no hace
+## nada en silencio.
+##
+## La segunda es que no habia sitio. Medido en el espacio 1920x1080 en el que
+## este proyecto dibuja, con `stretch/aspect="keep"`, o sea que 1080 es un techo
+## duro y no una sugerencia: el panel media 1080 EXACTOS, y una cuarta fila lo
+## llevaba a 1183.
+##
+## Y por eso se vigila `fit_to_longest_item`. Aun como tercer estado, la opcion
+## nueva es mas larga que "Off"/"On", y un OptionButton se dimensiona por su
+## item MAS LARGO: con el ajuste por defecto el boton crecia y el panel pasaba
+## de 1080 a 1108, recortado arriba y abajo. Con `fit_to_longest_item = false`
+## se dimensiona por el item SELECCIONADO, que arranca en "Off", y el panel
+## vuelve a medir exactamente lo que medía. Es la linea de la que depende que
+## esta pantalla siga cabiendo, y no se parece a nada: sin esta comprobacion,
+## quitarla no rompe ninguna otra prueba.
+func _check_gpu_split_row(scene: String, script: String) -> void:
+	_check(scene.contains('popup/item_2/text = "On + GPU split (flashes)"'),
+		"el tercer estado existe en la fila del log")
+	_check(not scene.contains('[node name="GpuSplitRow"'),
+		"y no hay una fila aparte, que no cabria")
+
+	# El fotograma raro que esto cuesta va en la etiqueta. El jugador lo reporto
+	# sin saber que la funcion existia - "un flash blanco opaco".
+	_check(scene.contains("(flashes)"), "y avisa del destello")
+
+	_check(scene.contains("fit_to_longest_item = false"),
+		"el boton se dimensiona por lo seleccionado, o el panel se sale de 1080")
+
+	var body: String = _func_body(script, "_on_log_changed")
+	_check(_has_statement(body, "Settings\\.lullaby_diagnostics_log = index >= 1"),
+		"los estados 1 y 2 encienden el log")
+	_check(_has_statement(body, "Settings\\.diagnostics_gpu_split = index == 2"),
+		"y solo el 2 enciende el split")
+	_check(_has_statement(_func_body(script, "_ready"), "log_button\\.selected"),
+		"la fila arranca mostrando lo que hay puesto")
+
+	# `save()` se llama por el log y NO persiste el split, porque
+	# `diagnostics_gpu_split` es la unica var de Settings sin prefijo y save()
+	# solo escribe las prefijadas. Eso es a proposito: una build anterior lo
+	# traia encendido, quedo en el settings.ini de los telefonos que la
+	# corrieron, y load_from() lo restauraba por encima del nuevo defecto - "el
+	# destello blanco sigue" despues de apagarlo.
+	var settings: String = FileAccess.get_file_as_string(SETTINGS)
+	_check(settings.contains("var diagnostics_gpu_split"),
+		"la variable sigue sin prefijo, que es lo que impide que se guarde")
+
+	# Y el otro extremo: que el log la consulte VIVA en cada muestra. Cacheada
+	# en _ready, el interruptor dejaria de funcionar sin reiniciar.
+	var log_src: String = FileAccess.get_file_as_string(
+		"res://lullaby_mod/scripts/lullaby/debug/lullaby_diagnostics_log.gd")
+	_check(log_src.contains("if not Settings.diagnostics_gpu_split:"),
+		"y el log la consulta en vivo, no cacheada al arrancar")
