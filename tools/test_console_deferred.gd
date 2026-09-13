@@ -98,6 +98,10 @@ func _initialize() -> void:
 		node.free()
 
 	_every_reference_is_rewired(text)
+	_no_wire_left_empty(CONSOLE_SHOP, LOADER)
+	_no_wire_left_empty(
+		"res://lullaby_mod/resources/kollectadex/kollectadex_shop.tscn",
+		"res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex_deferred_loader.gd")
 	_kollectadex(text)
 
 	# 6. Y la tienda sigue instanciando.
@@ -162,6 +166,94 @@ func _every_reference_is_rewired(text: String) -> void:
 	# notarlo: el viewport anidado simplemente no se apagaba nunca.
 	_check(loader.contains("TabContainer/Credits/CurrentlySelected/SubViewportContainer"),
 		"y la ruta de Credits es la que el .tscn tenia, no la recordada")
+
+
+## Ningun `NodePath("")` del .tscn empaquetado se queda sin reenganchar.
+##
+## Esta es la comprobacion que faltaba, y `_every_reference_is_rewired()` NO
+## podia hacerla: esa mira los NodePath del .tscn de la tienda que apuntan HACIA
+## la consola. Los que rompieron la build 10249-e93c8ca2 apuntaban al contrario -
+## desde un nodo hondo dentro de la consola hacia la tienda - y por tanto ya no
+## estan en el .tscn de la tienda en absoluto. Eran overrides suyos sobre la
+## instancia, asi que se fueron con la consola al empaquetarla.
+##
+## El detector es exacto y no hay que mantener ninguna lista, porque
+## `PackedScene.pack()` no puede serializar un NodePath que sale del subarbol y
+## lo escribe como `NodePath("")`, sin un solo aviso. O sea que cada cadena vacia
+## del fichero empaquetado ES un cable cortado, y la prueba es: el cargador tiene
+## que nombrar esa propiedad.
+##
+## Lo que se perdio y como se noto en el movil:
+##
+##   Cartridges.bag_area / .handler   cartridges_button.gd hace `if handler:`,
+##                                    asi que el boton Cartuchos no hacia NADA
+##   EnterLabel.collector_shop        cartridges_enter_label.gd:48 petaba con
+##                                    "'sequence_controller' on a base object
+##                                    of type 'Nil'" y la cancion no arrancaba
+##
+## Ninguno de los tres estaba en console.tscn, asi que compararlo con el original
+## tampoco los habria encontrado.
+func _no_wire_left_empty(packed_path: String, loader_path: String) -> void:
+	var packed: String = FileAccess.get_file_as_string(packed_path)
+	var loader: String = FileAccess.get_file_as_string(loader_path)
+	if not _check(not packed.is_empty() and not loader.is_empty(),
+			"%s y su cargador se leen" % packed_path.get_file()):
+		return
+
+	var node_head: String = ""
+	var node_type: String = ""
+	var broken: PackedStringArray = []
+	var found: int = 0
+
+	for line: String in packed.split("\n"):
+		if line.begins_with("[node "):
+			node_head = line
+			node_type = _quoted_after(line, "type=")
+			continue
+		if line.begins_with("["):
+			# sub_resource/ext_resource: un NodePath("") ahi dentro no es un
+			# @export de nodo y no le toca a esta prueba.
+			node_head = ""
+			continue
+		if not line.contains('NodePath("")'):
+			continue
+
+		var eq: int = line.find(" = ")
+		if eq <= 0:
+			continue
+		var prop: String = line.substr(0, eq)
+
+		# `skeleton` de un MeshInstance3D no es un cable perdido: su valor por
+		# defecto es NodePath(".."), y aqui la malla cuelga de un BoneAttachment3D
+		# que no es un Skeleton3D, asi que ni "" ni ".." la deforman. pack() lo
+		# escribe explicito porque lo resolvio en vivo, no porque lo rompiera.
+		if prop == "skeleton" and node_type == "MeshInstance3D":
+			continue
+
+		found += 1
+		if not loader.contains('"%s"' % prop):
+			broken.append("%s (%s)" % [prop, _quoted_after(node_head, "name=")])
+
+	_check(found > 0,
+		"%s tiene NodePath vacios que pack() dejo atras (%d)"
+			% [packed_path.get_file(), found])
+	_check(broken.is_empty(),
+		"y el cargador reengancha todos%s"
+			% ("" if broken.is_empty() else " - CORTADOS: " + ", ".join(broken)))
+
+
+## El contenido de las comillas que siguen a `key` en `line`.
+func _quoted_after(line: String, key: String) -> String:
+	var at: int = line.find(key)
+	if at < 0:
+		return ""
+	var open_quote: int = line.find("\"", at)
+	if open_quote < 0:
+		return ""
+	var close_quote: int = line.find("\"", open_quote + 1)
+	if close_quote < 0:
+		return ""
+	return line.substr(open_quote + 1, close_quote - open_quote - 1)
 
 
 ## El kollectadex, diferido igual pero con dos cables en vez de cinco.

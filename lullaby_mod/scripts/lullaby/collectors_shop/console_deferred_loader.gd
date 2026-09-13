@@ -84,6 +84,38 @@ const NODE_NAME := &"Console"
 @export var touch_controls: Node
 @export var switch_cartridge_button: Node
 
+## Los nodos de la TIENDA que tres @export de DENTRO de la consola necesitan.
+##
+## Esta es la mitad que la primera version de este fichero no vio, y la que
+## rompio la build 10249-e93c8ca2. El comentario de arriba enumera los cables
+## que van HACIA la consola; estos van AL CONTRARIO, desde un nodo hondo dentro
+## de ella hacia la tienda, y no estaban en console.tscn: eran overrides del
+## .tscn de la tienda, que es por donde se colaron.
+##
+## Los tres, copiados del .tscn de antes de sacar la consola (1dcde58b~1):
+##
+##   TabContainer/Home/FakeButtons/Cartridges.bag_area
+##       -> Environment/Areas/FocusCartridgeBag
+##   TabContainer/Home/FakeButtons/Cartridges.handler
+##       -> CartridgeBag/CartridgeBagHandler
+##   TabContainer/Cartridges/EnterLabel.collector_shop
+##       -> la raiz de la tienda (se reusa `shop`)
+##
+## Como fallan: `cartridges_button.gd` hace `if handler:` y `if bag_area:`, asi
+## que el boton Cartuchos de la consola no da ningun error - simplemente no
+## hace nada al pulsarlo. Y `cartridges_enter_label.gd:48` no se defiende, asi
+## que entrar a una cancion peta con "Invalid access to property or key
+## 'sequence_controller' on a base object of type 'Nil'" y la cancion no
+## arranca nunca.
+##
+## Por que `pack()` los perdio en silencio: un NodePath que apunta FUERA del
+## subarbol empaquetado no se puede serializar, asi que se escribe como
+## `NodePath("")`. No hay aviso. Eso da el detector exacto que
+## test_console_deferred.gd usa ahora: cada `NodePath("")` de
+## console_shop.tscn tiene que estar reenganchado aqui.
+@export var cartridge_bag_area: Node
+@export var cartridge_bag_handler: Node
+
 ## La raiz desde la que buscar AnimationMixer a los que vaciar la cache.
 ##
 ## Se buscan en vez de listarse porque las pistas que nombran la consola viven
@@ -139,6 +171,16 @@ func _mount(packed: PackedScene) -> void:
 	_assign(console, "sequences", sequences)
 	_assign(console, "focus_right_area", focus_right_area)
 
+	# Y los tres de dentro, tambien antes de entrar al arbol: el `_ready()` de
+	# EnterLabel no los usa, pero el de un boton futuro si podria, y ponerlos
+	# despues seria confiar en que nadie lo haga.
+	_assign_inner(console, "TabContainer/Home/FakeButtons/Cartridges",
+		"bag_area", cartridge_bag_area)
+	_assign_inner(console, "TabContainer/Home/FakeButtons/Cartridges",
+		"handler", cartridge_bag_handler)
+	_assign_inner(console, "TabContainer/Cartridges/EnterLabel",
+		"collector_shop", shop)
+
 	host.add_child(console)
 
 	_assign(shop, "console", console)
@@ -151,6 +193,14 @@ func _mount(packed: PackedScene) -> void:
 			and console.has_signal("play_sound") \
 			and not console.is_connected("play_sound", Callable(console_sfx, "_on_console_play_sound")):
 		console.connect("play_sound", Callable(console_sfx, "_on_console_play_sound"))
+
+	# `power_console.gd` tiene que volver a aplicar lo que su `_ready()` no pudo:
+	# corre mucho antes de que la consola exista, y su primer uso de `console`
+	# aborta la funcion, asi que la luz de la TV, el indicador y la musica se
+	# quedaron sin poner. Ver apply_console_state() alli.
+	if focus_power_console != null and is_instance_valid(focus_power_console) \
+			and focus_power_console.has_method("apply_console_state"):
+		focus_power_console.call("apply_console_state")
 
 	_rewire_gate(console)
 
@@ -203,6 +253,26 @@ func _clear_mixer_caches(root: Node) -> void:
 func _assign(node: Node, prop: String, value: Node) -> void:
 	if node != null and is_instance_valid(node) and value != null and prop in node:
 		node.set(prop, value)
+
+
+## Como _assign() pero sobre un descendiente de la consola, buscado por ruta.
+##
+## Avisa si la ruta no existe, al contrario que _assign(). Un `@export` que se
+## queda sin poner es el fallo silencioso de este fichero entero, y estas tres
+## rutas son literales escritas a mano: renombrar una pestaña de la consola las
+## rompe sin que nada mas se entere.
+func _assign_inner(console: Node, path: String, prop: String, value: Node) -> void:
+	var node: Node = console.get_node_or_null(NodePath(path))
+	if node == null:
+		push_warning("console_deferred_loader: no existe %s (para .%s)" % [path, prop])
+		return
+	if not (prop in node):
+		push_warning("console_deferred_loader: %s no tiene .%s" % [path, prop])
+		return
+	if value == null:
+		push_warning("console_deferred_loader: %s.%s se queda sin poner" % [path, prop])
+		return
+	node.set(prop, value)
 
 
 func _count(root: Node) -> int:

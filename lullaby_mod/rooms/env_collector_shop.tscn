@@ -11562,8 +11562,10 @@ anisotropic_filtering_level = 0
 positional_shadow_atlas_size = 0
 size = Vector2i(640, 480)
 
-[node name="ConsoleLoader" type="Node" parent="Viewports/ConsoleSubViewport" node_paths=PackedStringArray("shop", "sequences", "focus_right_area", "viewport_gate", "console_sfx", "focus_console", "focus_power_console", "touch_controls", "switch_cartridge_button", "mixer_root")]
+[node name="ConsoleLoader" type="Node" parent="Viewports/ConsoleSubViewport" node_paths=PackedStringArray("shop", "sequences", "focus_right_area", "viewport_gate", "console_sfx", "focus_console", "focus_power_console", "touch_controls", "switch_cartridge_button", "cartridge_bag_area", "cartridge_bag_handler", "mixer_root")]
 script = ExtResource("188")
+cartridge_bag_area = NodePath("../../../Environment/Areas/FocusCartridgeBag")
+cartridge_bag_handler = NodePath("../../../CartridgeBag/CartridgeBagHandler")
 focus_console = NodePath("../../../Environment/Areas/FocusConsole")
 focus_power_console = NodePath("../../../Environment/Areas/FocusPowerConsole")
 touch_controls = NodePath("../../../UI/Control/TouchControls")

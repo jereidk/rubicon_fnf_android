@@ -30,6 +30,35 @@ func _ready() -> void :
 
 	bag_focus.can_interact = SaveData.get_flag(&"console_boot_seen")
 
+	apply_console_state()
+
+
+## Lo de `_ready()` que necesita la consola, aparte y repetible.
+##
+## `console` es un @export que console_deferred_loader.gd rellena cuando la
+## consola termina de cargar, y eso pasa DESPUES de este `_ready()`. En la build
+## 10249-e93c8ca2 esto estaba en linea dentro de `_ready()`, y el log del moto
+## g53 mide lo que costo:
+##
+##     [40.64s] ERROR Invalid assignment of property or key 'modulate' with
+##              value of type 'Color' on a base object of type 'Nil'.
+##              power_console.gd:34 ShopConsolePower._ready
+##
+## Un error asi aborta la funcion, asi que las cuatro lineas que venian despues
+## - la luz de la TV, el indicador, y `_update_on()` con la musica dentro - no
+## se ejecutaron nunca. Una sola linea de log y la mitad del televisor sin
+## inicializar.
+##
+## Sale UNA vez y no una por fotograma porque la tienda arranca con el arbol
+## pausado por sus secuencias: `_process()` no corre, y el loader (que se pone
+## en PROCESS_MODE_ALWAYS justo por esto) monta la consola durante la pausa.
+##
+## El loader llama a esto en cuanto asigna `console`. Idempotente a proposito:
+## se llama dos veces siempre que la consola SI estuviera ya puesta.
+func apply_console_state() -> void :
+	if console == null or not is_instance_valid(console):
+		return
+
 	if on:
 		console.modulate = Color.WHITE
 		tv_light.light_energy = 0
@@ -42,6 +71,8 @@ func _ready() -> void :
 
 
 func _process(delta: float) -> void :
+	if console == null or not is_instance_valid(console):
+		return
 	console.modulate = console.modulate.lerp(modulate_target, delta * 16.0)
 
 
@@ -100,5 +131,7 @@ func _update_on() -> void :
 
 	indicator.visible = on
 
-	if console.music:
+	# Igual que arriba: `console` llega en diferido, y `_update_on()` tambien se
+	# llama desde `trigger()`, que no pasa por apply_console_state().
+	if console != null and is_instance_valid(console) and console.music:
 		console.music.playing = on
