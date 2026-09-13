@@ -44,14 +44,41 @@ extends Node
 ##   5. Las pistas de animacion que la nombran. AnimationMixer cachea rutas y no
 ##      recachea porque aparezca un nodo, asi que hay que decirselo.
 
-## La escena empaquetada por tools/extract_console_scene.gd.
+## La consola con los overrides que el .tscn de la tienda le ponia encima.
 ##
-## Es la consola CON los dieciseis overrides que el .tscn de la tienda le ponia
-## encima, aplanados. Deliberadamente no es una instancia de console.tscn: los
-## overrides no sobreviven a una instancia creada en tiempo de ejecucion, y
-## perderlos habria devuelto los ajustes a fabrica sin dar un error. El precio
-## es que un cambio en console.tscn ya no se propaga solo; se regenera con la
-## herramienta.
+## Es una INSTANCIA de console.tscn con 19 bloques de override, generada por
+## tools/gen_deferred_overrides.py desde el .tscn de la tienda de antes de sacar
+## la consola. 8 KB.
+##
+## La primera version era otra cosa - un aplanado de 1,26 MB hecho con
+## `PackedScene.pack()` sobre el subarbol vivo - y esta escrito aqui porque el
+## razonamiento que lo eligio era plausible y era falso. Decia: los overrides no
+## sobreviven a una instancia creada en tiempo de ejecucion, asi que hay que
+## aplanar. No hace falta. Un .tscn que instancia otro y le pone propiedades
+## encima es exactamente lo que la tienda ya tenia, y Godot lo resuelve solo.
+##
+## Lo que costo aplanar, medido:
+##
+##   1. Un NodePath que sale del subarbol no se puede serializar, y `pack()` lo
+##      escribe como `NodePath("")` sin avisar. Corto seis cables. Tres se
+##      quedaron sin reenganchar y en el dispositivo eso fue el boton Cartuchos
+##      sin hacer nada y la cancion sin arrancar.
+##   2. El estado EN VIVO se serializa como si fuera autoria: dos
+##      `animation = &""` que hacian petar set_animation al instanciar.
+##   3. Los hijos de cada subescena instanciada se reescriben SIN `index=`, y sin
+##      `index` Godot los anade en vez de sobreescribirlos:
+##
+##          console.tscn        382 nodos    0 padres con hijos repetidos
+##          console_shop.tscn   582 nodos   43 padres,  68 hijos sobrantes
+##
+##      Dos marcas de verificacion una sobre otra en cada toggle de la consola.
+##   4. Y de ahi 200 nodos de mas, que se pagan al montar:
+##      `console montada en diferido (515 nodos) proc=1757.82ms`.
+##
+## Nada de eso daba un error. La equivalencia con la consola inline original la
+## comprueba ahora tools/verify_deferred_overrides.gd - mismo arbol, mismas
+## propiedades, mismos NodePath internos - que es la comparacion que la
+## herramienta anterior no hacia: comparaba el arbol vivo contra si mismo.
 const CONSOLE_SCENE := "res://lullaby_mod/resources/console/console_shop.tscn"
 
 ## El nombre importa: las ocho pistas de animacion y el NodePath exportado de la

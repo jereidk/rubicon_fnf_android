@@ -10,7 +10,8 @@ extends Node
 ## directas, dentro de un SubViewport que nadie mira hasta cruzar la habitacion.
 ##
 ## Deliberadamente NO se generalizo con el de la consola en un solo script. Los
-## dos montan un subarbol empaquetado, pero lo que rehacen despues no se parece:
+## dos montan una instancia con overrides encima, pero lo que rehacen despues no
+## se parece:
 ## la consola reengancha cinco cables incluyendo una senal, este reengancha dos
 ## que ademas apuntan a un nodo INTERIOR y no a la raiz montada. Un cargador
 ## generico con listas de propiedades esconderia justo eso, que es la parte que

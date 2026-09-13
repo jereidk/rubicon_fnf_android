@@ -21,9 +21,11 @@ extends SceneTree
 ##   - Que el nodo montado deje de llamarse `Console` o cuelgue de otro sitio.
 ##     Veintitres pistas de animacion dicen esa ruta literal; con otro nombre
 ##     resuelven a nada y la consola se queda muda.
-##   - Que el .tscn empaquetado desaparezca o adelgace. Son 382 nodos con los
-##     dieciseis overrides que el .tscn de la tienda le ponia encima aplanados,
-##     y perder una rama son ajustes que vuelven a fabrica sin avisar.
+##   - Que el .tscn de overrides desaparezca o adelgace. Son 382 nodos: una
+##     INSTANCIA de console.tscn con los overrides que el .tscn de la tienda le
+##     ponia encima, y perder una rama son ajustes que vuelven a fabrica sin
+##     avisar. Que no vuelva a APLANARSE lo vigila
+##     _is_an_instance_not_a_flattening(), y por que importa esta escrito alli.
 ##   - Que el cargador pierda uno de sus seis NodePath. Cada uno rehace un cable
 ##     que el .tscn ya no puede hacer solo.
 ##   - Que se cuele un `[connection]` desde la consola, que ya no existe al
@@ -98,10 +100,15 @@ func _initialize() -> void:
 		node.free()
 
 	_every_reference_is_rewired(text)
-	_no_wire_left_empty(CONSOLE_SHOP, LOADER)
-	_no_wire_left_empty(
+	_is_an_instance_not_a_flattening(CONSOLE_SHOP, LOADER,
+		"res://lullaby_mod/resources/console/console.tscn",
+		["shop", "sequences", "focus_right_area",
+			"bag_area", "handler", "collector_shop"])
+	_is_an_instance_not_a_flattening(
 		"res://lullaby_mod/resources/kollectadex/kollectadex_shop.tscn",
-		"res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex_deferred_loader.gd")
+		"res://lullaby_mod/scripts/lullaby/collectors_shop/kollectadex_deferred_loader.gd",
+		"res://lullaby_mod/resources/kollectadex/kollectadex.tscn",
+		["sequences", "focus_left_area", "kollectadex_anims"])
 	_kollectadex(text)
 
 	# 6. Y la tienda sigue instanciando.
@@ -168,78 +175,84 @@ func _every_reference_is_rewired(text: String) -> void:
 		"y la ruta de Credits es la que el .tscn tenia, no la recordada")
 
 
-## Ningun `NodePath("")` del .tscn empaquetado se queda sin reenganchar.
+## Las escenas diferidas son una INSTANCIA de su fuente, no un aplanado.
 ##
-## Esta es la comprobacion que faltaba, y `_every_reference_is_rewired()` NO
-## podia hacerla: esa mira los NodePath del .tscn de la tienda que apuntan HACIA
-## la consola. Los que rompieron la build 10249-e93c8ca2 apuntaban al contrario -
-## desde un nodo hondo dentro de la consola hacia la tienda - y por tanto ya no
-## estan en el .tscn de la tienda en absoluto. Eran overrides suyos sobre la
-## instancia, asi que se fueron con la consola al empaquetarla.
+## Esta comprobacion sustituye a una que buscaba `NodePath("")`, y el cambio es
+## la historia entera de por que existe.
 ##
-## El detector es exacto y no hay que mantener ninguna lista, porque
-## `PackedScene.pack()` no puede serializar un NodePath que sale del subarbol y
-## lo escribe como `NodePath("")`, sin un solo aviso. O sea que cada cadena vacia
-## del fichero empaquetado ES un cable cortado, y la prueba es: el cargador tiene
-## que nombrar esa propiedad.
+## La primera version de la consola diferida se saco con `PackedScene.pack()`
+## sobre el subarbol vivo: un fichero aplanado de 1,26 MB. Sobre una escena que
+## contiene subescenas instanciadas eso rompe de cuatro formas distintas, todas
+## en silencio, y la peor es que reescribe los hijos de cada instancia SIN
+## `index=`. Sin `index` Godot no los trata como override sino como hijos NUEVOS:
+## la instancia crea los suyos y el fichero anade otros encima.
 ##
-## Lo que se perdio y como se noto en el movil:
+##     console.tscn        382 nodos    0 padres con hijos repetidos
+##     console_shop.tscn   582 nodos   43 padres,  68 hijos sobrantes
+##     kollectadex.tscn     70 nodos    0
+##     kollectadex_shop     106 nodos    9 padres,  18 hijos sobrantes
 ##
-##   Cartridges.bag_area / .handler   cartridges_button.gd hace `if handler:`,
-##                                    asi que el boton Cartuchos no hacia NADA
-##   EnterLabel.collector_shop        cartridges_enter_label.gd:48 petaba con
-##                                    "'sequence_controller' on a base object
-##                                    of type 'Nil'" y la cancion no arrancaba
+## En pantalla: dos marcas de verificacion una sobre otra en cada toggle de la
+## consola, las dos con autoplay. Y 200 nodos de mas que se pagan en el montaje,
+## `proc=1757.82ms` en el log del g53.
 ##
-## Ninguno de los tres estaba en console.tscn, asi que compararlo con el original
-## tampoco los habria encontrado.
-func _no_wire_left_empty(packed_path: String, loader_path: String) -> void:
+## Ahora los ficheros los genera tools/gen_deferred_overrides.py como lo que la
+## tienda ya tenia: una instancia con overrides encima. 8 KB en vez de 1,26 MB.
+## Asi que lo que hay que vigilar es que nadie vuelva a aplanarlos:
+##
+##   - que sigan siendo `instance=ExtResource(...)` de su fuente
+##   - que TODO bloque con `parent=` lleve `index=`, que es lo unico que separa
+##     un override de un hijo nuevo
+##   - que no reaparezca ningun `NodePath("")`, el sintoma de la version vieja
+##   - y que el cargador siga nombrando los que cruzan el borde, que no se
+##     pueden escribir en ningun fichero
+##
+## La equivalencia real - mismo arbol, mismas propiedades - la comprueba
+## tools/verify_deferred_overrides.gd contra la consola inline original.
+func _is_an_instance_not_a_flattening(packed_path: String, loader_path: String,
+		source_path: String, cross_boundary: Array) -> void:
 	var packed: String = FileAccess.get_file_as_string(packed_path)
 	var loader: String = FileAccess.get_file_as_string(loader_path)
 	if not _check(not packed.is_empty() and not loader.is_empty(),
 			"%s y su cargador se leen" % packed_path.get_file()):
 		return
 
-	var node_head: String = ""
-	var node_type: String = ""
-	var broken: PackedStringArray = []
-	var found: int = 0
+	_check(packed.contains('path="%s"' % source_path)
+			and packed.contains("instance=ExtResource("),
+		"%s instancia %s en vez de aplanarlo"
+			% [packed_path.get_file(), source_path.get_file()])
 
+	# Nada de aplanado: un fichero de overrides son unos pocos KB.
+	_check(packed.length() < 200000,
+		"y sigue siendo pequeno (%d KB)" % (packed.length() / 1024))
+
+	var no_index: PackedStringArray = []
+	var blocks: int = 0
 	for line: String in packed.split("\n"):
-		if line.begins_with("[node "):
-			node_head = line
-			node_type = _quoted_after(line, "type=")
+		if not line.begins_with("[node "):
 			continue
-		if line.begins_with("["):
-			# sub_resource/ext_resource: un NodePath("") ahi dentro no es un
-			# @export de nodo y no le toca a esta prueba.
-			node_head = ""
-			continue
-		if not line.contains('NodePath("")'):
-			continue
+		blocks += 1
+		if not line.contains("parent="):
+			continue                      # la raiz, que lleva instance= y no index=
+		if not line.contains("index="):
+			no_index.append(_quoted_after(line, "name="))
+	_check(blocks > 1, "y declara bloques de override (%d)" % blocks)
+	_check(no_index.is_empty(),
+		"todos con index=, o serian hijos nuevos%s"
+			% ("" if no_index.is_empty() else ": " + ", ".join(no_index)))
 
-		var eq: int = line.find(" = ")
-		if eq <= 0:
-			continue
-		var prop: String = line.substr(0, eq)
+	_check(not packed.contains('NodePath("")'),
+		"y no reaparecio ningun NodePath vacio")
 
-		# `skeleton` de un MeshInstance3D no es un cable perdido: su valor por
-		# defecto es NodePath(".."), y aqui la malla cuelga de un BoneAttachment3D
-		# que no es un Skeleton3D, asi que ni "" ni ".." la deforman. pack() lo
-		# escribe explicito porque lo resolvio en vivo, no porque lo rompiera.
-		if prop == "skeleton" and node_type == "MeshInstance3D":
-			continue
+	var missing: PackedStringArray = []
+	for prop: Variant in cross_boundary:
+		if not loader.contains('"%s"' % str(prop)):
+			missing.append(str(prop))
+	_check(missing.is_empty(),
+		"el cargador pone los %d que cruzan el borde%s"
+			% [cross_boundary.size(),
+				"" if missing.is_empty() else " - FALTAN: " + ", ".join(missing)])
 
-		found += 1
-		if not loader.contains('"%s"' % prop):
-			broken.append("%s (%s)" % [prop, _quoted_after(node_head, "name=")])
-
-	_check(found > 0,
-		"%s tiene NodePath vacios que pack() dejo atras (%d)"
-			% [packed_path.get_file(), found])
-	_check(broken.is_empty(),
-		"y el cargador reengancha todos%s"
-			% ("" if broken.is_empty() else " - CORTADOS: " + ", ".join(broken)))
 
 
 ## El contenido de las comillas que siguen a `key` en `line`.

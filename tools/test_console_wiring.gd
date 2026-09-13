@@ -109,21 +109,45 @@ func _initialize() -> void:
 	_check(shop.contains("ConsoleSubViewport/%s" % SPLIT_POINT),
 		"la referencia mas profunda por NodePath sigue siendo %s" % SPLIT_POINT)
 
-	# --- 7. TabContainer checks hold in the packed scene. ---
-	var packed_text: String = FileAccess.get_file_as_string(CONSOLE_PACKED)
-	var crossing: PackedStringArray = []
-	for m in RegEx.create_from_string('NodePath\\("([^"]*TabContainer[^"]*)"\\)').search_all(packed_text):
-		var t: String = m.get_string(1)
-		if t.contains("TabContainer/"):
-			crossing.append(t)
-	_check(crossing.is_empty(),
-		"dentro de la consola nadie apunta por debajo del TabContainer (%d cruces%s)"
-			% [crossing.size(), "" if crossing.is_empty() else ": " + ", ".join(crossing.slice(0, 3))])
-	var under: int = 0
-	for m in RegEx.create_from_string('(?m)^\\[node name="[^"]*"[^\\]]*parent="TabContainer').search_all(packed_text):
-		under += 1
-	_check(under > 100,
-		"y el TabContainer sigue siendo el bulto: %d nodos bajo el" % under)
+	# --- 7. TabContainer checks, sobre el ARBOL y no sobre el texto. ---
+	#
+	# Estas dos se hacian leyendo el .tscn empaquetado, y eso funcionaba solo
+	# mientras ese fichero era un aplanado con los 382 nodos escritos dentro.
+	# Ahora es una instancia de console.tscn con 19 bloques de override encima
+	# (8 KB en vez de 1,26 MB, ver _is_an_instance_not_a_flattening en
+	# test_console_deferred.gd), asi que contar lineas daba 12 y el guard caia
+	# por su propio metodo, no porque la consola hubiera cambiado.
+	#
+	# Instanciar es ademas mas honesto: lo que importa es el arbol que el juego
+	# recibe, no como esta escrito.
+	var packed_scene: PackedScene = load(CONSOLE_PACKED) as PackedScene
+	if _check(packed_scene != null, "la consola con overrides carga"):
+		var console: Node = packed_scene.instantiate()
+		var tabs: Node = console.get_node_or_null(^"TabContainer")
+		if _check(tabs != null, "y trae su TabContainer"):
+			_check(_count_under(tabs) > 100,
+				"que sigue siendo el bulto: %d nodos bajo el" % _count_under(tabs))
+
+			var crossing: PackedStringArray = []
+			var stack: Array[Node] = [console]
+			while not stack.is_empty():
+				var n: Node = stack.pop_back()
+				for child in n.get_children():
+					stack.append(child)
+				if n.get_script() == null:
+					continue
+				for entry: Dictionary in n.get_property_list():
+					if int(entry.get("type", 0)) != TYPE_NODE_PATH:
+						continue
+					var v: String = str(n.get(str(entry.get("name", ""))))
+					if v.contains("TabContainer/"):
+						crossing.append("%s.%s = %s"
+							% [console.get_path_to(n), entry.get("name", ""), v])
+			_check(crossing.is_empty(),
+				"y nadie apunta por debajo del TabContainer (%d cruces%s)"
+					% [crossing.size(), "" if crossing.is_empty()
+						else ": " + ", ".join(crossing.slice(0, 3))])
+		console.free()
 
 	# --- 8. No stale overrides remain in the shop targeting the removed console. ---
 	var stale: int = 0
@@ -179,3 +203,10 @@ func _read(path: String) -> String:
 	var text: String = FileAccess.get_file_as_string(path)
 	_check(not text.is_empty(), "%s se lee" % path.get_file())
 	return text
+
+
+func _count_under(root: Node) -> int:
+	var n: int = 0
+	for child in root.get_children():
+		n += 1 + _count_under(child)
+	return n
