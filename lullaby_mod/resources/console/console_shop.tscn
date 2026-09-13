@@ -7573,7 +7573,7 @@ tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"heartbeat"]
 }
 tracks/2/type = "method"
@@ -7612,7 +7612,7 @@ tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"serena"]
 }
 
@@ -7638,7 +7638,7 @@ tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"unknowns"]
 }
 tracks/2/type = "method"
@@ -7676,7 +7676,7 @@ tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"boyfriend"]
 }
 
@@ -7702,7 +7702,7 @@ tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"pendulum"]
 }
 tracks/2/type = "method"
@@ -7740,7 +7740,7 @@ tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
-"update": 0,
+"update": 1,
 "values": [&"girlfriend"]
 }
 
@@ -7761,18 +7761,6 @@ resource_name = "hat"
 length = 0.001
 loop_mode = 1
 step = 0.25
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:surface_material_override/0:albedo_texture")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("39_yjmvs")]
-}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gq4tn"]
 _data = {
@@ -9546,7 +9534,6 @@ credits_entries = Array[ExtResource("50_i7u2f")]([SubResource("Resource_3wbki"),
 modulate = Color(0.1, 0.1, 0.1, 1)
 position = Vector2(103.99998, 803.00006)
 scale = Vector2(0.9031746, 0.9031745)
-animation = &""
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitSecondary" unique_id=1239002531]
 libraries/ = SubResource("AnimationLibrary_26fpe")
@@ -9554,7 +9541,6 @@ libraries/ = SubResource("AnimationLibrary_26fpe")
 [node name="CreditsPortraitPrimary" type="AnimatedSprite2D" parent="TabContainer/Credits/CreditsContainer" unique_id=837053894]
 modulate = Color(0.5, 0.5, 0.5, 1)
 position = Vector2(472, 731)
-animation = &""
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="TabContainer/Credits/CreditsContainer/CreditsPortraitPrimary" unique_id=1474806969]
 libraries/ = SubResource("AnimationLibrary_26fpe")
