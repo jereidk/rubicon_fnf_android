@@ -1673,6 +1673,18 @@ jobs:
           # cache immediately and would measure nothing.
           guard_godot tools/test_load_progress.gd
 
+          # === Verify the bar also covers the precache, not just the load
+          # With end_manually the screen stays up past the load: entering
+          # Chimera that is 47s of loading and then 40 MORE seconds of preload
+          # sweep at fps_now=1. If the load owns the whole bar, those forty
+          # seconds are a full bar that never moves in front of a sprite that
+          # cannot move either, which is exactly how it was reported - "la
+          # barra ya casi completa ... el Sprite de pantalla sigue ahi ... se
+          # queda congelado". Breaking it again raises no error at all.
+          # The same guard covers the other half of that report: the song's
+          # audio must not start playing while the tree is still paused.
+          guard_godot tools/test_manual_progress.gd
+
           # === Verify SKILLISSUE really switches the mechanics off
           # Six pieces in six files and every joint fails silently. The one
           # that matters: a mechanic can simply never consult the setting, and

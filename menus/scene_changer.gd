@@ -56,6 +56,35 @@ var _change_in_flight: bool = false
 
 var awaiting_manual_end: bool = false
 
+## Que parte de la barra se lleva la carga cuando quien llama se queda con la
+## pantalla puesta (`end_manually`).
+##
+## Sin esto la barra MIENTE, y el log del dispositivo dice cuanto. Entrando a
+## Chimera:
+##
+##   [ 79.36s] SCENE_OUT  (la pantalla de carga sube, la barra arranca)
+##   [126.81s] SCENE_IN   took=47467ms   -> update_progress(1.0), barra LLENA
+##   [166.47s] preload camera finished (38871ms, 267 nodos)
+##   [~167.3s] la pantalla de carga baja
+##
+## Son CUARENTA segundos con la barra al 100%, a 1 fps (`fps_now=1`, fotogramas
+## sueltos de 251ms y 1138ms), sin nada que se mueva en pantalla. Eso no se lee
+## como "esta trabajando", se lee como colgado, y asi se reporto: "tiene la
+## barra ya casi completa ... el Sprite de pantalla sigue ahi ... se queda
+## congelado".
+##
+## Y no se puede arreglar animando algo: el AnimatedSprite2D de la pantalla de
+## carga tambien esta a 1 fps. Lo unico que puede moverse de forma visible en
+## esa ventana es la barra, porque es lo unico cuyo avance no depende de que el
+## fotograma sea barato.
+##
+## La mitad y no otro reparto porque las dos fases son del mismo orden - 47s de
+## carga contra 39s de precarga - y porque un reparto sacado de una medicion
+## concreta envejece con cada cambio de escena. Es un LIMITE INFERIOR honesto,
+## igual que `_blended_progress()`: la barra no promete cuanto falta, promete
+## que algo sigue avanzando.
+const MANUAL_LOAD_SHARE := 0.5
+
 func _ready() -> void:
 	layer = 128
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -66,11 +95,14 @@ func _process(_delta: float) -> void:
 
 	var progress: Array = [0.0]
 	var status: int = ResourceLoader.load_threaded_get_status(_watching_path, progress)
+	# Ver MANUAL_LOAD_SHARE: con `end_manually` la carga no es el final de la
+	# espera, asi que no puede quedarse con la barra entera.
+	var share: float = MANUAL_LOAD_SHARE if awaiting_manual_end else 1.0
 	match status:
 		ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			_current_loader.update_progress(_blended_progress(progress[0]))
+			_current_loader.update_progress(_blended_progress(progress[0]) * share)
 		ResourceLoader.THREAD_LOAD_LOADED:
-			_current_loader.update_progress(1.0)
+			_current_loader.update_progress(share)
 			_complete()
 		# Both failure branches release _change_in_flight. The loading screen
 		# is deliberately left up - unload_current_scene() has already run,
@@ -245,6 +277,21 @@ func reload_current() -> void:
 
 	scene_change_finished.emit(scene.scene_file_path)
 	get_tree().reload_current_scene()
+
+## La segunda mitad de la barra, para quien se queda con la pantalla puesta.
+##
+## `fraction` es 0..1 DENTRO de esa fase, no de la barra: quien la llama sabe
+## cuanto lleva de lo suyo y no tiene por que saber nada del reparto.
+##
+## Silenciosa cuando no hay nada que pintar - la camara de precarga tambien corre
+## en escenas a las que se entro sin pantalla de carga (`awaiting_manual_end`
+## falso), y ahi esto no debe tocar un loader que ya se esta cerrando.
+func report_manual_progress(fraction: float) -> void:
+	if _current_loader == null or not awaiting_manual_end:
+		return
+
+	_current_loader.update_progress(MANUAL_LOAD_SHARE
+		+ clampf(fraction, 0.0, 1.0) * (1.0 - MANUAL_LOAD_SHARE))
 
 func finish_loading_screen() -> void:
 	get_tree().paused = false

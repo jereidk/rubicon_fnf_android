@@ -1030,6 +1030,7 @@ func _process(_delta: float) -> void:
 		_batch = mini(_batch + 1, MAX_BATCH)
 
 	_reveal(_batch)
+	_report_progress()
 
 	# After the reveal, so this frame draws the nodes it just switched on from
 	# the pose it is about to move to rather than from the previous one. Not
@@ -1204,8 +1205,30 @@ func finish_preload(_anim: StringName = &"") -> void :
 		camera_to_focus.make_current()
 
 	if SceneChanger.awaiting_manual_end:
+		# Antes de entregar, porque `finish_loading_screen()` baja la bandera y a
+		# partir de ahi `report_manual_progress()` ya no pinta nada. La barra
+		# tiene que llegar a tope en la pantalla que se esta cerrando, no
+		# quedarse en el ultimo lote.
+		SceneChanger.report_manual_progress(1.0)
 		SceneChanger.finish_loading_screen()
 	queue_free()
+
+## Lo que lleva revelado, para la mitad de la barra que cubre este barrido.
+##
+## Esta es la unica senal de vida que el jugador tiene durante la precarga. En
+## Chimera son 39 segundos con la escena cargada del todo, el arbol pausado y el
+## dispositivo a 1 fps; sin esto la barra lleva llena desde el segundo 126 y la
+## pantalla entera parece colgada. Ver MANUAL_LOAD_SHARE en scene_changer.gd.
+##
+## Nodos revelados y no tiempo transcurrido: el tiempo no sabe cuanto queda -el
+## plazo se rebasa, en esta traza por 8,9s- y los nodos si, y ademas es la misma
+## cuenta que decide cuando esto termina, asi que la barra no puede llegar al
+## final antes que el barrido ni quedarse corta cuando lo alcanza.
+func _report_progress() -> void:
+	if _hidden.is_empty():
+		return
+
+	SceneChanger.report_manual_progress(float(_revealed) / float(_hidden.size()))
 
 # Soft dependency: this camera is also used in scenes opened directly from
 # the editor, where DiagnosticsLog's autoload chain may not be running.
