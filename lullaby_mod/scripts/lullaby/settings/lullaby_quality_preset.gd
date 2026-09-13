@@ -4,6 +4,11 @@ class_name LullabyQualityPreset extends Resource
 
 ## Como se sube el pase 3D desde su resolucion reducida hasta la del viewport.
 ##
+## INERTE MIENTRAS render_scale VALGA 1.0, que es lo que llevan hoy los cuatro
+## presets: sin reduccion no hay subida, y no hay blit que filtrar. Se deja
+## puesto porque el dia que alguien vuelva a bajar la escala este es el valor
+## que quiere, y porque su historia explica por que.
+##
 ## NO cambia cuanto se dibuja: con `render_scale = 0.5` el 3D se renderiza a
 ## media resolucion en los dos casos, y esto solo decide el filtrado del blit
 ## final. NEAREST (5) ahorra las muestras de ese filtrado y a cambio sube el
@@ -46,6 +51,27 @@ class_name LullabyQualityPreset extends Resource
 ##
 ## Los SubViewport son el otro caso y si escalan enteros, 2D incluido, por `size`
 ## y `stretch_shrink`: ver `Settings._apply_subviewport_render_scale()`.
+##
+## LOS CUATRO PRESETS VAN A 1.0 por decision del autor. Antes eran 0.50 muy
+## bajo, 0.65 bajo, 0.85 medio y 1.0 alto, y lo que ese escalon compraba esta
+## medido en el g53 del usuario y se deja escrito aqui para que la vuelta atras
+## no haya que volver a medirla:
+##
+##     gpu = 5,7ms + 90,8ms x Mpx del pase 3D     (Chimera, Adreno 619, 1600x720)
+##
+##     escala 0.50 -> 0,288 Mpx ->  31,9ms
+##     escala 0.65 -> 0,487 Mpx ->  49,9ms
+##     escala 1.00 -> 1,152 Mpx -> 110,3ms
+##
+## Ese modelo se ajusto en Chimera, que es mucho mas pesada que la tienda - la
+## tienda mide gpu=13,5-15ms a escala 0.50 y el modelo predeciria 31,9 - asi que
+## no se traslada tal cual. Lo que si se traslada es la forma: 1.0 son cuatro
+## veces los pixeles del pase 3D, y con el gpu ya al 82% del presupuesto de
+## 16,67ms en la tienda, cuadruplicar la mitad dominante no cabe.
+##
+## Y el coste no es solo el pase principal: esta misma propiedad redimensiona
+## cada SubViewport, y la tienda tiene siete. El log mide sub_gpu=3,03ms sobre
+## 0,92 Mpx a escala 0.50.
 @export var render_scale: float = 1.0
 @export var shadows_enabled: bool = true
 @export var positional_shadow_atlas_size: int = 4096
@@ -62,9 +88,11 @@ class_name LullabyQualityPreset extends Resource
 ## The project was leaving this at the engine default of 4x everywhere. It is a
 ## per-sample bandwidth cost on every textured pixel, and this device is bound
 ## on exactly that - Chimera's GPU time tracks how much of the screen is
-## covered, not how many objects or primitives there are. At Low's 0.65 render
-## scale on a 720p phone the difference between 4x and off is not visible;
-## the bandwidth is.
+## covered, not how many objects or primitives there are. On a 720p phone the
+## difference between 4x and off is not visible; the bandwidth is. That was
+## measured when Low rendered 3D at 0.65; now that every preset renders at 1.0
+## there are more textured pixels per frame, not fewer, so the case for keeping
+## this low is stronger rather than weaker.
 @export_enum("Off (1x)", "2x", "4x", "8x", "16x")
 var anisotropic_filtering: int = 2
 

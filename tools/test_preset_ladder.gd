@@ -120,10 +120,23 @@ func _initialize() -> void:
 
 	# El peldaño concreto que motivó este fichero, fijado por su nombre para
 	# que el fallo diga de que iba en vez de solo "render_scale sube".
+	#
+	# La comparación es `<=` y no `<` desde que los cuatro presets pasaron a
+	# render_scale = 1.0 por decisión del autor. El fallo que este fichero
+	# existe para cazar era Very Low renderizando MÁS píxeles que Low - 0.70
+	# contra 0.65 - y `<=` lo sigue cazando igual de bien; lo único que permite
+	# es que los dos valgan lo mismo.
+	#
+	# Lo que ese empate cuesta está en la cabecera de este fichero y no se
+	# borra: el modelo medido en el g53 del usuario es
+	# `gpu = 5.7ms + 90.8ms x Mpx`, y a 1600x720 la escala 1.0 son 1,152 Mpx,
+	# o sea 110ms por fotograma en Chimera. La escalera sigue bajando de coste
+	# por los otros campos - sombras, MSAA, post, filtrado - pero ya no por el
+	# que este proyecto tiene medido como dominante.
 	var low: LullabyQualityPreset = loaded[2]
 	var very_low: LullabyQualityPreset = loaded[3]
-	_check(very_low.render_scale < low.render_scale,
-		"Very Low (%.2f) renderiza menos pixeles de 3D que Low (%.2f)" %
+	_check(very_low.render_scale <= low.render_scale,
+		"Very Low (%.2f) no renderiza mas pixeles de 3D que Low (%.2f)" %
 		[very_low.render_scale, low.render_scale])
 
 	# Ningun preset pone un numero fijo de fps. -1 es TARGET_FPS_NATIVE, o sea
