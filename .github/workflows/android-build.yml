@@ -2350,7 +2350,12 @@ jobs:
         if: steps.build.outputs.build_success == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: rubicon-fnfr-android-release
+          # El tipo va en el nombre. Estaba fijo en "release" mientras el APK
+          # de dentro se llama builds/${BUILD_TYPE}_*.apk, asi que una build de
+          # depuracion se subia como "rubicon-fnfr-android-release" y en la
+          # lista de artifacts las dos quedaban indistinguibles. Hubo que abrir
+          # el workflow para saber cual era cual.
+          name: rubicon-fnfr-android-${{ steps.build.outputs.build_type }}
           path: builds/rubicon-release-*.apk
           retention-days: 3
           compression-level: 9

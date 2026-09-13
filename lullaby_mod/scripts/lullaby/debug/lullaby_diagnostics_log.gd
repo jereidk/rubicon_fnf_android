@@ -358,7 +358,7 @@ var _visual3d_watch: Array[VisualInstance3D] = []
 ## half in milliseconds; this says how much surface can cause it.
 var _alpha_surface_count: int = 0
 
-## GPUSPLIT: the same shot timed three ways, one frame each.
+## GPUSPLIT: the same shot timed four ways, one frame each.
 ##
 ## The one measurement this project has needed all along and never had. `gpu=`
 ## is a single number for the whole frame, so "Chimera is per-fragment lighting"
@@ -370,6 +370,13 @@ var _alpha_surface_count: int = 0
 ##
 ##     base - unshaded   = what the per-fragment lighting maths costs
 ##     overdraw          = what rasterising that depth complexity costs at all
+##     base - sin_3d     = what the WHOLE 3D pass costs, so sin_3d is the 2D
+##
+## The third probe answers a different question from the first two: they both
+## split the 3D pass internally, and neither says how large the 3D pass is
+## against the rest of the frame. That is exactly what `render_scale` asks -
+## it scales the 3D pass and nothing else, while this game draws Serena, the
+## HUD, the notes and the score in 2D at panel resolution regardless.
 ##
 ## No GPU->CPU readback anywhere, which is what made the old `sonda=` field
 ## expensive enough to delete: this only swaps an enum and reads a counter that
@@ -387,11 +394,59 @@ var _gpu_split_state: int = 0
 var _time_since_gpu_split: float = 0.0
 var _gpu_split_base: float = 0.0
 
-## Which of the two debug passes this sample takes. Alternating instead of
-## doing both in one cycle is what gets this down to **one** wrong frame per
-## sample: each line is self-contained (base against one of the two) and the
-## two halves interleave across a song.
-var _gpu_split_overdraw_turn: bool = false
+## Which of the FIVE probe passes this sample takes, rotating 0..4.
+## Rotating instead of doing them all in one cycle is what gets this down to
+## **one** wrong frame per sample: each line is self-contained (base against one
+## probe) and the fifths interleave across a song.
+##
+##   0  UNSHADED        -> what the per-fragment lighting maths costs
+##   1  OVERDRAW        -> what rasterising that depth complexity costs
+##   2  disable_3d      -> what the WHOLE 3D pass costs, and therefore the 2D
+##   3  shadows off     -> what rendering the shadow maps costs
+##   4  environment off -> what glow, fog, SSAO and SSIL cost
+##
+## Together those name every large bucket a frame on this device can be
+## spending GPU time in, which is the point: `gpu=13.7ms` fits any story, and
+## until each bucket had a number none of them could be ruled out.
+##
+##   turn 2 is the one `render_scale` asks about. That property scales only the
+##   3D pass; the main viewport's 2D keeps drawing at panel resolution, and in
+##   this game 2D is not decoration - Serena is entirely 2D sprites, as are the
+##   HUD, the notes and the score. "The frame at 0.5 is half a frame" was never
+##   true and nothing measured how untrue.
+##
+##   turn 3 because a tiled mobile GPU re-renders the scene once per
+##   shadow-casting light, and the shop lights fourteen - 8 spot, 5 omni, 1
+##   directional. `bake=` says how many are baked and `luz=` how many reach;
+##   neither is a millisecond.
+##
+##   turn 4 because glow is several blur passes over the whole frame and blur is
+##   pure bandwidth, which is exactly what this device is bound on. The shop
+##   reports `env=glow+fog` and that string has never had a cost beside it.
+##
+## All five are a property write plus a counter read - no GPU->CPU readback
+## anywhere, which is what made the old `sonda=` field expensive enough to
+## delete - and all five restore in the same step, unconditionally.
+const GPU_SPLIT_TURNS := 5
+var _gpu_split_turn: int = 0
+
+## Lo que el turno en curso apago, para devolverlo tal cual.
+##
+## Se guarda en vez de recalcularse porque hay que restaurar EXACTAMENTE lo que
+## habia: apagar las sombras de catorce luces y luego encenderlas todas dejaria
+## encendidas las que estaban apagadas a mano, y eso no es restaurar, es
+## cambiarle la escena al jugador por medir.
+var _gpu_split_lights: Array[Light3D] = []
+var _gpu_split_env: Environment = null
+
+## `null` es un Environment valido, asi que el restaurador no puede usar
+## `_gpu_split_env != null` para saber si le toca escribir: una escena sin
+## entorno se quedaria con el de la escena anterior. La bandera lo separa.
+var _gpu_split_had_env: bool = false
+
+## Cuantas luces se apagaron en el turno de sombras, guardado aparte porque la
+## lista se vacia al restaurar y la linea se escribe despues.
+var _gpu_split_lights_measured: int = 0
 
 ## SCRIPTSPLIT: the same frame timed twice, once with the animation mixers off.
 ##
@@ -2169,14 +2224,16 @@ func _collect_blackout_watch() -> void:
 		_probe_names.size(), _current_scene_name(),
 		", ".join(reparto) if not reparto.is_empty() else "ninguna"])
 
-## Times the same shot three ways and writes GPUSPLIT.
+## Times the same shot four ways and writes GPUSPLIT.
 ##
 ## `viewport_get_measured_render_time_gpu()` is **one frame behind**, so each
 ## step reads the frame the previous step set up:
 ##
-##   step 0   read = a normal frame      -> base        then draw UNSHADED
-##   step 1   read = the unshaded frame  -> unshaded    then draw OVERDRAW
-##   step 2   read = the overdraw frame  -> overdraw    then restore, emit
+##   step 0   read = a normal frame   -> base    then apply this turn's probe
+##   step 1   read = the probed frame  -> probed  then restore, emit
+##
+## The probe rotates across samples (see _gpu_split_turn): UNSHADED, OVERDRAW,
+## disable_3d. One wrong frame per sample either way.
 ##
 ## Only in a scene that has a 3D camera and something visible in it - the two
 ## 2D songs and every menu would report the 2D canvas three times over and say
@@ -2195,16 +2252,20 @@ func _step_gpu_split() -> void:
 			return
 		_time_since_gpu_split = 0.0
 		_gpu_split_base = _viewport_gpu_ms()
-		get_viewport().debug_draw = (Viewport.DEBUG_DRAW_OVERDRAW
-			if _gpu_split_overdraw_turn else Viewport.DEBUG_DRAW_UNSHADED)
+		match _gpu_split_turn:
+			0: get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
+			1: get_viewport().debug_draw = Viewport.DEBUG_DRAW_OVERDRAW
+			2: get_viewport().disable_3d = true
+			3: _gpu_split_shadows_off()
+			4: _gpu_split_env_off()
 		_gpu_split_state = 1
 		return
 
 	var probed: float = _viewport_gpu_ms()
-	get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
+	_gpu_split_restore()
 	_gpu_split_state = 0
-	var was_overdraw: bool = _gpu_split_overdraw_turn
-	_gpu_split_overdraw_turn = not _gpu_split_overdraw_turn
+	var turn: int = _gpu_split_turn
+	_gpu_split_turn = (_gpu_split_turn + 1) % GPU_SPLIT_TURNS
 
 	# A driver that will not answer reports 0.00 for both, and two zeroes are
 	# not a measurement - see the GPUTIMING note.
@@ -2212,10 +2273,39 @@ func _step_gpu_split() -> void:
 		return
 
 	var mpx: float = _mpx_3d()
-	if was_overdraw:
+	if turn == 1:
 		_entry("GPUSPLIT", "base=%.2fms overdraw=%.2fms | relleno=%.0f%% mpx3d=%.3f" % [
 			_gpu_split_base, probed,
 			100.0 * probed / _gpu_split_base, mpx,
+		])
+		return
+
+	if turn == 2:
+		# `probed` es el fotograma SIN 3D, o sea el 2D mas lo que el motor hace
+		# pase lo que pase. La resta es el pase 3D entero, que es lo que
+		# render_scale escala y lo unico que escala.
+		var three_d: float = maxf(_gpu_split_base - probed, 0.0)
+		_entry("GPUSPLIT", "base=%.2fms sin_3d=%.2fms | 3d=%.2fms(%.0f%%) 2d=%.2fms(%.0f%%) mpx3d=%.3f 3d_por_mpx=%.1f" % [
+			_gpu_split_base, probed, three_d,
+			100.0 * three_d / _gpu_split_base,
+			probed, 100.0 * probed / _gpu_split_base, mpx,
+			three_d / maxf(mpx, 0.0001),
+		])
+		return
+
+	if turn == 3:
+		var shadows: float = maxf(_gpu_split_base - probed, 0.0)
+		_entry("GPUSPLIT", "base=%.2fms sin_sombras=%.2fms | sombras=%.2fms(%.0f%%) luces_apagadas=%d mpx3d=%.3f" % [
+			_gpu_split_base, probed, shadows,
+			100.0 * shadows / _gpu_split_base, _gpu_split_lights_measured, mpx,
+		])
+		return
+
+	if turn == 4:
+		var post: float = maxf(_gpu_split_base - probed, 0.0)
+		_entry("GPUSPLIT", "base=%.2fms sin_post=%.2fms | post=%.2fms(%.0f%%) env=%s mpx3d=%.3f" % [
+			_gpu_split_base, probed, post,
+			100.0 * post / _gpu_split_base, _environment_state(), mpx,
 		])
 		return
 
@@ -2225,6 +2315,61 @@ func _step_gpu_split() -> void:
 		100.0 * lighting / _gpu_split_base, mpx,
 		lighting / maxf(mpx, 0.0001),
 	])
+
+
+## Apaga la sombra de cada luz que la tenga puesta, y se acuerda de cuales.
+##
+## Solo las que estaban ENCENDIDAS: ver `_gpu_split_lights`. Y solo las visibles
+## en el arbol, porque una luz oculta no dibuja mapa de sombra y apagarsela no
+## mediria nada, solo alargaria la lista que hay que restaurar.
+func _gpu_split_shadows_off() -> void:
+	_gpu_split_lights.clear()
+	var stack: Array[Node] = [get_tree().root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		var light := node as Light3D
+		if light != null and light.shadow_enabled and light.is_visible_in_tree():
+			light.shadow_enabled = false
+			_gpu_split_lights.append(light)
+	_gpu_split_lights_measured = _gpu_split_lights.size()
+
+
+## Quita el Environment del mundo 3D, que es lo que trae glow, niebla, SSAO y
+## SSIL. Se guarda el que habia; `null` tambien es un valor valido y por eso el
+## restaurador mira una bandera aparte y no `!= null`.
+func _gpu_split_env_off() -> void:
+	var world: World3D = get_viewport().world_3d
+	if world == null:
+		return
+	_gpu_split_env = world.environment
+	_gpu_split_had_env = true
+	world.environment = null
+
+
+## Deshace CUALQUIER turno, se hiciera el que se hiciera.
+##
+## Incondicional a proposito. Restaurar solo lo del turno en curso deja la
+## puerta abierta a que un cambio de escena o un error entre los dos pasos deje
+## el viewport sin 3D, sin sombras o sin Environment para siempre, y eso es
+## mucho peor que el fotograma raro que esto ya cuesta. Cada rama es barata y
+## ninguna hace nada si su turno no corrio.
+func _gpu_split_restore() -> void:
+	get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
+	get_viewport().disable_3d = false
+
+	for light: Light3D in _gpu_split_lights:
+		if is_instance_valid(light):
+			light.shadow_enabled = true
+	_gpu_split_lights.clear()
+
+	if _gpu_split_had_env:
+		var world: World3D = get_viewport().world_3d
+		if world != null:
+			world.environment = _gpu_split_env
+		_gpu_split_env = null
+		_gpu_split_had_env = false
 
 
 ## Times the idle step twice and writes SCRIPTSPLIT. See SCRIPT_SPLIT_SECONDS.
@@ -4206,6 +4351,27 @@ func _entry(kind: String, detail: String) -> void:
 	## the shop authors seven and runs four to six of them, and one name out
 	## of six leaves the rest anonymous. Three is where the line stops
 	## growing faster than it informs.
+	## Ordenados por MILISEGUNDOS, no por pixeles, y cada uno con los suyos.
+	##
+	## Esta linea leia el tiempo de GPU de cada viewport, lo sumaba en
+	## `sub_gpu_ms` y TIRABA el valor individual, y luego ordenaba los nombres
+	## por pixeles. O sea que el dato que hacia falta ya se estaba midiendo y se
+	## descartaba: la tienda reporta sub_gpu=3,03ms sobre siete viewports y no
+	## habia forma de saber cual se los gasta.
+	##
+	## Los pixeles son un sustituto y no siempre aciertan. La tienda tiene dos
+	## SubViewport de 360x270 en UPDATE_ALWAYS con el 3D encendido - el fondo de
+	## la consola y los iconos de la pestana Home - contra el Kollectadex de
+	## 620x464 que es 2D puro y esta en ONCE. Por pixeles gana el Kollectadex;
+	## por coste no, y es el coste lo que se quiere arreglar.
+	##
+	## Tambien resuelve un caso que el filtro de arriba deja pasar: un viewport
+	## en WHEN_VISIBLE que no esta visible cuenta como vivo y suma sus pixeles,
+	## pero no dibuja. En milisegundos sale a 0,00 y cae al final solo.
+	##
+	## `3d` en la etiqueta porque es la diferencia que se puede accionar: un
+	## SubViewport con el 3D apagado es un pase de lienzo, y con el encendido es
+	## una escena entera con su culling, sus luces y su profundidad.
 	var live_viewports: Array = []
 	for viewport: SubViewport in _sub_viewports:
 		if not is_instance_valid(viewport):
@@ -4215,10 +4381,13 @@ func _entry(kind: String, detail: String) -> void:
 		sub_live += 1
 		var pixels: int = viewport.size.x * viewport.size.y
 		sub_pixels += pixels
-		live_viewports.append([pixels, "%s(%dx%d)" % [
+		var ms: float = RenderingServer.viewport_get_measured_render_time_gpu(
+			viewport.get_viewport_rid())
+		sub_gpu_ms += ms
+		live_viewports.append([ms, "%s(%dx%d%s)=%.2fms" % [
 			_scene_relative_path(viewport), viewport.size.x, viewport.size.y,
+			"" if viewport.disable_3d else ",3d", ms,
 		]])
-		sub_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(viewport.get_viewport_rid())
 
 	live_viewports.sort_custom(func(a, b): return a[0] > b[0])
 	var top_viewports: PackedStringArray = []
