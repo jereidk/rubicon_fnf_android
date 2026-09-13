@@ -56,6 +56,16 @@ var _change_in_flight: bool = false
 
 var awaiting_manual_end: bool = false
 
+## Si las dependencias de una escena pueden cargarse en paralelo.
+##
+## Es el tercer parametro de `load_threaded_request()` y su defecto es `false`.
+## Ver la llamada, que lleva la evidencia del log.
+##
+## Constante y no `@export` a proposito: es un interruptor de riesgo, no un
+## ajuste. Si aparece un cuelgue de carga se pone a `false` aqui y se vuelve al
+## comportamiento por defecto de Godot en una linea.
+const USE_SUB_THREADS := true
+
 ## Que parte de la barra se lleva la carga cuando quien llama se queda con la
 ## pantalla puesta (`end_manually`).
 ##
@@ -189,10 +199,52 @@ func change_to(path: String, loading_screen: StringName = &"hypno", end_manually
 	await _current_loader.start()
 
 	get_tree().unload_current_scene()
+
+	# Y se le deja terminar ANTES de pedir la carga nueva.
+	#
+	# `unload_current_scene()` hace `queue_free`, que difiere la destruccion al
+	# final del fotograma. Pedir la carga en la linea siguiente pone a destruir
+	# la escena vieja y a cargar la nueva a la vez, peleandose por la misma cola
+	# del servidor de render.
+	#
+	# Dos fotogramas y no uno: el primero corre los `queue_free` encolados, y el
+	# segundo deja que el servidor de render procese las RID que esos frees le
+	# dejaron. La pantalla de carga ya esta montada - `await _current_loader
+	# .start()` esta justo arriba - asi que el jugador no ve ninguno de los dos.
+	await get_tree().process_frame
+	await get_tree().process_frame
+
 	# Before the request, so the count is of what is cached from here on and
 	# not of whatever the outgoing scene happened to leave behind.
 	_collect_direct_deps(_watching_path)
-	ResourceLoader.load_threaded_request(_watching_path)
+
+	# `use_sub_threads = true`, el tercer parametro, que por defecto va en false:
+	# las dependencias se resuelven EN SERIE, en un solo hilo del pool, en un
+	# telefono de ocho nucleos.
+	#
+	# Entrando a Chimera en el log 10252-5c5c1817 eso son 47,5 segundos de los
+	# que TREINTA Y DOS no mueven el contador ni una dependencia:
+	#
+	#   [ 94.00s] LOADING 50.0% at 14599ms deps=196/346 +props1.tres +foliage.png
+	#   ... treinta y dos segundos identicos ...
+	#   [125.16s] LOADING 50.0% at 45812ms deps=196/346
+	#   [126.16s] LOADING 50.0% at 46814ms deps=297/346 +chimera_house.tscn
+	#                                       +mdl_chimera_camera.gltf
+	#
+	# Ciento una dependencias en el ultimo segundo despues de media hora de
+	# nada. Y el telefono no estaba trabajando: `fps_now=59-62`, `median=16.7ms`,
+	# la RAM clavada en 120-125MB y la VRAM en 138MB durante los treinta y dos
+	# segundos enteros. Un hilo serializando la casa de Chimera - 31,5MB de
+	# `chimera0.bin` mas una treintena de texturas, tres de ellas de 4 a 5,5MB -
+	# mientras los otros siete nucleos miran.
+	#
+	# El riesgo con nombre: con sub-hilos Godot puede llamar a un
+	# ResourceFormatLoader propio desde varios hilos a la vez. El unico que hay
+	# aqui es `RubiChartFileLoader`, y es stateless - ni un miembro, todo en
+	# locales, un FileAccess por llamada -, cosa que
+	# tools/test_threaded_load_parallel.gd comprueba. Si aparece un cuelgue de
+	# carga, esta constante a `false` devuelve el comportamiento por defecto.
+	ResourceLoader.load_threaded_request(_watching_path, "", USE_SUB_THREADS)
 	_is_loading = true
 	awaiting_manual_end = end_manually
 

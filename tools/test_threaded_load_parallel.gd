@@ -26,7 +26,22 @@ extends SceneTree
 ## Run with:
 ##   godot --headless --path . --script tools/test_threaded_load_parallel.gd
 
-const CHANGER := "res://lullaby_mod/scripts/lullaby/loading/lullaby_scene_changer.gd"
+## El cambiador de escena NO se nombra aqui: se lee del autoload.
+##
+## Este guard leia `lullaby_mod/.../lullaby_scene_changer.gd`, que es el PUERTO
+## DE REFERENCIA y no lo que corre - `project.godot` autoloada
+## `menus/scene_changer.gd`. Asi que estuvo dando verde, durante builds, sobre
+## un fichero que el juego no ejecuta, mientras la carga de verdad seguia
+## pidiendo las dependencias en serie. El log 10252-5c5c1817 tiene la factura:
+## 32 segundos con `deps=196/346` sin moverse y 101 dependencias en el ultimo
+## segundo.
+##
+## Es la tercera vez que esa divergencia cuesta algo - la cabecera de
+## `menus/scene_changer.gd` ya cuenta la de `_blended_progress()`, guardada
+## igual y sin llegar al juego - asi que la ruta sale de `project.godot` y no de
+## una constante. Un guard que elige el fichero equivocado es peor que no tener
+## guard: da la senal de que algo esta protegido.
+const PROJECT := "res://project.godot"
 const CHART_LOADER := "res://addons/rubicon/scripts/data/chart/rubichart_file_loader.gd"
 
 var _failures: int = 0
@@ -34,8 +49,15 @@ var _checks: int = 0
 
 
 func _initialize() -> void:
-	var code: String = _read(CHANGER)
-	if not _check(not code.is_empty(), "lullaby_scene_changer.gd se lee"):
+	var changer: String = _autoload_path("SceneChanger")
+	if not _check(not changer.is_empty(),
+			"project.godot dice quien es SceneChanger"):
+		_finish()
+		return
+	print("  ---  el autoload es %s" % changer)
+
+	var code: String = _read(changer)
+	if not _check(not code.is_empty(), "el autoload SceneChanger se lee"):
 		_finish()
 		return
 
@@ -44,7 +66,7 @@ func _initialize() -> void:
 	_check(code.contains('load_threaded_request(_watching_path, "", USE_SUB_THREADS)'),
 		"y la peticion la pasa, en vez de heredar el false por defecto")
 
-	var script: GDScript = load(CHANGER)
+	var script: GDScript = load(changer)
 	if _check(script != null, "el cambiador de escena carga"):
 		_check(bool(script.get_script_constant_map().get("USE_SUB_THREADS")),
 			"esta encendido")
@@ -72,6 +94,23 @@ func _initialize() -> void:
 func _read(path: String) -> String:
 	var f := FileAccess.open(path, FileAccess.READ)
 	return "" if f == null else f.get_as_text()
+
+
+## La ruta del autoload, sacada de project.godot.
+##
+## A mano y no con `ProjectSettings.get_setting()`: `--script` arranca sin los
+## autoloads y con el `ProjectSettings` a medias, que es justo el motivo por el
+## que estos guards leen fuente en vez de ejecutar.
+##
+## El formato es `Nombre="*res://ruta.gd"`, con el asterisco marcando que se
+## instancia como singleton.
+func _autoload_path(who: String) -> String:
+	for line: String in _read(PROJECT).split("\n"):
+		if not line.begins_with("%s=" % who):
+			continue
+		var value: String = line.split("=", true, 1)[1].strip_edges()
+		return value.trim_prefix('"').trim_suffix('"').trim_prefix("*")
+	return ""
 
 
 func _finish() -> void:

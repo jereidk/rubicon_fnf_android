@@ -21,19 +21,34 @@ extends SceneTree
 ## Run with:
 ##   godot --headless --path . --script tools/test_teardown_before_load.gd
 
-const CHANGER := "res://lullaby_mod/scripts/lullaby/loading/lullaby_scene_changer.gd"
+## El cambiador de escena se lee del autoload, no se nombra aqui.
+##
+## Este guard apuntaba a `lullaby_scene_changer.gd`, que es el puerto de
+## referencia y NO lo que corre: `project.godot` autoloada
+## `menus/scene_changer.gd`, y ese fichero no tenia ninguna de las dos esperas.
+## Verde en CI durante builds sobre codigo muerto. Ver la cabecera de
+## tools/test_threaded_load_parallel.gd, que cayo en lo mismo y lleva la
+## factura en segundos.
+const PROJECT := "res://project.godot"
 
 var _failures: int = 0
 var _checks: int = 0
 
 
 func _initialize() -> void:
+	var changer: String = _autoload_path("SceneChanger")
+	if not _check(not changer.is_empty(),
+			"project.godot dice quien es SceneChanger"):
+		_finish()
+		return
+	print("  ---  el autoload es %s" % changer)
+
 	# Sin comentarios: la busqueda es textual, y el fichero MENCIONA
 	# `load_threaded_request()` en la documentacion de USE_SUB_THREADS, muy por
 	# encima de donde lo llama. Buscando sobre el fichero crudo, `request_at`
 	# caia en esa mencion y esta prueba se declaraba rota por una linea de prosa.
-	var code: String = _strip_comments(FileAccess.get_file_as_string(CHANGER))
-	if not _check(not code.is_empty(), "el scene changer se lee"):
+	var code: String = _strip_comments(FileAccess.get_file_as_string(changer))
+	if not _check(not code.is_empty(), "el autoload SceneChanger se lee"):
 		_finish()
 		return
 
@@ -130,6 +145,21 @@ func _check(ok: bool, what: String) -> bool:
 
 ## Fuera las lineas de comentario, para que una mencion en prosa no se confunda
 ## con una llamada.
+## La ruta del autoload, sacada de project.godot.
+##
+## A mano y no con `ProjectSettings.get_setting()`: `--script` arranca sin los
+## autoloads y con el `ProjectSettings` a medias, que es justo el motivo por el
+## que estos guards leen fuente en vez de ejecutar.
+func _autoload_path(who: String) -> String:
+	var project: String = FileAccess.get_file_as_string(PROJECT)
+	for line: String in project.split("\n"):
+		if not line.begins_with("%s=" % who):
+			continue
+		var value: String = line.split("=", true, 1)[1].strip_edges()
+		return value.trim_prefix('"').trim_suffix('"').trim_prefix("*")
+	return ""
+
+
 func _strip_comments(code: String) -> String:
 	var out: PackedStringArray = []
 	for line: String in code.split("\n"):
