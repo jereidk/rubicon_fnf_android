@@ -866,7 +866,7 @@ func apply_settings() -> void:
 
 	window.content_scale_aspect = display_screen_aspect
 
-	DisplayServer.window_set_vsync_mode(display_vsync, window.get_window_id())
+	_apply_vsync(window)
 	Engine.max_fps = _resolved_target_fps()
 
 	window.scaling_3d_mode = graphics_scaling_mode
@@ -1013,6 +1013,50 @@ const SUBVIEWPORT_AUTHORED_SHRINK := &"lullaby_authored_stretch_shrink"
 ## Rounded, not truncated: panels report 59.94 and 119.88 as often as 60 and
 ## 120, and int() on those gives 59 and 119, a cap fractionally under the
 ## refresh rate which is the one value guaranteed to miss every frame.
+
+
+## El modo de presentacion que el conductor concedio de verdad.
+##
+## Pedir no es obtener, y hasta ahora nada en el juego sabia cual de los dos
+## tenia. Se lee de vuelta para que el log de diagnostico pueda decirlo: hoy
+## infiere `vsync=99%@60Hz` de los tiempos de fotograma, que es una consecuencia
+## y no el ajuste.
+var actual_vsync: DisplayServer.VSyncMode = DisplayServer.VSYNC_ENABLED
+
+
+## Pide un modo de presentacion que el telefono pueda dar, y apunta cual dio.
+##
+## [member display_vsync] vale VSYNC_DISABLED desde siempre, y no hay ninguna
+## fila de ajustes que lo cambie: se declara arriba, se aplica aqui, y nadie mas
+## en el proyecto lo lee ni lo escribe. En escritorio se concede. En el Adreno
+## 619 del moto g53 no:
+##
+##     [4.41s] WARNING The requested V-Sync mode Disabled is not available.
+##             Falling back to V-Sync mode Enabled.
+##             rendering_device_driver_vulkan.cpp:3767 swap_chain_resize
+##
+## Ese conductor Vulkan no expone IMMEDIATE, asi que cae a FIFO. Y FIFO no
+## degrada suave: un fotograma que se pasa de 16,67ms espera el refresco ENTERO,
+## o sea que 17ms se vuelven 33 y 60fps se vuelven 30 de golpe. Con 60fps como
+## objetivo eso pesa mas que el desgarro que VSYNC_DISABLED evitaba.
+##
+## MAILBOX es la respuesta si el conductor la tiene: presenta el fotograma mas
+## nuevo sin bloquear, asi que no hay desgarro y tampoco espera de refresco
+## completo. No esta garantizada, y si no la tiene cae a FIFO - que es
+## exactamente donde estamos hoy. O sea que el peor caso de este cambio es el
+## estado actual, y el mejor quita el escalon de 60 a 30.
+##
+## Solo en movil. En escritorio VSYNC_DISABLED se concede y funciona, y cambiarlo
+## seria tocar algo que no esta roto por un problema que no tiene.
+func _apply_vsync(window: Window) -> void:
+	var wanted: DisplayServer.VSyncMode = display_vsync
+	if OS.has_feature("mobile"):
+		wanted = DisplayServer.VSYNC_MAILBOX
+
+	DisplayServer.window_set_vsync_mode(wanted, window.get_window_id())
+	actual_vsync = DisplayServer.window_get_vsync_mode(window.get_window_id())
+
+
 func _resolved_target_fps() -> int:
 	if display_target_fps != TARGET_FPS_NATIVE:
 		return display_target_fps

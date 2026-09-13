@@ -2650,10 +2650,33 @@ func _viewport_config() -> String:
 ## that a single field would have answered. time_scale is here for the same
 ## reason: it silently rescales every delta in the game and nothing reports it.
 func _engine_config() -> String:
-	return "ts%.2f fps%d hz%d steps%d" % [
+	return "ts%.2f fps%d hz%d steps%d present=%s" % [
 		Engine.time_scale, Engine.max_fps,
 		Engine.physics_ticks_per_second, Engine.max_physics_steps_per_frame,
+		_present_mode(),
 	]
+
+
+## El modo de presentacion CONCEDIDO, no el pedido.
+##
+## La fila ya trae `vsync=NN%@NNHz` en el histograma, pero eso se infiere de los
+## tiempos de fotograma: es una consecuencia, no el ajuste. Lo que faltaba es
+## cual de los cuatro modos tiene el swapchain, porque el conductor puede negar
+## el que se pide y el .error solo lo dice una vez, al arrancar:
+##
+##     [4.41s] WARNING The requested V-Sync mode Disabled is not available.
+##             Falling back to V-Sync mode Enabled.
+##
+## Importa para los 60fps porque FIFO no degrada suave - un fotograma de 17ms
+## espera el refresco entero y sale a 33 - y MAILBOX si. Se lee del servidor y no
+## de Settings por lo mismo: pedir no es obtener.
+func _present_mode() -> String:
+	match DisplayServer.window_get_vsync_mode(DisplayServer.MAIN_WINDOW_ID):
+		DisplayServer.VSYNC_DISABLED: return "off"
+		DisplayServer.VSYNC_ENABLED: return "fifo"
+		DisplayServer.VSYNC_ADAPTIVE: return "adapt"
+		DisplayServer.VSYNC_MAILBOX: return "mailbox"
+	return "?"
 
 ## The Control that currently has keyboard focus, if any.
 ##
