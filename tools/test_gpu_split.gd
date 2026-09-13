@@ -46,33 +46,53 @@ func _initialize() -> void:
 	var body: String = _func_body(src, "_step_gpu_split")
 	_check(body != "", "_step_gpu_split existe")
 
-	# 1. El desfase de un frame: en cada paso se LEE antes de escribir el modo
-	#    siguiente. Si alguien invierte el orden, los tres numeros siguen
-	#    saliendo y ninguno mide lo que dice.
+	# 1. El desfase de un frame: en cada paso se LEE antes de escribir la sonda
+	#    siguiente. Si alguien invierte el orden, los numeros siguen saliendo y
+	#    ninguno mide lo que dice.
+	#
+	#    Los marcadores cambiaron al pasar GPUSPLIT de dos sondas a cinco. La
+	#    restauracion ya no es una linea dentro de esta funcion sino
+	#    `_gpu_split_restore()`, que deshace TODAS las sondas pase la que pase -
+	#    y eso es mejor que lo que habia, no peor: con cinco sondas, restaurar
+	#    solo la del turno en curso dejaria al jugador sin 3D, sin sombras o sin
+	#    Environment para siempre si un cambio de escena cae entre los dos
+	#    pasos. Lo que este bloque protege - el orden - es lo mismo; lo que
+	#    busca para comprobarlo es lo que se actualiza.
 	var read_base: int = body.find("_gpu_split_base = _viewport_gpu_ms()")
-	var set_mode: int = body.find("Viewport.DEBUG_DRAW_OVERDRAW")
+	var set_mode: int = body.find("match _gpu_split_turn:")
 	var read_probe: int = body.find("var probed: float = _viewport_gpu_ms()")
-	var restore: int = body.find("Viewport.DEBUG_DRAW_DISABLED")
-	for pair: Array in [[read_base, set_mode, "base se lee antes de pedir el modo de depuracion"],
-			[set_mode, read_probe, "el modo se pide antes de leer su frame"],
+	var restore: int = body.find("_gpu_split_restore()")
+	for pair: Array in [[read_base, set_mode, "base se lee antes de pedir la sonda"],
+			[set_mode, read_probe, "la sonda se pide antes de leer su frame"],
 			[read_probe, restore, "y se lee antes de restaurar"]]:
 		_check(pair[0] >= 0 and pair[1] >= 0 and pair[0] < pair[1], pair[2])
 
-	# Un solo frame mal por muestra: las dos pasadas se alternan en vez de
-	# hacerse las dos en el mismo ciclo. Es lo que hace asumible tenerlo
-	# encendido de fabrica.
-	_check(_has_statement(body, "_gpu_split_overdraw_turn = not _gpu_split_overdraw_turn"),
-		"las dos pasadas se alternan, una por muestra")
+	# Un solo frame mal por muestra: las sondas ROTAN en vez de hacerse todas en
+	# el mismo ciclo. Es lo que hace asumible el coste, y con cinco importa mas
+	# que con dos.
+	_check(_has_statement(body,
+		"_gpu_split_turn = (_gpu_split_turn + 1) % GPU_SPLIT_TURNS"),
+		"las sondas rotan, una por muestra")
 	_check(body.count("_viewport_gpu_ms()") == 2,
-		"y por tanto solo hay dos lecturas por ciclo, no tres")
+		"y por tanto solo hay dos lecturas por ciclo, no una por sonda")
 
 	# 2. Restaurar pase lo que pase. La unica salida despues del ultimo paso es
 	#    la de "el driver no contesta", y tiene que ir DESPUES del restore.
 	var early_out: int = body.find("if _gpu_split_base <= 0.0:")
-	_check(early_out >= 0 and restore < early_out,
-		"debug_draw se restaura antes de la salida por driver mudo")
+	_check(early_out >= 0 and restore >= 0 and restore < early_out,
+		"se restaura antes de la salida por driver mudo")
 	_check(body.find("_gpu_split_state = 0", restore) >= 0,
 		"y el ciclo se cierra ahi mismo")
+
+	# Y la restauracion deshace las CINCO sondas, no solo la del turno. Es la
+	# comprobacion que esta funcion no tenia porque con dos sondas ambas eran
+	# `debug_draw`; ahora hay tres mecanismos distintos y olvidar uno no da
+	# ningun error, solo deja la escena mal para el resto de la partida.
+	var undo: String = _func_body(src, "_gpu_split_restore")
+	_check(undo != "", "_gpu_split_restore existe")
+	for what: String in ["Viewport.DEBUG_DRAW_DISABLED", "disable_3d = false",
+			"shadow_enabled = true", "world.environment = _gpu_split_env"]:
+		_check(undo.contains(what), "  deshace %s" % what)
 
 	# Y el ciclo en vuelo no se puede abortar a media: el ajuste solo se mira
 	# en el paso 0, asi que apagarlo mientras corre no deja el viewport en
