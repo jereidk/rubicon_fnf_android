@@ -1295,6 +1295,15 @@ jobs:
           # here, which is the same failure it is meant to prevent.
           guard_godot tools/test_gpu_split_turns.gd
 
+          # === Verify the touch check is resolved once, not once per call
+          # Seven callers, several of them per frame, each otherwise doing
+          # three engine round-trips - a string-keyed ProjectSettings lookup,
+          # a DisplayServer call and an OS.has_feature - for an answer decided
+          # at startup. Removing the cache raises no error and spreads the cost
+          # across seven nodes so no profile points at it, in the one scene
+          # that sits right on the 16.67ms line.
+          guard_godot tools/test_touch_check_cached.gd
+
           # === Verify the script split restores exactly what it paused
           # Same method as the GPU split, for the CPU half: rest= is the whole
           # of Chimera's script cost (p50 5.24ms, p90 24.18, max 30.60 against

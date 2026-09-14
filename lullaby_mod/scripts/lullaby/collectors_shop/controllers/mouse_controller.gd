@@ -334,9 +334,37 @@ func _get_look_direction() -> float:
 ## at all), all of which need to ignore that emulated input on touch and
 ## defer to the joystick/OK button instead. Public (no leading underscore)
 ## because touch_aim_reticle.gd, a separate sibling node, calls it too.
+## Resuelta UNA vez por sesion, no una vez por llamada.
+##
+## Las tres consultas son constantes durante toda la sesion y ninguna es
+## barata: `ProjectSettings.get_setting()` resuelve una ruta POR CADENA a traves
+## del binding, `OS.has_feature()` compara contra el conjunto de features, y
+## `DisplayServer.is_touchscreen_available()` cruza al servidor. Ninguna puede
+## cambiar mientras el juego corre: `rubicon_mobile_controls/enabled` solo lo
+## declara `addons/rubicon_mobile_controls/plugin.gd` con `add_project_setting`
+## en el editor - los once sitios que lo tocan en tiempo de ejecucion lo LEEN -
+## y las otras dos son propiedades del aparato y del binario.
+##
+## Y esto no se llamaba una vez por fotograma, sino varias: `_process` y
+## `_physics_process` de este nodo, `touch_aim_reticle.gd`, el `_process` de
+## `prp_notepad.gd`, el de `prp_sign.gd`, `prp_briefcase.gd` y el log de
+## diagnostico. Siete sitios preguntando lo mismo sesenta veces por segundo a
+## una respuesta que se decidio al arrancar.
+##
+## `static`, asi que la comparten todas las instancias y sobrevive a salir y
+## volver a entrar a la tienda - la escena se monta de nuevo, el aparato no
+## cambia. Un `int` con -1 por "sin resolver", porque un `bool` no tiene ese
+## tercer estado y uno con bandera aparte son dos cosas que se pueden
+## desincronizar.
+static var _touch_controls_cache: int = -1
+
 func is_touch_controls_active() -> bool:
-	return ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true) \
-		and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
+	if _touch_controls_cache < 0:
+		_touch_controls_cache = 1 if (
+			ProjectSettings.get_setting("rubicon_mobile_controls/enabled", true)
+			and (DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"))
+		) else 0
+	return _touch_controls_cache == 1
 
 
 func _get_mouse_edge_direction() -> float:
