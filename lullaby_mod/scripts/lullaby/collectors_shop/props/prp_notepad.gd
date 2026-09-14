@@ -93,6 +93,44 @@ var _collision_boxes: Array[Area3D] = []
 func _ready() -> void :
 	_reload_page()
 
+	# El SubViewport de la pagina solo se dibuja cuando la libreta se ve.
+	#
+	# `Page Display/SubViewport` son 790x970 con `transparent_bg`, y la escena no
+	# le pone `render_target_update_mode`, asi que se queda en el defecto de
+	# Godot: UPDATE_ALWAYS. O sea 766.300 pixeles con mezcla, en cada fotograma,
+	# durante toda la sesion - y la libreta esta OCULTA la mayor parte del
+	# tiempo, porque es un objeto al que hay que acercarse. En el log del
+	# dispositivo es el segundo de los dos subviewports vivos con la consola
+	# apagada: `sub=2/7 ... sub_top=...,Notepad/Page`.
+	#
+	# Por la señal y no metiendo la llamada en los seis sitios que escriben
+	# `visible`: dos de ellos estan dentro de tweens, y uno que se olvidara
+	# dejaria el viewport dibujando sin que nada lo dijera.
+	visibility_changed.connect(_update_page_viewport)
+	_update_page_viewport()
+
+## UPDATE_ONCE la primera vez y no UPDATE_DISABLED, por lo mismo que en
+## visibility_viewport_toggler.gd: un SubViewport apagado conserva su ultima
+## textura, pero uno que no ha dibujado nunca no tiene ninguna, y la libreta
+## aparecería en blanco el primer fotograma.
+var _page_viewport_primed: bool = false
+
+func _update_page_viewport() -> void :
+	if sub_viewport == null or not is_instance_valid(sub_viewport):
+		return
+
+	if is_visible_in_tree():
+		_page_viewport_primed = true
+		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		return
+
+	if not _page_viewport_primed:
+		_page_viewport_primed = true
+		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		return
+
+	sub_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+
 const TEXT_ITEM_SIZE: float = 81.5
 
 func _reload_page():
