@@ -87,6 +87,50 @@ func _initialize() -> void:
 	_check(src.contains("if _gpu_split_had_env:"),
 		"el Environment se restaura por bandera y no por != null")
 
+	# --- Que no se mida durante la tormenta de montaje ----------------------
+	#
+	# Sin esto la primera muestra de cada escena cae dentro del montaje y el
+	# reparto que escribe es falso: en el log del 14-09, `base=64.70ms` contra
+	# los 13.62ms que la misma escena cuesta nueve segundos despues.
+	_check(src.contains("const GPU_SPLIT_SETTLE_SECONDS := "),
+		"hay una espera de asentamiento declarada")
+	_check(src.contains("if _gpu_split_pipe_still_ms < GPU_SPLIT_SETTLE_SECONDS * 1000.0:"),
+		"y la sonda no se aplica hasta que el contador de pipelines lleva quieto")
+
+	# El turno no se pierde por esperar: si esta rama reiniciara el reloj de los
+	# veinte segundos, una escena que compila a rachas no mediria nunca.
+	var gate: int = src.find("if _gpu_split_pipe_still_ms <")
+	var reset: int = src.find("_time_since_gpu_split = 0.0", gate)
+	var probe: int = src.find("match _gpu_split_turn:", gate)
+	_check(gate > 0 and reset > 0 and probe > 0 and reset < probe,
+		"esperar no gasta el turno: el reloj solo se reinicia al sondear")
+
+	# El reloj de pipelines corre TAMBIEN durante los veinte segundos de espera.
+	# Si solo corriera despues, cada muestra pagaria cuatro segundos extra.
+	var still: int = src.find("_gpu_split_pipe_still_ms += _last_frame_wall_ms")
+	var wait: int = src.find("if _time_since_gpu_split < GPU_SPLIT_SECONDS")
+	_check(still > 0 and wait > 0 and still < wait,
+		"y el reloj de pipelines corre antes de la espera de los 20s")
+
+	# --- Que la sonda declare lo que ella misma costo -----------------------
+	#
+	# Los turnos 0 y 1 escriben `debug_draw`, que en el renderizador movil es
+	# otra version de shader: cada material a la vista compila una pipeline en
+	# ese fotograma. El log del 14-09 midio +16 pipelines y 161ms de tiron.
+	_check(src.contains("_pipeline_compilations() - _gpu_split_pipe_at_probe"),
+		"la sonda mide las pipelines que creo")
+	_check(src.contains('" sonda_pipe=+%d" % probe_pipe'),
+		"y el campo se construye")
+	# Las cinco lineas, no solo la del turno caro: un cero tambien es dato.
+	#
+	# Dos sangrados porque el turno 0 es el unico que no vive dentro de un `if`
+	# - es el caso por defecto al final de la funcion - asi que su `])` cierra
+	# con una tabulacion menos. Contar solo la forma de dentro del `if` daba
+	# 4 de 5 y habria dejado esa linea sin el campo.
+	var written: int = src.count(", cost,\n\t\t])") + src.count(", cost,\n\t])")
+	_check(written == TURNS.size(),
+		"las cinco lineas lo escriben (%d de %d)" % [written, TURNS.size()])
+
 	_finish()
 
 

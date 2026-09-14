@@ -390,9 +390,42 @@ var _alpha_surface_count: int = 0
 ## come back up with it still on.
 const GPU_SPLIT_SECONDS := 20.0
 
+## Segundos sin compilar una sola pipeline antes de aceptar que la escena esta
+## asentada y se puede medir.
+##
+## Sin esta espera la primera muestra cae DENTRO de la tormenta de montaje, que
+## es justo el momento en que un fotograma no representa nada. El log
+## 10252-5c5c1817 del 14-09, con el split puesto, lo deja en dos lineas:
+##
+##   [30.46s] SPIKE    frame=2093.1ms  pipe=290(+41)
+##   [31.09s] GPUSPLIT base=64.70ms sin_luz=13.53ms | luz=51.18ms(79%)
+##
+## `base=64,70ms` no es una base: es un fotograma de montaje de la tienda. Nueve
+## segundos despues, con la escena quieta, un fotograma normal son 13,62ms. O
+## sea que el reparto "la luz se lleva el 79%" se calculo contra un numero cuatro
+## veces y media mas grande de lo que la escena cuesta, y es falso.
+##
+## Y ademas empeora lo que mide: sondear mientras el driver ya va con retraso
+## suma compilaciones a una cola que es la causa del paron.
+##
+## El contador de pipelines y no los ms por fotograma: lo que hace que una
+## medida no valga aqui no es que el fotograma sea caro - la tienda tiene
+## fotogramas caros de verdad y medirlos es el objetivo - sino que el driver
+## este creando pipelines, que es un coste que aparece una vez y no vuelve.
+const GPU_SPLIT_SETTLE_SECONDS := 4.0
+
 var _gpu_split_state: int = 0
 var _time_since_gpu_split: float = 0.0
 var _gpu_split_base: float = 0.0
+
+## El contador de pipelines la ultima vez que cambio, y cuando fue.
+##
+## `_gpu_split_pipe_at_probe` guarda el valor justo antes de aplicar la sonda,
+## para poder decir cuantas pipelines costo LA SONDA, que es un dato que faltaba
+## y que explica el tiron que se reporto.
+var _gpu_split_pipe_seen: int = -1
+var _gpu_split_pipe_still_ms: float = 0.0
+var _gpu_split_pipe_at_probe: int = 0
 
 ## Which of the FIVE probe passes this sample takes, rotating 0..4.
 ## Rotating instead of doing them all in one cycle is what gets this down to
@@ -2244,13 +2277,33 @@ func _step_gpu_split() -> void:
 	if _gpu_split_state == 0:
 		if not Settings.diagnostics_gpu_split:
 			return
+
+		# El reloj de "cuanto lleva el driver sin compilar nada" corre SIEMPRE,
+		# tambien durante los veinte segundos de espera, para que una escena ya
+		# quieta no tenga que esperar cuatro segundos mas.
+		var pipe_now: int = _pipeline_compilations()
+		if pipe_now != _gpu_split_pipe_seen:
+			_gpu_split_pipe_seen = pipe_now
+			_gpu_split_pipe_still_ms = 0.0
+		else:
+			_gpu_split_pipe_still_ms += _last_frame_wall_ms
+
 		_time_since_gpu_split += _last_frame_wall_ms
 		if _time_since_gpu_split < GPU_SPLIT_SECONDS * 1000.0:
 			return
 		var camera: Camera3D = get_viewport().get_camera_3d()
 		if camera == null or _visual3d_load() <= 0:
 			return
+
+		# La escena todavia se esta montando. No se reinicia
+		# `_time_since_gpu_split`: el turno no se pierde, se toma en cuanto la
+		# cuenta de pipelines lleve quieta lo suyo.
+		# Ver GPU_SPLIT_SETTLE_SECONDS.
+		if _gpu_split_pipe_still_ms < GPU_SPLIT_SETTLE_SECONDS * 1000.0:
+			return
+
 		_time_since_gpu_split = 0.0
+		_gpu_split_pipe_at_probe = pipe_now
 		_gpu_split_base = _viewport_gpu_ms()
 		match _gpu_split_turn:
 			0: get_viewport().debug_draw = Viewport.DEBUG_DRAW_UNSHADED
@@ -2273,10 +2326,32 @@ func _step_gpu_split() -> void:
 		return
 
 	var mpx: float = _mpx_3d()
+
+	# Lo que costo LA SONDA, no lo que midio.
+	#
+	# Los turnos 0 y 1 escriben `debug_draw`, y en el renderizador movil de 4.7
+	# unshaded y overdraw son VERSIONES DE SHADER distintas: cada material a la
+	# vista necesita una pipeline nueva, compilada en ese mismo fotograma. El log
+	# del 14-09 lo tiene con nombre y apellidos:
+	#
+	#   [51.14s] GPUSPLIT base=13.62ms overdraw=11.19ms ... pipe=368(+16)
+	#   [51.15s] SPIKE    frame=161.0ms median=17.2ms (9.3x)
+	#
+	# Dieciseis pipelines y 161ms de tiron en el fotograma de la sonda. Los turnos
+	# 2, 3 y 4 no crean ninguna - solo dejan de dibujar - asi que este campo
+	# separa las sondas que cuestan de las que no, en vez de dejar al lector
+	# atribuirle el tiron a la escena.
+	#
+	# Es coste de UNA vez por escena y por modo: las variantes se quedan
+	# compiladas, asi que la segunda vuelta sale a cero. Si sale a cero desde la
+	# primera, el driver ya las tenia.
+	var probe_pipe: int = _pipeline_compilations() - _gpu_split_pipe_at_probe
+	var cost: String = " sonda_pipe=+%d" % probe_pipe
+
 	if turn == 1:
-		_entry("GPUSPLIT", "base=%.2fms overdraw=%.2fms | relleno=%.0f%% mpx3d=%.3f" % [
+		_entry("GPUSPLIT", "base=%.2fms overdraw=%.2fms | relleno=%.0f%% mpx3d=%.3f%s" % [
 			_gpu_split_base, probed,
-			100.0 * probed / _gpu_split_base, mpx,
+			100.0 * probed / _gpu_split_base, mpx, cost,
 		])
 		return
 
@@ -2285,35 +2360,35 @@ func _step_gpu_split() -> void:
 		# pase lo que pase. La resta es el pase 3D entero, que es lo que
 		# render_scale escala y lo unico que escala.
 		var three_d: float = maxf(_gpu_split_base - probed, 0.0)
-		_entry("GPUSPLIT", "base=%.2fms sin_3d=%.2fms | 3d=%.2fms(%.0f%%) 2d=%.2fms(%.0f%%) mpx3d=%.3f 3d_por_mpx=%.1f" % [
+		_entry("GPUSPLIT", "base=%.2fms sin_3d=%.2fms | 3d=%.2fms(%.0f%%) 2d=%.2fms(%.0f%%) mpx3d=%.3f 3d_por_mpx=%.1f%s" % [
 			_gpu_split_base, probed, three_d,
 			100.0 * three_d / _gpu_split_base,
 			probed, 100.0 * probed / _gpu_split_base, mpx,
-			three_d / maxf(mpx, 0.0001),
+			three_d / maxf(mpx, 0.0001), cost,
 		])
 		return
 
 	if turn == 3:
 		var shadows: float = maxf(_gpu_split_base - probed, 0.0)
-		_entry("GPUSPLIT", "base=%.2fms sin_sombras=%.2fms | sombras=%.2fms(%.0f%%) luces_apagadas=%d mpx3d=%.3f" % [
+		_entry("GPUSPLIT", "base=%.2fms sin_sombras=%.2fms | sombras=%.2fms(%.0f%%) luces_apagadas=%d mpx3d=%.3f%s" % [
 			_gpu_split_base, probed, shadows,
-			100.0 * shadows / _gpu_split_base, _gpu_split_lights_measured, mpx,
+			100.0 * shadows / _gpu_split_base, _gpu_split_lights_measured, mpx, cost,
 		])
 		return
 
 	if turn == 4:
 		var post: float = maxf(_gpu_split_base - probed, 0.0)
-		_entry("GPUSPLIT", "base=%.2fms sin_post=%.2fms | post=%.2fms(%.0f%%) env=%s mpx3d=%.3f" % [
+		_entry("GPUSPLIT", "base=%.2fms sin_post=%.2fms | post=%.2fms(%.0f%%) env=%s mpx3d=%.3f%s" % [
 			_gpu_split_base, probed, post,
-			100.0 * post / _gpu_split_base, _environment_state(), mpx,
+			100.0 * post / _gpu_split_base, _environment_state(), mpx, cost,
 		])
 		return
 
 	var lighting: float = maxf(_gpu_split_base - probed, 0.0)
-	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms | luz=%.2fms(%.0f%%) mpx3d=%.3f luz_por_mpx=%.1f" % [
+	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms | luz=%.2fms(%.0f%%) mpx3d=%.3f luz_por_mpx=%.1f%s" % [
 		_gpu_split_base, probed, lighting,
 		100.0 * lighting / _gpu_split_base, mpx,
-		lighting / maxf(mpx, 0.0001),
+		lighting / maxf(mpx, 0.0001), cost,
 	])
 
 

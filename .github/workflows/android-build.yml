@@ -1283,6 +1283,18 @@ jobs:
           # early return, or the game is left rendering flat albedo.
           guard_godot tools/test_gpu_split.gd
 
+          # === Verify each of the five GPU split turns is wired end to end
+          # Probe, output field and undo are three separate places, and
+          # forgetting the third leaves the player's viewport without 3D,
+          # shadows or an Environment permanently - nothing raises an error,
+          # the scene is just wrong from then on. Also checks the settle gate:
+          # a sample taken during the mount storm reported base=64.70ms for a
+          # scene that costs 13.62ms nine seconds later, and the split it
+          # printed off that number was simply false.
+          # This guard existed for a session without ever being registered
+          # here, which is the same failure it is meant to prevent.
+          guard_godot tools/test_gpu_split_turns.gd
+
           # === Verify the script split restores exactly what it paused
           # Same method as the GPU split, for the CPU half: rest= is the whole
           # of Chimera's script cost (p50 5.24ms, p90 24.18, max 30.60 against
