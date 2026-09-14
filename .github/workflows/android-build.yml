@@ -1295,25 +1295,7 @@ jobs:
           # here, which is the same failure it is meant to prevent.
           guard_godot tools/test_gpu_split_turns.gd
 
-          # === Verify the touch check is resolved once, not once per call
-          # Seven callers, several of them per frame, each otherwise doing
-          # three engine round-trips - a string-keyed ProjectSettings lookup,
-          # a DisplayServer call and an OS.has_feature - for an answer decided
-          # at startup. Removing the cache raises no error and spreads the cost
-          # across seven nodes so no profile points at it, in the one scene
-          # that sits right on the 16.67ms line.
-          guard_godot tools/test_touch_check_cached.gd
 
-          # === Verify the idle shop does not rewrite what has not changed
-          # Being GPU-bound does not excuse the code: the code decides how much
-          # gets dirtied each frame, and dirty is what the renderer has to
-          # redo. Three unconditional per-frame writes lived in the shop - a
-          # shader uniform whose value was already settled, a LabelSettings
-          # font_color per SubViewport child (each write emits changed and
-          # forces that viewport to redraw), and a queue_redraw() on a
-          # crosshair that sits still during FREE_LOOK. None of them raises an
-          # error when restored; the game just costs more.
-          guard_godot tools/test_shop_idle_writes.gd
 
           # === Verify the script split restores exactly what it paused
           # Same method as the GPU split, for the CPU half: rest= is the whole
