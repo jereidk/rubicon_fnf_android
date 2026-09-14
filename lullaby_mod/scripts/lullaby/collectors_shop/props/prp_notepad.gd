@@ -427,7 +427,14 @@ func _process(delta: float) -> void :
 
 	var appear_progress: float = shader_mat.get_shader_parameter("appear_progress")
 	var next_progress: float = clamp(appear_progress + (APPEAR_SPEED * _appear_mult * delta), _appear_min, 1.0)
-	shader_mat.set_shader_parameter("appear_progress", next_progress)
+	# Solo cuando de verdad cambia. Escribir un uniforme marca el material sucio
+	# y sube el valor al servidor de render, pase lo que pase - y aqui NO cambia
+	# casi nunca: `_appear_mult` arranca en 0, con lo que `next_progress` sale
+	# identico a lo que se acaba de leer, y en cuanto la aparicion termina la
+	# pinza lo deja clavado en `_appear_min` o en 1.0. O sea que el caso normal
+	# de esta linea es subir a la GPU el mismo numero sesenta veces por segundo.
+	if not is_equal_approx(next_progress, appear_progress):
+		shader_mat.set_shader_parameter("appear_progress", next_progress)
 
 	if visible:
 		if hover_id >= 0 and _allow_input:
@@ -451,13 +458,27 @@ func _process(delta: float) -> void :
 			@warning_ignore("int_as_enum_without_cast", "int_as_enum_without_match")
 			shop.mouse_controller.override_cursor_shape = -1
 
+		# Escribir el color SOLO si es otro.
+		#
+		# Este bucle recorre cada hijo del SubViewport en CADA fotograma y le
+		# reescribia el color aunque fuera el mismo. Un `font_color` no es un
+		# campo cualquiera: vive en un LabelSettings, y escribirlo emite
+		# `changed`, lo que vuelve a marcar sucia la Label y obliga al
+		# SubViewport que la contiene a redibujarse. Con la libreta abierta eso
+		# era un redibujado del viewport entero, sesenta veces por segundo, por
+		# unos colores que solo cambian cuando el jugador lee una entrada nueva.
+		#
+		# La comparacion no altera el resultado ni aunque los hijos compartan el
+		# mismo LabelSettings: se saltan escrituras que no cambiaban nada, y el
+		# orden de las que si cambian se respeta, asi que el valor final del
+		# recurso tras el bucle es el mismo que antes.
 		for child in sub_viewport.get_children():
 			if child.has_meta("text_id"):
 				var text_id: int = child.get_meta("text_id")
-				if SaveData.notepad_ids_seen.has(text_id):
-					child.label_settings.font_color = seen_color
-				else:
-					child.label_settings.font_color = selectable_color
+				var want: Color = seen_color if SaveData.notepad_ids_seen.has(text_id) \
+					else selectable_color
+				if child.label_settings.font_color != want:
+					child.label_settings.font_color = want
 
 	var elapsed_time: float = Time.get_ticks_msec() / 1000.0;
 
