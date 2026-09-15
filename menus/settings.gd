@@ -661,11 +661,22 @@ var lullaby_pipeline_cache_mode: int = PipelineCacheMode.AUTOMATIC
 ##            Es OPCIONAL en Vulkan, y en el Adreno 619 del moto g53 se concede y
 ##            luego cuelga el juego jugando - solo vuelve mandandolo a segundo
 ##            plano y trayendolo, que es recrear la superficie.
+##   ADAPT    FIFO_RELAXED. Se comporta como FIFO mientras llegues a tiempo, y
+##            si un fotograma llega TARDE lo presenta ya en vez de esperar el
+##            refresco entero. O sea que quita el escalon de 60 a 30 y solo paga
+##            desgarro en los fotogramas que ya ibas a perder. Tambien es
+##            opcional en Vulkan, pero los conductores Adreno la traen mucho mas
+##            a menudo que MAILBOX.
 ##   OFF      Sin sincronizar. Desgarro a cambio de nunca esperar.
 ##
 ## Arranca en VSYNC y no en MAILBOX aunque MAILBOX sea mejor cuando funciona: un
-## escalon de fps se ve, un cuelgue te echa del juego.
-enum PresentMode { VSYNC = 0, MAILBOX = 1, OFF = 2 }
+## escalon de fps se ve, un cuelgue te echa del juego. ADAPT es el siguiente que
+## probar si el escalon molesta, porque es lo que MAILBOX venia a arreglar sin
+## el modo de fallo que trajo.
+##
+## ADAPT va el ULTIMO del enum y no en medio: los valores se guardan en disco,
+## asi que reordenarlos convertiria el ajuste guardado de alguien en otro.
+enum PresentMode { VSYNC = 0, MAILBOX = 1, OFF = 2, ADAPT = 3 }
 var lullaby_present_mode: int = PresentMode.VSYNC
 
 func _ready() -> void:
@@ -1086,6 +1097,7 @@ func _apply_vsync(window: Window) -> void:
 	if OS.has_feature("mobile"):
 		match lullaby_present_mode:
 			PresentMode.MAILBOX: wanted = DisplayServer.VSYNC_MAILBOX
+			PresentMode.ADAPT: wanted = DisplayServer.VSYNC_ADAPTIVE
 			PresentMode.OFF: wanted = DisplayServer.VSYNC_DISABLED
 			_: wanted = DisplayServer.VSYNC_ENABLED
 

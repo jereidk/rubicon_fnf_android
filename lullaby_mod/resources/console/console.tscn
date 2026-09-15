@@ -5439,10 +5439,10 @@ text = "Frame Pacing: "
 alignment = 0
 script = ExtResource("54")
 property = &"lullaby_present_mode"
-display_list = ["V-Sync", "Mailbox", "Off"]
-values_list = [0, 1, 2]
+display_list = ["V-Sync", "Adaptive", "Mailbox", "Off"]
+values_list = [0, 3, 1, 2]
 console = NodePath("../../../../../..")
-tooltip = "How finished frames reach the screen. V-Sync is the only mode Vulkan requires every driver to implement, so it is the one that cannot be missing or misbehave - its cost is that a frame over 16.67ms waits for the whole next refresh, so 60fps drops straight to 30. Mailbox avoids that step and tears less, but it is optional, and on this phone's Adreno it was granted and then froze the game mid-play until it was backgrounded and brought back. Off never waits and tears."
+tooltip = "How finished frames reach the screen. V-Sync is the only mode Vulkan requires every driver to implement, so it is the one that cannot be missing or misbehave - its cost is that a frame over 16.67ms waits for the whole next refresh, so 60fps drops straight to 30. Mailbox avoids that step and tears less, but it is optional, and on this phone's Adreno it was granted and then froze the game mid-play until it was backgrounded and brought back. Adaptive keeps V-Sync while frames arrive on time and presents a late one immediately instead of waiting a whole refresh, so it removes that step and only tears on frames you were losing anyway - it is the next one to try. Off never waits and tears."
 
 [node name="Language" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
 layout_mode = 2
