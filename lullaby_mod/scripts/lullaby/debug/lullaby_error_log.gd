@@ -192,6 +192,32 @@ func queue_error(error_type: int, where: String, message: String) -> void:
 ##
 ## Y tampoco hay palanca por aqui: `disable_ubershaders` existe en el motor pero
 ## sale de `get_driver_workarounds()`, no de un ajuste de proyecto.
+##
+## NO LO CAUSA NADA DE ESTE PROYECTO, y se puede demostrar con los contadores que
+## este log ya recogia. `render_forward_mobile.cpp` etiqueta la fuente de cada
+## compilacion segun la variante:
+##
+##     pipeline_source = pipeline_key.ubershader ? PIPELINE_SOURCE_DRAW
+##                                               : PIPELINE_SOURCE_SPECIALIZATION;
+##
+## y `_pipeline_breakdown()` los escribe como `draw+N` y `spec+N`. O sea que
+## `draw+` es el numero de ubershaders que SI se compilaron. En tres sesiones
+## distintas del moto g53:
+##
+##     15-09 07:30   draw+2    spec+336
+##     15-09 01:47   draw+2    spec+239
+##     13-09 13:28   draw+0    spec+150
+##
+## Dos, dos y cero. Con 52 fallos registrados, los intentos de ubershader son
+## ~54 y fracasan ~52: casi el CIEN POR CIEN. No es un subconjunto con algo raro
+## - que seria lo que cabria esperar si la causa fueran nuestros shaders - es
+## practicamente todos, que es exactamente lo que dice el comentario de Godot
+## sobre Adreno.
+##
+## (Correccion de una lectura mia: "52 fallos contra ~650 pipelines" no es la
+## proporcion. Esas 650 son en su mayoria especializadas, de malla y de
+## superficie. El denominador bueno son los intentos de ubershader, y ahi la
+## tasa de fallo es casi total.)
 const TOTALS_EVERY_SECONDS := 60.0
 
 ## Cuenta minima para salir en el volcado. Lo que paso una sola vez ya tiene su
