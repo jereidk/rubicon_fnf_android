@@ -2356,11 +2356,29 @@ func _step_gpu_split() -> void:
 		return
 
 	if turn == 2:
-		# `probed` es el fotograma SIN 3D, o sea el 2D mas lo que el motor hace
-		# pase lo que pase. La resta es el pase 3D entero, que es lo que
-		# render_scale escala y lo unico que escala.
+		# `resto=` y NO `2d=`, que es como estaba y es una mentira cara.
+		#
+		# `disable_3d` se salta DIBUJAR los objetos 3D. No se salta el bufer: su
+		# limpieza, su resolve y el blit a pantalla se pagan igual. Asi que lo
+		# que sobrevive a la sonda no es "el 2D", es el 2D MAS toda la maquinaria
+		# del objetivo de render.
+		#
+		# La diferencia no es academica; me tuvo varios turnos optimizando lo que
+		# no era. El log del 15-09 en la tienda, con la sonda limpia:
+		#
+		#   GPUSPLIT base=53.39ms sin_3d=51.42ms | 3d=1.97ms(4%) sonda_pipe=+0
+		#
+		# Leido como "el 2D son 51ms" lleva a buscar CanvasItems. Pero en ese
+		# mismo log, bajar `render_scale` de 1.00 a 0.55 llevo el fotograma de
+		# 51ms a 17ms - y render_scale no toca el 2D, toca el bufer 3D y el
+		# tamaño de los SubViewports, y estos ultimos solo valian 2,3ms de los 33
+		# que se ahorraron. Las dos medidas solo encajan si lo que cuesta es el
+		# bufer y no lo que se dibuja dentro.
+		#
+		# O sea que este campo mide "todo lo que no es dibujar geometria 3D", y
+		# llamarlo 2d= invita justo a la conclusion equivocada.
 		var three_d: float = maxf(_gpu_split_base - probed, 0.0)
-		_entry("GPUSPLIT", "base=%.2fms sin_3d=%.2fms | 3d=%.2fms(%.0f%%) 2d=%.2fms(%.0f%%) mpx3d=%.3f 3d_por_mpx=%.1f%s" % [
+		_entry("GPUSPLIT", "base=%.2fms sin_3d=%.2fms | 3d=%.2fms(%.0f%%) resto=%.2fms(%.0f%%) mpx3d=%.3f 3d_por_mpx=%.1f%s" % [
 			_gpu_split_base, probed, three_d,
 			100.0 * three_d / _gpu_split_base,
 			probed, 100.0 * probed / _gpu_split_base, mpx,
