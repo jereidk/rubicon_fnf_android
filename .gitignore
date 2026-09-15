@@ -19,3 +19,8 @@ keys/
 
 # Logs
 *.log
+
+# HolyQuintet extraction (temporary, regenerable)
+HolyQuintet_original.zip
+holy_quintet_src/
+/tmp/godot_bin/
