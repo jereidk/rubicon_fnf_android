@@ -28,8 +28,10 @@ var _leaving: bool = false
 @onready var icon_tex: TextureRect = $WindowBox/Icon
 @onready var title_label: Label = $WindowBox/TitleLabel
 @onready var body_label: Label = $WindowBox/BodyLabel
+@onready var left_button: Control = $LeftButton
 @onready var left_sprite: TextureRect = $LeftButton/Sprite
 @onready var left_label: Label = $LeftButton/Label
+@onready var right_button: Control = $RightButton
 @onready var right_sprite: TextureRect = $RightButton/Sprite
 @onready var right_label: Label = $RightButton/Label
 
@@ -57,6 +59,14 @@ func _ready() -> void:
 	right_label.text = right_text
 	_update_icon()
 	_refresh()
+
+	# Android has no keyboard/gamepad: a tap directly picks that side. The
+	# original .hx only ever ran on desktop with keyboard nav, so this whole
+	# touch path is new port-side work, not something to match against source.
+	left_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	right_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	left_button.gui_input.connect(_on_button_gui_input.bind(-1))
+	right_button.gui_input.connect(_on_button_gui_input.bind(1))
 
 
 func _update_icon() -> void:
@@ -90,15 +100,35 @@ func _process(_delta: float) -> void:
 		_selected = 1
 		_refresh()
 	elif Input.is_action_just_pressed("ui_accept") and _selected != 0:
-		_leaving = true
-		if _selected == -1:
-			if on_left.is_valid():
-				on_left.call()
-		else:
-			if on_right.is_valid():
-				on_right.call()
-		if on_complete.is_valid():
-			on_complete.call()
+		_confirm(_selected)
 	elif Input.is_action_just_pressed("ui_cancel"):
 		if on_back.is_valid():
 			on_back.call()
+
+
+func _on_button_gui_input(event: InputEvent, side: int) -> void:
+	if _leaving:
+		return
+	var tapped: bool = false
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		tapped = mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT
+	elif event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event
+		tapped = st.pressed
+	if tapped:
+		_selected = side
+		_refresh()
+		_confirm(side)
+
+
+func _confirm(side: int) -> void:
+	_leaving = true
+	if side == -1:
+		if on_left.is_valid():
+			on_left.call()
+	else:
+		if on_right.is_valid():
+			on_right.call()
+	if on_complete.is_valid():
+		on_complete.call()
