@@ -652,6 +652,22 @@ var lullaby_pipeline_cache_blocked: bool = false
 enum PipelineCacheMode { AUTOMATIC = 0, KEEP = 1, DISCARD = 2 }
 var lullaby_pipeline_cache_mode: int = PipelineCacheMode.AUTOMATIC
 
+## Como se presentan los fotogramas en movil. Ver _apply_vsync().
+##
+##   VSYNC    FIFO. El unico modo que Vulkan obliga a implementar, asi que es el
+##            unico que no puede faltar ni portarse raro. Escalona a 30 cuando un
+##            fotograma se pasa de 16,67ms, y ese es su precio.
+##   MAILBOX  Presenta el mas nuevo sin bloquear: sin desgarro y sin el escalon.
+##            Es OPCIONAL en Vulkan, y en el Adreno 619 del moto g53 se concede y
+##            luego cuelga el juego jugando - solo vuelve mandandolo a segundo
+##            plano y trayendolo, que es recrear la superficie.
+##   OFF      Sin sincronizar. Desgarro a cambio de nunca esperar.
+##
+## Arranca en VSYNC y no en MAILBOX aunque MAILBOX sea mejor cuando funciona: un
+## escalon de fps se ve, un cuelgue te echa del juego.
+enum PresentMode { VSYNC = 0, MAILBOX = 1, OFF = 2 }
+var lullaby_present_mode: int = PresentMode.VSYNC
+
 func _ready() -> void:
 	if load_from(SAVE_PATH) == ERR_FILE_NOT_FOUND:
 		reset_input_map()
@@ -1048,10 +1064,30 @@ var actual_vsync: DisplayServer.VSyncMode = DisplayServer.VSYNC_ENABLED
 ##
 ## Solo en movil. En escritorio VSYNC_DISABLED se concede y funciona, y cambiarlo
 ## seria tocar algo que no esta roto por un problema que no tiene.
+##
+## LO QUE FALTABA EN TODO LO DE ARRIBA, y que el aparato ya ha cobrado: MAILBOX
+## se concedio - los logs dicen `vsync=3 present=mailbox` - y el juego se
+## CONGELA jugando, y solo vuelve mandandolo a segundo plano y trayendolo. Esa
+## es la firma de un swapchain MAILBOX atascado: recuperarse recreando la
+## superficie es exactamente lo que hace ese viaje.
+##
+## MAILBOX es opcional en Vulkan. FIFO es el unico modo que la especificacion
+## obliga a implementar, y por eso es el unico sobre el que se puede prometer
+## algo. El razonamiento de arriba sigue siendo correcto sobre el ESCALON de
+## FIFO - 17ms se vuelven 33 - pero un escalon de fps es un problema menor que
+## un cuelgue, y yo elegi el cuelgue por el jugador sin dejarle salida: esto
+## estaba cableado y no habia fila que lo cambiara.
+##
+## Asi que ahora es elegible y arranca en el modo seguro. Los tres valores estan
+## en PresentMode; `lullaby_` para que save() lo persista, porque un ajuste que
+## arregla un cuelgue y no sobrevive al reinicio no arregla nada.
 func _apply_vsync(window: Window) -> void:
 	var wanted: DisplayServer.VSyncMode = display_vsync
 	if OS.has_feature("mobile"):
-		wanted = DisplayServer.VSYNC_MAILBOX
+		match lullaby_present_mode:
+			PresentMode.MAILBOX: wanted = DisplayServer.VSYNC_MAILBOX
+			PresentMode.OFF: wanted = DisplayServer.VSYNC_DISABLED
+			_: wanted = DisplayServer.VSYNC_ENABLED
 
 	DisplayServer.window_set_vsync_mode(wanted, window.get_window_id())
 	actual_vsync = DisplayServer.window_get_vsync_mode(window.get_window_id())

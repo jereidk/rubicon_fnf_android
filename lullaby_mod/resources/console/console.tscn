@@ -5417,7 +5417,7 @@ layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ScreenShake")
 focus_neighbor_right = NodePath(".")
-focus_neighbor_bottom = NodePath("../Language")
+focus_neighbor_bottom = NodePath("../FramePacing")
 theme = ExtResource("1")
 text = "Clock: "
 alignment = 0
@@ -5428,10 +5428,26 @@ values_list = [false, true]
 console = NodePath("../../../../../..")
 tooltip = "Which clock the Memory Card header up there reads in."
 
-[node name="Language" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
+[node name="FramePacing" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
 layout_mode = 2
 focus_neighbor_left = NodePath(".")
 focus_neighbor_top = NodePath("../ClockFormat")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../Language")
+theme = ExtResource("1")
+text = "Frame Pacing: "
+alignment = 0
+script = ExtResource("54")
+property = &"lullaby_present_mode"
+display_list = ["V-Sync", "Mailbox", "Off"]
+values_list = [0, 1, 2]
+console = NodePath("../../../../../..")
+tooltip = "How finished frames reach the screen. V-Sync is the only mode Vulkan requires every driver to implement, so it is the one that cannot be missing or misbehave - its cost is that a frame over 16.67ms waits for the whole next refresh, so 60fps drops straight to 30. Mailbox avoids that step and tears less, but it is optional, and on this phone's Adreno it was granted and then froze the game mid-play until it was backgrounded and brought back. Off never waits and tears."
+
+[node name="Language" type="Button" parent="TabContainer/Settings/PortraitBox/SettingsSubmenu/Misc" node_paths=PackedStringArray("console")]
+layout_mode = 2
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../FramePacing")
 focus_neighbor_right = NodePath(".")
 focus_neighbor_bottom = NodePath("../DiagnosticsLog")
 theme = ExtResource("1")
