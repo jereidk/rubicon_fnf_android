@@ -125,6 +125,41 @@ func queue_error(error_type: int, where: String, message: String) -> void:
 ## entre 100 y 999. Sobre el fotograma de 22,5s de Chimera esa horquilla es un
 ## precio por fallo de entre 225ms y 22ms - dos diagnosticos distintos - y sin
 ## el numero exacto no hay forma de saber si un arreglo del -13 sirvio.
+##
+## EL -13 NO SE ARREGLA, y este parrafo existe para que nadie vuelva a
+## intentarlo. Los totales exactos ya salen - el log del 15-09 da `52 x` - y con
+## el numero en la mano la respuesta resulto estar en el fuente de Godot 4.7.1,
+## no en este proyecto.
+##
+## `drivers/vulkan/rendering_device_driver_vulkan.cpp`, sobre la bandera que
+## silencia justo este mensaje:
+##
+##     // Don't print pipeline compilation errors on Adreno 660, as they are
+##     // expected to happen on this device with ubershaders.
+##     driver_workarounds.dont_print_on_render_pipeline_creation_failure =
+##             vendorID == VENDOR_QUALCOMM && deviceID == 0x6060001;
+##
+## O sea: que `vkCreateGraphicsPipelines` devuelva VK_ERROR_UNKNOWN (-13) es
+## comportamiento CONOCIDO Y ESPERADO en Adreno con ubershaders. Godot solo se
+## calla el mensaje en el 660; el moto g53 lleva un 619, que no entra en esa
+## condicion, asi que los mismos fallos esperados si se imprimen. No hay ajuste
+## de proyecto que desactive los ubershaders: `scene_shader_forward_mobile.cpp`
+## los compila en un bucle `for (ubershader = 0; ubershader < 2; ubershader++)`
+## sin condicion.
+##
+## Y no rompen nada visible. El mismo fichero de Godot lo dice en la linea
+## siguiente - "Unhandled error cases will still pop up elsewhere in RD (eg.
+## when attempting to bind an invalid pipeline)" - y en el log no aparece
+## ninguno de esos.
+##
+## LO QUE SI IMPLICA, que es la parte util. El ubershader es la variante sin
+## especializar que existe para tener algo dibujable YA mientras la pipeline
+## especializada se compila por detras. Si es justo esa la que falla en este
+## aparato, entonces aqui NO HAY RESPALDO: cada pipeline nueva es una compilacion
+## que bloquea. Eso encaja con todo lo medido - el fotograma de 2093ms montando
+## la tienda, el de 22,5s en la precarga de Chimera - y convierte a
+## `lullaby_preload_camera.gd` en el unico mecanismo disponible para pagar ese
+## coste detras de la pantalla de carga, en vez de en una optimizacion mas.
 const TOTALS_EVERY_SECONDS := 60.0
 
 ## Cuenta minima para salir en el volcado. Lo que paso una sola vez ya tiene su
