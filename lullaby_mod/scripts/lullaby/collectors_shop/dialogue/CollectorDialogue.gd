@@ -74,17 +74,22 @@ func _ready() -> void :
 
 
 func _process(delta: float) -> void :
-	if shop.voiceline_is_skippable:
-		background.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	# El cursor solo se escribe cuando cambia. Las dos ramas lo asignaban
+	# incondicionalmente, y `mouse_default_cursor_shape` es una propiedad de
+	# Control cuyo setter no compara: cada fotograma marcaba el nodo tocado por
+	# un valor que lleva minutos siendo el mismo.
+	var want: Control.CursorShape = (Control.CURSOR_POINTING_HAND
+		if shop.voiceline_is_skippable else Control.CURSOR_ARROW)
+	if background.mouse_default_cursor_shape != want:
+		background.mouse_default_cursor_shape = want
 
+	if shop.voiceline_is_skippable:
 		if _mouse_on_background and Input.is_action_just_released("left_click"):
 			if skip_text.visible:
 				if shop._next_line != null:
 					shop._next_line.call()
 			else:
 				shop.skip_voiceline()
-	else:
-		background.mouse_default_cursor_shape = Control.CURSOR_ARROW
 
 	if not is_typing or typing_paused:
 		return

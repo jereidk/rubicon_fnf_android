@@ -63,11 +63,24 @@ func get_voiceline(anim: String) -> AudioStream:
 ## Without this the first frame of a sequence would pay for its own load, and
 ## a sequence is exactly where a hitch is most visible. There are only three,
 ## so they are all resident within three frames of the room appearing.
+##
+## Y PARA cuando ya no queda ninguna. El bucle recorria `voiceline_paths` entero
+## en cada fotograma, y una vez resueltas todas lo recorria entero para no
+## encontrar nada: un barrido lineal sin condicion de salida, para siempre, por
+## cada nodo Sequences de la escena. Que la lista sea corta no lo hace correcto
+## - es trabajo cuya unica salida era que el fichero cambiara de tamaño.
+var _all_warm: bool = false
+
 func _warm_one() -> void:
+	if _all_warm:
+		return
+
 	for anim in voiceline_paths:
 		if not _resolved.has(anim):
 			get_voiceline(anim)
 			return
+
+	_all_warm = true
 
 func _notification(what: int) -> void :
 	if what == NOTIFICATION_CHILD_ORDER_CHANGED:

@@ -78,6 +78,10 @@ var _sick_tween: Tween = null
 var _sick_tween_progress: float = 0
 var _in_menu: bool = false
 
+## Si el reposo ya se aplico. Ver el uso en `_process()`: la condicion que lo
+## dispara se cumple sola, asi que sin esto se reaplicaba cada fotograma.
+var _unselected: bool = false
+
 ## True only while the player is actually picking between shop/talk (not
 ## once a submenu is open) - separate from `enabled`, which an outro
 ## animation keeps true for a beat after entering the submenu (see
@@ -104,7 +108,14 @@ func _ready() -> void :
 	_setup_option_triggers(talk_collision_box, 1)
 
 func _process(delta: float) -> void :
-	focus_area_center.input_ray_pickable = !enabled;
+	# Solo si cambia. `input_ray_pickable` no es un campo suelto: su setter llama
+	# a `_update_pickable()`, que cruza a PhysicsServer3D, y no comprueba si el
+	# valor ya era ese. Es el mismo motivo por el que mouse_controller.gd guarda
+	# `ray_cast.target_position`, donde ya esta documentado que escribirlo
+	# igualmente invalida la consulta cacheada del servidor.
+	var pickable: bool = not enabled
+	if focus_area_center.input_ray_pickable != pickable:
+		focus_area_center.input_ray_pickable = pickable
 
 	# Antes del return de abajo: sin selector el cartel esta mal montado, pero
 	# dejarse el confirm cedido seria peor que no cederlo.
@@ -129,8 +140,25 @@ func _process(delta: float) -> void :
 		current_option_index = 0
 		_update_visual()
 
+	# Una sola vez al entrar en reposo, no en cada fotograma de reposo.
+	#
+	# La condicion se cumple SOLA: `_unselect_option()` escribe
+	# `current_option_index = -1`, que es justo lo que se acaba de comprobar. Asi
+	# que con el cartel sin usar - el estado normal de la tienda - esto corria
+	# sesenta veces por segundo, y por dentro acaba en `set_hover_option("")`,
+	# que cae en la rama `_:` y escribe DOS propiedades de un BaseMaterial3D:
+	#
+	#     mesh_mat.emission_texture = inactive_emission
+	#     mesh_mat.emission_enabled = true
+	#
+	# Escribir un material lo marca sucio y vuelve a subir su conjunto de
+	# uniformes al servidor de render. Por un cartel que no cambia.
 	if current_option_index == -1 and not _in_menu:
-		_unselect_option()
+		if not _unselected:
+			_unselected = true
+			_unselect_option()
+	else:
+		_unselected = false
 
 	if enabled:
 		focus_area_center.focused = not _in_menu
