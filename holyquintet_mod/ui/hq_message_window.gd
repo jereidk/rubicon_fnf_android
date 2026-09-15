@@ -24,24 +24,32 @@ var on_back: Callable
 var _selected: int = 0
 var _leaving: bool = false
 
-@onready var window_box: TextureRect = $WindowBox
-@onready var icon_tex: TextureRect = $WindowBox/Icon
-@onready var title_label: Label = $WindowBox/TitleLabel
-@onready var body_label: Label = $WindowBox/BodyLabel
-@onready var left_button: Control = $LeftButton
-@onready var left_sprite: TextureRect = $LeftButton/Sprite
-@onready var left_label: Label = $LeftButton/Label
-@onready var right_button: Control = $RightButton
-@onready var right_sprite: TextureRect = $RightButton/Sprite
-@onready var right_label: Label = $RightButton/Label
+@onready var dim: ColorRect = $Dim
+@onready var content: Control = $Content
+@onready var window_box: TextureRect = $Content/WindowBox
+@onready var icon_tex: TextureRect = $Content/WindowBox/Icon
+@onready var title_label: Label = $Content/WindowBox/TitleLabel
+@onready var body_label: Label = $Content/WindowBox/BodyLabel
+@onready var left_button: Control = $Content/LeftButton
+@onready var left_sprite: TextureRect = $Content/LeftButton/Sprite
+@onready var left_highlight: TextureRect = $Content/LeftButton/Highlight
+@onready var left_label: Label = $Content/LeftButton/Label
+@onready var right_button: Control = $Content/RightButton
+@onready var right_sprite: TextureRect = $Content/RightButton/Sprite
+@onready var right_highlight: TextureRect = $Content/RightButton/Highlight
+@onready var right_label: Label = $Content/RightButton/Label
 
 var _atlas_normal: AtlasTexture
 var _atlas_highlighted: AtlasTexture
+var _left_highlight_tween: Tween
+var _right_highlight_tween: Tween
+var _alive: bool = true
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	tree_exiting.connect(func(): _alive = false)
 
 	window_box.texture = WINDOW_TEX
 
@@ -68,6 +76,70 @@ func _ready() -> void:
 	left_button.gui_input.connect(_on_button_gui_input.bind(-1))
 	right_button.gui_input.connect(_on_button_gui_input.bind(1))
 
+	_play_entrance()
+
+
+func _play_entrance() -> void:
+	# MessageWindowUI.new(): messageCam.scroll.y -= 15, then
+	# FlxTween.num(-15, 0, 0.5, {ease: expoOut}, scroll.y = num) slides
+	# everything drawn on messageCam (box, text, buttons) up into place.
+	# msgBG (our Dim) separately fades alpha 0 -> 0.75 over the same 0.5s.
+	content.position.y = -15.0
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(content, "position:y", 0.0, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(dim, "color:a", 0.75, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+	# msgIcon starts 25px above its resting spot and invisible, then drops
+	# in with an elastic ease while fading in; on completion it spawns one
+	# glowPulse ghost, and 'danger' icons keep re-pulsing every 2.5s.
+	var icon_rest_y := icon_tex.position.y
+	icon_tex.position.y = icon_rest_y - 25.0
+	icon_tex.modulate.a = 0.0
+	var icon_tw := create_tween()
+	icon_tw.set_parallel(true)
+	icon_tw.tween_property(icon_tex, "position:y", icon_rest_y, 0.5) \
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_IN_OUT)
+	icon_tw.tween_property(icon_tex, "modulate:a", 1.0, 0.5) \
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_IN_OUT)
+	icon_tw.chain().tween_callback(_on_icon_settled)
+
+
+func _on_icon_settled() -> void:
+	_spawn_icon_glow()
+	if icon_name == "danger":
+		_danger_pulse_loop()
+
+
+func _danger_pulse_loop() -> void:
+	await get_tree().create_timer(2.5).timeout
+	if not _alive:
+		return
+	_spawn_icon_glow()
+	_danger_pulse_loop()
+
+
+func _spawn_icon_glow() -> void:
+	# GenUtil.glowPulse(msgIcon, 1.0, 0.5, 1.0): a copy of the icon, additive
+	# blend, alpha 1 -> 0 and scale +0.5 over 1.0s (sineOut), then destroyed.
+	var glow := TextureRect.new()
+	glow.texture = icon_tex.texture
+	glow.size = icon_tex.size
+	glow.position = icon_tex.position
+	glow.pivot_offset = icon_tex.size / 2.0
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glow.expand_mode = icon_tex.expand_mode
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = mat
+	icon_tex.get_parent().add_child(glow)
+
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(glow, "scale", Vector2(1.5, 1.5), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(glow, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_callback(glow.queue_free)
+
 
 func _update_icon() -> void:
 	var p := "res://holyquintet_mod/source/images/ui/common/window_icon_%s.png" % icon_name
@@ -88,6 +160,31 @@ func _refresh() -> void:
 	right_sprite.texture = _atlas_highlighted if _selected == 1 else _atlas_normal
 	right_sprite.modulate = Color.WHITE if _selected == 1 else Color(0.5, 0.5, 0.5)
 	right_label.modulate = Color.WHITE if _selected == 1 else Color(0.5, 0.5, 0.5)
+
+	_left_highlight_tween = _set_pulse(left_highlight, _left_highlight_tween, _selected == -1)
+	_right_highlight_tween = _set_pulse(right_highlight, _right_highlight_tween, _selected == 1)
+
+
+func _set_pulse(highlight: TextureRect, active_tween: Tween, should_pulse: bool) -> Tween:
+	if active_tween:
+		active_tween.kill()
+	if not should_pulse:
+		highlight.modulate.a = 0.0
+		return null
+
+	# ButtonUI.set_selected: button_Highlight.scale.set(1,1); alpha=1; then
+	# FlxTween.tween(..., {'scale.x': 1.05, 'scale.y': 1.05, alpha: 0}, 1.0,
+	# {ease: quadOut, type: LOOPING, loopDelay: 0.5}) — a ring that grows and
+	# fades every 1.5s while the button stays selected.
+	var tw := create_tween()
+	tw.set_loops()
+	tw.tween_callback(func():
+		highlight.scale = Vector2.ONE
+		highlight.modulate.a = 1.0)
+	tw.tween_property(highlight, "scale", Vector2(1.05, 1.05), 1.0).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(highlight, "modulate:a", 0.0, 1.0).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.5)
+	return tw
 
 
 func _process(_delta: float) -> void:
