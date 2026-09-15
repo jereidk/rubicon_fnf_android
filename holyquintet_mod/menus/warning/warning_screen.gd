@@ -14,6 +14,26 @@ extends Control
 
 var transitioning: bool = false
 
+# Ports WarningState.hx's applyMarkup([*-pair -> 0xFFFF4444 red, #-pair ->
+# 0xFFFFFF44 yellow]) which the .tscn's plain-text default still carries as
+# literal '*'/'#' markers.
+func _ready() -> void:
+	disclaimer_label.text = _apply_markup(disclaimer_label.text)
+
+func _apply_markup(text: String) -> String:
+	# Yellow (#) must run first: its own replacement inserts '#' characters
+	# ([color=#ffff44]), which the same pass would then re-match as markers
+	# if it ran after — so red (*), which never emits '#', goes second.
+	var yellow := RegEx.new()
+	yellow.compile("#(.+?)#")
+	text = yellow.sub(text, "[color=#ffff44]$1[/color]", true)
+
+	var red := RegEx.new()
+	red.compile("\\*(.+?)\\*")
+	text = red.sub(text, "[color=#ff4444]$1[/color]", true)
+
+	return text
+
 func _process(_delta: float) -> void:
 	if transitioning:
 		return
