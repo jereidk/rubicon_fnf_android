@@ -32,7 +32,7 @@ func _show_prompt() -> void:
 	yes_label.visible = true
 	no_label.visible = true
 	selector.visible = true
-	selector.alpha = 0.0
+	selector.modulate.a = 0.0
 	selector.position = Vector2(1075, 600)
 	yes_label.modulate.a = 0.5
 	no_label.modulate.a = 0.5
@@ -79,6 +79,15 @@ func _confirm() -> void:
 	tw.tween_callback(_leave)
 
 func _leave() -> void:
-	HQSaves.see_intro = false
-	HQSaves.save_data()
-	get_tree().change_scene_to_file("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
+	if selecting_yes:
+		# HQIntro.hx yesVideo.onEndReached: seeIntro=false, -> HQDisclaimer
+		HQSaves.see_intro = false
+		HQSaves.save_data()
+		get_tree().change_scene_to_file("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
+	else:
+		# HQIntro.hx noVideo.onEndReached: resets setup/intro flags and Sys.exit()s
+		# the whole game outright (a deliberate "goodbye" troll, not a bug).
+		HQSaves.first_time_setup_done = false
+		HQSaves.see_intro = true
+		HQSaves.save_data()
+		get_tree().quit()

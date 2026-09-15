@@ -21,4 +21,7 @@ func _process(delta: float) -> void:
 		accepted = true
 		var tw = create_tween()
 		tw.tween_property(fade_rect, "modulate:a", 1.0, 1.0).set_ease(Tween.EASE_IN_OUT)
+		# HQDisclaimer.hx: the FlxTimer(1.0) after the fade completes is a real
+		# extra second of black before switching, not just the fade's own tail.
+		tw.tween_interval(1.0)
 		tw.tween_callback(func(): get_tree().change_scene_to_file("res://holyquintet_mod/menus/title/title_screen.tscn"))
