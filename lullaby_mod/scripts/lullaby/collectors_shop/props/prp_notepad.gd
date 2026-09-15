@@ -474,19 +474,15 @@ func _process(delta: float) -> void :
 	#
 	# Doscientas lineas mas arriba, en `_ready()`, el material del selector ya se
 	# comprueba con `if shader_material != null`. Esto solo iguala las dos.
-	if shader_mat == null:
-		return
-
-	var appear_progress: float = shader_mat.get_shader_parameter("appear_progress")
-	var next_progress: float = clamp(appear_progress + (APPEAR_SPEED * _appear_mult * delta), _appear_min, 1.0)
-	# Solo cuando de verdad cambia. Escribir un uniforme marca el material sucio
-	# y sube el valor al servidor de render, pase lo que pase - y aqui NO cambia
-	# casi nunca: `_appear_mult` arranca en 0, con lo que `next_progress` sale
-	# identico a lo que se acaba de leer, y en cuanto la aparicion termina la
-	# pinza lo deja clavado en `_appear_min` o en 1.0. O sea que el caso normal
-	# de esta linea es subir a la GPU el mismo numero sesenta veces por segundo.
-	if not is_equal_approx(next_progress, appear_progress):
-		shader_mat.set_shader_parameter("appear_progress", next_progress)
+	#
+	# Y salta SOLO este bloque, no todo `_process()`. La primera version ponia un
+	# `return` aqui, que sin material se habria llevado por delante lo que viene
+	# despues - la entrada de la libreta, el vaiven y el lerp de posicion - o sea
+	# una libreta muda e inmovil en vez de una sin animacion de aparicion. El
+	# material solo controla como APARECE la pagina; nada mas de aqui depende de
+	# el.
+	if shader_mat != null:
+		_advance_page_appear(delta)
 
 	if visible:
 		if hover_id >= 0 and _allow_input:
@@ -550,6 +546,22 @@ func _process(delta: float) -> void :
 ## still-hidden options keep an "offscreen" box parked off in space and
 ## reuse a box_id that a later unlocked option will end up sharing), so
 ## the D-pad has to walk that same compact space rather than options.size().
+## Avanza la aparicion de la pagina. Solo se llama con `shader_mat` puesto.
+func _advance_page_appear(delta: float) -> void:
+	var appear_progress: float = shader_mat.get_shader_parameter("appear_progress")
+	var next_progress: float = clamp(
+		appear_progress + (APPEAR_SPEED * _appear_mult * delta), _appear_min, 1.0)
+
+	# Solo cuando de verdad cambia. Escribir un uniforme marca el material sucio
+	# y sube el valor al servidor de render, pase lo que pase - y aqui NO cambia
+	# casi nunca: `_appear_mult` arranca en 0, con lo que `next_progress` sale
+	# identico a lo que se acaba de leer, y en cuanto la aparicion termina la
+	# pinza lo deja clavado en `_appear_min` o en 1.0. O sea que el caso normal
+	# de esta linea es subir a la GPU el mismo numero sesenta veces por segundo.
+	if not is_equal_approx(next_progress, appear_progress):
+		shader_mat.set_shader_parameter("appear_progress", next_progress)
+
+
 func _visible_box_count() -> int:
 	var count: int = 0
 
