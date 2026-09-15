@@ -24,6 +24,7 @@ var on_back: Callable
 var _selected: int = 0
 var _leaving: bool = false
 
+@onready var background_blur: ColorRect = $BackgroundBlur
 @onready var dim: ColorRect = $Dim
 @onready var content: Control = $Content
 @onready var window_box: TextureRect = $Content/WindowBox
@@ -44,6 +45,30 @@ var _atlas_highlighted: AtlasTexture
 var _left_highlight_tween: Tween
 var _right_highlight_tween: Tween
 var _alive: bool = true
+
+# GenUtil.playUISound: FlxG.sound.play(Paths.sound('ui/ui_<type><1..N>'), ...)
+# — a random numbered variant per call. Only the cases this component
+# actually uses (open/move/confirm/close) are listed.
+const UI_SOUND_VARIANTS := {"open": 2, "move": 3, "confirm": 3, "close": 2}
+
+
+func _play_ui_sound(type: String) -> void:
+	var count: int = UI_SOUND_VARIANTS.get(type, 1)
+	var path := "res://holyquintet_mod/source/sounds/ui/ui_%s%d.ogg" % [type, randi() % count + 1]
+	if not ResourceLoader.exists(path):
+		return
+	# A fresh, self-freeing player per call (rather than one shared node) so
+	# 'confirm' and 'close' — which the real .hx fires back-to-back on
+	# accept — can actually overlap instead of one cutting the other off.
+	# Parented to the tree root, not self: the real FlxSound calls all set
+	# .persist = true specifically so these UI sounds survive the state
+	# switch that 'confirm'/'close' themselves trigger; a child of this
+	# window would be freed mid-playback the instant the scene changes.
+	var player := AudioStreamPlayer.new()
+	player.stream = load(path)
+	get_tree().root.add_child.call_deferred(player)
+	player.finished.connect(player.queue_free)
+	player.play.call_deferred()
 
 
 func _ready() -> void:
@@ -89,6 +114,18 @@ func _play_entrance() -> void:
 	tw.set_parallel(true)
 	tw.tween_property(content, "position:y", 0.0, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_property(dim, "color:a", 0.75, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+	# BlurFilter.set(): textureScale = value*0.2667+1, tweened 0 -> 15 over
+	# 0.5s (so textureScale 1.0 -> ~5.0). Our shader has a different 0=no
+	# blur / higher=stronger scale, so this maps trigger+duration exactly
+	# without claiming the same numeric formula.
+	background_blur.material.set_shader_parameter("blur_amount", 0.0)
+	tw.tween_method(
+		func(v): background_blur.material.set_shader_parameter("blur_amount", v),
+		0.0, 4.0, 0.5
+	).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+	_play_ui_sound("open")
 
 	# msgIcon starts 25px above its resting spot and invisible, then drops
 	# in with an elastic ease while fading in; on completion it spawns one
@@ -193,9 +230,11 @@ func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_left") and _selected != -1:
 		_selected = -1
 		_refresh()
+		_play_ui_sound("move")
 	elif Input.is_action_just_pressed("ui_right") and _selected != 1:
 		_selected = 1
 		_refresh()
+		_play_ui_sound("move")
 	elif Input.is_action_just_pressed("ui_accept") and _selected != 0:
 		_confirm(_selected)
 	elif Input.is_action_just_pressed("ui_cancel"):
@@ -227,5 +266,12 @@ func _confirm(side: int) -> void:
 	else:
 		if on_right.is_valid():
 			on_right.call()
+	# Every real completedAction (HQSetup's 4 steps, and this component's
+	# other future callers per MessageWindowUI's own convention) is just
+	# "playUISound('confirm'); destroy();" — centralized here instead of
+	# repeated per caller. MessageWindowUI's own ENTER handler then plays
+	# 'close' right after completedAction returns, so both sounds overlap.
+	_play_ui_sound("confirm")
 	if on_complete.is_valid():
 		on_complete.call()
+	_play_ui_sound("close")
