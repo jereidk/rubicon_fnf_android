@@ -3649,7 +3649,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
-"args": [&"", 1.0, false],
+"args": [&"heartbeat", 1.0, false],
 "method": &"play"
 }]
 }
@@ -3714,7 +3714,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
-"args": [&"", 1.0, false],
+"args": [&"unknowns", 1.0, false],
 "method": &"play"
 }]
 }
@@ -3778,7 +3778,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "values": [{
-"args": [&"", 1.0, false],
+"args": [&"pendulum", 1.0, false],
 "method": &"play"
 }]
 }
