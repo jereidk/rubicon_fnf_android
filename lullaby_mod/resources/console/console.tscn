@@ -4281,7 +4281,7 @@ offset_right = 1440.0
 offset_bottom = 1080.0
 mouse_filter = 2
 stretch = true
-stretch_shrink = 2
+stretch_shrink = 3
 
 [node name="SubViewport" type="SubViewport" parent="TabContainer/Home/IconSubViewport" unique_id=552864082]
 own_world_3d = true
