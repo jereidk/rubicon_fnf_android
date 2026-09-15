@@ -30,7 +30,14 @@ const TURNS: Array = [
 	["disable_3d = true", "sin_3d="],
 	["_gpu_split_shadows_off()", "sin_sombras="],
 	["_gpu_split_env_off()", "sin_post="],
+	["_gpu_split_canvas_off()", "sin_2d="],
 ]
+
+## Que turnos NO escriben `sonda_pipe=`. Solo el 5: ocultar canvas no toca
+## ninguna pipeline 3D, asi que el campo saldria siempre en cero - ruido, no
+## dato. Los demas si lo escriben porque sus sondas SI pueden crear una
+## (turnos 0 y 1 con certeza, medido; 2-4 por si acaso).
+const TURNS_WITHOUT_PIPE_COST: Array[int] = [5]
 
 ## Lo que el restaurador tiene que deshacer, pase el turno que pase.
 const RESTORES: Array[String] = [
@@ -38,6 +45,7 @@ const RESTORES: Array[String] = [
 	"disable_3d = false",
 	"shadow_enabled = true",
 	"world.environment = _gpu_split_env",
+	"canvas_cull_mask = _gpu_split_canvas_mask",
 ]
 
 var _failures: int = 0
@@ -87,6 +95,11 @@ func _initialize() -> void:
 	_check(src.contains("if _gpu_split_had_env:"),
 		"el Environment se restaura por bandera y no por != null")
 
+	# Mismo motivo, mismo patron: 0xffffffff es el defecto pero tambien podria
+	# ser un valor legitimo escrito por otra cosa, asi que hace falta bandera.
+	_check(src.contains("if _gpu_split_had_canvas_mask:"),
+		"canvas_cull_mask se restaura por bandera y no por comparacion")
+
 	# --- Que no se mida durante la tormenta de montaje ----------------------
 	#
 	# Sin esto la primera muestra de cada escena cae dentro del montaje y el
@@ -121,15 +134,27 @@ func _initialize() -> void:
 		"la sonda mide las pipelines que creo")
 	_check(src.contains('" sonda_pipe=+%d" % probe_pipe'),
 		"y el campo se construye")
-	# Las cinco lineas, no solo la del turno caro: un cero tambien es dato.
+	# Todas las lineas MENOS las de TURNS_WITHOUT_PIPE_COST, no solo la del
+	# turno caro: un cero tambien es dato.
 	#
 	# Dos sangrados porque el turno 0 es el unico que no vive dentro de un `if`
 	# - es el caso por defecto al final de la funcion - asi que su `])` cierra
 	# con una tabulacion menos. Contar solo la forma de dentro del `if` daba
-	# 4 de 5 y habria dejado esa linea sin el campo.
+	# de menos y habria dejado esa linea sin el campo.
 	var written: int = src.count(", cost,\n\t\t])") + src.count(", cost,\n\t])")
-	_check(written == TURNS.size(),
-		"las cinco lineas lo escriben (%d de %d)" % [written, TURNS.size()])
+	var expected: int = TURNS.size() - TURNS_WITHOUT_PIPE_COST.size()
+	_check(written == expected,
+		"las lineas que deben llevarlo lo escriben (%d de %d)" % [written, expected])
+
+	# Y que el turno excluido lo este a proposito, no por descuido: su bloque
+	# de salida no puede mencionar `cost` en absoluto.
+	for i: int in TURNS_WITHOUT_PIPE_COST:
+		var field: String = TURNS[i][1]
+		var field_at: int = src.find(field)
+		if _check(field_at > 0, "turno %d: su campo (%s) aparece en el fuente" % [i, field]):
+			var block: String = src.substr(field_at - 400, 600)
+			_check(not block.contains(", cost,"),
+				"turno %d no escribe sonda_pipe (se omite a proposito)" % i)
 
 	_finish()
 
@@ -151,7 +176,7 @@ func _int_after(src: String, key: String) -> int:
 func _finish() -> void:
 	print("%d comprobaciones, %d fallos" % [_checks, _failures])
 	if _failures == 0:
-		print("todo OK - los cinco turnos aplican, escriben y se deshacen")
+		print("todo OK - los seis turnos aplican, escriben y se deshacen")
 	quit(1 if _failures > 0 else 0)
 
 

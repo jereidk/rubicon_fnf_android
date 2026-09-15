@@ -427,16 +427,19 @@ var _gpu_split_pipe_seen: int = -1
 var _gpu_split_pipe_still_ms: float = 0.0
 var _gpu_split_pipe_at_probe: int = 0
 
-## Which of the FIVE probe passes this sample takes, rotating 0..4.
+## Which of the SIX probe passes this sample takes, rotating 0..5.
 ## Rotating instead of doing them all in one cycle is what gets this down to
 ## **one** wrong frame per sample: each line is self-contained (base against one
-## probe) and the fifths interleave across a song.
+## probe) and the sixths interleave across a song.
 ##
 ##   0  UNSHADED        -> what the per-fragment lighting maths costs
 ##   1  OVERDRAW        -> what rasterising that depth complexity costs
-##   2  disable_3d      -> what the WHOLE 3D pass costs, and therefore the 2D
+##   2  disable_3d      -> what the WHOLE 3D pass costs, and therefore the rest
 ##   3  shadows off     -> what rendering the shadow maps costs
 ##   4  environment off -> what glow, fog, SSAO and SSIL cost
+##   5  canvas_cull_mask=0 -> what the 2D CANVAS ITSELF costs, isolated from
+##                            the buffer/blit machinery turn 2's "resto=" also
+##                            carries
 ##
 ## Together those name every large bucket a frame on this device can be
 ## spending GPU time in, which is the point: `gpu=13.7ms` fits any story, and
@@ -457,10 +460,22 @@ var _gpu_split_pipe_at_probe: int = 0
 ##   pure bandwidth, which is exactly what this device is bound on. The shop
 ##   reports `env=glow+fog` and that string has never had a cost beside it.
 ##
-## All five are a property write plus a counter read - no GPU->CPU readback
+##   turn 5 exists because turn 2's "resto=" is a mixed bag by its own
+##   admission (see that block's comment): disable_3d skips drawing 3D objects
+##   but not the render target machinery, so what survives it is 2D canvas PLUS
+##   every SubViewport's compositing PLUS the buffer's own clear/resolve/blit.
+##   `canvas_cull_mask = 0` is different: it is a Viewport property, checked
+##   only inside `RendererViewport::render_canvas()`
+##   (servers/rendering/renderer_viewport.cpp), so it hides every CanvasLayer
+##   without touching the 3D pass, the SubViewports (separate Viewport RIDs,
+##   unaffected), or the buffer format at all. Nobody in this project reads or
+##   writes it - grepped before adding this, zero hits - so there is no
+##   pre-existing value to clash with.
+##
+## All six are a property write plus a counter read - no GPU->CPU readback
 ## anywhere, which is what made the old `sonda=` field expensive enough to
-## delete - and all five restore in the same step, unconditionally.
-const GPU_SPLIT_TURNS := 5
+## delete - and all six restore in the same step, unconditionally.
+const GPU_SPLIT_TURNS := 6
 var _gpu_split_turn: int = 0
 
 ## Lo que el turno en curso apago, para devolverlo tal cual.
@@ -476,6 +491,13 @@ var _gpu_split_env: Environment = null
 ## `_gpu_split_env != null` para saber si le toca escribir: una escena sin
 ## entorno se quedaria con el de la escena anterior. La bandera lo separa.
 var _gpu_split_had_env: bool = false
+
+## Lo mismo para `canvas_cull_mask`, mismo motivo: 0xffffffff es el valor por
+## defecto y TAMBIEN podria ser un valor legitimo si algun dia algo en el
+## proyecto lo tocara, asi que "vale lo de siempre" no es un test valido para
+## "no hace falta restaurar nada". La bandera es la unica fuente de verdad.
+var _gpu_split_canvas_mask: int = 0
+var _gpu_split_had_canvas_mask: bool = false
 
 ## Cuantas luces se apagaron en el turno de sombras, guardado aparte porque la
 ## lista se vacia al restaurar y la linea se escribe despues.
@@ -2311,6 +2333,7 @@ func _step_gpu_split() -> void:
 			2: get_viewport().disable_3d = true
 			3: _gpu_split_shadows_off()
 			4: _gpu_split_env_off()
+			5: _gpu_split_canvas_off()
 		_gpu_split_state = 1
 		return
 
@@ -2402,6 +2425,18 @@ func _step_gpu_split() -> void:
 		])
 		return
 
+	if turn == 5:
+		# El unico turno que no puede escribir `sonda_pipe=`: ocultar canvas no
+		# toca ninguna pipeline 3D, asi que `probe_pipe` sale siempre a 0 y
+		# escribirlo seria ruido - un cero que invita a la misma pregunta que
+		# ya costo turnos enteros la vez anterior. Se omite del todo.
+		var canvas: float = maxf(_gpu_split_base - probed, 0.0)
+		_entry("GPUSPLIT", "base=%.2fms sin_2d=%.2fms | 2d=%.2fms(%.0f%%) mpx3d=%.3f" % [
+			_gpu_split_base, probed, canvas,
+			100.0 * canvas / _gpu_split_base, mpx,
+		])
+		return
+
 	var lighting: float = maxf(_gpu_split_base - probed, 0.0)
 	_entry("GPUSPLIT", "base=%.2fms sin_luz=%.2fms | luz=%.2fms(%.0f%%) mpx3d=%.3f luz_por_mpx=%.1f%s" % [
 		_gpu_split_base, probed, lighting,
@@ -2441,6 +2476,19 @@ func _gpu_split_env_off() -> void:
 	world.environment = null
 
 
+## Oculta cada CanvasLayer del viewport principal sin tocar el 3D ni los
+## SubViewports (RIDs de Viewport aparte, cada uno con su propio
+## `canvas_cull_mask`).
+##
+## `canvas_cull_mask` filtra por bit contra el layer de cada CanvasItem, asi
+## que 0 no cruza con ningun layer posible y no hace falta enumerar nada -
+## a diferencia de las luces o el Environment, aqui una sola escritura basta.
+func _gpu_split_canvas_off() -> void:
+	_gpu_split_canvas_mask = get_viewport().canvas_cull_mask
+	_gpu_split_had_canvas_mask = true
+	get_viewport().canvas_cull_mask = 0
+
+
 ## Deshace CUALQUIER turno, se hiciera el que se hiciera.
 ##
 ## Incondicional a proposito. Restaurar solo lo del turno en curso deja la
@@ -2463,6 +2511,10 @@ func _gpu_split_restore() -> void:
 			world.environment = _gpu_split_env
 		_gpu_split_env = null
 		_gpu_split_had_env = false
+
+	if _gpu_split_had_canvas_mask:
+		get_viewport().canvas_cull_mask = _gpu_split_canvas_mask
+		_gpu_split_had_canvas_mask = false
 
 
 ## Times the idle step twice and writes SCRIPTSPLIT. See SCRIPT_SPLIT_SECONDS.
