@@ -152,14 +152,46 @@ func queue_error(error_type: int, where: String, message: String) -> void:
 ## when attempting to bind an invalid pipeline)" - y en el log no aparece
 ## ninguno de esos.
 ##
-## LO QUE SI IMPLICA, que es la parte util. El ubershader es la variante sin
-## especializar que existe para tener algo dibujable YA mientras la pipeline
-## especializada se compila por detras. Si es justo esa la que falla en este
-## aparato, entonces aqui NO HAY RESPALDO: cada pipeline nueva es una compilacion
-## que bloquea. Eso encaja con todo lo medido - el fotograma de 2093ms montando
-## la tienda, el de 22,5s en la precarga de Chimera - y convierte a
-## `lullaby_preload_camera.gd` en el unico mecanismo disponible para pagar ese
-## coste detras de la pantalla de carga, en vez de en una optimizacion mas.
+## QUE ES UNA PIPELINE, porque no es lo mismo que un shader y de ahi venia mi
+## confusion. Una pipeline es el shader MAS todo el estado fijo horneado a su
+## alrededor: mezcla, descarte de caras, prueba de profundidad, formato de
+## vertices, pase de render, y las constantes de especializacion (cuantas luces,
+## si hay lightmap, si hay niebla...). El mismo shader con otra combinacion es
+## OTRA pipeline que el conductor tiene que compilar aparte.
+##
+## Godot compila dos clases por material:
+##
+##   especializada  con las constantes horneadas. Rapida de ejecutar, pero hace
+##                  falta una por cada combinacion exacta.
+##   ubershader     sin hornear nada: todo son ramas en tiempo de ejecucion y el
+##                  descarte de caras va desactivado. Mas lenta, pero UNA sirve
+##                  para todas las combinaciones, asi que se puede usar YA
+##                  mientras la especializada se compila por detras.
+##
+## Lo que falla son las ubershader.
+##
+## LO QUE PASA ENTONCES, de `render_forward_mobile.cpp` (~2592). El orden real es:
+##
+##   1. especializada, SIN esperar    si ya estaba compilada, se usa
+##   2. ubershader, ESPERANDO         <- la que falla en el 619
+##   3. especializada, ESPERANDO      compilar ahora y congelar el fotograma
+##
+##     // If ubershader failed to compile, retry specialized shader and wait for
+##     // it to finish compilation.
+##     // This prevents pop-in at the cost of shader compilation stutters.
+##
+## O sea que no se ve nada mal: el paso 3 dibuja lo correcto. Lo que se paga es
+## el TIRON, y lo dice el propio Godot en ese comentario. Correccion de lo que
+## escribi antes en este sitio: no es que "no haya respaldo", es que el respaldo
+## barato (2) no existe aqui y solo queda el caro (3).
+##
+## Eso encaja con todo lo medido - el fotograma de 2093ms montando la tienda, el
+## de 22,5s en la precarga de Chimera - y convierte a `lullaby_preload_camera.gd`
+## en el unico mecanismo disponible para pagar ese coste detras de la pantalla de
+## carga, en vez de en una optimizacion mas.
+##
+## Y tampoco hay palanca por aqui: `disable_ubershaders` existe en el motor pero
+## sale de `get_driver_workarounds()`, no de un ajuste de proyecto.
 const TOTALS_EVERY_SECONDS := 60.0
 
 ## Cuenta minima para salir en el volcado. Lo que paso una sola vez ya tiene su
