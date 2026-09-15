@@ -463,6 +463,20 @@ func _process(delta: float) -> void :
 
 	selector.position.y = 80.0 * hover_id
 
+	# `shader_mat` puede no estar, y hasta ahora se daba por hecho que si.
+	#
+	# Sale de `page_display.material_override`, que es un ShaderMaterial con
+	# `shd_uv_appear`. El stripper de efectos de settings.gd ANULA exactamente esa
+	# propiedad para cada shader que este en EFFECT_SHADER_PATHS - hoy
+	# `shd_uv_appear` no esta en esa lista, pero el dia que alguien lo meta (es
+	# un efecto, y es candidato) esta linea revienta en cada fotograma con la
+	# libreta abierta, sin que nada en la lista avise de que hay un consumidor.
+	#
+	# Doscientas lineas mas arriba, en `_ready()`, el material del selector ya se
+	# comprueba con `if shader_material != null`. Esto solo iguala las dos.
+	if shader_mat == null:
+		return
+
 	var appear_progress: float = shader_mat.get_shader_parameter("appear_progress")
 	var next_progress: float = clamp(appear_progress + (APPEAR_SPEED * _appear_mult * delta), _appear_min, 1.0)
 	# Solo cuando de verdad cambia. Escribir un uniforme marca el material sucio
@@ -609,7 +623,8 @@ func open(is_exiting: bool = false):
 		_allow_input = true
 		_dpad_hover_id = 0
 
-		shader_mat.set_shader_parameter("appear_progress", 0.0)
+		if shader_mat != null:
+			shader_mat.set_shader_parameter("appear_progress", 0.0)
 		_appear_mult = 1.0
 
 		if camera_positions.current_animation != &"interact_notepad":
