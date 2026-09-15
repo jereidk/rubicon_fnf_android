@@ -4851,6 +4851,34 @@ func _write_header() -> void:
 	_file.store_line("gpu       : %s" % RenderingServer.get_video_adapter_name())
 	_file.store_line("renderer  : %s" % RenderingServer.get_current_rendering_method())
 	_file.store_line("driver    : %s" % RenderingServer.get_video_adapter_api_version())
+	# El NOMBRE y la VERSION del conductor, que no es lo mismo que la version de
+	# la API de arriba - esa es "1.1.128", la de Vulkan, y no distingue dos
+	# conductores Adreno distintos.
+	#
+	# Hace falta por una razon concreta. Godot desactiva los ubershaders en
+	# Adreno, pero solo para una version de compilador, literalmente por cadena
+	# (`rendering_device_driver_vulkan.cpp`):
+	#
+	#     // Workaround for Adreno drivers where ubershaders with a lot of
+	#     // constant literals crash the compiler.
+	#     driver_workarounds.disable_ubershaders =
+	#             vendorID == VENDOR_QUALCOMM &&
+	#             strstr(driverInfo, "Compiler Version: EV031.32.02.") != nullptr;
+	#
+	# "ubershaders ... crash the compiler" es exactamente lo que este aparato
+	# hace: 52 fallos de pipeline contra 2 ubershaders compiladas con exito. Si
+	# su conductor trae OTRA version de compilador, el `strstr` no casa, el
+	# workaround no se aplica, y se paga el intento fallido en cada una.
+	#
+	# Sin este campo no hay forma de saber de que lado del `strstr` estamos, que
+	# es la unica pregunta que queda abierta sobre el -13.
+	#
+	# Defensivo: el metodo existe desde 4.1 pero devuelve un array que en algunas
+	# plataformas viene vacio, y una cabecera de log no puede ser lo que rompa el
+	# arranque.
+	var drv: PackedStringArray = OS.get_video_adapter_driver_info()
+	_file.store_line("drv_info  : %s" % ("(no reportado)" if drv.is_empty()
+		else " | ".join(drv)))
 	# Pipelines already built by the time the first scene is up. A baseline
 	# matters because the per-entry pipe=N(+D) delta is only meaningful
 	# against it - and if this is already in the thousands, the cutscene
