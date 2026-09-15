@@ -143,6 +143,38 @@ func _ready() -> void :
 			if root.dialogue != null:
 				root.dialogue.play_scale_out()
 
+## El candado: bloquea el paneo y deja el punto de mira donde se toque.
+##
+## El problema que resuelve. En tactil, durante FREE_LOOK el punto de mira es el
+## CENTRO de la pantalla - ver get_aim_position() - y apuntar se hace girando la
+## camara con el joystick. Pero el joystick solo gira en Y (ver
+## _update_camera_rotation, que solo toca `rotation_target.y`), asi que el centro
+## de pantalla barre una FRANJA HORIZONTAL a la altura de los ojos y nada de
+## fuera de esa franja se puede senalar nunca. Ahi viven los peluches de encima
+## del pendulo y las fotos, el sombrero del Collector y la jarra: visibles,
+## interactivos, e inalcanzables con el mando tactil.
+##
+## Lo que NO hace, y es la decision de diseno: no pone el estado en FOCUSED.
+## Parece lo obvio - FOCUSED ya apunta por toque - pero `ray_cast.collision_mask
+## = root.state`, y FREE_LOOK vale 1 y FOCUSED vale 2, que son BITS DISTINTOS.
+## Forzar FOCUSED cambiaria la mascara y dejaria de ver justo las areas grandes
+## de FREE_LOOK que se quieren senalar. Asi que el estado no se toca: lo unico
+## que cambia es de donde sale el punto y que el joystick deje de girar.
+##
+## Se suelta al cambiar de estado (ver _update_hand_from_shop_state): volver de
+## un enfoque con el candado aun puesto seria un mando que no responde sin decir
+## por que.
+var aim_locked: bool = false:
+	set(value):
+		if aim_locked == value:
+			return
+		aim_locked = value
+		# El punto heredado de antes del candado apunta a lo que sea que se toco
+		# por ultima vez, que casi nunca es lo que se quiere mirar ahora. Al
+		# abrirlo se arranca desde el centro, que es donde la mira ya estaba.
+		if aim_locked:
+			touch_aim = Vector2.INF
+
 func _can_ray_cast() -> bool:
 	return should_cast_ray and camera and ray_cast
 
@@ -172,7 +204,7 @@ func get_aim_position() -> Vector2:
 	if not is_touch_controls_active():
 		return get_viewport().get_mouse_position()
 
-	if _is_free_look() or touch_aim == Vector2.INF:
+	if (_is_free_look() and not aim_locked) or touch_aim == Vector2.INF:
 		return get_viewport().get_visible_rect().size * 0.5
 
 	return touch_aim
@@ -288,6 +320,7 @@ func _update_hand_from_shop_state() -> void :
 		return
 
 	_last_shop_state = root.state
+	aim_locked = false
 
 	# A state change means a camera move, so the last tap now points at
 	# something else entirely. Back to the centre until the player picks a
@@ -314,6 +347,12 @@ func _update_hand_from_shop_state() -> void :
 ## already doing. Skip the fallback entirely once touch controls are
 ## enabled, so only the joystick's zones ever drive camera pan on touch.
 func _get_look_direction() -> float:
+	# El candado corta aqui y no en _process(), porque este valor alimenta las
+	# dos cosas que tienen que parar: girar la camara y la inclinacion de la
+	# mano. Cero las apaga a la vez y deja el resto de _process() intacto.
+	if aim_locked:
+		return 0.0
+
 	var keyboard_direction: = Input.get_axis("ui_right", "ui_left")
 
 	if keyboard_direction != 0.0:

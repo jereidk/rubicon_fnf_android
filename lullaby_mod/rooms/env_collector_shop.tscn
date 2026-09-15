@@ -165,6 +165,7 @@
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/touch_aim_reticle.gd" id="300"]
 [ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/areas/focus_console_trigger.gd" id="301"]
 [ext_resource type="Script" path="res://addons/rubicon_mobile_controls/action_button.gd" id="302"]
+[ext_resource type="Script" path="res://lullaby_mod/scripts/lullaby/collectors_shop/controllers/aim_lock_button.gd" id="303"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_powerbtn"]
 bg_color = Color(1, 1, 1, 0.07)
@@ -11663,6 +11664,28 @@ script = ExtResource("302")
 direct_target = NodePath("../../../../Environment/Areas/FocusPowerConsole")
 visible_source = NodePath("../../../../Environment/Areas/FocusAreaRight")
 visible_property = &"is_focused"
+
+[node name="AimLockButton" type="Button" parent="UI/Control/TouchControls" node_paths=PackedStringArray("mouse_controller", "state_source")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -190.0
+offset_right = -40.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_powerbtn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_powerbtn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_powerbtn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_powerbtn")
+script = ExtResource("303")
+mouse_controller = NodePath("../../../../MouseController")
+state_source = NodePath("../../../..")
+free_look_state = 1
 
 [node name="TouchAimReticle" type="Control" parent="UI/Control" node_paths=PackedStringArray("mouse_controller")]
 layout_mode = 1
