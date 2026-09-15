@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/window.png" id="1"]
-[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="2"]
-[ext_resource type="Script" path="res://holyquintet_mod/ui/hq_message_window.gd" id="3"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="1"]
+[ext_resource type="Script" path="res://holyquintet_mod/ui/hq_message_window.gd" id="2"]
 
 [node name="HQMessageWindow" type="Control"]
 layout_mode = 3
@@ -11,7 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3")
+script = ExtResource("2")
 
 [node name="Dim" type="ColorRect" parent="."]
 layout_mode = 1
@@ -20,49 +19,101 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0, 0, 0, 0.75)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -450.0
-offset_top = -250.0
-offset_right = 450.0
-offset_bottom = 250.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="WindowBox" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 321.0
+offset_top = 187.0
+offset_right = 1599.0
+offset_bottom = 893.0
+expand_mode = 1
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 20
+[node name="Icon" type="TextureRect" parent="WindowBox"]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 17.0
+offset_right = 149.0
+offset_bottom = 116.0
+expand_mode = 1
 
-[node name="Icon" type="TextureRect" parent="CenterContainer/VBox"]
-custom_minimum_size = Vector2(96, 96)
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBox"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 44
+[node name="TitleLabel" type="Label" parent="WindowBox"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 52.0
+offset_right = 1278.0
+offset_bottom = 110.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.051, 0.035, 0.051, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 42
 text = "Title"
 horizontal_alignment = 1
 
-[node name="BodyLabel" type="Label" parent="CenterContainer/VBox"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 30
+[node name="BodyLabel" type="Label" parent="WindowBox"]
+layout_mode = 0
+offset_left = 75.0
+offset_top = 250.0
+offset_right = 1203.0
+offset_bottom = 400.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.051, 0.035, 0.051, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 42
 text = "Body text"
 horizontal_alignment = 1
-autowrap_mode = 3
+autowrap_mode = 2
 
-[node name="ChoicesLabel" type="Label" parent="CenterContainer/VBox"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 34
-text = "►  Yes\n     No"
+[node name="LeftButton" type="Control" parent="."]
+layout_mode = 0
+offset_left = 485.0
+offset_top = 650.0
+offset_right = 935.0
+offset_bottom = 789.0
+
+[node name="Sprite" type="TextureRect" parent="LeftButton"]
+layout_mode = 0
+offset_right = 450.0
+offset_bottom = 139.0
+
+[node name="Label" type="Label" parent="LeftButton"]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 405.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.051, 0.035, 0.051, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 52
+text = "No"
+horizontal_alignment = 1
+
+[node name="RightButton" type="Control" parent="."]
+layout_mode = 0
+offset_left = 985.0
+offset_top = 650.0
+offset_right = 1435.0
+offset_bottom = 789.0
+
+[node name="Sprite" type="TextureRect" parent="RightButton"]
+layout_mode = 0
+offset_right = 450.0
+offset_bottom = 139.0
+
+[node name="Label" type="Label" parent="RightButton"]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 405.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.051, 0.035, 0.051, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 52
+text = "Yes"
 horizontal_alignment = 1

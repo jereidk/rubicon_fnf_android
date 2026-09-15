@@ -21,29 +21,39 @@ func _next_step() -> void:
 	_step += 1
 	match _step:
 		1:
-			_show_msg("First-Time Setup",
-				"Would you like to do the first time setup?",
-				"Skip", "Yes", "warning",
-				func(): _skip_to_downscroll(),
-				func(): pass)
+			# HQSetup.hx case 1 (Message/Header/FirstTimeSetup, Message/FirstTimeSetup)
+			_show_msg("Setup Settings?",
+				"This looks like your first time opening the mod.\nQuickly setup important settings?",
+				"No", "Yes", "warning",
+				func(): _skip_to_downscroll(),  # leftAction: step = 4; progressSetup()
+				func(): pass)                   # rightAction: progressSetup() (step 2)
 		2:
-			_show_msg("Flashing Lights",
-				"Would you like to keep flashing lights enabled?",
+			# HQSetup.hx case 2 (Message/Header/KeepFlashingLights, Message/KeepFlashingLights)
+			_show_msg("Keep Flashing Lights?",
+				"Some scenes has flashing lights, which may be uncomfortable for people with epilepsy.\nKEEP the flashing lights?",
 				"No", "Yes", "danger",
-				func(): pass,
-				func(): pass)
+				func(): ProjectSettings.set_setting("application/run/flashing", false),
+				func(): ProjectSettings.set_setting("application/run/flashing", true))
 		3:
-			_show_msg("Control Scheme",
-				"Would you like to rebind your controls?\n(Default on Android)",
+			# HQSetup.hx case 3 (Message/Header/SetControlScheme, Message/SetControlScheme).
+			# Real rightAction opens promptKeyChange(0), a 4-step "press any key to
+			# rebind <note>" flow for a physical keyboard — not applicable on
+			# Android's touch controls, so both branches fall through to step 4
+			# here. Real leftAction also sets Options.flashingLights = true, which
+			# reads as a copy-paste bug from case 2 (control scheme has nothing to
+			# do with flashing lights) — deliberately NOT reproduced.
+			_show_msg("Set Control Scheme",
+				"Set up your control scheme?",
 				"No", "Yes", "warning",
 				func(): _skip_to_downscroll(),
 				func(): _skip_to_downscroll())
 		4:
-			_show_msg("Downscroll Preference",
-				"Would you like upscroll or downscroll?",
+			# HQSetup.hx case 4 (Message/Header/DownscrollPreference, Message/DownscrollPreference)
+			_show_msg("Note Scroll Option",
+				"Which scroll direction would you like to use?",
 				"Upscroll", "Downscroll", "warning",
-				func(): pass,
-				func(): pass)
+				func(): ProjectSettings.set_setting("application/run/downscroll", false),
+				func(): ProjectSettings.set_setting("application/run/downscroll", true))
 
 func _show_msg(title: String, body: String, left: String, right: String,
 				icon: String, on_left: Callable, on_right: Callable) -> void:
