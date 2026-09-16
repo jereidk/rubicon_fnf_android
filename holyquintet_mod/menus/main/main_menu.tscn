@@ -59,6 +59,24 @@ mouse_filter = 2
 texture = ExtResource("3")
 stretch_mode = 6
 
+[node name="MenuButtons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BgLogo" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 125.0
+offset_right = 1988.0
+offset_bottom = 250.0
+mouse_filter = 2
+texture = ExtResource("5")
+
 [node name="BgTopBanner" type="TextureRect" parent="."]
 layout_mode = 0
 offset_left = -30.0
@@ -80,7 +98,7 @@ texture = ExtResource("4")
 stretch_mode = 1
 flip_v = true
 
-[node name="MenuButtons" type="Control" parent="."]
+[node name="FadeoutSprite" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -88,26 +106,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="BgLogo" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 1300.0
-offset_top = 125.0
-offset_right = 1988.0
-offset_bottom = 250.0
-mouse_filter = 2
-texture = ExtResource("5")
-
-[node name="Graphics" type="Node2D" parent="."]
-
-[node name="Medals" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
+color = Color(0, 0, 0, 1)
+modulate = Color(1, 1, 1, 0)
 
 [node name="TickerBarBG" type="TextureRect" parent="."]
 layout_mode = 0
@@ -128,14 +128,3 @@ offset_right = 1325.0
 offset_bottom = 155.0
 mouse_filter = 2
 label_settings = SubResource("ticker_settings")
-
-[node name="FadeoutSprite" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 1)
-modulate = Color(1, 1, 1, 0)

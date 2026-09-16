@@ -104,8 +104,8 @@ var selected: bool:
 				text_label.modulate = Color.WHITE
 				sub_text_label.modulate = Color.WHITE
 				selected_flash.self_modulate = Color.WHITE
-				text_label.add_theme_constant_override("outline_size", 6)
-				sub_text_label.add_theme_constant_override("outline_size", 6)
+				text_label.add_theme_constant_override("outline_size", 12)
+				sub_text_label.add_theme_constant_override("outline_size", 12)
 			else:
 				sprite.modulate = Color.WHITE
 				highlight.modulate = Color(0.5, 0.5, 0.5, 1)
@@ -132,8 +132,8 @@ var selected: bool:
 				sprite.modulate = Color(0.5, 0.5, 0.5)
 				text_label.modulate = Color(0.5, 0.5, 0.5)
 				sub_text_label.modulate = Color(0.5, 0.5, 0.5)
-				text_label.add_theme_constant_override("outline_size", 6)
-				sub_text_label.add_theme_constant_override("outline_size", 6)
+				text_label.add_theme_constant_override("outline_size", 12)
+				sub_text_label.add_theme_constant_override("outline_size", 12)
 			else:
 				sprite.modulate = Color(0.5, 0.5, 0.5)
 				lock_icon.modulate = Color(0.5, 0.5, 0.5)

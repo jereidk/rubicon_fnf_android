@@ -56,14 +56,15 @@ const DESTINATIONS := {
 @onready var bg_btm_banner: TextureRect = $BgBtmBanner
 @onready var menu_buttons_root: Control = $MenuButtons
 @onready var bg_logo: TextureRect = $BgLogo
-@onready var graphics_root: Node2D = $Graphics
-@onready var medals_root: Control = $Medals
-
-var shop_button: Control
-var gj_button: Control
 @onready var ticker_bg: TextureRect = $TickerBarBG
 @onready var ticker_txt: Label = $TickerBarTxt
 @onready var fadeout_sprite: ColorRect = $FadeoutSprite
+
+var graphics_root: Node2D
+var medal_icons_root: Control
+var medal_labels_root: Control
+var shop_button: Control
+var gj_button: Control
 
 var _menu_buttons: Array = []
 var _new_badges: Array[TextureRect] = []
@@ -81,10 +82,26 @@ var _story_diff: Control
 const NEWS_TEXT := ""  # global.hx fetches this from a live server at runtime; no such backend here.
 
 
+## Node draw order below is built to exactly match the real create()'s
+## add()/insert() sequence, not just "looks right" — the big adobe-animate
+## art is large enough to reach past the bottom banner, and the real game
+## clips it there (art draws BEHIND bg_BtmBanner's checkered border), which
+## a naive "put art on top of everything" order gets backwards. Real order,
+## derived from where each insert(members.indexOf(X), ...) lands relative to
+## the plain add()s around it:
+##   BgSpr, BgSpots, BgBack, MenuButtons(+badges), BgLogo, BgTopBanner,
+##   Graphics, MedalIcons, BgBtmBanner, MedalLabels, GjButton, ShopButton,
+##   FadeoutSprite, TickerBarBG, TickerBarTxt.
+## MenuButtons/BgLogo/BgTopBanner/BgBtmBanner/FadeoutSprite/TickerBar* are
+## static children in main_menu.tscn already in that relative order;
+## Graphics/MedalIcons/MedalLabels/GjButton/ShopButton are built here and
+## slotted into place with move_child() since ButtonUI and MainMenuSprite
+## both need setup before entering the tree (see _build_side_buttons()).
 func _ready() -> void:
 	_build_menu_buttons()
 	_build_graphics()
-	_build_medals()
+	_build_medal_icons()
+	_build_medal_labels()
 	_build_side_buttons()
 	_setup_ticker()
 
@@ -98,22 +115,25 @@ func _ready() -> void:
 ## tree — it's only read once in its own _ready() — and a scene-instanced
 ## child already has _ready() called by the time this script's own _ready()
 ## could set `.style` on it. Matches _build_menu_buttons()'s convention.
-## Real add() order (after the medal loop) draws these on top of the medals.
+## Real order is gj_Button then shop_Button, both drawn on top of the medal
+## labels but under fadeoutSprite/the ticker.
 func _build_side_buttons() -> void:
+	gj_button = ButtonScene.instantiate()
+	gj_button.style = "small"
+	add_child(gj_button)
+	move_child(gj_button, fadeout_sprite.get_index())
+	gj_button.position = Vector2(1750.0, 825.0)
+	gj_button.icon = "gamejoltoff"  # never actually signed in — no GameJolt backend on this port.
+	gj_button.gui_input.connect(_on_gj_gui_input)
+
 	shop_button = ButtonScene.instantiate()
 	shop_button.style = "small"
 	add_child(shop_button)
+	move_child(shop_button, fadeout_sprite.get_index())
 	shop_button.position = Vector2(25.0, 825.0)
 	shop_button.icon = "shop"
 	shop_button.locked = true
 	shop_button.gui_input.connect(_on_shop_gui_input)
-
-	gj_button = ButtonScene.instantiate()
-	gj_button.style = "small"
-	add_child(gj_button)
-	gj_button.position = Vector2(1750.0, 825.0)
-	gj_button.icon = "gamejoltoff"  # never actually signed in — no GameJolt backend on this port.
-	gj_button.gui_input.connect(_on_gj_gui_input)
 
 
 func _build_menu_buttons() -> void:
@@ -152,6 +172,10 @@ func _build_menu_buttons() -> void:
 
 
 func _build_graphics() -> void:
+	graphics_root = Node2D.new()
+	add_child(graphics_root)
+	move_child(graphics_root, bg_btm_banner.get_index())
+
 	for i in MENU_OPTIONS.size():
 		var g := MainMenuSpriteScript.new()
 		graphics_root.add_child(g)
@@ -164,43 +188,63 @@ func _build_graphics() -> void:
 	_graphics.append(shop_g)
 
 
-func _build_medals() -> void:
-	var medal_labels := ["All Songs Cleared", "Gauntlet Cleared", "All Accolades"]
-	# Real unlock checks per medal: stardom highscore (song/state this port
-	# hasn't built), best gauntlet score (portable — HQSaves has it), and
-	# every achievement owned (portable via HQSaves + the real 19-item list).
-	var unlocked_checks := [
-		false,
-		HQSaves.best_gauntlet_score > 0,
-		HQSaves.unlocked_achievements.size() >= AchievementsScript.ACHIEVEMENTS.size(),
-	]
+## Real newMedal icons are insert()ed at the same anchor as the graphics
+## (right before bg_BtmBanner, after them) — so the icons sit in front of
+## whichever item's art is currently showing, still behind the bottom
+## banner. The text labels are separate: real code adds them with a plain
+## add(), which always appends past everything that exists yet, landing
+## them *after* bg_BtmBanner instead — see _build_medal_labels().
+func _build_medal_icons() -> void:
+	medal_icons_root = Control.new()
+	medal_icons_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	medal_icons_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(medal_icons_root)
+	move_child(medal_icons_root, bg_btm_banner.get_index())
+
+	var unlocked_checks := _medal_unlocked_checks()
 	for i in 3:
-		var x := 185.0 + 150.0 * i
-		var y := 835.0
 		var icon := TextureRect.new()
 		icon.texture = load("res://holyquintet_mod/source/images/ui/common/medal%d.png" % i)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.position = Vector2(x, y)
-		medals_root.add_child(icon)
+		icon.position = Vector2(185.0 + 150.0 * i, 835.0)
+		medal_icons_root.add_child(icon)
+		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5)
 
+
+func _build_medal_labels() -> void:
+	medal_labels_root = Control.new()
+	medal_labels_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	medal_labels_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(medal_labels_root)
+	move_child(medal_labels_root, bg_btm_banner.get_index() + 1)
+
+	var medal_text := ["All Songs Cleared", "Gauntlet Cleared", "All Accolades"]
+	var unlocked_checks := _medal_unlocked_checks()
+	for i in 3:
+		var icon_w: float = load("res://holyquintet_mod/source/images/ui/common/medal%d.png" % i).get_width()
 		var label := Label.new()
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		label.position = Vector2(x, y)
-		label.size = Vector2(icon.texture.get_width(), 40.0)
+		label.position = Vector2(185.0 + 150.0 * i, 835.0)
+		label.size = Vector2(icon_w, 40.0)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_override("font", load("res://holyquintet_mod/source/fonts/shingo.otf"))
 		label.add_theme_font_size_override("font_size", 14)
 		label.add_theme_constant_override("outline_size", 5)
 		label.add_theme_color_override("font_outline_color", Color(0x0d / 255.0, 0x09 / 255.0, 0x0d / 255.0, 0.533333))
-		label.text = medal_labels[i]
-		medals_root.add_child(label)
+		label.text = medal_text[i]
+		medal_labels_root.add_child(label)
+		label.add_theme_color_override("font_color", Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5))
 
-		if unlocked_checks[i]:
-			icon.modulate = Color.WHITE
-			label.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			icon.modulate = Color(0.5, 0.5, 0.5)
-			label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+
+## Real unlock checks per medal: stardom highscore (song/state this port
+## hasn't built), best gauntlet score (portable — HQSaves has it), and
+## every achievement owned (portable via HQSaves + the real 19-item list).
+func _medal_unlocked_checks() -> Array:
+	return [
+		false,
+		HQSaves.best_gauntlet_score > 0,
+		HQSaves.unlocked_achievements.size() >= AchievementsScript.ACHIEVEMENTS.size(),
+	]
 
 
 func _setup_ticker() -> void:
