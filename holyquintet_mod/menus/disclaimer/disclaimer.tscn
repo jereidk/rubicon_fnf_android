@@ -35,7 +35,6 @@ grow_horizontal = 2
 mouse_filter = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.533333)
 theme_override_constants/outline_size = 5
-theme_override_constants/line_spacing = 12
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 42
 text = "This mod contains the following:
