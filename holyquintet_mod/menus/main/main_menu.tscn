@@ -9,10 +9,9 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/newbadge.png" id="6"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/ticker.png" id="7"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8"]
-[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/button_ui.tscn" id="9"]
 
 [sub_resource type="CanvasItemMaterial" id="multiply_blend"]
-blend_mode = 2
+blend_mode = 3
 
 [sub_resource type="LabelSettings" id="ticker_settings"]
 font = ExtResource("8")
@@ -104,16 +103,6 @@ mouse_filter = 2
 texture = ExtResource("5")
 
 [node name="Graphics" type="Node2D" parent="."]
-
-[node name="ShopButton" parent="." instance=ExtResource("9")]
-layout_mode = 0
-offset_left = 25.0
-offset_top = 825.0
-
-[node name="GjButton" parent="." instance=ExtResource("9")]
-layout_mode = 0
-offset_left = 1750.0
-offset_top = 825.0
 
 [node name="Medals" type="Control" parent="."]
 layout_mode = 1

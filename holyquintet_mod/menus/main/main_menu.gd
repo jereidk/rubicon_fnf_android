@@ -41,9 +41,10 @@ const DESTINATIONS := {
 @onready var menu_buttons_root: Control = $MenuButtons
 @onready var bg_logo: TextureRect = $BgLogo
 @onready var graphics_root: Node2D = $Graphics
-@onready var shop_button: Control = $ShopButton
-@onready var gj_button: Control = $GjButton
 @onready var medals_root: Control = $Medals
+
+var shop_button: Control
+var gj_button: Control
 @onready var ticker_bg: TextureRect = $TickerBarBG
 @onready var ticker_txt: Label = $TickerBarTxt
 @onready var fadeout_sprite: ColorRect = $FadeoutSprite
@@ -68,20 +69,35 @@ func _ready() -> void:
 	_build_menu_buttons()
 	_build_graphics()
 	_build_medals()
+	_build_side_buttons()
 	_setup_ticker()
-
-	shop_button.style = "small"
-	shop_button.icon = "shop"
-	shop_button.locked = true
-	shop_button.gui_input.connect(_on_shop_gui_input)
-
-	gj_button.style = "small"
-	gj_button.icon = "gamejoltoff"  # never actually signed in — no GameJolt backend on this port.
-	gj_button.gui_input.connect(_on_gj_gui_input)
 
 	fadeout_sprite.modulate.a = 0.0
 
 	_change_selection(0, false)
+
+
+## gj_Button/shop_Button are built here (not as static scene-instanced
+## children) because ButtonUI's `style` must be set *before* it enters the
+## tree — it's only read once in its own _ready() — and a scene-instanced
+## child already has _ready() called by the time this script's own _ready()
+## could set `.style` on it. Matches _build_menu_buttons()'s convention.
+## Real add() order (after the medal loop) draws these on top of the medals.
+func _build_side_buttons() -> void:
+	shop_button = ButtonScene.instantiate()
+	shop_button.style = "small"
+	add_child(shop_button)
+	shop_button.position = Vector2(25.0, 825.0)
+	shop_button.icon = "shop"
+	shop_button.locked = true
+	shop_button.gui_input.connect(_on_shop_gui_input)
+
+	gj_button = ButtonScene.instantiate()
+	gj_button.style = "small"
+	add_child(gj_button)
+	gj_button.position = Vector2(1750.0, 825.0)
+	gj_button.icon = "gamejoltoff"  # never actually signed in — no GameJolt backend on this port.
+	gj_button.gui_input.connect(_on_gj_gui_input)
 
 
 func _build_menu_buttons() -> void:
