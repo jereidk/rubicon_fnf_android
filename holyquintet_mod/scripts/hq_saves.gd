@@ -54,6 +54,15 @@ var accolades_unlocked: bool = false
 var gallery_unlocked: bool = false
 var viewed_menu: Array[int] = [1, 2, 3, 4]
 
+## Not a real FlxG.save.data field — global.hx's newsText is session-only,
+## always blank with no fallback when HttpUtil.hasInternet() is false. This
+## caches the last successfully-fetched ticker text/version so the main
+## menu can show *something* offline instead of going blank every time,
+## per user request (a deliberate improvement over the real mod's behavior,
+## not a fidelity gap).
+var cached_news_text: String = ""
+var cached_news_version: String = ""
+
 ## Per-run mechanic flags (not persisted), read by HQAchievements.
 ## Mirrors the mod's bulletNoteMissed / timeStopNoteHit for YoureOnMyTime.
 var hq_bullet_note_missed: bool = false
@@ -113,6 +122,8 @@ func save_data() -> void:
 		"accolades_unlocked": accolades_unlocked,
 		"gallery_unlocked": gallery_unlocked,
 		"viewed_menu": viewed_menu,
+		"cached_news_text": cached_news_text,
+		"cached_news_version": cached_news_version,
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f != null:
@@ -129,7 +140,7 @@ func load_data() -> void:
 	if json.parse(f.get_as_text()) != OK:
 		return
 	var data: Dictionary = json.data
-	unlocked_achievements = (data.get("unlocked_achievements", []) as Array).map(func(v): return str(v))
+	unlocked_achievements.assign((data.get("unlocked_achievements", []) as Array).map(func(v): return str(v)))
 	kyubey_coins = int(data.get("kyubey_coins", 0))
 	best_gauntlet_score = int(data.get("best_gauntlet_score", 0))
 	first_time_setup_done = bool(data.get("first_time_setup_done", false))
@@ -142,4 +153,6 @@ func load_data() -> void:
 	gauntlet_unlocked = bool(data.get("gauntlet_unlocked", false))
 	accolades_unlocked = bool(data.get("accolades_unlocked", false))
 	gallery_unlocked = bool(data.get("gallery_unlocked", false))
-	viewed_menu = (data.get("viewed_menu", [1, 2, 3, 4]) as Array).map(func(v): return int(v))
+	viewed_menu.assign((data.get("viewed_menu", [1, 2, 3, 4]) as Array).map(func(v): return int(v)))
+	cached_news_text = str(data.get("cached_news_text", ""))
+	cached_news_version = str(data.get("cached_news_version", ""))

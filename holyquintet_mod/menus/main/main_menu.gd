@@ -226,6 +226,15 @@ func _build_medal_icons() -> void:
 		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0, 0, 0, 0.5)
 
 
+## Real code sets medalText.text = i18n.tr('Main/Medals/AllSongsCleared')
+## (and GauntletCleared/AllAccolades) — but none of those three keys exist
+## in EITHER shipped translations.json (en_US or es_US; checked both). A
+## real screenshot confirms the outcome: at this exact position nothing
+## renders at all, not even garbled key text, over character art that would
+## otherwise be directly under it. Whatever jsoni18n does with a missing
+## key, the real, observable result is blank text — reproduced here as
+## permanently empty rather than guessing English strings the actual
+## released mod never shows.
 func _build_medal_labels() -> void:
 	medal_labels_root = Control.new()
 	medal_labels_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -233,8 +242,6 @@ func _build_medal_labels() -> void:
 	add_child(medal_labels_root)
 	move_child(medal_labels_root, bg_btm_banner.get_index() + 1)
 
-	var medal_text := ["All Songs Cleared", "Gauntlet Cleared", "All Accolades"]
-	var unlocked_checks := _medal_unlocked_checks()
 	for i in 3:
 		var icon_w: float = load("res://holyquintet_mod/source/images/ui/common/medal%d.png" % i).get_width()
 		var label := Label.new()
@@ -246,9 +253,8 @@ func _build_medal_labels() -> void:
 		label.add_theme_font_size_override("font_size", 14)
 		label.add_theme_constant_override("outline_size", 5)
 		label.add_theme_color_override("font_outline_color", Color(0x0d / 255.0, 0x09 / 255.0, 0x0d / 255.0, 0.533333))
-		label.text = medal_text[i]
+		label.text = ""
 		medal_labels_root.add_child(label)
-		label.add_theme_color_override("font_color", Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5))
 
 
 ## Real unlock checks per medal: stardom highscore (song/state this port
@@ -267,12 +273,25 @@ func _medal_unlocked_checks() -> Array:
 ## this is the first HQMainMenu visit) — the doc read happens in
 ## global.hx's preStateSwitch(), not here, but the *result* only ever
 ## shows up on this screen, so fetching it from here is the equivalent hook.
+##
+## Real behavior with no internet: blank, always — HttpUtil.hasInternet()
+## fails, newsText='' and stays that way for the whole session. Per user
+## request this port does better: show the last successfully-fetched text
+## (cached in HQSaves) immediately as an optimistic placeholder, then
+## replace it with the live result if the fetch succeeds — so a real fetch
+## failure/timeout/offline device just keeps showing the cached text
+## instead of going blank, and only a truly first-ever run (nothing cached
+## yet) looks like the real mod's blank-until-fetched state.
 func _setup_ticker() -> void:
-	ticker_txt.text = ""
+	ticker_txt.text = HQSaves.cached_news_text
 	ticker_txt.position.x = 0.0
+	if not ticker_txt.text.is_empty():
+		await get_tree().process_frame
+		_start_ticker_scroll()
 
 	var req := HTTPRequest.new()
 	add_child(req)
+	req.timeout = 8.0  # don't hang the fetch forever on a dead/slow connection
 	req.request_completed.connect(_on_news_fetched)
 	# Real HttpUtil sets a User-Agent header; the doc's unauthenticated HTML
 	# response embeds the document text in its og:description meta tag
@@ -288,6 +307,12 @@ func _setup_ticker() -> void:
 ## content is embedded verbatim in the <meta property="og:description">
 ## tag regardless — confirmed by fetching the real URL — so the same
 ## split-by-marker parsing works unmodified against the HTML body.
+##
+## Any failure here (bad result/status, unexpected format, offline) just
+## returns and leaves whatever _setup_ticker() already put on screen — the
+## cached text if there was one, blank otherwise. That's the "smart
+## fallback": nothing to specially handle on the failure path, because the
+## optimistic cached text was already showing before this ever ran.
 func _on_news_fetched(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		return
@@ -304,6 +329,13 @@ func _on_news_fetched(result: int, response_code: int, _headers: PackedStringArr
 	var news := kv[1].strip_edges()
 	if news.is_empty():
 		return
+
+	HQSaves.cached_news_version = kv[0].strip_edges()
+	HQSaves.cached_news_text = news
+	HQSaves.save_data()
+
+	if news == ticker_txt.text:
+		return  # already showing this (the cached text matched what's live) — don't restart the scroll mid-cycle
 
 	ticker_txt.text = news
 	await get_tree().process_frame  # let the Label compute its new text size
