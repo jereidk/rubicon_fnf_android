@@ -18,6 +18,22 @@ class_name MainMenuSprite
 ## same. The real "stupid fix" in update() (globalCurFrame >= length ->
 ## playAnim('loop', false)) is replaced by simply chaining the loop phase
 ## onto the start tween's completion — same outcome, no polling needed.
+##
+## Investigated and NOT a bug: freeplay's film-reel (Layer_3/Layer_4,
+## FREEPLAY_REEL_F/_B) looks sharp here but blurred in a real reference
+## screenshot the user had. Checked both possible real sources of that blur
+## and found neither: the reel's own bitmap in spritemap1.png has hard,
+## non-gradient edges (no baked-in blur), and Animation.json has zero
+## filter definitions anywhere (grepped the whole file) — so the real game
+## doesn't draw it blurred either. What IS real: the reel's own M3D
+## translation data shows a fast one-time entrance slide (~1089px in 19
+## frames, ~0.24s at 80fps) during 'start', settling into a slow gentle
+## bob for the rest of the loop — if the reference was a video/gif frame
+## grabbed mid-slide, real motion blur from that capture would show up
+## there and never here, since a Godot screenshot is a true instantaneous
+## frame with nothing to blur. Left sharp per explicit request rather than
+## faking a motion-blur shader for something the real engine doesn't
+## render blurred either.
 
 ## freeplay/gauntlet/accolades/gallery's "position" below is NOT the literal
 ## real setPosition() value (that's still (-2325,-250)/(-1250,-1100)/
