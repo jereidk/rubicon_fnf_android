@@ -1,11 +1,16 @@
 extends Control
-## CNE's built-in WarningState — NOT mod content. The HolyQuintet build has
-## Flags.DISABLE_WARNING_SCREEN=false (measured in the exe's Flags static
-## initializer at file offset for 0x147abae67, a literal movb $0,... — the
-## opposite of upstream CodenameEngine's default of true) and the mod ships
-## no data/states/WarningState.hx override, so this generic engine screen
-## with its default placeholder text plays before HQSetup.
-## Ports funkin.menus.WarningState from CodenameEngine v1.0.1.
+## CNE's built-in WarningState — NOT mod content, and NOT part of the real
+## HolyQuintet boot chain: confirmed by direct play (the user has never
+## seen it appear before HQSetup), despite the exe's Flags static
+## initializer measuring DISABLE_WARNING_SCREEN=false (movb $0 at file
+## offset 0x147abae67, the opposite of upstream CNE's own default of
+## true) — that flag controls whether the FEATURE compiles in at all, not
+## whether this specific build's actual startup state reaches it, and
+## something else (outside the mod's own Haxe source, since it ships no
+## data/states/WarningState.hx override) evidently skips straight past it.
+## Kept here as a faithful, correct port of a real CNE engine screen —
+## funkin.menus.WarningState from CodenameEngine v1.0.1 — just not wired
+## into HolyQuintet's actual entry point.
 
 @onready var title_label: Label = $TitleLabel
 @onready var disclaimer_label: RichTextLabel = $DisclaimerLabel
