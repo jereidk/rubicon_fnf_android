@@ -33,28 +33,26 @@ extends Control
 ## music volume, zooms FlxG.camera by +0.03 on every Conductor.curBeat
 ## change, and plays a metronome tick on every Conductor.getTimeInBeats
 ## change, while the camera zoom itself decays back to 1 via
-## `CoolUtil.fpsLerp(zoom, 1, 0.25)` every frame regardless. Ported as:
+## `CoolUtil.fpsLerp(zoom, 1, 0.25)` every frame regardless. Ported using
+## the real HQConductor/CoolUtil autoload/util scripts (hq_conductor.gd,
+## cool_util.gd — see their own headers for exactly which parts of the
+## real Conductor.hx/CoolUtil.hx base-engine classes are ported and why):
 ## - "camera" = this screen's own World Control (wraps every real sprite —
 ##   backgrounds, banners, category buttons, option rows — pivoted at
 ##   screen center (960,540) via pivot_offset, then scaled instead of a
 ##   real Camera2D; same convention as HQTitle.hx's star-zoom, see
 ##   title_screen.gd's own header for why scaling content around its
 ##   center reads identically to zooming a camera at it).
-## - the beat clock: no Conductor/chart exists anywhere in this port yet,
-##   so there's no real bpmChangeMap to read. Conductor.hx itself (a base
-##   CodenameEngine class, not something the mod overrides, so it's not in
-##   this port's own mod-source extraction) falls back to
-##   `Conductor.startingBPM` = `dummyChange.bpm` = 100 whenever nothing has
-##   called changeBPM() yet — true here, since this screen never loads a
-##   chart. Confirmed by reading CodenameEngine's own public source
-##   (funkin/backend/system/Conductor.hx) directly, not guessed.
-## - fpsLerp: also a base-engine helper (CoolUtil.hx), confirmed the same
-##   way: `fpsLerp(a,b,ratio) = lerp(a,b, 1-pow(1-ratio, elapsed*60))`.
+## - the beat clock: this screen registers its own music_player with
+##   HQConductor and reacts to its beat_hit signal; HQConductor has no
+##   chart loaded (none exists anywhere in this port yet), so it runs at
+##   its own flat default bpm (100 — Conductor.startingBPM's real fallback
+##   value, confirmed against CodenameEngine's own public source).
 ## - the real code's two separate beat trackers (lastBeatOffSet for zoom,
 ##   lastSongBeatOffset for the metronome — technically two slightly
-##   different clocks) are consolidated into one here, since without a
-##   real Conductor there's only one beat clock to derive from regardless
-##   (the settings music's own playback position at the 100 BPM fallback).
+##   different clocks) are consolidated into HQConductor's single beat_hit,
+##   since a flat-bpm Conductor only has the one clock to derive from
+##   regardless.
 ##
 ## Real DestroySaveData ends in Sys.exit() (a desktop-only hard process
 ## kill after wiping every save). Ported as get_tree().quit() — the
@@ -71,13 +69,9 @@ const ButtonScene := preload("res://holyquintet_mod/ui/button_ui.tscn")
 const RowScript := preload("res://holyquintet_mod/ui/setting_option_row.gd")
 const MessageWindowScene := preload("res://holyquintet_mod/ui/hq_message_window.tscn")
 const GenUtil := preload("res://holyquintet_mod/scripts/gen_util.gd")
+const CoolUtil := preload("res://holyquintet_mod/scripts/cool_util.gd")
 
 const CATEGORY_NAMES := ["Controls", "Gameplay", "Visuals", "Language", "Other"]
-
-## See this file's header: Conductor.startingBPM's real fallback value when
-## no song/chart has set a bpmChangeMap, confirmed against CodenameEngine's
-## own Conductor.hx source.
-const OFFSET_PREVIEW_BPM := 100.0
 
 const CONTROLS_LIST := [
 	{"name": "Left Note", "type": "control", "parent_value": "p1_note_left"},
@@ -151,7 +145,6 @@ var music_player: AudioStreamPlayer
 var metronome_player: AudioStreamPlayer
 var _hold_time := 0.0
 var _offsetting_option := false
-var _last_offset_beat := -1
 
 @onready var world: Control = $World
 @onready var bg_spots: TextureRect = $World/BgSpots
@@ -172,6 +165,8 @@ func _ready() -> void:
 		music_player.stream = stream
 		add_child(music_player)
 		music_player.play()
+	HQConductor.music_player = music_player
+	HQConductor.beat_hit.connect(_on_conductor_beat_hit)
 
 	metronome_player = AudioStreamPlayer.new()
 	var metronome_path := "res://holyquintet_mod/source/sounds/editors/charter/metronome.ogg"
@@ -242,7 +237,7 @@ func _process(delta: float) -> void:
 		bg_btm_banner.position.x += banner_tex_w
 
 	_process_hold_repeat(delta)
-	_process_song_offset_preview(delta)
+	_process_offset_preview(delta)
 
 
 ## Real update(): holding Left/Right (not just tapping) re-applies the
@@ -277,34 +272,30 @@ func _process_hold_repeat(delta: float) -> void:
 			_step_float(row, direction)
 
 
-## See this file's header for the real update() this ports (music volume
-## duck, camera zoom pulse per beat, metronome tick per beat, continuous
-## zoom decay) and exactly which pieces (World scale as the "camera", the
-## 100 BPM fallback, the consolidated single beat clock) are this port's
-## own stand-ins for real objects (Conductor, a chart) that don't exist yet.
-func _process_song_offset_preview(delta: float) -> void:
-	if _offsetting_option and is_instance_valid(music_player) and music_player.playing:
-		music_player.volume_db = linear_to_db(0.5)
-		var beat := floori(music_player.get_playback_position() * OFFSET_PREVIEW_BPM / 60.0)
-		if beat != _last_offset_beat:
-			_last_offset_beat = beat
-			if is_instance_valid(metronome_player):
-				metronome_player.play()
-			world.scale += Vector2(0.03, 0.03)
-	else:
-		if is_instance_valid(music_player):
-			music_player.volume_db = 0.0
-		_last_offset_beat = -1
+## Real update(): the volume duck (`FlxG.sound.music.volume = 0.5`/`1.0`)
+## and `FlxG.camera.zoom = CoolUtil.fpsLerp(zoom, 1, 0.25)` both run every
+## single frame unconditionally — only the beat-driven pulse itself
+## (_on_conductor_beat_hit() below) is gated to while Song Offset is
+## selected.
+func _process_offset_preview(delta: float) -> void:
+	if is_instance_valid(music_player):
+		music_player.volume_db = linear_to_db(0.5) if _offsetting_option else 0.0
 	world.scale = Vector2(
-		_fps_lerp(world.scale.x, 1.0, 0.25, delta),
-		_fps_lerp(world.scale.y, 1.0, 0.25, delta)
+		CoolUtil.fps_lerp(world.scale.x, 1.0, 0.25, delta),
+		CoolUtil.fps_lerp(world.scale.y, 1.0, 0.25, delta)
 	)
 
 
-## Ports CoolUtil.fpsLerp/getFPSRatio exactly (confirmed against
-## CodenameEngine's own CoolUtil.hx source, not guessed).
-func _fps_lerp(v1: float, v2: float, ratio: float, delta: float) -> float:
-	return lerpf(v1, v2, 1.0 - pow(1.0 - ratio, delta * 60.0))
+## Real update(): on every Conductor beat change while offsettingOption is
+## true, zoom-pulse the camera and tick the metronome. See this file's
+## header for why both real beat trackers (camera vs metronome) collapse
+## into this one HQConductor signal.
+func _on_conductor_beat_hit(_beat: int) -> void:
+	if not _offsetting_option:
+		return
+	if is_instance_valid(metronome_player):
+		metronome_player.play()
+	world.scale += Vector2(0.03, 0.03)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -503,6 +494,10 @@ func _back_selection() -> void:
 		can_control = false
 		if is_instance_valid(music_player):
 			music_player.stop()
+		if HQConductor.music_player == music_player:
+			HQConductor.music_player = null
+		if HQConductor.beat_hit.is_connected(_on_conductor_beat_hit):
+			HQConductor.beat_hit.disconnect(_on_conductor_beat_hit)
 		_go_back()
 	else:
 		in_sub_menu = false
