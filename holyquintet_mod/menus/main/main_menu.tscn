@@ -1,10 +1,25 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=13 format=3]
 
+[ext_resource type="Script" path="res://holyquintet_mod/menus/main/main_menu.gd" id="0"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/background.png" id="1"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/spots.png" id="2"]
-[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/logo.png" id="3"]
-[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="4"]
-[ext_resource type="Script" path="res://holyquintet_mod/menus/main/main_menu.gd" id="5"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/back.png" id="3"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/border.png" id="4"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/logo.png" id="5"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/newbadge.png" id="6"]
+[ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/ticker.png" id="7"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/button_ui.tscn" id="9"]
+
+[sub_resource type="CanvasItemMaterial" id="multiply_blend"]
+blend_mode = 2
+
+[sub_resource type="LabelSettings" id="ticker_settings"]
+font = ExtResource("8")
+font_size = 24
+font_color = Color(1, 1, 1, 1)
+outline_size = 5
+outline_color = Color(0.0509804, 0.0352941, 0.0509804, 0.533333)
 
 [node name="HQMainMenu" type="Control"]
 layout_mode = 3
@@ -13,92 +28,127 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("5")
+mouse_filter = 2
+script = ExtResource("0")
 
-[node name="BG" type="TextureRect" parent="."]
+[node name="BgSpr" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("1")
 stretch_mode = 6
 
-[node name="Spots" type="TextureRect" parent="."]
+[node name="BgSpots" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -1311.0
+offset_top = -712.0
+offset_right = 3231.0
+offset_bottom = 1792.0
+mouse_filter = 2
+texture = ExtResource("2")
+stretch_mode = 1
+
+[node name="BgBack" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2")
+mouse_filter = 2
+material = SubResource("multiply_blend")
+texture = ExtResource("3")
 stretch_mode = 6
-modulate = Color(1, 1, 1, 0.3)
 
-[node name="Logo" type="TextureRect" parent="."]
+[node name="BgTopBanner" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -30.0
+offset_top = 0.0
+offset_right = 1980.0
+offset_bottom = 101.0
+mouse_filter = 2
+texture = ExtResource("4")
+stretch_mode = 1
+
+[node name="BgBtmBanner" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -30.0
+offset_top = 979.0
+offset_right = 1980.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("4")
+stretch_mode = 1
+flip_v = true
+
+[node name="MenuButtons" type="Control" parent="."]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BgLogo" type="TextureRect" parent="."]
+layout_mode = 0
 offset_left = 1300.0
 offset_top = 125.0
-offset_right = 1500.0
-offset_bottom = 331.0
-texture = ExtResource("3")
+offset_right = 1988.0
+offset_bottom = 250.0
+mouse_filter = 2
+texture = ExtResource("5")
 
-[node name="Buttons" type="VBoxContainer" parent="."]
-layout_mode = 1
-offset_left = 400.0
-offset_top = 300.0
-offset_right = 900.0
-offset_bottom = 700.0
-theme_override_constants/separation = 20
+[node name="ShopButton" parent="." instance=ExtResource("9")]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 825.0
 
-[node name="Story" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "► Story"
+[node name="GjButton" parent="." instance=ExtResource("9")]
+layout_mode = 0
+offset_left = 1750.0
+offset_top = 825.0
 
-[node name="Freeplay" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Freeplay"
-
-[node name="Gauntlet" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Gauntlet"
-
-[node name="Accolades" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Accolades"
-
-[node name="Gallery" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Gallery"
-
-[node name="Credits" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Credits"
-
-[node name="Settings" type="Label" parent="Buttons"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 48
-text = "   Settings"
-
-[node name="FadeRect" type="ColorRect" parent="."]
+[node name="Medals" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="TickerBarBG" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 124.0
+offset_right = 1362.0
+offset_bottom = 153.0
+mouse_filter = 2
+texture = ExtResource("7")
+modulate = Color(1, 1, 1, 0.5)
+
+[node name="TickerBarTxt" type="Label" parent="."]
+clip_contents = true
+layout_mode = 0
+offset_left = 50.0
+offset_top = 125.0
+offset_right = 1325.0
+offset_bottom = 155.0
+mouse_filter = 2
+label_settings = SubResource("ticker_settings")
+
+[node name="FadeoutSprite" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 1)
+modulate = Color(1, 1, 1, 0)

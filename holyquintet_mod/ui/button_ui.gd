@@ -41,6 +41,10 @@ func _ready() -> void:
 	var base_tex: Texture2D = load("res://holyquintet_mod/source/images/ui/common/button-%s.png" % style)
 	_sprite_w = base_tex.get_width()
 	_sprite_h = base_tex.get_height() / 3.0
+	# The root Control's own rect is what gui_input hit-tests against — it
+	# has no visible drawing of its own (that's all children), so without
+	# an explicit size here it stays (0,0) and nothing could ever click it.
+	size = Vector2(_sprite_w, _sprite_h)
 
 	_atlas_normal = _make_atlas(base_tex, 0)
 	_atlas_highlighted = _make_atlas(base_tex, 1)

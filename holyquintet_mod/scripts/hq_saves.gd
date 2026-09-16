@@ -31,6 +31,29 @@ var is_gauntlet_mode: bool = false
 var gauntlet_ending: bool = false
 var is_story_mode: bool = false
 
+## HQMainMenu.hx: freeplayUnlocked/gauntletUnlocked/accoladesUnlocked/
+## galleryUnlocked gate the corresponding menu button's locked state — all
+## default false (a fresh save), same as the real mod, and nothing in this
+## port unlocks them yet since the story-mode progression that would
+## unlock them for real isn't built.
+##
+## viewedMenu (badly named — it's really "menu indices still owed a new-
+## badge") defaults to [1,2,3,4] in the real global.hx: HQMainMenu only
+## shows a badge when BOTH the index is in this list AND that button is
+## unlocked, so on a fresh save every badge stays hidden (everything in
+## the list starts locked) until something unlocks one of them, at which
+## point its already-pending entry makes the badge appear immediately —
+## no separate "just unlocked" flag needed. Each destination screen
+## removes its own index once actually visited (HQFreeplay/HQGauntlet/
+## HQAchievements/HQGallery); this port does that removal from
+## HQMainMenu's own confirm handler instead, since those destination
+## screens are still early stubs with no such hook of their own yet.
+var freeplay_unlocked: bool = false
+var gauntlet_unlocked: bool = false
+var accolades_unlocked: bool = false
+var gallery_unlocked: bool = false
+var viewed_menu: Array[int] = [1, 2, 3, 4]
+
 ## Per-run mechanic flags (not persisted), read by HQAchievements.
 ## Mirrors the mod's bulletNoteMissed / timeStopNoteHit for YoureOnMyTime.
 var hq_bullet_note_missed: bool = false
@@ -85,6 +108,11 @@ func save_data() -> void:
 		"devoted_progress": devoted_progress,
 		"cur_story_progress": cur_story_progress,
 		"cur_story_diff": cur_story_diff,
+		"freeplay_unlocked": freeplay_unlocked,
+		"gauntlet_unlocked": gauntlet_unlocked,
+		"accolades_unlocked": accolades_unlocked,
+		"gallery_unlocked": gallery_unlocked,
+		"viewed_menu": viewed_menu,
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f != null:
@@ -110,3 +138,8 @@ func load_data() -> void:
 	devoted_progress = int(data.get("devoted_progress", 0))
 	cur_story_progress = int(data.get("cur_story_progress", 0))
 	cur_story_diff = str(data.get("cur_story_diff", "hard"))
+	freeplay_unlocked = bool(data.get("freeplay_unlocked", false))
+	gauntlet_unlocked = bool(data.get("gauntlet_unlocked", false))
+	accolades_unlocked = bool(data.get("accolades_unlocked", false))
+	gallery_unlocked = bool(data.get("gallery_unlocked", false))
+	viewed_menu = (data.get("viewed_menu", [1, 2, 3, 4]) as Array).map(func(v): return int(v))
