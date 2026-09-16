@@ -1,14 +1,7 @@
 extends Control
-## Ports HQMainMenu.hx. Two large, deliberate scope cuts, both because the
+## Ports HQMainMenu.hx. One remaining deliberate scope cut, because the
 ## underlying system this port would need doesn't exist yet at all (not a
 ## shortcut on an existing feature):
-##  - MainMenuSprite's big per-item background art (anim_story/anim_freeplay/
-##    etc.) isn't a sprite-sheet flipbook — ui/main/anim_*/Animation.json is
-##    Adobe Animate's own texture-atlas timeline format (matches the
-##    "flixel-animate" haxelib: nested symbols/instances/transforms per
-##    frame). Rendering it properly means implementing a chunk of that
-##    library's own interpreter, which is its own project, not a menu-
-##    screen detail. Skipped outright rather than faked.
 ##  - beginStoryMode()'s zoom/shader cinematic ends by calling
 ##    PlayState.loadWeek()+FlxG.switchState(new PlayState()) — actual
 ##    gameplay, which nothing in this port builds yet (every screen so far
@@ -17,12 +10,19 @@ extends Control
 ## GameJolt sign-in/out (GameJoltSignInUI, GJRequest) has no backend on this
 ## platform either — gj_Button renders and is selectable/navigable for
 ## fidelity, but confirming it can't actually sign in/out anywhere.
+##
+## MainMenuSprite's big per-item background art (anim_story/anim_freeplay/
+## etc, ui/main/anim_*/Animation.json — Adobe Animate's texture-atlas
+## timeline format) IS ported, via the gdanimate addon's AdobeAtlas +
+## AnimateSymbol (the same system holyquintet_mod/characters/ already uses
+## for character sprites) — see main_menu_sprite.gd and _build_graphics().
 
 const GenUtil := preload("res://holyquintet_mod/scripts/gen_util.gd")
 const ButtonScene := preload("res://holyquintet_mod/ui/button_ui.tscn")
 const MessageWindowScene := preload("res://holyquintet_mod/ui/hq_message_window.tscn")
 const StoryDiffScene := preload("res://holyquintet_mod/ui/story_diff_ui.tscn")
 const AchievementsScript := preload("res://holyquintet_mod/menus/achievements/achievements_screen.gd")
+const MainMenuSpriteScript := preload("res://holyquintet_mod/ui/main_menu_sprite.gd")
 
 const MENU_OPTIONS := ["Story", "Freeplay", "Gauntlet", "Accolades", "Gallery", "Credits", "Settings"]
 const MENU_LABELS := ["Story", "Freeplay", "Gauntlet", "Accolades", "Gallery", "Credits", "Settings"]
@@ -40,6 +40,7 @@ const DESTINATIONS := {
 @onready var bg_btm_banner: TextureRect = $BgBtmBanner
 @onready var menu_buttons_root: Control = $MenuButtons
 @onready var bg_logo: TextureRect = $BgLogo
+@onready var graphics_root: Node2D = $Graphics
 @onready var shop_button: Control = $ShopButton
 @onready var gj_button: Control = $GjButton
 @onready var medals_root: Control = $Medals
@@ -51,6 +52,7 @@ var _menu_buttons: Array = []
 var _new_badges: Array[TextureRect] = []
 var _button_origin: Array[Vector2] = []
 var _scroll_tweens: Array[Tween] = []
+var _graphics: Array = []  # 0-6: menu items (mm_cur_sel order), 7: shop
 
 var mm_cur_sel: int = 0
 var _can_control: bool = true
@@ -64,6 +66,7 @@ const NEWS_TEXT := ""  # global.hx fetches this from a live server at runtime; n
 
 func _ready() -> void:
 	_build_menu_buttons()
+	_build_graphics()
 	_build_medals()
 	_setup_ticker()
 
@@ -114,6 +117,19 @@ func _build_menu_buttons() -> void:
 		pulse.set_loops()
 		pulse.tween_property(badge, "scale", Vector2(1.05, 1.05), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 		pulse.tween_property(badge, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+
+
+func _build_graphics() -> void:
+	for i in MENU_OPTIONS.size():
+		var g := MainMenuSpriteScript.new()
+		graphics_root.add_child(g)
+		g.setup(MENU_OPTIONS[i].to_lower())
+		_graphics.append(g)
+
+	var shop_g := MainMenuSpriteScript.new()
+	graphics_root.add_child(shop_g)
+	shop_g.setup("shop")
+	_graphics.append(shop_g)
 
 
 func _build_medals() -> void:
@@ -210,6 +226,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			for b in _menu_buttons:
 				b.selected = false
 			shop_button.selected = true
+			for g in _graphics:
+				g.hide_art()
+			_graphics[7].show_art()
 			return
 
 		if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
@@ -229,11 +248,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			_change_selection(0, true)
 			GenUtil.play_ui_sound(self, "move")
 			shop_button.selected = false
+			for g in _graphics:
+				g.hide_art()
+			_graphics[mm_cur_sel].show_art()
 		elif event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
 			_selecting_shop = false
 			GenUtil.play_ui_sound(self, "move")
 			_change_selection(0, true)
 			shop_button.selected = false
+			for g in _graphics:
+				g.hide_art()
+			_graphics[mm_cur_sel].show_art()
 
 	if event.is_action_pressed("ui_accept"):
 		_confirm_selection()
@@ -292,6 +317,11 @@ func _change_selection(change: int, skip_graphic: bool) -> void:
 		GenUtil.play_ui_sound(self, "move")
 
 	mm_cur_sel = wrapi(mm_cur_sel + change, 0, _menu_buttons.size())
+
+	if not skip_graphic and not _graphics.is_empty():
+		for g in _graphics:
+			g.hide_art()
+		_graphics[mm_cur_sel].show_art()
 
 	var scroll_offset_x := 0.0
 	var scroll_offset_y := 0.0
