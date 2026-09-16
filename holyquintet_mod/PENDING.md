@@ -4,6 +4,30 @@ Cosas reportadas/encontradas durante el port del Main Menu que quedaron
 sin resolver, anotadas acá para no perderlas. Ninguna bloquea al Main
 Menu en sí — son de otras pantallas.
 
+## 0. Botón/gesto atrás de Android — falta en TODAS las demás pantallas
+
+Al auditar el soporte mobile del main menu se encontró que
+`application/config/quit_on_go_back` (true por defecto en Godot) hacía
+que presionar atrás cerrara la app entera en vez de navegar hacia
+atrás, porque nada interceptaba `NOTIFICATION_WM_GO_BACK_REQUEST`. Ya
+arreglado en `main_menu.gd` (sintetiza un press de "ui_cancel" real,
+así reusa la misma lógica de back que ya existe por teclado en cada
+pantalla/overlay).
+
+**El mismo hueco existe en TODAS las demás pantallas de
+`holyquintet_mod`** (title, freeplay, gauntlet, achievements, gallery,
+credits, settings, pause, gameover, results, editors, etc. — se
+revisó con `grep -rL "GO_BACK_REQUEST" holyquintet_mod/menus/*/*.gd` y
+solo `main_menu.gd` lo maneja). `animania_mod` (el otro mod de este
+proyecto) sí lo hace en varias de sus pantallas — es el patrón a
+copiar: un `_notification(what)` chico por pantalla que, en
+`NOTIFICATION_WM_GO_BACK_REQUEST`, dispara la misma acción que ya usa
+esa pantalla para "volver" por teclado/Escape (en la mayoría de los
+casos de holyquintet_mod alcanza con sintetizar un press de
+"ui_cancel", como se hizo en main_menu.gd, ya que casi todas manejan
+esa acción). Falta replicarlo en cada pantalla — no se tocó nada fuera
+de main_menu.gd todavía.
+
 ## 1. Achievements (`holyquintet_mod/menus/achievements/`)
 
 Comparado contra el `create()` real de `HQAchievements.hx`. Encontrado
