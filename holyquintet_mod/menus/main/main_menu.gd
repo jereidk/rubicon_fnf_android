@@ -13,6 +13,12 @@ extends Control
 ## platform either — gj_Button renders and is selectable/navigable for
 ## fidelity, but confirming it can't actually sign in/out anywhere.
 ##
+## controls.DEV_ACCESS (opens funkin.editors.EditorPicker) and the NINE-key
+## Options.devMode shop shortcut are both real keyboard-only dev shortcuts
+## with no touchscreen equivalent — ported as one small always-visible
+## button in the top-right corner instead of a keybind (see
+## dev_console_button.gd, editor_picker.gd, _build_dev_console_button()).
+##
 ## MainMenuSprite's big per-item background art (anim_story/anim_freeplay/
 ## etc, ui/main/anim_*/Animation.json — Adobe Animate's texture-atlas
 ## timeline format) IS ported, via the gdanimate addon's AdobeAtlas +
@@ -41,6 +47,8 @@ const MessageWindowScene := preload("res://holyquintet_mod/ui/hq_message_window.
 const StoryDiffScene := preload("res://holyquintet_mod/ui/story_diff_ui.tscn")
 const AchievementsScript := preload("res://holyquintet_mod/menus/achievements/achievements_screen.gd")
 const MainMenuSpriteScript := preload("res://holyquintet_mod/ui/main_menu_sprite.gd")
+const DevConsoleButtonScript := preload("res://holyquintet_mod/ui/dev_console_button.gd")
+const EditorPickerScript := preload("res://holyquintet_mod/menus/editors/editor_picker.gd")
 
 const MENU_OPTIONS := ["Story", "Freeplay", "Gauntlet", "Accolades", "Gallery", "Credits", "Settings"]
 const MENU_LABELS := ["Story", "Freeplay", "Gauntlet", "Accolades", "Gallery", "Credits", "Settings"]
@@ -100,6 +108,8 @@ var _selecting_gj: bool = false
 var _selecting_shop: bool = false
 var _message_window: Control
 var _story_diff: Control
+var _dev_console_btn: Control
+var _editor_picker: Control
 
 ## global.hx fetches this live: HttpUtil.requestText() on the mod author's
 ## Google Doc, synchronously (blocking) on native. Godot does the same fetch
@@ -143,6 +153,7 @@ func _ready() -> void:
 	_build_side_buttons()
 	_setup_ticker()
 	_setup_outdated_text()
+	_build_dev_console_button()
 
 	fadeout_sprite.modulate.a = 0.0
 
@@ -314,6 +325,58 @@ func _setup_outdated_text() -> void:
 	outdated_txt.text = "The current version you are running on is outdated.\nPlease download an updated version of the mod!"
 	outdated_txt.visible = false
 	scene_group.add_child(outdated_txt)
+
+
+## Real update(): `if (controls.DEV_ACCESS) openSubState(new
+## funkin.editors.EditorPicker())` and, separately, `if
+## (FlxG.keys.justPressed.NINE && Options.devMode) FlxG.switchState(new
+## ModState("HQSHOP"))` — both real, keyboard-only dev shortcuts (a bindable
+## key for DEV_ACCESS, the literal 9 key gated on a devMode toggle this port
+## has no settings screen for yet). Neither means anything on a touchscreen
+## with no keyboard, so both are kept reachable here through one small
+## always-visible button instead (see dev_console_button.gd) — added to
+## `self`, not scene_group, so it's unaffected by beginStoryMode's
+## zoom/shader cinematic and stays on top of the SubViewport display it
+## creates.
+func _build_dev_console_button() -> void:
+	_dev_console_btn = DevConsoleButtonScript.new()
+	_dev_console_btn.position = Vector2(1920.0 - 84.0, 20.0)
+	_dev_console_btn.code_submitted.connect(_on_dev_code_submitted)
+	add_child(_dev_console_btn)
+
+
+## "9" replicates the real NINE-key shortcut (Options.devMode's own gate has
+## no equivalent here — knowing this code at all is the stand-in for it).
+## HQSHOP doesn't exist as a real destination anywhere in this port (the
+## shop button itself is .locked=true, same as real HQSaves.shopUnlocked
+## starting false) so, same convention as beginStoryMode's PlayState stub,
+## this logs what it would do instead of switching to nothing.
+## "editors" replicates controls.DEV_ACCESS, opening the real
+## funkin.editors.EditorPicker (ported at menus/editors/editor_picker.gd).
+func _on_dev_code_submitted(code: String) -> void:
+	match code:
+		"9":
+			push_warning("HQMainMenu: NINE-key shortcut reached (FlxG.switchState(new ModState(\"HQSHOP\"))) — no shop state exists yet in this port.")
+		"editors":
+			if is_instance_valid(_editor_picker):
+				return
+			# Real: openSubState() implicitly pauses the state underneath
+			# (persistentUpdate = false) while it's open. This Control has no
+			# substate stack, so _can_control (the same flag every other
+			# overlay here already gates on) stands in — without it,
+			# EditorPicker's own ui_up/ui_down handling and the menu's own
+			# _unhandled_input() both react to the same keypress at once
+			# (confirmed directly: arrow keys moved the picker's selection
+			# *and* the menu's own button selection underneath it).
+			_can_control = false
+			_editor_picker = EditorPickerScript.new()
+			_editor_picker.closed.connect(func():
+				_editor_picker = null
+				_can_control = true
+			)
+			add_child(_editor_picker)
+		_:
+			push_warning("HQMainMenu: unrecognized dev console code %s" % code)
 
 
 ## Real create(): tickerBarTxt starts with whatever global.newsText already
