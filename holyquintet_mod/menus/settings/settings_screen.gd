@@ -124,6 +124,7 @@ var _scroll_tween: Tween
 var message_window: Control
 var rebind_overlay: Control
 var music_player: AudioStreamPlayer
+var _hold_time := 0.0
 
 @onready var bg_spots: TextureRect = $BgSpots
 @onready var bg_top_banner: TextureRect = $BgTopBanner
@@ -205,6 +206,40 @@ func _process(delta: float) -> void:
 	bg_btm_banner.position.x -= 5.0 * delta
 	if bg_btm_banner.position.x <= -30.0 - banner_tex_w:
 		bg_btm_banner.position.x += banner_tex_w
+
+	_process_hold_repeat(delta)
+
+
+## Real update(): holding Left/Right (not just tapping) re-applies the
+## int/float step every single frame once held >= 0.5s — no re-arming
+## delay after that, so a long hold fast-forwards through the range.
+## _unhandled_input's own ui_left/ui_right handling only fires once per
+## discrete keypress, so this frame-polled repeat is on top of that, not
+## a replacement for it (matches real code: the discrete option.selection
+## call in the "just switched direction" branch, PLUS this separate
+## every-frame one once past the hold threshold).
+func _process_hold_repeat(delta: float) -> void:
+	if not in_sub_menu or changing_keybind or is_instance_valid(message_window) or not can_control:
+		_hold_time = 0.0
+		return
+	var left_held := Input.is_action_pressed("ui_left")
+	var right_held := Input.is_action_pressed("ui_right")
+	if not (left_held or right_held):
+		_hold_time = 0.0
+		return
+	_hold_time += delta
+	if _hold_time < 0.5:
+		return
+	var rows: Array = _current_rows()
+	if sm_sub_sel < 0 or sm_sub_sel >= rows.size():
+		return
+	var row: Control = rows[sm_sub_sel]
+	var direction := -1 if left_held else 1
+	match row.data.get("type"):
+		"int":
+			_step_int(row, direction)
+		"float":
+			_step_float(row, direction)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -298,6 +333,10 @@ func _confirm_selection() -> void:
 		_activate_row(rows[sm_sub_sel])
 
 
+## Real update(): controls.LEFT_P/RIGHT_P toggles a selected bool option
+## the same as Enter would (option.selection(0) — the argument is ignored
+## for bool), on top of stepping int/float. Left and Right are otherwise
+## equivalent for a bool row; direction is unused here for that reason.
 func _adjust_current(direction: int) -> void:
 	var rows: Array = _current_rows()
 	if sm_sub_sel < 0 or sm_sub_sel >= rows.size():
@@ -308,6 +347,8 @@ func _adjust_current(direction: int) -> void:
 			_step_int(row, direction)
 		"float":
 			_step_float(row, direction)
+		"bool":
+			_activate_row(row)
 
 
 func _on_category_gui_input(event: InputEvent, i: int) -> void:
@@ -359,7 +400,16 @@ func _activate_row(row: Control) -> void:
 			target_control_row = row
 			_prompt_key_change(row)
 		"delete_data":
-			_prompt_delete_data()
+			# Real: `if (!data.fromSong) { ...open dialog... } else
+			# playUISound('error')` — Destroy Save Data is blocked when
+			# Settings was reached from the pause menu mid-song.
+			# settings_return_scene is only non-empty in that exact case
+			# (set by the pause screen right before switching here, cleared
+			# by _go_back() on the way out), so it's this port's fromSong.
+			if not HQSaves.settings_return_scene.is_empty():
+				GenUtil.play_ui_sound(self, "error")
+			else:
+				_prompt_delete_data()
 
 
 func _step_int(row: Control, direction: int) -> void:
