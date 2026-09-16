@@ -20,20 +20,30 @@ func _ready() -> void:
 	await get_tree().create_timer(0.55).timeout  # t=0.7, just after icon settles + first glow spawns
 	await _shoot("entrance_t070.png")
 
-	# Move into step 2 (Keep Flashing Lights, icon='danger') to check the loop
-	Input.action_press("ui_right")
-	await get_tree().process_frame
-	Input.action_release("ui_right")
-	await get_tree().process_frame
-	Input.action_press("ui_accept")
-	await get_tree().process_frame
-	Input.action_release("ui_accept")
+	# Move into step 2 (Keep Flashing Lights, icon='danger') to check the loop.
+	# Real InputEventKey, not Input.action_press(): hq_message_window.gd
+	# reads input via _unhandled_input now, which action_press() can't reach.
+	await _press(KEY_RIGHT)
+	await _press(KEY_ENTER)
 
 	await get_tree().create_timer(3.0).timeout  # first loop pulse fires at settle+2.5s
 	await _shoot("entrance_danger_loop.png")
 
 	print("ENTRANCE_SHOT: all saved")
 	get_tree().quit()
+
+
+func _press(keycode: int) -> void:
+	var down := InputEventKey.new()
+	down.keycode = keycode
+	down.pressed = true
+	Input.parse_input_event(down)
+	await get_tree().process_frame
+	var up := InputEventKey.new()
+	up.keycode = keycode
+	up.pressed = false
+	Input.parse_input_event(up)
+	await get_tree().process_frame
 
 
 func _shoot(filename: String) -> void:

@@ -36,10 +36,21 @@ func _ready() -> void:
 	get_tree().quit()
 
 
+const ACTION_KEYS := {"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_accept": KEY_ENTER}
+
 func _press(action: String) -> void:
-	Input.action_press(action)
+	# Input.action_press() only affects polling APIs (is_action_pressed) —
+	# hq_message_window.gd reads input via _unhandled_input now, so this
+	# must feed a real InputEventKey to be seen at all.
+	var down := InputEventKey.new()
+	down.keycode = ACTION_KEYS[action]
+	down.pressed = true
+	Input.parse_input_event(down)
 	await get_tree().process_frame
-	Input.action_release(action)
+	var up := InputEventKey.new()
+	up.keycode = ACTION_KEYS[action]
+	up.pressed = false
+	Input.parse_input_event(up)
 	await get_tree().process_frame
 
 

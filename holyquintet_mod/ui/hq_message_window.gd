@@ -8,6 +8,7 @@ extends Control
 
 const WINDOW_TEX := preload("res://holyquintet_mod/source/images/ui/common/window.png")
 const BUTTON_TEX := preload("res://holyquintet_mod/source/images/ui/common/button-basic.png")
+const GenUtil := preload("res://holyquintet_mod/scripts/gen_util.gd")
 
 var title_text: String = ""
 var body_text: String = ""
@@ -45,30 +46,6 @@ var _atlas_highlighted: AtlasTexture
 var _left_highlight_tween: Tween
 var _right_highlight_tween: Tween
 var _alive: bool = true
-
-# GenUtil.playUISound: FlxG.sound.play(Paths.sound('ui/ui_<type><1..N>'), ...)
-# — a random numbered variant per call. Only the cases this component
-# actually uses (open/move/confirm/close) are listed.
-const UI_SOUND_VARIANTS := {"open": 2, "move": 3, "confirm": 3, "close": 2}
-
-
-func _play_ui_sound(type: String) -> void:
-	var count: int = UI_SOUND_VARIANTS.get(type, 1)
-	var path := "res://holyquintet_mod/source/sounds/ui/ui_%s%d.ogg" % [type, randi() % count + 1]
-	if not ResourceLoader.exists(path):
-		return
-	# A fresh, self-freeing player per call (rather than one shared node) so
-	# 'confirm' and 'close' — which the real .hx fires back-to-back on
-	# accept — can actually overlap instead of one cutting the other off.
-	# Parented to the tree root, not self: the real FlxSound calls all set
-	# .persist = true specifically so these UI sounds survive the state
-	# switch that 'confirm'/'close' themselves trigger; a child of this
-	# window would be freed mid-playback the instant the scene changes.
-	var player := AudioStreamPlayer.new()
-	player.stream = load(path)
-	get_tree().root.add_child.call_deferred(player)
-	player.finished.connect(player.queue_free)
-	player.play.call_deferred()
 
 
 func _ready() -> void:
@@ -125,7 +102,7 @@ func _play_entrance() -> void:
 		0.0, 4.0, 0.5
 	).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 
-	_play_ui_sound("open")
+	GenUtil.play_ui_sound(self, "open")
 
 	# msgIcon starts 25px above its resting spot and invisible, then drops
 	# in with an elastic ease while fading in; on completion it spawns one
@@ -224,20 +201,25 @@ func _set_pulse(highlight: TextureRect, active_tween: Tween, should_pulse: bool)
 	return tw
 
 
-func _process(_delta: float) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	# Event-driven rather than polling is_action_just_pressed() in _process():
+	# on a heavier scene (verified on HQIntro, whose 3 VideoStreamPlayers skew
+	# render frame pacing enough that a once-per-_process() poll can miss the
+	# single frame the action is "just" pressed on), polling silently drops
+	# input. Reacting to the event itself has no such window to miss.
 	if _leaving:
 		return
-	if Input.is_action_just_pressed("ui_left") and _selected != -1:
+	if event.is_action_pressed("ui_left") and _selected != -1:
 		_selected = -1
 		_refresh()
-		_play_ui_sound("move")
-	elif Input.is_action_just_pressed("ui_right") and _selected != 1:
+		GenUtil.play_ui_sound(self, "move")
+	elif event.is_action_pressed("ui_right") and _selected != 1:
 		_selected = 1
 		_refresh()
-		_play_ui_sound("move")
-	elif Input.is_action_just_pressed("ui_accept") and _selected != 0:
+		GenUtil.play_ui_sound(self, "move")
+	elif event.is_action_pressed("ui_accept") and _selected != 0:
 		_confirm(_selected)
-	elif Input.is_action_just_pressed("ui_cancel"):
+	elif event.is_action_pressed("ui_cancel"):
 		if on_back.is_valid():
 			on_back.call()
 
@@ -271,7 +253,7 @@ func _confirm(side: int) -> void:
 	# "playUISound('confirm'); destroy();" — centralized here instead of
 	# repeated per caller. MessageWindowUI's own ENTER handler then plays
 	# 'close' right after completedAction returns, so both sounds overlap.
-	_play_ui_sound("confirm")
+	GenUtil.play_ui_sound(self, "confirm")
 	if on_complete.is_valid():
 		on_complete.call()
-	_play_ui_sound("close")
+	GenUtil.play_ui_sound(self, "close")
