@@ -119,12 +119,18 @@ mouse_filter = 2
 texture = ExtResource("7")
 modulate = Color(1, 1, 1, 0.5)
 
-[node name="TickerBarTxt" type="Label" parent="."]
+[node name="TickerClip" type="Control" parent="."]
 clip_contents = true
 layout_mode = 0
 offset_left = 50.0
 offset_top = 125.0
 offset_right = 1325.0
 offset_bottom = 155.0
+mouse_filter = 2
+
+[node name="TickerBarTxt" type="Label" parent="TickerClip"]
+layout_mode = 0
+offset_right = 4000.0
+offset_bottom = 30.0
 mouse_filter = 2
 label_settings = SubResource("ticker_settings")

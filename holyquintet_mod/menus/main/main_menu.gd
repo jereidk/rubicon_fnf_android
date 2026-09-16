@@ -57,7 +57,8 @@ const DESTINATIONS := {
 @onready var menu_buttons_root: Control = $MenuButtons
 @onready var bg_logo: TextureRect = $BgLogo
 @onready var ticker_bg: TextureRect = $TickerBarBG
-@onready var ticker_txt: Label = $TickerBarTxt
+@onready var ticker_clip: Control = $TickerClip
+@onready var ticker_txt: Label = $TickerClip/TickerBarTxt
 @onready var fadeout_sprite: ColorRect = $FadeoutSprite
 
 var graphics_root: Node2D
@@ -71,6 +72,7 @@ var _new_badges: Array[TextureRect] = []
 var _button_origin: Array[Vector2] = []
 var _scroll_tweens: Array[Tween] = []
 var _graphics: Array = []  # 0-6: menu items (mm_cur_sel order), 7: shop
+var _ticker_tween: Tween
 
 var mm_cur_sel: int = 0
 var _can_control: bool = true
@@ -79,7 +81,16 @@ var _selecting_shop: bool = false
 var _message_window: Control
 var _story_diff: Control
 
-const NEWS_TEXT := ""  # global.hx fetches this from a live server at runtime; no such backend here.
+## global.hx fetches this live: HttpUtil.requestText() on the mod author's
+## Google Doc, synchronously (blocking) on native. Godot does the same fetch
+## (see _setup_ticker()/_on_news_fetched()) but via HTTPRequest so it can't
+## block/ANR the main thread on Android — same end result, different
+## mechanism for a platform reason, not a fidelity cut.
+const NEWS_DOC_URL := "https://docs.google.com/document/d/1x60PXXBA4VXk9n0UNhKbrsTCDu4qKyPE73KSs9zDzTg/edit?usp=sharing"
+## global.hx's own hardcoded thisVersionNumber, compared against the doc's
+## version marker to show outdatedTxt — not ported (outdatedTxt itself is a
+## separate, still-unported piece; see _on_news_fetched()).
+const THIS_VERSION_NUMBER := "1.0.7"
 
 
 ## Node draw order below is built to exactly match the real create()'s
@@ -251,12 +262,85 @@ func _medal_unlocked_checks() -> Array:
 	]
 
 
+## Real create(): tickerBarTxt starts with whatever global.newsText already
+## is (usually '' until the fetch below lands, since it's per-session and
+## this is the first HQMainMenu visit) — the doc read happens in
+## global.hx's preStateSwitch(), not here, but the *result* only ever
+## shows up on this screen, so fetching it from here is the equivalent hook.
 func _setup_ticker() -> void:
-	ticker_txt.text = NEWS_TEXT
-	# Real code only starts the scrolling tween if the text overflows its
-	# 1275px clip — with NEWS_TEXT empty (no live-news backend here), it
-	# never does, so the ticker is inertly blank, matching the mod's own
-	# pre-fetch default.
+	ticker_txt.text = ""
+	ticker_txt.position.x = 0.0
+
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(_on_news_fetched)
+	# Real HttpUtil sets a User-Agent header; the doc's unauthenticated HTML
+	# response embeds the document text in its og:description meta tag
+	# regardless, but matching the header is free and closer to the source.
+	var err := req.request(NEWS_DOC_URL, PackedStringArray(["User-Agent: Mozilla/5.0"]))
+	if err != OK:
+		push_warning("HQMainMenu: news ticker HTTPRequest.request() failed to start (err=%d)" % err)
+
+
+## Real: hqData = liveData.split('[HQData]')[1].trim(); versionNumber =
+## hqData.split('{}')[0].trim(); newsText = hqData.split('{}')[1].trim();
+## The raw page is full HTML, not a plain-text export, but the doc's own
+## content is embedded verbatim in the <meta property="og:description">
+## tag regardless — confirmed by fetching the real URL — so the same
+## split-by-marker parsing works unmodified against the HTML body.
+func _on_news_fetched(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		return
+
+	var html := body.get_string_from_utf8()
+	var halves := html.split("[HQData]")
+	if halves.size() < 2:
+		return
+	var hq_data := halves[1].strip_edges()
+
+	var kv := hq_data.split("{}")
+	if kv.size() < 2:
+		return
+	var news := kv[1].strip_edges()
+	if news.is_empty():
+		return
+
+	ticker_txt.text = news
+	await get_tree().process_frame  # let the Label compute its new text size
+	_start_ticker_scroll()
+
+
+## Real (create()): if the text overflows the 1275px clip, scroll it left
+## over (2.5 + width/500)s after a 1.5s delay, then fade out/reset/fade in
+## and restart — forever. clipRect.x compensates for the sprite's own x
+## shift there so the *visible window* stays put on screen while the text
+## scrolls under it; here the fixed window is TickerClip (clip_contents,
+## static rect) and TickerBarTxt is the child that actually moves, which is
+## the direct Control equivalent without needing a separate clip offset.
+func _start_ticker_scroll() -> void:
+	var text_w: float = ticker_txt.get_theme_font("font").get_string_size(
+		ticker_txt.text, HORIZONTAL_ALIGNMENT_LEFT, -1, ticker_txt.get_theme_font_size("font_size")
+	).x
+	if text_w <= 1275.0:
+		return
+	if _ticker_tween:
+		_ticker_tween.kill()
+	_run_ticker_scroll_cycle(text_w)
+
+
+func _run_ticker_scroll_cycle(text_w: float) -> void:
+	var duration: float = 2.5 + text_w / 500.0
+	ticker_txt.position.x = 0.0
+	ticker_txt.modulate.a = 1.0
+
+	_ticker_tween = create_tween()
+	_ticker_tween.tween_interval(1.5)
+	_ticker_tween.tween_property(ticker_txt, "position:x", -(text_w - 1275.0), duration).set_trans(Tween.TRANS_LINEAR)
+	_ticker_tween.tween_interval(2.0)
+	_ticker_tween.tween_property(ticker_txt, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_ticker_tween.tween_callback(func(): ticker_txt.position.x = 0.0)
+	_ticker_tween.tween_property(ticker_txt, "modulate:a", 1.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_ticker_tween.tween_callback(_run_ticker_scroll_cycle.bind(text_w))
 
 
 func _process(delta: float) -> void:
