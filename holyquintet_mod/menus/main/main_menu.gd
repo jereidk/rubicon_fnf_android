@@ -521,6 +521,27 @@ func _process(delta: float) -> void:
 		bg_btm_banner.position.x += banner_tex_w
 
 
+## New to this port, not from real source: on Android, a system back
+## press/gesture arrives as NOTIFICATION_WM_GO_BACK_REQUEST, completely
+## separate from any InputEvent — application/config/quit_on_go_back
+## defaults to true, so with nothing intercepting it here Godot just quits
+## the whole app from the main menu instead of doing anything sensible.
+## animania_mod (this same project's other mod) already handles this on
+## several of its own screens; holyquintet_mod had it on none of them,
+## main menu included. Synthesizing a real "ui_cancel" action press,
+## rather than duplicating this screen's own back logic here, means it
+## naturally goes through whichever node currently owns ui_cancel — the
+## menu itself (-> Title) or any open overlay's own back handling
+## (StoryDiffUI/MessageWindowUI/EditorPicker all already handle ui_cancel
+## via keyboard Escape), exactly like a real Escape press already would.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		var ev := InputEventAction.new()
+		ev.action = &"ui_cancel"
+		ev.pressed = true
+		Input.parse_input_event(ev)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not _can_control:
 		return

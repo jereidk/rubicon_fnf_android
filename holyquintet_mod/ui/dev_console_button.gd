@@ -58,6 +58,19 @@ func _on_gui_input(event: InputEvent) -> void:
 		_open_popup()
 
 
+## Closes on Escape/Android back rather than falling through to the main
+## menu's own ui_cancel (switch to Title) while this popup still sits open
+## on top of it. This button is a descendant of the menu scene (unlike the
+## popup itself, parented straight to the tree root for the same full-rect-
+## anchor reason as main_menu.gd's own root), and Godot delivers
+## _unhandled_input to a descendant before an ancestor, so this alone is
+## enough to beat the menu's own handling to the keypress.
+func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(_popup) and event.is_action_pressed("ui_cancel"):
+		_close_popup()
+		get_viewport().set_input_as_handled()
+
+
 func _open_popup() -> void:
 	if is_instance_valid(_popup):
 		return
