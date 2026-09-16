@@ -244,6 +244,12 @@ func _build_graphics() -> void:
 ## banner. The text labels are separate: real code adds them with a plain
 ## add(), which always appends past everything that exists yet, landing
 ## them *after* bg_BtmBanner instead — see _build_medal_labels().
+##
+## DEVIATION FROM REAL SOURCE (explicit request): real newMedal stays
+## visible when locked, just dimmed (color=BLACK, alpha=0.5 — a dark
+## silhouette, not literally hidden). This port instead hides the icon
+## entirely until unlocked — no silhouette, no shadow — showing the real
+## full-color medal only once actually earned.
 func _build_medal_icons() -> void:
 	medal_icons_root = Control.new()
 	medal_icons_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -256,12 +262,9 @@ func _build_medal_icons() -> void:
 		icon.texture = load("res://holyquintet_mod/source/images/ui/common/medal%d.png" % i)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.position = Vector2(185.0 + 150.0 * i, 835.0)
+		icon.modulate = Color.WHITE
+		icon.visible = unlocked_checks[i]
 		medal_icons_root.add_child(icon)
-		# Real: newMedal.color=BLACK, alpha=0.5 when locked (a dim, translucent
-		# silhouette) vs color=WHITE, alpha=1.0 unlocked — not a plain gray
-		# tint, which left these looking barely dimmed instead of a near-dark
-		# silhouette on a fresh save.
-		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0, 0, 0, 0.5)
 
 
 ## Real code: medalText.text = i18n.tr('Main/Medals/AllSongsCleared') (and
@@ -272,6 +275,11 @@ func _build_medal_icons() -> void:
 ## entirely (chart note-timing data, not JSON translations — a bad file
 ## landed at that path at some point; now replaced with the real extracted
 ## translations.json, which has all three keys with exactly these strings).
+##
+## DEVIATION FROM REAL SOURCE (explicit request): real medalText is always
+## visible, just GRAY (not white) when locked. This port hides the label
+## entirely until unlocked, matching _build_medal_icons()'s same explicit
+## "nothing shows until earned" choice for the icon.
 func _build_medal_labels() -> void:
 	medal_labels_root = Control.new()
 	medal_labels_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -292,7 +300,8 @@ func _build_medal_labels() -> void:
 		label.add_theme_constant_override("outline_size", 5)
 		label.add_theme_color_override("font_outline_color", Color(0x0d / 255.0, 0x09 / 255.0, 0x0d / 255.0, 0.533333))
 		label.text = medal_text[i]
-		label.add_theme_color_override("font_color", Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5))
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.visible = unlocked_checks[i]
 		medal_labels_root.add_child(label)
 
 
