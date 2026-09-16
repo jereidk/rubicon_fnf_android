@@ -53,6 +53,21 @@ func setup(item_name: String) -> void:
 	atlas.folder_path = ASSET_ROOT + d["folder"] + "/"
 	atlases = [atlas]
 
+	# The Animate file's own AN.STI ("stage instance") often carries a large
+	# translation (its own registration-point offset — e.g. anim_story's is
+	# (-798.35, -464.65); anim_freeplay's is (3190.95, 1025.35), which is
+	# exactly why its setPosition() above is such a large negative number:
+	# the two are designed to cancel out to a sane on-screen spot). The addon
+	# parses this into atlas.stage_transform, but only ever *applies* it when
+	# AnimateSymbol.symbol fails to match a real entry in atlas.symbols — and
+	# every one of these root/stage symbols is ALSO registered under its own
+	# name in that same dict, so draw_on() always takes the "direct symbol"
+	# path and silently skips stage_transform. Reproducing it by hand here
+	# (as AnimateSymbol's own translation-only `offset`) is what actually
+	# lines these up with the real game instead of drawing them all bunched
+	# near this node's raw position.
+	offset = atlas.stage_transform.origin
+
 	visible = false
 
 
