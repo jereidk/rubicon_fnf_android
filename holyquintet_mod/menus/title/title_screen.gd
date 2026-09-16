@@ -42,7 +42,6 @@ const MAIN_MENU_SCENE := "res://holyquintet_mod/menus/main/main_menu.tscn"
 
 var _start1: AudioStreamPlayer
 var _start2: AudioStreamPlayer
-var _menu_music: AudioStreamPlayer
 
 var _can_continue: bool = false
 var _transitioning: bool = false
@@ -155,11 +154,12 @@ func _start_intro() -> void:
 func _on_start1_finished() -> void:
 	_start2.play()
 
-	_menu_music = _make_player("res://holyquintet_mod/source/music/menu.ogg")
-	if _menu_music.stream is AudioStreamOggVorbis:
-		_menu_music.stream.loop = true
-	_menu_music.volume_db = linear_to_db(0.7)
-	_menu_music.play()
+	# Real: FlxG.sound.playMusic('menu', 0.7) — FlxG.sound.music is a
+	# persistent, engine-owned singleton that survives the switch into the
+	# main menu on its own. HQTransition is this port's equivalent
+	# persistent home for it (a plain child here would die with this scene
+	# the moment change_scene_to_file() fires).
+	HQTransition.play_menu_music()
 
 	_show_title()
 

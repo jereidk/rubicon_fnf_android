@@ -2,11 +2,13 @@ extends Control
 ## Ports HQMainMenu.hx. One remaining deliberate scope cut, because the
 ## underlying system this port would need doesn't exist yet at all (not a
 ## shortcut on an existing feature):
-##  - beginStoryMode()'s zoom/shader cinematic ends by calling
-##    PlayState.loadWeek()+FlxG.switchState(new PlayState()) — actual
-##    gameplay, which nothing in this port builds yet (every screen so far
-##    has been boot/menu flow). The zoom+fade plays for real; the final
-##    scene switch is a documented stub.
+##  - beginStoryMode()'s cinematic (sound, music fadeout, camera spin+zoom,
+##    fade to black — see _begin_story_mode()) plays for real; only its
+##    ending, PlayState.loadWeek()+FlxG.switchState(new PlayState()), is a
+##    documented stub, since no actual gameplay exists yet anywhere in this
+##    port (every screen so far has been boot/menu flow). Options.gameplayShaders'
+##    Bloom/Transverse/adjustColor shader trio is also skipped — this port
+##    has no equivalent camera-shader pipeline to hang them on yet.
 ## GameJolt sign-in/out (GameJoltSignInUI, GJRequest) has no backend on this
 ## platform either — gj_Button renders and is selectable/navigable for
 ## fidelity, but confirming it can't actually sign in/out anywhere.
@@ -66,6 +68,7 @@ var medal_icons_root: Control
 var medal_labels_root: Control
 var shop_button: Control
 var gj_button: Control
+var outdated_txt: Label
 
 var _menu_buttons: Array = []
 var _new_badges: Array[TextureRect] = []
@@ -88,8 +91,9 @@ var _story_diff: Control
 ## mechanism for a platform reason, not a fidelity cut.
 const NEWS_DOC_URL := "https://docs.google.com/document/d/1x60PXXBA4VXk9n0UNhKbrsTCDu4qKyPE73KSs9zDzTg/edit?usp=sharing"
 ## global.hx's own hardcoded thisVersionNumber, compared against the doc's
-## version marker to show outdatedTxt — not ported (outdatedTxt itself is a
-## separate, still-unported piece; see _on_news_fetched()).
+## version marker to show outdatedTxt — see _setup_outdated_text() and
+## _on_news_fetched(). Bump this by hand if this port itself falls behind a
+## newer released version of the mod.
 const THIS_VERSION_NUMBER := "1.0.7"
 
 
@@ -109,12 +113,19 @@ const THIS_VERSION_NUMBER := "1.0.7"
 ## slotted into place with move_child() since ButtonUI and MainMenuSprite
 ## both need setup before entering the tree (see _build_side_buttons()).
 func _ready() -> void:
+	# Real: CoolUtil.playMenuSong(false) — idempotent, only (re)starts menu.ogg
+	# if it isn't already playing (e.g. after Gauntlet/Gallery/Settings called
+	# stop_music() below, or a first-ever entry with no music at all yet; a
+	# no-op if Title's own playMusic('menu') call already has it going).
+	HQTransition.play_menu_music()
+
 	_build_menu_buttons()
 	_build_graphics()
 	_build_medal_icons()
 	_build_medal_labels()
 	_build_side_buttons()
 	_setup_ticker()
+	_setup_outdated_text()
 
 	fadeout_sprite.modulate.a = 0.0
 
@@ -226,15 +237,14 @@ func _build_medal_icons() -> void:
 		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0, 0, 0, 0.5)
 
 
-## Real code sets medalText.text = i18n.tr('Main/Medals/AllSongsCleared')
-## (and GauntletCleared/AllAccolades) — but none of those three keys exist
-## in EITHER shipped translations.json (en_US or es_US; checked both). A
-## real screenshot confirms the outcome: at this exact position nothing
-## renders at all, not even garbled key text, over character art that would
-## otherwise be directly under it. Whatever jsoni18n does with a missing
-## key, the real, observable result is blank text — reproduced here as
-## permanently empty rather than guessing English strings the actual
-## released mod never shows.
+## Real code: medalText.text = i18n.tr('Main/Medals/AllSongsCleared') (and
+## GauntletCleared/AllAccolades). CORRECTION: an earlier pass here concluded
+## these keys were missing from the mod's translations and blanked this text
+## out — that was checked against holyquintet_mod/source/data/langs/en_US/
+## (and es_US/) translations.json, which turned out to be the wrong asset
+## entirely (chart note-timing data, not JSON translations — a bad file
+## landed at that path at some point; now replaced with the real extracted
+## translations.json, which has all three keys with exactly these strings).
 func _build_medal_labels() -> void:
 	medal_labels_root = Control.new()
 	medal_labels_root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -242,6 +252,8 @@ func _build_medal_labels() -> void:
 	add_child(medal_labels_root)
 	move_child(medal_labels_root, bg_btm_banner.get_index() + 1)
 
+	var medal_text := ["All Songs Cleared", "Gauntlet Cleared", "All Accolades"]
+	var unlocked_checks := _medal_unlocked_checks()
 	for i in 3:
 		var icon_w: float = load("res://holyquintet_mod/source/images/ui/common/medal%d.png" % i).get_width()
 		var label := Label.new()
@@ -253,7 +265,8 @@ func _build_medal_labels() -> void:
 		label.add_theme_font_size_override("font_size", 14)
 		label.add_theme_constant_override("outline_size", 5)
 		label.add_theme_color_override("font_outline_color", Color(0x0d / 255.0, 0x09 / 255.0, 0x0d / 255.0, 0.533333))
-		label.text = ""
+		label.text = medal_text[i]
+		label.add_theme_color_override("font_color", Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5))
 		medal_labels_root.add_child(label)
 
 
@@ -266,6 +279,26 @@ func _medal_unlocked_checks() -> Array:
 		HQSaves.best_gauntlet_score > 0,
 		HQSaves.unlocked_achievements.size() >= AchievementsScript.ACHIEVEMENTS.size(),
 	]
+
+
+## Real: FlxText(250,250,0,i18n.tr('Main/Outdated')), 32pt red OUTLINE text,
+## screenCenter(FlxAxes.X) (so only the x-position is centered across the
+## full 1920 width; y stays literally 250), hidden unless onOutdatedBuild —
+## which _on_news_fetched() sets once the doc's version is known.
+func _setup_outdated_text() -> void:
+	outdated_txt = Label.new()
+	outdated_txt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	outdated_txt.position = Vector2(0.0, 250.0)
+	outdated_txt.size = Vector2(1920.0, 80.0)
+	outdated_txt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	outdated_txt.add_theme_font_override("font", load("res://holyquintet_mod/source/fonts/shingo.otf"))
+	outdated_txt.add_theme_font_size_override("font_size", 32)
+	outdated_txt.add_theme_color_override("font_color", Color.RED)
+	outdated_txt.add_theme_color_override("font_outline_color", Color(0x0d / 255.0, 0x09 / 255.0, 0x0d / 255.0, 1.0))
+	outdated_txt.add_theme_constant_override("outline_size", 5)
+	outdated_txt.text = "The current version you are running on is outdated.\nPlease download an updated version of the mod!"
+	outdated_txt.visible = false
+	add_child(outdated_txt)
 
 
 ## Real create(): tickerBarTxt starts with whatever global.newsText already
@@ -333,6 +366,13 @@ func _on_news_fetched(result: int, response_code: int, _headers: PackedStringArr
 	HQSaves.cached_news_version = kv[0].strip_edges()
 	HQSaves.cached_news_text = news
 	HQSaves.save_data()
+
+	# Real: thisVersionNumber==versionNumber -> false; else if hasInternet()
+	# -> true; else false. This function only ever runs after a *successful*
+	# fetch (the guard above already returned on failure/no-internet), so
+	# the "no internet" branch can't apply here — outdated is exactly
+	# "the doc's version doesn't match ours".
+	outdated_txt.visible = HQSaves.cached_news_version != THIS_VERSION_NUMBER
 
 	if news == ticker_txt.text:
 		return  # already showing this (the cached text matched what's live) — don't restart the scroll mid-cycle
@@ -563,6 +603,12 @@ func _confirm_selection() -> void:
 		if not _menu_buttons[mm_cur_sel].locked:
 			if mm_cur_sel != 0:
 				GenUtil.play_ui_sound(self, "confirm")
+
+			# Real: Gauntlet/Gallery/Settings each bring their own music, so
+			# the menu theme is cut here rather than left playing under them.
+			if mm_cur_sel == 2 or mm_cur_sel == 4 or mm_cur_sel == 6:
+				HQTransition.stop_music()
+
 			if HQSaves.viewed_menu.has(mm_cur_sel):
 				HQSaves.viewed_menu.erase(mm_cur_sel)
 				HQSaves.save_data()
@@ -640,12 +686,38 @@ func _confirm_restart_story() -> void:
 ## HQMainMenu.hx beginStoryMode(): the camera zoom/fade cinematic plays for
 ## real; the FlxG.switchState(new PlayState()) it leads into is stubbed —
 ## no gameplay state exists yet anywhere in this port to switch to.
+## Real: FlxG.sound.play('ui/ui_storystart') — NOT playUISound('confirm'), a
+## distinct one-off cue only used here — then FlxG.sound.music?.fadeOut(1.5,
+## 0.0), then the camera itself spins (angle 0->25 over 2.0s expoIn) and
+## zooms in two stages (a quick 1.05->1.0 settle over 0.5s expoOut, then
+## 1.0->5.0 over 1.5s expoIn) while fadeoutSprite fades to black in parallel
+## (1.0s cubeIn, 0.75s startDelay). An earlier pass here only ported the
+## fade, not the sound, music cut, or the zoom/spin — this Control has no
+## separate camera to move, so the root's own rotation/scale around its
+## center (pivot_offset = screen center) stands in for FlxG.camera, the same
+## technique title_screen.gd's "World" node uses for its own zoom intro.
 func _begin_story_mode(diff: String) -> void:
-	GenUtil.play_ui_sound(self, "confirm")
+	var sfx := AudioStreamPlayer.new()
+	sfx.stream = load("res://holyquintet_mod/source/sounds/ui/ui_storystart.ogg")
+	get_tree().root.add_child(sfx)
+	sfx.finished.connect(sfx.queue_free)
+	sfx.play()
+
+	HQTransition.fade_out_music(1.5)
+
+	pivot_offset = Vector2(960.0, 540.0)
+
+	var spin_tw := create_tween()
+	spin_tw.tween_property(self, "rotation", deg_to_rad(25.0), 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 
 	var zoom_tw := create_tween()
-	zoom_tw.tween_interval(0.75)
-	zoom_tw.tween_property(fadeout_sprite, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	zoom_tw.tween_property(self, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(1.05, 1.05)) \
+		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	zoom_tw.tween_property(self, "scale", Vector2(5.0, 5.0), 1.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	zoom_tw.tween_callback(func():
 		push_warning("HQMainMenu: beginStoryMode(%s) reached — no PlayState/gameplay exists yet in this port to switch to." % diff)
 	)
+
+	var fade_tw := create_tween()
+	fade_tw.tween_interval(0.75)
+	fade_tw.tween_property(fadeout_sprite, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)

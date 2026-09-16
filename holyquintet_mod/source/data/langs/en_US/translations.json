@@ -1,194 +1,466 @@
-":117,"time":8837.20930232558,"type":0},{"id":2,"sLen":0,"time":9069.76744186047,"type":0},{"id":0,"sLen":0,"time":9302.32558139535,"type":0},{"id":0,"sLen":0,"time":9651.16279069767,"type":0},{"id":1,"sLen":351,"time":10000,"type":0},{"id":2,"sLen":0,"time":10465.1162790698,"type":0},{"id":2,"sLen":117,"time":10697.6744186047,"type":0},{"id":0,"sLen":0,"time":10930.2325581395,"type":0},{"id":3,"sLen":0,"time":11162.7906976744,"type":0},{"id":2,"sLen":0,"time":11511.6279069767,"type":0},{"id":0,"sLen":117,"time":11744.1860465116,"type":0},{"id":3,"sLen":117,"time":11976.7441860465,"type":0},{"id":0,"sLen":0,"time":12325.5813953488,"type":0},{"id":1,"sLen":0,"time":12558.1395348837,"type":0},{"id":2,"sLen":0,"time":12790.6976744186,"type":0},{"id":1,"sLen":0,"time":12906.976744186,"type":0},{"id":3,"sLen":0,"time":13023.2558139535,"type":0},{"id":3,"sLen":117,"time":13372.0930232558,"type":0},{"id":3,"sLen":117,"time":13720.9302325581,"type":0},{"id":2,"sLen":0,"time":13953.488372093,"type":0},{"id":1,"sLen":0,"time":14302.3255813953,"type":0},{"id":3,"sLen":0,"time":14651.1627906977,"type":0},{"id":2,"sLen":0,"time":14767.4418604651,"type":0},{"id":0,"sLen":0,"time":14883.7209302326,"type":0},{"id":3,"sLen":0,"time":15116.2790697674,"type":0},{"id":3,"sLen":0,"time":15348.8372093023,"type":0},{"id":2,"sLen":0,"time":15581.3953488372,"type":0},{"id":0,"sLen":116.999999999995,"time":15813.9534883721,"type":0},{"id":0,"sLen":116.999999999995,"time":16162.7906976744,"type":0},{"id":1,"sLen":0,"time":16511.6279069767,"type":0},{"id":2,"sLen":761,"time":16744.1860465116,"type":0},{"id":2,"sLen":117,"time":24186.0465116279,"type":0},{"id":2,"sLen":0,"time":24534.8837209302,"type":0},{"id":1,"sLen":117,"time":24767.4418604651,"type":0},{"id":3,"sLen":117,"time":25000,"type":0},{"id":1,"sLen":0,"time":25348.8372093023,"type":0},{"id":2,"sLen":0,"time":25581.3953488372,"type":0},{"id":2,"sLen":0,"time":25813.9534883721,"type":0},{"id":3,"sLen":0,"time":26046.511627907,"type":0},{"id":1,"sLen":117,"time":26395.3488372093,"type":0},{"id":2,"sLen":0,"time":26627.9069767442,"type":0},{"id":0,"sLen":117,"time":26860.4651162791,"type":0},{"id":1,"sLen":0,"time":27209.3023255814,"type":0},{"id":3,"sLen":0,"time":27441.8604651163,"type":0},{"id":2,"sLen":0,"time":27674.4186046512,"type":0},{"id":0,"sLen":0,"time":27790.6976744186,"type":0},{"id":2,"sLen":0,"time":28139.5348837209,"type":0},{"id":3,"sLen":0,"time":28255.8139534884,"type":0},{"id":1,"sLen":0,"time":28488.3720930232,"type":0},{"id":0,"sLen":0,"time":28720.9302325581,"type":0},{"id":2,"sLen":117,"time":28953.488372093,"type":0},{"id":3,"sLen":0,"time":29302.3255813953,"type":0},{"id":0,"sLen":0,"time":29534.8837209302,"type":0},{"id":1,"sLen":0,"time":29767.4418604651,"type":0},{"id":2,"sLen":0,"time":30000,"type":0},{"id":3,"sLen":0,"time":30116.2790697674,"type":0},{"id":1,"sLen":0,"time":30348.8372093023,"type":0},{"id":0,"sLen":234,"time":30465.1162790698,"type":0},{"id":2,"sLen":0,"time":30930.2325581395,"type":0},{"id":1,"sLen":116.279069767443,"time":31162.7906976744,"type":0},{"id":3,"sLen":0,"time":31395.3488372093,"type":0},{"id":0,"sLen":116.279069767443,"time":31627.9069767442,"type":0},{"id":2,"sLen":1053,"time":31860.4651162791,"type":0},{"id":0,"sLen":0,"time":34418.6046511628,"type":0},{"id":3,"sLen":0,"time":34767.4418604651,"type":0},{"id":3,"sLen":0,"time":35000,"type":0},{"id":1,"sLen":117,"time":35116.2790697674,"type":0},{"id":0,"sLen":117,"time":35348.8372093023,"type":0},{"id":0,"sLen":117,"time":35697.6744186046,"type":0},{"id":2,"sLen":351,"time":36046.511627907,"type":0},{"id":1,"sLen":0,"time":37209.3023255814,"type":0},{"id":1,"sLen":0,"time":37441.8604651163,"type":0},{"id":3,"sLen":117,"time":37558.1395348837,"type":0},{"id":2,"sLen":0,"time":37790.6976744186,"type":0},{"id":0,"sLen":117,"time":37906.976744186,"type":0},{"id":1,"sLen":117,"time":38372.0930232558,"type":0},{"id":3,"sLen":0,"time":38604.6511627907,"type":0},{"id":2,"sLen":116.279069767443,"time":38837.2093023256,"type":0},{"id":0,"sLen":0,"time":39069.7674418605,"type":0},{"id":0,"sLen":0,"time":39418.6046511628,"type":0},{"id":3,"sLen":0,"time":39651.1627906977,"type":0},{"id":1,"sLen":117,"time":39883.7209302325,"type":0},{"id":2,"sLen":0,"time":40116.2790697674,"type":0},{"id":0,"sLen":0,"time":40232.5581395349,"type":0},{"id":3,"sLen":117,"time":40465.1162790698,"type":0},{"id":0,"sLen":0,"time":40697.6744186046,"type":0},{"id":0,"sLen":0,"time":40930.2325581395,"type":0},{"id":1,"sLen":0,"time":41279.0697674418,"type":0},{"id":0,"sLen":117,"time":41511.6279069767,"type":0},{"id":3,"sLen":0,"time":41744.1860465116,"type":0},{"id":1,"sLen":0,"time":42093.023255814,"type":0},{"id":2,"sLen":0,"time":42325.5813953488,"type":0},{"id":3,"sLen":0,"time":42441.8604651163,"type":0},{"id":1,"sLen":0,"time":42558.1395348837,"type":0},{"id":0,"sLen":0,"time":42790.6976744186,"type":0},{"id":0,"sLen":0,"time":43139.5348837209,"type":0},{"id":3,"sLen":0,"time":43372.0930232558,"type":0},{"id":2,"sLen":117,"time":43604.6511627907,"type":0},{"id":1,"sLen":0,"time":43837.2093023256,"type":0},{"id":3,"sLen":0,"time":43953.488372093,"type":0},{"id":0,"sLen":351,"time":44186.0465116279,"type":0},{"id":2,"sLen":117,"time":44651.1627906977,"type":0},{"id":3,"sLen":117,"time":45000,"type":0},{"id":1,"sLen":117,"time":45348.8372093023,"type":0},{"id":0,"sLen":117,"time":45697.6744186046,"type":0},{"id":1,"sLen":117,"time":46046.511627907,"type":0},{"id":2,"sLen":0,"time":46279.0697674418,"type":0},{"id":0,"sLen":351,"time":46511.6279069767,"type":0},{"id":3,"sLen":0,"time":46976.7441860465,"type":0},{"id":3,"sLen":0,"time":47209.3023255814,"type":0},{"id":2,"sLen":116.279069767443,"time":47441.8604651163,"type":0},{"id":0,"sLen":0,"time":47674.4186046511,"type":0},{"id":1,"sLen":0,"time":47790.6976744186,"type":0},{"id":3,"sLen":0,"time":48023.2558139535,"type":0},{"id":0,"sLen":117,"time":48139.5348837209,"type":0},{"id":2,"sLen":234,"time":48372.0930232558,"type":0},{"id":3,"sLen":234,"time":48720.9302325581,"type":0},{"id":0,"sLen":0,"time":49069.7674418605,"type":0},{"id":2,"sLen":117,"time":49302.3255813953,"type":0},{"id":1,"sLen":117,"time":49651.1627906977,"type":0},{"id":3,"sLen":1053,"time":50000,"type":0},{"id":0,"sLen":351,"time":51860.465116279,"type":0},{"id":1,"sLen":0,"time":52325.5813953488,"type":0},{"id":0,"sLen":0,"time":52558.1395348837,"type":0},{"id":2,"sLen":0,"time":52790.6976744186,"type":0},{"id":1,"sLen":351,"time":53023.2558139535,"type":0},{"id":3,"sLen":117,"time":53488.3720930232,"type":0},{"id":2,"sLen":117,"time":53720.9302325581,"type":0},{"id":0,"sLen":0,"time":53953.488372093,"type":0},{"id":1,"sLen":0,"time":54186.0465116279,"type":0},{"id":3,"sLen":351,"time":54651.1627906977,"type":0},{"id":2,"sLen":117,"time":55116.2790697674,"type":0},{"id":0,"sLen":0,"time":55348.8372093023,"type":0},{"id":2,"sLen":117,"time":55581.3953488372,"type":0},{"id":1,"sLen":117,"time":55813.9534883721,"type":0},{"id":0,"sLen":117,"time":56162.7906976744,"type":0},{"id":2,"sLen":0,"time":56395.3488372093,"type":0},{"id":3,"sLen":117,"time":56627.9069767442,"type":0},{"id":0,"sLen":0,"time":56976.7441860465,"type":0},{"id":1,"sLen":0,"time":57209.3023255814,"type":0},{"id":2,"sLen":0,"time":57441.8604651163,"type":0},{"id":3,"sLen":117,"time":57674.4186046511,"type":0},{"id":3,"sLen":117,"time":58023.2558139535,"type":0},{"id":1,"sLen":0,"time":58255.8139534883,"type":0},{"id":2,"sLen":117,"time":58488.3720930232,"type":0},{"id":0,"sLen":0,"time":58720.9302325581,"type":0},{"id":1,"sLen":0,"time":58837.2093023256,"type":0},{"id":3,"sLen":116.279069767435,"time":58953.488372093,"type":0},{"id":0,"sLen":0,"time":59186.0465116279,"type":0},{"id":0,"sLen":0,"time":59418.6046511628,"type":0},{"id":2,"sLen":0,"time":59534.8837209302,"type":0},{"id":1,"sLen":0,"time":59767.4418604651,"type":0},{"id":0,"sLen":0,"time":59883.7209302325,"type":0},{"id":2,"sLen":0,"time":60116.2790697674,"type":0},{"id":3,"sLen":117.000000000015,"time":60232.5581395349,"type":0},{"id":1,"sLen":117.000000000029,"time":60581.3953488372,"type":0},{"id":0,"sLen":117.000000000029,"time":60930.2325581395,"type":0},{"id":2,"sLen":116.999999999964,"time":61162.7906976744,"type":0},{"id":1,"sLen":117.000000000007,"time":61395.3488372093,"type":0},{"id":2,"sLen":117,"time":68837.2093023256,"type":0},{"id":3,"sLen":117,"time":69186.0465116279,"type":0},{"id":2,"sLen":0,"time":69418.6046511628,"type":0},{"id":0,"sLen":117,"time":69651.1627906977,"type":0},{"id":3,"sLen":351,"time":70000,"type":0},{"id":1,"sLen":117,"time":70465.1162790697,"type":0},{"id":3,"sLen":0,"time":70697.6744186046,"type":0},{"id":3,"sLen":0,"time":70930.2325581395,"type":0},{"id":0,"sLen":117,"time":71162.7906976744,"type":0},{"id":0,"sLen":117,"time":71511.6279069767,"type":0},{"id":0,"sLen":117,"time":71860.465116279,"type":0},{"id":0,"sLen":0,"time":72209.3023255814,"type":0},{"id":2,"sLen":0,"time":72558.1395348837,"type":0},{"id":1,"sLen":0,"time":72674.4186046511,"type":0},{"id":3,"sLen":0,"time":72790.6976744186,"type":0},{"id":1,"sLen":0,"time":73023.2558139535,"type":0},{"id":1,"sLen":0,"time":73255.8139534883,"type":0},{"id":1,"sLen":0,"time":73488.3720930232,"type":0},{"id":3,"sLen":0,"time":73720.9302325581,"type":0},{"id":2,"sLen":0,"time":73953.488372093,"type":0},{"id":0,"sLen":0,"time":74186.0465116279,"type":0},{"id":2,"sLen":117,"time":74418.6046511628,"type":0},{"id":1,"sLen":0,"time":74651.1627906977,"type":0},{"id":2,"sLen":117,"time":74767.4418604651,"type":0},{"id":0,"sLen":348.837209302321,"time":75116.2790697674,"type":0},{"id":3,"sLen":117,"time":75581.3953488372,"type":0},{"id":1,"sLen":117,"time":75813.9534883721,"type":0},{"id":2,"sLen":117,"time":76046.5116279069,"type":0},{"id":0,"sLen":468,"time":76279.0697674418,"type":0},{"id":2,"sLen":0,"time":77906.976744186,"type":0},{"id":3,"sLen":117,"time":78139.5348837209,"type":0},{"id":0,"sLen":117,"time":78488.3720930232,"type":0},{"id":2,"sLen":117,"time":78837.2093023256,"type":0},{"id":1,"sLen":0,"time":79069.7674418604,"type":0},{"id":3,"sLen":117,"time":79186.0465116279,"type":0},{"id":3,"sLen":117,"time":79534.8837209302,"type":0},{"id":0,"sLen":117,"time":79767.4418604651,"type":0},{"id":0,"sLen":351,"time":83720.9302325581,"type":0},{"id":3,"sLen":0,"time":84302.3255813953,"type":0},{"id":2,"sLen":117,"time":84534.8837209302,"type":0},{"id":1,"sLen":0,"time":84767.4418604651,"type":0},{"id":3,"sLen":117,"time":84883.7209302325,"type":0},{"id":1,"sLen":0,"time":85116.2790697674,"type":0},{"id":0,"sLen":117,"time":85348.8372093023,"type":0},{"id":3,"sLen":117,"time":85581.3953488372,"type":0},{"id":0,"sLen":117,"time":85930.2325581395,"type":0},{"id":2,"sLen":117,"time":86279.0697674418,"type":0},{"id":1,"sLen":0,"time":86511.6279069767,"type":0},{"id":3,"sLen":117,"time":86627.9069767442,"type":0},{"id":3,"sLen":117,"time":86976.7441860465,"type":0},{"id":0,"sLen":117,"time":87209.3023255814,"type":0},{"id":3,"sLen":351,"time":87441.8604651162,"type":0},{"id":1,"sLen":0,"time":88023.2558139535,"type":0},{"id":2,"sLen":117,"time":88255.8139534883,"type":0},{"id":0,"sLen":0,"time":88488.3720930232,"type":0},{"id":1,"sLen":0,"time":88720.9302325581,"type":0},{"id":3,"sLen":0,"time":88837.2093023255,"type":0},{"id":1,"sLen":0,"time":89069.7674418604,"type":0},{"id":2,"sLen":0,"time":89186.0465116279,"type":0},{"id":0,"sLen":0,"time":89302.3255813953,"type":0},{"id":3,"sLen":0,"time":89651.1627906976,"type":0},{"id":3,"sLen":0,"time":89883.7209302325,"type":0},{"id":1,"sLen":234,"time":90000,"type":0},{"id":0,"sLen":0,"time":90348.8372093023,"type":0},{"id":0,"sLen":0,"time":90581.3953488372,"type":0},{"id":2,"sLen":117,"time":90697.6744186046,"type":0},{"id":1,"sLen":0,"time":90930.2325581395,"type":0},{"id":3,"sLen":819,"time":91162.7906976744,"type":0},{"id":2,"sLen":117,"time":98604.6511627907,"type":0},{"id":2,"sLen":0,"time":98953.488372093,"type":0},{"id":0,"sLen":117,"time":99186.0465116279,"type":0},{"id":3,"sLen":117,"time":99418.6046511628,"type":0},{"id":1,"sLen":0,"time":99767.4418604651,"type":0},{"id":2,"sLen":0,"time":100000,"type":0},{"id":2,"sLen":0,"time":100232.558139535,"type":0},{"id":0,"sLen":0,"time":100465.11627907,"type":0},{"id":2,"sLen":0,"time":100697.674418605,"type":0},{"id":1,"sLen":0,"time":100930.23255814,"type":0},{"id":2,"sLen":0,"time":101162.790697674,"type":0},{"id":3,"sLen":117,"time":101279.069767442,"type":0},{"id":0,"sLen":117,"time":101511.627906977,"type":0},{"id":2,"sLen":0,"time":101744.186046512,"type":0},{"id":1,"sLen":0,"time":101976.744186046,"type":0},{"id":3,"sLen":0,"time":102093.023255814,"type":0},{"id":2,"sLen":0,"time":102209.302325581,"type":0},{"id":0,"sLen":117,"time":102325.581395349,"type":0},{"id":1,"sLen":0,"time":102674.418604651,"type":0},{"id":0,"sLen":0,"time":102906.976744186,"type":0},{"id":3,"sLen":0,"time":103139.534883721,"type":0},{"id":1,"sLen":117,"time":103372.093023256,"type":0},{"id":3,"sLen":0,"time":103720.930232558,"type":0},{"id":2,"sLen":0,"time":103953.488372093,"type":0},{"id":0,"sLen":0,"time":104186.046511628,"type":0},{"id":1,"sLen":116.279069767435,"time":104534.88372093,"type":0},{"id":2,"sLen":234,"time":104883.720930233,"type":0},{"id":1,"sLen":0,"time":105232.558139535,"type":0},{"id":3,"sLen":0,"time":105348.837209302,"type":0},{"id":0,"sLen":117,"time":105581.395348837,"type":0},{"id":2,"sLen":0,"time":105813.953488372,"type":0},{"id":0,"sLen":0,"time":107906.976744186,"type":0},{"id":1,"sLen":0,"time":108139.534883721,"type":0},{"id":3,"sLen":0,"time":108255.813953488,"type":0},{"id":0,"sLen":0,"time":108488.372093023,"type":0},{"id":3,"sLen":117,"time":108720.930232558,"type":0},{"id":0,"sLen":0,"time":109069.76744186,"type":0},{"id":2,"sLen":0,"time":109302.325581395,"type":0},{"id":3,"sLen":0,"time":109534.88372093,"type":0},{"id":1,"sLen":0,"time":109651.162790698,"type":0},{"id":3,"sLen":117,"time":111627.906976744,"type":0},{"id":0,"sLen":117,"time":111976.744186046,"type":0},{"id":2,"sLen":117,"time":112325.581395349,"type":0},{"id":1,"sLen":117,"time":112674.418604651,"type":0},{"id":3,"sLen":117,"time":113023.255813953,"type":0},{"id":2,"sLen":0,"time":113255.813953488,"type":0},{"id":0,"sLen":0,"time":113488.372093023,"type":0},{"id":0,"sLen":0,"time":113837.209302326,"type":0},{"id":3,"sLen":0,"time":114069.76744186,"type":0},{"id":2,"sLen":117,"time":114302.325581395,"type":0},{"id":1,"sLen":0,"time":114534.88372093,"type":0},{"id":3,"sLen":0,"time":114651.162790698,"type":0},{"id":0,"sLen":117,"time":114883.720930233,"type":0},{"id":3,"sLen":0,"time":115116.279069767,"type":0},{"id":3,"sLen":0,"time":115697.674418605,"type":0},{"id":2,"sLen":0,"time":115930.232558139,"type":0},{"id":3,"sLen":234,"time":116046.511627907,"type":0},{"id":0,"sLen":117,"time":116511.627906977,"type":0},{"id":1,"sLen":0,"time":116976.744186046,"type":0},{"id":0,"sLen":0,"time":117209.302325581,"type":0},{"id":0,"sLen":0,"time":117558.139534884,"type":0},{"id":3,"sLen":0,"time":117790.697674419,"type":0},{"id":2,"sLen":117,"time":118023.255813953,"type":0},{"id":0,"sLen":0,"time":118372.093023256,"type":0},{"id":2,"sLen":351,"time":118604.651162791,"type":0},{"id":3,"sLen":117,"time":119069.76744186,"type":0},{"id":0,"sLen":117,"time":119418.604651163,"type":0},{"id":2,"sLen":117.000000000015,"time":119767.441860465,"type":0},{"id":1,"sLen":116.999999999956,"time":120116.279069767,"type":0},{"id":3,"sLen":117,"time":120465.11627907,"type":0},{"id":2,"sLen":0,"time":120697.674418605,"type":0},{"id":0,"sLen":1755,"time":120930.232558139,"type":0},{"id":1,"sLen":1754.99999999999,"time":128372.093023256,"type":0},{"id":0,"sLen":819.000000000015,"time":130232.558139535,"type":0},{"id":3,"sLen":819,"time":131162.790697674,"type":0},{"id":2,"sLen":819,"time":132093.023255814,"type":0},{"id":1,"sLen":819,"time":133023.255813953,"type":0},{"id":2,"sLen":117,"time":134651.162790698,"type":0},{"id":0,"sLen":819,"time":135813.953488372,"type":0},{"id":3,"sLen":819,"time":137209.302325581,"type":0},{"id":0,"sLen":0,"time":138139.534883721,"type":0},{"id":0,"sLen":0,"time":138372.093023256,"type":0},{"id":3,"sLen":0,"time":138604.651162791,"type":0},{"id":1,"sLen":0,"time":138720.930232558,"type":0},{"id":2,"sLen":0,"time":138837.209302326,"type":0},{"id":1,"sLen":0,"time":139069.76744186,"type":0},{"id":0,"sLen":0,"time":139186.046511628,"type":0},{"id":2,"sLen":0,"time":139302.325581395,"type":0},{"id":3,"sLen":117,"time":139534.88372093,"type":0},{"id":0,"sLen":0,"time":140232.558139535,"type":0},{"id":0,"sLen":117,"time":140697.674418605,"type":0},{"id":2,"sLen":0,"time":140930.23255814,"type":0},{"id":0,"sLen":0,"time":141046.511627907,"type":0},{"id":1,"sLen":0,"time":141279.069767442,"type":0},{"id":3,"sLen":117,"time":141395.348837209,"type":0},{"id":1,"sLen":117,"time":141744.186046512,"type":0},{"id":2,"sLen":117,"time":142093.023255814,"type":0},{"id":0,"sLen":234,"time":142441.860465116,"type":0},{"id":3,"sLen":117,"time":142790.697674419,"type":0},{"id":2,"sLen":117,"time":143023.255813953,"type":0},{"id":0,"sLen":0,"time":143255.813953488,"type":0},{"id":0,"sLen":0,"time":143604.651162791,"type":0},{"id":1,"sLen":465.116279069742,"time":143837.209302326,"type":0},{"id":2,"sLen":0,"time":144418.604651163,"type":0},{"id":2,"sLen":117,"time":144651.162790698,"type":0},{"id":0,"sLen":0,"time":144883.720930233,"type":0},{"id":3,"sLen":0,"time":145116.279069767,"type":0},{"id":3,"sLen":0,"time":145348.837209302,"type":0},{"id":0,"sLen":0,"time":145465.11627907,"type":0},{"id":2,"sLen":117,"time":145697.674418605,"type":0},{"id":3,"sLen":117,"time":145930.23255814,"type":0},{"id":1,"sLen":0,"time":146279.069767442,"type":0},{"id":0,"sLen":0,"time":146511.627906977,"type":0},{"id":2,"sLen":0,"time":146744.186046512,"type":0},{"id":1,"sLen":0,"time":146860.465116279,"type":0},{"id":3,"sLen":0,"time":146976.744186047,"type":0},{"id":1,"sLen":0,"time":147209.302325581,"type":0},{"id":3,"sLen":0,"time":147325.581395349,"type":0},{"id":0,"sLen":0,"time":147558.139534884,"type":0},{"id":3,"sLen":117,"time":147674.418604651,"type":0},{"id":2,"sLen":0,"time":148139.534883721,"type":0},{"id":0,"sLen":0,"time":148372.093023256,"type":0},{"id":2,"sLen":0,"time":148488.372093023,"type":0},{"id":3,"sLen":0,"time":148604.651162791,"type":0},{"id":1,"sLen":0,"time":148837.209302326,"type":0},{"id":3,"sLen":0,"time":149069.76744186,"type":0},{"id":3,"sLen":0,"time":149302.325581395,"type":0},{"id":2,"sLen":0,"time":149534.88372093,"type":0},{"id":0,"sLen":117,"time":149767.441860465,"type":0},{"id":2,"sLen":117,"time":150116.279069768,"type":0},{"id":1,"sLen":117,"time":150465.11627907,"type":0},{"id":3,"sLen":1755,"time":150697.674418605,"type":0},{"id":1,"sLen":0,"time":152558.139534884,"type":0},{"id":0,"sLen":0,"time":152674.418604651,"type":0},{"id":2,"sLen":0,"time":152790.697674419,"type":0},{"id":0,"sLen":0,"time":153023.255813954,"type":0},{"id":2,"sLen":0,"time":153139.534883721,"type":0},{"id":3,"sLen":117,"time":153255.813953489,"type":0},{"id":0,"sLen":117,"time":153488.372093023,"type":0},{"id":2,"sLen":117,"time":153837.209302326,"type":0},{"id":1,"sLen":0,"time":154186.046511628,"type":0},{"id":0,"sLen":819,"time":154418.604651163,"type":0},{"id":1,"sLen":0,"time":156046.511627907,"type":0},{"id":2,"sLen":0,"time":156162.790697675,"type":0},{"id":0,"sLen":117,"time":156279.069767442,"type":0},{"id":0,"sLen":117,"time":156627.906976744,"type":0},{"id":1,"sLen":0,"time":156860.465116279,"type":0},{"id":2,"sLen":117,"time":157093.023255814,"type":0},{"id":0,"sLen":0,"time":157325.581395349,"type":0},{"id":3,"sLen":117,"time":157674.418604651,"type":0},{"id":1,"sLen":117,"time":157906.976744186,"type":0},{"id":2,"sLen":0,"time":158139.534883721,"type":0},{"id":3,"sLen":0,"time":158372.093023256,"type":0},{"id":2,"sLen":0,"time":158488.372093023,"type":0},{"id":0,"sLen":0,"time":158720.930232558,"type":0},{"id":2,"sLen":0,"time":158837.209302326,"type":0},{"id":3,"sLen":0,"time":159069.767441861,"type":0},{"id":0,"sLen":0,"time":159186.046511628,"type":0},{"id":2,"sLen":0,"time":159418.604651163,"type":0},{"id":3,"sLen":0,"time":159534.88372093,"type":0},{"id":1,"sLen":0,"time":159651.162790698,"type":0},{"id":3,"sLen":936,"time":160000,"type":0},{"id":0,"sLen":0,"time":161860.465116279,"type":0},{"id":2,"sLen":0,"time":161976.744186047,"type":0},{"id":3,"sLen":0,"time":162093.023255814,"type":0},{"id":1,"sLen":0,"time":162325.581395349,"type":0},{"id":2,"sLen":0,"time":162441.860465116,"type":0},{"id":0,"sLen":0,"time":162558.139534884,"type":0},{"id":1,"sLen":0,"time":162906.976744186,"type":0},{"id":2,"sLen":0,"time":163023.255813953,"type":0},{"id":3,"sLen":0,"time":163139.534883721,"type":0},{"id":0,"sLen":0,"time":163372.093023256,"type":0},{"id":1,"sLen":0,"time":163488.372093023,"type":0},{"id":3,"sLen":0,"time":163604.651162791,"type":0},{"id":2,"sLen":0,"time":163720.930232558,"type":0},{"id":0,"sLen":0,"time":164069.767441861,"type":0},{"id":3,"sLen":117,"time":164418.604651163,"type":0},{"id":1,"sLen":117,"time":164767.441860465,"type":0},{"id":0,"sLen":117,"time":165116.279069768,"type":0},{"id":3,"sLen":117,"time":165348.837209302,"type":0},{"id":2,"sLen":117,"time":165581.395348837,"type":0}],"characters":["gf-base"],"type":1,"visible":true,"strumSpacing":1.2,"strumPos":[0,50],"strumLinePos":0.75,"vocalsSuffix":"-Player"}],"codenameChart":true,"scrollSpeed":2.8,"chartVersion":"1.6.0","stage":"resonance","noteTypes":[]}         �  �import flixel.text.FlxTextAlign;
-import flixel.text.FlxTextBorderStyle;
-import flixel.text.FlxText.FlxTextBorderStyle;
-import funkin.backend.system.Control;
-import BlurFilter;
-import ui.ButtonUI;
-
-class MessageWindowUI extends FlxBasic
 {
-	public var group:FlxSpriteGroup;
-
-	var iconTimer:FlxTimer;
-
-	var blur:BlurFilter;
-
-	var scrollTween:FlxTween;
-
-	public function new(theData:Dynamic)
-	{
-		super();
-
-		data = theData;
-
-		group = new FlxSpriteGroup();
-
-		messageCam = new FlxCamera();
-		messageCam.bgColor = FlxColor.TRANSPARENT;
-		FlxG.cameras.add(messageCam, false);
-		messageCam.scroll.y -= 15;
-		scrollTween = FlxTween.num(-15, 0, 0.5, {ease: FlxEase.expoOut}, function(num:Float)
-		{
-			messageCam.scroll.y = num;
-		});
-
-		if (Options.gameplayShaders)
-		{
-			blur = new BlurFilter(0.0);
-			blur.apply(FlxG.camera);
-			FlxTween.num(0.0, 15, 0.50, {ease: FlxEase.expoOut}, function(num:Float)
-			{
-				blur.set(num);
-			});
-		}
-
-		msgBG = new FunkinSprite(0, 0).makeGraphic(1920, 1080, FlxColor.BLACK);
-		msgBG.scale.set(FlxG.width * 2, FlxG.height * 2);
-		add(msgBG);
-		msgBG.alpha = 0.0;
-		FlxTween.tween(msgBG, {alpha: 0.75}, 0.50, {ease: FlxEase.expoOut});
-		msgBG.cameras = [messageCam];
-
-		msgBox = new FunkinSprite().loadGraphic(Paths.image('ui/common/window'));
-		add(msgBox).cameras = [messageCam];
-		msgBox.screenCenter();
-
-		msgHeader = new FlxText(msgBox.x, msgBox.y + 52, msgBox.width, i18n.tr('Message/Header/${data.nameKey}'));
-		msgHeader.setFormat(Paths.font("shingo.otf"), 42, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, 0xFF0D090D);
-		msgHeader.borderSize = 2.5;
-		add(msgHeader).cameras = [messageCam];
-		msgHeader.cameras = [messageCam];
-
-		var textToUse = data.nameKey;
-		if (data.mainTextKey != null)
-			textToUse = data.mainTextKey;
-
-		msgMain = new FlxText(msgBox.x + 75, msgBox.y + 250, msgBox.width - 150, i18n.tr('Message/${data.mainTextKey}'));
-		msgMain.setFormat(Paths.font("shingo.otf"), 42, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, 0xFF0D090D);
-		msgMain.borderSize = 2.5;
-		add(msgMain).cameras = [messageCam];
-
-		var iconToUse = 'info';
-		if (data.icon != null)
-			iconToUse = data.icon;
-		msgIcon = new FunkinSprite(msgBox.x + 50, msgBox.y + 17).loadGraphic(Paths.image('ui/common/window_icon_${iconToUse}'));
-		add(msgIcon).cameras = [messageCam];
-		msgIcon.alpha = 0.0;
-		msgIcon.y -= 25;
-		FlxTween.tween(msgIcon, {y: msgIcon.y + 25, alpha: 1.0}, 0.50, {
-			ease: FlxEase.elasticInOut,
-			onComplete: function(twn:FlxTween)
-			{
-				add(GenUtil.glowPulse(msgIcon, 1.0, 0.5, 1.0)).cameras = [messageCam];
-			}
-		});
-
-		if (iconToUse == 'danger')
-		{
-			iconTimer = new FlxTimer().start(2.5, function(tmr:FlxTimer)
-			{
-				add(GenUtil.glowPulse(msgIcon, 1.0, 0.5, 1.0)).cameras = [messageCam];
-			}, 0);
-		}
-
-		switch (data.type)
-		{
-			case 'twochoice':
-				lButton = new ButtonUI(0, 650, 'basic');
-				lButton.text = i18n.tr('Message/Options/${data.leftTextKey}');
-				add(lButton.group).cameras = [messageCam];
-				lButton.group.screenCenter(FlxAxes.X);
-				lButton.group.x -= 250;
-
-				rButton = new ButtonUI(0, 650, 'basic');
-				rButton.text = i18n.tr('Message/Options/${data.rightTextKey}');
-				add(rButton.group).cameras = [messageCam];
-				rButton.group.screenCenter(FlxAxes.X);
-				rButton.group.x += 250;
-
-			case 'languagechoose':
-				englishOp = new FunkinSprite(msgBox.x, msgBox.y + 400).loadGraphic(Paths.image('ui/settings/english'));
-				add(englishOp).cameras = [messageCam];
-				englishOp.x = (msgBox.x + msgBox.width / 2 - englishOp.width / 2) - 400;
-				englishOp.scale.set(1.5, 1.5);
-
-				spanishOp = new FunkinSprite(msgBox.x, msgBox.y + 400).loadGraphic(Paths.image('ui/settings/spanish'));
-				add(spanishOp).cameras = [messageCam];
-				spanishOp.x = (msgBox.x + msgBox.width / 2 - spanishOp.width / 2);
-				spanishOp.scale.set(1.5, 1.5);
-
-				japaneseOp = new FunkinSprite(msgBox.x, msgBox.y + 400).loadGraphic(Paths.image('ui/settings/japanese'));
-				add(japaneseOp).cameras = [messageCam];
-				japaneseOp.x = (msgBox.x + msgBox.width / 2 - japaneseOp.width / 2) + 400;
-				japaneseOp.scale.set(1.5, 1.5);
-		}
-
-		GenUtil.playUISound('open');
-	}
-
-	public override function update(elapsed)
-	{
-		super.update(elapsed);
-	}
-
-	public function add(obj)
-	{
-		group.add(obj);
-	}
-
-	public function remove(obj)
-	{
-		group.remove(obj);
-	}
-
-	override function update(elapsed)
-	{
-		super.update(elapsed);
-		group.update();
-
-		if ((FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.A) && !lButton.selected)
-		{
-			GenUtil.playUISound('move');
-			lButton.selected = true;
-			rButton.selected = false;
-		}
-		else if ((FlxG.keys.justPressed.RIGHT || FlxG.keys.justPressed.D) && !rButton.selected)
-		{
-			GenUtil.playUISound('move');
-			lButton.selected = false;
-			rButton.selected = true;
-		}
-		else if (FlxG.keys.justPressed.ENTER)
-		{
-			new FlxTimer().start(0.0001, function(tmr:FlxTimer)
-			{
-				if (lButton.selected)
-				{
-					data.leftAction();
-					data.completedAction();
-					GenUtil.playUISound('close');
-				}
-				else if (rButton.selected)
-				{
-					data.rightAction();
-					data.completedAction();
-					GenUtil.playUISound('close');
-				}
-			});
-		}
-		else if (FlxG.keys.justPressed.ESCAPE && !data.type != 'languagechoose')
-		{
-			new FlxTimer().start(0.0001, function(tmr:FlxTimer)
-			{
-				data.backAction();
-				GenUtil.playUISound('close');
-			});
-		}
-
-		if (data.type == 'languagechoose')
-		{
-			if (FlxG.mouse.justPressed && CoolUtil.mouseOverlaps(englishOp))
-			{
-				Options.language = 'en_US';
-				data.completedAction();
-				i18n.loadFromString(Assets.getText('data/langs/${Options.language}/translations
+  "Accolades": {
+    "Achievements": {
+      "Descriptions": {
+        "ChamberOfLight": "Go to the Gallery",
+        "CompleteAct1": "Complete ACT 1",
+        "Devoted": "Clear songs 25 times",
+        "FCEternalStar": "FC Eternal Star on Hard",
+        "FCInitium": "FC Initium on Hard",
+        "FCMeguca": "FC Meguca on Hard",
+        "FCOutOfTime": "FC Out-of-Time on Hard\n(Including Mechanics)",
+        "FCPartea": "FC Partea on Hard",
+        "FCReconnect": "FC Reconnect on Hard",
+        "FCResonance": "FC Resonance on Hard\n(Including Mechanics)",
+        "FCStardom": "FC Stardom on Hard",
+        "FCVexation": "FC Vexation on Hard\n(Including Mechanics)",
+        "FourFourFour": "Beat any song with a score, accuracy rating, max combo, or judgement note amount that has 444 in any position",
+        "PinpointAccuracy": "Hit 5,000 notes with perfect accuracy",
+        "ResOutheal": "Beat Resonance without ever falling below 30% performance",
+        "Tenacious": "Restart any one song 15 times in a row then beat the song",
+        "ThanksForPlaying": "Go to the Credits",
+        "TimeWaitsForMe": "Pause while playing Out-of-Time",
+        "VexYikes": "Beat Vexation without sustaining an attack",
+        "YoureOnMyTime": "Beat Out-of-Time without letting Homura stop time and press all bullet notes"
+      },
+      "Earned": "earned!",
+      "Names": {
+        "ChamberOfLight": "Chamber of Light",
+        "CompleteAct1": "Hope",
+        "Devoted": "Devoted",
+        "FCEternalStar": "Perfectly Ever-Radiant",
+        "FCInitium": "In the Beginning...",
+        "FCMeguca": "Meguca",
+        "FCOutOfTime": "Perfectly Timeless",
+        "FCPartea": "Perfectly Partea-ing",
+        "FCReconnect": "Perfectly Connected",
+        "FCResonance": "Perfectly Resonant",
+        "FCStardom": "Perfectly Shining",
+        "FCVexation": "Perfectly Vexatious",
+        "FourFourFour": "FOUR FOUR FOUR",
+        "PinpointAccuracy": "Pinpoint Accuracy",
+        "ResOutheal": "Outhealed the Healer",
+        "Tenacious": "Tenacious",
+        "ThanksForPlaying": "Thanks for Playing!",
+        "TimeWaitsForMe": "Time Waits for ME!",
+        "VexYikes": "Yikes!",
+        "YoureOnMyTime": "You're on my Time"
+      }
+    },
+    "ClearToEarn": "Clear any song to earn"
+  },
+  "Dialogue": {
+    "EternalStar": {
+      "0": "(With one “Tiro Finale!”, Mami, Sayaka and Madoka, alongside Girlfriend, have successfully defeated Charlotte. While the labyrinth doesn’t dissipate, everyone is pretty psyched at their victory.)",
+      "1": "YOU WERE AMAZING MAMI! Can’t say I’m surprised though...  Oh, how I aspire to be like such a true magical girl of justice~",
+      "10": "(She appears almost radiant; a warm, comforting feeling emanates from Girlfriend and her kind invitation. Madoka, while still a bit nervous, runs ahead to the front of the group.)",
+      "11": "I don’t know why, but over these past few days, everyone has seemed so much happier... even though we fight witches and risk our lives every day, I’m really grateful we get to work with each other, and live our daily lives as magical girls!",
+      "12": "I’d love to sing with you, G-Girlfriend! I’ll do my best!",
+      "13": ">:D",
+      "2": "Hey now, it wasn’t all me! You three did an excellent job back there.",
+      "3": "(Everyone glances at Girlfriends' mic, which, in the moment, seems particularly shiny. On cue with their victory, she eagerly extends an offer to sing another song, as usual.)",
+      "4": "I like the way you think, new girl! This is the second witch we’ve defeated this week, I think another song to celebrate would be awesome!!",
+      "5": "*giggle* I agree, honestly. I can’t help but feel as though that could have gone much worse... though I am wondering, would it be fair if anyone were to sing twice? I already sang at my apartment.",
+      "6": "And I already got a chance in that other labyrinth...",
+      "7": "(Everyone turns to look at Madoka, who has been quietly trailing behind. This startles her a bit.)",
+      "8": "H-huh? Um...",
+      "9": "Wanna sing with me?"
+    },
+    "Initium": {
+      "0": "This is your NOTE STRUM! Hit notes that come through here!",
+      "0miss": "Oops.",
+      "1": "This is your PERFORMANCE BAR, if you do well, you'll see it go up like this!",
+      "10": "And that's everything, so...",
+      "11": "... go out there and be a magical girl!",
+      "1miss": "Gulp... that wasn't supposed to happen! Sorry, but that was my last one...",
+      "2": "However, if you miss, it'll also go down.",
+      "3": "Missing with an empty PERFORMANCE BAR will cause your SOUL GEM to build up DESPAIR...",
+      "4": "The SOUL GEM can only be purified with a GRIEF SEED, which I happen to have one here!",
+      "5": "So keep in mind that DESPAIR is PERMAMENT throughout the song!",
+      "6": "Finally, let's look at the SCORE.",
+      "7": "Your SCORE will increase when you hit the notes, how much depends on the rating you get.",
+      "8": "A minimum score will increase along with the actual one, get good ratings, and you'll be far ahead of it!",
+      "9": "Your PERFORMANCE BAR will decrease the longer you are under the threshold, get above it to reset it!"
+    },
+    "Log": "LOG",
+    "LogHelp": "Up/Down UI Directionals - Scroll / Back - Exit Log",
+    "Out-of-Time": {
+      "0": "(Girlfriend and Kyoko are both worn out from their duel. Kyoko seems impressed at Girlfriend’s stamina, despite her disdain for being defeated.)",
+      "1": "(The tension has died down, and everyone’s day can continue as normal, as if nothing had ever happened!)",
+      "10": "They were at least careful when fighting witches before they heard you sing, and now they’re just throwing themselves into danger!",
+      "11": "How dare you hide their fate from them? How dare you glorify the cruel reality of a magical girl?!",
+      "12": "In all my attempts to save her, you are the only anomaly I’ve seen with this amount of power. If I can’t protect her from her fate, I can at least protect her from you.",
+      "13": "You and your siren song cannot be allowed to exist in this world.",
+      "14": "(Homura raises her gun, aiming it at GF’s soul gem.)",
+      "15": "I shall silence you myself.",
+      "16": "(Girlfriend is dumbfounded, but doesn't care, tosses her a mic, Homura plays along for now looking for an opening.)",
+      "17": "...",
+      "18": "Well, I’m happy for you! Or I’m sorry that happened... Let’s sing about it!",
+      "19": "Uh-",
+      "2": "(That is, until...)",
+      "20": "(\"I can play along with her for now. She does tend to get cocky after winning these little battles; that should leave me a perfect opening for that Soul Gem on her dress.\")",
+      "21": "... Fine. So be it.",
+      "3": "(... Girlfriend finds herself over the edge of a rocky cliff face. Large, ruined buildings tower over her, and there’s a sharp feeling of unease lingering in the air.)",
+      "4": "(Girlfriend is completely alone. She wonders how she ended up in such an isolated place.)",
+      "5": "(Her question is answered when Homura Akemi, the “irregularity” of Mitakihara City, reveals herself.)",
+      "6": "You have no place here. Your wish has only reaffirmed Madoka Kaname’s twisted fate.",
+      "7": "She was so eager to make her wish back then... nothing I said or did could sway her. After Sayaka Miki made hers, she followed immediately after.",
+      "8": "I could only watch as that Incubator ripped her soul from her body. I was powerless to stop her there, but decided to continue watching them... and then I saw you.",
+      "9": "Your wish has... altered this timeline somehow. Your performances in those “labyrinths”, their blissful ignorance of their fate, the Incubator’s... new outfit... none of it should be happening."
+    },
+    "Partea": {
+      "0": "(After a victory against Gertrud, Mami, Sayaka and Madoka enter Mami’s apartment, with Girlfriend tagging along this time.)",
+      "1": "Here we are! Apologies if things seem a bit messy here, I wasn’t expecting a new guest today...",
+      "10": "OOH!! A new guest means you’re gonna bring out the really fancy cheesecake, right, Mami? I want cheesecake!!!",
+      "11": "I will, Nagisa. But try not to eat all of it, ok? I’d like for our new guest to have some as well.",
+      "12": "Okayyyyy...",
+      "13": "(Nagisa is also a magical girl, despite her young age. She prefers waiting for Mami and the rest of the group at home, rather than tagging along during witch hunts.)",
+      "14": "Before we move on to any magical girl matters, would anybody like some tea? I’ve already got a pot on the stove ready to boil.",
+      "15": "Yes, please!",
+      "16": "I’d like some as well! You can’t beat Mami’s tea!",
+      "17": "(Girlfriend is also not opposed.)",
+      "18": "(Mami gets up and goes to the kitchen, she returns several minutes later with a steaming kettle and a tray of small desserts. Girlfriend looks like she could cry.)",
+      "19": "These are just some sweets I made earlier today. Please, help yourself!",
+      "2": "(Girlfriend is in awe; the apartment is clean and very pretty, seemingly fitting with Mami’s composure and elegance. Everyone notices Girlfriend’s look of admiration as her eyes sweep across the room.)",
+      "20": "Mmmmm! Your baking is always the best, Mami!",
+      "21": "i lovecheesecakeiloveyoumamithankyouforeverything",
+      "22": "That’s Mami for ya! A model magical girl, through and through!",
+      "23": "*giggle* It’s no big deal. Feel free to eat as much as you wish.",
+      "24": "(Girlfriend already has her mouth completely stuffed with desserts.)",
+      "25": "Now then, let’s move on to more important matters. I haven’t seen you around here before.",
+      "26": "(Girlfriend hits the (👀).)",
+      "27": "While we really do appreciate the help, and I don’t sense anything malicious from you, I need to know whether or not we can trust you to be here...",
+      "28": "Magical girls are surrounded by constant danger, and it’d be worse if we had a fight within our own group, right?",
+      "29": "Mami...",
+      "3": "SO PRETTY...",
+      "30": "C’mon Mami!! She seems super nice!!!",
+      "31": "(Girlfriend, wanting to prove she means no harm, tosses a microphone to Mami. She catches it, the sudden gesture takes Mami by surprise.)",
+      "32": "H-huh? You want to... sing with me? I’m flattered, but please, don’t trouble yourself! My singing really isn’t very good...",
+      "33": "(Girlfriend smiles.)",
+      "34": "*giggles* Well, I suppose one song wouldn’t hurt. We’ll count this as... a test of your magical powers.",
+      "4": "Ahaha, yeah, I felt the same way when I first visited Mami...",
+      "5": "(The group settles down. Suddenly, a much younger girl rushes into the living room, seemingly very excited to see Mami return.)",
+      "6": "MAMIII!!!",
+      "7": "*giggle* Hi Nagisa, I’m home! I hope you don’t mind if I have a few friends over.",
+      "8": "(Madoka and Sayaka greet Nagisa as usual, but Nagisa naturally glances at Girlfriend longer than the others in the group, as she’s never seen her before. She seems excited regardless.)",
+      "9": "Nagisa’s never seen this person before..."
+    },
+    "PressKey": "[Press Z to continue]",
+    "PressKeySkip": "[Press X to skip]",
+    "Resonance": {
+      "0": "In this world, hope and despair are constantly at arms with each other.",
+      "1": "Witches, creatures born from despair and anguish, feed on other humans and entrap them in “barriers” of temporal mystique; labyrinths of negative emotions that twist and warp the minds of anyone inside.",
+      "10": "Hey, thanks for the save back there! I tooootally had that witch covered, but y’know, we’ll take all the help we can get!",
+      "11": "Fighting with a speaker... I can’t recall ever seeing you around Mitakihara. Are you perhaps new?",
+      "12": "The name’s Sayaka Miki! Mitakihara’s very own magical girl, and amazing, all-powerful defender of justice! HAHAHA!",
+      "13": "Hehehe, Sayaka, you’re so silly... I-I’m Madoka Kaname, it’s nice to meet you!",
+      "14": "And I’m Mami Tomoe. The three of us fight as magical girls to keep this town safe. This may be the first time we’ve met, but considering how effortlessly you defeated that witch... I trust you’ve been working hard at doing the same thing! U-um...",
+      "15": "I’m Girlfriend!! >:D",
+      "16": "Eh? Girlfriend? A-as in... like a cheesy romance manga kinda thing? Ahahaha, there’s no WAY that’s your real name!!",
+      "17": "I-I’ve never heard of anyone with a name like that...",
+      "18": "Ehehehe... names aside, we must thank you once again for taking care of that witch. Feel free to claim the witch’s grief seed; we have more than enough already.",
+      "19": "(Girlfriend stares at the grief seed very intensely...)",
+      "2": "However, the duty of a magical girl exists to counteract this very phenomenon: In exchange for a wish, magical girls must fight these nightmarish creatures, as they are the only source of grief seeds.",
+      "20": "(... and then tosses it to Madoka.)",
+      "21": "UWA!! Oh!! Th-Thank you...",
+      "22": "(Girlfriend pulls out a microphone and stretches out her hand, offering the girls a chance to sing against the one and only Girlfriend FNF)",
+      "23": "Huh? You... wanna sing?! Here?? OOH! OOH! Mami, can I sing with her??",
+      "24": "Well, I suppose now that we’ve defeated that witch... I don't see why not!",
+      "25": "YEAH!! Prepare to get your socks blown CLEAN off, new girl! Little ol’ Sayaka won’t hold back!",
+      "26": "Good luck Sayaka!!",
+      "3": "In Mitakihara City, 3 magical girls have taken up this role, and have recently begun patrolling for witches.",
+      "4": "In the middle of a battle, there’s a sudden interference – A speaker manifests from the sky, crushing the witch!",
+      "5": "The team of magical girls are quick to notice such a glamorous attack, and subsequently, the new magical girl who cast it.",
+      "6": "(Sayaka, Mami and Madoka introduce themselves to Girlfriend.)",
+      "7": "WOAH... big speaker...",
+      "8": "Sayaka, Madoka, are you two alright?",
+      "9": "I’m ok, thanks Mami."
+    },
+    "Skip": "SKIP",
+    "Vexation": {
+      "0": "(In a damp alley, Sayaka and Girlfriend are fighting a familiar, while Madoka and Mami stand by for support. Smaller beings born from the essence of larger witches, when left unchecked, these familiars can grow into witches themselves.)",
+      "1": "(Sayaka and Girlfriend don’t want anybody getting hurt by witches, so they do their best to destroy all familiars they find. Unfortunately, Girlfriend misses her next attack, causing the familiar to fly off in a panic.)",
+      "10": "(Everyone looks up to see a figure standing on the pipes above them.)",
+      "11": "K-Kyoko?!",
+      "12": "What’s wrong, Mami? You know her?",
+      "13": "Oh, she’s just an old acquaintance... I heard Mami made a bunch of new friends and thought I’d stop by, for old time’s sake.",
+      "14": "(Kyoko jumps down from the pipes above.)",
+      "15": "You guys seem to be having a lot of fun, running around pretending to save people. But attacking a familiar? You DO know that they won’t drop any grief seeds, right?",
+      "16": "S-So what? Familiars can still hurt people... if we kill them, nobody’s gonna get–",
+      "17": "Hey, have you heard of the food chain?",
+      "18": "The witches eat humans. Then us magical girls... eat them.",
+      "19": "So, when girls like you walk around flaunting your heroism and all the “joys of saving people”...",
+      "2": "Damn!! It got away...",
+      "20": "(Kyoko takes another step.)",
+      "21": "It really pisses me off.",
+      "22": "(Sayaka readies herself for a fight but...)",
+      "23": "(... Girlfriend steps in front of Sayaka, microphone in hand. Kyoko raises an eyebrow.)",
+      "24": "A microphone?? You’ve gotta be kidding me- Did you not hear what I just said?!",
+      "25": "(Girlfriend stands firm, extending an offer to her new opponent. She smiles confidently.)",
+      "26": "Wanna sing with me?",
+      "27": "Y’know what, Mami? I wanna know how you guys have lasted this long with a karaoke singer as a teammate. You. Hit me.",
+      "28": "(Girlfriend tosses Kyoko a mic. Kyoko flashes a smile.)",
+      "3": "(Girlfriend watches helplessly as the tiny familiar zips off into the distance.)",
+      "4": "Ugh, we were so close too!",
+      "5": "That’s ok, you two. We don’t want you using up too much magic, after all.",
+      "6": "Sorry Mami, Madoka. If I were as talented as you, the familiar wouldn’t have escaped...",
+      "7": "Don’t beat yourself up, Sayaka! You did the best you could.",
+      "8": "(Suddenly, an apple core seemingly falls from the sky, hitting Girlfriend in the head.)",
+      "9": "Wow, THREE new rookies? Really needed an ego boost since last time, right, Mami?"
+    }
+  },
+  "Disclaimer": "This mod contains the following:\n\nPUELLA MAGI MADOKA MAGICA\nSpoilers\n\nFlashing Lights\n\nDark Themes",
+  "Freeplay": {
+    "ComposedBy": "Composed by:",
+    "Locked": "[Locked]",
+    "NoCopyright": "This song isn't copyrighted",
+    "PressToUnlock": "[Press CONFIRM\nto unlock!]",
+    "Random": "Random",
+    "UnlockCondPrev": "Clear PREVIOUS SONG\nto unlock.",
+    "UnlockCondStory": "Clear STORY MODE\nto unlock."
+  },
+  "Gallery": {
+    "Help": "UI Directionals - Move / Q&E - Zoom",
+    "HelpFull": "Instructions:\nAccept - Inspect\nUI Directionals - Move\nQ&E - Zoom"
+  },
+  "GameJolt": {
+    "SignIn": {
+      "Header": "Sign into Game Jolt",
+      "Info1": "Log in to\n*Game Jolt*",
+      "Info2": "Earn *rewards* and\nscore on the #leaderboard#!",
+      "Login": "Login",
+      "PasswordNotice": "* Do not use your password! Use your User Token!",
+      "Token": "User Token:",
+      "Username": "User Name:"
+    },
+    "SignedIn": "Signed In as:",
+    "SignedOut": "You have signed out.",
+    "SignedOutForced": "You have been signed out."
+  },
+  "Gameplay": {
+    "Accuracy": "Accuracy",
+    "AttacksSustained": "Atks. Sustained",
+    "Breaks": "Breaks",
+    "Condition": {
+      "ComboCountRequirement": "Get up to a :num combo"
+    },
+    "FCRank": "FC Rank",
+    "GameOver": {
+      "ConfirmPurify": "- Hold ACCEPT to purify -",
+      "Quotes": {
+        "0": "Never give up!",
+        "1": "Stay strong!",
+        "2": "You got this!",
+        "3": "Hang in there!"
+      }
+    },
+    "Goduka": {
+      "CurrentSong": "(Applies to current song)",
+      "Question": "Call upon  \nGODUKA'S help?"
+    },
+    "Pause": {
+      "Quit": "Quit",
+      "Restart": "Restart",
+      "Resume": "Resume",
+      "Settings": "Settings"
+    },
+    "Score": "Score",
+    "ScoreMultiplier": "Score Multiplier",
+    "Vexation": {
+      "GoFirst": "YOU GO FIRST"
+    }
+  },
+  "Gauntlet": {
+    "AndMore": "& :conflictions Others",
+    "BestScore": "Best Score",
+    "ConflictionWith": "CONFLICTION WITH:",
+    "CurrentScoreMultiplier": "Current Score Multiplier",
+    "EnableForBonus": "Enable for bonus:",
+    "EndlessInfo": "In Endless Mode:\nYou pick one modifier after every song.\nSome extreme modifiers are exclusive to this mode.\nSee how far you can get!",
+    "FinalResults": "Final Results:",
+    "LeaderboardTop10": "Leaderboards (Top 10)",
+    "ModeSelector": {
+      "Endless": "Endless",
+      "Leaderboards": "Leaderboards",
+      "Standard": "Standard"
+    },
+    "Mods": {
+      "BiggerJudgementWindows": "Bigger Judgement\nWindows",
+      "ComboCountRequirement": "Combo Count\nRequirement",
+      "Description": {
+        "BiggerJudgementWindows": "Increases the judgement windows.",
+        "ComboCountRequirement": "Must reach a certain note combo number before the song ends.",
+        "DivineOrHigher": "Only \"divine\" or higher ratings are allowed.",
+        "EasyChart": "The chart will be in easy mode.",
+        "HarderMechanics": "Dodge+ are only accepted as the dodge window.\nAll mechanics effects are doubled.",
+        "HigherScoreRequirement": "The score requirement will increase more.",
+        "IncreasedPerformanceLoss": "You lose more performance on note miss.",
+        "IncreasedSongSpeed": "The song is played at x1.2 speed.",
+        "InstantKillMechanics": "Getting hit or missing a bullet note will kill you instantly.",
+        "NoMechanics": "Mechanics are disabled.",
+        "OneLife": "Your lives are reduced to one.",
+        "OneSongSkip": "You can freely skip ONE song at anytime.",
+        "OpponentPerformanceDrain": "When the opponent sings, you will lose performance per note hit.",
+        "OpponentSwap": "You will switch with your opponent periodically.",
+        "PerformanceRegen": "You slowly regenerate performance.",
+        "PermaDamage": "You can't recover health from any source.",
+        "RandomNoteColors": "All of the notes are random colors.",
+        "ReducedScrollSpeed": "The scroll speed is reduced.",
+        "ReleaseOnHoldEnds": "You must release your key press until the end of hold notes.",
+        "ShuffledNoteReceptors": "Your note receptors are shuffled in a different order.",
+        "SixKeyCharts": "The chart will be in 6K.",
+        "SmallerJudgementWindows": "Decreases the judgement windows.",
+        "StealthNotes": "The notes appear halfway through the lane.",
+        "ZoomingNotes": "The speed of the notes increase as it approaches the receptors."
+      },
+      "DivineOrHigher": "Divines or Higher Only",
+      "EasyChart": "Easy Chart",
+      "HarderMechanics": "Harder Mechanics",
+      "HigherScoreRequirement": "Higher Score\nRequirement",
+      "IncreasedPerformanceLoss": "Increased\nPerformance Loss",
+      "IncreasedSongSpeed": "Song Speed x1.2",
+      "InstantKillMechanics": "Instant Kill\nMechanics",
+      "NoMechanics": "No Mechanics",
+      "OneLife": "One Life",
+      "OneSongSkip": "One Song Skip",
+      "OpponentPerformanceDrain": "Opponent\nPerformance Drain",
+      "OpponentSwap": "Opponent Swapping",
+      "PerformanceRegen": "Performance Regen",
+      "PermaDamage": "Perma Damage",
+      "RandomNoteColors": "Random Note\nColors",
+      "ReducedScrollSpeed": "Reduced Scroll Speed",
+      "ReleaseOnHoldEnds": "Release on Hold Ends",
+      "ShuffledNoteReceptors": "Shuffled Note Receptors",
+      "SixKeyCharts": "6K Charts",
+      "SmallerJudgementWindows": "Smaller Judgement\nWindows",
+      "StealthNotes": "Stealth Notes",
+      "ZoomingNotes": "Zooming Notes"
+    },
+    "Multiplier": "Multiplier",
+    "ScoreMultiplier": "Score Multiplier",
+    "SelectYourCard": "Select your card!",
+    "Start": {
+      "OnEndless": "on Endless",
+      "OnStandard": "on Standard",
+      "Start": "Start"
+    }
+  },
+  "Intro": {
+    "CutsceneSubtitles": {
+      "AWish": "A wish...",
+      "BeLike": "I wanna be just like him.",
+      "I": "I..."
+    },
+    "WishQuestion": "Do you want to make a wish?"
+  },
+  "Main": {
+    "Accolades": "Accolades",
+    "Credits": "Credits",
+    "Freeplay": "Freeplay",
+    "Gallery": "Gallery",
+    "Gauntlet": "Gauntlet",
+    "Medals": {
+      "AllAccolades": "All Accolades",
+      "AllSongsCleared": "All Songs Cleared",
+      "GauntletCleared": "Gauntlet Cleared"
+    },
+    "Outdated": "The current version you are running on is outdated.\nPlease download an updated version of the mod!",
+    "PressStart": "- Press Confirm to Continue -",
+    "SelectDiff": "Select your difficulty:",
+    "Settings": "Settings",
+    "Story": "Story"
+  },
+  "Message": {
+    "DeleteData": "Delete your save data?\nThis cannot be undone.",
+    "DownscrollPreference": "Which scroll direction would you like to use?",
+    "FirstTimeSetup": "This looks like your first time opening the mod.\nQuickly setup important settings?",
+    "Header": {
+      "DeleteData": "Delete Data?",
+      "DownscrollPreference": "Note Scroll Option",
+      "FirstTimeSetup": "Setup Settings?",
+      "KeepFlashingLights": "Keep Flashing Lights?",
+      "Language": "Select Language",
+      "QuitGauntlet": "Quit Gauntlet Mode?",
+      "RestartSongGauntlet": "Restart Song?",
+      "RestartStory": "Restart Story?",
+      "ResumeStory": "Resume Story?",
+      "SendGauntletScore": "Upload Score?",
+      "SetControlScheme": "Set Control Scheme",
+      "SettingsFromGauntlet": "Go to Settings?",
+      "SignOut": "Sign out?",
+      "SkipSongGauntlet": "Skip Song?",
+      "SyncGameJolt": "Sync Achievements?"
+    },
+    "KeepFlashingLights": "Some scenes has flashing lights, which may be uncomfortable for people with epilepsy.\nKEEP the flashing lights?",
+    "Language": "Please select your language.",
+    "Options": {
+      "Downscroll": "Downscroll",
+      "No": "No",
+      "Upscroll": "Upscroll",
+      "Yes": "Yes"
+    },
+    "QuitGauntlet": "Quit Gauntlet Mode?\nYour progress will not be saved.",
+    "RestartSongGauntlet": "Restart the song? \nA life will be consumed, unless no notes have been pressed or missed.",
+    "RestartStory": "Restart from the beginning?\nThis cannot be undone.",
+    "ResumeStory": "Resume the story where you last left off?",
+    "SendGauntletScore": "You've reached a new best!\nUpload your score to Game Jolt?",
+    "SetControlScheme": "Set up your control scheme?",
+    "SettingsFromGauntlet": "Go to the Settings?\nA life will be consumed, unless no notes have been pressed or missed.",
+    "SignOut": "Sign out of Game Jolt?",
+    "SkipSongGauntlet": "Skip the current song?\nYou can only do this once per run.",
+    "SyncGameJolt": "Sync your achievements with your Game Jolt account?\n(You can only do this once.)"
+  },
+  "Settings": {
+    "AcceptUI": "Accept",
+    "Anti-aliasing": "Anti-aliasing",
+    "AutoPause": "Auto Pause",
+    "BackUI": "Back",
+    "CamZoomOnBeat": "Camera Zoom on Beat",
+    "Catas": {
+      "Controls": "Controls",
+      "Gameplay": "Gameplay",
+      "Language": "Language",
+      "Other": "Other",
+      "Visuals": "Visuals"
+    },
+    "DestroySaveData": "Destroy Save Data",
+    "Dodge": "Dodge",
+    "DownNote": "Down Note",
+    "DownUI": "Down UI",
+    "Downscroll": "Downscroll",
+    "English": "English",
+    "FlashingLights": "Flashing Lights",
+    "Framerate": "Framerate",
+    "GPUCache": "GPU Cache",
+    "GirlfriendVO": "Girlfriend Voice",
+    "Japanese": "Japanese",
+    "LeftNote": "Left Note",
+    "LeftUI": "Left UI",
+    "LowMemoryMode": "Low Memory Mode",
+    "Mechanics": "Mechanics",
+    "Middlescroll": "Middlescroll",
+    "Off": "Off",
+    "On": "On",
+    "Pause": "Pause",
+    "PlayerStrumScale": "Strum Scale",
+    "RebindPrompt": "Press any key to rebind",
+    "ResetButton": "Reset Button",
+    "RightNote": "Right Note",
+    "RightUI": "Right UI",
+    "ScrollSpeed": "Scroll Speed",
+    "Selected": "Selected",
+    "Shaders": "Shaders",
+    "SongOffset": "Song Offset",
+    "Spanish": "Spanish",
+    "SplashNotes": "Splash Notes",
+    "StreamedMusic": "Streamed Music",
+    "StreamedVocals": "Streamed Vocals",
+    "StrumUnderlayAlpha": "Strum Underlay Alpha",
+    "UpNote": "Up Note",
+    "UpUI": "Up UI",
+    "VisitWebsite": "Visit Website"
+  },
+  "Title": {
+    "PressConfirm": "Press Confirm to Continue"
+  }
+}

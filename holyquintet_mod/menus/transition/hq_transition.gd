@@ -27,6 +27,10 @@ const HOLD_TIME := 0.75
 
 var _black: ColorRect
 var _kyubey: AnimatedSprite2D
+var _music: AudioStreamPlayer
+var _music_tween: Tween
+
+const MENU_MUSIC_PATH := "res://holyquintet_mod/source/music/menu.ogg"
 
 
 func _ready() -> void:
@@ -48,6 +52,48 @@ func _ready() -> void:
 	_kyubey.modulate.a = 0.0
 	add_child(_kyubey)
 	_kyubey.play(KYUBEY_ANIM)
+
+	_music = AudioStreamPlayer.new()
+	add_child(_music)
+
+
+## CoolUtil.playMenuSong()/HQTitle.hx's own FlxG.sound.playMusic('menu',0.7)
+## call: real FlxG.sound.music is a persistent, engine-owned singleton that
+## survives FlxState switches on its own — a plain AudioStreamPlayer child of
+## a *scene* node doesn't survive change_scene_to_file(), so this lives here
+## instead (the one autoload guaranteed to survive every switch, same reason
+## the transition visuals do). Idempotent like the real calls: does nothing
+## if menu.ogg is already playing, so re-entering the main menu after
+## visiting a screen that never touched music is a silent no-op.
+func play_menu_music() -> void:
+	if _music.playing and _music.stream and _music.stream.resource_path == MENU_MUSIC_PATH:
+		return
+	if _music_tween:
+		_music_tween.kill()
+	_music.stream = load(MENU_MUSIC_PATH)
+	if _music.stream is AudioStreamOggVorbis:
+		_music.stream.loop = true
+	_music.volume_db = linear_to_db(0.7)
+	_music.play()
+
+
+## HQMainMenu.hx confirmSelection(): FlxG.sound.music.stop() when heading to
+## Gauntlet/Gallery/Settings (those screens bring their own music).
+func stop_music() -> void:
+	if _music_tween:
+		_music_tween.kill()
+	_music.stop()
+
+
+## HQMainMenu.hx beginStoryMode(): FlxG.sound.music?.fadeOut(1.5, 0.0).
+func fade_out_music(duration: float) -> void:
+	if not _music.playing:
+		return
+	if _music_tween:
+		_music_tween.kill()
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music, "volume_db", -80.0, duration)
+	_music_tween.tween_callback(_music.stop)
 
 
 ## Real MusicBeatState.switchState(): outro transition, then the actual

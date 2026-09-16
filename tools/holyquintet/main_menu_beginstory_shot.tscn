@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/holyquintet/main_menu_beginstory_shot.gd" id="1"]
+
+[node name="MainMenuBeginStoryShot" type="Node"]
+script = ExtResource("1")
