@@ -29,8 +29,14 @@ func _ready() -> void:
 
 	_label = Label.new()
 	_label.position = Vector2(24.0, 16.0)
+	# Cross-mod asset reference (this file is animania_mod's own tool, shared
+	# by every mod in this project via its autoload) — picked by request over
+	# the default UI font since it's the one already always on disk here.
+	_label.add_theme_font_override("font", load("res://holyquintet_mod/source/fonts/shingo.otf"))
 	_label.add_theme_font_size_override("font_size", 28)
 	_label.add_theme_color_override("font_color", Color.WHITE)
+	_label.add_theme_color_override("font_outline_color", Color(0.0509804, 0.0352941, 0.0509804, 1))
+	_label.add_theme_constant_override("outline_size", 4)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
 	_refresh()
