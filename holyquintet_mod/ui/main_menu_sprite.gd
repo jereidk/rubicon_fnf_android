@@ -39,10 +39,10 @@ class_name MainMenuSprite
 const ITEM_DATA := {
 	"story": {"folder": "anim_story", "symbol": "Story_Animation", "position": Vector2(1300, 1000), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"freeplay": {"folder": "anim_freeplay", "symbol": "Freeplay_Animation", "position": Vector2(-3028, -500), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
-	"gauntlet": {"folder": "anim_gauntlet", "symbol": "Gauntlet_Animation", "position": Vector2(-1496, -1409), "scale": Vector2(1.1, 1.1), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
+	"gauntlet": {"folder": "anim_gauntlet", "symbol": "Gauntlet_Animation", "position": Vector2(-1496, -1355), "scale": Vector2(1.1, 1.1), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"credits": {"folder": "anim_credits", "symbol": "Credits_Animation", "position": Vector2(675, 675), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
-	"accolades": {"folder": "anim_accolades", "symbol": "Accolades_Animation", "position": Vector2(-1809, 110), "scale": Vector2(1.2, 1.2), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
-	"gallery": {"folder": "anim_gallery", "symbol": "Gallery_Animation", "position": Vector2(700, 497), "scale": Vector2(1.35, 1.35), "start": Vector2i(0, 90), "loop": Vector2i(91, 210)},
+	"accolades": {"folder": "anim_accolades", "symbol": "Accolades_Animation", "position": Vector2(-1809, 137), "scale": Vector2(1.2, 1.2), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
+	"gallery": {"folder": "anim_gallery", "symbol": "Gallery_Animation", "position": Vector2(665, 546), "scale": Vector2(1.35, 1.35), "start": Vector2i(0, 90), "loop": Vector2i(91, 210)},
 	"settings": {"folder": "anim_settings", "symbol": "Settings_Animation", "position": Vector2(850, 700), "scale": Vector2(1.2, 1.2), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"shop": {"folder": "anim_shop", "symbol": "Shop_Animation", "position": Vector2(800, 500), "scale": Vector2(1.0, 1.0), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 }
