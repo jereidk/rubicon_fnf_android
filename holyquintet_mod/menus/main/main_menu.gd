@@ -2,13 +2,13 @@ extends Control
 ## Ports HQMainMenu.hx. One remaining deliberate scope cut, because the
 ## underlying system this port would need doesn't exist yet at all (not a
 ## shortcut on an existing feature):
-##  - beginStoryMode()'s cinematic (sound, music fadeout, camera spin+zoom,
-##    fade to black — see _begin_story_mode()) plays for real; only its
-##    ending, PlayState.loadWeek()+FlxG.switchState(new PlayState()), is a
+##  - beginStoryMode()'s full cinematic plays for real (sound, music
+##    fadeout, camera spin+zoom, the Bloom/Transverse/adjustColor shader
+##    trio, fade to black — see _begin_story_mode() and shaders/
+##    story_cinematic.gdshader). Only its ending,
+##    PlayState.loadWeek()+FlxG.switchState(new PlayState()), is a
 ##    documented stub, since no actual gameplay exists yet anywhere in this
-##    port (every screen so far has been boot/menu flow). Options.gameplayShaders'
-##    Bloom/Transverse/adjustColor shader trio is also skipped — this port
-##    has no equivalent camera-shader pipeline to hang them on yet.
+##    port (every screen so far has been boot/menu flow).
 ## GameJolt sign-in/out (GameJoltSignInUI, GJRequest) has no backend on this
 ## platform either — gj_Button renders and is selectable/navigable for
 ## fidelity, but confirming it can't actually sign in/out anywhere.
@@ -53,15 +53,32 @@ const DESTINATIONS := {
 	6: "res://holyquintet_mod/menus/settings/settings_screen.tscn",
 }
 
-@onready var bg_spots: TextureRect = $BgSpots
-@onready var bg_top_banner: TextureRect = $BgTopBanner
-@onready var bg_btm_banner: TextureRect = $BgBtmBanner
-@onready var menu_buttons_root: Control = $MenuButtons
-@onready var bg_logo: TextureRect = $BgLogo
-@onready var ticker_bg: TextureRect = $TickerBarBG
-@onready var ticker_clip: Control = $TickerClip
-@onready var ticker_txt: Label = $TickerClip/TickerBarTxt
-@onready var fadeout_sprite: ColorRect = $FadeoutSprite
+## Pivot/SceneGroup: real FlxG.camera zoom/rotate (beginStoryMode) affects
+## *everything* drawn in the state, not just one sprite. Pivot sits at
+## screen center so rotating/scaling it (see _begin_story_mode()) matches a
+## real camera zooming/spinning around the screen's center; SceneGroup is
+## offset back to (0,0) so its children keep their normal absolute
+## positions at rest. (beginStoryMode()'s three camera shaders are applied
+## separately, at runtime, by reparenting Pivot into a SubViewport for that
+## one cinematic — see _apply_story_cinematic_shader() for why a CanvasGroup
+## here doesn't work.) Children of SceneGroup that used anchors_preset=15
+## (full-rect stretch against the nearest Control ancestor) had to become an
+## explicit position=(0,0)/size=(1920,1080) instead: SceneGroup is a Node2D,
+## not a Control, so percentage-based anchors silently resolve against
+## nothing and collapse those nodes to size (0,0) — confirmed directly
+## (tools/holyquintet/canvasgroup_anchor_test.gd) before this restructure,
+## not assumed.
+@onready var pivot: Node2D = $Pivot
+@onready var scene_group: Node2D = $Pivot/SceneGroup
+@onready var bg_spots: TextureRect = $Pivot/SceneGroup/BgSpots
+@onready var bg_top_banner: TextureRect = $Pivot/SceneGroup/BgTopBanner
+@onready var bg_btm_banner: TextureRect = $Pivot/SceneGroup/BgBtmBanner
+@onready var menu_buttons_root: Control = $Pivot/SceneGroup/MenuButtons
+@onready var bg_logo: TextureRect = $Pivot/SceneGroup/BgLogo
+@onready var ticker_bg: TextureRect = $Pivot/SceneGroup/TickerBarBG
+@onready var ticker_clip: Control = $Pivot/SceneGroup/TickerClip
+@onready var ticker_txt: Label = $Pivot/SceneGroup/TickerClip/TickerBarTxt
+@onready var fadeout_sprite: ColorRect = $Pivot/SceneGroup/FadeoutSprite
 
 var graphics_root: Node2D
 var medal_icons_root: Control
@@ -142,16 +159,16 @@ func _ready() -> void:
 func _build_side_buttons() -> void:
 	gj_button = ButtonScene.instantiate()
 	gj_button.style = "small"
-	add_child(gj_button)
-	move_child(gj_button, fadeout_sprite.get_index())
+	scene_group.add_child(gj_button)
+	scene_group.move_child(gj_button, fadeout_sprite.get_index())
 	gj_button.position = Vector2(1750.0, 825.0)
 	gj_button.icon = "gamejoltoff"  # never actually signed in — no GameJolt backend on this port.
 	gj_button.gui_input.connect(_on_gj_gui_input)
 
 	shop_button = ButtonScene.instantiate()
 	shop_button.style = "small"
-	add_child(shop_button)
-	move_child(shop_button, fadeout_sprite.get_index())
+	scene_group.add_child(shop_button)
+	scene_group.move_child(shop_button, fadeout_sprite.get_index())
 	shop_button.position = Vector2(25.0, 825.0)
 	shop_button.icon = "shop"
 	shop_button.locked = true
@@ -195,8 +212,8 @@ func _build_menu_buttons() -> void:
 
 func _build_graphics() -> void:
 	graphics_root = Node2D.new()
-	add_child(graphics_root)
-	move_child(graphics_root, bg_btm_banner.get_index())
+	scene_group.add_child(graphics_root)
+	scene_group.move_child(graphics_root, bg_btm_banner.get_index())
 
 	for i in MENU_OPTIONS.size():
 		var g := MainMenuSpriteScript.new()
@@ -218,10 +235,9 @@ func _build_graphics() -> void:
 ## them *after* bg_BtmBanner instead — see _build_medal_labels().
 func _build_medal_icons() -> void:
 	medal_icons_root = Control.new()
-	medal_icons_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	medal_icons_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(medal_icons_root)
-	move_child(medal_icons_root, bg_btm_banner.get_index())
+	scene_group.add_child(medal_icons_root)
+	scene_group.move_child(medal_icons_root, bg_btm_banner.get_index())
 
 	var unlocked_checks := _medal_unlocked_checks()
 	for i in 3:
@@ -247,10 +263,9 @@ func _build_medal_icons() -> void:
 ## translations.json, which has all three keys with exactly these strings).
 func _build_medal_labels() -> void:
 	medal_labels_root = Control.new()
-	medal_labels_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	medal_labels_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(medal_labels_root)
-	move_child(medal_labels_root, bg_btm_banner.get_index() + 1)
+	scene_group.add_child(medal_labels_root)
+	scene_group.move_child(medal_labels_root, bg_btm_banner.get_index() + 1)
 
 	var medal_text := ["All Songs Cleared", "Gauntlet Cleared", "All Accolades"]
 	var unlocked_checks := _medal_unlocked_checks()
@@ -298,7 +313,7 @@ func _setup_outdated_text() -> void:
 	outdated_txt.add_theme_constant_override("outline_size", 5)
 	outdated_txt.text = "The current version you are running on is outdated.\nPlease download an updated version of the mod!"
 	outdated_txt.visible = false
-	add_child(outdated_txt)
+	scene_group.add_child(outdated_txt)
 
 
 ## Real create(): tickerBarTxt starts with whatever global.newsText already
@@ -696,6 +711,11 @@ func _confirm_restart_story() -> void:
 ## separate camera to move, so the root's own rotation/scale around its
 ## center (pivot_offset = screen center) stands in for FlxG.camera, the same
 ## technique title_screen.gd's "World" node uses for its own zoom intro.
+## Options.gameplayShaders gates the shader trio in real code; this port has
+## no settings/Options system at all yet, so it defaults on (matching how
+## the other Options.* checks already ported here behave absent one).
+const GAMEPLAY_SHADERS_ENABLED := true
+
 func _begin_story_mode(diff: String) -> void:
 	var sfx := AudioStreamPlayer.new()
 	sfx.stream = load("res://holyquintet_mod/source/sounds/ui/ui_storystart.ogg")
@@ -705,15 +725,16 @@ func _begin_story_mode(diff: String) -> void:
 
 	HQTransition.fade_out_music(1.5)
 
-	pivot_offset = Vector2(960.0, 540.0)
+	if GAMEPLAY_SHADERS_ENABLED:
+		_apply_story_cinematic_shader()
 
 	var spin_tw := create_tween()
-	spin_tw.tween_property(self, "rotation", deg_to_rad(25.0), 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	spin_tw.tween_property(pivot, "rotation", deg_to_rad(25.0), 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 
 	var zoom_tw := create_tween()
-	zoom_tw.tween_property(self, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(1.05, 1.05)) \
+	zoom_tw.tween_property(pivot, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(1.05, 1.05)) \
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	zoom_tw.tween_property(self, "scale", Vector2(5.0, 5.0), 1.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	zoom_tw.tween_property(pivot, "scale", Vector2(5.0, 5.0), 1.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	zoom_tw.tween_callback(func():
 		push_warning("HQMainMenu: beginStoryMode(%s) reached — no PlayState/gameplay exists yet in this port to switch to." % diff)
 	)
@@ -721,3 +742,59 @@ func _begin_story_mode(diff: String) -> void:
 	var fade_tw := create_tween()
 	fade_tw.tween_interval(0.75)
 	fade_tw.tween_property(fadeout_sprite, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+
+
+## Real Bloom/Transverse/adjustColor stack onto FlxG.camera, affecting
+## everything drawn in the state at once. A CanvasItem shader's TEXTURE only
+## ever means "this node's own assigned texture" — fine for a TextureRect,
+## but Pivot/SceneGroup's actual content is a live tree of many separate
+## nodes, not one texture. CanvasGroup composites its children into exactly
+## the buffer a shader would need, but on this project's GL Compatibility
+## renderer a CanvasGroup's own material can't see that buffer either —
+## confirmed directly: even a no-op passthrough shader on a CanvasGroup
+## renders solid white (tools/holyquintet/canvasgroup_shader_test.gd), the
+## same class of limitation already hit for BLEND_MODE_MUL. A SubViewport
+## doesn't have that problem in any render method: it's a real, independent
+## render target with a real texture, so reparenting Pivot into one and
+## displaying that texture through a plain shaded TextureRect works
+## everywhere. Reparenting (not duplicating) is safe here specifically
+## because nothing under Pivot needs further input by this point —
+## _confirm_selection() already set _can_control = false before this ever
+## runs, and this is a one-way trip into a stubbed scene switch, never back
+## to an interactive main menu.
+func _apply_story_cinematic_shader() -> void:
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(1920, 1080)
+	add_child(viewport)
+
+	var old_parent := pivot.get_parent()
+	old_parent.remove_child(pivot)
+	viewport.add_child(pivot)
+
+	var display := TextureRect.new()
+	display.texture = viewport.get_texture()
+	display.set_anchors_preset(Control.PRESET_FULL_RECT)
+	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(display)
+
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://holyquintet_mod/menus/main/shaders/story_cinematic.gdshader")
+	mat.set_shader_parameter("bloom_amt", -0.25)
+	mat.set_shader_parameter("transverse_falloff", 10.0)
+	mat.set_shader_parameter("saturation", 0.0)
+	mat.set_shader_parameter("contrast", 0.0)
+	display.material = mat
+
+	var bloom_tw := create_tween()
+	bloom_tw.tween_method(func(v): mat.set_shader_parameter("bloom_amt", v), -0.25, 0.0, 1.5) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	var transverse_tw := create_tween()
+	transverse_tw.tween_method(func(v): mat.set_shader_parameter("transverse_falloff", v), 10.0, 0.5, 2.5) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	var grade_tw := create_tween()
+	grade_tw.tween_method(func(v):
+		mat.set_shader_parameter("saturation", v)
+		mat.set_shader_parameter("contrast", v * 2.0)
+	, 0.0, 200.0, 2.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)

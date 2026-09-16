@@ -26,8 +26,11 @@ func _ready() -> void:
 	for t in [0.2, 1.0, 2.0, 2.6]:
 		await get_tree().create_timer(t if t == 0.2 else t - 0.2).timeout
 		print("BEGIN_STORY_SHOT: t=", t,
-			" rotation_deg=", rad_to_deg(screen.rotation),
-			" scale=", screen.scale,
+			" rotation_deg=", rad_to_deg(screen.pivot.rotation),
+			" scale=", screen.pivot.scale,
+			" shader_bloom=", (screen.scene_group.material.get_shader_parameter("bloom_amt") if screen.scene_group.material else null),
+			" shader_falloff=", (screen.scene_group.material.get_shader_parameter("transverse_falloff") if screen.scene_group.material else null),
+			" shader_sat=", (screen.scene_group.material.get_shader_parameter("saturation") if screen.scene_group.material else null),
 			" music.playing=", HQTransition._music.playing,
 			" music.volume_db=", HQTransition._music.volume_db)
 		await get_tree().process_frame
