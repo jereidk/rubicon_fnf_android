@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://holyquintet_mod/ui/button_ui.gd" id="0"]
+[ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="1"]
+
+[node name="ButtonUI" type="Control"]
+layout_mode = 3
+mouse_filter = 1
+script = ExtResource("0")
+
+[node name="Sprite" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Selected" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0)
+
+[node name="Highlight" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0)
+
+[node name="TextLabel" type="Label" parent="."]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.0509804, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 52
+horizontal_alignment = 1
+
+[node name="SubTextLabel" type="Label" parent="."]
+layout_mode = 0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0.0509804, 0.0352941, 0.0509804, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+
+[node name="Lock" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+visible = false
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+visible = false
