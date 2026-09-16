@@ -208,7 +208,11 @@ func _build_medal_icons() -> void:
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.position = Vector2(185.0 + 150.0 * i, 835.0)
 		medal_icons_root.add_child(icon)
-		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0.5, 0.5, 0.5)
+		# Real: newMedal.color=BLACK, alpha=0.5 when locked (a dim, translucent
+		# silhouette) vs color=WHITE, alpha=1.0 unlocked — not a plain gray
+		# tint, which left these looking barely dimmed instead of a near-dark
+		# silhouette on a fresh save.
+		icon.modulate = Color.WHITE if unlocked_checks[i] else Color(0, 0, 0, 0.5)
 
 
 func _build_medal_labels() -> void:
