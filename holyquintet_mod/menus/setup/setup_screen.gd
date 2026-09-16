@@ -10,10 +10,10 @@ var _msg_scene: PackedScene = preload("res://holyquintet_mod/ui/hq_message_windo
 
 func _ready() -> void:
 	if HQSaves.first_time_setup_done and not HQSaves.see_intro:
-		get_tree().change_scene_to_file("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
+		HQTransition.switch_scene("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
 		return
 	if HQSaves.first_time_setup_done and HQSaves.see_intro:
-		get_tree().change_scene_to_file(_intro_scene)
+		HQTransition.switch_scene(_intro_scene)
 		return
 	_next_step.call_deferred()
 
@@ -83,4 +83,4 @@ func _on_msg_done() -> void:
 func _finish() -> void:
 	HQSaves.first_time_setup_done = true
 	HQSaves.save_data()
-	get_tree().change_scene_to_file(_intro_scene)
+	HQTransition.switch_scene(_intro_scene)

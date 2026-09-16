@@ -51,4 +51,6 @@ func _confirm() -> void:
 func _go_to_title() -> void:
 	# CNE: goToTitle() -> FlxG.switchState(new TitleState())
 	# TitleState is immediately redirected by the mod's global.hx to HQSetup.
-	get_tree().change_scene_to_file("res://holyquintet_mod/menus/setup/setup_screen.tscn")
+	# Every state switch in the real mod goes through HQTransition (global.hx
+	# sets MusicBeatTransition.script to it) — not just the boot chain.
+	HQTransition.switch_scene("res://holyquintet_mod/menus/setup/setup_screen.tscn")

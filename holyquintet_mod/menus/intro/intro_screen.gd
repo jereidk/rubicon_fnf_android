@@ -176,7 +176,7 @@ func _on_yes_video_finished() -> void:
 	# HQIntro.hx yesVideo.onEndReached(): seeIntro = false -> HQDisclaimer.
 	HQSaves.see_intro = false
 	HQSaves.save_data()
-	get_tree().change_scene_to_file("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
+	HQTransition.switch_scene("res://holyquintet_mod/menus/disclaimer/disclaimer.tscn")
 
 
 func _play_no_video() -> void:

@@ -54,4 +54,4 @@ func _accept() -> void:
 	tw.tween_property(fade_rect, "modulate:a", 1.0, 1.0) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_interval(1.0)
-	tw.tween_callback(func(): get_tree().change_scene_to_file("res://holyquintet_mod/menus/title/title_screen.tscn"))
+	tw.tween_callback(func(): HQTransition.switch_scene("res://holyquintet_mod/menus/title/title_screen.tscn"))
