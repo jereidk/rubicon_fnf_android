@@ -15,9 +15,14 @@ func _ready() -> void:
 	await get_tree().create_timer(2.0).timeout
 	await _shoot("intro_video_playing.png")
 
-	# Skip most of the 12.7s intro video by forcing it to end early via seek,
-	# rather than waiting the full real-time duration.
-	screen.intro_video.stream_position = 12.5
+	# Skip most of the intro video by forcing it to end early via seek, rather
+	# than waiting the full real-time duration. intro_start.ogv is Theora
+	# with real motion interpolation (mpdecimate+minterpolate), which loses
+	# ~0.8s off the true 12.68s source right at its end (a static held pose,
+	# confirmed harmless) — seeking past its ~11.9s actual playable length
+	# lands on undefined/wrong content instead of clamping, so keep this
+	# comfortably under that.
+	screen.intro_video.stream_position = 11.5
 	await get_tree().create_timer(0.5).timeout
 	await _shoot("intro_prompt_fadein.png")
 
