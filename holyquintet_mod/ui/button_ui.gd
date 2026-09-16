@@ -204,8 +204,23 @@ var icon: String:
 		icon_tex.texture = load("res://holyquintet_mod/source/images/ui/common/icons/%s.png" % v)
 
 
+## Real code (ButtonUI.hx set_text): alignToCenter() first (Flixel's
+## FlxSprite.width there already includes any active scale.x, but this is
+## always called right after the text itself changes, before scale.x is
+## touched), THEN — only when locked — scale.x=0.9 and a flat x-=30. Flixel
+## scales a sprite around its own origin (frame center by default), so that
+## 0.9 squeeze happens symmetrically around the already-centered text's
+## center. Godot's Control scales around `pivot_offset` (top-left, i.e. (0,0)
+## by default) — without recentering the pivot first, the same scale.x=0.9
+## would shrink only the right edge inward, shifting the visual center left
+## by an extra ~5% of the label's width on top of the real -30, which is
+## exactly the leftward drift a real-screenshot comparison caught. Setting
+## pivot_offset to the label's own center reproduces Flixel's center-anchored
+## scale so -30 is the only shift left, matching the real math.
 func _refresh_text_position() -> void:
 	var text_h: float = text_label.get_theme_font("font").get_height(text_label.get_theme_font_size("font_size"))
+	text_label.pivot_offset = text_label.size * 0.5
+	sub_text_label.pivot_offset = sub_text_label.size * 0.5
 	text_label.position = Vector2((_sprite_w - text_label.size.x) * 0.5, (_sprite_h - text_h) * 0.5)
 	if _sub_text != "":
 		text_label.position.y -= 12.0
