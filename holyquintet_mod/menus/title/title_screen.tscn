@@ -18,6 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("0")
 
 [node name="World" type="Node2D" parent="."]
@@ -28,6 +29,7 @@ offset_left = -960.0
 offset_top = -540.0
 offset_right = 960.0
 offset_bottom = 540.0
+mouse_filter = 2
 color = Color(1, 1, 1, 1)
 modulate = Color(1, 1, 1, 0)
 
@@ -37,6 +39,7 @@ offset_left = -1034.0
 offset_top = 360.0
 offset_right = 1108.0
 offset_bottom = 421.0
+mouse_filter = 2
 texture = ExtResource("5")
 stretch_mode = 1
 visible = false
@@ -44,6 +47,7 @@ visible = false
 [node name="PressStartBGTxt" type="Control" parent="World"]
 offset_top = 373.0
 offset_bottom = 373.0
+mouse_filter = 2
 modulate = Color(1, 1, 1, 0.5)
 visible = false
 
@@ -69,6 +73,7 @@ scale = Vector2(1.35, 1.35)
 texture = ExtResource("2")
 
 [node name="PressStartTxt" type="Label" parent="World"]
+mouse_filter = 2
 modulate = Color(1, 1, 1, 0)
 offset_left = -960.0
 offset_top = 368.0

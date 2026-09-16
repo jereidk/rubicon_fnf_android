@@ -46,6 +46,12 @@ func _ready() -> void:
 	intro_video.play()
 	_play_synced_audio("intro_start")
 
+	# Android has no keyboard: tapping a side directly picks AND confirms it
+	# in one gesture, matching hq_message_window's own "a tap directly picks
+	# that side" touch convention. The real .hx only ever had keyboard nav.
+	yes_sprite.gui_input.connect(_on_choice_gui_input.bind(true))
+	no_sprite.gui_input.connect(_on_choice_gui_input.bind(false))
+
 
 func _process(delta: float) -> void:
 	# HQIntro.hx update(): rings continuously chase the glow's position,
@@ -74,6 +80,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_right") and (not selecting_yes or not has_moved):
 		_select(true)
 	elif event.is_action_pressed("ui_accept") and has_moved:
+		_confirm()
+
+
+func _on_choice_gui_input(event: InputEvent, yes: bool) -> void:
+	if not can_control or _leaving:
+		return
+	var tapped := false
+	if event is InputEventMouseButton:
+		tapped = event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	elif event is InputEventScreenTouch:
+		tapped = event.pressed
+	if tapped:
+		_select(yes)
 		_confirm()
 
 

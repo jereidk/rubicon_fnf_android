@@ -79,6 +79,7 @@ func _build_bg_txt_labels() -> void:
 	var count := int(ceil(SCREEN_W / stride)) + 2
 	for i in count:
 		var lbl := Label.new()
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lbl.text = BGTXT_TEXT
 		lbl.add_theme_font_size_override("font_size", 32)
 		lbl.add_theme_color_override("font_color", Color.BLACK)

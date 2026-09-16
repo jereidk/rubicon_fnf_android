@@ -34,10 +34,19 @@ func _apply_markup(text: String) -> String:
 
 	return text
 
-func _process(_delta: float) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	# Event-driven rather than polling is_action_just_pressed() in _process():
+	# established elsewhere in this port as the fix for input silently getting
+	# missed under irregular frame pacing. Touch tap is our own Android
+	# addition — the real WarningState only has keyboard.
 	if transitioning:
 		return
-	if Input.is_action_just_pressed("ui_accept"):
+	var tapped := event.is_action_pressed("ui_accept")
+	if event is InputEventScreenTouch and event.pressed:
+		tapped = true
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		tapped = true
+	if tapped:
 		_confirm()
 
 func _confirm() -> void:
