@@ -19,23 +19,26 @@ class_name MainMenuSprite
 ## playAnim('loop', false)) is replaced by simply chaining the loop phase
 ## onto the start tween's completion — same outcome, no polling needed.
 
-## gauntlet/accolades/gallery's "position" below is NOT the literal real
-## setPosition() value (that's still (-1250,-1100)/(-1300,370)/(850,750) in
-## HQMainMenu.hx) — using the real value here renders those three ~150-510
-## units too far right and ~250 too far down, bleeding into the menu button
-## column (confirmed against real screenshots of all 7 items; story,
-## freeplay, credits, settings, shop all match the real value exactly with
-## no correction needed). Root cause not found: position/scale, the
-## stage_transform offset (see setup()), and the AN.STI's TRP field (which
-## gdanimate ignores uniformly for every item, working ones included) were
-## all ruled out — likely some other per-file quirk in how these three
+## freeplay/gauntlet/accolades/gallery's "position" below is NOT the literal
+## real setPosition() value (that's still (-2325,-250)/(-1250,-1100)/
+## (-1300,370)/(850,750) in HQMainMenu.hx) — using the real value renders
+## these four ~150-700 units too far right and ~180-260 too far down,
+## bleeding into the menu button column (confirmed against real screenshots
+## of all 7 items; story, credits, settings, shop match the real value
+## exactly with no correction needed — freeplay looked close enough at a
+## glance to be waved through once, but a precise grid-aligned comparison
+## against the real screenshot showed it was off too, same as the other
+## three). Root cause not found: position/scale, the stage_transform offset
+## (see setup()), and the AN.STI's TRP field (which gdanimate ignores
+## uniformly for every item, working ones included) were all ruled out —
+## likely some other per-file quirk in how these four
 ## Animation.json's root symbol was authored. Values below are empirically
 ## calibrated by measuring the pixel offset between this port's render and
 ## real reference screenshots (tools/holyquintet/all_items_positions.gd +
 ## *_grid.png comparisons), not derived from the source.
 const ITEM_DATA := {
 	"story": {"folder": "anim_story", "symbol": "Story_Animation", "position": Vector2(1300, 1000), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
-	"freeplay": {"folder": "anim_freeplay", "symbol": "Freeplay_Animation", "position": Vector2(-2325, -250), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
+	"freeplay": {"folder": "anim_freeplay", "symbol": "Freeplay_Animation", "position": Vector2(-3028, -500), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"gauntlet": {"folder": "anim_gauntlet", "symbol": "Gauntlet_Animation", "position": Vector2(-1496, -1409), "scale": Vector2(1.1, 1.1), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"credits": {"folder": "anim_credits", "symbol": "Credits_Animation", "position": Vector2(675, 675), "scale": Vector2(1.15, 1.15), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
 	"accolades": {"folder": "anim_accolades", "symbol": "Accolades_Animation", "position": Vector2(-1809, 110), "scale": Vector2(1.2, 1.2), "start": Vector2i(0, 59), "loop": Vector2i(60, 179)},
