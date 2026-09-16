@@ -41,11 +41,29 @@ var _confirmed: bool = false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# NOT anchors_preset(FULL_RECT): confirmed directly (tools/holyquintet/
+	# editor_picker_bg_debug.gd) that a Control created at runtime via .new()
+	# and given full-rect anchors *inside its own _ready()* stays size (0,0)
+	# even though its parent (HQMainMenu's root Control) already has a real,
+	# correct 1920x1080 size at that point — the same class of anchor-
+	# resolution bug already hit once this port (main_menu.tscn's Node2D-
+	# parented children), just triggered a different way here. Zero size on
+	# self meant `bg` below (itself full-rect *relative to self*) was also
+	# zero-sized, so the picker's darkening backdrop silently never drew —
+	# it LOOKED like still being in the plain menu because it effectively
+	# was, just with text and icons floating on top of it.
+	position = Vector2(0.0, 0.0)
+	size = Vector2(1920.0, 1080.0)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.85)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Real: openSubState() leaves the parent state visible-but-dark
+	# underneath (Flixel calls this substate's own bgColor, default a 50%
+	# black overlay) — not a full opaque cover, so it still visually reads
+	# as "the menu, paused, behind a dev overlay" rather than a full-screen
+	# takeover.
+	bg.color = Color(0, 0, 0, 0.5)
+	bg.position = Vector2(0.0, 0.0)
+	bg.size = Vector2(1920.0, 1080.0)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
