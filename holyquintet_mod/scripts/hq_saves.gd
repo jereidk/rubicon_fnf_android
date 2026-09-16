@@ -156,3 +156,26 @@ func load_data() -> void:
 	viewed_menu.assign((data.get("viewed_menu", [1, 2, 3, 4]) as Array).map(func(v): return int(v)))
 	cached_news_text = str(data.get("cached_news_text", ""))
 	cached_news_version = str(data.get("cached_news_version", ""))
+
+
+## Ports Settings/DestroySaveData's field wipe (HQSettings.hx) — every
+## progress field it resets, reset here the same way, then the file itself
+## is deleted rather than re-saved blank (matches Options.__save.erase()
+## erasing the file outright rather than flushing empty data).
+func erase_save_file() -> void:
+	unlocked_achievements.clear()
+	kyubey_coins = 0
+	best_gauntlet_score = 0
+	first_time_setup_done = false
+	see_intro = true
+	pinpoint_accuracy_progress = 0
+	devoted_progress = 0
+	cur_story_progress = 0
+	cur_story_diff = "hard"
+	freeplay_unlocked = false
+	gauntlet_unlocked = false
+	accolades_unlocked = false
+	gallery_unlocked = false
+	viewed_menu.assign([1, 2, 3, 4])
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)

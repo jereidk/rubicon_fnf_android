@@ -48,6 +48,7 @@ MusicFilter="*res://animania_mod/scripts/music_filter.gd"
 
 DebugOverlay="*res://animania_mod/scripts/debug_overlay.gd"
 HQSaves="*res://holyquintet_mod/scripts/hq_saves.gd"
+HQOptions="*res://holyquintet_mod/scripts/hq_options.gd"
 HQTransition="*res://holyquintet_mod/menus/transition/hq_transition.gd"
 
 [rubicon]

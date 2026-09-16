@@ -209,19 +209,35 @@ func _unhandled_input(event: InputEvent) -> void:
 	# input. Reacting to the event itself has no such window to miss.
 	if _leaving:
 		return
+	# Without set_input_as_handled(), a single ui_accept/ui_cancel keypress
+	# that closes this window (via _confirm()'s on_complete, or on_back)
+	# resets the owning screen's can_control/message_window guard fields
+	# synchronously — mid-dispatch, before this same event finishes
+	# propagating to that screen's own _unhandled_input (a descendant is
+	# visited before its ancestor). The screen's now-passing guard then
+	# reacts to the very same keypress a second time (e.g. re-opening this
+	# dialog immediately after it just closed). Marking the event handled
+	# once this modal dialog reacts to it stops that fallthrough, matching
+	# the same fix already applied to dev_console_button.gd for the same
+	# reason. This is a Godot input-dispatch hazard with no equivalent in
+	# the real Flixel/HScript source, not a deviation from it.
 	if event.is_action_pressed("ui_left") and _selected != -1:
 		_selected = -1
 		_refresh()
 		GenUtil.play_ui_sound(self, "move")
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_right") and _selected != 1:
 		_selected = 1
 		_refresh()
 		GenUtil.play_ui_sound(self, "move")
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_accept") and _selected != 0:
 		_confirm(_selected)
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
 		if on_back.is_valid():
 			on_back.call()
+		get_viewport().set_input_as_handled()
 
 
 func _on_button_gui_input(event: InputEvent, side: int) -> void:
