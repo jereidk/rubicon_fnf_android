@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Holy Quintet"
-run/main_scene="res://animania_mod/menus/title/title_screen.tscn"
+run/main_scene="res://holyquintet_mod/menus/warning/warning_screen.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="uid://benm23nk1o2jb"
 
@@ -43,10 +43,10 @@ enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://
 
 [autoload]
 AnimaniaModule="*res://animania_mod/scripts/animania_module.gd"
-ErrorLog="*res://animania_mod/scripts/debug/animania_error_log.gd"
+ErrorLog="*res://holyquintet_mod/scripts/debug/hq_error_log.gd"
 MusicFilter="*res://animania_mod/scripts/music_filter.gd"
 
-DebugOverlay="*res://animania_mod/scripts/debug_overlay.gd"
+DebugOverlay="*res://holyquintet_mod/scripts/hq_debug_overlay.gd"
 HQSaves="*res://holyquintet_mod/scripts/hq_saves.gd"
 HQOptions="*res://holyquintet_mod/scripts/hq_options.gd"
 HQConductor="*res://holyquintet_mod/scripts/hq_conductor.gd"

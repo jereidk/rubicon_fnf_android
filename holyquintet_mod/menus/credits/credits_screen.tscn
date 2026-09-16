@@ -47,8 +47,9 @@ mouse_filter = 2
 
 [node name="AdditionalText" type="Label" parent="."]
 position = Vector2(675, 4750)
-size = Vector2(1000, 400)
+size = Vector2(1000, 900)
 mouse_filter = 2
+autowrap_mode = 2
 
 [node name="BgTopBanner" type="TextureRect" parent="."]
 offset_left = -30.0

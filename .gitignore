@@ -19,3 +19,7 @@ keys/
 
 # Logs
 *.log
+
+# Animania mod: not part of the Holy Quintet port (runtime-only dependency)
+animania_mod/
+tools/animania/
