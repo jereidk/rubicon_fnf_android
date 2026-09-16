@@ -16,6 +16,22 @@ extends Control
 ## timeline format) IS ported, via the gdanimate addon's AdobeAtlas +
 ## AnimateSymbol (the same system holyquintet_mod/characters/ already uses
 ## for character sprites) — see main_menu_sprite.gd and _build_graphics().
+##
+## bg_Back (main_menu.tscn) intentionally has NO CanvasItemMaterial anymore.
+## Real code sets bg_Back.blend = BlendMode.MULTIPLY (a darkening vignette
+## over bg_Spr/bg_Spots), and Godot does expose CanvasItemMaterial.
+## BLEND_MODE_MUL — but on this project's "GL Compatibility" rendering
+## method it does not work at all: verified directly (tools/holyquintet/
+## multiply_blend_debug*.gd) that BLEND_MODE_MUL zeroes RGB *and* alpha to
+## (0,0,0,0), even for a fully-opaque, texture-free ColorRect with no
+## transparency anywhere — not a quirk of back.png's own alpha gradient.
+## Since back.png's darkening tint is already dark/desaturated (~(64,59,73)
+## at its most opaque, fading to fully transparent), drawing it with plain
+## alpha blending (the default, no material) reproduces the intended vignette
+## closely enough without depending on a blend mode that's non-functional
+## here. holyquintet_mod/menus/pause/pause_blend_mul.tres sets the same
+## BLEND_MODE_MUL and is currently unused — it will hit this identical wall
+## whenever something does start using it.
 
 const GenUtil := preload("res://holyquintet_mod/scripts/gen_util.gd")
 const ButtonScene := preload("res://holyquintet_mod/ui/button_ui.tscn")

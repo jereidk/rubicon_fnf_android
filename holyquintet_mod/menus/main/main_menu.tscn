@@ -10,9 +10,6 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/ticker.png" id="7"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8"]
 
-[sub_resource type="CanvasItemMaterial" id="multiply_blend"]
-blend_mode = 3
-
 [sub_resource type="LabelSettings" id="ticker_settings"]
 font = ExtResource("8")
 font_size = 24
@@ -59,7 +56,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-material = SubResource("multiply_blend")
 texture = ExtResource("3")
 stretch_mode = 6
 
