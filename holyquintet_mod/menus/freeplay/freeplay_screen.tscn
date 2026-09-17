@@ -1,8 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/freeplay/backgrounds/initium.png" id="1"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="2"]
 [ext_resource type="Script" path="res://holyquintet_mod/menus/freeplay/freeplay_screen.gd" id="3"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQFreeplay" type="Control"]
 layout_mode = 3
@@ -59,3 +60,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "LEFT_FULL"
+action = "A_B_TOP"

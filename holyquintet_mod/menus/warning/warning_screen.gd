@@ -10,7 +10,9 @@ extends Control
 ## data/states/WarningState.hx override) evidently skips straight past it.
 ## Kept here as a faithful, correct port of a real CNE engine screen —
 ## funkin.menus.WarningState from CodenameEngine v1.0.1 — just not wired
-## into HolyQuintet's actual entry point.
+## into HolyQuintet's actual entry point (run/main_scene boots the mod's
+##own HQSetup hub (setup_screen.tscn, which routes to setup steps, intro,
+##or the HQDisclaimer as appropriate — so this warning never opens in boot).
 
 @onready var title_label: Label = $TitleLabel
 @onready var disclaimer_label: RichTextLabel = $DisclaimerLabel

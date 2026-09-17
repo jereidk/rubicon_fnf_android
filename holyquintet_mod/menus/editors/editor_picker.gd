@@ -33,6 +33,7 @@ const OPTIONS := [
 const WIKI_URL := "https://codename-engine.com/"
 
 const GenUtil := preload("res://holyquintet_mod/scripts/gen_util.gd")
+const PadScene := preload("res://holyquintet_mod/ui/menu_virtual_pad.tscn")
 
 var _cur_sel: int = 0
 var _rows: Array = []
@@ -73,7 +74,21 @@ func _ready() -> void:
 		add_child(row)
 		_rows.append(row)
 
+	_add_virtual_pad()
+
 	_refresh_selection()
+
+
+## Mobile-only addition, not in the real game: this dev overlay is for
+## keyboard-first editor entries,, and on a phone the only way to move is the
+## old Android back button/gesture. The MenuVirtualPad (seemenu_virtual_pad.gd)
+## gives Up/Down + A (confirm,) + B (back,) like every other HQ keyboard-and-touch
+## menu,, so the picker is usable withouit a hardware keyboard too.
+func _add_virtual_pad() -> void:
+	var pad := PadScene.instantiate()
+	pad.dpad = "UP_DOWN"
+	pad.action = "A_B_TOP"
+	add_child(pad)
 
 
 func _build_row(option: Dictionary, index: int, row_h: float) -> Control:

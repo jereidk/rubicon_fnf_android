@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gallery/bg.png" id="1"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gallery/frame.png" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gallery/namebg.png" id="6"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/kaisho-S.otf" id="7"]
 [ext_resource type="Script" path="res://holyquintet_mod/menus/gallery/gallery_screen.gd" id="8"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQGallery" type="Control"]
 layout_mode = 3
@@ -129,3 +130,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "LEFT_FULL"
+action = "A_B_TOP"

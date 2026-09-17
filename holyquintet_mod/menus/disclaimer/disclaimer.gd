@@ -8,6 +8,12 @@ extends Control
 ## (the real FlxTimer(1.0) after the fade's onComplete, not just the
 ## fade's own tail), then switching to HQTitle.
 ##
+## Boot entry: run/main_scene points at the HQSetup hub (setup_screen.gd),
+##which routes to the setup steps (first run), the intro (returning), or this
+##disclaimer directly (returning + intro already seen, and after the intro's yes,path) —
+##so the disclaimer is the mod's real first "content" screen, exactly like the
+##real chain: HXSetup -> Intro -> Disclaimer -> Title. Then on accept it
+##switches to HQTitle (title_screen.gd),which is the mod's own title.
 ## FlxG.sound.music.stop() in the real create() is skipped: nothing plays
 ## music this early in the boot chain in this port, so it would be a no-op
 ## with no music system yet to call it on.

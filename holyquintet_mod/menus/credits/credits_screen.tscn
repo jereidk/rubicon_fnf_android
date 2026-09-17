@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://holyquintet_mod/menus/credits/credits_screen.gd" id="1"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/background.png" id="2"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/spots.png" id="3"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/back.png" id="4"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/border.png" id="5"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQCredits" type="Control"]
 layout_mode = 3
@@ -78,3 +79,7 @@ position = Vector2(0, 0)
 size = Vector2(1920, 1080)
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "UP_DOWN"
+action = "A_B_TOP"

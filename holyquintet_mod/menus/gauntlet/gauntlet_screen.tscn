@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/bgs/peaceful/bg.png" id="1"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/bgs/fog.png" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/gauntlet/meter.png" id="5"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="6"]
 [ext_resource type="Script" path="res://holyquintet_mod/menus/gauntlet/gauntlet_screen.gd" id="7"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQGauntlet" type="Control"]
 layout_mode = 3
@@ -121,3 +122,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "LEFT_FULL"
+action = "A_B_TOP"

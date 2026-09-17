@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://holyquintet_mod/menus/pause/pause_screen.gd" id="1_scr"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/spots.png" id="2_spots"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/button-basic.png" id="6_btn"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/button_highlight-basic.png" id="7_hl"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8_font"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQPause" type="Control" process_mode=3]
 layout_mode = 3
@@ -247,3 +248,7 @@ theme_override_constants/outline_size = 3
 text = "Composers"
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "UP_DOWN"
+action = "A_B_TOP"

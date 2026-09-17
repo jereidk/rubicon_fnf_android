@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://4xq2vpdpad1"]
+
+[ext_resource type="Script" path="res://holyquintet_mod/ui/menu_virtual_pad.gd" id="1"]
+
+[node name="MenuVirtualPad" type="CanvasLayer"]
+layer = 80
+script = ExtResource("1")
+dpad = "UP_DOWN"
+action = "A_B_TOP"
+opacity = 0.5
+only_on_touch = true

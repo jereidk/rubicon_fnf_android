@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/gradient.png" id="1"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/leftwindow.png" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/pause/meguca/banner.png" id="4"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/arial.ttf" id="5"]
 [ext_resource type="Script" path="res://holyquintet_mod/menus/pause/pause_meguca.gd" id="6"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [node name="HQPauseMeguca" type="Control" process_mode=3]
 layout_mode = 3
@@ -69,3 +70,7 @@ offset_right = 1295.0
 offset_bottom = 252.0
 texture = ExtResource("4")
 stretch_mode = 6
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "UP_DOWN"
+action = "A_B_TOP"
