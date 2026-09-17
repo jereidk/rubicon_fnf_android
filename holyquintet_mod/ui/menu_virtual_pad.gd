@@ -299,7 +299,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 		return
 	var click := event as InputEventMouseButton
-	if click != nulland click.button_index == MOUSE_BUTTON_LEFT:
+	if click != null and click.button_index == MOUSE_BUTTON_LEFT:
 		# El emulado desde el tacto se descarta: llega ademas del toque y con `device = -1`.
 		# Sin esto,, un dedo en un boton manda la tecla DOS veces. Es el mismo fallo que
 		# tenian todos los menus del puerto; la explicacion larga esta en freeplay_screen.gd.
