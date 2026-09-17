@@ -10,20 +10,18 @@
 [ext_resource type="Script" uid="uid://cl7qcepwh0ty5" path="res://addons/rubicon/scripts/scene/game/rubicon_level_song.gd" id="8_67mca"]
 [ext_resource type="PackedScene" uid="uid://do2qvv4wl764d" path="res://resources/levels/maps/fnf_stage.tscn" id="9_1qbvm"]
 [ext_resource type="PackedScene" uid="uid://c6prfk6mwjxpe" path="res://resources/levels/characters/bf.tscn" id="10_tweun"]
-[ext_resource type="Script" uid="uid://bk8alxtg2qxnl" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_interpolated_camera_2d.gd" id="11_thb4w"]
-[ext_resource type="Script" uid="uid://dk0ffxu4bdk3c" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_position_setter.gd" id="12_k7grs"]
-[ext_resource type="Script" uid="uid://bcy0fvr2gilvq" path="res://addons/rubicon_interpolated_camera/scripts/rubicon_camera_bumper.gd" id="13_euuo4"]
+[ext_resource type="Script" uid="uid://bk8alxtg2qxnl" path="res://addons/rubicon_extras/scripts/camera/rubicon_interpolated_camera_2d.gd" id="11_thb4w"]
+[ext_resource type="Script" uid="uid://dk0ffxu4bdk3c" path="res://addons/rubicon_extras/scripts/camera/rubicon_position_setter.gd" id="12_k7grs"]
+[ext_resource type="Script" uid="uid://bcy0fvr2gilvq" path="res://addons/rubicon_extras/scripts/camera/rubicon_camera_bumper.gd" id="13_euuo4"]
 [ext_resource type="Script" uid="uid://dl1v7li3unik0" path="res://addons/rubicon/scripts/scene/game/modules/rubicon_health_module.gd" id="14_igsps"]
-[ext_resource type="PackedScene" uid="uid://c88e785mvxc0d" path="res://addons/rubicon/resources/levels/ui/default/Judgment.tscn" id="15_d07ow"]
-[ext_resource type="PackedScene" uid="uid://c1ny8j886jexf" path="res://resources/levels/ui/funkin/health_bar.tscn" id="16_w8peo"]
+[ext_resource type="PackedScene" uid="uid://c2fn4h7rdtf8" path="res://resources/levels/ui/funkin/hud_funkin.tscn" id="15_ssmmx"]
 [ext_resource type="Script" uid="uid://dpaagofnwlljw" path="res://addons/rubicon/scripts/scene/game/rubicon_level_note_controller.gd" id="17_aijgg"]
 [ext_resource type="Resource" uid="uid://x5y6hbeus00a" path="res://songs/test/data/test_Opponent.tres" id="18_x8f7e"]
 [ext_resource type="PackedScene" uid="uid://cnjbaigs5x5hs" path="res://resources/levels/ui/funkin/mania/Lane.tscn" id="20_y6wax"]
-[ext_resource type="PackedScene" uid="uid://c582dds6i66py" path="res://resources/levels/ui/funkin/mania/Note.tscn" id="21_0ktul"]
+[ext_resource type="Resource" uid="uid://d3gd5egsmfwfp" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="21_ssmmx"]
 [ext_resource type="Resource" uid="uid://b248dinmb0vlb" path="res://resources/levels/ui/funkin/funkin_note_override.tres" id="22_0ktul"]
+[ext_resource type="PackedScene" uid="uid://dslpk7i6qqjdl" path="res://resources/levels/ui/funkin/components/funkin_note_splash.tscn" id="22_4way8"]
 [ext_resource type="Resource" uid="uid://csifqf5pyurw8" path="res://songs/test/data/test_Player.tres" id="22_7o1jy"]
-[ext_resource type="Resource" uid="uid://d3gd5egsmfwfp" path="res://addons/rubicon_mania/resources/default_input_map.tres" id="23_lseq1"]
-[ext_resource type="PackedScene" uid="uid://mobile_controls" path="res://addons/rubicon_mobile_controls/mobile_controls.tscn" id="24_mobile"]
 
 [sub_resource type="Resource" id="Resource_pwsoq"]
 script = ExtResource("4_gd4mu")
@@ -34,21 +32,6 @@ metadata/_custom_type_script = "uid://c1dyvxe4okjkv"
 script = ExtResource("3_y6wax")
 title = "Test"
 time_changes = Array[ExtResource("4_gd4mu")]([SubResource("Resource_pwsoq")])
-
-[sub_resource type="Animation" id="Animation_cskjh"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../RubiconInterpolatedCamera2D/RubiconPositionSetter:current_point")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [&"Opponent"]
-}
 
 [sub_resource type="Animation" id="Animation_hmr2h"]
 resource_name = "scene"
@@ -69,7 +52,6 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_qunsj"]
 _data = {
-&"RESET": SubResource("Animation_cskjh"),
 &"scene": SubResource("Animation_hmr2h")
 }
 
@@ -135,12 +117,12 @@ scale = Vector2(1, -1)
 position = Vector2(785, 625)
 
 [node name="RubiconInterpolatedCamera2D" type="Camera2D" parent="." unique_id=149236068]
-position = Vector2(785.06354, 624.99994)
-rotation = 0.0004519793
-zoom = Vector2(1.3366516, 1.3366516)
+position = Vector2(785, 625)
+zoom = Vector2(1.25, 1.25)
 script = ExtResource("11_thb4w")
 position_interpolate_target = Vector2(785, 625)
-zoom_interpolate_target = Vector2(1.3366488, 1.3366488)
+rotation_interpolate_enabled = false
+zoom_interpolate_target = Vector2(1.25, 1.25)
 metadata/_custom_type_script = "uid://bk8alxtg2qxnl"
 
 [node name="RubiconPositionSetter" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=960588257 node_paths=PackedStringArray("point_map")]
@@ -149,7 +131,6 @@ point_map = {
 &"Opponent": NodePath("../../OpponentCameraPoint"),
 &"Player": NodePath("../../PlayerCameraPoint")
 }
-_current_point = &"Opponent"
 metadata/_custom_type_script = "uid://dk0ffxu4bdk3c"
 
 [node name="RubiconCameraBumper" type="Node" parent="RubiconInterpolatedCamera2D" unique_id=1339474565]
@@ -174,16 +155,36 @@ grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_lock_ = true
 
-[node name="Judgment" parent="UILayer/UI" unique_id=1560870439 node_paths=PackedStringArray("level_note_controller") instance=ExtResource("15_d07ow")]
+[node name="FunkinHUD" parent="UILayer/UI" unique_id=814096794 instance=ExtResource("15_ssmmx")]
 layout_mode = 1
-level_note_controller = NodePath("../Player")
 
-[node name="HealthBar" parent="UILayer/UI" unique_id=2000574413 node_paths=PackedStringArray("health_module") instance=ExtResource("16_w8peo")]
-layout_mode = 1
-grow_horizontal = 1
-health_module = NodePath("../../../RubiconHealthModule")
+[node name="HealthBar" parent="UILayer/UI/FunkinHUD" index="0" unique_id=2000574413 node_paths=PackedStringArray("health_module")]
+health_module = NodePath("../../../../RubiconHealthModule")
 
-[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=1414679961]
+[node name="HealthIconBumper" parent="UILayer/UI/FunkinHUD/HealthBar" index="0" unique_id=1753206126 node_paths=PackedStringArray("rubicon_level")]
+rubicon_level = NodePath("../../../../..")
+
+[node name="GroupFirst" parent="UILayer/UI/FunkinHUD/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(814096794, 2000574413, 1230556197) index="0" unique_id=1136049132]
+scale = Vector2(1.0000001, 1.0000001)
+
+[node name="HealthIconL" parent="UILayer/UI/FunkinHUD/HealthBar/Path2D/PathFollow2D/GroupFirst" index="0" unique_id=2114972775]
+scale = Vector2(1.0000001, 1.0000001)
+
+[node name="GroupSecond" parent="UILayer/UI/FunkinHUD/HealthBar/Path2D/PathFollow2D" parent_id_path=PackedInt32Array(814096794, 2000574413, 1230556197) index="1" unique_id=1253693466]
+scale = Vector2(-1.0000001, 1.0000001)
+
+[node name="HealthIconR" parent="UILayer/UI/FunkinHUD/HealthBar/Path2D/PathFollow2D/GroupSecond" index="0" unique_id=500134408]
+scale = Vector2(1.0000001, 1.0000001)
+
+[node name="ScoreText" parent="UILayer/UI/FunkinHUD/HealthBar" index="3" unique_id=1729475052 node_paths=PackedStringArray("level_note_controller")]
+text = "Score: {performance_score_value} - Accuracy: {performance_accuracy_percent}% - Misses: {performance_hits_miss}"
+level_note_controller = NodePath("../../../Player")
+unformatted_text = "Score: {performance_score_value} - Accuracy: {performance_accuracy_percent}% - Misses: {performance_hits_miss}"
+
+[node name="FunkinJudgment" parent="UILayer/UI/FunkinHUD" index="1" unique_id=1732067903 node_paths=PackedStringArray("level_note_controller")]
+level_note_controller = NodePath("../../Player")
+
+[node name="Opponent" type="Control" parent="UILayer/UI" unique_id=1414679961 groups=["controllers"]]
 layout_mode = 1
 anchor_left = 0.25
 anchor_top = 1.0
@@ -203,93 +204,10 @@ layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Note 0" parent="UILayer/UI/Opponent/Lane" unique_id=425197780 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -2.607017
-offset_top = -12800.0
-offset_right = -2.607017
-offset_bottom = -12800.0
-
-[node name="Note 22" parent="UILayer/UI/Opponent/Lane" unique_id=1051642734 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.13498498
-offset_top = 662.7528
-offset_right = 0.13498498
-offset_bottom = 662.7528
-
-[node name="Note 5" parent="UILayer/UI/Opponent/Lane" unique_id=370954133 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.1169803
-offset_top = 574.3529
-offset_right = 0.1169803
-offset_bottom = 574.3529
-
-[node name="Note 6" parent="UILayer/UI/Opponent/Lane" unique_id=185462013 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.20889683
-offset_top = -1025.6471
-offset_right = -0.20889683
-offset_bottom = -1025.6471
-
-[node name="Note 7" parent="UILayer/UI/Opponent/Lane" unique_id=1661716321 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.2903661
-offset_top = -1425.6471
-offset_right = -0.2903661
-offset_bottom = -1425.6471
-
 [node name="Lane2" parent="UILayer/UI/Opponent" unique_id=350992288 instance=ExtResource("20_y6wax")]
 layout_mode = 1
 offset_left = -80.0
 offset_right = -80.0
-lane_id = 1
-
-[node name="Note 0" parent="UILayer/UI/Opponent/Lane2" unique_id=1254626471 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -2.6884863
-offset_top = -13200.0
-offset_right = -2.6884863
-offset_bottom = -13200.0
-lane_id = 1
-
-[node name="Note 24" parent="UILayer/UI/Opponent/Lane2" unique_id=1326014786 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.13498498
-offset_top = 662.7528
-offset_right = 0.13498498
-offset_bottom = 662.7528
-lane_id = 1
-
-[node name="Note 25" parent="UILayer/UI/Opponent/Lane2" unique_id=1124094832 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.1501575
-offset_top = -737.2472
-offset_right = -0.1501575
-offset_bottom = -737.2472
-lane_id = 1
-
-[node name="Note 26" parent="UILayer/UI/Opponent/Lane2" unique_id=1893503865 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.19089215
-offset_top = -937.2472
-offset_right = -0.19089215
-offset_bottom = -937.2472
-lane_id = 1
-
-[node name="Note 5" parent="UILayer/UI/Opponent/Lane2" unique_id=1196572968 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.1169803
-offset_top = 574.3529
-offset_right = 0.1169803
-offset_bottom = 574.3529
-lane_id = 1
-
-[node name="Note 6" parent="UILayer/UI/Opponent/Lane2" unique_id=1780165281 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.37183538
-offset_top = -1825.6471
-offset_right = -0.37183538
-offset_bottom = -1825.6471
 lane_id = 1
 
 [node name="Lane3" parent="UILayer/UI/Opponent" unique_id=84012552 instance=ExtResource("20_y6wax")]
@@ -298,77 +216,13 @@ offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Note 0" parent="UILayer/UI/Opponent/Lane3" unique_id=1706166425 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -2.7699556
-offset_top = -13600.0
-offset_right = -2.7699556
-offset_bottom = -13600.0
-lane_id = 2
-
-[node name="Note 5" parent="UILayer/UI/Opponent/Lane3" unique_id=1882526803 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.04595827
-offset_top = -225.64711
-offset_right = -0.04595827
-offset_bottom = -225.64711
-lane_id = 2
-
-[node name="Note 6" parent="UILayer/UI/Opponent/Lane3" unique_id=649869634 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.20889683
-offset_top = -1025.6471
-offset_right = -0.20889683
-offset_bottom = -1025.6471
-lane_id = 2
-
-[node name="Note 7" parent="UILayer/UI/Opponent/Lane3" unique_id=1767600487 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.2903661
-offset_top = -1425.6471
-offset_right = -0.2903661
-offset_bottom = -1425.6471
-lane_id = 2
-
 [node name="Lane4" parent="UILayer/UI/Opponent" unique_id=2014267552 instance=ExtResource("20_y6wax")]
 layout_mode = 1
 offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="Note 0" parent="UILayer/UI/Opponent/Lane4" unique_id=518582293 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -2.851425
-offset_top = -14000.0
-offset_right = -2.851425
-offset_bottom = -14000.0
-lane_id = 3
-
-[node name="Note 24" parent="UILayer/UI/Opponent/Lane4" unique_id=518040824 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.19089215
-offset_top = -937.2472
-offset_right = -0.19089215
-offset_bottom = -937.2472
-lane_id = 3
-
-[node name="Note 5" parent="UILayer/UI/Opponent/Lane4" unique_id=255829716 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.04595827
-offset_top = -225.64711
-offset_right = -0.04595827
-offset_bottom = -225.64711
-lane_id = 3
-
-[node name="Note 6" parent="UILayer/UI/Opponent/Lane4" unique_id=741896675 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.37183538
-offset_top = -1825.6471
-offset_right = -0.37183538
-offset_bottom = -1825.6471
-lane_id = 3
-
-[node name="Player" type="Control" parent="UILayer/UI" unique_id=664958273]
+[node name="Player" type="Control" parent="UILayer/UI" unique_id=664958273 groups=["controllers"]]
 layout_mode = 1
 anchor_left = 0.75
 anchor_top = 1.0
@@ -381,26 +235,19 @@ grow_vertical = 0
 script = ExtResource("17_aijgg")
 chart = ExtResource("22_7o1jy")
 note_overrides = ExtResource("22_0ktul")
-inputs = ExtResource("23_lseq1")
+inputs = ExtResource("21_ssmmx")
 
 [node name="Lane" parent="UILayer/UI/Player" unique_id=406460021 instance=ExtResource("20_y6wax")]
 layout_mode = 1
 offset_left = -240.0
 offset_right = -240.0
 
-[node name="Note 0" parent="UILayer/UI/Player/Lane" unique_id=1603128918 instance=ExtResource("21_0ktul")]
+[node name="FunkinNoteSplash" parent="UILayer/UI/Player/Lane" unique_id=996934870 instance=ExtResource("22_4way8")]
 layout_mode = 1
-offset_left = -2.9328942
-offset_top = -14400.0
-offset_right = -2.9328942
-offset_bottom = -14400.0
-
-[node name="Note 22" parent="UILayer/UI/Player/Lane" unique_id=422579790 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.3538307
-offset_top = -1737.2472
-offset_right = -0.3538307
-offset_bottom = -1737.2472
+splash_animations = Dictionary[StringName, StringName]({
+&"splash_animation_0": &"splash_left_1",
+&"splash_animation_1": &"splash_left_2"
+})
 
 [node name="Lane2" parent="UILayer/UI/Player" unique_id=95199372 instance=ExtResource("20_y6wax")]
 layout_mode = 1
@@ -408,29 +255,12 @@ offset_left = -80.0
 offset_right = -80.0
 lane_id = 1
 
-[node name="Note 0" parent="UILayer/UI/Player/Lane2" unique_id=372279323 instance=ExtResource("21_0ktul")]
+[node name="FunkinNoteSplash" parent="UILayer/UI/Player/Lane2" unique_id=75186017 instance=ExtResource("22_4way8")]
 layout_mode = 1
-offset_left = -3.0143635
-offset_top = -14800.0
-offset_right = -3.0143635
-offset_bottom = -14800.0
-lane_id = 1
-
-[node name="Note 23" parent="UILayer/UI/Player/Lane2" unique_id=730428359 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.21645427
-offset_top = 1062.7528
-offset_right = 0.21645427
-offset_bottom = 1062.7528
-lane_id = 1
-
-[node name="Note 24" parent="UILayer/UI/Player/Lane2" unique_id=1960314329 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = -0.39456534
-offset_top = -1937.2472
-offset_right = -0.39456534
-offset_bottom = -1937.2472
-lane_id = 1
+splash_animations = Dictionary[StringName, StringName]({
+&"splash_animation_0": &"splash_down_1",
+&"splash_animation_1": &"splash_down_2"
+})
 
 [node name="Lane3" parent="UILayer/UI/Player" unique_id=357327897 instance=ExtResource("20_y6wax")]
 layout_mode = 1
@@ -438,21 +268,12 @@ offset_left = 80.0
 offset_right = 80.0
 lane_id = 2
 
-[node name="Note 0" parent="UILayer/UI/Player/Lane3" unique_id=1004068481 instance=ExtResource("21_0ktul")]
+[node name="FunkinNoteSplash" parent="UILayer/UI/Player/Lane3" unique_id=1031357263 instance=ExtResource("22_4way8")]
 layout_mode = 1
-offset_left = -3.0958326
-offset_top = -15200.0
-offset_right = -3.0958326
-offset_bottom = -15200.0
-lane_id = 2
-
-[node name="Note 4" parent="UILayer/UI/Player/Lane3" unique_id=781988484 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.27991885
-offset_top = 1374.3529
-offset_right = 0.27991885
-offset_bottom = 1374.3529
-lane_id = 2
+splash_animations = Dictionary[StringName, StringName]({
+&"splash_animation_0": &"splash_up_1",
+&"splash_animation_1": &"splash_up_2"
+})
 
 [node name="Lane4" parent="UILayer/UI/Player" unique_id=1989580582 instance=ExtResource("20_y6wax")]
 layout_mode = 1
@@ -460,20 +281,12 @@ offset_left = 240.0
 offset_right = 240.0
 lane_id = 3
 
-[node name="Note 0" parent="UILayer/UI/Player/Lane4" unique_id=2013273476 instance=ExtResource("21_0ktul")]
+[node name="FunkinNoteSplash" parent="UILayer/UI/Player/Lane4" unique_id=621675242 instance=ExtResource("22_4way8")]
 layout_mode = 1
-offset_left = -3.177302
-offset_top = -15600.0
-offset_right = -3.177302
-offset_bottom = -15600.0
-lane_id = 3
+splash_animations = Dictionary[StringName, StringName]({
+&"splash_animation_0": &"splash_right_1",
+&"splash_animation_1": &"splash_right_2"
+})
 
-[node name="Note 4" parent="UILayer/UI/Player/Lane4" unique_id=1041601345 instance=ExtResource("21_0ktul")]
-layout_mode = 1
-offset_left = 0.19844958
-offset_top = 974.3529
-offset_right = 0.19844958
-offset_bottom = 974.3529
-lane_id = 3
-
-[node name="MobileControls" parent="." instance=ExtResource("24_mobile")]
+[editable path="UILayer/UI/FunkinHUD"]
+[editable path="UILayer/UI/FunkinHUD/HealthBar"]
