@@ -14,11 +14,19 @@ const MANIFEST_NAME := "mod.json"
 var mods: Array[Dictionary] = []
 var mods_root: String = ""
 
+var _texture_loader: ResourceFormatLoader
+
 func _ready() -> void:
+	_register_texture_loader()
 	mods_root = _resolve_mods_root()
 	DirAccess.make_dir_recursive_absolute(CACHE_DIR)
 	scan()
 	_load_all_enabled()
+
+func _register_texture_loader() -> void:
+	_texture_loader = preload("res://engine/runtime_texture_loader.gd").new()
+	ResourceLoader.add_resource_format_loader(_texture_loader, true)
+	print("[ModLoader] runtime texture loader registrado")
 
 func _resolve_mods_root() -> String:
 	for candidate in MODS_ROOT_CANDIDATES:
