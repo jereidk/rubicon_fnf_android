@@ -7,23 +7,41 @@ extends ResourceFormatLoader
 # maneja solo los paths que NO tienen .import (o sea, assets crudos de
 # mod). Todo lo demas cae al loader por defecto - el APK sigue igual.
 
-func _get_recognized_extensions() -> PackedStringArray:
-	return PackedStringArray(["png", "jpg", "jpeg", "webp"])
+const EXTENSIONS := PackedStringArray(["png", "jpg", "jpeg", "webp"])
 
-func _get_resource_type(path: String) -> String:
+func _get_recognized_extensions() -> PackedStringArray:
+	return EXTENSIONS
+
+func _get_resource_type(_path: String) -> String:
 	return "Texture2D"
 
 func _handles_type(type: StringName) -> bool:
 	return type == &"Texture2D"
 
+# Devuelve null (no ERR_*) para decirle a Godot "no lo manejo, segui con
+# el loader por defecto". Un codigo de error aca aborta la cadena y deja
+# al APK sin sus texturas.
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
 	if FileAccess.file_exists(path + ".import"):
-		return ERR_FILE_NOT_FOUND
+		return null
 	if not FileAccess.file_exists(path):
-		return ERR_FILE_NOT_FOUND
+		return null
+	# FileAccess funciona igual desde disco y desde .pck; Image.load() con
+	# un res:// dentro de un pck no siempre resuelve el formato.
+	var bytes := FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty():
+		return null
 	var img := Image.new()
-	var err := img.load(path)
+	var ext := path.get_extension().to_lower()
+	var err := ERR_UNAVAILABLE
+	match ext:
+		"png":
+			err = img.load_png_from_buffer(bytes)
+		"jpg", "jpeg":
+			err = img.load_jpg_from_buffer(bytes)
+		"webp":
+			err = img.load_webp_from_buffer(bytes)
 	if err != OK:
-		push_warning("[RuntimeTextureLoader] no pude leer %s (err %d)" % [path, err])
+		push_warning("[RuntimeTextureLoader] no pude decodificar %s (err %d)" % [path, err])
 		return null
 	return ImageTexture.create_from_image(img)
