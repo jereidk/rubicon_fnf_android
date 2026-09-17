@@ -18,7 +18,7 @@ signal mods_changed
 var mods: Array[Dictionary] = []
 var mods_root: String = ""
 var _config: Dictionary = {"enabled": {}, "order": []}
-var _texture_loader: ResourceFormatLoader
+var _loaders: Array[ResourceFormatLoader] = []
 
 
 func _ready() -> void:
@@ -31,9 +31,16 @@ func _ready() -> void:
 
 
 func _register_texture_loader() -> void:
-	_texture_loader = preload("res://engine/runtime_texture_loader.gd").new()
-	ResourceLoader.add_resource_format_loader(_texture_loader, true)
-	print("[ModLoader] runtime texture loader registrado")
+	var scripts := [
+		"res://engine/runtime_texture_loader.gd",
+		"res://engine/runtime_font_loader.gd",
+		"res://engine/runtime_video_loader.gd",
+	]
+	for s in scripts:
+		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
+		ResourceLoader.add_resource_format_loader(loader, true)
+		_loaders.append(loader)
+	print("[ModLoader] %d runtime loaders registrados (texture/font/video)" % _loaders.size())
 
 
 func _resolve_mods_root() -> String:
@@ -141,7 +148,10 @@ func _read_manifest(path: String) -> Dictionary:
 	var mf := path + "/" + MANIFEST_NAME
 	if not FileAccess.file_exists(mf):
 		var d := {"name": path.get_file()}
-		if FileAccess.file_exists(path + "/main.tscn"):
+		# Autodeteccion: main.gd gana si existe; main.tscn si no.
+		if FileAccess.file_exists(path + "/main.gd"):
+			d["main_scene"] = "res://main.gd"
+		elif FileAccess.file_exists(path + "/main.tscn"):
 			d["main_scene"] = "res://main.tscn"
 		return d
 	var f := FileAccess.open(mf, FileAccess.READ)

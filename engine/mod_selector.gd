@@ -98,6 +98,26 @@ func _launch(m: Dictionary) -> void:
 		push_error("[ModSelector] main_scene no encontrada: %s" % scene)
 		_go_demo()
 		return
+
+	# Si es .gd, el mod no necesita un .tscn: creamos el Node, le
+	# enganchamos el script, y lo hacemos escena actual a mano. Mismo
+	# resultado que change_scene_to_file, pero sin pasar por el editor.
+	if scene.ends_with(".gd"):
+		var script = load(scene)
+		if not (script is GDScript):
+			push_error("[ModSelector] %s no es un GDScript valido" % scene)
+			_go_demo()
+			return
+		var node := Node.new()
+		node.name = "ModRoot"
+		node.set_script(script)
+		var old := get_tree().current_scene
+		get_tree().root.add_child(node)
+		get_tree().current_scene = node
+		if old != null:
+			old.queue_free()
+		return
+
 	get_tree().change_scene_to_file(scene)
 
 func _unhandled_input(event: InputEvent) -> void:

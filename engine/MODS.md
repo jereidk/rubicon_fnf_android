@@ -83,3 +83,22 @@ Sin mods
 
 Si la carpeta esta vacia, el engine arranca songs/test/test.tscn, que es
 la demo incluida.
+
+Formatos soportados
+-------------------
+
+Los mods pueden incluir:
+
+- Imagenes: PNG, JPG, JPEG, WebP (crudos, sin .import).
+- Fuentes: TTF, OTF.
+- Video: OGV (Theora).
+- JSON, XML, TSCN, TRES, GD.
+
+Los archivos PNG/JPG/WebP/TTF/OTF/OGV que trae un mod se resuelven a
+traves de loaders de runtime que registra ModLoader antes de montar
+ningun mod. No hace falta importar nada con el editor.
+
+NO soportado:
+
+- MP4: Godot no trae decoder nativo. Convertir a OGV.
+- GIF: no hay decoder nativo. Convertir a WebP o a spritesheet.
