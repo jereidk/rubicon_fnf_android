@@ -38,12 +38,13 @@ func _register_texture_loader() -> void:
 		"res://engine/runtime_ktx_loader.gd",
 		"res://engine/runtime_model_loader.gd",
 		"res://engine/runtime_shader_loader.gd",
+		"res://engine/runtime_audio_loader.gd",
 	]
 	for s in scripts:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
-	print("[ModLoader] %d runtime loaders registrados (texture/font/video/ktx/model/shader)" % _loaders.size())
+	print("[ModLoader] %d runtime loaders registrados (texture/font/video/ktx/model/shader/audio)" % _loaders.size())
 
 
 func _resolve_mods_root() -> String:

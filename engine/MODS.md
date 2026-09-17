@@ -94,6 +94,7 @@ Los mods pueden incluir:
 - Modelos 3D: .glb y .gltf (Godot los carga directo, sin editor).
 - Fuentes: TTF, OTF.
 - Video: OGV (Theora).
+- Audio: OGG Vorbis, MP3, WAV.
 - JSON, XML, TSCN, TRES, GD.
 
 Los archivos PNG/JPG/WebP/TTF/OTF/OGV que trae un mod se resuelven a
