@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://holyquintet_mod/menus/main/main_menu.gd" id="0"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/background.png" id="1"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/common/newbadge.png" id="6"]
 [ext_resource type="Texture2D" path="res://holyquintet_mod/source/images/ui/main/ticker.png" id="7"]
 [ext_resource type="FontFile" path="res://holyquintet_mod/source/fonts/shingo.otf" id="8"]
+[ext_resource type="PackedScene" path="res://holyquintet_mod/ui/menu_virtual_pad.tscn" id="menu_virtual_pad"]
 
 [sub_resource type="LabelSettings" id="ticker_settings"]
 font = ExtResource("8")
@@ -117,3 +118,7 @@ offset_right = 4000.0
 offset_bottom = 30.0
 mouse_filter = 2
 label_settings = SubResource("ticker_settings")
+
+[node name="MenuVirtualPad" parent="." instance=ExtResource("menu_virtual_pad")]
+dpad = "LEFT_FULL"
+action = "A_B_TOP"
