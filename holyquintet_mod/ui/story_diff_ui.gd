@@ -31,6 +31,13 @@ func _ready() -> void:
 		.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 
 	header.text = "Select your difficulty:"
+	# Touch/mouse: keyboard-only port of StoryDiffUI in the .tscn leaves
+	# both sprites at MOUSE_FILTER_IGNORE. Override here and route taps
+	# to the same left_action/right_action calls _unhandled_input uses.
+	easy_sprite.mouse_filter = Control.MOUSE_FILTER_STOP
+	hard_sprite.mouse_filter = Control.MOUSE_FILTER_STOP
+	easy_sprite.gui_input.connect(_on_diff_gui_input.bind("easy"))
+	hard_sprite.gui_input.connect(_on_diff_gui_input.bind("hard"))
 	GenUtil.play_ui_sound(self, "open")
 
 
@@ -98,3 +105,20 @@ func _spawn_glow(spr: TextureRect) -> void:
 	tw.tween_property(glow, "scale", spr.scale * 1.1, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tw.tween_property(glow, "modulate:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tw.chain().tween_callback(glow.queue_free)
+
+func _on_diff_gui_input(event: InputEvent, diff: String) -> void:
+	var tapped := false
+	if event is InputEventMouseButton:
+		tapped = event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	elif event is InputEventScreenTouch:
+		tapped = event.pressed
+	if not tapped:
+		return
+
+	_cur_sel = diff
+	if diff == "easy":
+		left_action.call()
+	else:
+		right_action.call()
+	GenUtil.play_ui_sound(self, "confirm")
+	queue_free()
