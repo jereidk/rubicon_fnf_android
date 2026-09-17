@@ -89,7 +89,7 @@ Formatos soportados
 
 Los mods pueden incluir:
 
-- Imagenes: PNG, JPG, JPEG, WebP (crudos, sin .import).
+- Imagenes: PNG, JPG, JPEG, WebP, SVG (crudos, sin .import).
 - Imagenes comprimidas: .ktx y .astc (ver nota abajo).
 - Modelos 3D: .glb y .gltf (Godot los carga directo, sin editor).
 - Fuentes: TTF, OTF.

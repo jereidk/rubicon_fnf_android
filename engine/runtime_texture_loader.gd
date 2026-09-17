@@ -7,7 +7,7 @@ extends ResourceFormatLoader
 # maneja solo los paths que NO tienen .import (o sea, assets crudos de
 # mod). Todo lo demas cae al loader por defecto - el APK sigue igual.
 
-const EXTENSIONS := PackedStringArray(["png", "jpg", "jpeg", "webp"])
+const EXTENSIONS := PackedStringArray(["png", "jpg", "jpeg", "webp", "svg"])
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS
@@ -41,6 +41,8 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 			err = img.load_jpg_from_buffer(bytes)
 		"webp":
 			err = img.load_webp_from_buffer(bytes)
+		"svg":
+			err = img.load_svg_from_buffer(bytes)
 	if err != OK:
 		push_warning("[RuntimeTextureLoader] no pude decodificar %s (err %d)" % [path, err])
 		return null
