@@ -6,6 +6,7 @@ extends Control
 ##   - 2+ mods -> muestra una lista de botones para elegir uno.
 
 const DEMO_SCENE := "res://songs/test/test.tscn"
+const MANAGER_SCENE := "res://engine/mod_manager.tscn"
 
 var _list: VBoxContainer
 var _header: Label
@@ -45,6 +46,14 @@ func _build_ui() -> void:
 	_list.add_theme_constant_override("separation", 24)
 	add_child(_list)
 
+	var mods_btn := Button.new()
+	mods_btn.text = "Mods..."
+	mods_btn.add_theme_font_size_override("font_size", 32)
+	mods_btn.position = Vector2(760, 960)
+	mods_btn.size = Vector2(400, 80)
+	mods_btn.pressed.connect(_open_manager)
+	add_child(mods_btn)
+
 func _populate() -> void:
 	var enabled: Array = []
 	for m in ModLoader.mods:
@@ -71,6 +80,10 @@ func _add_button(text: String, cb: Callable) -> void:
 	b.custom_minimum_size = Vector2(600, 100)
 	b.pressed.connect(cb)
 	_list.add_child(b)
+
+func _open_manager() -> void:
+	get_tree().change_scene_to_file(MANAGER_SCENE)
+
 
 func _go_demo() -> void:
 	get_tree().change_scene_to_file(DEMO_SCENE)
