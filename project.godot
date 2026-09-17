@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="RubiconFNF"
-run/main_scene="uid://bte2jyircefco"
+run/main_scene="res://engine/mod_selector.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://dlxowoyf4wnti"
 
@@ -42,6 +42,7 @@ project/assembly_name="RubiconFNF"
 enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
 [autoload]
+ModLoader="*res://engine/mod_loader.gd"
 
 MobileControls="*res://addons/rubicon_mobile_controls/mobile_controls.tscn"
 
