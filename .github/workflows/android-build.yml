@@ -164,6 +164,7 @@ jobs:
           VNAME="1.0.${{ github.run_number }}"
           sed -i "s|version_code=.*|version_code=\"$VCODE\"|" export_presets.cfg
           sed -i "s|version_name=.*|version_name=\"$VNAME\"|" export_presets.cfg
+          sed -i "s|package/unique_name=.*|package/unique_name=\"com.rubicon.fnf\"|" export_presets.cfg
           echo "Aplicado version_code=$VCODE version_name=$VNAME"
           grep -E "version_code|version_name|package/name" export_presets.cfg
 
