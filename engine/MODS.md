@@ -91,6 +91,7 @@ Los mods pueden incluir:
 
 - Imagenes: PNG, JPG, JPEG, WebP (crudos, sin .import).
 - Imagenes comprimidas: .ktx y .astc (ver nota abajo).
+- Modelos 3D: .glb y .gltf (Godot los carga directo, sin editor).
 - Fuentes: TTF, OTF.
 - Video: OGV (Theora).
 - JSON, XML, TSCN, TRES, GD.
@@ -122,6 +123,33 @@ llevar ASTC adentro. Por eso:
 3. Si el mod no necesita compresion ASTC, use PNG/WebP directo. La
    compresion ASTC es para ahorrar VRAM en runtime, a costa de
    calidad y de un paso extra de build.
+
+
+Modelos 3D
+-----------
+
+Un mod puede traer modelos glTF crudos y cargarlos directo:
+
+    mods/mimod/
+      main.gd
+      models/
+        personaje.glb
+        escenario.gltf
+
+En el codigo:
+
+    var scene = load("res://models/personaje.glb")
+    var node = scene.instantiate()
+    add_child(node)
+
+- .glb empaqueta todo (mallas, texturas, materiales) en un solo archivo.
+  Es lo recomendado para mods porque no depende de archivos externos.
+- .gltf es texto y referencia texturas externas por ruta relativa. Si tu
+  modelo usa .gltf, copia tambien las texturas y respetá las rutas.
+
+NO hace falta importar con el editor. Godot 4 registra GLTFDocument y
+GLTFState en runtime (verificado en 4.7.1-stable), asi que el engine los
+carga desde el .pck como cualquier otro recurso.
 
 
 NO soportado:
