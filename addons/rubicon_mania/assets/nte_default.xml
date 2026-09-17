@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="nte_default.png" width="1024" height="1024">
+	<SubTexture name="Tail0000" x="590" y="1" width="76" height="151" frameX="-0" frameY="-0" frameWidth="76" frameHeight="151"/>
+	<SubTexture name="Tail_Outline0000" x="590" y="155" width="76" height="151" frameX="-0" frameY="-0" frameWidth="76" frameHeight="151"/>
+	<SubTexture name="Trail0000" x="738" y="154" width="76" height="150" frameX="-0" frameY="-0" frameWidth="76" frameHeight="150"/>
+	<SubTexture name="Trail_Outline0000" x="879" y="299" width="76" height="150" frameX="-0" frameY="-0" frameWidth="76" frameHeight="150"/>
+	<SubTexture name="ArrowDef_Down_Outline0000" x="669" y="1" width="149" height="150" frameX="-0" frameY="-0" frameWidth="150" frameHeight="150"/>
+	<SubTexture name="ArrowDef_Left_Outline0000" x="573" y="552" width="150" height="149" frameX="-0" frameY="-0" frameWidth="150" frameHeight="150"/>
+	<SubTexture name="ArrowDef_Right_Outline0000" x="585" y="371" width="150" height="149" frameX="-0" frameY="-0" frameWidth="150" frameHeight="150"/>
+	<SubTexture name="ArrowDef_Up_Outline0000" x="1" y="742" width="150" height="149" frameX="-0" frameY="-0" frameWidth="150" frameHeight="150"/>
+	<SubTexture name="ArrowFill_Down0000" x="148" y="894" width="137" height="127" frameX="-0" frameY="-0" frameWidth="137" frameHeight="128"/>
+	<SubTexture name="ArrowFill_Left0000" x="1" y="894" width="144" height="127" frameX="-5" frameY="-0" frameWidth="149" frameHeight="127"/>
+	<SubTexture name="ArrowFill_Right0000" x="738" y="307" width="137" height="127" frameX="-0" frameY="-0" frameWidth="137" frameHeight="127"/>
+	<SubTexture name="ArrowFill_Up0000" x="288" y="893" width="137" height="127" frameX="-0" frameY="-0" frameWidth="137" frameHeight="127"/>
+	<SubTexture name="ArrowHit_Down0000" x="198" y="188" width="193" height="183" frameX="-1" frameY="-1" frameWidth="199" frameHeight="189"/>
+	<SubTexture name="ArrowHit_Down0001" x="1" y="375" width="192" height="183" frameX="-2" frameY="-1" frameWidth="199" frameHeight="189"/>
+	<SubTexture name="ArrowHit_Down0002" x="383" y="560" width="187" height="178" frameX="-4" frameY="-4" frameWidth="199" frameHeight="189"/>
+	<SubTexture name="ArrowHit_Down0003" x="383" y="560" width="187" height="178" frameX="-4" frameY="-4" frameWidth="199" frameHeight="189"/>
+	<SubTexture name="ArrowHit_Left0000" x="1" y="1" width="194" height="184" frameX="-1" frameY="-1" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Left0001" x="196" y="375" width="192" height="182" frameX="-2" frameY="-2" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Left0002" x="394" y="371" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Left0003" x="394" y="371" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Right0000" x="1" y="188" width="194" height="184" frameX="-1" frameY="-1" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Right0001" x="395" y="1" width="192" height="182" frameX="-2" frameY="-2" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Right0002" x="1" y="561" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Right0003" x="1" y="561" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Up0000" x="198" y="1" width="194" height="184" frameX="-1" frameY="-1" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Up0001" x="395" y="186" width="192" height="182" frameX="-2" frameY="-2" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Up0002" x="192" y="561" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowHit_Up0003" x="192" y="561" width="188" height="178" frameX="-4" frameY="-4" frameWidth="200" frameHeight="190"/>
+	<SubTexture name="ArrowPush_Down_Outline0000" x="154" y="742" width="150" height="145" frameX="-0" frameY="-3" frameWidth="151" frameHeight="148"/>
+	<SubTexture name="ArrowPush_Down_Outline0001" x="154" y="742" width="150" height="145" frameX="-0" frameY="-3" frameWidth="151" frameHeight="148"/>
+	<SubTexture name="ArrowPush_Down_Outline0002" x="307" y="742" width="150" height="148" frameX="-0" frameY="-0" frameWidth="151" frameHeight="148"/>
+	<SubTexture name="ArrowPush_Down_Outline0003" x="307" y="742" width="150" height="148" frameX="-0" frameY="-0" frameWidth="151" frameHeight="148"/>
+	<SubTexture name="ArrowPush_Left_Outline0000" x="460" y="741" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Left_Outline0001" x="460" y="741" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Left_Outline0002" x="613" y="704" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Left_Outline0003" x="613" y="704" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Right_Outline0000" x="821" y="1" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Right_Outline0001" x="821" y="1" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Right_Outline0002" x="821" y="149" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Right_Outline0003" x="821" y="149" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Up_Outline0000" x="726" y="523" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Up_Outline0001" x="726" y="523" width="150" height="145" frameX="-0" frameY="-2" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Up_Outline0002" x="766" y="671" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+	<SubTexture name="ArrowPush_Up_Outline0003" x="766" y="671" width="150" height="147" frameX="-0" frameY="-0" frameWidth="150" frameHeight="147"/>
+</TextureAtlas>

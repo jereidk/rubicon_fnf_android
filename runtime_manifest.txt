@@ -1,0 +1,15 @@
+# Runtime manifest — generado desde holyquintet_mod/menus/setup/setup_screen.tscn
+# Total: 12 archivos
+
+holyquintet_mod/menus/setup/setup_screen.gd
+holyquintet_mod/menus/setup/setup_screen.tscn
+holyquintet_mod/scripts/gen_util.gd
+holyquintet_mod/source/fonts/shingo.otf
+holyquintet_mod/source/images/ui/common/button-basic.png
+holyquintet_mod/source/images/ui/common/button_highlight-basic.png
+holyquintet_mod/source/images/ui/common/window.png
+holyquintet_mod/ui/hq_message_window.gd
+holyquintet_mod/ui/hq_message_window.tscn
+holyquintet_mod/ui/hq_message_window_blur.gdshader
+holyquintet_mod/ui/menu_virtual_pad.gd
+holyquintet_mod/ui/menu_virtual_pad.tscn
