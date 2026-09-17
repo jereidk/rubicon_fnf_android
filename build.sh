@@ -20,7 +20,7 @@ echo ""
 # Verificar Godot
 if ! command -v godot &> /dev/null; then
     echo "ERROR: Godot no está instalado o no está en PATH"
-    echo "Descarga Godot 4.6 desde: https://godotengine.org"
+    echo "Descarga Godot 4.7 desde: https://godotengine.org"
     exit 1
 fi
 
