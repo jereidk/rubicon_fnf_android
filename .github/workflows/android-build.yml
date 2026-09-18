@@ -2,6 +2,11 @@ name: Android Build
 
 on:
   workflow_dispatch:
+    inputs:
+      upload_imports:
+        description: 'Subir los .import generados como artifact (para bajarlos y commitearlos)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -236,6 +241,17 @@ jobs:
       apk_size: ${{ needs.build.outputs.apk_size }}
 
     steps:
+      - name: Upload generated .import files
+        if: ${{ inputs.upload_imports }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-generated-imports
+          path: |
+            resources/**/*.import
+            assets/**/*.import
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Upload debug symbols
         uses: actions/upload-artifact@v4
         if: always()
