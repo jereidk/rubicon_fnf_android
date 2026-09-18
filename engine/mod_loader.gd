@@ -808,7 +808,15 @@ func _load_all_enabled() -> void:
 ## Los .tscn/.tres van al pck aunque tengan loader porque el text loader
 ## nativo los abre con FileAccess directo y sin pck falla.
 const RUNTIME_EXTENSIONS: PackedStringArray = [
-	"gd",
+	# "gd" NO esta aca a proposito. El parser de GDScript resuelve
+	# preload() de otro .gd con FileAccess::open("res://...") directo,
+	# sin pasar por ResourceLoader. Sin el .gd en el pck, esa lectura
+	# falla y el preload devuelve null:
+	#   Parse Error: Could not find script "res://...gen_util.gd".
+	#
+	# Con .gd en el pck: editar un .gd dispara rebake del pck. Pero el
+	# pck es chico (~10 MB en HQ, 200 KB son scripts) asi que el rebake
+	# es de ~1.5s, no de 60s.
 	"png", "jpg", "jpeg", "webp", "svg",
 	"ttf", "otf",
 	"ogv",
