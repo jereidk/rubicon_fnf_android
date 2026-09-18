@@ -7,7 +7,7 @@ extends ResourceFormatLoader
 # los otros loaders: si hay .import, deferimos; si no, leemos el codigo
 # y devolvemos un Shader.
 
-const EXTENSIONS := PackedStringArray(["gdshader"])
+const EXTENSIONS: PackedStringArray = ["gdshader"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS

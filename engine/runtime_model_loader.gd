@@ -11,7 +11,7 @@ extends ResourceFormatLoader
 # texturas y buffers externos de un .gltf; un .glb empaqueta todo adentro
 # y no depende de eso.
 
-const EXTENSIONS := PackedStringArray(["glb", "gltf"])
+const EXTENSIONS: PackedStringArray = ["glb", "gltf"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS

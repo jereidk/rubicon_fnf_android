@@ -7,7 +7,7 @@ extends ResourceFormatLoader
 # maneja solo los paths que NO tienen .import (o sea, assets crudos de
 # mod). Todo lo demas cae al loader por defecto - el APK sigue igual.
 
-const EXTENSIONS := PackedStringArray(["png", "jpg", "jpeg", "webp", "svg"])
+const EXTENSIONS: PackedStringArray = ["png", "jpg", "jpeg", "webp", "svg"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS

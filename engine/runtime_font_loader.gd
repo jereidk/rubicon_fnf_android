@@ -7,7 +7,7 @@ extends ResourceFormatLoader
 # paths del .pck montado - asi que pasarle el res:// del mod funciona
 # exactamente igual que si fuera un archivo en disco.
 
-const EXTENSIONS := PackedStringArray(["ttf", "otf"])
+const EXTENSIONS: PackedStringArray = ["ttf", "otf"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS

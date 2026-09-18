@@ -15,7 +15,7 @@ extends ResourceFormatLoader
 #   AudioStreamWAV.load_from_buffer(bytes, options={})       -> Ref
 # Los tres son static y estan bindeados a GDScript.
 
-const EXTENSIONS := PackedStringArray(["ogg", "mp3", "wav"])
+const EXTENSIONS: PackedStringArray = ["ogg", "mp3", "wav"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS

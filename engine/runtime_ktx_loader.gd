@@ -12,7 +12,7 @@ extends ResourceFormatLoader
 #   astcenc -cl input.png output.ktx 6x6
 # Y luego renombrar output.ktx -> output.astc antes de meterlo al mod.
 
-const EXTENSIONS := PackedStringArray(["ktx", "astc"])
+const EXTENSIONS: PackedStringArray = ["ktx", "astc"]
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS
