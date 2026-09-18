@@ -48,12 +48,16 @@ func _ready() -> void:
 	# abierto, lo ve al volver a esta pantalla sin reiniciar.
 	ModLoader.scan()
 	_populate()
+	# Al final: en Godot el ultimo hijo se dibuja encima. El overlay tiene
+	# que ser el ULTIMO hijo del ModSelector para tapar todo lo demas
+	# (botones, lista de mods, boton Mods...). Ponerlo en _build_ui lo
+	# dejaba debajo de la MarginContainer que se agrega despues.
+	_build_loading_overlay()
 
 
 func _build_ui() -> void:
 	_build_background()
 	_build_animated_logo()
-	_build_loading_overlay()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
