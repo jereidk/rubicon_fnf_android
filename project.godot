@@ -67,6 +67,7 @@ enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://
 
 [autoload]
 ModLoader="*res://engine/mod_loader.gd"
+MenuMusic="*res://engine/menu_music.gd"
 
 MobileControlsGate="*res://engine/mobile_controls_gate.gd"
 

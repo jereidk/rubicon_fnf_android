@@ -70,6 +70,7 @@ func _build_ui() -> void:
 	_mods_btn = Button.new()
 	_mods_btn.text = "Mods..."
 	_mods_btn.pressed.connect(_open_manager)
+	_mods_btn.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	add_child(_mods_btn)
 
 
@@ -141,6 +142,10 @@ func _add_button(text: String, cb: Callable) -> void:
 	var b := Button.new()
 	b.text = text
 	b.pressed.connect(cb)
+	# Focus (navegacion con teclado/pad) y hover (mouse) disparan el
+	# mismo sonido de scroll que usa FNF al cambiar de opcion.
+	b.focus_entered.connect(func(): MenuMusic.play_scroll())
+	b.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	_list.add_child(b)
 
 
@@ -149,6 +154,8 @@ func _open_manager() -> void:
 
 
 func _go_demo() -> void:
+	MenuMusic.play_confirm()
+	MenuMusic.fade_out_music(0.4)
 	get_tree().change_scene_to_file(DEMO_SCENE)
 
 
@@ -159,6 +166,8 @@ func _show_error(msg: String) -> void:
 
 
 func _launch(m: Dictionary) -> void:
+	MenuMusic.play_confirm()
+	MenuMusic.fade_out_music(0.4)
 	var scene: String = str(m.get("main_scene", ""))
 	if scene.is_empty():
 		_show_error("Mod '%s' no define main_scene.\nFolder: %s" % [m["folder"], m["path"]])

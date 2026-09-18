@@ -103,6 +103,7 @@ func _build_ui() -> void:
 	_open_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_open_btn.add_theme_font_size_override("font_size", 24)
 	_open_btn.pressed.connect(_open_mods_folder)
+	_open_btn.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	bottom.add_child(_open_btn)
 
 	_back_btn = Button.new()
@@ -111,6 +112,7 @@ func _build_ui() -> void:
 	_back_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_back_btn.add_theme_font_size_override("font_size", 24)
 	_back_btn.pressed.connect(_go_selector)
+	_back_btn.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	bottom.add_child(_back_btn)
 
 	_refresh_btn = Button.new()
@@ -119,6 +121,7 @@ func _build_ui() -> void:
 	_refresh_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_refresh_btn.add_theme_font_size_override("font_size", 24)
 	_refresh_btn.pressed.connect(_rescan)
+	_refresh_btn.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	bottom.add_child(_refresh_btn)
 
 
@@ -344,6 +347,7 @@ func _build_row(idx: int) -> Control:
 	up.add_theme_font_size_override("font_size", 26)
 	up.disabled = idx == 0
 	up.pressed.connect(func(): ModLoader.move_mod(folder, -1))
+	up.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	row.add_child(up)
 
 	var down := Button.new()
@@ -352,6 +356,7 @@ func _build_row(idx: int) -> Control:
 	down.add_theme_font_size_override("font_size", 26)
 	down.disabled = idx == ModLoader.mods.size() - 1
 	down.pressed.connect(func(): ModLoader.move_mod(folder, 1))
+	down.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	row.add_child(down)
 
 	var del := Button.new()
@@ -359,6 +364,7 @@ func _build_row(idx: int) -> Control:
 	del.custom_minimum_size = Vector2(80, 90)
 	del.add_theme_font_size_override("font_size", 26)
 	del.pressed.connect(func(): _confirm_uninstall(folder))
+	del.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	row.add_child(del)
 
 	# Descripcion debajo, si existe.
@@ -426,7 +432,11 @@ func _confirm_uninstall(folder: String) -> void:
 	dialog.dialog_text = "¿Desinstalar '%s'?\n\nSe borra la carpeta del mod y su caché .pck.\nNo se puede deshacer." % folder
 	dialog.ok_button_text = "Desinstalar"
 	dialog.cancel_button_text = "Cancelar"
-	dialog.confirmed.connect(func(): ModLoader.uninstall_mod(folder))
+	dialog.confirmed.connect(func():
+		MenuMusic.play_confirm()
+		ModLoader.uninstall_mod(folder)
+	)
+	dialog.canceled.connect(func(): MenuMusic.play_cancel())
 	add_child(dialog)
 	dialog.popup_centered()
 
@@ -446,6 +456,7 @@ func _open_mods_folder() -> void:
 
 
 func _go_selector() -> void:
+	MenuMusic.play_cancel()
 	get_tree().change_scene_to_file(SELECTOR_SCENE)
 
 
