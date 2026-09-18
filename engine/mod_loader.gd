@@ -273,6 +273,11 @@ func _register_runtime_loaders() -> void:
 		"res://engine/runtime_model_loader.gd",
 		"res://engine/runtime_shader_loader.gd",
 		"res://engine/runtime_audio_loader.gd",
+		# TEST A/B: copia de runtime_texture_loader.gd adaptada para
+		# .gdshader. Si este se registra OK y el shader_loader original
+		# no, el problema esta en el CONTENIDO del original. Si los dos
+		# fallan, el problema es del mecanismo (cache, nombre, path).
+		"res://engine/runtime_testshader_loader.gd",
 	]
 	_gd_loader = load("res://engine/runtime_gd_loader.gd").new()
 	_gd_loader.mod_gd_paths = _mod_gd_paths
@@ -288,8 +293,29 @@ func _register_runtime_loaders() -> void:
 
 	for s in scripts:
 		DebugLog.log("[_register_loaders] --- %s ---" % s)
-		DebugLog.log("[_register_loaders]   load()...")
+		# FileAccess directo al pck, antes de load(). Si ve el source pero
+		# load() devuelve un stub con source_code.length=0, el bug esta
+		# en la cadena de loaders o en el parser.
+		var raw := FileAccess.get_file_as_string(s)
+		DebugLog.log("[_register_loaders]   FileAccess len=%d, inicio=%.60s" % [
+			raw.length(), raw.substr(0, 60).replace("\n", " "),
+		])
+		DebugLog.log("[_register_loaders]   load() normal...")
 		var script: GDScript = load(s)
+		DebugLog.log("[_register_loaders]   load() CACHE_MODE_IGNORE...")
+		var script_ignore: GDScript = load(s, "", ResourceLoader.CACHE_MODE_IGNORE)
+		DebugLog.log("[_register_loaders]   normal: src=%d methods=%d base=%s" % [
+			script.source_code.length(), script.get_script_method_list().size(),
+			script.get_instance_base_type(),
+		])
+		DebugLog.log("[_register_loaders]   ignore: src=%d methods=%d base=%s" % [
+			script_ignore.source_code.length(), script_ignore.get_script_method_list().size(),
+			script_ignore.get_instance_base_type(),
+		])
+		# Usar el que funcione, para no romper el flujo actual.
+		if script_ignore.source_code.length() > 0:
+			script = script_ignore
+			DebugLog.log("[_register_loaders]   -> usando el de ignore (el normal estaba cacheado roto)")
 		DebugLog.log("[_register_loaders]   load() -> %s" % str(script))
 		if script == null:
 			DebugLog.log("[_register_loaders]   ABORTA: script null")
