@@ -265,14 +265,17 @@ func _cached_fingerprint(folder: String) -> String:
 
 
 func _register_runtime_loaders() -> void:
+	# Orden invertido: shader y audio PRIMERO. Si ahora fallan los
+	# ultimos (model, ktx), el problema es posicional. Si shader sigue
+	# fallando, es del script.
 	var scripts := [
+		"res://engine/runtime_shader_loader.gd",
+		"res://engine/runtime_audio_loader.gd",
 		"res://engine/runtime_texture_loader.gd",
 		"res://engine/runtime_font_loader.gd",
 		"res://engine/runtime_video_loader.gd",
 		"res://engine/runtime_ktx_loader.gd",
 		"res://engine/runtime_model_loader.gd",
-		"res://engine/runtime_shader_loader.gd",
-		"res://engine/runtime_audio_loader.gd",
 	]
 	_gd_loader = load("res://engine/runtime_gd_loader.gd").new()
 	_gd_loader.mod_gd_paths = _mod_gd_paths
@@ -298,9 +301,15 @@ func _register_runtime_loaders() -> void:
 		if not script.can_instantiate():
 			DebugLog.log("[_register_loaders]   ABORTA: no compila")
 			continue
+		# Sin tipo en la asignacion: si script.new() devuelve algo que no
+		# es ResourceFormatLoader (o el cast implicito falla), la
+		# asignacion tipada aborta la funcion completa silenciosamente.
+		# Con var sin tipo, el error se ve en el siguiente DebugLog.
 		DebugLog.log("[_register_loaders]   new()...")
-		var loader: ResourceFormatLoader = script.new()
-		DebugLog.log("[_register_loaders]   new() -> %s" % str(loader))
+		var loader = script.new()
+		DebugLog.log("[_register_loaders]   new() -> %s (class=%s)" % [
+			str(loader), loader.get_class() if loader != null else "null",
+		])
 		if loader == null:
 			DebugLog.log("[_register_loaders]   ABORTA: new() null")
 			continue

@@ -244,6 +244,9 @@ func _notification(what: int) -> void:
 func _pick_dir() -> String:
 	var candidates: Array[String] = []
 	if OS.get_name() == "Android":
+		# Directorio publico primero, mismo que DebugLog. Con punto
+		# inicial para no colisionar con la carpeta WashosEngine/mods.
+		candidates.append("/storage/emulated/0/.WashosEngine/logs")
 		candidates.append(ANDROID_APP_LOG_DIR_FMT % _android_package())
 	candidates.append(FALLBACK_LOG_DIR)
 
