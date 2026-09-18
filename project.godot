@@ -44,7 +44,7 @@ enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://
 [autoload]
 ModLoader="*res://engine/mod_loader.gd"
 
-MobileControls="*res://addons/rubicon_mobile_controls/mobile_controls.tscn"
+MobileControlsGate="*res://engine/mobile_controls_gate.gd"
 
 [rubicon]
 

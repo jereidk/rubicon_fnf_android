@@ -1,15 +1,17 @@
 extends Control
 ## Escena de arranque del engine. Lee los mods que ModLoader detecto y
 ## decide a donde ir:
-##   - 0 mods  -> arranca la demo del engine.
-##   - 1 mod   -> carga directo, sin preguntar.
-##   - 2+ mods -> muestra una lista de botones para elegir uno.
+##   - 0 mods  -> muestra la demo del engine.
+##   - 1+ mods -> siempre muestra la lista (nunca auto-carga).
 ##
 ## Layout responsive: los tamanos y posiciones se calculan en _layout() a
 ## partir del viewport actual, escalando desde un diseno base de 1920x1080.
-## En pantallas mas altas (20:9 en un telefono) el contenido sigue centrado
-## y visible en vez de salirse por abajo. La escala usa el lado que menos da
-## de si para que en pantallas anchas no se agrande de mas.
+##
+## Por que nunca auto-carga con un solo mod: si el unico mod falla al
+## cargar (script con error, main_scene mal escrito, .pck que no se monto),
+## auto-cargarlo sin mostrar la lista ocultaba el error y el usuario
+## terminaba en la demo sin saber por que. Mostrando la lista siempre, el
+## usuario ve el mod, lo toca, y si falla ve el mensaje de error.
 
 const DEMO_SCENE := "res://songs/test/test.tscn"
 const MANAGER_SCENE := "res://engine/mod_manager.tscn"
@@ -19,11 +21,15 @@ var _title: Label
 var _header: Label
 var _list: VBoxContainer
 var _mods_btn: Button
+var _error_label: Label
 
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
+	# Rescan al entrar: si el usuario agrego o quito un mod con el juego
+	# abierto, lo ve al volver a esta pantalla sin reiniciar.
+	ModLoader.scan()
 	_populate()
 	resized.connect(_layout)
 
@@ -46,11 +52,20 @@ func _build_ui() -> void:
 	_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_header)
 
 	_list = VBoxContainer.new()
 	_list.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(_list)
+
+	_error_label = Label.new()
+	_error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_error_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_error_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_error_label.visible = false
+	add_child(_error_label)
 
 	_mods_btn = Button.new()
 	_mods_btn.text = "Mods..."
@@ -71,11 +86,11 @@ func _layout() -> void:
 	_title.size = Vector2(w, 100.0 * k)
 
 	_header.add_theme_font_size_override("font_size", maxi(14, int(32.0 * k)))
-	_header.position = Vector2(0.0, 240.0 * k)
-	_header.size = Vector2(w, 60.0 * k)
+	_header.position = Vector2(40.0 * k, 240.0 * k)
+	_header.size = Vector2(w - 80.0 * k, 80.0 * k)
 
 	var list_w: float = minf(600.0 * k, w - 80.0)
-	var list_h: float = 600.0 * k
+	var list_h: float = 500.0 * k
 	_list.position = Vector2((w - list_w) * 0.5, 340.0 * k)
 	_list.size = Vector2(list_w, list_h)
 	_list.add_theme_constant_override("separation", maxi(8, int(24.0 * k)))
@@ -84,6 +99,10 @@ func _layout() -> void:
 			var b: Button = child
 			b.add_theme_font_size_override("font_size", maxi(16, int(40.0 * k)))
 			b.custom_minimum_size = Vector2(list_w, 100.0 * k)
+
+	_error_label.add_theme_font_size_override("font_size", maxi(12, int(20.0 * k)))
+	_error_label.position = Vector2(40.0 * k, (340.0 + 500.0 + 20.0) * k)
+	_error_label.size = Vector2(w - 80.0 * k, 100.0 * k)
 
 	var btn_w: float = minf(400.0 * k, w - 80.0)
 	var btn_h: float = 100.0 * k
@@ -95,6 +114,7 @@ func _layout() -> void:
 func _populate() -> void:
 	for c in _list.get_children():
 		c.queue_free()
+	_error_label.visible = false
 
 	var enabled: Array = []
 	for m in ModLoader.mods:
@@ -107,11 +127,11 @@ func _populate() -> void:
 		_layout()
 		return
 
-	if enabled.size() == 1:
-		_launch(enabled[0])
-		return
-
-	_header.text = "%d mods disponibles" % enabled.size()
+	_header.text = "%d mod%s disponible%s" % [
+		enabled.size(),
+		"" if enabled.size() == 1 else "s",
+		"" if enabled.size() == 1 else "s",
+	]
 	for m in enabled:
 		_add_button(str(m.get("name", m["folder"])), func(): _launch(m))
 	_layout()
@@ -132,22 +152,25 @@ func _go_demo() -> void:
 	get_tree().change_scene_to_file(DEMO_SCENE)
 
 
+func _show_error(msg: String) -> void:
+	_error_label.text = msg
+	_error_label.visible = true
+	_layout()
+
+
 func _launch(m: Dictionary) -> void:
 	var scene: String = str(m.get("main_scene", ""))
 	if scene.is_empty():
-		push_error("[ModSelector] mod %s no define main_scene" % m["folder"])
-		_go_demo()
+		_show_error("Mod '%s' no define main_scene.\nFolder: %s" % [m["folder"], m["path"]])
 		return
 	if not ResourceLoader.exists(scene):
-		push_error("[ModSelector] main_scene no encontrada: %s" % scene)
-		_go_demo()
+		_show_error("No encontrado: %s\nVerifica que el archivo exista dentro del mod." % scene)
 		return
 
 	if scene.ends_with(".gd"):
 		var script = load(scene)
 		if not (script is GDScript):
-			push_error("[ModSelector] %s no es un GDScript valido" % scene)
-			_go_demo()
+			_show_error("No es un GDScript valido: %s" % scene)
 			return
 		var node := Node.new()
 		node.name = "ModRoot"
