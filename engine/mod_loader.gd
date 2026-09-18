@@ -265,11 +265,12 @@ func _cached_fingerprint(folder: String) -> String:
 
 
 func _register_runtime_loaders() -> void:
-	# TEST POSICIONAL: solo 3 loaders. Si con 3 el shader funciona,
-	# el problema es que a partir de cierto N el engine no carga bien
-	# los scripts de los loaders siguientes.
 	var scripts := [
 		"res://engine/runtime_texture_loader.gd",
+		"res://engine/runtime_font_loader.gd",
+		"res://engine/runtime_video_loader.gd",
+		"res://engine/runtime_ktx_loader.gd",
+		"res://engine/runtime_model_loader.gd",
 		"res://engine/runtime_shader_loader.gd",
 		"res://engine/runtime_audio_loader.gd",
 	]

@@ -19,8 +19,13 @@ const EXTENSIONS: PackedStringArray = ["ttf", "otf"]
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS
 
-func _get_resource_type(_path: String) -> String:
-	return "FontFile"
+func _get_resource_type(path: String) -> String:
+	# Chequear la extension ANTES de devolver el tipo. Sin esto, el
+	# loader devuelve "FontFile" para CUALQUIER path (incluso .tscn)
+	# y el analyzer cree que un preload de .tscn es un FontFile.
+	if path.get_extension().to_lower() in EXTENSIONS:
+		return "FontFile"
+	return ""
 
 func _recognize_path(path: String, _for_type: StringName) -> bool:
 	# Godot llama a recognize_path con el type_hint que el analyzer le

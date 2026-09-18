@@ -24,8 +24,16 @@ const EXTENSIONS: PackedStringArray = ["ktx", "astc"]
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS
 
-func _get_resource_type(_path: String) -> String:
-	return "Texture2D"
+func _get_resource_type(path: String) -> String:
+	# Chequear la extension ANTES de devolver el tipo. Sin esto, el
+	# loader devuelve su tipo para CUALQUIER path (incluso .tscn,
+	# .gd, etc). Como se registra at_front, el analyzer lo usa para
+	# inferir el tipo de cada preload. El text loader despues
+	# rechaza el .tscn porque el hint es "AudioStream" en vez de
+	# "PackedScene".
+	if path.get_extension().to_lower() in EXTENSIONS:
+		return "Texture2D"
+	return ""
 
 func _recognize_path(path: String, _for_type: StringName) -> bool:
 	# Godot llama a recognize_path con el type_hint que el analyzer le
