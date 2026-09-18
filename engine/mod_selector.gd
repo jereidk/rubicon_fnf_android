@@ -138,7 +138,13 @@ func _build_background() -> void:
 func _build_animated_logo() -> void:
 	var png := "res://resources/images/logoBumpin.png"
 	var xml := "res://resources/images/logoBumpin.xml"
-	if not ResourceLoader.exists(png) or not ResourceLoader.exists(xml):
+	# El PNG se chequea con ResourceLoader.exists porque se carga con
+	# load(). El XML se chequea con FileAccess.file_exists porque
+	# ResourceLoader.exists solo reconoce formatos de recurso de Godot
+	# y devuelve false para un .xml, aunque el archivo exista y este en
+	# el APK (siempre que include_filter lo haya incluido).
+	if not ResourceLoader.exists(png) or not FileAccess.file_exists(xml):
+		push_warning("[ModSelector] logoBumpin: falta %s o %s" % [png, xml])
 		return
 
 	# Anclar al centro-izquierda: la x queda pegada al borde izquierdo
