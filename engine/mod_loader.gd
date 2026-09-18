@@ -176,9 +176,9 @@ func reload_changed_mods() -> void:
 	var changed: Array[String] = []
 	for m in mods:
 		var folder: String = m["folder"]
-		var newest := _newest_mtime(m["path"])
-		var cached := _cached_mtime(folder)
-		if newest > cached:
+		var fingerprint := _mod_fingerprint(m["path"])
+		var cached := _cached_fingerprint(folder)
+		if fingerprint != cached:
 			changed.append(folder)
 
 	if changed.is_empty():
@@ -197,12 +197,18 @@ func reload_changed_mods() -> void:
 	mods_reloaded.emit(changed)
 
 
-## Ultimo mtime guardado en disco para ese mod, 0 si no hay cache.
-func _cached_mtime(folder: String) -> int:
+## Ultimo fingerprint guardado en disco para ese mod, "" si no hay cache.
+## Devuelve string porque el fingerprint es "mtime|bytes|count" (ver
+## _mod_fingerprint); el int viejo no se puede comparar contra el formato
+## nuevo y forzaria un rebuild unico en cada arranque.
+func _cached_fingerprint(folder: String) -> String:
 	var p := CACHE_DIR + "/" + folder + ".mtime"
 	if not FileAccess.file_exists(p):
-		return 0
-	return int(FileAccess.open(p, FileAccess.READ).get_as_text())
+		return ""
+	var f := FileAccess.open(p, FileAccess.READ)
+	if f == null:
+		return ""
+	return f.get_as_text().strip_edges()
 
 
 func _register_runtime_loaders() -> void:

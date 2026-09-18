@@ -164,7 +164,36 @@ jobs:
       - name: Import Godot project
         run: |
           rm -rf .godot/imported
-          $GODOT --headless --import 2>&1
+          set +e
+          IMPORT_OUT=$($GODOT --headless --import 2>&1)
+          IMPORT_RC=$?
+          set -e
+          echo "$IMPORT_OUT"
+
+          # Falla el build si algun .gd no compila. Los patrones estan
+          # tomados del output real de --import en 4.7.1, no inventados:
+          #   SCRIPT ERROR: Parse Error: <mensaje>
+          #   ERROR: Failed to load script "res://..." with error "Parse error".
+          #   ERROR: Failed to create an autoload, script '...' is not compiling.
+          #
+          # Sin este step, un script con error de parseo se cuela hasta el
+          # APK y explota en el telefono (ModLoader null, cascada de
+          # "Invalid call on base Nil"), que es mucho mas caro de debuggear
+          # que un build rojo.
+          if echo "$IMPORT_OUT" | grep -qE "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling"; then
+            echo ""
+            echo "============================================================"
+            echo "ERRORES DE PARSEO EN EL PROYECTO - el build se cancela."
+            echo "============================================================"
+            echo "$IMPORT_OUT" | grep -E "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling" | head -40
+            exit 1
+          fi
+
+          if [ $IMPORT_RC -ne 0 ]; then
+            echo "godot --import fallo con codigo $IMPORT_RC"
+            exit $IMPORT_RC
+          fi
+
           sleep 5
 
       - name: Create builds directory
