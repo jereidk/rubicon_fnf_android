@@ -142,13 +142,26 @@ func _ready() -> void:
 			tree.on_request_permissions_result.connect(_on_android_permission_result)
 
 	_request_android_permissions()
-	_register_runtime_loaders()
+
+	# Setup sincronico PRIMERO. Tiene que estar listo antes de que
+	# ModSelector (main_scene) corra su _ready: Godot marca este nodo
+	# como "ready" en cuanto _ready() retorna, y no espera a una
+	# coroutine pendiente. Si await _register_runtime_loaders() fuera
+	# lo primero, el resto de _ready() (roots, config, scan) correria
+	# ~7 frames despues, y ModSelector ya se habria instanciado con
+	# ModLoader.mods vacio.
 	mods_roots = _resolve_mods_roots()
 	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
 	if DirAccess.make_dir_recursive_absolute(CACHE_DIR) != OK and not DirAccess.dir_exists_absolute(CACHE_DIR):
 		push_warning("[ModLoader] no puedo crear CACHE_DIR %s" % CACHE_DIR)
 	_load_config()
 	scan()
+
+	# Los loaders async van AL FINAL, sin await. Tardan ~7 frames pero
+	# no bloquean nada: para cuando ModSelector llame a bake_mod (que
+	# requiere input del usuario), los 9 loaders ya estan listos.
+	# Ningun flujo de arranque necesita loaders en los primeros frames.
+	_register_runtime_loaders()
 	# NO se empaquetan los mods aca. Con HQ (351 MB) el arranque tardaba
 	# minutos en el splash. Los mods se empaquetan y montan on-demand desde
 	# ModSelector._launch() -> bake_mod(). El arranque queda en ~2s con
@@ -166,6 +179,11 @@ func _on_android_permission_result(permission: String, granted: bool) -> void:
 	_log("permiso de storage otorgado, re-escaneando")
 	mods_roots = _resolve_mods_roots()
 	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
+	# Recargar el config del root nuevo. En _ready() se cargo del root
+	# viejo (probablemente user://mods, sin permiso). Si no recargamos,
+	# _config tiene el estado del root viejo pero save_config() escribe
+	# al nuevo, y el estado enabled/order se mezcla.
+	_load_config()
 	scan()
 	# Sin _load_all_enabled: los mods se empaquetan on-demand desde
 	# ModSelector. Empaquetar todos aca bloquearia la app varios minutos
@@ -279,68 +297,55 @@ func _register_runtime_loaders() -> void:
 	_gd_loader.mod_all_paths = _mod_all_paths
 	ResourceLoader.add_resource_format_loader(_gd_loader, true)
 	_loaders.append(_gd_loader)
+	# Ceder el frame: si el limite de "N load() por frame" aplica a estos
+	# tambien, saltarlo antes del loop.
+	await get_tree().process_frame
 
 	_resource_loader = load("res://engine/runtime_resource_loader.gd").new()
 	_resource_loader.mod_resource_paths = _mod_resource_paths
 	_resource_loader.mod_all_paths = _mod_all_paths
 	ResourceLoader.add_resource_format_loader(_resource_loader, true)
 	_loaders.append(_resource_loader)
+	await get_tree().process_frame
 
+	# Cargar cada loader en un frame distinto.
+	#
+	# Los tests mostraron: los primeros 5 load() en un mismo frame
+	# funcionan (source_code.length>0), del 6to en adelante devuelven
+	# stub con source_code.length=0 aunque el archivo exista. El orden
+	# del array no importa: con solo 3 elementos, los 3 funcionan; con
+	# 7, los ultimos 2 fallan.
+	#
+	# Hipotesis: el parser de GDScript o GDScriptCache tiene un limite
+	# de scripts que puede compilar en un solo frame durante _ready()
+	# de un autoload. Con await process_frame entre cada load, el engine
+	# tiene oportunidad de asentar el estado.
 	for s in scripts:
 		DebugLog.log("[_register_loaders] --- %s ---" % s)
-		# FileAccess directo al pck, antes de load(). Si ve el source pero
-		# load() devuelve un stub con source_code.length=0, el bug esta
-		# en la cadena de loaders o en el parser.
-		var raw := FileAccess.get_file_as_string(s)
-		DebugLog.log("[_register_loaders]   FileAccess len=%d, inicio=%.60s" % [
-			raw.length(), raw.substr(0, 60).replace("\n", " "),
-		])
-		DebugLog.log("[_register_loaders]   load() normal...")
-		var script: GDScript = load(s)
-		DebugLog.log("[_register_loaders]   load() CACHE_MODE_IGNORE...")
-		var script_ignore: GDScript = ResourceLoader.load(s, "", ResourceLoader.CACHE_MODE_IGNORE)
-		DebugLog.log("[_register_loaders]   normal: src=%d methods=%d base=%s" % [
-			script.source_code.length(), script.get_script_method_list().size(),
-			script.get_instance_base_type(),
-		])
-		DebugLog.log("[_register_loaders]   ignore: src=%d methods=%d base=%s" % [
-			script_ignore.source_code.length(), script_ignore.get_script_method_list().size(),
-			script_ignore.get_instance_base_type(),
-		])
-		# Usar el que funcione, para no romper el flujo actual.
-		if script_ignore.source_code.length() > 0:
-			script = script_ignore
-			DebugLog.log("[_register_loaders]   -> usando el de ignore (el normal estaba cacheado roto)")
-		DebugLog.log("[_register_loaders]   load() -> %s" % str(script))
+		var script: GDScript = ResourceLoader.load(s, "", ResourceLoader.CACHE_MODE_IGNORE)
 		if script == null:
-			DebugLog.log("[_register_loaders]   ABORTA: script null")
+			DebugLog.log("[_register_loaders]   ABORTA: load() devolvio null")
+			await get_tree().process_frame
 			continue
-		DebugLog.log("[_register_loaders]   base_type=%s" % script.get_instance_base_type())
-		DebugLog.log("[_register_loaders]   source_code.length=%d" % script.source_code.length())
-		DebugLog.log("[_register_loaders]   methods=%d" % script.get_script_method_list().size())
-		DebugLog.log("[_register_loaders]   can_instantiate()=%s" % script.can_instantiate())
+		DebugLog.log("[_register_loaders]   load() -> base=%s src=%d methods=%d" % [
+			script.get_instance_base_type(), script.source_code.length(),
+			script.get_script_method_list().size(),
+		])
 		if not script.can_instantiate():
 			DebugLog.log("[_register_loaders]   ABORTA: no compila")
+			await get_tree().process_frame
 			continue
-		DebugLog.log("[_register_loaders]   new()...")
 		var loader = script.new()
-		DebugLog.log("[_register_loaders]   new() -> %s" % str(loader))
-		if loader == null:
-			DebugLog.log("[_register_loaders]   ABORTA: new() null")
-			continue
-		# Chequear tipo ANTES de asignar la property. Si loader es
-		# RefCounted (parser no resolvio 'extends ResourceFormatLoader'),
-		# asignar mod_all_paths aborta la funcion completa y los
-		# siguientes loaders no se registran.
 		if not (loader is ResourceFormatLoader):
 			DebugLog.log("[_register_loaders]   ABORTA: no es ResourceFormatLoader (es %s)" % loader.get_class())
+			await get_tree().process_frame
 			continue
-		DebugLog.log("[_register_loaders]   asignando mod_all_paths...")
 		loader.mod_all_paths = _mod_all_paths
-		DebugLog.log("[_register_loaders]   registrando con ResourceLoader...")
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
 		DebugLog.log("[_register_loaders]   OK registrado, _loaders.size=%d" % _loaders.size())
+		# Ceder el frame antes del siguiente load.
+		await get_tree().process_frame
 	_log("%d runtime loaders registrados" % _loaders.size())
 
 
@@ -833,12 +838,6 @@ func _apply_order() -> void:
 	mods.append_array(ordered)
 
 
-func _load_all_enabled() -> void:
-	for m in mods:
-		if is_enabled(m["folder"]):
-			await load_mod(m)
-
-
 ## Walk unico del arbol de un mod. Devuelve {fingerprint, files, time}.
 ## - fingerprint: "mtime_max|count", para needs_bake
 ## - files: paths relativos (los que van al pck y al registro de .gd)
@@ -1123,54 +1122,6 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 	DebugLog.log("[register_paths] reasignado mod_all_paths (size=%d) a %d loaders" % [
 		_mod_all_paths.size(), _loaders.size(),
 	])
-
-
-func _collect(root: String, sub: String, out: Array[String], on_progress: Callable = Callable()) -> void:
-	var path := root if sub.is_empty() else root + "/" + sub
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return
-	for name in dir.get_files():
-		if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
-			continue
-		out.append(name if sub.is_empty() else sub + "/" + name)
-		# Cada 100 archivos avisar a la UI. Sin total conocido de antemano:
-		# el callback recibe (count, 0, "scan") y el ModSelector muestra el
-		# count sin barra de progreso (indeterminado).
-		if on_progress.is_valid() and out.size() % 100 == 0:
-			on_progress.call(out.size(), 0, "scan")
-	for name in dir.get_directories():
-		_collect(root, name if sub.is_empty() else sub + "/" + name, out, on_progress)
-
-
-func _mod_fingerprint(path: String) -> String:
-	var stats := {"mtime": 0, "count": 0}
-	_fingerprint_walk(path, stats)
-	return "%d|%d" % [stats["mtime"], stats["count"]]
-
-
-func _fingerprint_walk(path: String, stats: Dictionary) -> void:
-	# get_directories() + get_files() de una sola llamada, en vez del
-	# iterador list_dir_begin/get_next/current_is_dir que hace un stat()
-	# por entrada. Con 3070 archivos en FUSE la diferencia es de minutos
-	# a segundos.
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return
-	for f in dir.get_files():
-		stats["count"] = int(stats["count"]) + 1
-		# get_modified_time NO abre el archivo: consulta el atributo.
-		# La version anterior hacia FileAccess.open(full, READ) por cada
-		# archivo para leer su size - otro open()/close() por archivo,
-		# y el motivo principal de que el fingerprint de HQ tardara
-		# minutos. Se pierde la deteccion de cambios donde solo cambia
-		# el size sin tocar el mtime, que en la practica no pasa: editar
-		# un archivo en Android siempre actualiza el mtime.
-		var mtime: int = int(FileAccess.get_modified_time(path + "/" + f))
-		if mtime > int(stats["mtime"]):
-			stats["mtime"] = mtime
-	for d in dir.get_directories():
-		_fingerprint_walk(path + "/" + d, stats)
 
 
 ## Publico para debug externo.
