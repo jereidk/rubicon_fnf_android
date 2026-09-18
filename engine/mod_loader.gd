@@ -295,6 +295,8 @@ func _register_runtime_loaders() -> void:
 			DebugLog.log("[_register_loaders]   ABORTA: script null")
 			continue
 		DebugLog.log("[_register_loaders]   base_type=%s" % script.get_instance_base_type())
+		DebugLog.log("[_register_loaders]   source_code.length=%d" % script.source_code.length())
+		DebugLog.log("[_register_loaders]   methods=%d" % script.get_script_method_list().size())
 		DebugLog.log("[_register_loaders]   can_instantiate()=%s" % script.can_instantiate())
 		if not script.can_instantiate():
 			DebugLog.log("[_register_loaders]   ABORTA: no compila")
