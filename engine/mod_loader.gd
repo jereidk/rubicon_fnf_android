@@ -552,8 +552,12 @@ func _read_manifest(path: String) -> Dictionary:
 
 func _apply_order() -> void:
 	var explicit: Array = _config.get("order", [])
-	var ordered: Array = []
-	var rest: Array = mods.duplicate()
+	# `mods` es Array[Dictionary] y `ordered` tiene que ser del mismo tipo:
+	# asignar un Array sin tipo a un Array[Dictionary] es error de runtime
+	# en GDScript, y cortaba scan() antes de que devolviera los mods.
+	var ordered: Array[Dictionary] = []
+	var rest: Array[Dictionary] = []
+	rest.assign(mods)
 	for folder in explicit:
 		for m in rest:
 			if m["folder"] == folder:
@@ -562,7 +566,8 @@ func _apply_order() -> void:
 				break
 	rest.sort_custom(func(a, b): return a["folder"] < b["folder"])
 	ordered.append_array(rest)
-	mods = ordered
+	mods.clear()
+	mods.append_array(ordered)
 
 
 func _load_all_enabled() -> void:
