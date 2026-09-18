@@ -162,11 +162,11 @@ jobs:
         run: |
           VCODE=$((10000 + ${{ github.run_number }}))
           VNAME="1.0.${{ github.run_number }}"
-          sed -i "s|version_code=.*|version_code=\"$VCODE\"|" export_presets.cfg
-          sed -i "s|version_name=.*|version_name=\"$VNAME\"|" export_presets.cfg
-          sed -i "s|package/unique_name=.*|package/unique_name=\"com.rubiconengine.fnf\"|" export_presets.cfg
+          sed -i "s|^version/code=.*|version/code=$VCODE|" export_presets.cfg
+          sed -i "s|^version/name=.*|version/name=\"$VNAME\"|" export_presets.cfg
+          sed -i "s|^package/unique_name=.*|package/unique_name=\"com.rubiconengine.fnf\"|" export_presets.cfg
           echo "Aplicado version_code=$VCODE version_name=$VNAME"
-          grep -E "version_code|version_name|package/name" export_presets.cfg
+          grep -E "version/code|version/name|package/unique_name|package/name" export_presets.cfg
 
       - name: Debug export config
         run: |
@@ -175,7 +175,7 @@ jobs:
           echo "=== sha256 del export_presets.cfg ==="
           sha256sum export_presets.cfg
           echo "=== claves relevantes del preset ==="
-          grep -nE "package/unique_name|package/name|version_code|version_name" export_presets.cfg
+          grep -nE "^package/|^version/|^min_sdk|^target_sdk" export_presets.cfg
           echo "=== TODO el export_presets.cfg ==="
           cat export_presets.cfg
           echo "=== estado de .godot/ ==="
