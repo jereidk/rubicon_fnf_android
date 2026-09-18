@@ -16,6 +16,7 @@ extends Control
 
 const DEMO_SCENE := "res://songs/test/test.tscn"
 const MANAGER_SCENE := "res://engine/mod_manager.tscn"
+const AnimatedLogoScript := preload("res://engine/animated_logo.gd")
 
 ## Fondo opcional. Si el archivo no existe, se usa un ColorRect oscuro
 ## solido. Los PNG de FNF son menuBGBlue.png y menuBGMagenta.png, que
@@ -44,6 +45,7 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	_build_background()
+	_build_animated_logo()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -124,6 +126,44 @@ func _build_background() -> void:
 		bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(bg)
+
+
+## Logo animado (bump) a la izquierda, centrado verticalmente. Usa el
+## atlas Sparrow de FNF (logoBumpin.png + .xml). Si los archivos no
+## existen, no hace nada: el resto del menu sigue andando.
+##
+## Escala al 40% del ancho del viewport y lo centra verticalmente con
+## anchors. El frame del atlas es 939x703; sin escalar ocuparia casi
+## toda la pantalla.
+func _build_animated_logo() -> void:
+	var png := "res://resources/images/logoBumpin.png"
+	var xml := "res://resources/images/logoBumpin.xml"
+	if not ResourceLoader.exists(png) or not ResourceLoader.exists(xml):
+		return
+
+	# Anclar al centro-izquierda: la x queda pegada al borde izquierdo
+	# mas un margen, la y al centro vertical.
+	var logo: Control = AnimatedLogoScript.new()
+	add_child(logo)
+	logo.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Escala al 40% del ancho de pantalla.
+	var vp := get_viewport_rect().size
+	var frame_w := 939.0
+	var frame_h := 703.0
+	var target_w := vp.x * 0.40
+	var scale_factor := target_w / frame_w
+	logo.scale = Vector2(scale_factor, scale_factor)
+
+	# Con PRESET_CENTER_LEFT el offset x es hacia la derecha del anchor,
+	# y el offset y es hacia arriba/abajo desde el centro. Le restamos
+	# la mitad del alto escalado para que quede centrado verticalmente.
+	logo.size = Vector2(frame_w, frame_h)
+	logo.position = Vector2(40, -frame_h * scale_factor * 0.5)
+	logo.pivot_offset = Vector2(0, frame_h * 0.5)
+
+	logo.setup(png, xml)
 
 
 func _populate() -> void:
