@@ -1,4 +1,5 @@
 extends Node
+const GDCompileHelper := preload("res://engine/gd_compile.gd")
 ## Carga mods externos desde multiples raices, para que funcione tanto el
 ## scoped storage de Android (donde la app escribe sin permisos) como el
 ## storage compartido (donde el usuario pone mods con un gestor de
@@ -413,14 +414,20 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 		if not ResourceLoader.exists(path):
 			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no existe" % [name, folder, path])
 			continue
-		# 1. Registro en ProjectSettings para que el parser lo acepte.
-		#    El "*" es el prefijo que Godot usa para autoloads declarados
-		#    en project.godot.
+		# 1. Registro en ProjectSettings. NO hace que el parser de GDScript
+		#    reconozca el identificador (el analyzer resuelve autoloads al
+		#    boot, leyendo project.godot, y no se actualiza en runtime).
+		#    Sirve para reflection y para que get_node_or_null("/root/<Nombre>")
+		#    funcione en herramientas de editor. Los mods deben acceder a sus
+		#    autoloads con get_node_or_null, no como identificador global.
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 		# 2. Instancia real, en /root/ con el nombre exacto.
-		var script = load(path)
-		if not (script is GDScript):
-			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no es un GDScript" % [name, folder, path])
+		#    Compilamos el .gd a mano: load() sobre un .gd dentro de un
+		#    .pck montado devuelve un GDScript con base RefCounted en
+		#    Android, y .new() no da un Node. Ver engine/gd_compile.gd.
+		var script: GDScript = GDCompileHelper.from_path(path)
+		if script == null or not script.can_instantiate():
+			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no compila" % [name, folder, path])
 			continue
 		var node = script.new()
 		if not (node is Node):
