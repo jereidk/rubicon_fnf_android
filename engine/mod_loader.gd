@@ -9,11 +9,11 @@ extends Node
 ##     = /storage/emulated/0/Android/data/<pkg>/files/mods
 ##     La app puede leer y escribir siempre, sin permisos. Es donde la
 ##     app misma instala mods descargados.
-##   /storage/emulated/0/RubiconEngine/mods
+##   /storage/emulated/0/WashosEngine/mods
 ##     Storage compartido, sin punto inicial (Android 11+ bloquea
 ##     FileAccess sobre archivos dentro de carpetas ocultas).
 ##     Requiere MANAGE_EXTERNAL_STORAGE, que el engine pide al arrancar.
-##   /storage/emulated/0/.RubiconEngine/mods
+##   /storage/emulated/0/.WashosEngine/mods
 ##     Ruta historica con punto, por compatibilidad. En la mayoria de
 ##     dispositivos Android 11+ falla por scoped storage sobre carpetas
 ##     ocultas, pero se intenta igual.
@@ -48,8 +48,8 @@ func _log(msg: String) -> void:
 
 const MODS_ROOT_CANDIDATES: Array[String] = [
 	"user://mods",
-	"/storage/emulated/0/RubiconEngine/mods",
-	"/storage/emulated/0/.RubiconEngine/mods",
+	"/storage/emulated/0/WashosEngine/mods",
+	"/storage/emulated/0/.WashosEngine/mods",
 ]
 const ANDROID_STORAGE_PERMISSION := "android.permission.MANAGE_EXTERNAL_STORAGE"
 const CACHE_DIR := "user://mods_cache"

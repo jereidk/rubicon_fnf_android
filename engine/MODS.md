@@ -1,4 +1,4 @@
-# Mods del Rubicon Engine
+# Mods del Washos Engine
 
 El engine carga mods externos desde el almacenamiento del telefono, sin
 necesidad de recompilar el APK.
@@ -8,16 +8,16 @@ Estructura
 
 Raices de mods. El engine escanea TODAS las que existan:
 
-  user://mods  (Android/data/com.rubiconengine.fnf/files/mods/)
+  user://mods  (Android/data/com.washos.engine/files/mods/)
     La app puede leer y escribir sin permisos. Es donde el engine
     instala mods que descarga por su cuenta.
 
-  /storage/emulated/0/RubiconEngine/mods
+  /storage/emulated/0/WashosEngine/mods
     Storage compartido. Requiere el permiso "Acceso a todos los
     archivos" (MANAGE_EXTERNAL_STORAGE), que el engine pide al arrancar
     la primera vez.
 
-  /storage/emulated/0/.RubiconEngine/mods
+  /storage/emulated/0/.WashosEngine/mods
     Ruta historica con punto inicial. En Android 11+ suele ser
     ilegible por scoped storage, pero se intenta igual.
 
@@ -27,7 +27,7 @@ duplicados.
 
 Cada mod tiene su carpeta con la estructura espejo de res://:
 
-  RubiconEngine/
+  WashosEngine/
     mods/
       <nombre-del-mod>/
         mod.json         <- opcional

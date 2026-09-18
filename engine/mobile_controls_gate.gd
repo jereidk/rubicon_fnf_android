@@ -9,7 +9,7 @@ extends Node
 ##
 ## Este gate reemplaza al autoload: espera a que current_scene cambie,
 ## mira si la escena es gameplay (tiene un nodo con el script del nivel
-## de Rubicon), y solo entonces instancia el MobileControls y le deja el
+## de Washos), y solo entonces instancia el MobileControls y le deja el
 ## input. En cualquier otra escena no existe la instancia, asi que no hay
 ## input que capturar ni columnas invisibles.
 
@@ -55,7 +55,7 @@ func _ensure_instance() -> void:
 	_instance = MOBILE_CONTROLS_SCENE.instantiate()
 	add_child(_instance)
 
-## Un nodo gameplay en esta base tiene el script del nivel de Rubicon.
+## Un nodo gameplay en esta base tiene el script del nivel de Washos.
 ## Buscamos por nombre de archivo y no por clase porque la clase puede
 ## estar o no registrada segun como se cargo el addon.
 func _is_gameplay_scene(node: Node) -> bool:

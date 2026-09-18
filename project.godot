@@ -14,7 +14,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="RubiconFNF"
+config/name="Washos Engine"
 run/main_scene="res://engine/mod_selector.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://dlxowoyf4wnti"
@@ -36,7 +36,7 @@ window/vsync/vsync_mode=0
 
 [dotnet]
 
-project/assembly_name="RubiconFNF"
+project/assembly_name="Washos Engine"
 
 [input]
 

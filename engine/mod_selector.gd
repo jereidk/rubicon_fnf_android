@@ -60,7 +60,7 @@ func _build_ui() -> void:
 	margin.add_child(vbox)
 
 	_title = Label.new()
-	_title.text = "Rubicon Engine"
+	_title.text = "Washos Engine"
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title.add_theme_font_size_override("font_size", 64)
 	_title.add_theme_color_override("font_color", Color.WHITE)

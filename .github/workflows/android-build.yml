@@ -177,7 +177,7 @@ jobs:
           VNAME="1.0.${{ github.run_number }}"
           sed -i "s|^version/code=.*|version/code=$VCODE|" export_presets.cfg
           sed -i "s|^version/name=.*|version/name=\"$VNAME\"|" export_presets.cfg
-          sed -i "s|^package/unique_name=.*|package/unique_name=\"com.rubiconengine.fnf\"|" export_presets.cfg
+          sed -i "s|^package/unique_name=.*|package/unique_name=\"com.washos.engine\"|" export_presets.cfg
           echo "Aplicado version_code=$VCODE version_name=$VNAME"
           grep -E "version/code|version/name|package/unique_name|package/name" export_presets.cfg
 
@@ -216,10 +216,10 @@ jobs:
             --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
             --ks-key-alias ${{ secrets.KEY_ALIAS }} \
-            --out builds/rubicon-release.apk \
+            --out builds/washos-release.apk \
             builds/android_debug.apk
           
-          echo "Signed APK: builds/rubicon-release.apk"
+          echo "Signed APK: builds/washos-release.apk"
           ls -lh builds/
 
       - name: Upload generated .import files
@@ -237,7 +237,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: rubicon-fnfr-android-debug-symbols
+          name: washos-fnfr-android-debug-symbols
           path: |
             builds/*.symbols
             builds/*.so
@@ -247,8 +247,8 @@ jobs:
         if: steps.build.outputs.build_success == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: rubicon-fnfr-android-release
-          path: builds/rubicon-release.apk
+          name: washos-fnfr-android-release
+          path: builds/washos-release.apk
           retention-days: 14
           compression-level: 9
 
@@ -265,14 +265,14 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: rubicon-fnfr-android-release
+          name: washos-fnfr-android-release
           path: .
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: rubicon-release.apk
+          files: washos-release.apk
           generate_release_notes: true
           prerelease: ${{ !contains(github.ref, '-rc') }}
         env:

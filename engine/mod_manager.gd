@@ -181,17 +181,17 @@ func _refresh() -> void:
 func _short_root(root: String) -> String:
 	if root.begins_with("user://"):
 		return "app (user://mods)"
-	if root.contains("/.RubiconEngine/"):
-		return "RubiconEngine (oculto)"
-	if root.contains("/RubiconEngine/"):
-		return "RubiconEngine"
+	if root.contains("/.WashosEngine/"):
+		return "WashosEngine (oculto)"
+	if root.contains("/WashosEngine/"):
+		return "WashosEngine"
 	return root
 
 
 func _root_badge(root: String) -> String:
 	if root.begins_with("user://"):
 		return "app"
-	if root.contains("/.RubiconEngine/"):
+	if root.contains("/.WashosEngine/"):
 		return "ext?"
 	return "ext"
 

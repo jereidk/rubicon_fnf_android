@@ -35,7 +35,7 @@ const ANDROID_APP_LOG_DIR_FMT := "/storage/emulated/0/Android/data/%s/files/logs
 const FALLBACK_LOG_DIR := "user://logs"
 ## Package por defecto si no se puede leer el real. Coincide con el de
 ## export_presets.cfg.
-const DEFAULT_ANDROID_PACKAGE := "com.rubiconengine.fnf"
+const DEFAULT_ANDROID_PACKAGE := "com.washos.engine"
 
 ## Cuantos archivos .error se mantienen. Los mas viejos se borran al
 ## abrir uno nuevo. Estos archivos solo existen en sesiones con errores,
@@ -182,12 +182,12 @@ func _open() -> bool:
 	var dir: String = _pick_dir()
 	_rotate(dir)
 	var stamp: String = Time.get_datetime_string_from_system(false, true).replace(":", "-").replace(" ", "_")
-	_path = "%s/rubicon_%s.error" % [dir, stamp]
+	_path = "%s/washos_%s.error" % [dir, stamp]
 	_file = FileAccess.open(_path, FileAccess.WRITE)
 	if _file == null:
 		return false
 
-	_file.store_line("Rubicon Engine error log")
+	_file.store_line("Washos Engine error log")
 	_file.store_line("date    : %s" % Time.get_datetime_string_from_system())
 	var version: String = ""
 	if ProjectSettings.has_setting("application/config/version"):
