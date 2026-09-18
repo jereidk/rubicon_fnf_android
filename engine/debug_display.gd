@@ -33,10 +33,15 @@ const START_VISIBLE := true
 ## Fuente del overlay. Usa la del engine si esta disponible; si no, cae
 ## a la default del sistema.
 const FONT_PATH := "res://resources/fonts/fnt_vcr.ttf"
-const FONT_SIZE := 20
-const OUTLINE_SIZE := 4
+const FONT_SIZE := 28
+const OUTLINE_SIZE := 5
 const TEXT_COLOR := Color.WHITE
 const OUTLINE_COLOR := Color(0.05, 0.03, 0.05, 1.0)
+## Espacio entre letras. Negativo para juntarlas (el usuario lo pidio).
+## Se aplica con un FontVariation que envuelve la fuente original.
+const LETTER_SPACING := -2
+## Espacio entre lineas. Negativo para pegar las dos lineas del overlay.
+const LINE_SPACING := -4
 
 var _label: Label
 var _timer: float = 0.0
@@ -54,11 +59,18 @@ func _ready() -> void:
 	_label = Label.new()
 	_label.position = Vector2(20.0, 14.0)
 	if ResourceLoader.exists(FONT_PATH):
-		_label.add_theme_font_override("font", load(FONT_PATH))
+		# FontVariation envuelve la fuente para poder ajustar el spacing
+		# entre glifos. La fuente original no se modifica.
+		var fv := FontVariation.new()
+		fv.base_font = load(FONT_PATH)
+		fv.spacing_glyph = LETTER_SPACING
+		_label.add_theme_font_override("font", fv)
 	_label.add_theme_font_size_override("font_size", FONT_SIZE)
 	_label.add_theme_color_override("font_color", TEXT_COLOR)
 	_label.add_theme_color_override("font_outline_color", OUTLINE_COLOR)
 	_label.add_theme_constant_override("outline_size", OUTLINE_SIZE)
+	# Espacio vertical entre las dos lineas del overlay.
+	_label.add_theme_constant_override("line_spacing", LINE_SPACING)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_label)
 
