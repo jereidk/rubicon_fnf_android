@@ -85,30 +85,16 @@ func _refresh() -> void:
 		_mem_peak_mb = mem_now_mb
 
 	var vram_mb: int = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED)) / 1048576
-	var buf_mb: int = int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED)) / 1048576
-
-	var nodes: int = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
-	var objects: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
-	var resources: int = int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT))
-	var draw_calls: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
-	var primitives: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
-	var proc_ms: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
-	var phys_ms: float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 
 	var scene_name := _scene_name()
 	var mods := _mods_summary()
 
-	# Dos lineas. La primera es el estado del frame; la segunda, el estado
-	# del mundo. Separadas para que se pueda leer de un vistazo sin tener
-	# que escanear una sola linea muy larga.
+	# Dos lineas: estado del frame arriba, contexto del mundo abajo.
 	_label.text = (
-		"FPS %d (%.1fms)   MEM %d/%d MB   VRAM %d MB   BUF %d MB\n" % [
-			fps, frame_ms, mem_now_mb, _mem_peak_mb, vram_mb, buf_mb,
+		"FPS: %d (%.1fms)   MEM: %d/%d MB   VRAM: %d MB\n" % [
+			fps, frame_ms, mem_now_mb, _mem_peak_mb, vram_mb,
 		]
-		+ "NODES %d   OBJ %d   RES %d   DRAW %d   PRIM %d   PROC %.1fms   PHYS %.1fms\n" % [
-			nodes, objects, resources, draw_calls, primitives, proc_ms, phys_ms,
-		]
-		+ "SCENE %s   MODS %s" % [scene_name, mods]
+		+ "SCENE: %s   MODS: %s" % [scene_name, mods]
 	)
 
 
