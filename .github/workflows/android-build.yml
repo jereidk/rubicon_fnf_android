@@ -191,6 +191,19 @@ jobs:
           echo "=== export_presets.cfg justo antes del export ==="
           grep -E "version_code|version_name|package/unique_name|package/name" export_presets.cfg
 
+      - name: Debug export config
+        run: |
+          echo "=== PWD ==="
+          pwd
+          echo "=== sha256 del export_presets.cfg ==="
+          sha256sum export_presets.cfg
+          echo "=== claves relevantes del preset ==="
+          grep -nE "package/unique_name|package/name|version_code|version_name" export_presets.cfg
+          echo "=== TODO el export_presets.cfg ==="
+          cat export_presets.cfg
+          echo "=== estado de .godot/ ==="
+          ls -la .godot/ 2>/dev/null | head -20
+
       - name: Build Android Debug APK
         id: build
         run: |
