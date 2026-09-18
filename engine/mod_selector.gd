@@ -226,6 +226,35 @@ func _show_error(msg: String) -> void:
 	_error_label.visible = true
 
 
+## Compila un .gd leyendolo como bytes y forzando reload().
+##
+## ResourceLoader.load() sobre un .gd dentro de un .pck montado en runtime
+## devuelve un GDScript hueco en Android: el parser no lo compila y la
+## clase base queda en RefCounted, lo que revienta al asignarlo a un nodo.
+## Compilar manualmente desde bytes saltea el pck y el ResourceLoader.
+func _compile_gd_from_bytes(path: String) -> GDScript:
+	push_error("[compile_gd] ENTRADA: " + path)
+	if not FileAccess.file_exists(path):
+		push_error("[compile_gd] archivo no existe")
+		return null
+	var src := FileAccess.get_file_as_string(path)
+	push_error("[compile_gd] source_code length: %d" % src.length())
+	push_error("[compile_gd] primeras 120 chars: " + src.substr(0, 120))
+	if src.is_empty():
+		push_error("[compile_gd] source vacio")
+		return null
+	var gd := GDScript.new()
+	gd.source_code = src
+	var err := gd.reload()
+	push_error("[compile_gd] reload() -> %d" % err)
+	if err != OK:
+		push_error("[compile_gd] reload fallo")
+		return null
+	push_error("[compile_gd] can_instantiate: %s" % gd.can_instantiate())
+	push_error("[compile_gd] base_type: %s" % gd.get_instance_base_type())
+	return gd
+
+
 func _launch(m: Dictionary) -> void:
 	MenuMusic.play_confirm()
 	MenuMusic.fade_out_music(0.4)
