@@ -294,19 +294,23 @@ func _register_runtime_loaders() -> void:
 		if script == null:
 			DebugLog.log("[_register_loaders]   ABORTA: script null")
 			continue
+		DebugLog.log("[_register_loaders]   base_type=%s" % script.get_instance_base_type())
 		DebugLog.log("[_register_loaders]   can_instantiate()=%s" % script.can_instantiate())
 		if not script.can_instantiate():
 			DebugLog.log("[_register_loaders]   ABORTA: no compila")
 			continue
 		DebugLog.log("[_register_loaders]   new()...")
-		# var SIN tipo a proposito. Con 'var loader: ResourceFormatLoader
-		# = script.new()', si el cast implicito falla la asignacion aborta
-		# la funcion _register_runtime_loaders entera, silenciosamente.
-		# Sin tipo, el error aparece en el siguiente DebugLog.
 		var loader = script.new()
 		DebugLog.log("[_register_loaders]   new() -> %s" % str(loader))
 		if loader == null:
 			DebugLog.log("[_register_loaders]   ABORTA: new() null")
+			continue
+		# Chequear tipo ANTES de asignar la property. Si loader es
+		# RefCounted (parser no resolvio 'extends ResourceFormatLoader'),
+		# asignar mod_all_paths aborta la funcion completa y los
+		# siguientes loaders no se registran.
+		if not (loader is ResourceFormatLoader):
+			DebugLog.log("[_register_loaders]   ABORTA: no es ResourceFormatLoader (es %s)" % loader.get_class())
 			continue
 		DebugLog.log("[_register_loaders]   asignando mod_all_paths...")
 		loader.mod_all_paths = _mod_all_paths
