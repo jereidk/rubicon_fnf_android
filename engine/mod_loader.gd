@@ -26,25 +26,11 @@ const GDCompileHelper := preload("res://engine/gd_compile.gd")
 ## la raiz primaria. Cada mod tiene un campo root para saber de donde
 ## vino.
 
-## Ruta del log de diagnostico. Este archivo SIEMPRE se puede leer
-## desde Termux porque lo escribimos con FileAccess.open sobre una ruta
-## que no depende del permiso MANAGE_EXTERNAL_STORAGE: la raiz del
-## proyecto, que ya probamos al arrancar.
-##
-## Ojo: si la app no tiene permiso para escribir aca, el log no se crea.
-## Pero si no lo tiene, tampoco va a poder leer los mods externos, que
-## es exactamente el problema que el log intenta diagnosticar.
-const DEBUG_LOG := "user://mod_loader_debug.log"
-
-var _debug_file: FileAccess = null
-
+## Escribe al debug log general (DebugLog autoload). Reemplaza al sistema
+## viejo que escribia a user://mod_loader_debug.log - inalcanzable desde
+## Termux - y a print(), que no se ve en Android release sin logcat.
 func _log(msg: String) -> void:
-	print("[ModLoader] " + msg)
-	if _debug_file == null:
-		_debug_file = FileAccess.open(DEBUG_LOG, FileAccess.WRITE)
-	if _debug_file != null:
-		_debug_file.store_line(msg)
-		_debug_file.flush()
+	DebugLog.log("[ModLoader] " + msg)
 
 
 const MODS_ROOT_CANDIDATES: Array[String] = [
@@ -121,7 +107,7 @@ func _ready() -> void:
 func _on_android_permission_result(permission: String, granted: bool) -> void:
 	if permission != ANDROID_STORAGE_PERMISSION or not granted:
 		return
-	print("[ModLoader] permiso de storage otorgado, re-escaneando")
+	_log("permiso de storage otorgado, re-escaneando")
 	mods_roots = _resolve_mods_roots()
 	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
 	scan()
@@ -142,9 +128,9 @@ func _request_android_permissions() -> void:
 		return
 	var granted := OS.get_granted_permissions()
 	if ANDROID_STORAGE_PERMISSION in granted:
-		print("[ModLoader] permiso de storage ya otorgado")
+		_log("permiso de storage ya otorgado")
 		return
-	print("[ModLoader] pidiendo permiso de storage")
+	_log("pidiendo permiso de storage")
 	OS.request_permission(ANDROID_STORAGE_PERMISSION)
 
 
@@ -193,7 +179,7 @@ func reload_changed_mods() -> void:
 	if changed.is_empty():
 		return
 
-	print("[ModLoader] reload: %d mods cambiaron (%s)" % [changed.size(), ", ".join(changed)])
+	_log("reload: %d mods cambiaron (%s)" % [changed.size(), ", ".join(changed)])
 	scan()
 	# Reconstruir solo los .pck cambiados. load_mod() ya chequea mtime y
 	# saltea el empaquetado si nada cambio, asi que llamamos a los de la
@@ -228,7 +214,7 @@ func _register_runtime_loaders() -> void:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
-	print("[ModLoader] %d runtime loaders registrados" % _loaders.size())
+	_log("%d runtime loaders registrados" % _loaders.size())
 
 
 ## Devuelve todas las raices legibles en este dispositivo, en orden.
@@ -351,7 +337,7 @@ func uninstall_mod(folder: String) -> bool:
 	# Rescan para que la lista quede actualizada
 	scan()
 	mods_changed.emit()
-	print("[ModLoader] uninstalled: %s" % folder)
+	_log("uninstalled: %s" % folder)
 	return true
 
 
@@ -398,58 +384,61 @@ func _remove_recursive(path: String) -> int:
 ## con un warning: gana el primero.
 func _install_mod_autoloads(m: Dictionary) -> void:
 	var autoloads: Dictionary = m.get("autoloads", {})
+	DebugLog.log("[autoload] === %s ===" % m.get("folder", "?"))
 	if autoloads.is_empty():
+		DebugLog.log("[autoload] sin autoloads declarados, salgo")
 		return
+	DebugLog.log("[autoload] keys: %s" % str(autoloads.keys()))
+
 	var tree := get_tree()
 	if tree == null:
-		print("[autoload] get_tree() null, salgo")
+		DebugLog.log("[autoload] get_tree() null, salgo")
 		return
 	var root := tree.root
 	var folder: String = m["folder"]
-	print("[autoload] === instalando autoloads de %s ===" % folder)
-	print("[autoload] keys: %s" % str(autoloads.keys()))
 
 	for name in autoloads:
-		print("[autoload] --- %s ---" % name)
+		DebugLog.log("[autoload] --- %s ---" % name)
 		if root.has_node(NodePath(name)):
-			print("[autoload]   ya existe en /root, skip")
+			DebugLog.log("[autoload] ya existe en /root, skip")
 			continue
 		var path: String = autoloads[name]
-		print("[autoload]   path = %s" % path)
-		print("[autoload]   FileAccess.file_exists: %s" % FileAccess.file_exists(path))
-		print("[autoload]   ResourceLoader.exists:   %s" % ResourceLoader.exists(path))
+		DebugLog.log("[autoload] path=%s" % path)
+		DebugLog.log("[autoload] FileAccess.file_exists=%s" % FileAccess.file_exists(path))
+		DebugLog.log("[autoload] ResourceLoader.exists=%s" % ResourceLoader.exists(path))
 
-		# Uso FileAccess directamente para no depender de ResourceLoader.
 		if not FileAccess.file_exists(path):
-			print("[autoload]   FileAccess dice que no existe, skip")
+			DebugLog.log("[autoload] SKIP: FileAccess dice que no existe")
 			continue
 
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 
 		var script: GDScript = GDCompileHelper.from_path(path)
-		print("[autoload]   GDCompileHelper.from_path -> %s" % str(script))
+		DebugLog.log("[autoload] from_path -> %s" % str(script))
 		if script == null:
-			print("[autoload]   from_path devolvio null, skip")
+			DebugLog.log("[autoload] SKIP: from_path null")
 			continue
-		print("[autoload]   can_instantiate: %s" % script.can_instantiate())
-		print("[autoload]   base_type: %s" % script.get_instance_base_type())
+		DebugLog.log("[autoload] can_instantiate=%s" % script.can_instantiate())
+		DebugLog.log("[autoload] base_type=%s" % script.get_instance_base_type())
+
 		if not script.can_instantiate():
-			print("[autoload]   no compila, skip")
+			DebugLog.log("[autoload] SKIP: no compila")
 			continue
 
 		var node = script.new()
-		print("[autoload]   script.new() -> %s" % str(node))
+		DebugLog.log("[autoload] script.new() -> %s" % str(node))
 		if not (node is Node):
-			print("[autoload]   no es Node, skip")
+			DebugLog.log("[autoload] SKIP: no es Node")
 			continue
+
 		node.name = name
 		root.add_child(node)
-		print("[autoload]   add_child OK, root.has_node(%s): %s" % [name, root.has_node(NodePath(name))])
+		DebugLog.log("[autoload] add_child OK, has_node=%s" % root.has_node(NodePath(name)))
 		_installed_autoloads[name] = folder
 
-	print("[autoload] === fin. Hijos de /root: ===")
+	DebugLog.log("[autoload] === fin. Hijos de /root: ===")
 	for child in root.get_children():
-		print("[autoload]   - %s (%s)" % [child.name, child.get_class()])
+		DebugLog.log("[autoload]   - %s (%s)" % [child.name, child.get_class()])
 
 
 ## Remueve los autoloads que instalo un mod. Se llama solo en desinstalar:
@@ -472,7 +461,7 @@ func _remove_mod_autoloads(folder: String) -> void:
 		if ProjectSettings.has_setting("autoload/" + name):
 			ProjectSettings.clear("autoload/" + name)
 		_installed_autoloads.erase(name)
-		print("[ModLoader] autoload removido: %s (mod %s)" % [name, folder])
+		_log("autoload removido: %s (mod %s)" % [name, folder])
 
 
 func _config_path() -> String:
@@ -649,16 +638,16 @@ func load_mod(m: Dictionary) -> bool:
 	var folder: String = m["folder"]
 	var cache_path := CACHE_DIR + "/" + folder + ".pck"
 	var mtime_path := CACHE_DIR + "/" + folder + ".mtime"
-	var newest := _newest_mtime(m["path"])
-	var cached_mtime := 0
+	var fingerprint := _mod_fingerprint(m["path"])
+	var cached_fp := ""
 	if FileAccess.file_exists(mtime_path):
-		cached_mtime = int(FileAccess.open(mtime_path, FileAccess.READ).get_as_text())
+		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
 
-	if not FileAccess.file_exists(cache_path) or cached_mtime < newest:
+	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
 		if not _build_pck(m, cache_path):
 			push_error("[ModLoader] no se pudo empaquetar %s" % folder)
 			return false
-		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(str(newest))
+		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
 
 	var ok := ProjectSettings.load_resource_pack(cache_path, true)
 	if not ok:
@@ -669,7 +658,7 @@ func load_mod(m: Dictionary) -> bool:
 	# parsean hasta que ModSelector carga su main_scene, asi que la
 	# registracion de autoloads llega a tiempo.
 	_install_mod_autoloads(m)
-	print("[ModLoader] cargado: %s" % m.get("name", folder))
+	_log("cargado: %s" % m.get("name", folder))
 	return true
 
 
@@ -682,7 +671,7 @@ func _build_pck(m: Dictionary, out: String) -> bool:
 	for rel in files:
 		var err := packer.add_file("res://" + rel, m["path"] + "/" + rel)
 		if err != OK:
-			push_warning("[ModLoader] add_file %s fallo: %d" % [rel, err])
+			_log("add_file %s fallo: %d" % [rel, err])
 	return packer.flush(true) == OK
 
 
@@ -704,20 +693,49 @@ func _collect(root: String, sub: String, out: Array[String]) -> void:
 	dir.list_dir_end()
 
 
-func _newest_mtime(path: String) -> int:
-	var newest := 0
+## Fingerprint del contenido de un mod: mtime_max|bytes_totales|n_archivos.
+##
+## Reemplaza al viejo _newest_mtime() porque en Android sobre /storage/
+## emulated/0 (FUSE) FileAccess.get_modified_time() puede devolver 0. Si el
+## mtime del mod es 0 y el del cache tambien, `cached_mtime < newest` es
+## falso y el .pck viejo se queda pegado para siempre - ya nos paso con el
+## mod hello, que seguia cargando su main.gd roto aunque el archivo en disco
+## fuera otro.
+##
+## El fingerprint usa tres numeros en vez de uno: si el mtime falla en
+## Android, los bytes totales y la cantidad de archivos SI cambian al editar
+## cualquier archivo. Cualquiera de los tres distinto fuerza rebuild.
+##
+## Formato: "mtime|bytes|count" como string. Un valor viejo guardado como
+## int no coincide con el formato nuevo, forzando un rebuild unico que
+## migra el cache. A partir de ahi se estabiliza.
+##
+## En Android el walk tambien es barato: un mod tipico son decenas o cientos
+## de archivos, muy lejos del costo de empaquetar un pck.
+func _mod_fingerprint(path: String) -> String:
+	var stats := {"mtime": 0, "bytes": 0, "count": 0}
+	_fingerprint_walk(path, stats)
+	return "%d|%d|%d" % [stats["mtime"], stats["bytes"], stats["count"]]
+
+
+func _fingerprint_walk(path: String, stats: Dictionary) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
-		return 0
+		return
 	dir.list_dir_begin()
 	var name := dir.get_next()
 	while name != "":
 		if name != "." and name != "..":
 			var full := path + "/" + name
 			if dir.current_is_dir():
-				newest = max(newest, _newest_mtime(full))
+				_fingerprint_walk(full, stats)
 			else:
-				newest = max(newest, int(FileAccess.get_modified_time(full)))
+				stats["count"] = int(stats["count"]) + 1
+				var file := FileAccess.open(full, FileAccess.READ)
+				if file != null:
+					stats["bytes"] = int(stats["bytes"]) + file.get_length()
+					file.close()
+				stats["mtime"] = maxi(int(stats["mtime"]),
+					int(FileAccess.get_modified_time(full)))
 		name = dir.get_next()
 	dir.list_dir_end()
-	return newest

@@ -252,25 +252,25 @@ func _show_error(msg: String) -> void:
 ## clase base queda en RefCounted, lo que revienta al asignarlo a un nodo.
 ## Compilar manualmente desde bytes saltea el pck y el ResourceLoader.
 func _compile_gd_from_bytes(path: String) -> GDScript:
-	print("[compile_gd] ENTRADA: " + path)
+	#print("[compile_gd] ENTRADA: " + path)
 	if not FileAccess.file_exists(path):
-		print("[compile_gd] archivo no existe")
+	#print("[compile_gd] archivo no existe")
 		return null
 	var src := FileAccess.get_file_as_string(path)
-	print("[compile_gd] source_code length: %d" % src.length())
-	print("[compile_gd] primeras 120 chars: " + src.substr(0, 120))
+	#print("[compile_gd] source_code length: %d" % src.length())
+	#print("[compile_gd] primeras 120 chars: " + src.substr(0, 120))
 	if src.is_empty():
-		print("[compile_gd] source vacio")
+	#print("[compile_gd] source vacio")
 		return null
 	var gd := GDScript.new()
 	gd.source_code = src
 	var err := gd.reload()
-	print("[compile_gd] reload() -> %d" % err)
+	#print("[compile_gd] reload() -> %d" % err)
 	if err != OK:
-		print("[compile_gd] reload fallo")
+	#print("[compile_gd] reload fallo")
 		return null
-	print("[compile_gd] can_instantiate: %s" % gd.can_instantiate())
-	print("[compile_gd] base_type: %s" % gd.get_instance_base_type())
+	#print("[compile_gd] can_instantiate: %s" % gd.can_instantiate())
+	#print("[compile_gd] base_type: %s" % gd.get_instance_base_type())
 	return gd
 
 
