@@ -514,9 +514,6 @@ func _load_config() -> void:
 		return
 	var parsed = JSON.parse_string(f.get_as_text())
 	if parsed == null:
-		push_warning("[ModLoader] JSON invalido en %s" % path)
-		return
-	if parsed == null:
 		push_warning("[ModLoader] config/mods.json invalido, usando defaults")
 		return
 	if parsed is Dictionary:
