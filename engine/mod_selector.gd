@@ -212,7 +212,26 @@ func _add_button(text: String, cb: Callable) -> void:
 
 
 func _open_manager() -> void:
-	get_tree().change_scene_to_file(MANAGER_SCENE)
+	# Mismo patron que _launch(): no usar change_scene_to_file porque
+	# el .tscn resuelve su ExtResource via ResourceLoader.load(), que
+	# devuelve un GDScript roto (base RefCounted) cuando hay un .pck
+	# de mod montado. Compilamos el .gd a mano y construimos el nodo.
+	var gd := _compile_gd_from_bytes("res://engine/mod_manager.gd")
+	if gd == null or not gd.can_instantiate():
+		_show_error("mod_manager.gd no compila")
+		return
+	var node = gd.new()
+	if not (node is Node):
+		_show_error("mod_manager.gd no extiende Node")
+		return
+	node.name = "ModManager"
+	if node is Control:
+		node.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var old := get_tree().current_scene
+	get_tree().root.add_child(node)
+	get_tree().current_scene = node
+	if old != null:
+		old.queue_free()
 
 
 func _go_demo() -> void:
@@ -233,25 +252,25 @@ func _show_error(msg: String) -> void:
 ## clase base queda en RefCounted, lo que revienta al asignarlo a un nodo.
 ## Compilar manualmente desde bytes saltea el pck y el ResourceLoader.
 func _compile_gd_from_bytes(path: String) -> GDScript:
-	push_error("[compile_gd] ENTRADA: " + path)
+	print("[compile_gd] ENTRADA: " + path)
 	if not FileAccess.file_exists(path):
-		push_error("[compile_gd] archivo no existe")
+		print("[compile_gd] archivo no existe")
 		return null
 	var src := FileAccess.get_file_as_string(path)
-	push_error("[compile_gd] source_code length: %d" % src.length())
-	push_error("[compile_gd] primeras 120 chars: " + src.substr(0, 120))
+	print("[compile_gd] source_code length: %d" % src.length())
+	print("[compile_gd] primeras 120 chars: " + src.substr(0, 120))
 	if src.is_empty():
-		push_error("[compile_gd] source vacio")
+		print("[compile_gd] source vacio")
 		return null
 	var gd := GDScript.new()
 	gd.source_code = src
 	var err := gd.reload()
-	push_error("[compile_gd] reload() -> %d" % err)
+	print("[compile_gd] reload() -> %d" % err)
 	if err != OK:
-		push_error("[compile_gd] reload fallo")
+		print("[compile_gd] reload fallo")
 		return null
-	push_error("[compile_gd] can_instantiate: %s" % gd.can_instantiate())
-	push_error("[compile_gd] base_type: %s" % gd.get_instance_base_type())
+	print("[compile_gd] can_instantiate: %s" % gd.can_instantiate())
+	print("[compile_gd] base_type: %s" % gd.get_instance_base_type())
 	return gd
 
 
