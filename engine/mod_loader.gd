@@ -444,7 +444,14 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 
 		node.name = name
 		root.add_child(node)
-		DebugLog.log("[autoload] add_child OK, has_node=%s" % root.has_node(NodePath(name)))
+		DebugLog.log("[autoload] add_child OK")
+		DebugLog.log("[autoload]   node.get_parent()=%s" % ("null" if node.get_parent() == null else node.get_parent().name))
+		DebugLog.log("[autoload]   node.get_path()=%s" % str(node.get_path()))
+		DebugLog.log("[autoload]   node.is_inside_tree()=%s" % node.is_inside_tree())
+		DebugLog.log("[autoload]   root.get_child_count()=%d" % root.get_child_count())
+		DebugLog.log("[autoload]   ultimo hijo de root: %s" % root.get_child(root.get_child_count() - 1).name)
+		DebugLog.log("[autoload]   has_node(NodePath(name))=%s" % root.has_node(NodePath(name)))
+		DebugLog.log("[autoload]   has_node(name)=%s" % root.has_node(name))
 		_installed_autoloads[name] = folder
 
 	DebugLog.log("[autoload] === fin. Hijos de /root: ===")
