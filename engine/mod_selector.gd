@@ -324,6 +324,11 @@ func _go_demo() -> void:
 func _show_error(msg: String) -> void:
 	_error_label.text = msg
 	_error_label.visible = true
+	# Antes solo pintaba un Label rojo: el error no llegaba a debug.log
+	# ni a washos_*.error, asi que un fallo de carga era invisible en los
+	# archivos. Ahora va a los dos.
+	DebugLog.log("[ModSelector] ERROR: " + msg.replace("\n", " | "))
+	push_warning("[ModSelector] " + msg.replace("\n", " | "))
 
 
 ## Compila un .gd leyendolo como bytes y forzando reload().
@@ -356,25 +361,38 @@ func _compile_gd_from_bytes(path: String) -> GDScript:
 
 
 func _launch(m: Dictionary) -> void:
+	var folder: String = str(m.get("folder", "?"))
+	var scene: String = str(m.get("main_scene", ""))
+	DebugLog.log("[ModSelector._launch] mod=%s scene=%s" % [folder, scene])
+
 	MenuMusic.play_confirm()
 	MenuMusic.fade_out_music(0.4)
-	var scene: String = str(m.get("main_scene", ""))
+
 	if scene.is_empty():
 		_show_error("Mod '%s' no define main_scene.\nFolder: %s" % [m["folder"], m["path"]])
 		return
-	if not ResourceLoader.exists(scene):
-		_show_error("No encontrado: %s\nVerifica que el archivo exista dentro del mod." % scene)
-		return
 
-	# Bake on-demand: empaquetar el pck si hace falta, montarlo, e instalar
-	# los autoloads del mod. needs_bake() decide si mostrar el overlay; con
-	# un mod ya cacheado bake_mod corre en milisegundos y no se ve nada.
-	if ModLoader.needs_bake(m["folder"]):
-		_show_loading_overlay(str(m.get("name", m["folder"])))
+	# Bake PRIMERO, antes de cualquier check de existencia. Sin el pck
+	# montado, ResourceLoader.exists() da false para CUALQUIER path del
+	# mod - main_scene incluido - y un check previo abortaba antes de que
+	# bake_mod corriera. Montar el pck, y recien despues preguntar si el
+	# archivo existe.
+	var need: bool = ModLoader.needs_bake(folder)
+	DebugLog.log("[ModSelector._launch] needs_bake=%s" % need)
+	if need:
+		_show_loading_overlay(str(m.get("name", folder)))
+	DebugLog.log("[ModSelector._launch] llamando bake_mod...")
 	var baked: bool = await ModLoader.bake_mod(m, _on_bake_progress)
+	DebugLog.log("[ModSelector._launch] bake_mod devolvio %s" % baked)
 	_hide_loading_overlay()
 	if not baked:
-		_show_error("No se pudo preparar el mod: %s" % m["folder"])
+		_show_error("No se pudo preparar el mod: %s" % folder)
+		return
+
+	var exists: bool = ResourceLoader.exists(scene)
+	DebugLog.log("[ModSelector._launch] ResourceLoader.exists(%s)=%s" % [scene, exists])
+	if not exists:
+		_show_error("No encontrado: %s\nVerifica que el archivo exista dentro del mod." % scene)
 		return
 
 	if scene.ends_with(".gd"):
