@@ -731,7 +731,7 @@ func _apply_order() -> void:
 func _load_all_enabled() -> void:
 	for m in mods:
 		if is_enabled(m["folder"]):
-			load_mod(m)
+			await load_mod(m)
 
 
 ## Devuelve true si el pck del mod falta o esta desactualizado respecto
@@ -791,42 +791,15 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 	return true
 
 
+## Wrapper de bake_mod sin callback de progreso. bake_mod es coroutine
+## (cede el frame cada PROGRESS_EVERY archivos para que la UI respire),
+## asi que load_mod tambien lo es: los callers deben hacer await.
+##
+## Existe por compatibilidad con los callers que ya usaban load_mod
+## (_load_all_enabled, reload_changed_mods). El cuerpo real esta en
+## bake_mod desde el refactor de bake on-demand.
 func load_mod(m: Dictionary) -> bool:
-	var folder: String = m["folder"]
-	var cache_path := CACHE_DIR + "/" + folder + ".pck"
-	var mtime_path := CACHE_DIR + "/" + folder + ".mtime"
-	var fingerprint := _mod_fingerprint(m["path"])
-	var cached_fp := ""
-	if FileAccess.file_exists(mtime_path):
-		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
-
-	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
-		if not _build_pck(m, cache_path):
-			push_error("[ModLoader] no se pudo empaquetar %s" % folder)
-			return false
-		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
-
-	var ok := ProjectSettings.load_resource_pack(cache_path, true)
-	if not ok:
-		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
-		return false
-
-	_register_mod_gd_paths(m["path"])
-	# Instalar autoloads AHORA, mientras el .pck ya esta montado pero la
-	# escena del mod todavia no se cargo. Los scripts del mod no se
-	# parsean hasta que ModSelector carga su main_scene, asi que la
-	# registracion de autoloads llega a tiempo.
-	_install_mod_autoloads(m)
-	_log("cargado: %s" % m.get("name", folder))
-	return true
-
-
-## Empaqueta el mod. on_progress(done, total, "pack") se llama cada
-## PROGRESS_EVERY archivos para actualizar la UI. Cede el frame cada
-## tantos archivos con await process_frame para que la barra se redibuje.
-## PCKPacker no es thread-safe, asi que esto corre en main thread.
-const PROGRESS_EVERY := 100
-
+	return await bake_mod(m, Callable())
 func _build_pck(m: Dictionary, out: String, on_progress: Callable = Callable()) -> bool:
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
