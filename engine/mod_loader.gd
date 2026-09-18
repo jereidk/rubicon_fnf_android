@@ -88,6 +88,13 @@ var _installed_autoloads: Dictionary = {}
 ## nodo quedan vivos aca mientras dure ModLoader.
 var _installed_autoload_nodes: Dictionary = {}
 
+## Autoloads que no pudieron entrar al arbol durante el _ready de
+## ModLoader (Window rechaza add_child en esa fase). El flush corre
+## una sola vez, en el primer process_frame, y los mete a todos juntos
+## para que el orden sea consistente.
+var _pending_autoloads: Array[Dictionary] = []
+var _pending_flush_connected: bool = false
+
 
 func _ready() -> void:
 	# Conectar primero: OS.request_permission es asincrono (dispara el
@@ -403,9 +410,7 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 	var autoloads: Dictionary = m.get("autoloads", {})
 	DebugLog.log("[autoload] === %s ===" % m.get("folder", "?"))
 	if autoloads.is_empty():
-		DebugLog.log("[autoload] sin autoloads declarados, salgo")
 		return
-	DebugLog.log("[autoload] keys: %s" % str(autoloads.keys()))
 
 	var tree := get_tree()
 	if tree == null:
@@ -415,37 +420,24 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 	var folder: String = m["folder"]
 
 	for name in autoloads:
-		DebugLog.log("[autoload] --- %s ---" % name)
 		if root.has_node(NodePath(name)):
-			DebugLog.log("[autoload] ya existe en /root, skip")
+			DebugLog.log("[autoload] %s ya existe en /root, skip" % name)
 			continue
 		var path: String = autoloads[name]
-		DebugLog.log("[autoload] path=%s" % path)
-		DebugLog.log("[autoload] FileAccess.file_exists=%s" % FileAccess.file_exists(path))
-		DebugLog.log("[autoload] ResourceLoader.exists=%s" % ResourceLoader.exists(path))
-
 		if not FileAccess.file_exists(path):
-			DebugLog.log("[autoload] SKIP: FileAccess dice que no existe")
+			DebugLog.log("[autoload] SKIP %s: FileAccess dice que no existe (%s)" % [name, path])
 			continue
 
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 
 		var script: GDScript = GDCompileHelper.from_path(path)
-		DebugLog.log("[autoload] from_path -> %s" % str(script))
-		if script == null:
-			DebugLog.log("[autoload] SKIP: from_path null")
-			continue
-		DebugLog.log("[autoload] can_instantiate=%s" % script.can_instantiate())
-		DebugLog.log("[autoload] base_type=%s" % script.get_instance_base_type())
-
-		if not script.can_instantiate():
-			DebugLog.log("[autoload] SKIP: no compila")
+		if script == null or not script.can_instantiate():
+			DebugLog.log("[autoload] SKIP %s: no compila (%s)" % [name, path])
 			continue
 
 		var node = script.new()
-		DebugLog.log("[autoload] script.new() -> %s" % str(node))
 		if not (node is Node):
-			DebugLog.log("[autoload] SKIP: no es Node")
+			DebugLog.log("[autoload] SKIP %s: el script no extiende Node" % name)
 			continue
 
 		node.name = name
@@ -453,28 +445,68 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 		# parent, evita que el nodo se libere por no tener quien lo sostenga.
 		_installed_autoload_nodes[name] = node
 		root.add_child(node)
-		DebugLog.log("[autoload] add_child OK")
-		DebugLog.log("[autoload]   parent=%s path=%s inside_tree=%s child_count=%d has_node=%s" % [
-			"null" if node.get_parent() == null else node.get_parent().name,
-			str(node.get_path()), node.is_inside_tree(),
-			root.get_child_count(), root.has_node(NodePath(name)),
-		])
-		# Fallback: si el add_child sincrono no cuajo (root Window rechaza
-		# durante el _ready de un autoload), reintentar diferido y esperar
-		# un frame para que el arbol se estabilice.
-		if not root.has_node(NodePath(name)):
-			DebugLog.log("[autoload] add_child sincrono no cuajo, diferiendo")
-			root.call_deferred("add_child", node)
-			await get_tree().process_frame
-			DebugLog.log("[autoload]   tras process_frame: parent=%s path=%s has_node=%s" % [
-				"null" if node.get_parent() == null else node.get_parent().name,
-				str(node.get_path()), root.has_node(NodePath(name)),
-			])
-		_installed_autoloads[name] = folder
 
-	DebugLog.log("[autoload] === fin. Hijos de /root: ===")
-	for child in root.get_children():
-		DebugLog.log("[autoload]   - %s (%s)" % [child.name, child.get_class()])
+		if root.has_node(NodePath(name)):
+			# Camino normal: el arbol acepto el add_child en el mismo frame.
+			_installed_autoloads[name] = folder
+			DebugLog.log("[autoload] instalado %s -> %s" % [name, path])
+		else:
+			# Window rechaza add_child durante el _ready de un autoload.
+			# Encolar para el flush del proximo frame. NO await: la funcion
+			# retorna ya, y el caller sabe que la parte sincronica termino.
+			_pending_autoloads.append({"name": name, "node": node, "folder": folder})
+			_installed_autoloads[name] = folder
+			DebugLog.log("[autoload] encolado para flush: %s (%s)" % [name, path])
+
+	_ensure_flush_connected()
+
+
+## Conecta el flush al primer process_frame, una sola vez por sesion.
+## Separado del loop para poder llamarlo desde varios sitios sin duplicar
+## la conexion.
+func _ensure_flush_connected() -> void:
+	if _pending_flush_connected:
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	_pending_flush_connected = true
+	tree.process_frame.connect(_flush_pending_autoloads, CONNECT_ONE_SHOT)
+
+
+## Instala de una sola vez los autoloads que quedaron encolados por el
+## rechazo silencioso de Window durante el _ready de ModLoader.
+##
+## Corre en el primer process_frame del SceneTree, cuando el arbol ya
+## acepta add_child. Los nodos ya tienen parent=null pero estan vivos
+## por la referencia fuerte en _installed_autoload_nodes.
+func _flush_pending_autoloads() -> void:
+	if _pending_autoloads.is_empty():
+		_pending_flush_connected = false
+		return
+
+	var tree := get_tree()
+	if tree == null:
+		_pending_flush_connected = false
+		return
+	var root := tree.root
+
+	DebugLog.log("[autoload] flush de %d autoloads encolados" % _pending_autoloads.size())
+	for item in _pending_autoloads:
+		var node: Node = item["node"]
+		var name: String = item["name"]
+		if not is_instance_valid(node):
+			DebugLog.log("[autoload] %s ya no existe, salteando" % name)
+			continue
+		if root.has_node(NodePath(name)):
+			DebugLog.log("[autoload] %s ya esta en /root, salteando" % name)
+			continue
+		root.add_child(node)
+		DebugLog.log("[autoload] flush OK: %s -> %s has_node=%s" % [
+			name, str(node.get_path()), root.has_node(NodePath(name)),
+		])
+	_pending_autoloads.clear()
+	_pending_flush_connected = false
 
 
 ## Remueve los autoloads que instalo un mod. Se llama solo en desinstalar:
@@ -487,6 +519,17 @@ func _remove_mod_autoloads(folder: String) -> void:
 	for name in _installed_autoloads:
 		if _installed_autoloads[name] == folder:
 			to_remove.append(name)
+
+	# Sacar del pending tambien: si el mod se desinstala antes del flush,
+	# no queremos que el flush lo instale igual.
+	var kept: Array[Dictionary] = []
+	for item in _pending_autoloads:
+		if item["folder"] == folder:
+			DebugLog.log("[autoload] descartado del flush: %s" % item["name"])
+		else:
+			kept.append(item)
+	_pending_autoloads = kept
+
 	var tree := get_tree()
 	if tree == null:
 		return
@@ -497,6 +540,7 @@ func _remove_mod_autoloads(folder: String) -> void:
 		if ProjectSettings.has_setting("autoload/" + name):
 			ProjectSettings.clear("autoload/" + name)
 		_installed_autoloads.erase(name)
+		_installed_autoload_nodes.erase(name)
 		_log("autoload removido: %s (mod %s)" % [name, folder])
 
 
