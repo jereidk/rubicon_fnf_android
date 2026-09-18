@@ -439,7 +439,9 @@ func _launch(m: Dictionary) -> void:
 			old.queue_free()
 		return
 
+	DebugLog.log("[ModSelector._launch] change_scene_to_file(%s)" % scene)
 	get_tree().change_scene_to_file(scene)
+	DebugLog.log("[ModSelector._launch] change_scene_to_file devolvio")
 
 
 func _unhandled_input(event: InputEvent) -> void:

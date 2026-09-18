@@ -969,13 +969,14 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 			return false
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
 
-	# Registrar los paths ANTES de montar el pck. load_resource_pack
-	# instancia los .tscn del pck, que preloadean .gd/assets del mod. Si el
-	# mapeo mod_all_paths no esta listo, esos preloads fallan con
-	# "Preload file does not exist" aunque el archivo fisico exista.
+	DebugLog.log("[bake_mod] %s: registrando %d paths ANTES del pck" % [
+		folder, files.size(),
+	])
 	_register_mod_gd_paths(files, m["path"])
+	DebugLog.log("[bake_mod] %s: paths registrados, montando pck..." % folder)
 
 	var ok := ProjectSettings.load_resource_pack(cache_path, true)
+	DebugLog.log("[bake_mod] %s: load_resource_pack=%s" % [folder, ok])
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
@@ -1023,11 +1024,9 @@ func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable 
 ## compila a mano los paths registrados aca. Se llama SIEMPRE,
 ## aunque el pck este en cache, porque el registro no se persiste.
 func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
-	# mod_all_paths mapea res://... -> path fisico en el telefono. Los
-	# runtime loaders lo usan para leer directo del filesystem del mod
-	# (sin pck) y para saber si un archivo es de un mod o del APK.
-	# mod_path vacio = comportamiento viejo (solo true), para no romper
-	# llamadas existentes que pasen files sin path.
+	var n_gd: int = 0
+	var n_res: int = 0
+	var n_other: int = 0
 	for rel in files:
 		var s: String = String(rel)
 		var res_path: String = "res://" + s
@@ -1037,8 +1036,21 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 		_mod_all_paths[res_path] = physical
 		if s.ends_with(".gd"):
 			_mod_gd_paths[res_path] = true
+			n_gd += 1
 		elif s.ends_with(".tres") or s.ends_with(".tscn") or s.ends_with(".scn") or s.ends_with(".res"):
 			_mod_resource_paths[res_path] = true
+			n_res += 1
+		else:
+			n_other += 1
+	DebugLog.log("[register_paths] mod_path=%s total=%d gd=%d res=%d other=%d" % [
+		mod_path, files.size(), n_gd, n_res, n_other,
+	])
+	# Check especifico de gen_util: si esto es false con el pck ya montado,
+	# el preload del .gd va a fallar.
+	var test_path := "res://holyquintet_mod/scripts/gen_util.gd"
+	DebugLog.log("[register_paths] CHECK %s: in_mod_gd=%s in_mod_all=%s" % [
+		test_path, _mod_gd_paths.has(test_path), _mod_all_paths.has(test_path),
+	])
 
 
 func _collect(root: String, sub: String, out: Array[String], on_progress: Callable = Callable()) -> void:

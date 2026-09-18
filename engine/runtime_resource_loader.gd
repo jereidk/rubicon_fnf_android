@@ -38,6 +38,13 @@ extends ResourceFormatLoader
 
 var mod_resource_paths: Dictionary = {}
 
+## Igual que en los otros runtime loaders: ModLoader lo inyecta al
+## registrar el loader. Los .tscn/.tres SI van al pck (el text loader
+## nativo los abre con FileAccess directo), asi que este loader no
+## necesita el mapeo para _load, pero lo recibe igual para que el log
+## de diagnostico lo pueda leer.
+var mod_all_paths: Dictionary = {}
+
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["tres", "tscn", "scn"])
@@ -86,10 +93,15 @@ func _exists(path: String) -> bool:
 
 
 func _load(path: String, _orig: String, _sub: bool, _cache: int) -> Variant:
+	DebugLog.log("[res_loader._load] path=%s in_mod_res=%s in_mod_all=%s" % [
+		path, mod_resource_paths.has(path), mod_all_paths.has(path),
+	])
 	if not mod_resource_paths.has(path):
 		return null
-	# Delegar al text loader nativo sin recursar. Ver el docstring.
 	ResourceLoader.remove_resource_format_loader(self)
+	DebugLog.log("[res_loader._load] delegando al text loader: %s" % path)
 	var res: Resource = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	DebugLog.log("[res_loader._load] text loader devolvio %s" % str(res))
 	ResourceLoader.add_resource_format_loader(self, true)
 	return res
+

@@ -71,13 +71,19 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	# No es un .gd de un mod: devolver null para que Godot siga con el
 	# loader nativo. El ciclo de ResourceLoader::_load() chequea
 	# res.is_valid() y continua si no lo es.
+	# LOG: entrada y estado de los 3 diccionarios.
+	DebugLog.log("[gd_loader._load] path=%s in_mod_gd=%s in_mod_all=%s" % [
+		path, mod_gd_paths.has(path), mod_all_paths.has(path),
+	])
 	if not mod_gd_paths.has(path):
+		DebugLog.log("[gd_loader._load] RECHAZA: no esta en mod_gd_paths")
 		return null
-	# Mapear res:// -> path fisico. Con el split de pck, los .gd del mod
-	# NO estan en el pck, asi que res:// no los ve.
 	var src_path: String = path
 	if mod_all_paths.has(path):
 		src_path = String(mod_all_paths[path])
+	DebugLog.log("[gd_loader._load] src_path=%s exists=%s" % [
+		src_path, FileAccess.file_exists(src_path),
+	])
 	if not FileAccess.file_exists(src_path):
 		return null
 
