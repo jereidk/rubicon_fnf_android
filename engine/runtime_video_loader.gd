@@ -14,6 +14,13 @@ func _get_recognized_extensions() -> PackedStringArray:
 func _get_resource_type(_path: String) -> String:
 	return "VideoStreamTheora"
 
+func _recognize_path(path: String, _for_type: StringName) -> bool:
+	# Mismo motivo que en los demas runtime loaders: el type_hint del
+	# preload() puede llegar como "PackedScene" y descartar el loader
+	# antes de _load(). _recognize_path corre antes del filtro.
+	return path.get_extension().to_lower() == "ogv"
+
+
 func _handles_type(type: StringName) -> bool:
 	return type == &"VideoStream" or type == &"VideoStreamTheora"
 

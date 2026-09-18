@@ -99,6 +99,13 @@ var _collisions_dirty: bool = true
 var _mod_gd_paths: Dictionary = {}
 var _gd_loader: ResourceFormatLoader = null
 
+## Cache del walk del arbol de un mod: {folder -> {fingerprint, files, time}}.
+## needs_bake() y bake_mod() comparten el resultado: sin esto el walk de
+## 3070 archivos corria 4 veces por _launch (needs_bake + fingerprint
+## interno de bake_mod + _build_pck + _register_mod_gd_paths).
+var _scan_cache: Dictionary = {}
+const SCAN_CACHE_MS := 5000
+
 ## Autoloads que no pudieron entrar al arbol durante el _ready de
 ## ModLoader (Window rechaza add_child en esa fase). El flush corre
 ## una sola vez, en el primer process_frame, y los mete a todos juntos
@@ -205,9 +212,9 @@ func reload_changed_mods() -> void:
 	var changed: Array[String] = []
 	for m in mods:
 		var folder: String = m["folder"]
-		var fingerprint := _mod_fingerprint(m["path"])
+		var scan := _scan_mod_tree(folder, m["path"])
 		var cached := _cached_fingerprint(folder)
-		if fingerprint != cached:
+		if String(scan["fingerprint"]) != cached:
 			changed.append(folder)
 
 	if changed.is_empty():
@@ -329,8 +336,8 @@ func _recompute_collisions() -> void:
 	for m in mods:
 		if not is_enabled(m["folder"]):
 			continue
-		var files: Array[String] = []
-		_collect(m["path"], "", files)
+		var scan := _scan_mod_tree(m["folder"], m["path"])
+		var files: Array = scan["files"]
 		for rel in files:
 			var res_path := "res://" + rel
 			if not paths.has(res_path):
@@ -751,6 +758,36 @@ func _load_all_enabled() -> void:
 			await load_mod(m)
 
 
+## Walk unico del arbol de un mod. Devuelve {fingerprint, files, time}.
+## - fingerprint: "mtime_max|count", para needs_bake
+## - files: paths relativos (los que van al pck y al registro de .gd)
+##
+## Cacheado por SCAN_CACHE_MS: needs_bake y bake_mod comparten el mismo
+## resultado. Sin esto el walk corria 4 veces por cada _launch.
+func _scan_mod_tree(folder: String, mod_path: String) -> Dictionary:
+	if _scan_cache.has(folder):
+		var cached: Dictionary = _scan_cache[folder]
+		if Time.get_ticks_msec() - int(cached.get("time", 0)) < SCAN_CACHE_MS:
+			return cached
+
+	var files: Array[String] = []
+	_collect(mod_path, "", files)
+
+	var max_mtime: int = 0
+	for rel in files:
+		var mt: int = int(FileAccess.get_modified_time(mod_path + "/" + rel))
+		if mt > max_mtime:
+			max_mtime = mt
+
+	var result := {
+		"fingerprint": "%d|%d" % [max_mtime, files.size()],
+		"files": files,
+		"time": Time.get_ticks_msec(),
+	}
+	_scan_cache[folder] = result
+	return result
+
+
 ## Devuelve true si el pck del mod falta o esta desactualizado respecto
 ## al contenido en disco. Se llama desde ModSelector antes de arrancar un
 ## mod, para decidir si hay que mostrar la pantalla de carga.
@@ -765,9 +802,9 @@ func needs_bake(folder: String) -> bool:
 	var cache_path := CACHE_DIR + "/" + folder + ".pck"
 	if not FileAccess.file_exists(cache_path):
 		return true
-	var fingerprint := _mod_fingerprint(m["path"])
+	var scan := _scan_mod_tree(folder, m["path"])
 	var cached_fp := _cached_fingerprint(folder)
-	return fingerprint != cached_fp
+	return String(scan["fingerprint"]) != cached_fp
 
 
 ## Empaqueta el pck del mod si hace falta, lo monta y registra los paths.
@@ -786,13 +823,19 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 
 	if on_progress.is_valid():
 		on_progress.call(0, 1, "count")
-	var fingerprint := _mod_fingerprint(m["path"])
+
+	# Un solo walk: fingerprint + files. needs_bake ya lo hizo hace un
+	# instante, asi que la cache lo devuelve sin recorrer de nuevo.
+	var scan := _scan_mod_tree(folder, m["path"])
+	var fingerprint: String = scan["fingerprint"]
+	var files: Array = scan["files"]
+
 	var cached_fp := ""
 	if FileAccess.file_exists(mtime_path):
 		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
 
 	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
-		if not await _build_pck(m, cache_path, on_progress):
+		if not await _build_pck(m, files, cache_path, on_progress):
 			push_error("[ModLoader] no se pudo empaquetar %s" % folder)
 			return false
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
@@ -802,9 +845,10 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
 
-	_register_mod_gd_paths(m["path"])
+	# Reusar la misma lista: no re-recorrer el arbol por segunda vez.
+	_register_mod_gd_paths(files)
 	_install_mod_autoloads(m)
-	_log("bake_mod: %s listo" % folder)
+	_log("bake_mod: %s listo (%d archivos)" % [folder, files.size()])
 	return true
 
 
@@ -819,12 +863,10 @@ func load_mod(m: Dictionary) -> bool:
 	return await bake_mod(m, Callable())
 const PROGRESS_EVERY := 100
 
-func _build_pck(m: Dictionary, out: String, on_progress: Callable = Callable()) -> bool:
+func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable = Callable()) -> bool:
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
 		return false
-	var files: Array[String] = []
-	_collect(m["path"], "", files)
 	var total: int = files.size()
 	if on_progress.is_valid():
 		on_progress.call(0, total, "pack")
@@ -847,11 +889,9 @@ func _build_pck(m: Dictionary, out: String, on_progress: Callable = Callable()) 
 ## _mod_gd_paths. Compartido con runtime_gd_loader.gd, que solo
 ## compila a mano los paths registrados aca. Se llama SIEMPRE,
 ## aunque el pck este en cache, porque el registro no se persiste.
-func _register_mod_gd_paths(mod_path: String) -> void:
-	var files: Array[String] = []
-	_collect(mod_path, "", files)
+func _register_mod_gd_paths(files: Array) -> void:
 	for rel in files:
-		if rel.ends_with(".gd"):
+		if String(rel).ends_with(".gd"):
 			_mod_gd_paths["res://" + rel] = true
 
 

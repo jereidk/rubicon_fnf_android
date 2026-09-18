@@ -372,15 +372,21 @@ func _launch(m: Dictionary) -> void:
 		_show_error("Mod '%s' no define main_scene.\nFolder: %s" % [m["folder"], m["path"]])
 		return
 
-	# Bake PRIMERO, antes de cualquier check de existencia. Sin el pck
-	# montado, ResourceLoader.exists() da false para CUALQUIER path del
-	# mod - main_scene incluido - y un check previo abortaba antes de que
-	# bake_mod corriera. Montar el pck, y recien despues preguntar si el
-	# archivo existe.
+	# Overlay PRIMERO, siempre. needs_bake() corre el walk completo del
+	# mod (con HQ son 19s) y bake_mod lo repite. Mostrar el overlay despues
+	# de needs_bake congelaba la pantalla anterior 19s antes de que se
+	# viera la pantalla de carga.
+	#
+	# El await process_frame es la clave: sin el, Godot no redibuja el
+	# frame con el overlay visible, y la UI previa (los botones del
+	# ModSelector) quedaba congelada encima de la pantalla de carga.
+	_show_loading_overlay(str(m.get("name", folder)))
+	_loading_phase.text = "Analizando archivos..."
+	await get_tree().process_frame
+	await get_tree().process_frame
+
 	var need: bool = ModLoader.needs_bake(folder)
 	DebugLog.log("[ModSelector._launch] needs_bake=%s" % need)
-	if need:
-		_show_loading_overlay(str(m.get("name", folder)))
 	DebugLog.log("[ModSelector._launch] llamando bake_mod...")
 	var baked: bool = await ModLoader.bake_mod(m, _on_bake_progress)
 	DebugLog.log("[ModSelector._launch] bake_mod devolvio %s" % baked)
