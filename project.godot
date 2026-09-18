@@ -80,6 +80,7 @@ MobileControlsGate="*res://engine/mobile_controls_gate.gd"
 defaults/note_database="uid://bvhsfvptfwijt"
 
 [rendering]
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 
 textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/import_bptc=false

@@ -155,7 +155,12 @@ func _read_proc_kb(path: String, key: String) -> int:
 			break
 		if not line.begins_with(key):
 			continue
-		for token in line.split(" ", false):
+		# Los campos de /proc/self/status estan separados por tabs, no
+		# por espacios. split(" ", false) no los separa, y el token
+		# entero ("VmRSS:\t123456") falla is_valid_int(). Normalizamos
+		# tabs a espacios antes de splitear para que el numero quede
+		# como token aislado.
+		for token in line.replace("\t", " ").split(" ", false):
 			if token.is_valid_int():
 				result = int(token)
 				break
