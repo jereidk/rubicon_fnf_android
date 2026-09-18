@@ -269,6 +269,7 @@ func _register_runtime_loaders() -> void:
 	]
 	_gd_loader = load("res://engine/runtime_gd_loader.gd").new()
 	_gd_loader.mod_gd_paths = _mod_gd_paths
+	_gd_loader.mod_all_paths = _mod_all_paths
 	ResourceLoader.add_resource_format_loader(_gd_loader, true)
 	_loaders.append(_gd_loader)
 
@@ -481,13 +482,19 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 			DebugLog.log("[autoload] %s ya existe en /root, skip" % name)
 			continue
 		var path: String = autoloads[name]
-		if not FileAccess.file_exists(path):
-			DebugLog.log("[autoload] SKIP %s: FileAccess dice que no existe (%s)" % [name, path])
+		# Con el split de pck, los .gd del mod NO van al pck. Mapear a su
+		# path fisico antes de tocar FileAccess. Si no esta en el mapeo,
+		# es un archivo del APK y se usa el path tal cual.
+		var src_path: String = path
+		if _mod_all_paths.has(path):
+			src_path = String(_mod_all_paths[path])
+		if not FileAccess.file_exists(src_path):
+			DebugLog.log("[autoload] SKIP %s: FileAccess dice que no existe (%s)" % [name, src_path])
 			continue
 
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 
-		var script: GDScript = GDCompileHelper.from_path(path)
+		var script: GDScript = GDCompileHelper.from_path(src_path)
 		if script == null or not script.can_instantiate():
 			DebugLog.log("[autoload] SKIP %s: no compila (%s)" % [name, path])
 			continue

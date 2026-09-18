@@ -22,6 +22,11 @@ extends ResourceFormatLoader
 ## Compartido por referencia - no copiar.
 var mod_gd_paths: Dictionary = {}
 
+## Igual que mod_gd_paths pero con el path fisico como valor.
+## Con el split de pck, los .gd NO van al pck: se leen directo
+## del filesystem del mod. Este mapeo dice a donde apuntar.
+var mod_all_paths: Dictionary = {}
+
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["gd"])
@@ -61,10 +66,15 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	# res.is_valid() y continua si no lo es.
 	if not mod_gd_paths.has(path):
 		return null
-	if not FileAccess.file_exists(path):
+	# Mapear res:// -> path fisico. Con el split de pck, los .gd del mod
+	# NO estan en el pck, asi que res:// no los ve.
+	var src_path: String = path
+	if mod_all_paths.has(path):
+		src_path = String(mod_all_paths[path])
+	if not FileAccess.file_exists(src_path):
 		return null
 
-	var src := FileAccess.get_file_as_string(path)
+	var src := FileAccess.get_file_as_string(src_path)
 	if src.is_empty():
 		push_warning("[RuntimeGDLoader] %s esta vacio" % path)
 		return null
