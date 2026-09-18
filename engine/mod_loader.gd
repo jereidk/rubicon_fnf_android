@@ -83,6 +83,11 @@ var collisions: Dictionary = {}
 ## autoloads del engine ni de otro mod, y para reportar en logs.
 var _installed_autoloads: Dictionary = {}
 
+## Referencia fuerte a los nodos instalados, por si el arbol
+## los deja sin parent y algo los recolecta. node.name y el
+## nodo quedan vivos aca mientras dure ModLoader.
+var _installed_autoload_nodes: Dictionary = {}
+
 
 func _ready() -> void:
 	# Conectar primero: OS.request_permission es asincrono (dispara el
@@ -98,7 +103,8 @@ func _ready() -> void:
 	_register_runtime_loaders()
 	mods_roots = _resolve_mods_roots()
 	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
-	DirAccess.make_dir_recursive_absolute(CACHE_DIR)
+	if DirAccess.make_dir_recursive_absolute(CACHE_DIR) != OK and not DirAccess.dir_exists_absolute(CACHE_DIR):
+		push_warning("[ModLoader] no puedo crear CACHE_DIR %s" % CACHE_DIR)
 	_load_config()
 	scan()
 	_load_all_enabled()
@@ -443,15 +449,27 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 			continue
 
 		node.name = name
+		# Referencia fuerte antes del add_child: si el arbol no cuaja el
+		# parent, evita que el nodo se libere por no tener quien lo sostenga.
+		_installed_autoload_nodes[name] = node
 		root.add_child(node)
 		DebugLog.log("[autoload] add_child OK")
-		DebugLog.log("[autoload]   node.get_parent()=%s" % ("null" if node.get_parent() == null else node.get_parent().name))
-		DebugLog.log("[autoload]   node.get_path()=%s" % str(node.get_path()))
-		DebugLog.log("[autoload]   node.is_inside_tree()=%s" % node.is_inside_tree())
-		DebugLog.log("[autoload]   root.get_child_count()=%d" % root.get_child_count())
-		DebugLog.log("[autoload]   ultimo hijo de root: %s" % root.get_child(root.get_child_count() - 1).name)
-		DebugLog.log("[autoload]   has_node(NodePath(name))=%s" % root.has_node(NodePath(name)))
-		DebugLog.log("[autoload]   has_node(name)=%s" % root.has_node(name))
+		DebugLog.log("[autoload]   parent=%s path=%s inside_tree=%s child_count=%d has_node=%s" % [
+			"null" if node.get_parent() == null else node.get_parent().name,
+			str(node.get_path()), node.is_inside_tree(),
+			root.get_child_count(), root.has_node(NodePath(name)),
+		])
+		# Fallback: si el add_child sincrono no cuajo (root Window rechaza
+		# durante el _ready de un autoload), reintentar diferido y esperar
+		# un frame para que el arbol se estabilice.
+		if not root.has_node(NodePath(name)):
+			DebugLog.log("[autoload] add_child sincrono no cuajo, diferiendo")
+			root.call_deferred("add_child", node)
+			await get_tree().process_frame
+			DebugLog.log("[autoload]   tras process_frame: parent=%s path=%s has_node=%s" % [
+				"null" if node.get_parent() == null else node.get_parent().name,
+				str(node.get_path()), root.has_node(NodePath(name)),
+			])
 		_installed_autoloads[name] = folder
 
 	DebugLog.log("[autoload] === fin. Hijos de /root: ===")
@@ -495,6 +513,12 @@ func _load_config() -> void:
 	if f == null:
 		return
 	var parsed = JSON.parse_string(f.get_as_text())
+	if parsed == null:
+		push_warning("[ModLoader] JSON invalido en %s" % path)
+		return
+	if parsed == null:
+		push_warning("[ModLoader] config/mods.json invalido, usando defaults")
+		return
 	if parsed is Dictionary:
 		_config = parsed
 	if not (_config.get("enabled") is Dictionary):
@@ -505,7 +529,8 @@ func _load_config() -> void:
 
 func save_config() -> void:
 	var p := _config_path()
-	DirAccess.make_dir_recursive_absolute(p.get_base_dir())
+	if DirAccess.make_dir_recursive_absolute(p.get_base_dir()) != OK and not DirAccess.dir_exists_absolute(p.get_base_dir()):
+		push_warning("[ModLoader] no puedo crear dir de %s" % p)
 	var f := FileAccess.open(p, FileAccess.WRITE)
 	if f == null:
 		push_error("[ModLoader] no puedo escribir %s" % p)
