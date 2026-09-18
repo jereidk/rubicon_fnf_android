@@ -238,9 +238,9 @@ func _launch(m: Dictionary) -> void:
 		return
 
 	if scene.ends_with(".gd"):
-		var script = load(scene)
-		if not (script is GDScript):
-			_show_error("No es un GDScript valido: %s" % scene)
+		var script := _compile_gd_from_bytes(scene)
+		if script == null or not script.can_instantiate():
+			_show_error("El .gd del mod no compila: %s" % scene)
 			return
 		# script.new() crea una instancia del tipo correcto. Antes usabamos
 		# Node.new() + set_script() pero eso falla si el script extends
