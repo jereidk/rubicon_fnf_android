@@ -211,7 +211,7 @@ func _process(_delta: float) -> void:
 		return
 
 	_pending_rescan = false
-	reload_changed_mods()
+	await reload_changed_mods()
 
 
 ## Chequea que mods cambiaron desde el ultimo scan y, si hay alguno,
@@ -222,7 +222,7 @@ func reload_changed_mods() -> void:
 	var changed: Array[String] = []
 	for m in mods:
 		var folder: String = m["folder"]
-		var scan := _scan_mod_tree(folder, m["path"])
+		var scan: Dictionary = await _scan_mod_tree(folder, m["path"])
 		var cached := _cached_fingerprint(folder)
 		if String(scan["fingerprint"]) != cached:
 			changed.append(folder)
@@ -347,7 +347,7 @@ func _can_read_from(dir_path: String) -> bool:
 func recompute_collisions_if_dirty() -> void:
 	if not _collisions_dirty:
 		return
-	_recompute_collisions()
+	await _recompute_collisions()
 	_collisions_dirty = false
 
 
@@ -357,7 +357,7 @@ func _recompute_collisions() -> void:
 	for m in mods:
 		if not is_enabled(m["folder"]):
 			continue
-		var scan := _scan_mod_tree(m["folder"], m["path"])
+		var scan: Dictionary = await _scan_mod_tree(m["folder"], m["path"])
 		var files: Array = scan["files"]
 		for rel in files:
 			var res_path: String = "res://" + String(rel)
@@ -791,7 +791,25 @@ func _load_all_enabled() -> void:
 ##
 ## Cacheado por SCAN_CACHE_MS: needs_bake y bake_mod comparten el mismo
 ## resultado. Sin esto el walk corria 4 veces por cada _launch.
-const PACK_EXTENSIONS: PackedStringArray = ["tscn", "tres", "scn", "res"]
+## Extensiones que un runtime loader propio lee del filesystem del mod.
+## Todo lo demas (incluye .tscn/.tres/.scn/.res + .xml + .json + .txt +
+## .cfg + lo que sea) va al pck, porque sin pck res:// no lo ve y ninguna
+## API de lectura directa (XMLParser, JSON, ConfigFile, FileAccess sobre
+## res://) funciona.
+##
+## El criterio es "tiene runtime loader propio?" y NO "que extension es".
+## Los .tscn/.tres van al pck aunque tengan loader porque el text loader
+## nativo los abre con FileAccess directo y sin pck falla.
+const RUNTIME_EXTENSIONS: PackedStringArray = [
+	"gd",
+	"png", "jpg", "jpeg", "webp", "svg",
+	"ttf", "otf",
+	"ogv",
+	"ktx", "astc",
+	"glb", "gltf",
+	"gdshader",
+	"ogg", "mp3", "wav",
+]
 
 func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Callable()) -> Dictionary:
 	if _scan_cache.has(folder):
@@ -803,23 +821,40 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 	DebugLog.log("[scan] %s: iniciando walk de %s" % [folder, mod_path])
 	var t0: int = Time.get_ticks_msec()
 
-	# Pasada 1: recolectar TODOS los paths (recursivo, un DirAccess por
-	# carpeta). El callback avisa cada 100 archivos para que la UI muestre
-	# el count sin barra.
+	# Walk iterativo (BFS) con await cada 100 archivos. Antes era recursivo
+	# y sincronico, y los 1869 archivos bloqueaban el thread ~10s sin que el
+	# overlay se actualizara - el callback se llamaba pero el frame no se
+	# redibujaba. Con await la UI muestra el count en vivo.
 	var files: Array[String] = []
-	_collect(mod_path, "", files, on_progress)
+	var dirs: Array[String] = [""]
+	var last_yield: int = 0
+	while not dirs.is_empty():
+		var sub: String = dirs.pop_front()
+		var path: String = mod_path if sub.is_empty() else mod_path + "/" + sub
+		var dir := DirAccess.open(path)
+		if dir == null:
+			continue
+		for name in dir.get_files():
+			if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
+				continue
+			files.append(name if sub.is_empty() else sub + "/" + name)
+			if files.size() - last_yield >= 100:
+				last_yield = files.size()
+				if on_progress.is_valid():
+					on_progress.call(files.size(), 0, "scan")
+				await get_tree().process_frame
+		for name in dir.get_directories():
+			dirs.append(name if sub.is_empty() else sub + "/" + name)
+
 	var t_collect: int = Time.get_ticks_msec()
 	DebugLog.log("[scan] %s: %d archivos en %dms" % [folder, files.size(), t_collect - t0])
 
-	# Separar los que van al pck (.tscn/.tres/.scn/.res) de los que se leen
-	# directo del filesystem del mod (.gd/.png/.ogg/etc).
+	# Separar los que van al pck (todo lo que no tiene runtime loader)
 	var pack_files: Array[String] = []
 	for rel in files:
-		if rel.get_extension().to_lower() in PACK_EXTENSIONS:
+		if not (rel.get_extension().to_lower() in RUNTIME_EXTENSIONS):
 			pack_files.append(rel)
 
-	# Pasada 2: solo pack_files necesitan mtime (los otros no van al pck,
-	# editarlos no cambia el fingerprint). Con HQ son 172 vs 1869.
 	var total: int = pack_files.size()
 	var max_mtime: int = 0
 	for i in range(total):
@@ -829,6 +864,7 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			max_mtime = mt
 		if on_progress.is_valid() and (i % 20 == 0 or i == total - 1):
 			on_progress.call(i + 1, total, "fingerprint")
+			await get_tree().process_frame
 
 	var t_fp: int = Time.get_ticks_msec()
 	DebugLog.log("[scan] %s: fingerprint de %d archivos en %dms | total %dms | fp=%d|%d" % [
@@ -861,7 +897,7 @@ func needs_bake(folder: String, on_progress: Callable = Callable()) -> bool:
 	if not FileAccess.file_exists(cache_path):
 		DebugLog.log("[needs_bake] %s: no hay pck cacheado, true" % folder)
 		return true
-	var scan := _scan_mod_tree(folder, m["path"], on_progress)
+	var scan: Dictionary = await _scan_mod_tree(folder, m["path"], on_progress)
 	var cached_fp := _cached_fingerprint(folder)
 	var need: bool = String(scan["fingerprint"]) != cached_fp
 	DebugLog.log("[needs_bake] %s: need=%s (fp=%s, cache=%s)" % [
@@ -889,7 +925,7 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 
 	# Un solo walk: fingerprint + files. needs_bake ya lo hizo hace un
 	# instante, asi que la cache lo devuelve sin recorrer de nuevo.
-	var scan := _scan_mod_tree(folder, m["path"], on_progress)
+	var scan: Dictionary = await _scan_mod_tree(folder, m["path"], on_progress)
 	var fingerprint: String = scan["fingerprint"]
 	var files: Array = scan["files"]
 	var pack_files: Array = scan["pack_files"]

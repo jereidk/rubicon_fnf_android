@@ -400,7 +400,7 @@ func _launch(m: Dictionary) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	var need: bool = ModLoader.needs_bake(folder, _on_bake_progress)
+	var need: bool = await ModLoader.needs_bake(folder, _on_bake_progress)
 	DebugLog.log("[ModSelector._launch] needs_bake=%s" % need)
 	DebugLog.log("[ModSelector._launch] llamando bake_mod...")
 	var baked: bool = await ModLoader.bake_mod(m, _on_bake_progress)

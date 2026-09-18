@@ -77,6 +77,14 @@ func _handles_type(_type: StringName) -> bool:
 	return true
 
 
+func _exists(path: String) -> bool:
+	# El analyzer llama exists() al resolver preload() de .tscn/.tres.
+	# Aunque estos van al pck (y por lo tanto res:// los ve), el analyzer
+	# consulta primero los loaders custom. Devolviendo true evitamos que
+	# la cadena aborte por el filtro de type_hint del text loader nativo.
+	return mod_resource_paths.has(path)
+
+
 func _load(path: String, _orig: String, _sub: bool, _cache: int) -> Variant:
 	if not mod_resource_paths.has(path):
 		return null

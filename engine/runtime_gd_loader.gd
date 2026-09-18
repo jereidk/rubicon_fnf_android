@@ -60,6 +60,13 @@ func _recognize_path(path: String, _for_type: StringName) -> bool:
 	return mod_gd_paths.has(path)
 
 
+func _exists(path: String) -> bool:
+	# El analyzer llama exists() al resolver preload(). Sin pck, res://
+	# no ve el filesystem del mod, asi que el default daria false y
+	# abortaria el preload de cualquier .gd del mod.
+	return mod_gd_paths.has(path)
+
+
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
 	# No es un .gd de un mod: devolver null para que Godot siga con el
 	# loader nativo. El ciclo de ResourceLoader::_load() chequea
