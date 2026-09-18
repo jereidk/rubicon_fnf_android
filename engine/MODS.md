@@ -49,13 +49,38 @@ otro script del mod:
   }
 
 El engine hace dos cosas al montar el .pck:
-  1. Registra cada nombre en ProjectSettings (autoload/<Nombre>), para
-     que el parser de GDScript acepte el identificador.
-  2. Instancia el script y lo agrega a /root/<Nombre>.
 
-Con eso, cualquier script del mod puede usar HQSaves.foo o
-HQTransition.bar directo, como si fuera un autoload declarado en
-project.godot.
+1. Registra cada nombre en ProjectSettings (autoload/<Nombre>).
+2. Instancia el script y lo agrega a /root/<Nombre>.
+
+IMPORTANTE — los autoloads runtime NO se pueden usar como identificadores
+globales en el codigo del mod. Godot resuelve esos identificadores al
+boot del engine, leyendo project.godot, y esa tabla no se actualiza en
+runtime. El ProjectSettings.set_setting("autoload/<Nombre>", ...) que
+hace el engine es para reflection y para que el nombre exista en el
+namespace, pero NO alcanza para que el analyzer de GDScript acepte el
+identificador.
+
+Incorrecto (Compile Error: Identifier not found):
+
+    if HQSaves != null:
+        HQSaves.foo()
+
+Correcto:
+
+    var hq = get_node_or_null("/root/HQSaves")
+    if hq != null:
+        hq.foo()
+
+Cualquier acceso a un autoload declarado por un mod va por
+get_node_or_null con el path completo /root/<Nombre>.
+
+Detalle de implementacion (por que el pending queue): durante el _ready
+de ModLoader, la Window raiz rechaza add_child silenciosamente — el nodo
+queda con parent=null, inside_tree=false, y has_node=false aunque
+add_child() no devuelva error. Los autoloads se encolan en ese caso y un
+flush en el primer process_frame los instala a todos juntos. El log de
+ModLoader lo dice: "encolado para flush: X" y despues "flush OK: X".
 
 Limitaciones:
 
@@ -66,10 +91,11 @@ Limitaciones:
   montado hasta el proximo arranque, porque Godot no expone un
   unload_resource_pack: los autoloads tambien siguen instalados hasta
   reiniciar.
-- Los scripts del mod se parsean cuando se carga su main_scene. Si un
-  autoload se usa en un script que se preload()ea ANTES de que el .pck
-  este montado, falla. En la practica no pasa, porque el .pck se monta
-  al arrancar el engine y la escena se carga despues.
+- El flush de autoloads encolados corre en el primer process_frame
+  despues del _ready del ModLoader. Un script de mod que se ejecute
+  ANTES de ese flush no ve su propio autoload. En la practica no pasa
+  porque el ModSelector se carga despues, pero tenerlo en cuenta si un
+  mod encadena mucho trabajo desde su propio _ready.
 
 
 Estructura espejo
@@ -132,26 +158,36 @@ Campos:
                 ModManager.
 
 
-mods_order.txt
---------------
-
-Una carpeta por linea. Los mods se cargan en ese orden, y el ULTIMO gana
-si dos mods traen el mismo archivo. Los mods que no aparecen en el archivo
-se agregan al final en orden alfabetico.
-
-# Orden de carga:
-holyquintet
-otro_mod
-
 
 Cache
 -----
 
 El engine empaqueta cada mod a user://mods_cache/<nombre>.pck la primera
-vez, y solo lo regenera si algun archivo del mod cambio (comparando mtime).
-La primera carga de un mod pesado puede tardar unos segundos; las
-siguientes son instantaneas.
+vez, y solo lo regenera si el contenido del mod cambio. La primera carga
+de un mod pesado puede tardar unos segundos; las siguientes son
+instantaneas.
 
+La deteccion de cambios usa un fingerprint con tres numeros:
+mtime_max | bytes_totales | cantidad_de_archivos. No alcanza con el mtime
+solo: en Android sobre /storage/emulated/0 (FUSE) FileAccess
+.get_modified_time() puede devolver 0, y si el mtime del mod y el del
+cache son ambos 0 el .pck viejo se queda pegado para siempre. El
+fingerprint detecta ediciones aunque el mtime falle, porque bytes y
+count cambian cuando se edita cualquier archivo.
+
+
+Orden de carga
+--------------
+
+El orden vive en config/mods.json, en el campo "order" (array de carpetas
+en orden). Lo gestiona el ModManager con las flechas ▲/▼ de cada fila. No
+hay archivo de texto aparte: el estado entero (que esta activo, en que
+orden) esta en ese JSON.
+
+Los mods que no aparecen en "order" se agregan al final en orden
+alfabetico. Si dos mods activos traen el mismo path de res://, el ULTIMO
+de la lista gana (su version del archivo es la que se ve), y el
+ModManager lo avisa con un ⚠ en la fila y un contador en el header.
 
 Sin mods
 --------
