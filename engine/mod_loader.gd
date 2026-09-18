@@ -793,31 +793,51 @@ func _load_all_enabled() -> void:
 ## resultado. Sin esto el walk corria 4 veces por cada _launch.
 const PACK_EXTENSIONS: PackedStringArray = ["tscn", "tres", "scn", "res"]
 
-func _scan_mod_tree(folder: String, mod_path: String) -> Dictionary:
+func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Callable()) -> Dictionary:
 	if _scan_cache.has(folder):
 		var cached: Dictionary = _scan_cache[folder]
 		if Time.get_ticks_msec() - int(cached.get("time", 0)) < SCAN_CACHE_MS:
+			DebugLog.log("[scan] %s: cache hit" % folder)
 			return cached
 
-	var files: Array[String] = []
-	_collect(mod_path, "", files)
+	DebugLog.log("[scan] %s: iniciando walk de %s" % [folder, mod_path])
+	var t0: int = Time.get_ticks_msec()
 
-	# Fingerprint SOLO de los archivos que van al pck (.tscn/.tres/.scn/.res).
-	# Los assets (.png/.ogg/.gd) se leen directo del filesystem del mod,
-	# asi que editarlos no debe forzar un re-empaquetado. El fingerprint
-	# de antes contaba TODOS los archivos, entonces tocar un .gd hacia
-	# rebakear los 351 MB enteros.
+	# Pasada 1: recolectar TODOS los paths (recursivo, un DirAccess por
+	# carpeta). El callback avisa cada 100 archivos para que la UI muestre
+	# el count sin barra.
+	var files: Array[String] = []
+	_collect(mod_path, "", files, on_progress)
+	var t_collect: int = Time.get_ticks_msec()
+	DebugLog.log("[scan] %s: %d archivos en %dms" % [folder, files.size(), t_collect - t0])
+
+	# Separar los que van al pck (.tscn/.tres/.scn/.res) de los que se leen
+	# directo del filesystem del mod (.gd/.png/.ogg/etc).
 	var pack_files: Array[String] = []
-	var max_mtime: int = 0
 	for rel in files:
 		if rel.get_extension().to_lower() in PACK_EXTENSIONS:
 			pack_files.append(rel)
-			var mt: int = int(FileAccess.get_modified_time(mod_path + "/" + rel))
-			if mt > max_mtime:
-				max_mtime = mt
+
+	# Pasada 2: solo pack_files necesitan mtime (los otros no van al pck,
+	# editarlos no cambia el fingerprint). Con HQ son 172 vs 1869.
+	var total: int = pack_files.size()
+	var max_mtime: int = 0
+	for i in range(total):
+		var rel: String = pack_files[i]
+		var mt: int = int(FileAccess.get_modified_time(mod_path + "/" + rel))
+		if mt > max_mtime:
+			max_mtime = mt
+		if on_progress.is_valid() and (i % 20 == 0 or i == total - 1):
+			on_progress.call(i + 1, total, "fingerprint")
+
+	var t_fp: int = Time.get_ticks_msec()
+	DebugLog.log("[scan] %s: fingerprint de %d archivos en %dms | total %dms | fp=%d|%d" % [
+		folder, total, t_fp - t_collect, t_fp - t0,
+		max_mtime, total,
+	])
 
 	var result := {
-		"fingerprint": "%d|%d" % [max_mtime, pack_files.size()],
+		"fingerprint": "%d|%d" % [max_mtime, total],
 		"files": files,
 		"pack_files": pack_files,
 		"time": Time.get_ticks_msec(),
@@ -829,7 +849,7 @@ func _scan_mod_tree(folder: String, mod_path: String) -> Dictionary:
 ## Devuelve true si el pck del mod falta o esta desactualizado respecto
 ## al contenido en disco. Se llama desde ModSelector antes de arrancar un
 ## mod, para decidir si hay que mostrar la pantalla de carga.
-func needs_bake(folder: String) -> bool:
+func needs_bake(folder: String, on_progress: Callable = Callable()) -> bool:
 	var m: Dictionary = {}
 	for mod in mods:
 		if mod.get("folder", "") == folder:
@@ -839,10 +859,15 @@ func needs_bake(folder: String) -> bool:
 		return false
 	var cache_path := CACHE_DIR + "/" + folder + ".pck"
 	if not FileAccess.file_exists(cache_path):
+		DebugLog.log("[needs_bake] %s: no hay pck cacheado, true" % folder)
 		return true
-	var scan := _scan_mod_tree(folder, m["path"])
+	var scan := _scan_mod_tree(folder, m["path"], on_progress)
 	var cached_fp := _cached_fingerprint(folder)
-	return String(scan["fingerprint"]) != cached_fp
+	var need: bool = String(scan["fingerprint"]) != cached_fp
+	DebugLog.log("[needs_bake] %s: need=%s (fp=%s, cache=%s)" % [
+		folder, need, scan["fingerprint"], cached_fp,
+	])
+	return need
 
 
 ## Empaqueta el pck del mod si hace falta, lo monta y registra los paths.
@@ -864,7 +889,7 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 
 	# Un solo walk: fingerprint + files. needs_bake ya lo hizo hace un
 	# instante, asi que la cache lo devuelve sin recorrer de nuevo.
-	var scan := _scan_mod_tree(folder, m["path"])
+	var scan := _scan_mod_tree(folder, m["path"], on_progress)
 	var fingerprint: String = scan["fingerprint"]
 	var files: Array = scan["files"]
 	var pack_files: Array = scan["pack_files"]
@@ -947,11 +972,7 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 			_mod_resource_paths[res_path] = true
 
 
-func _collect(root: String, sub: String, out: Array[String]) -> void:
-	# Mismo cambio que _fingerprint_walk: get_files()/get_directories()
-	# en vez del iterador que hace un stat por entrada. _collect corre
-	# en cada load_mod, incluso con el pck cacheado, para alimentar el
-	# registro de paths del runtime_gd_loader.
+func _collect(root: String, sub: String, out: Array[String], on_progress: Callable = Callable()) -> void:
 	var path := root if sub.is_empty() else root + "/" + sub
 	var dir := DirAccess.open(path)
 	if dir == null:
@@ -960,8 +981,13 @@ func _collect(root: String, sub: String, out: Array[String]) -> void:
 		if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
 			continue
 		out.append(name if sub.is_empty() else sub + "/" + name)
+		# Cada 100 archivos avisar a la UI. Sin total conocido de antemano:
+		# el callback recibe (count, 0, "scan") y el ModSelector muestra el
+		# count sin barra de progreso (indeterminado).
+		if on_progress.is_valid() and out.size() % 100 == 0:
+			on_progress.call(out.size(), 0, "scan")
 	for name in dir.get_directories():
-		_collect(root, name if sub.is_empty() else sub + "/" + name, out)
+		_collect(root, name if sub.is_empty() else sub + "/" + name, out, on_progress)
 
 
 func _mod_fingerprint(path: String) -> String:

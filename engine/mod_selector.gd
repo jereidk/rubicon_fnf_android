@@ -250,15 +250,26 @@ func _hide_loading_overlay() -> void:
 
 
 func _on_bake_progress(done: int, total: int, phase: String) -> void:
-	if phase == "count":
-		_loading_phase.text = "Analizando archivos..."
-		_loading_bar.value = 0.0
-		return
-	_loading_phase.text = "Empaquetando %d / %d" % [done, total]
-	if total > 0:
-		_loading_bar.value = float(done) / float(total)
-	else:
-		_loading_bar.value = 0.0
+	match phase:
+		"count":
+			_loading_phase.text = "Preparando..."
+			_loading_bar.value = 0.0
+		"scan":
+			# Sin total conocido: mostrar el count. Barra en 0.
+			_loading_phase.text = "Analizando: %d archivos..." % done
+			_loading_bar.value = 0.0
+		"fingerprint":
+			_loading_phase.text = "Verificando cambios: %d / %d" % [done, total]
+			if total > 0:
+				_loading_bar.value = float(done) / float(total)
+		"pack":
+			_loading_phase.text = "Empaquetando %d / %d" % [done, total]
+			if total > 0:
+				_loading_bar.value = float(done) / float(total)
+			else:
+				_loading_bar.value = 0.0
+		_:
+			_loading_phase.text = "%s %d / %d" % [phase, done, total]
 
 
 func _populate() -> void:
@@ -389,7 +400,7 @@ func _launch(m: Dictionary) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	var need: bool = ModLoader.needs_bake(folder)
+	var need: bool = ModLoader.needs_bake(folder, _on_bake_progress)
 	DebugLog.log("[ModSelector._launch] needs_bake=%s" % need)
 	DebugLog.log("[ModSelector._launch] llamando bake_mod...")
 	var baked: bool = await ModLoader.bake_mod(m, _on_bake_progress)
