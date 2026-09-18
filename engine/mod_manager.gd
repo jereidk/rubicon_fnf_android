@@ -145,6 +145,12 @@ func _on_mods_reloaded(changed: Array) -> void:
 
 
 func _refresh() -> void:
+	# Recalcular colisiones antes de armar la lista. ModLoader las marca
+	# dirty en scan() y en cualquier cambio de enabled/orden. Con HQ
+	# (3070 archivos) hacerlo en cada scan eran 15s en el arranque, pero
+	# aca solo corre cuando el usuario abre esta pantalla.
+	ModLoader.recompute_collisions_if_dirty()
+
 	for c in _list.get_children():
 		c.queue_free()
 

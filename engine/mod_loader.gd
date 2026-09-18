@@ -88,6 +88,11 @@ var _installed_autoloads: Dictionary = {}
 ## nodo quedan vivos aca mientras dure ModLoader.
 var _installed_autoload_nodes: Dictionary = {}
 
+## True cuando las colisiones cacheadas son viejas. scan() y los cambios
+## de enabled/orden lo ponen en true. recompute_collisions_if_dirty() lo
+## limpia cuando el ModManager lo pide.
+var _collisions_dirty: bool = true
+
 ## Paths res:// de cada .gd que trae algun mod activo. El
 ## runtime_gd_loader.gd lo comparte por referencia y solo
 ## intercepta estos paths, para no pisar los .gd del APK.
@@ -309,6 +314,15 @@ func _can_read_from(dir_path: String) -> bool:
 ## scan() + cada cambio de enabled. En una lista de 10 mods con 500
 ## archivos cada uno son 5000 lookups de path, ~10 ms. Se podria cachear
 ## por (folder, mtime) pero no hace falta por ahora.
+## Recalcula solo si hace falta. Llamar desde ModManager al mostrar la
+## lista. Idempotente.
+func recompute_collisions_if_dirty() -> void:
+	if not _collisions_dirty:
+		return
+	_recompute_collisions()
+	_collisions_dirty = false
+
+
 func _recompute_collisions() -> void:
 	collisions.clear()
 	var paths: Dictionary = {}  # "res://path" -> [folder]
@@ -610,7 +624,7 @@ func set_enabled(folder: String, enabled: bool) -> void:
 	en[folder] = enabled
 	_config["enabled"] = en
 	save_config()
-	_recompute_collisions()
+	_collisions_dirty = true
 	mods_changed.emit()
 
 
@@ -636,7 +650,7 @@ func move_mod(folder: String, direction: int) -> void:
 		order.append(mm["folder"])
 	_config["order"] = order
 	save_config()
-	_recompute_collisions()
+	_collisions_dirty = true
 	mods_changed.emit()
 
 
@@ -661,7 +675,10 @@ func scan() -> void:
 				"winner": roots[0],  # gana la primera raiz en mods_roots
 			})
 	_apply_order()
-	_recompute_collisions()
+	# NO recalcular colisiones aca. Es O(archivos de todos los mods
+	# habilitados) y solo lo usa el ModManager. Con HQ (3070 archivos)
+	# eran 15s en cada arranque. Se marca dirty y se recomputa on-demand.
+	_collisions_dirty = true
 
 
 func _scan_root(root: String, seen: Dictionary, seen_roots: Dictionary) -> void:
