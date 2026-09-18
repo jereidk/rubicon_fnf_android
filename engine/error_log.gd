@@ -88,7 +88,16 @@ class _Sink extends Logger:
 		# y viene vacio en push_error/push_warning, donde el mensaje esta
 		# en `code`.
 		var message: String = rationale if not rationale.is_empty() else code
-		owner_log.queue_error(error_type, "%s:%d %s" % [file.get_file(), line, function], message)
+		# El stack trace de GDScript llega aca. Antes se descartaba y solo
+		# veiamos el archivo C++ (gdscript.cpp, etc). Con esto sabemos que
+		# .gd y que linea disparo el error.
+		var where: String = "%s:%d %s" % [file.get_file(), line, function]
+		if not _script_backtraces.is_empty():
+			var parts: PackedStringArray = PackedStringArray()
+			for bt in _script_backtraces:
+				parts.append(str(bt))
+			where += " | " + " <- ".join(parts)
+		owner_log.queue_error(error_type, where, message)
 
 
 func _ready() -> void:

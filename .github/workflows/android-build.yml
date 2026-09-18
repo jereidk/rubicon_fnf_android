@@ -180,12 +180,12 @@ jobs:
           # APK y explota en el telefono (ModLoader null, cascada de
           # "Invalid call on base Nil"), que es mucho mas caro de debuggear
           # que un build rojo.
-          if echo "$IMPORT_OUT" | grep -qE "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling"; then
+          if echo "$IMPORT_OUT" | grep -qE "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling|Failed to create an autoload|Failed loading resource|resulted in error .File not found"; then
             echo ""
             echo "============================================================"
             echo "ERRORES DE PARSEO EN EL PROYECTO - el build se cancela."
             echo "============================================================"
-            echo "$IMPORT_OUT" | grep -E "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling" | head -40
+            echo "$IMPORT_OUT" | grep -E "SCRIPT ERROR: Parse Error|Failed to load script.*Parse error|is not compiling|Failed to create an autoload|Failed loading resource|resulted in error .File not found" | head -40
             exit 1
           fi
 
