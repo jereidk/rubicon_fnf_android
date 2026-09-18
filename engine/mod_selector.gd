@@ -4,8 +4,9 @@ extends Control
 ##   - 0 mods  -> muestra la demo del engine.
 ##   - 1+ mods -> siempre muestra la lista (nunca auto-carga).
 ##
-## Layout responsive: los tamanos y posiciones se calculan en _layout() a
-## partir del viewport actual, escalando desde un diseno base de 1920x1080.
+## Layout con Containers nativos: no hay posicion absoluta ni factor de
+## escala manual. Godot distribuye el espacio solo y funciona en cualquier
+## aspecto de pantalla (16:9, 20:9, tablet, lo que sea).
 ##
 ## Por que nunca auto-carga con un solo mod: si el unico mod falla al
 ## cargar (script con error, main_scene mal escrito, .pck que no se monto),
@@ -15,7 +16,15 @@ extends Control
 
 const DEMO_SCENE := "res://songs/test/test.tscn"
 const MANAGER_SCENE := "res://engine/mod_manager.tscn"
-const BASE_SIZE := Vector2(1920.0, 1080.0)
+
+## Fondo opcional. Si el archivo no existe, se usa un ColorRect oscuro
+## solido. Los PNG de FNF son menuBGBlue.png y menuBGMagenta.png, que
+## se pueden copiar a resources/images/ con cualquiera de esos nombres.
+const BG_CANDIDATES: Array[String] = [
+	"res://resources/images/menuBGBlue.png",
+	"res://resources/images/menu_bg.png",
+	"res://resources/images/menu_bg.ktx",
+]
 
 var _title: Label
 var _header: Label
@@ -31,85 +40,90 @@ func _ready() -> void:
 	# abierto, lo ve al volver a esta pantalla sin reiniciar.
 	ModLoader.scan()
 	_populate()
-	resized.connect(_layout)
 
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.05, 0.02, 0.08, 1.0)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	_build_background()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 60)
+	margin.add_theme_constant_override("margin_right", 60)
+	margin.add_theme_constant_override("margin_top", 40)
+	margin.add_theme_constant_override("margin_bottom", 40)
+	add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	margin.add_child(vbox)
 
 	_title = Label.new()
 	_title.text = "Rubicon Engine"
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_title.add_theme_font_size_override("font_size", 64)
 	_title.add_theme_color_override("font_color", Color.WHITE)
-	add_child(_title)
+	_title.add_theme_constant_override("outline_size", 8)
+	_title.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	vbox.add_child(_title)
 
 	_header = Label.new()
 	_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_header)
+	_header.add_theme_font_size_override("font_size", 28)
+	_header.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	vbox.add_child(_header)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(scroll)
 
 	_list = VBoxContainer.new()
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.alignment = BoxContainer.ALIGNMENT_CENTER
-	add_child(_list)
+	_list.add_theme_constant_override("separation", 16)
+	scroll.add_child(_list)
 
 	_error_label = Label.new()
 	_error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_error_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_error_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_error_label.add_theme_font_size_override("font_size", 22)
+	_error_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	_error_label.visible = false
-	add_child(_error_label)
+	vbox.add_child(_error_label)
 
 	_mods_btn = Button.new()
 	_mods_btn.text = "Mods..."
+	_mods_btn.custom_minimum_size = Vector2(0, 90)
+	_mods_btn.add_theme_font_size_override("font_size", 32)
 	_mods_btn.pressed.connect(_open_manager)
 	_mods_btn.mouse_entered.connect(func(): MenuMusic.play_scroll())
-	add_child(_mods_btn)
+	vbox.add_child(_mods_btn)
 
 
-func _layout() -> void:
-	var s: Vector2 = get_viewport_rect().size
-	if s.x <= 0.0 or s.y <= 0.0:
-		return
-	var k: float = minf(s.x / BASE_SIZE.x, s.y / BASE_SIZE.y)
-	var w: float = s.x
-	var h: float = s.y
+## Fondo: si hay un PNG de menuBG en el repo, se dibuja estirado y
+## centrado. Si no, se usa un ColorRect oscuro como fallback.
+func _build_background() -> void:
+	var bg_tex: Texture2D = null
+	for path in BG_CANDIDATES:
+		if ResourceLoader.exists(path):
+			bg_tex = load(path)
+			break
 
-	_title.add_theme_font_size_override("font_size", maxi(24, int(64.0 * k)))
-	_title.position = Vector2(0.0, 120.0 * k)
-	_title.size = Vector2(w, 100.0 * k)
-
-	_header.add_theme_font_size_override("font_size", maxi(14, int(32.0 * k)))
-	_header.position = Vector2(40.0 * k, 240.0 * k)
-	_header.size = Vector2(w - 80.0 * k, 80.0 * k)
-
-	var list_w: float = minf(600.0 * k, w - 80.0)
-	var list_h: float = 500.0 * k
-	_list.position = Vector2((w - list_w) * 0.5, 340.0 * k)
-	_list.size = Vector2(list_w, list_h)
-	_list.add_theme_constant_override("separation", maxi(8, int(24.0 * k)))
-	for child in _list.get_children():
-		if child is Button:
-			var b: Button = child
-			b.add_theme_font_size_override("font_size", maxi(16, int(40.0 * k)))
-			b.custom_minimum_size = Vector2(list_w, 100.0 * k)
-
-	_error_label.add_theme_font_size_override("font_size", maxi(12, int(20.0 * k)))
-	_error_label.position = Vector2(40.0 * k, (340.0 + 500.0 + 20.0) * k)
-	_error_label.size = Vector2(w - 80.0 * k, 100.0 * k)
-
-	var btn_w: float = minf(400.0 * k, w - 80.0)
-	var btn_h: float = 100.0 * k
-	_mods_btn.position = Vector2((w - btn_w) * 0.5, h - btn_h - 40.0 * k)
-	_mods_btn.size = Vector2(btn_w, btn_h)
-	_mods_btn.add_theme_font_size_override("font_size", maxi(16, int(32.0 * k)))
+	if bg_tex != null:
+		var tr := TextureRect.new()
+		tr.texture = bg_tex
+		tr.set_anchors_preset(Control.PRESET_FULL_RECT)
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(tr)
+	else:
+		var bg := ColorRect.new()
+		bg.color = Color(0.05, 0.02, 0.08, 1.0)
+		bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(bg)
 
 
 func _populate() -> void:
@@ -125,7 +139,6 @@ func _populate() -> void:
 	if enabled.is_empty():
 		_header.text = "No hay mods instalados en:\n%s" % ModLoader.mods_root
 		_add_button("Ir a la demo del engine", _go_demo)
-		_layout()
 		return
 
 	_header.text = "%d mod%s disponible%s" % [
@@ -135,15 +148,14 @@ func _populate() -> void:
 	]
 	for m in enabled:
 		_add_button(str(m.get("name", m["folder"])), func(): _launch(m))
-	_layout()
 
 
 func _add_button(text: String, cb: Callable) -> void:
 	var b := Button.new()
 	b.text = text
+	b.custom_minimum_size = Vector2(0, 100)
+	b.add_theme_font_size_override("font_size", 36)
 	b.pressed.connect(cb)
-	# Focus (navegacion con teclado/pad) y hover (mouse) disparan el
-	# mismo sonido de scroll que usa FNF al cambiar de opcion.
 	b.focus_entered.connect(func(): MenuMusic.play_scroll())
 	b.mouse_entered.connect(func(): MenuMusic.play_scroll())
 	_list.add_child(b)
@@ -162,7 +174,6 @@ func _go_demo() -> void:
 func _show_error(msg: String) -> void:
 	_error_label.text = msg
 	_error_label.visible = true
-	_layout()
 
 
 func _launch(m: Dictionary) -> void:
