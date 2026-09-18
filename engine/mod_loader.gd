@@ -784,6 +784,8 @@ func _load_all_enabled() -> void:
 ##
 ## Cacheado por SCAN_CACHE_MS: needs_bake y bake_mod comparten el mismo
 ## resultado. Sin esto el walk corria 4 veces por cada _launch.
+const PACK_EXTENSIONS: PackedStringArray = ["tscn", "tres", "scn", "res"]
+
 func _scan_mod_tree(folder: String, mod_path: String) -> Dictionary:
 	if _scan_cache.has(folder):
 		var cached: Dictionary = _scan_cache[folder]
@@ -793,15 +795,24 @@ func _scan_mod_tree(folder: String, mod_path: String) -> Dictionary:
 	var files: Array[String] = []
 	_collect(mod_path, "", files)
 
+	# Fingerprint SOLO de los archivos que van al pck (.tscn/.tres/.scn/.res).
+	# Los assets (.png/.ogg/.gd) se leen directo del filesystem del mod,
+	# asi que editarlos no debe forzar un re-empaquetado. El fingerprint
+	# de antes contaba TODOS los archivos, entonces tocar un .gd hacia
+	# rebakear los 351 MB enteros.
+	var pack_files: Array[String] = []
 	var max_mtime: int = 0
 	for rel in files:
-		var mt: int = int(FileAccess.get_modified_time(mod_path + "/" + rel))
-		if mt > max_mtime:
-			max_mtime = mt
+		if rel.get_extension().to_lower() in PACK_EXTENSIONS:
+			pack_files.append(rel)
+			var mt: int = int(FileAccess.get_modified_time(mod_path + "/" + rel))
+			if mt > max_mtime:
+				max_mtime = mt
 
 	var result := {
-		"fingerprint": "%d|%d" % [max_mtime, files.size()],
+		"fingerprint": "%d|%d" % [max_mtime, pack_files.size()],
 		"files": files,
+		"pack_files": pack_files,
 		"time": Time.get_ticks_msec(),
 	}
 	_scan_cache[folder] = result
@@ -849,13 +860,14 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 	var scan := _scan_mod_tree(folder, m["path"])
 	var fingerprint: String = scan["fingerprint"]
 	var files: Array = scan["files"]
+	var pack_files: Array = scan["pack_files"]
 
 	var cached_fp := ""
 	if FileAccess.file_exists(mtime_path):
 		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
 
 	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
-		if not await _build_pck(m, files, cache_path, on_progress):
+		if not await _build_pck(m, pack_files, cache_path, on_progress):
 			push_error("[ModLoader] no se pudo empaquetar %s" % folder)
 			return false
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
@@ -866,7 +878,7 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 		return false
 
 	# Reusar la misma lista: no re-recorrer el arbol por segunda vez.
-	_register_mod_gd_paths(files)
+	_register_mod_gd_paths(files, m["path"])
 	_install_mod_autoloads(m)
 	_log("bake_mod: %s listo (%d archivos)" % [folder, files.size()])
 	return true
@@ -909,16 +921,22 @@ func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable 
 ## _mod_gd_paths. Compartido con runtime_gd_loader.gd, que solo
 ## compila a mano los paths registrados aca. Se llama SIEMPRE,
 ## aunque el pck este en cache, porque el registro no se persiste.
-func _register_mod_gd_paths(files: Array) -> void:
-	# Registrar TODOS los paths primero: los runtime loaders lo consultan
-	# para saber si leer crudo (ignorando .import) o delegar al nativo.
+func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
+	# mod_all_paths mapea res://... -> path fisico en el telefono. Los
+	# runtime loaders lo usan para leer directo del filesystem del mod
+	# (sin pck) y para saber si un archivo es de un mod o del APK.
+	# mod_path vacio = comportamiento viejo (solo true), para no romper
+	# llamadas existentes que pasen files sin path.
 	for rel in files:
 		var s: String = String(rel)
 		var res_path: String = "res://" + s
-		_mod_all_paths[res_path] = true
+		var physical: Variant = true
+		if not mod_path.is_empty():
+			physical = mod_path + "/" + s
+		_mod_all_paths[res_path] = physical
 		if s.ends_with(".gd"):
 			_mod_gd_paths[res_path] = true
-		elif s.ends_with(".tres") or s.ends_with(".tscn") or s.ends_with(".scn"):
+		elif s.ends_with(".tres") or s.ends_with(".tscn") or s.ends_with(".scn") or s.ends_with(".res"):
 			_mod_resource_paths[res_path] = true
 
 

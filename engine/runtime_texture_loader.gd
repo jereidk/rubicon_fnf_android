@@ -38,14 +38,30 @@ func _handles_type(type: StringName) -> bool:
 # Devuelve null (no ERR_*) para decirle a Godot "no lo manejo, segui con
 # el loader por defecto". Un codigo de error aca aborta la cadena y deja
 # al APK sin sus texturas.
+func _exists(path: String) -> bool:
+	# Godot llama a exists() al resolver un preload() y al consultar
+	# ResourceLoader.exists(). Sin pck, res:// no ve el filesystem del
+	# mod, asi que el default (FileAccess::exists) daria false. Este
+	# override le dice que si, y el analyzer procede a _load().
+	return mod_all_paths.has(path)
+
+
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
-	if not mod_all_paths.has(path) and FileAccess.file_exists(path + ".import"):
+	# Si el path es de un mod, leer del archivo fisico. Sin pck, res://
+	# no ve el filesystem del mod - el mapeo res:// -> path fisico vive
+	# en mod_all_paths (Dictionary compartido por referencia con
+	# ModLoader). Si no es de un mod, es un archivo del APK: si tiene
+	# .import hermano, delegar al loader nativo.
+	var src: String = path
+	if mod_all_paths.has(path):
+		src = String(mod_all_paths[path])
+	elif FileAccess.file_exists(path + ".import"):
 		return null
-	if not FileAccess.file_exists(path):
+	if not FileAccess.file_exists(src):
 		return null
 	# FileAccess funciona igual desde disco y desde .pck; Image.load() con
 	# un res:// dentro de un pck no siempre resuelve el formato.
-	var bytes := FileAccess.get_file_as_bytes(path)
+	var bytes := FileAccess.get_file_as_bytes(src)
 	if bytes.is_empty():
 		return null
 	var img := Image.new()
