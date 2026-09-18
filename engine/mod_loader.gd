@@ -215,7 +215,7 @@ func reload_changed_mods() -> void:
 	# lista + los que estan enabled.
 	for m in mods:
 		if m["folder"] in changed and is_enabled(m["folder"]):
-			load_mod(m)
+			await load_mod(m)
 	_changed_on_resume = changed
 	mods_changed.emit()
 	mods_reloaded.emit(changed)
