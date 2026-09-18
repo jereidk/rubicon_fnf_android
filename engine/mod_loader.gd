@@ -1,13 +1,36 @@
 extends Node
-## Carga mods externos desde /storage/emulated/0/.RubiconEngine/mods/.
-## El estado (activo/inactivo, orden) se guarda en config/mods.json,
-## gestionado por la pantalla ModManager. El campo "enabled" de cada
-## mod.json solo se usa como valor por defecto la primera vez.
+## Carga mods externos desde multiples raices, para que funcione tanto el
+## scoped storage de Android (donde la app escribe sin permisos) como el
+## storage compartido (donde el usuario pone mods con un gestor de
+## archivos).
+##
+## Raices escaneadas, en orden de prioridad:
+##   user://mods
+##     = /storage/emulated/0/Android/data/<pkg>/files/mods
+##     La app puede leer y escribir siempre, sin permisos. Es donde la
+##     app misma instala mods descargados.
+##   /storage/emulated/0/RubiconEngine/mods
+##     Storage compartido, sin punto inicial (Android 11+ bloquea
+##     FileAccess sobre archivos dentro de carpetas ocultas).
+##     Requiere MANAGE_EXTERNAL_STORAGE, que el engine pide al arrancar.
+##   /storage/emulated/0/.RubiconEngine/mods
+##     Ruta historica con punto, por compatibilidad. En la mayoria de
+##     dispositivos Android 11+ falla por scoped storage sobre carpetas
+##     ocultas, pero se intenta igual.
+##
+## Si un mod con el mismo nombre existe en varias raices, gana el de la
+## primera raiz en esta lista.
+##
+## El estado (activo/inactivo, orden) se guarda en config/mods.json, en
+## la raiz primaria. Cada mod tiene un campo root para saber de donde
+## vino.
 
 const MODS_ROOT_CANDIDATES: Array[String] = [
-	"/storage/emulated/0/.RubiconEngine/mods",
 	"user://mods",
+	"/storage/emulated/0/RubiconEngine/mods",
+	"/storage/emulated/0/.RubiconEngine/mods",
 ]
+const ANDROID_STORAGE_PERMISSION := "android.permission.MANAGE_EXTERNAL_STORAGE"
 const CACHE_DIR := "user://mods_cache"
 const MANIFEST_NAME := "mod.json"
 const CONFIG_DIR_NAME := "config"
@@ -15,22 +38,47 @@ const CONFIG_FILE_NAME := "mods.json"
 
 signal mods_changed
 
+## Cada mod: {name, version, main_scene, enabled, folder, path, root}
 var mods: Array[Dictionary] = []
+## Raices legibles en este dispositivo, en orden de prioridad.
+var mods_roots: Array[String] = []
+## Raiz principal (primera legible). Se usa para config/ y para la UI.
 var mods_root: String = ""
 var _config: Dictionary = {"enabled": {}, "order": []}
 var _loaders: Array[ResourceFormatLoader] = []
 
 
 func _ready() -> void:
-	_register_texture_loader()
-	mods_root = _resolve_mods_root()
+	_request_android_permissions()
+	_register_runtime_loaders()
+	mods_roots = _resolve_mods_roots()
+	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
 	DirAccess.make_dir_recursive_absolute(CACHE_DIR)
 	_load_config()
 	scan()
 	_load_all_enabled()
 
 
-func _register_texture_loader() -> void:
+## Pide MANAGE_EXTERNAL_STORAGE en Android. Sin esto, la app no puede
+## leer archivos que el usuario dejo en el storage compartido, y cada mod
+## aparece con "no define main_scene" aunque el archivo exista.
+##
+## Best-effort: si el permiso ya esta otorgado, no hace nada. Si no,
+## Android abre la pantalla de "Acceso a todos los archivos" del sistema;
+## el usuario la acepta o la rechaza, y el ModLoader sigue con las raices
+## que si puede leer.
+func _request_android_permissions() -> void:
+	if OS.get_name() != "Android":
+		return
+	var granted := OS.get_granted_permissions()
+	if ANDROID_STORAGE_PERMISSION in granted:
+		print("[ModLoader] permiso de storage ya otorgado")
+		return
+	print("[ModLoader] pidiendo permiso de storage")
+	OS.request_permission("MANAGE_EXTERNAL_STORAGE")
+
+
+func _register_runtime_loaders() -> void:
 	var scripts := [
 		"res://engine/runtime_texture_loader.gd",
 		"res://engine/runtime_font_loader.gd",
@@ -44,15 +92,48 @@ func _register_texture_loader() -> void:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
-	print("[ModLoader] %d runtime loaders registrados (texture/font/video/ktx/model/shader/audio)" % _loaders.size())
+	print("[ModLoader] %d runtime loaders registrados" % _loaders.size())
 
 
-func _resolve_mods_root() -> String:
+## Devuelve todas las raices legibles en este dispositivo, en orden.
+##
+## Ademas de existir, cada candidata tiene que poder LEER un archivo real
+## de adentro. Android 11+ lista carpetas ocultas con DirAccess pero
+## bloquea FileAccess sobre su contenido, y sin esta comprobacion el
+## ModLoader elegiria una raiz que despues no puede leer.
+func _resolve_mods_roots() -> Array[String]:
+	var out: Array[String] = []
 	for candidate in MODS_ROOT_CANDIDATES:
 		var err := DirAccess.make_dir_recursive_absolute(candidate)
-		if err == OK or DirAccess.dir_exists_absolute(candidate):
-			return candidate
-	return MODS_ROOT_CANDIDATES[0]
+		if err != OK and not DirAccess.dir_exists_absolute(candidate):
+			continue
+		if not _can_read_from(candidate):
+			push_warning("[ModLoader] %s existe pero no es legible, se omite" % candidate)
+			continue
+		out.append(candidate)
+		print("[ModLoader] raiz legible: %s" % candidate)
+	if out.is_empty():
+		out.append(MODS_ROOT_CANDIDATES[0])
+	return out
+
+
+## Comprueba lectura real: crea un archivo temporal, lo escribe y lo lee
+## de vuelta. Si alguna parte de la cadena falla, la raiz no sirve.
+func _can_read_from(dir_path: String) -> bool:
+	var probe := dir_path.path_join(".read_probe")
+	var f := FileAccess.open(probe, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string("ok")
+	f.close()
+	var back := FileAccess.open(probe, FileAccess.READ)
+	if back == null:
+		DirAccess.remove_absolute(probe)
+		return false
+	var txt := back.get_as_text()
+	back.close()
+	DirAccess.remove_absolute(probe)
+	return txt == "ok"
 
 
 func _config_path() -> String:
@@ -129,23 +210,36 @@ func move_mod(folder: String, direction: int) -> void:
 	mods_changed.emit()
 
 
+## Escanea TODAS las raices legibles y combina los mods encontrados.
+##
+## Si el mismo folder aparece en varias raices, gana el de la primera
+## raiz en `mods_roots` (que respeta el orden de MODS_ROOT_CANDIDATES).
 func scan() -> void:
 	mods.clear()
-	var dir := DirAccess.open(mods_root)
+	var seen: Dictionary = {}
+	for root in mods_roots:
+		_scan_root(root, seen)
+	_apply_order()
+
+
+func _scan_root(root: String, seen: Dictionary) -> void:
+	var dir := DirAccess.open(root)
 	if dir == null:
 		return
 	dir.list_dir_begin()
 	var name := dir.get_next()
 	while name != "":
 		if name != "." and name != ".." and dir.current_is_dir():
-			var m := _read_manifest(mods_root + "/" + name)
-			if not m.is_empty():
-				m["folder"] = name
-				m["path"] = mods_root + "/" + name
-				mods.append(m)
+			if not seen.has(name):
+				var m := _read_manifest(root + "/" + name)
+				if not m.is_empty():
+					m["folder"] = name
+					m["path"] = root + "/" + name
+					m["root"] = root
+					mods.append(m)
+					seen[name] = true
 		name = dir.get_next()
 	dir.list_dir_end()
-	_apply_order()
 
 
 func _read_manifest(path: String) -> Dictionary:
@@ -169,16 +263,6 @@ func _read_manifest(path: String) -> Dictionary:
 
 func _apply_order() -> void:
 	var explicit: Array = _config.get("order", [])
-	if explicit.is_empty():
-		var legacy := mods_root.get_base_dir() + "/config/mods_order.txt"
-		if FileAccess.file_exists(legacy):
-			var txt := FileAccess.open(legacy, FileAccess.READ).get_as_text()
-			for line in txt.split("
-"):
-				var s := line.strip_edges()
-				if not s.is_empty() and not s.begins_with("#"):
-					explicit.append(s)
-
 	var ordered: Array = []
 	var rest: Array = mods.duplicate()
 	for folder in explicit:
