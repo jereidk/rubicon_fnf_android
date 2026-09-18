@@ -93,6 +93,15 @@ var _installed_autoloads: Dictionary = {}
 
 
 func _ready() -> void:
+	# Conectar primero: OS.request_permission es asincrono (dispara el
+	# Intent y sigue), asi que si el permiso esta pendiente hay que
+	# re-escanear cuando el usuario responda. Sin esto, el primer scan()
+	# corre con el permiso todavia no otorgado y solo ve user://mods.
+	if OS.get_name() == "Android":
+		var tree := get_tree()
+		if tree != null and tree.has_signal("on_request_permissions_result"):
+			tree.on_request_permissions_result.connect(_on_android_permission_result)
+
 	_request_android_permissions()
 	_register_runtime_loaders()
 	mods_roots = _resolve_mods_roots()
@@ -101,6 +110,22 @@ func _ready() -> void:
 	_load_config()
 	scan()
 	_load_all_enabled()
+
+
+## Llamado por el SceneTree cuando el usuario responde al dialogo de
+## permisos de Android. Si el que respondio es MANAGE_EXTERNAL_STORAGE y
+## la respuesta fue positiva, hay que re-escanear: la primera pasada de
+## _ready() corrio con el permiso todavia no otorgado, y por eso las
+## raices compartidas (WashosEngine/mods) no se veian.
+func _on_android_permission_result(permission: String, granted: bool) -> void:
+	if permission != ANDROID_STORAGE_PERMISSION or not granted:
+		return
+	print("[ModLoader] permiso de storage otorgado, re-escaneando")
+	mods_roots = _resolve_mods_roots()
+	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
+	scan()
+	_load_all_enabled()
+	mods_changed.emit()
 
 
 ## Pide MANAGE_EXTERNAL_STORAGE en Android. Sin esto, la app no puede

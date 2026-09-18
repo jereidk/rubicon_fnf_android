@@ -34,8 +34,16 @@ var _atlas: Texture2D
 
 
 func setup(atlas_png_path: String, atlas_xml_path: String) -> void:
-	if not ResourceLoader.exists(atlas_png_path) or not ResourceLoader.exists(atlas_xml_path):
-		push_warning("[AnimatedLogo] falta %s o %s" % [atlas_png_path, atlas_xml_path])
+	# El PNG se chequea con ResourceLoader.exists porque se carga con
+	# load(). El XML con XMLParser.open porque ResourceLoader.exists
+	# devuelve false para un .xml aunque exista (no hay loader registrado
+	# para esa extension).
+	if not ResourceLoader.exists(atlas_png_path):
+		push_warning("[AnimatedLogo] falta el PNG: %s" % atlas_png_path)
+		return
+	var probe := XMLParser.new()
+	if probe.open(atlas_xml_path) != OK:
+		push_warning("[AnimatedLogo] no puedo abrir el XML: %s" % atlas_xml_path)
 		return
 
 	_atlas = load(atlas_png_path)
