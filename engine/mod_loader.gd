@@ -402,41 +402,54 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 		return
 	var tree := get_tree()
 	if tree == null:
+		print("[autoload] get_tree() null, salgo")
 		return
 	var root := tree.root
 	var folder: String = m["folder"]
+	print("[autoload] === instalando autoloads de %s ===" % folder)
+	print("[autoload] keys: %s" % str(autoloads.keys()))
 
 	for name in autoloads:
+		print("[autoload] --- %s ---" % name)
 		if root.has_node(NodePath(name)):
-			push_warning("[ModLoader] autoload '%s' del mod '%s' ya existe, se omite" % [name, folder])
+			print("[autoload]   ya existe en /root, skip")
 			continue
 		var path: String = autoloads[name]
-		if not ResourceLoader.exists(path):
-			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no existe" % [name, folder, path])
+		print("[autoload]   path = %s" % path)
+		print("[autoload]   FileAccess.file_exists: %s" % FileAccess.file_exists(path))
+		print("[autoload]   ResourceLoader.exists:   %s" % ResourceLoader.exists(path))
+
+		# Uso FileAccess directamente para no depender de ResourceLoader.
+		if not FileAccess.file_exists(path):
+			print("[autoload]   FileAccess dice que no existe, skip")
 			continue
-		# 1. Registro en ProjectSettings. NO hace que el parser de GDScript
-		#    reconozca el identificador (el analyzer resuelve autoloads al
-		#    boot, leyendo project.godot, y no se actualiza en runtime).
-		#    Sirve para reflection y para que get_node_or_null("/root/<Nombre>")
-		#    funcione en herramientas de editor. Los mods deben acceder a sus
-		#    autoloads con get_node_or_null, no como identificador global.
+
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
-		# 2. Instancia real, en /root/ con el nombre exacto.
-		#    Compilamos el .gd a mano: load() sobre un .gd dentro de un
-		#    .pck montado devuelve un GDScript con base RefCounted en
-		#    Android, y .new() no da un Node. Ver engine/gd_compile.gd.
+
 		var script: GDScript = GDCompileHelper.from_path(path)
-		if script == null or not script.can_instantiate():
-			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no compila" % [name, folder, path])
+		print("[autoload]   GDCompileHelper.from_path -> %s" % str(script))
+		if script == null:
+			print("[autoload]   from_path devolvio null, skip")
 			continue
+		print("[autoload]   can_instantiate: %s" % script.can_instantiate())
+		print("[autoload]   base_type: %s" % script.get_instance_base_type())
+		if not script.can_instantiate():
+			print("[autoload]   no compila, skip")
+			continue
+
 		var node = script.new()
+		print("[autoload]   script.new() -> %s" % str(node))
 		if not (node is Node):
-			push_warning("[ModLoader] autoload '%s' del mod '%s': el script no extiende Node" % [name, folder])
+			print("[autoload]   no es Node, skip")
 			continue
 		node.name = name
 		root.add_child(node)
+		print("[autoload]   add_child OK, root.has_node(%s): %s" % [name, root.has_node(NodePath(name))])
 		_installed_autoloads[name] = folder
-		print("[ModLoader] autoload instalado: %s -> %s (mod %s)" % [name, path, folder])
+
+	print("[autoload] === fin. Hijos de /root: ===")
+	for child in root.get_children():
+		print("[autoload]   - %s (%s)" % [child.name, child.get_class()])
 
 
 ## Remueve los autoloads que instalo un mod. Se llama solo en desinstalar:
