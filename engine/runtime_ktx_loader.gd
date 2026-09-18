@@ -1,4 +1,11 @@
 extends ResourceFormatLoader
+
+## Paths res:// de todos los mods activos. Compartido por referencia
+## con ModLoader. Si el path esta aca, es un archivo crudo de un mod
+## y hay que leerlo ignorando su .import hermano (que el editor dejo
+## en el mod y que apunta a un .oggstr/.ctex que no existe en el pck).
+var mod_all_paths: Dictionary = {}
+
 # Carga texturas KTX con ASTC/ETC2/BC7 adentro, incluyendo las que el
 # modder nombre .astc por comodidad.
 #
@@ -34,7 +41,7 @@ func _handles_type(type: StringName) -> bool:
 	return type == &"Texture2D"
 
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
-	if FileAccess.file_exists(path + ".import"):
+	if not mod_all_paths.has(path) and FileAccess.file_exists(path + ".import"):
 		return null
 	if not FileAccess.file_exists(path):
 		return null

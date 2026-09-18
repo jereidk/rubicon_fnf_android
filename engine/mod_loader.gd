@@ -101,6 +101,11 @@ var _mod_gd_paths: Dictionary = {}
 ## Igual que _mod_gd_paths pero para .tres/.tscn/.scn. Compartido
 ## por referencia con runtime_resource_loader.gd.
 var _mod_resource_paths: Dictionary = {}
+
+## TODOS los paths de todos los mods (incluye assets crudos).
+## Los runtime loaders lo consultan para saber si un archivo es
+## de un mod y hay que leerlo crudo ignorando su .import hermano.
+var _mod_all_paths: Dictionary = {}
 var _resource_loader: ResourceFormatLoader = null
 var _gd_loader: ResourceFormatLoader = null
 
@@ -274,6 +279,11 @@ func _register_runtime_loaders() -> void:
 
 	for s in scripts:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
+		# Inyectar la referencia compartida si el loader la declara. Los
+		# runtime_*.gd que filtran assets crudos la necesitan para saber
+		# si un archivo es de un mod (leer crudo) o del APK (delegar).
+		if "mod_all_paths" in loader:
+			loader.mod_all_paths = _mod_all_paths
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
 	_log("%d runtime loaders registrados" % _loaders.size())
@@ -900,12 +910,16 @@ func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable 
 ## compila a mano los paths registrados aca. Se llama SIEMPRE,
 ## aunque el pck este en cache, porque el registro no se persiste.
 func _register_mod_gd_paths(files: Array) -> void:
+	# Registrar TODOS los paths primero: los runtime loaders lo consultan
+	# para saber si leer crudo (ignorando .import) o delegar al nativo.
 	for rel in files:
 		var s: String = String(rel)
+		var res_path: String = "res://" + s
+		_mod_all_paths[res_path] = true
 		if s.ends_with(".gd"):
-			_mod_gd_paths["res://" + s] = true
+			_mod_gd_paths[res_path] = true
 		elif s.ends_with(".tres") or s.ends_with(".tscn") or s.ends_with(".scn"):
-			_mod_resource_paths["res://" + s] = true
+			_mod_resource_paths[res_path] = true
 
 
 func _collect(root: String, sub: String, out: Array[String]) -> void:
