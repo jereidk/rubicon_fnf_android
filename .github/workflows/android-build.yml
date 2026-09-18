@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       upload_imports:
-        description: 'Subir los .import generados como artifact (para bajarlos y commitearlos)'
-        type: boolean
-        default: false
+        description: 'Subir los .import generados como artifact (para bajarlos y commitearlos). Escribir: true'
+        type: string
+        default: 'false'
 
 permissions:
   contents: read
@@ -242,7 +242,7 @@ jobs:
 
     steps:
       - name: Upload generated .import files
-        if: ${{ inputs.upload_imports }}
+        if: ${{ inputs.upload_imports == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: godot-generated-imports
