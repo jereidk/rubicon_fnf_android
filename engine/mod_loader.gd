@@ -299,7 +299,11 @@ func _register_runtime_loaders() -> void:
 			DebugLog.log("[_register_loaders]   ABORTA: no compila")
 			continue
 		DebugLog.log("[_register_loaders]   new()...")
-		var loader: ResourceFormatLoader = script.new()
+		# var SIN tipo a proposito. Con 'var loader: ResourceFormatLoader
+		# = script.new()', si el cast implicito falla la asignacion aborta
+		# la funcion _register_runtime_loaders entera, silenciosamente.
+		# Sin tipo, el error aparece en el siguiente DebugLog.
+		var loader = script.new()
 		DebugLog.log("[_register_loaders]   new() -> %s" % str(loader))
 		if loader == null:
 			DebugLog.log("[_register_loaders]   ABORTA: new() null")
