@@ -800,6 +800,8 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 ## bake_mod desde el refactor de bake on-demand.
 func load_mod(m: Dictionary) -> bool:
 	return await bake_mod(m, Callable())
+const PROGRESS_EVERY := 100
+
 func _build_pck(m: Dictionary, out: String, on_progress: Callable = Callable()) -> bool:
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
