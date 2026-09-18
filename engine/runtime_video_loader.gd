@@ -15,16 +15,18 @@ var mod_all_paths: Dictionary = {}
 # no funcionaria para archivos dentro del .pck, pero los del APK ya
 # tienen su .ogvstr importado y los maneja el loader default.
 
+const EXTENSIONS: PackedStringArray = ["ogv"]
+
 func _get_recognized_extensions() -> PackedStringArray:
-	return PackedStringArray(["ogv"])
+	return EXTENSIONS
 
 func _get_resource_type(path: String) -> String:
 	# Chequear la extension ANTES de devolver el tipo. Sin esto, el
 	# loader devuelve su tipo para CUALQUIER path (incluso .tscn,
 	# .gd, etc). Como se registra at_front, el analyzer lo usa para
 	# inferir el tipo de cada preload. El text loader despues
-	# rechaza el .tscn porque el hint es "AudioStream" en vez de
-	# "PackedScene".
+	# rechaza el .tscn porque el hint es "VideoStreamTheora" en vez
+	# de "PackedScene".
 	if path.get_extension().to_lower() in EXTENSIONS:
 		return "VideoStreamTheora"
 	return ""
@@ -33,7 +35,7 @@ func _recognize_path(path: String, _for_type: StringName) -> bool:
 	# Mismo motivo que en los demas runtime loaders: el type_hint del
 	# preload() puede llegar como "PackedScene" y descartar el loader
 	# antes de _load(). _recognize_path corre antes del filtro.
-	return path.get_extension().to_lower() == "ogv"
+	return path.get_extension().to_lower() in EXTENSIONS
 
 
 func _handles_type(type: StringName) -> bool:
