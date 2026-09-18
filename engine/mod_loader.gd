@@ -114,6 +114,13 @@ var _gd_loader: ResourceFormatLoader = null
 ## 3070 archivos corria 4 veces por _launch (needs_bake + fingerprint
 ## interno de bake_mod + _build_pck + _register_mod_gd_paths).
 var _scan_cache: Dictionary = {}
+
+## Folder -> true mientras un walk de _scan_mod_tree esta en curso.
+## Un segundo caller para el mismo folder espera con await
+## process_frame en vez de arrancar otro walk. Sin esto, con HQ
+## (18s por walk, SCAN_CACHE_MS de 5s) 4 callers concurrentes
+## arrancaban 4 walks solapados = ~50s.
+var _scanning: Dictionary = {}
 const SCAN_CACHE_MS := 5000
 
 ## Autoloads que no pudieron entrar al arbol durante el _ready de
@@ -818,6 +825,19 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			DebugLog.log("[scan] %s: cache hit" % folder)
 			return cached
 
+	# Si ya hay un walk en curso para este folder, esperar a que termine en
+	# vez de arrancar otro. Antes, si 2+ callers consultaban al mismo
+	# tiempo y el walk tardaba mas que SCAN_CACHE_MS (5s), cada uno arrancaba
+	# su propio walk y con await se solapaban. Con HQ (18s por walk) eran
+	# 4 walks = ~50s perdidos.
+	while _scanning.has(folder):
+		await get_tree().process_frame
+		if _scan_cache.has(folder):
+			var cached: Dictionary = _scan_cache[folder]
+			if Time.get_ticks_msec() - int(cached.get("time", 0)) < SCAN_CACHE_MS:
+				return cached
+
+	_scanning[folder] = true
 	DebugLog.log("[scan] %s: iniciando walk de %s" % [folder, mod_path])
 	var t0: int = Time.get_ticks_msec()
 
@@ -879,6 +899,7 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 		"time": Time.get_ticks_msec(),
 	}
 	_scan_cache[folder] = result
+	_scanning.erase(folder)
 	return result
 
 
@@ -940,13 +961,17 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 			return false
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
 
+	# Registrar los paths ANTES de montar el pck. load_resource_pack
+	# instancia los .tscn del pck, que preloadean .gd/assets del mod. Si el
+	# mapeo mod_all_paths no esta listo, esos preloads fallan con
+	# "Preload file does not exist" aunque el archivo fisico exista.
+	_register_mod_gd_paths(files, m["path"])
+
 	var ok := ProjectSettings.load_resource_pack(cache_path, true)
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
 
-	# Reusar la misma lista: no re-recorrer el arbol por segunda vez.
-	_register_mod_gd_paths(files, m["path"])
 	_install_mod_autoloads(m)
 	_log("bake_mod: %s listo (%d archivos)" % [folder, files.size()])
 	return true

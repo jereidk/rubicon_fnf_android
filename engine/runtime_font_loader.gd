@@ -57,7 +57,7 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	if not FileAccess.file_exists(src):
 		return null
 	var font := FontFile.new()
-	var err := font.load_dynamic_font(path)
+	var err := font.load_dynamic_font(src)
 	if err != OK:
 		push_warning("[RuntimeFontLoader] no pude cargar %s (err %d)" % [path, err])
 		return null
