@@ -148,6 +148,14 @@ jobs:
           echo "Godot version:"
           $GODOT --version || echo "Godot not found"
 
+      - name: Cache Godot import cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .godot/imported
+            .godot/uid_cache.bin
+          key: godot-imported-${{ hashFiles('**/*.import', 'project.godot') }}
+
       - name: Import Godot project
         run: |
           rm -rf .godot/imported
@@ -228,6 +236,16 @@ jobs:
       apk_size: ${{ needs.build.outputs.apk_size }}
 
     steps:
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rubicon-fnfr-android-debug-symbols
+          path: |
+            builds/*.symbols
+            builds/*.so
+          retention-days: 14
+
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
