@@ -80,9 +80,36 @@ func _refresh() -> void:
 	var fps: int = Engine.get_frames_per_second()
 	var frame_ms: float = 1000.0 / maxf(float(fps), 1.0)
 
-	var mem_now_mb: int = int(Performance.get_monitor(Performance.MEMORY_STATIC)) / 1048576
-	if mem_now_mb > _mem_peak_mb:
-		_mem_peak_mb = mem_now_mb
+	var mem_now_mb: int
+	var mem_peak_mb: int
+	if OS.get_name() == "Android":
+		# En Android leemos /proc/self/status en vez de
+		# Performance.MEMORY_STATIC. En builds release (--export-release)
+		# Memory::get_mem_usage() esta compilado a 0, asi que en el APK
+		# de release el monitor devolveria 0/0. /proc/self/status siempre
+		# esta disponible y da el RSS real del proceso.
+		#
+		# VmRSS = RSS actual, VmHWM = peak (high water mark).
+		# Los dos vienen en kB en el archivo.
+		var rss_kb := _read_proc_kb("/proc/self/status", "VmRSS:")
+		var hwm_kb := _read_proc_kb("/proc/self/status", "VmHWM:")
+		mem_now_mb = rss_kb / 1024
+		mem_peak_mb = hwm_kb / 1024
+		# Igual trackear en paralelo el peak del motor, por si el /proc
+		# alguna vez reporta menos que el pico real del frame.
+		if mem_now_mb > _mem_peak_mb:
+			_mem_peak_mb = mem_now_mb
+		if mem_peak_mb < _mem_peak_mb:
+			mem_peak_mb = _mem_peak_mb
+	else:
+		# Fuera de Android (PC, iOS, etc.) usamos el monitor del motor,
+		# que en builds de editor y debug está activo.
+		mem_now_mb = int(Performance.get_monitor(Performance.MEMORY_STATIC)) / 1048576
+		if mem_now_mb > _mem_peak_mb:
+			_mem_peak_mb = mem_now_mb
+		mem_peak_mb = int(Performance.get_monitor(Performance.MEMORY_STATIC_MAX)) / 1048576
+		if mem_peak_mb < _mem_peak_mb:
+			mem_peak_mb = _mem_peak_mb
 
 	var vram_mb: int = int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED)) / 1048576
 
@@ -92,10 +119,37 @@ func _refresh() -> void:
 	# Dos lineas: estado del frame arriba, contexto del mundo abajo.
 	_label.text = (
 		"FPS: %d (%.1fms)   MEM: %d/%d MB   VRAM: %d MB\n" % [
-			fps, frame_ms, mem_now_mb, _mem_peak_mb, vram_mb,
+			fps, frame_ms, mem_now_mb, mem_peak_mb, vram_mb,
 		]
 		+ "SCENE: %s   MODS: %s" % [scene_name, mods]
 	)
+
+
+## Lee un valor en kB de un archivo tipo /proc/self/status.
+## Formato esperado: "VmRSS:	  234560 kB" en alguna linea.
+## Devuelve 0 si no encuentra la clave o el archivo no existe.
+##
+## En Android /proc/self/status es legible sin permisos especiales
+## (es por proceso). FileAccess.get_as_text() no sirve porque el
+## archivo reporta tamaño 0, por eso leemos con get_line() en loop.
+func _read_proc_kb(path: String, key: String) -> int:
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return 0
+	var result := 0
+	while true:
+		var line := f.get_line()
+		if line.is_empty():
+			break
+		if not line.begins_with(key):
+			continue
+		for token in line.split(" ", false):
+			if token.is_valid_int():
+				result = int(token)
+				break
+		break
+	f.close()
+	return result
 
 
 ## Nombre del archivo de la escena actual, o su node name si la escena
