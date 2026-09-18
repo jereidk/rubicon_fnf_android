@@ -37,6 +37,24 @@ func _handles_type(type: StringName) -> bool:
 	return type == &"GDScript" or type == &"Script"
 
 
+## Override explicito de recognize_path. Necesario porque Godot llama a
+## recognize_path() con el type_hint que el analyzer le pasa al preload()
+## - y para un preload("res://helper.gd") en un script analizado como
+## posible PackedScene, el hint llega como "PackedScene".
+##
+## En ese caso el filtro por defecto de ResourceFormatLoader llama a
+## get_recognized_extensions_for_type("PackedScene"), que a su vez usa
+## handles_type("PackedScene"), que devuelve false para un loader de
+## GDScript. Resultado: el loader se descarta y Godot tira "No loader
+## found for resource" sin importar que _load() hubiera funcionado.
+##
+## _recognize_path corre ANTES del filtro por extensiones (verificado en
+## ResourceFormatLoader::recognize_path), asi que devolviendo true para
+## nuestros paths ignoramos el type_hint por completo.
+func _recognize_path(path: String, _for_type: StringName) -> bool:
+	return mod_gd_paths.has(path)
+
+
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
 	# No es un .gd de un mod: devolver null para que Godot siga con el
 	# loader nativo. El ciclo de ResourceLoader::_load() chequea
