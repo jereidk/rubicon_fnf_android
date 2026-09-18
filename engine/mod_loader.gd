@@ -287,18 +287,29 @@ func _register_runtime_loaders() -> void:
 	_loaders.append(_resource_loader)
 
 	for s in scripts:
-		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
-		# Asignar directo, sin check de "property in object". El operador
-		# "x in obj" en GDScript 4 solo verifica METODOS, no variables de
-		# script. Con "if 'mod_all_paths' in loader" la asignacion nunca
-		# ocurria y todos los loaders quedaban con mod_all_paths = {},
-		# rechazando paths que sí tenian que resolver.
+		DebugLog.log("[_register_loaders] --- %s ---" % s)
+		DebugLog.log("[_register_loaders]   load()...")
+		var script: GDScript = load(s)
+		DebugLog.log("[_register_loaders]   load() -> %s" % str(script))
+		if script == null:
+			DebugLog.log("[_register_loaders]   ABORTA: script null")
+			continue
+		DebugLog.log("[_register_loaders]   can_instantiate()=%s" % script.can_instantiate())
+		if not script.can_instantiate():
+			DebugLog.log("[_register_loaders]   ABORTA: no compila")
+			continue
+		DebugLog.log("[_register_loaders]   new()...")
+		var loader: ResourceFormatLoader = script.new()
+		DebugLog.log("[_register_loaders]   new() -> %s" % str(loader))
+		if loader == null:
+			DebugLog.log("[_register_loaders]   ABORTA: new() null")
+			continue
+		DebugLog.log("[_register_loaders]   asignando mod_all_paths...")
 		loader.mod_all_paths = _mod_all_paths
+		DebugLog.log("[_register_loaders]   registrando con ResourceLoader...")
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
-		DebugLog.log("[_register_loaders] %s: mod_all_paths.size=%d" % [
-			s, loader.mod_all_paths.size(),
-		])
+		DebugLog.log("[_register_loaders]   OK registrado, _loaders.size=%d" % _loaders.size())
 	_log("%d runtime loaders registrados" % _loaders.size())
 
 
