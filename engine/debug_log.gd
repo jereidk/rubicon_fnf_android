@@ -23,10 +23,7 @@ extends Node
 ## corre antes que cualquier escena.
 
 const APP_LOG_DIR_FMT := "/storage/emulated/0/Android/data/%s/files/logs"
-## Directorio publico primario. Mismo que ErrorLog para que todos los
-## logs del engine queden juntos en /storage/emulated/0/.WashosEngine/logs/
-## (con punto, consistente con la carpeta de mods legacy).
-const PUBLIC_DIR := "/storage/emulated/0/.WashosEngine/logs"
+const PUBLIC_DIR := "/storage/emulated/0/WashosEngine"
 const FALLBACK_LOG_DIR := "user://logs"
 const DEFAULT_ANDROID_PACKAGE := "com.washos.engine"
 const FILENAME := "debug.log"

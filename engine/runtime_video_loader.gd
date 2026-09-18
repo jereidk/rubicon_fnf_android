@@ -15,15 +15,6 @@ var mod_all_paths: Dictionary = {}
 # no funcionaria para archivos dentro del .pck, pero los del APK ya
 # tienen su .ogvstr importado y los maneja el loader default.
 
-func _init() -> void:
-	# Log de creacion de instancia. Si _register_runtime_loaders
-	# crashea en script.new(), el _init del loader no va a aparecer
-	# en el log y sabemos exactamente cual fallo.
-	var dl := get_node_or_null("/root/DebugLog")
-	if dl != null:
-		dl.log("[runtime_video_loader] _init OK")
-
-
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["ogv"])
 

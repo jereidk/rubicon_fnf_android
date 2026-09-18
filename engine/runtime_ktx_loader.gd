@@ -21,15 +21,6 @@ var mod_all_paths: Dictionary = {}
 
 const EXTENSIONS: PackedStringArray = ["ktx", "astc"]
 
-func _init() -> void:
-	# Log de creacion de instancia. Si _register_runtime_loaders
-	# crashea en script.new(), el _init del loader no va a aparecer
-	# en el log y sabemos exactamente cual fallo.
-	var dl := get_node_or_null("/root/DebugLog")
-	if dl != null:
-		dl.log("[runtime_ktx_loader] _init OK")
-
-
 func _get_recognized_extensions() -> PackedStringArray:
 	return EXTENSIONS
 
