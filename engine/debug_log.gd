@@ -60,7 +60,9 @@ func log(msg: String) -> void:
 	_file.flush()
 
 
-func get_path() -> String:
+## Ruta del archivo abierto. NO se llama get_path() porque Node ya tiene
+## uno (-> NodePath) y sobreescribirlo con otra firma rompe el parser.
+func get_log_path() -> String:
 	return _path
 
 
