@@ -51,6 +51,51 @@ Si un archivo del mod tiene el mismo res:// que uno del APK, el del mod
 PISA al del APK. Si no existe en el APK, se agrega.
 
 
+mod.json
+--------
+
+El manifiesto del mod. Todos los campos son opcionales: si no existe
+ningun mod.json, el engine usa el nombre de la carpeta y busca main.gd
+o main.tscn como escena principal.
+
+{
+  "name": "Holy Quintet",
+  "version": "1.0.7",
+  "author": "jereidk",
+  "description": "Mod de Madoka Magica para FNF.",
+  "icon": "res://icon.png",
+  "homepage": "https://github.com/jereidk/rubicon_fnf_android",
+  "main_scene": "res://holyquintet_mod/menus/setup/setup_screen.tscn",
+  "enabled": true
+}
+
+Campos:
+
+- name:         nombre visible en el ModSelector y el ModManager. Si se
+                omite, se usa el nombre de la carpeta.
+- version:      libre. Se muestra al lado del nombre.
+- author:       quien hizo el mod. Se muestra en la sub-linea y en el
+                popup de detalles.
+- description:  texto corto. Se muestra en una linea debajo del nombre
+                (hasta 2 lineas con ellipsis) y completo en el popup.
+- icon:         ruta al PNG del icono. Puede ser "res://icon.png" (que
+                se resuelve al archivo fisico dentro de la carpeta del
+                mod) o un nombre relativo como "icon.png". Si se omite,
+                el engine busca icon.png, icon.ktx, icon.webp o icon.svg
+                en la raiz de la carpeta del mod. Se carga directo desde
+                disco (FileAccess + Image.load_*_from_buffer), no via
+                res://, para que funcione tambien con mods desactivados
+                que no tienen el .pck montado.
+- homepage:     URL del mod. Se muestra en el popup.
+- main_scene:   escena que arranca el engine al elegir este mod. Acepta
+                .tscn o .gd. Si se omite, se autodetecta main.gd
+                (prioridad) o main.tscn.
+- enabled:      false para que el engine lo ignore sin borrarlo. La UI
+                guarda su propio estado en config/mods.json, que gana
+                sobre este campo una vez que el usuario lo toca desde el
+                ModManager.
+
+
 mods_order.txt
 --------------
 

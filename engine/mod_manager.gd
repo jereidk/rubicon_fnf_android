@@ -2,15 +2,21 @@ extends Control
 ## Pantalla de gestion de mods. Muestra la lista con activar/desactivar,
 ## reordenar, desinstalar, y avisos de colisiones y duplicados.
 ##
+## Cada fila muestra la metadata del mod.json: icon, nombre, version,
+## autor, descripcion corta y de que raiz viene. Tocar el nombre abre un
+## popup con toda la metadata y los paths.
+##
 ## Layout con Containers nativos: no hay posicion absoluta ni factor de
 ## escala manual, Godot distribuye el espacio solo y funciona en cualquier
-## aspecto de pantalla (16:9, 20:9, tablet, lo que sea).
+## aspecto de pantalla.
 ##
 ## Escucha dos signals del ModLoader:
 ##   mods_changed   -> algo cambio (enabled, orden, scan), refrescar
 ##   mods_reloaded  -> hot reload al volver del background, mostrar aviso
 
 const SELECTOR_SCENE := "res://engine/mod_selector.tscn"
+## Extensiones que se prueban para autodetectar el icon del mod, en orden.
+const ICON_EXTENSIONS: Array[String] = ["png", "ktx", "webp", "svg"]
 
 var _title: Label
 var _header: Label
@@ -21,6 +27,11 @@ var _open_btn: Button
 var _refresh_btn: Button
 var _reload_notice: Label
 var _notice_timer: float = 0.0
+## Cache de iconos ya cargados: folder -> Texture2D. Se invalida cuando
+## el mod cambia (el mtime de la carpeta es distinto), pero para no
+## complicar lo dejamos sin invalidar por ahora: el usuario que edita un
+## icono puede tocar "Releer" y el ModManager se recrea.
+var _icon_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -112,7 +123,6 @@ func _build_ui() -> void:
 
 
 func _process(delta: float) -> void:
-	# El aviso de "recargado" vive 3 segundos y se va solo.
 	if _notice_timer > 0.0:
 		_notice_timer -= delta
 		if _notice_timer <= 0.0:
@@ -125,6 +135,10 @@ func _on_mods_reloaded(changed: Array) -> void:
 	_reload_notice.text = "Cambios detectados en: %s" % ", ".join(changed)
 	_reload_notice.visible = true
 	_notice_timer = 3.0
+	# Los iconos pueden haber cambiado: limpiar el cache para que se
+	# recarguen. Es barato, solo se hace cuando hubo un cambio real.
+	for folder in changed:
+		_icon_cache.erase(folder)
 
 
 func _refresh() -> void:
@@ -164,40 +178,124 @@ func _refresh() -> void:
 func _short_root(root: String) -> String:
 	if root.begins_with("user://"):
 		return "app (user://mods)"
-	if root.contains("/RubiconEngine/"):
-		return "RubiconEngine"
 	if root.contains("/.RubiconEngine/"):
 		return "RubiconEngine (oculto)"
+	if root.contains("/RubiconEngine/"):
+		return "RubiconEngine"
 	return root
 
 
 func _root_badge(root: String) -> String:
 	if root.begins_with("user://"):
-		return "📱"
+		return "app"
 	if root.contains("/.RubiconEngine/"):
-		return "📁?"
-	return "📁"
+		return "ext?"
+	return "ext"
+
+
+## Carga el icono del mod, desde disco, directo. No via res:// porque los
+## mods desactivados no tienen el .pck montado y load() devolveria null.
+##
+## Orden de busqueda:
+##   1. Campo "icon" del mod.json (relativo al res:// del mod o absoluto).
+##   2. icon.png / icon.ktx / icon.webp / icon.svg en la raiz del mod.
+##   3. null (se usa un placeholder de texto en la fila).
+func _load_icon_for_mod(m: Dictionary) -> Texture2D:
+	var folder: String = m["folder"]
+	if _icon_cache.has(folder):
+		return _icon_cache[folder]
+
+	var mod_path: String = m["path"]
+	var candidates: Array[String] = []
+
+	var declared: String = str(m.get("icon", ""))
+	if not declared.is_empty():
+		# Puede ser "res://icon.png" o "icon.png" (relativo). En los dos
+		# casos el archivo fisico esta en mod_path.
+		var rel := declared
+		if rel.begins_with("res://"):
+			rel = rel.substr(6)
+		candidates.append(mod_path + "/" + rel)
+	else:
+		for ext in ICON_EXTENSIONS:
+			candidates.append(mod_path + "/icon." + ext)
+
+	for path in candidates:
+		if not FileAccess.file_exists(path):
+			continue
+		var tex := _load_texture_from_disk(path)
+		if tex != null:
+			_icon_cache[folder] = tex
+			return tex
+
+	_icon_cache[folder] = null
+	return null
+
+
+func _load_texture_from_disk(path: String) -> Texture2D:
+	var bytes := FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty():
+		return null
+	var img := Image.new()
+	var ext := path.get_extension().to_lower()
+	var err := ERR_UNAVAILABLE
+	match ext:
+		"png":
+			err = img.load_png_from_buffer(bytes)
+		"webp":
+			err = img.load_webp_from_buffer(bytes)
+		"ktx":
+			err = img.load_ktx_from_buffer(bytes)
+		"svg":
+			err = img.load_svg_from_buffer(bytes)
+	if err != OK:
+		return null
+	return ImageTexture.create_from_image(img)
 
 
 func _build_row(idx: int) -> Control:
 	var m: Dictionary = ModLoader.mods[idx]
 	var folder: String = m["folder"]
 
+	# Fila contenedora con dos sub-filas: arriba los controles, abajo la
+	# descripcion. La descripcion es una sola linea cortada con ellipsis.
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 2)
+
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
+	outer.add_child(row)
 
 	var check := CheckBox.new()
 	check.button_pressed = ModLoader.is_enabled(folder)
-	check.custom_minimum_size = Vector2(100, 100)
+	check.custom_minimum_size = Vector2(90, 100)
 	check.toggled.connect(func(v): ModLoader.set_enabled(folder, v))
 	row.add_child(check)
 
-	var badge := Label.new()
-	badge.text = _root_badge(m.get("root", ""))
-	badge.add_theme_font_size_override("font_size", 28)
-	badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	badge.custom_minimum_size = Vector2(50, 0)
-	row.add_child(badge)
+	var icon_tex := _load_icon_for_mod(m)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(90, 90)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if icon_tex != null:
+		icon.texture = icon_tex
+	else:
+		# Placeholder de texto cuando no hay icono. Es un Label dentro de un
+		# Control del mismo tamano, alineado al centro.
+		var ph := Label.new()
+		ph.text = "?"
+		ph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ph.add_theme_font_size_override("font_size", 40)
+		ph.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
+		icon.add_child(ph)
+	row.add_child(icon)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 2)
+	row.add_child(text_col)
 
 	var name_label := Label.new()
 	var display_name := str(m.get("name", folder))
@@ -213,45 +311,113 @@ func _build_row(idx: int) -> Control:
 		display_name = "%s %s" % [" ".join(marks), display_name]
 	name_label.text = display_name
 	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.add_theme_font_size_override("font_size", 28)
 	name_label.clip_text = true
+	name_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	name_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	name_label.gui_input.connect(func(ev):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			_show_mod_details(m)
+		elif ev is InputEventScreenTouch and ev.pressed:
+			_show_mod_details(m)
+	)
 	if not cols.is_empty():
 		name_label.tooltip_text = "Colisiones:\n" + "\n".join(cols)
-	row.add_child(name_label)
+	text_col.add_child(name_label)
 
-	var ver_label := Label.new()
-	ver_label.text = "v" + str(m.get("version", "?"))
-	ver_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	ver_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	ver_label.add_theme_font_size_override("font_size", 22)
-	row.add_child(ver_label)
+	# Sub-linea: version + autor + badge de raiz.
+	var meta_parts: PackedStringArray = PackedStringArray()
+	meta_parts.append("v" + str(m.get("version", "?")))
+	if m.has("author") and not str(m["author"]).is_empty():
+		meta_parts.append("por " + str(m["author"]))
+	meta_parts.append(_root_badge(m.get("root", "")))
+	var meta := Label.new()
+	meta.text = " · ".join(meta_parts)
+	meta.add_theme_font_size_override("font_size", 20)
+	meta.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
+	meta.clip_text = true
+	text_col.add_child(meta)
 
 	var up := Button.new()
 	up.text = "▲"
-	up.custom_minimum_size = Vector2(90, 100)
-	up.add_theme_font_size_override("font_size", 28)
+	up.custom_minimum_size = Vector2(80, 90)
+	up.add_theme_font_size_override("font_size", 26)
 	up.disabled = idx == 0
 	up.pressed.connect(func(): ModLoader.move_mod(folder, -1))
 	row.add_child(up)
 
 	var down := Button.new()
 	down.text = "▼"
-	down.custom_minimum_size = Vector2(90, 100)
-	down.add_theme_font_size_override("font_size", 28)
+	down.custom_minimum_size = Vector2(80, 90)
+	down.add_theme_font_size_override("font_size", 26)
 	down.disabled = idx == ModLoader.mods.size() - 1
 	down.pressed.connect(func(): ModLoader.move_mod(folder, 1))
 	row.add_child(down)
 
 	var del := Button.new()
-	del.text = "🗑"
-	del.custom_minimum_size = Vector2(90, 100)
-	del.add_theme_font_size_override("font_size", 28)
+	del.text = "X"
+	del.custom_minimum_size = Vector2(80, 90)
+	del.add_theme_font_size_override("font_size", 26)
 	del.pressed.connect(func(): _confirm_uninstall(folder))
 	row.add_child(del)
 
-	return row
+	# Descripcion debajo, si existe.
+	var desc: String = str(m.get("description", ""))
+	if not desc.is_empty():
+		var dl := Label.new()
+		dl.text = desc
+		dl.add_theme_font_size_override("font_size", 18)
+		dl.add_theme_color_override("font_color", Color(0.55, 0.55, 0.6))
+		dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dl.max_lines_visible = 2
+		dl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		outer.add_child(dl)
+
+	return outer
+
+
+## Popup con toda la metadata del mod + paths. Se abre al tocar el nombre.
+## Usa un AcceptDialog porque trae su propio boton de cerrar y maneja
+## correctamente el foco en Android.
+func _show_mod_details(m: Dictionary) -> void:
+	var folder: String = m["folder"]
+
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append("Nombre:      %s" % m.get("name", folder))
+	if m.has("version"):
+		lines.append("Version:     %s" % m["version"])
+	if m.has("author"):
+		lines.append("Autor:       %s" % m["author"])
+	lines.append("Carpeta:     %s" % folder)
+	lines.append("Raiz:        %s" % _short_root(m.get("root", "")))
+	lines.append("Path:        %s" % m.get("path", "?"))
+	lines.append("")
+	lines.append("Main scene:  %s" % m.get("main_scene", "(no definida)"))
+	lines.append("Activo:      %s" % ("si" if ModLoader.is_enabled(folder) else "no"))
+
+	if m.has("description") and not str(m["description"]).is_empty():
+		lines.append("")
+		lines.append("Descripcion:")
+		lines.append(str(m["description"]))
+
+	if m.has("homepage") and not str(m["homepage"]).is_empty():
+		lines.append("")
+		lines.append("Homepage:    %s" % m["homepage"])
+
+	var cols := ModLoader.collisions_for(folder)
+	if not cols.is_empty():
+		lines.append("")
+		lines.append("⚠ Colisiones con otros mods activos:")
+		for c in cols:
+			lines.append("  %s" % c)
+
+	var dialog := AcceptDialog.new()
+	dialog.title = "Detalles del mod"
+	dialog.dialog_text = "\n".join(lines)
+	dialog.ok_button_text = "Cerrar"
+	dialog.min_size = Vector2(700, 500)
+	add_child(dialog)
+	dialog.popup_centered()
 
 
 func _confirm_uninstall(folder: String) -> void:
@@ -266,6 +432,7 @@ func _confirm_uninstall(folder: String) -> void:
 
 
 func _rescan() -> void:
+	_icon_cache.clear()
 	ModLoader.scan()
 	ModLoader._load_all_enabled()
 	_refresh()
