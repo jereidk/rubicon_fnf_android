@@ -97,6 +97,11 @@ var _collisions_dirty: bool = true
 ## runtime_gd_loader.gd lo comparte por referencia y solo
 ## intercepta estos paths, para no pisar los .gd del APK.
 var _mod_gd_paths: Dictionary = {}
+
+## Igual que _mod_gd_paths pero para .tres/.tscn/.scn. Compartido
+## por referencia con runtime_resource_loader.gd.
+var _mod_resource_paths: Dictionary = {}
+var _resource_loader: ResourceFormatLoader = null
 var _gd_loader: ResourceFormatLoader = null
 
 ## Cache del walk del arbol de un mod: {folder -> {fingerprint, files, time}}.
@@ -262,6 +267,11 @@ func _register_runtime_loaders() -> void:
 	ResourceLoader.add_resource_format_loader(_gd_loader, true)
 	_loaders.append(_gd_loader)
 
+	_resource_loader = load("res://engine/runtime_resource_loader.gd").new()
+	_resource_loader.mod_resource_paths = _mod_resource_paths
+	ResourceLoader.add_resource_format_loader(_resource_loader, true)
+	_loaders.append(_resource_loader)
+
 	for s in scripts:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
 		ResourceLoader.add_resource_format_loader(loader, true)
@@ -339,7 +349,7 @@ func _recompute_collisions() -> void:
 		var scan := _scan_mod_tree(m["folder"], m["path"])
 		var files: Array = scan["files"]
 		for rel in files:
-			var res_path := "res://" + rel
+			var res_path: String = "res://" + String(rel)
 			if not paths.has(res_path):
 				paths[res_path] = []
 			paths[res_path].append(m["folder"])
@@ -891,8 +901,11 @@ func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable 
 ## aunque el pck este en cache, porque el registro no se persiste.
 func _register_mod_gd_paths(files: Array) -> void:
 	for rel in files:
-		if String(rel).ends_with(".gd"):
-			_mod_gd_paths["res://" + rel] = true
+		var s: String = String(rel)
+		if s.ends_with(".gd"):
+			_mod_gd_paths["res://" + s] = true
+		elif s.ends_with(".tres") or s.ends_with(".tscn") or s.ends_with(".scn"):
+			_mod_resource_paths["res://" + s] = true
 
 
 func _collect(root: String, sub: String, out: Array[String]) -> void:
