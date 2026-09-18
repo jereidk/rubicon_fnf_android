@@ -25,6 +25,27 @@ extends Node
 ## la raiz primaria. Cada mod tiene un campo root para saber de donde
 ## vino.
 
+## Ruta del log de diagnostico. Este archivo SIEMPRE se puede leer
+## desde Termux porque lo escribimos con FileAccess.open sobre una ruta
+## que no depende del permiso MANAGE_EXTERNAL_STORAGE: la raiz del
+## proyecto, que ya probamos al arrancar.
+##
+## Ojo: si la app no tiene permiso para escribir aca, el log no se crea.
+## Pero si no lo tiene, tampoco va a poder leer los mods externos, que
+## es exactamente el problema que el log intenta diagnosticar.
+const DEBUG_LOG := "user://mod_loader_debug.log"
+
+var _debug_file: FileAccess = null
+
+func _log(msg: String) -> void:
+	print("[ModLoader] " + msg)
+	if _debug_file == null:
+		_debug_file = FileAccess.open(DEBUG_LOG, FileAccess.WRITE)
+	if _debug_file != null:
+		_debug_file.store_line(msg)
+		_debug_file.flush()
+
+
 const MODS_ROOT_CANDIDATES: Array[String] = [
 	"user://mods",
 	"/storage/emulated/0/RubiconEngine/mods",
@@ -98,7 +119,7 @@ func _request_android_permissions() -> void:
 		print("[ModLoader] permiso de storage ya otorgado")
 		return
 	print("[ModLoader] pidiendo permiso de storage")
-	OS.request_permission("MANAGE_EXTERNAL_STORAGE")
+	OS.request_permission(ANDROID_STORAGE_PERMISSION)
 
 
 func _notification(what: int) -> void:
@@ -193,14 +214,15 @@ func _register_runtime_loaders() -> void:
 func _resolve_mods_roots() -> Array[String]:
 	var out: Array[String] = []
 	for candidate in MODS_ROOT_CANDIDATES:
-		var err := DirAccess.make_dir_recursive_absolute(candidate)
-		if err != OK and not DirAccess.dir_exists_absolute(candidate):
-			continue
+		# Intentar crear la carpeta es best-effort: si falla porque no
+		# existe permiso, igual probamos leer y escribir.
+		DirAccess.make_dir_recursive_absolute(candidate)
+
 		if not _can_read_from(candidate):
-			push_warning("[ModLoader] %s existe pero no es legible, se omite" % candidate)
+			_log("raiz NO legible, se omite: %s" % candidate)
 			continue
 		out.append(candidate)
-		print("[ModLoader] raiz legible: %s" % candidate)
+		_log("raiz legible: %s" % candidate)
 	if out.is_empty():
 		out.append(MODS_ROOT_CANDIDATES[0])
 	return out
@@ -212,11 +234,13 @@ func _can_read_from(dir_path: String) -> bool:
 	var probe := dir_path.path_join(".read_probe")
 	var f := FileAccess.open(probe, FileAccess.WRITE)
 	if f == null:
+		_log("  no puedo escribir en %s (err=%d)" % [probe, FileAccess.get_open_error()])
 		return false
 	f.store_string("ok")
 	f.close()
 	var back := FileAccess.open(probe, FileAccess.READ)
 	if back == null:
+		_log("  escribi pero no puedo leer %s" % probe)
 		DirAccess.remove_absolute(probe)
 		return false
 	var txt := back.get_as_text()
