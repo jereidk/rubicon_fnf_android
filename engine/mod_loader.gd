@@ -282,18 +282,23 @@ func _register_runtime_loaders() -> void:
 
 	_resource_loader = load("res://engine/runtime_resource_loader.gd").new()
 	_resource_loader.mod_resource_paths = _mod_resource_paths
+	_resource_loader.mod_all_paths = _mod_all_paths
 	ResourceLoader.add_resource_format_loader(_resource_loader, true)
 	_loaders.append(_resource_loader)
 
 	for s in scripts:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
-		# Inyectar la referencia compartida si el loader la declara. Los
-		# runtime_*.gd que filtran assets crudos la necesitan para saber
-		# si un archivo es de un mod (leer crudo) o del APK (delegar).
-		if "mod_all_paths" in loader:
-			loader.mod_all_paths = _mod_all_paths
+		# Asignar directo, sin check de "property in object". El operador
+		# "x in obj" en GDScript 4 solo verifica METODOS, no variables de
+		# script. Con "if 'mod_all_paths' in loader" la asignacion nunca
+		# ocurria y todos los loaders quedaban con mod_all_paths = {},
+		# rechazando paths que sí tenian que resolver.
+		loader.mod_all_paths = _mod_all_paths
 		ResourceLoader.add_resource_format_loader(loader, true)
 		_loaders.append(loader)
+		DebugLog.log("[_register_loaders] %s: mod_all_paths.size=%d" % [
+			s, loader.mod_all_paths.size(),
+		])
 	_log("%d runtime loaders registrados" % _loaders.size())
 
 
