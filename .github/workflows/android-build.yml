@@ -175,7 +175,7 @@ jobs:
           echo "=== sha256 del export_presets.cfg ==="
           sha256sum export_presets.cfg
           echo "=== claves relevantes del preset ==="
-          grep -nE "^package/|^version/|^min_sdk|^target_sdk" export_presets.cfg
+          grep -nE "^package/|^version/|^screen/|^architectures/|^user_data" export_presets.cfg
           echo "=== TODO el export_presets.cfg ==="
           cat export_presets.cfg
           echo "=== estado de .godot/ ==="
