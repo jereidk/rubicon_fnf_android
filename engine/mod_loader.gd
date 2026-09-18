@@ -303,7 +303,7 @@ func _register_runtime_loaders() -> void:
 		DebugLog.log("[_register_loaders]   load() normal...")
 		var script: GDScript = load(s)
 		DebugLog.log("[_register_loaders]   load() CACHE_MODE_IGNORE...")
-		var script_ignore: GDScript = load(s, "", ResourceLoader.CACHE_MODE_IGNORE)
+		var script_ignore: GDScript = ResourceLoader.load(s, "", ResourceLoader.CACHE_MODE_IGNORE)
 		DebugLog.log("[_register_loaders]   normal: src=%d methods=%d base=%s" % [
 			script.source_code.length(), script.get_script_method_list().size(),
 			script.get_instance_base_type(),
