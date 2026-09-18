@@ -168,29 +168,6 @@ jobs:
           echo "Aplicado version_code=$VCODE version_name=$VNAME"
           grep -E "version_code|version_name|package/name" export_presets.cfg
 
-      - name: Invalidate export preset cache
-        run: |
-          # Godot cachea el preset en .godot/exported/. El import que corre
-          # antes de este step deja ese cache con los valores del preset
-          # ANTES del sed, y el export lee el cache, no el archivo. Hay que
-          # borrarlo y re-importar para que Godot vea los valores reales.
-          rm -rf .godot/exported
-          $GODOT --headless --import 2>&1 | tail -3
-          echo "=== export_presets.cfg justo antes del export ==="
-          grep -E "version_code|version_name|package/unique_name|package/name" export_presets.cfg
-
-      - name: Refresh export preset cache
-        run: |
-          # Godot cachea el preset en .godot/exported/. El import que corre
-          # antes del Set version code deja ese cache con los valores
-          # default, y el export lee el cache en vez del archivo que el sed
-          # acaba de modificar. Borrarlo y re-importar fuerza a Godot a
-          # releer el export_presets.cfg con los valores reales.
-          rm -rf .godot/exported
-          $GODOT --headless --import 2>&1 | tail -5
-          echo "=== export_presets.cfg justo antes del export ==="
-          grep -E "version_code|version_name|package/unique_name|package/name" export_presets.cfg
-
       - name: Debug export config
         run: |
           echo "=== PWD ==="
