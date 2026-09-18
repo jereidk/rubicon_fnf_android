@@ -88,6 +88,12 @@ var _installed_autoloads: Dictionary = {}
 ## nodo quedan vivos aca mientras dure ModLoader.
 var _installed_autoload_nodes: Dictionary = {}
 
+## Paths res:// de cada .gd que trae algun mod activo. El
+## runtime_gd_loader.gd lo comparte por referencia y solo
+## intercepta estos paths, para no pisar los .gd del APK.
+var _mod_gd_paths: Dictionary = {}
+var _gd_loader: ResourceFormatLoader = null
+
 ## Autoloads que no pudieron entrar al arbol durante el _ready de
 ## ModLoader (Window rechaza add_child en esa fase). El flush corre
 ## una sola vez, en el primer process_frame, y los mete a todos juntos
@@ -234,6 +240,11 @@ func _register_runtime_loaders() -> void:
 		"res://engine/runtime_shader_loader.gd",
 		"res://engine/runtime_audio_loader.gd",
 	]
+	_gd_loader = load("res://engine/runtime_gd_loader.gd").new()
+	_gd_loader.mod_gd_paths = _mod_gd_paths
+	ResourceLoader.add_resource_format_loader(_gd_loader, true)
+	_loaders.append(_gd_loader)
+
 	for s in scripts:
 		var loader: ResourceFormatLoader = (load(s) as GDScript).new()
 		ResourceLoader.add_resource_format_loader(loader, true)
@@ -737,6 +748,8 @@ func load_mod(m: Dictionary) -> bool:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
+
+	_register_mod_gd_paths(m["path"])
 	# Instalar autoloads AHORA, mientras el .pck ya esta montado pero la
 	# escena del mod todavia no se cargo. Los scripts del mod no se
 	# parsean hasta que ModSelector carga su main_scene, asi que la
@@ -757,6 +770,18 @@ func _build_pck(m: Dictionary, out: String) -> bool:
 		if err != OK:
 			_log("add_file %s fallo: %d" % [rel, err])
 	return packer.flush(true) == OK
+
+
+## Recorre el arbol del mod en disco y registra cada .gd en
+## _mod_gd_paths. Compartido con runtime_gd_loader.gd, que solo
+## compila a mano los paths registrados aca. Se llama SIEMPRE,
+## aunque el pck este en cache, porque el registro no se persiste.
+func _register_mod_gd_paths(mod_path: String) -> void:
+	var files: Array[String] = []
+	_collect(mod_path, "", files)
+	for rel in files:
+		if rel.ends_with(".gd"):
+			_mod_gd_paths["res://" + rel] = true
 
 
 func _collect(root: String, sub: String, out: Array[String]) -> void:
