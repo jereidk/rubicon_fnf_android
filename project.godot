@@ -66,6 +66,7 @@ funkin_pause={
 enabled=PackedStringArray("res://addons/rubichart_converter/plugin.cfg", "res://addons/rubicon/plugin.cfg", "res://addons/sprite_importer/plugin.cfg", "res://addons/spriteframes_keyframer/plugin.cfg")
 
 [autoload]
+DebugLog="*res://engine/debug_log.gd"
 DebugDisplay="*res://engine/debug_display.gd"
 ModLoader="*res://engine/mod_loader.gd"
 ErrorLog="*res://engine/error_log.gd"

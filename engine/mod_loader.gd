@@ -30,7 +30,12 @@ const GDCompileHelper := preload("res://engine/gd_compile.gd")
 ## viejo que escribia a user://mod_loader_debug.log - inalcanzable desde
 ## Termux - y a print(), que no se ve en Android release sin logcat.
 func _log(msg: String) -> void:
-	DebugLog.log("[ModLoader] " + msg)
+	# get_node_or_null en vez de DebugLog directo: si por alguna razon el
+	# autoload no esta (orden mal, error de parseo en debug_log.gd, etc),
+	# esto no rompe ModLoader - que es mas importante que el log.
+	var dl := get_node_or_null("/root/DebugLog")
+	if dl != null:
+		dl.log("[ModLoader] " + msg)
 
 
 const MODS_ROOT_CANDIDATES: Array[String] = [
