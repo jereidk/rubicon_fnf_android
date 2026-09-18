@@ -120,7 +120,10 @@ func _ready() -> void:
 		push_warning("[ModLoader] no puedo crear CACHE_DIR %s" % CACHE_DIR)
 	_load_config()
 	scan()
-	_load_all_enabled()
+	# NO se empaquetan los mods aca. Con HQ (351 MB) el arranque tardaba
+	# minutos en el splash. Los mods se empaquetan y montan on-demand desde
+	# ModSelector._launch() -> bake_mod(). El arranque queda en ~2s con
+	# cualquier cantidad de mods.
 
 
 ## Llamado por el SceneTree cuando el usuario responde al dialogo de
@@ -135,7 +138,9 @@ func _on_android_permission_result(permission: String, granted: bool) -> void:
 	mods_roots = _resolve_mods_roots()
 	mods_root = mods_roots[0] if not mods_roots.is_empty() else MODS_ROOT_CANDIDATES[0]
 	scan()
-	_load_all_enabled()
+	# Sin _load_all_enabled: los mods se empaquetan on-demand desde
+	# ModSelector. Empaquetar todos aca bloquearia la app varios minutos
+	# con un mod grande (HQ son 351 MB).
 	mods_changed.emit()
 
 
@@ -729,6 +734,63 @@ func _load_all_enabled() -> void:
 			load_mod(m)
 
 
+## Devuelve true si el pck del mod falta o esta desactualizado respecto
+## al contenido en disco. Se llama desde ModSelector antes de arrancar un
+## mod, para decidir si hay que mostrar la pantalla de carga.
+func needs_bake(folder: String) -> bool:
+	var m: Dictionary = {}
+	for mod in mods:
+		if mod.get("folder", "") == folder:
+			m = mod
+			break
+	if m.is_empty():
+		return false
+	var cache_path := CACHE_DIR + "/" + folder + ".pck"
+	if not FileAccess.file_exists(cache_path):
+		return true
+	var fingerprint := _mod_fingerprint(m["path"])
+	var cached_fp := _cached_fingerprint(folder)
+	return fingerprint != cached_fp
+
+
+## Empaqueta el pck del mod si hace falta, lo monta y registra los paths.
+##
+## on_progress(done: int, total: int, phase: String) es opcional. Se llama
+## desde el main thread cada ~100 archivos durante el empaquetado, para que
+## la UI pueda actualizar una barra. phase es "count" (contando archivos
+## para el fingerprint) o "pack" (empaquetando).
+##
+## Cede el frame con await cada tanto para que la UI respire. No corre en
+## thread aparte: PCKPacker no es thread-safe.
+func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
+	var folder: String = m["folder"]
+	var cache_path := CACHE_DIR + "/" + folder + ".pck"
+	var mtime_path := CACHE_DIR + "/" + folder + ".mtime"
+
+	if on_progress.is_valid():
+		on_progress.call(0, 1, "count")
+	var fingerprint := _mod_fingerprint(m["path"])
+	var cached_fp := ""
+	if FileAccess.file_exists(mtime_path):
+		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
+
+	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
+		if not await _build_pck(m, cache_path, on_progress):
+			push_error("[ModLoader] no se pudo empaquetar %s" % folder)
+			return false
+		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
+
+	var ok := ProjectSettings.load_resource_pack(cache_path, true)
+	if not ok:
+		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
+		return false
+
+	_register_mod_gd_paths(m["path"])
+	_install_mod_autoloads(m)
+	_log("bake_mod: %s listo" % folder)
+	return true
+
+
 func load_mod(m: Dictionary) -> bool:
 	var folder: String = m["folder"]
 	var cache_path := CACHE_DIR + "/" + folder + ".pck"
@@ -759,16 +821,33 @@ func load_mod(m: Dictionary) -> bool:
 	return true
 
 
-func _build_pck(m: Dictionary, out: String) -> bool:
+## Empaqueta el mod. on_progress(done, total, "pack") se llama cada
+## PROGRESS_EVERY archivos para actualizar la UI. Cede el frame cada
+## tantos archivos con await process_frame para que la barra se redibuje.
+## PCKPacker no es thread-safe, asi que esto corre en main thread.
+const PROGRESS_EVERY := 100
+
+func _build_pck(m: Dictionary, out: String, on_progress: Callable = Callable()) -> bool:
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
 		return false
 	var files: Array[String] = []
 	_collect(m["path"], "", files)
+	var total: int = files.size()
+	if on_progress.is_valid():
+		on_progress.call(0, total, "pack")
+	var i: int = 0
 	for rel in files:
 		var err := packer.add_file("res://" + rel, m["path"] + "/" + rel)
 		if err != OK:
 			_log("add_file %s fallo: %d" % [rel, err])
+		i += 1
+		if i % PROGRESS_EVERY == 0:
+			if on_progress.is_valid():
+				on_progress.call(i, total, "pack")
+			await get_tree().process_frame
+	if on_progress.is_valid():
+		on_progress.call(total, total, "pack")
 	return packer.flush(true) == OK
 
 

@@ -33,6 +33,13 @@ var _list: VBoxContainer
 var _mods_btn: Button
 var _error_label: Label
 
+## Overlay de carga que aparece al empaquetar un mod on-demand.
+## Con HQ (351 MB) el pck tarda y sin feedback parece que la app se colgo.
+var _loading_overlay: Control
+var _loading_title: Label
+var _loading_phase: Label
+var _loading_bar: ProgressBar
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -46,6 +53,7 @@ func _ready() -> void:
 func _build_ui() -> void:
 	_build_background()
 	_build_animated_logo()
+	_build_loading_overlay()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -176,6 +184,79 @@ func _build_animated_logo() -> void:
 	logo.setup(png, xml)
 
 
+func _build_loading_overlay() -> void:
+	_loading_overlay = Control.new()
+	_loading_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_loading_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_loading_overlay.visible = false
+	add_child(_loading_overlay)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.02, 0.01, 0.04, 0.96)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_overlay.add_child(bg)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.offset_bottom = -80
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_overlay.add_child(center)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 24)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(vbox)
+
+	_loading_title = Label.new()
+	_loading_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading_title.add_theme_font_size_override("font_size", 56)
+	_loading_title.add_theme_color_override("font_color", Color.WHITE)
+	_loading_title.add_theme_constant_override("outline_size", 6)
+	_loading_title.add_theme_color_override("font_outline_color", Color.BLACK)
+	vbox.add_child(_loading_title)
+
+	_loading_phase = Label.new()
+	_loading_phase.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading_phase.add_theme_font_size_override("font_size", 26)
+	_loading_phase.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+	vbox.add_child(_loading_phase)
+
+	_loading_bar = ProgressBar.new()
+	_loading_bar.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_loading_bar.offset_top = -40
+	_loading_bar.offset_bottom = 0
+	_loading_bar.min_value = 0.0
+	_loading_bar.max_value = 1.0
+	_loading_bar.value = 0.0
+	_loading_bar.show_percentage = false
+	_loading_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_overlay.add_child(_loading_bar)
+
+
+func _show_loading_overlay(mod_name: String) -> void:
+	_loading_title.text = "Cargando %s..." % mod_name
+	_loading_phase.text = "Preparando..."
+	_loading_bar.value = 0.0
+	_loading_overlay.visible = true
+
+
+func _hide_loading_overlay() -> void:
+	_loading_overlay.visible = false
+
+
+func _on_bake_progress(done: int, total: int, phase: String) -> void:
+	if phase == "count":
+		_loading_phase.text = "Analizando archivos..."
+		_loading_bar.value = 0.0
+		return
+	_loading_phase.text = "Empaquetando %d / %d" % [done, total]
+	if total > 0:
+		_loading_bar.value = float(done) / float(total)
+	else:
+		_loading_bar.value = 0.0
+
+
 func _populate() -> void:
 	for c in _list.get_children():
 		c.queue_free()
@@ -283,6 +364,17 @@ func _launch(m: Dictionary) -> void:
 		return
 	if not ResourceLoader.exists(scene):
 		_show_error("No encontrado: %s\nVerifica que el archivo exista dentro del mod." % scene)
+		return
+
+	# Bake on-demand: empaquetar el pck si hace falta, montarlo, e instalar
+	# los autoloads del mod. needs_bake() decide si mostrar el overlay; con
+	# un mod ya cacheado bake_mod corre en milisegundos y no se ve nada.
+	if ModLoader.needs_bake(m["folder"]):
+		_show_loading_overlay(str(m.get("name", m["folder"])))
+	var baked: bool = await ModLoader.bake_mod(m, _on_bake_progress)
+	_hide_loading_overlay()
+	if not baked:
+		_show_error("No se pudo preparar el mod: %s" % m["folder"])
 		return
 
 	if scene.ends_with(".gd"):
