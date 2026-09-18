@@ -37,6 +37,10 @@ const CONFIG_DIR_NAME := "config"
 const CONFIG_FILE_NAME := "mods.json"
 
 signal mods_changed
+## Emitido cuando un reload automatico (vuelta del background) encontro
+## cambios. La UI lo escucha para refrescar sin que el usuario tenga que
+## tocar "Releer".
+signal mods_reloaded(changed_folders: Array)
 
 ## Cada mod: {name, version, main_scene, enabled, folder, path, root}
 var mods: Array[Dictionary] = []
@@ -46,6 +50,22 @@ var mods_roots: Array[String] = []
 var mods_root: String = ""
 var _config: Dictionary = {"enabled": {}, "order": []}
 var _loaders: Array[ResourceFormatLoader] = []
+## Cuando la app vuelve del background marcamos para recargar en el
+## proximo frame donde la escena actual sea segura (ModSelector o
+## ModManager). No recargamos durante gameplay: cambiar el .pck de un mod
+## mientras corre una cancion rompe las referencias cargadas.
+var _pending_rescan: bool = false
+## Escena actual, para detectar el cambio y solo actuar en pantallas
+## seguras.
+var _last_scene_path: String = ""
+## Nombres de carpeta cuyo mtime cambio desde el ultimo escaneo.
+var _changed_on_resume: Array[String] = []
+## Mods con el mismo nombre de carpeta en mas de una raiz. Cada entrada:
+## {name, roots: [root1, root2, ...], winner: root}.
+var duplicates: Array[Dictionary] = []
+## Colisiones entre mods habilitados: res://path -> [folder1, folder2].
+## Se recalcula en cada scan() y en cada cambio de enabled/order.
+var collisions: Dictionary = {}
 
 
 func _ready() -> void:
@@ -76,6 +96,72 @@ func _request_android_permissions() -> void:
 		return
 	print("[ModLoader] pidiendo permiso de storage")
 	OS.request_permission("MANAGE_EXTERNAL_STORAGE")
+
+
+func _notification(what: int) -> void:
+	# Android y iOS suspenden la app cuando el usuario la deja en segundo
+	# plano. Al volver, NOTIFICATION_APPLICATION_RESUMED llega antes que
+	# cualquier _process, y es el punto correcto para chequear si el
+	# usuario edito algun mod mientras estaba afuera.
+	if what == NOTIFICATION_APPLICATION_RESUMED:
+		_pending_rescan = true
+
+
+func _process(_delta: float) -> void:
+	# Solo procesamos si hay un rescan pendiente. El costo en idle es una
+	# comparacion de bool, invisible.
+	if not _pending_rescan:
+		return
+
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var path: String = scene.scene_file_path
+
+	# Solo recargamos si estamos en una pantalla de gestion. Si el usuario
+	# estaba jugando, dejamos el flag prendido y esperamos a que vuelva.
+	if not (path.ends_with("mod_selector.tscn") or path.ends_with("mod_manager.tscn")):
+		return
+
+	_pending_rescan = false
+	reload_changed_mods()
+
+
+## Chequea que mods cambiaron desde el ultimo scan y, si hay alguno,
+## re-escanea la carpeta, reconstruye los .pck cambiados y emite
+## mods_reloaded con la lista. Llamado automaticamente al volver del
+## background en pantallas seguras, o manualmente desde el ModManager.
+func reload_changed_mods() -> void:
+	var changed: Array[String] = []
+	for m in mods:
+		var folder: String = m["folder"]
+		var newest := _newest_mtime(m["path"])
+		var cached := _cached_mtime(folder)
+		if newest > cached:
+			changed.append(folder)
+
+	if changed.is_empty():
+		return
+
+	print("[ModLoader] reload: %d mods cambiaron (%s)" % [changed.size(), ", ".join(changed)])
+	scan()
+	# Reconstruir solo los .pck cambiados. load_mod() ya chequea mtime y
+	# saltea el empaquetado si nada cambio, asi que llamamos a los de la
+	# lista + los que estan enabled.
+	for m in mods:
+		if m["folder"] in changed and is_enabled(m["folder"]):
+			load_mod(m)
+	_changed_on_resume = changed
+	mods_changed.emit()
+	mods_reloaded.emit(changed)
+
+
+## Ultimo mtime guardado en disco para ese mod, 0 si no hay cache.
+func _cached_mtime(folder: String) -> int:
+	var p := CACHE_DIR + "/" + folder + ".mtime"
+	if not FileAccess.file_exists(p):
+		return 0
+	return int(FileAccess.open(p, FileAccess.READ).get_as_text())
 
 
 func _register_runtime_loaders() -> void:
@@ -136,6 +222,104 @@ func _can_read_from(dir_path: String) -> bool:
 	return txt == "ok"
 
 
+## Recalcula que paths de res:// estan definidos por mas de un mod
+## habilitado al mismo tiempo. El resultado va a `collisions`, que la UI
+## usa para avisar al usuario. No bloquea nada: solo informa.
+##
+## Es O(total de archivos de los mods habilitados), y corre en cada
+## scan() + cada cambio de enabled. En una lista de 10 mods con 500
+## archivos cada uno son 5000 lookups de path, ~10 ms. Se podria cachear
+## por (folder, mtime) pero no hace falta por ahora.
+func _recompute_collisions() -> void:
+	collisions.clear()
+	var paths: Dictionary = {}  # "res://path" -> [folder]
+	for m in mods:
+		if not is_enabled(m["folder"]):
+			continue
+		var files: Array[String] = []
+		_collect(m["path"], "", files)
+		for rel in files:
+			var res_path := "res://" + rel
+			if not paths.has(res_path):
+				paths[res_path] = []
+			paths[res_path].append(m["folder"])
+	for res_path in paths:
+		if paths[res_path].size() > 1:
+			collisions[res_path] = paths[res_path]
+
+
+## Devuelve los paths de res:// que define este mod y que tambien define
+## otro. Usado por el ModManager para mostrar "choca con world" en la
+## fila de cada mod.
+func collisions_for(folder: String) -> Array[String]:
+	var out: Array[String] = []
+	for res_path in collisions:
+		var folders: Array = collisions[res_path]
+		if folder in folders:
+			out.append(res_path)
+	return out
+
+
+## Desinstala un mod: borra su carpeta, su .pck y su entrada en la
+## config. No pide confirmacion: es responsabilidad de la UI preguntar
+## antes.
+func uninstall_mod(folder: String) -> bool:
+	var found: Dictionary = {}
+	for m in mods:
+		if m["folder"] == folder:
+			found = m
+			break
+	if found.is_empty():
+		push_warning("[ModLoader] uninstall: no existe %s" % folder)
+		return false
+
+	# Borrar la carpeta recursivamente
+	var err := _remove_recursive(found["path"])
+	if err != OK:
+		push_error("[ModLoader] uninstall: no pude borrar %s (err %d)" % [found["path"], err])
+		return false
+
+	# Borrar cache del .pck
+	DirAccess.remove_absolute(CACHE_DIR + "/" + folder + ".pck")
+	DirAccess.remove_absolute(CACHE_DIR + "/" + folder + ".mtime")
+
+	# Sacar de la config
+	var en: Dictionary = _config.get("enabled", {})
+	en.erase(folder)
+	_config["enabled"] = en
+	var order: Array = _config.get("order", [])
+	order.erase(folder)
+	_config["order"] = order
+	save_config()
+
+	# Rescan para que la lista quede actualizada
+	scan()
+	mods_changed.emit()
+	print("[ModLoader] uninstalled: %s" % folder)
+	return true
+
+
+## DirAccess.remove_absolute() solo borra archivos, no directorios con
+## contenido. Hay que caminar el arbol y borrar de abajo hacia arriba.
+func _remove_recursive(path: String) -> int:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return DirAccess.remove_absolute(path)
+
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		if name != "." and name != "..":
+			var full := path + "/" + name
+			if dir.current_is_dir():
+				_remove_recursive(full)
+			else:
+				DirAccess.remove_absolute(full)
+		name = dir.get_next()
+	dir.list_dir_end()
+	return DirAccess.remove_absolute(path)
+
+
 func _config_path() -> String:
 	return mods_root.get_base_dir() + "/" + CONFIG_DIR_NAME + "/" + CONFIG_FILE_NAME
 
@@ -182,6 +366,7 @@ func set_enabled(folder: String, enabled: bool) -> void:
 	en[folder] = enabled
 	_config["enabled"] = en
 	save_config()
+	_recompute_collisions()
 	mods_changed.emit()
 
 
@@ -207,6 +392,7 @@ func move_mod(folder: String, direction: int) -> void:
 		order.append(mm["folder"])
 	_config["order"] = order
 	save_config()
+	_recompute_collisions()
 	mods_changed.emit()
 
 
@@ -216,13 +402,25 @@ func move_mod(folder: String, direction: int) -> void:
 ## raiz en `mods_roots` (que respeta el orden de MODS_ROOT_CANDIDATES).
 func scan() -> void:
 	mods.clear()
-	var seen: Dictionary = {}
+	duplicates.clear()
+	var seen: Dictionary = {}  # folder -> root del ganador
+	var seen_roots: Dictionary = {}  # folder -> [roots donde aparece]
 	for root in mods_roots:
-		_scan_root(root, seen)
+		_scan_root(root, seen, seen_roots)
+	# Armar duplicados: folders que aparecen en mas de una raiz.
+	for folder in seen_roots:
+		var roots: Array = seen_roots[folder]
+		if roots.size() > 1:
+			duplicates.append({
+				"name": folder,
+				"roots": roots.duplicate(),
+				"winner": roots[0],  # gana la primera raiz en mods_roots
+			})
 	_apply_order()
+	_recompute_collisions()
 
 
-func _scan_root(root: String, seen: Dictionary) -> void:
+func _scan_root(root: String, seen: Dictionary, seen_roots: Dictionary) -> void:
 	var dir := DirAccess.open(root)
 	if dir == null:
 		return
@@ -230,6 +428,11 @@ func _scan_root(root: String, seen: Dictionary) -> void:
 	var name := dir.get_next()
 	while name != "":
 		if name != "." and name != ".." and dir.current_is_dir():
+			# Registrar siempre en seen_roots, para saber si el folder
+			# aparece tambien en otra raiz.
+			if not seen_roots.has(name):
+				seen_roots[name] = []
+			seen_roots[name].append(root)
 			if not seen.has(name):
 				var m := _read_manifest(root + "/" + name)
 				if not m.is_empty():

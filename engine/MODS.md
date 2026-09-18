@@ -3,43 +3,37 @@
 El engine carga mods externos desde el almacenamiento del telefono, sin
 necesidad de recompilar el APK.
 
-## Estructura
-
-cd ~/rubicon_fnf_android
-cat > engine/MODS.md << 'MDEOF'
-Mods del Rubicon Engine
-=======================
-
-El engine carga mods externos desde el almacenamiento del telefono, sin
-necesidad de recompilar el APK.
-
-
 Estructura
 ----------
 
-/storage/emulated/0/.RubiconEngine/
-  mods/
-    <nombre-del-mod>/
-      mod.json         <- manifiesto obligatorio
-      <archivos>       <- estructura espejo de res://
-  config/
-    mods_order.txt     <- opcional
+Raices de mods. El engine escanea TODAS las que existan:
 
+  user://mods  (Android/data/com.rubiconengine.fnf/files/mods/)
+    La app puede leer y escribir sin permisos. Es donde el engine
+    instala mods que descarga por su cuenta.
 
-mod.json
---------
+  /storage/emulated/0/RubiconEngine/mods
+    Storage compartido. Requiere el permiso "Acceso a todos los
+    archivos" (MANAGE_EXTERNAL_STORAGE), que el engine pide al arrancar
+    la primera vez.
 
-{
-  "name": "Holy Quintet",
-  "version": "1.0.7",
-  "main_scene": "res://holyquintet_mod/menus/setup/setup_screen.tscn",
-  "enabled": true
-}
+  /storage/emulated/0/.RubiconEngine/mods
+    Ruta historica con punto inicial. En Android 11+ suele ser
+    ilegible por scoped storage, pero se intenta igual.
 
-- name: nombre visible en el selector.
-- version: libre, se muestra en logs.
-- main_scene: escena que arranca el engine al elegir este mod.
-- enabled: false para que el engine lo ignore sin borrarlo.
+Si un mod con el mismo nombre esta en varias raices, gana el de la
+primera raiz en esa lista. La UI avisa con un simbolo cuando hay
+duplicados.
+
+Cada mod tiene su carpeta con la estructura espejo de res://:
+
+  RubiconEngine/
+    mods/
+      <nombre-del-mod>/
+        mod.json         <- opcional
+        <archivos>       <- espejo de res://
+    config/
+      mods.json          <- estado (enabled/order), gestionado por la UI
 
 
 Estructura espejo
@@ -159,3 +153,21 @@ NO soportado:
 - GIF: no hay decoder nativo. Convertir a WebP o a spritesheet.
 - .astc crudo (sin contenedor KTX): Godot no expone esa API. Usar
   KTX renombrado a .astc segun la convencion de arriba.
+
+
+Funcionalidades
+---------------
+
+- Activar/desactivar mods con checkbox.
+- Reordenar con flechas. El ultimo en la lista gana si dos mods pisan el
+  mismo archivo.
+- Desinstalar con el boton de papelera (borra carpeta + cache + entrada
+  en config).
+- Aviso de colisiones: dos mods activos que traen el mismo path de
+  res://. Se muestra un ⚠ en la fila y un contador en el header.
+- Aviso de duplicados: la misma carpeta de mod en dos raices. Se muestra
+  ⊕ y se usa el de la primera raiz.
+- Hot reload: al volver del background (el usuario edito un mod con el
+  gestor de archivos mientras la app estaba suspendida), el ModLoader
+  detecta cambios por mtime y recarga los mods automaticamente. Solo
+  recarga en ModSelector o ModManager, nunca durante gameplay.
