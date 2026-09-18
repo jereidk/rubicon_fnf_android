@@ -1068,6 +1068,31 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 		test_path, _mod_gd_paths.has(test_path), _mod_all_paths.has(test_path),
 	])
 
+	# CRITICO: reasignar el mapa a TODOS los loaders ya registrados.
+	#
+	# En GDScript, un Dictionary es un tipo POR VALOR en asignacion de
+	# property. Cuando hicimos "loader.mod_all_paths = _mod_all_paths" en
+	# _register_runtime_loaders, el Dictionary todavia estaba vacio, y
+	# Godot copio (shallow) esa copia vacia en la property. Los cambios
+	# posteriores a _mod_all_paths en ModLoader NO se reflejan en los
+	# loaders.
+	#
+	# Consecuencia: cuando el text loader pide "res://...gdshader", el
+	# shader loader tiene mod_all_paths.has(path)=false, el check de
+	# ".import" hermano pasa, y devuelve null. Godot sigue con el loader
+	# nativo, que falla porque sin pck res:// no ve el mod.
+	#
+	# Fix: reasignar la referencia actual DESPUES de llenarla. Los
+	# loaders ahora ven el mapa con los 1869 paths.
+	for l in _loaders:
+		# Sin check de "mod_all_paths" in l: ese operador solo mira
+		# metodos, no variables de script. Todos los loaders declaran
+		# mod_all_paths, asi que asignacion directa sin preguntar.
+		l.mod_all_paths = _mod_all_paths
+	DebugLog.log("[register_paths] reasignado mod_all_paths (size=%d) a %d loaders" % [
+		_mod_all_paths.size(), _loaders.size(),
+	])
+
 
 func _collect(root: String, sub: String, out: Array[String], on_progress: Callable = Callable()) -> void:
 	var path := root if sub.is_empty() else root + "/" + sub
@@ -1115,3 +1140,8 @@ func _fingerprint_walk(path: String, stats: Dictionary) -> void:
 			stats["mtime"] = mtime
 	for d in dir.get_directories():
 		_fingerprint_walk(path + "/" + d, stats)
+
+
+## Publico para debug externo.
+func get_loaders() -> Array:
+	return _loaders
