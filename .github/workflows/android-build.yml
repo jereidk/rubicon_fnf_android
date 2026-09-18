@@ -222,25 +222,6 @@ jobs:
           echo "Signed APK: builds/rubicon-release.apk"
           ls -lh builds/
 
-      - name: Upload APK artifact
-        if: steps.build.outputs.build_success == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: rubicon-fnfr-android-release
-          path: builds/rubicon-release.apk
-          retention-days: 14
-          compression-level: 9
-
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      apk_size: ${{ needs.build.outputs.apk_size }}
-
-    steps:
       - name: Upload generated .import files
         if: ${{ inputs.upload_imports == 'true' }}
         uses: actions/upload-artifact@v4
@@ -262,6 +243,25 @@ jobs:
             builds/*.so
           retention-days: 14
 
+      - name: Upload APK artifact
+        if: steps.build.outputs.build_success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubicon-fnfr-android-release
+          path: builds/rubicon-release.apk
+          retention-days: 14
+          compression-level: 9
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      apk_size: ${{ needs.build.outputs.apk_size }}
+
+    steps:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
