@@ -66,6 +66,9 @@ var duplicates: Array[Dictionary] = []
 ## Colisiones entre mods habilitados: res://path -> [folder1, folder2].
 ## Se recalcula en cada scan() y en cada cambio de enabled/order.
 var collisions: Dictionary = {}
+## Autoloads instalados por mod: name -> folder. Se usa para no pisar
+## autoloads del engine ni de otro mod, y para reportar en logs.
+var _installed_autoloads: Dictionary = {}
 
 
 func _ready() -> void:
@@ -292,6 +295,9 @@ func uninstall_mod(folder: String) -> bool:
 	_config["order"] = order
 	save_config()
 
+	# Remover autoloads que hubiera instalado este mod.
+	_remove_mod_autoloads(folder)
+
 	# Rescan para que la lista quede actualizada
 	scan()
 	mods_changed.emit()
@@ -318,6 +324,86 @@ func _remove_recursive(path: String) -> int:
 		name = dir.get_next()
 	dir.list_dir_end()
 	return DirAccess.remove_absolute(path)
+
+
+## Instala los autoloads que declara el mod en mod.json, campo "autoloads":
+##
+##   "autoloads": {
+##     "HQSaves": "res://holyquintet_mod/scripts/hq_saves.gd",
+##     "HQTransition": "res://holyquintet_mod/menus/transition/hq_transition.gd"
+##   }
+##
+## Godot resuelve un autoload en dos pasos:
+##   1. GDScript acepta "HQSaves" como identificador global si
+##      ProjectSettings tiene la clave "autoload/HQSaves".
+##   2. En runtime, el codigo se traduce a get_node("/root/HQSaves"), asi
+##      que el nodo tiene que existir.
+##
+## Los dos pasos se hacen aca. Se llama despues de load_resource_pack()
+## y antes de que el ModSelector cargue la escena del mod: como los
+## scripts del mod no se parsean hasta que la escena se carga, la
+## registracion llega a tiempo.
+##
+## Si otro mod o el engine ya tiene un autoload con ese nombre, se omite
+## con un warning: gana el primero.
+func _install_mod_autoloads(m: Dictionary) -> void:
+	var autoloads: Dictionary = m.get("autoloads", {})
+	if autoloads.is_empty():
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	var root := tree.root
+	var folder: String = m["folder"]
+
+	for name in autoloads:
+		if root.has_node(NodePath(name)):
+			push_warning("[ModLoader] autoload '%s' del mod '%s' ya existe, se omite" % [name, folder])
+			continue
+		var path: String = autoloads[name]
+		if not ResourceLoader.exists(path):
+			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no existe" % [name, folder, path])
+			continue
+		# 1. Registro en ProjectSettings para que el parser lo acepte.
+		#    El "*" es el prefijo que Godot usa para autoloads declarados
+		#    en project.godot.
+		ProjectSettings.set_setting("autoload/" + name, "*" + path)
+		# 2. Instancia real, en /root/ con el nombre exacto.
+		var script = load(path)
+		if not (script is GDScript):
+			push_warning("[ModLoader] autoload '%s' del mod '%s': %s no es un GDScript" % [name, folder, path])
+			continue
+		var node = script.new()
+		if not (node is Node):
+			push_warning("[ModLoader] autoload '%s' del mod '%s': el script no extiende Node" % [name, folder])
+			continue
+		node.name = name
+		root.add_child(node)
+		_installed_autoloads[name] = folder
+		print("[ModLoader] autoload instalado: %s -> %s (mod %s)" % [name, path, folder])
+
+
+## Remueve los autoloads que instalo un mod. Se llama solo en desinstalar:
+## al desactivar, el .pck sigue montado hasta el proximo arranque (Godot
+## no expone unload_resource_pack), asi que remover los nodos dejaria el
+## mod en un estado inconsistente. En la practica desactivar y desinstalar
+## toman efecto completo al reiniciar.
+func _remove_mod_autoloads(folder: String) -> void:
+	var to_remove: Array = []
+	for name in _installed_autoloads:
+		if _installed_autoloads[name] == folder:
+			to_remove.append(name)
+	var tree := get_tree()
+	if tree == null:
+		return
+	for name in to_remove:
+		var node := tree.root.get_node_or_null(NodePath(name))
+		if node != null:
+			node.queue_free()
+		if ProjectSettings.has_setting("autoload/" + name):
+			ProjectSettings.clear("autoload/" + name)
+		_installed_autoloads.erase(name)
+		print("[ModLoader] autoload removido: %s (mod %s)" % [name, folder])
 
 
 func _config_path() -> String:
@@ -504,6 +590,11 @@ func load_mod(m: Dictionary) -> bool:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
+	# Instalar autoloads AHORA, mientras el .pck ya esta montado pero la
+	# escena del mod todavia no se cargo. Los scripts del mod no se
+	# parsean hasta que ModSelector carga su main_scene, asi que la
+	# registracion de autoloads llega a tiempo.
+	_install_mod_autoloads(m)
 	print("[ModLoader] cargado: %s" % m.get("name", folder))
 	return true
 

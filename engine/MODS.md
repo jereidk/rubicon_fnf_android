@@ -36,6 +36,42 @@ Cada mod tiene su carpeta con la estructura espejo de res://:
       mods.json          <- estado (enabled/order), gestionado por la UI
 
 
+Autoloads
+---------
+
+Un mod puede declarar autoloads que el engine instala al montar su .pck.
+Son scripts que corren siempre, accesibles por nombre desde cualquier
+otro script del mod:
+
+  "autoloads": {
+    "HQSaves": "res://holyquintet_mod/scripts/hq_saves.gd",
+    "HQTransition": "res://holyquintet_mod/menus/transition/hq_transition.gd"
+  }
+
+El engine hace dos cosas al montar el .pck:
+  1. Registra cada nombre en ProjectSettings (autoload/<Nombre>), para
+     que el parser de GDScript acepte el identificador.
+  2. Instancia el script y lo agrega a /root/<Nombre>.
+
+Con eso, cualquier script del mod puede usar HQSaves.foo o
+HQTransition.bar directo, como si fuera un autoload declarado en
+project.godot.
+
+Limitaciones:
+
+- Si otro mod o el engine ya tienen un autoload con el mismo nombre, el
+  segundo se omite con un warning. Gana el primero.
+- Los autoloads se instalan al cargar el .pck y se remueven al
+  desinstalar el mod. Al desactivar (no desinstalar) el .pck sigue
+  montado hasta el proximo arranque, porque Godot no expone un
+  unload_resource_pack: los autoloads tambien siguen instalados hasta
+  reiniciar.
+- Los scripts del mod se parsean cuando se carga su main_scene. Si un
+  autoload se usa en un script que se preload()ea ANTES de que el .pck
+  este montado, falla. En la practica no pasa, porque el .pck se monta
+  al arrancar el engine y la escena se carga despues.
+
+
 Estructura espejo
 -----------------
 
