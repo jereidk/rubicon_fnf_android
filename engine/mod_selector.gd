@@ -138,13 +138,17 @@ func _build_background() -> void:
 func _build_animated_logo() -> void:
 	var png := "res://resources/images/logoBumpin.png"
 	var xml := "res://resources/images/logoBumpin.xml"
-	# El PNG se chequea con ResourceLoader.exists porque se carga con
-	# load(). El XML se chequea con FileAccess.file_exists porque
-	# ResourceLoader.exists solo reconoce formatos de recurso de Godot
-	# y devuelve false para un .xml, aunque el archivo exista y este en
-	# el APK (siempre que include_filter lo haya incluido).
-	if not ResourceLoader.exists(png) or not FileAccess.file_exists(xml):
-		push_warning("[ModSelector] logoBumpin: falta %s o %s" % [png, xml])
+	if not ResourceLoader.exists(png):
+		push_warning("[ModSelector] logoBumpin: no existe " + png)
+		return
+	# FileAccess.file_exists() con res:// puede fallar para archivos
+	# dentro del .pck en Android, aunque el archivo este. En vez de
+	# chequear, abrimos el XML directo con XMLParser y si falla salimos.
+	# Es el mismo parser que usa AnimatedLogo._parse_xml(), asi que si
+	# el open() aca tiene exito, el parseo de adentro tambien.
+	var probe := XMLParser.new()
+	if probe.open(xml) != OK:
+		push_warning("[ModSelector] logoBumpin: no puedo abrir " + xml)
 		return
 
 	# Anclar al centro-izquierda: la x queda pegada al borde izquierdo
@@ -238,9 +242,17 @@ func _launch(m: Dictionary) -> void:
 		if not (script is GDScript):
 			_show_error("No es un GDScript valido: %s" % scene)
 			return
-		var node := Node.new()
+		# script.new() crea una instancia del tipo correcto. Antes usabamos
+		# Node.new() + set_script() pero eso falla si el script extends
+		# Control, CanvasItem, Node2D, Node3D o cualquier subclase de Node:
+		# GDScript rechaza reasignar el tipo nativo de un objeto ya creado.
+		# "Script inherits from native type 'Control', so it can't be assigned
+		# to an object of type 'Node'."
+		var node = script.new()
+		if not (node is Node):
+			_show_error("El script del mod no extiende Node: %s" % scene)
+			return
 		node.name = "ModRoot"
-		node.set_script(script)
 		var old := get_tree().current_scene
 		get_tree().root.add_child(node)
 		get_tree().current_scene = node
