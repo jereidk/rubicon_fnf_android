@@ -217,7 +217,7 @@ func reload_changed_mods() -> void:
 
 
 ## Ultimo fingerprint guardado en disco para ese mod, "" si no hay cache.
-## Devuelve string porque el fingerprint es "mtime|bytes|count" (ver
+## Devuelve string porque el fingerprint es "mtime|count" (ver
 ## _mod_fingerprint); el int viejo no se puede comparar contra el formato
 ## nuevo y forzaria un rebuild unico en cada arranque.
 func _cached_fingerprint(folder: String) -> String:
@@ -785,66 +785,47 @@ func _register_mod_gd_paths(mod_path: String) -> void:
 
 
 func _collect(root: String, sub: String, out: Array[String]) -> void:
+	# Mismo cambio que _fingerprint_walk: get_files()/get_directories()
+	# en vez del iterador que hace un stat por entrada. _collect corre
+	# en cada load_mod, incluso con el pck cacheado, para alimentar el
+	# registro de paths del runtime_gd_loader.
 	var path := root if sub.is_empty() else root + "/" + sub
 	var dir := DirAccess.open(path)
 	if dir == null:
 		return
-	dir.list_dir_begin()
-	var name := dir.get_next()
-	while name != "":
-		if name != "." and name != "..":
-			var rel := name if sub.is_empty() else sub + "/" + name
-			if dir.current_is_dir():
-				_collect(root, rel, out)
-			elif not name.ends_with(".import") and not name.ends_with(".uid") and name != MANIFEST_NAME:
-				out.append(rel)
-		name = dir.get_next()
-	dir.list_dir_end()
+	for name in dir.get_files():
+		if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
+			continue
+		out.append(name if sub.is_empty() else sub + "/" + name)
+	for name in dir.get_directories():
+		_collect(root, name if sub.is_empty() else sub + "/" + name, out)
 
 
-## Fingerprint del contenido de un mod: mtime_max|bytes_totales|n_archivos.
-##
-## Reemplaza al viejo _newest_mtime() porque en Android sobre /storage/
-## emulated/0 (FUSE) FileAccess.get_modified_time() puede devolver 0. Si el
-## mtime del mod es 0 y el del cache tambien, `cached_mtime < newest` es
-## falso y el .pck viejo se queda pegado para siempre - ya nos paso con el
-## mod hello, que seguia cargando su main.gd roto aunque el archivo en disco
-## fuera otro.
-##
-## El fingerprint usa tres numeros en vez de uno: si el mtime falla en
-## Android, los bytes totales y la cantidad de archivos SI cambian al editar
-## cualquier archivo. Cualquiera de los tres distinto fuerza rebuild.
-##
-## Formato: "mtime|bytes|count" como string. Un valor viejo guardado como
-## int no coincide con el formato nuevo, forzando un rebuild unico que
-## migra el cache. A partir de ahi se estabiliza.
-##
-## En Android el walk tambien es barato: un mod tipico son decenas o cientos
-## de archivos, muy lejos del costo de empaquetar un pck.
 func _mod_fingerprint(path: String) -> String:
-	var stats := {"mtime": 0, "bytes": 0, "count": 0}
+	var stats := {"mtime": 0, "count": 0}
 	_fingerprint_walk(path, stats)
-	return "%d|%d|%d" % [stats["mtime"], stats["bytes"], stats["count"]]
+	return "%d|%d" % [stats["mtime"], stats["count"]]
 
 
 func _fingerprint_walk(path: String, stats: Dictionary) -> void:
+	# get_directories() + get_files() de una sola llamada, en vez del
+	# iterador list_dir_begin/get_next/current_is_dir que hace un stat()
+	# por entrada. Con 3070 archivos en FUSE la diferencia es de minutos
+	# a segundos.
 	var dir := DirAccess.open(path)
 	if dir == null:
 		return
-	dir.list_dir_begin()
-	var name := dir.get_next()
-	while name != "":
-		if name != "." and name != "..":
-			var full := path + "/" + name
-			if dir.current_is_dir():
-				_fingerprint_walk(full, stats)
-			else:
-				stats["count"] = int(stats["count"]) + 1
-				var file := FileAccess.open(full, FileAccess.READ)
-				if file != null:
-					stats["bytes"] = int(stats["bytes"]) + file.get_length()
-					file.close()
-				stats["mtime"] = maxi(int(stats["mtime"]),
-					int(FileAccess.get_modified_time(full)))
-		name = dir.get_next()
-	dir.list_dir_end()
+	for f in dir.get_files():
+		stats["count"] = int(stats["count"]) + 1
+		# get_modified_time NO abre el archivo: consulta el atributo.
+		# La version anterior hacia FileAccess.open(full, READ) por cada
+		# archivo para leer su size - otro open()/close() por archivo,
+		# y el motivo principal de que el fingerprint de HQ tardara
+		# minutos. Se pierde la deteccion de cambios donde solo cambia
+		# el size sin tocar el mtime, que en la practica no pasa: editar
+		# un archivo en Android siempre actualiza el mtime.
+		var mtime: int = int(FileAccess.get_modified_time(path + "/" + f))
+		if mtime > int(stats["mtime"]):
+			stats["mtime"] = mtime
+	for d in dir.get_directories():
+		_fingerprint_walk(path + "/" + d, stats)
