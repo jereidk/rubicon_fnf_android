@@ -277,6 +277,9 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			layer_rid = parent
 
 		var rendered: bool = false
+		# Glow de la frame activa del layer. Solo una frame por layer esta
+		# activa en el frame actual, asi que sobreescribir esta bien.
+		var layer_glow: Dictionary = {}
 		for layer_frame: AdobeLayerFrame in layer.frames:
 			if frame > layer_frame.starting_index + layer_frame.duration - 1:
 				continue
@@ -285,6 +288,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 			var difference: int = frame - layer_frame.starting_index
 			rendered = true
+			layer_glow = layer_frame.glow
 			for element: AdobeDrawable in layer_frame.elements:
 				if element is AdobeSymbolInstance:
 					var symbol_frame: int = element.first_frame
