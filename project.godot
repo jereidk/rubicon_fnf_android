@@ -735,6 +735,7 @@ ErrorToast="*res://engine/error_toast.gd"
 MenuMusic="*res://engine/menu_music.gd"
 
 MobileControlsGate="*res://engine/mobile_controls_gate.gd"
+ModExit="*res://engine/mod_exit.gd"
 
 [rubicon]
 
