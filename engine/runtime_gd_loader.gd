@@ -28,6 +28,25 @@ var mod_gd_paths: Dictionary = {}
 var mod_all_paths: Dictionary = {}
 
 
+## Cache propio: path -> GDScript ya compilado. Godot cachea los
+## recursos con resource_path via ResourceLoader, pero como devolvemos
+## un GDScript.new() custom, el cache nativo puede no retenerlo. Con
+## este mapa, la segunda llamada al mismo path no recompila.
+##
+## Es ademas lo que le permite al parser de GDScript resolver tipos:
+## cuando compila OTRO script del mod que hace `HQSaves.foo()`, busca
+## hq_saves.gd con GDScriptCache::get_cached_script(). Si no lo
+## encuentra, no puede resolver el tipo de retorno de foo() y asume
+## Variant -> error 'Cannot infer the type of "x" variable' en
+## cualquier `var x := HQSaves.foo()`.
+##
+## La clave para poblar ese cache nativo es gd.take_over_path(path)
+## ANTES de gd.reload(). El reload, al ver resource_path seteado,
+## registra el script en GDScriptCache::shallow_gdscript_cache
+## (verificado en modules/gdscript/gdscript.cpp:781-783).
+var _cache: Dictionary = {}
+
+
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["gd"])
 
@@ -82,6 +101,14 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	if not mod_gd_paths.has(path):
 		DebugLog.log("[gd_loader._load] RECHAZA: no esta en mod_gd_paths")
 		return null
+
+	# Cache propio: si ya compilamos este path, devolver la misma
+	# instancia. Ademas de ahorrar trabajo, es lo que el parser de
+	# GDScript espera: la misma Ref<GDScript> para el mismo path.
+	if _cache.has(path):
+		DebugLog.log("[gd_loader._load] cache hit: %s" % path)
+		return _cache[path]
+
 	var src_path: String = path
 	if mod_all_paths.has(path):
 		src_path = String(mod_all_paths[path])
@@ -98,7 +125,32 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 
 	var gd := GDScript.new()
 	gd.source_code = src
+	# Setear el resource_path ANTES del reload para que Godot registre
+	# el script en GDScriptCache::shallow_gdscript_cache. Sin esto, el
+	# parser no puede resolver tipos de retorno cuando OTRO script del
+	# mod hace `HQSaves.foo()`.
+	#
+	# El orden importa: si hacemos take_over_path despues del reload,
+	# el reload ya corrio sin path y no poblo el cache de GDScript.
+	gd.take_over_path(path)
 	if gd.reload() != OK:
 		push_warning("[RuntimeGDLoader] reload fallo para %s" % path)
 		return null
+
+	# Guardar en el cache propio. Solo si no es CACHE_MODE_IGNORE (0);
+	# los demas modos (REUSE=1 es el default) cachean normal.
+	if _cache_mode != ResourceLoader.CACHE_MODE_IGNORE:
+		_cache[path] = gd
 	return gd
+
+
+## Vacia el cache de scripts compilados. Llamar cuando un mod se
+## desinstala o cuando el mtime de sus .gd cambio, para forzar recompilar
+## la proxima vez que se pida.
+##
+## Público para que ModLoader lo llame desde uninstall_mod() o cuando
+## haga falta. No se llama automaticamente por ahora: los .gd cambian
+## solo si el usuario edita el mod, y eso requiere reiniciar la app
+## para que se note (los scripts ya cargados no se recomputan).
+func clear_cache() -> void:
+	_cache.clear()
