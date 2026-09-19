@@ -161,6 +161,28 @@ jobs:
             .godot/uid_cache.bin
           key: godot-imported-${{ hashFiles('**/*.import', 'project.godot') }}
 
+      - name: Generate global script classes
+        run: |
+          # Godot registra los class_name del proyecto en
+          # .godot/global_script_class_cache.cfg cuando corre el editor,
+          # pero NO los escribe en project.godot. Ese .cfg esta gitignored
+          # y el export lee project.godot -> project.binary, asi que sin
+          # este paso el APK sale sin el registro de class_name y el
+          # runtime no resuelve AdobeAtlas, AnimateSymbol, etc.
+          #
+          # El script es idempotente: si project.godot ya tiene el bloque
+          # al dia (el commit lo trae), no cambia nada. Si alguien agrego
+          # un class_name y no corrio el script localmente, el CI lo
+          # regenera antes del export.
+          python3 tools/gen_global_classes.py
+
+          if ! git diff --quiet project.godot; then
+            echo "=== project.godot actualizado por el script ==="
+            git diff --stat project.godot
+          else
+            echo "=== project.godot sin cambios (bloque al dia) ==="
+          fi
+
       - name: Import Godot project
         run: |
           rm -rf .godot/imported
