@@ -577,27 +577,49 @@ func symbol_instance_frame(
 	if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
 		return first
 
+	# Two axes: forward vs reverse (direction), and loop vs one-shot (wrap).
+	# Reverse one-shot plays from last_frame back to first_frame once, then
+	# holds. Reverse loop plays backward and wraps to last_frame when it
+	# passes first_frame. The frame_progress sent by the caller is always
+	# forward-counting, so reverse just remaps the progress within the span.
+	var is_reverse: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT \
+		or element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
+	var is_loop: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP \
+		or element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
+
 	var last: int = element.last_frame
 	if last < 0:
 		# No bound: the window is the whole symbol.
-		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
-			return wrapi(first + difference, 0, length)
-		return clampi(first + difference, first, length - 1)
+		var span: int = length - first
+		if span <= 0:
+			return first
+		return first + _symbol_instance_offset(span, difference, is_loop, is_reverse)
 
 	if last >= first:
 		last = mini(last, length - 1)
-		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
-			return wrapi(first + difference, first, last + 1)
-		return clampi(first + difference, first, last)
+		var span: int = last - first + 1
+		return first + _symbol_instance_offset(span, difference, is_loop, is_reverse)
 
 	# last < first: the window runs off the end of the symbol and resumes at frame 0, so
 	# its length is the tail plus the head rather than a subtraction.
 	var tail: int = length - first
 	var span: int = last + tail + 1
-	var at: int = posmod(difference, span) \
-		if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP \
-		else mini(difference, span - 1)
+	if span <= 0:
+		return first
+	var at: int = _symbol_instance_offset(span, difference, is_loop, is_reverse)
 	return first + at if at < tail else at - tail
+
+
+## Maps a forward-counting `difference` to an offset in [0, span) for the
+## given direction and wrap policy. Forward loop wraps around; forward
+## one-shot clamps at span-1. Reverse mirrors the offset within the span:
+## the first frame of a reverse clip is the last frame of the window, so
+## we compute span-1-difference and wrap or clamp the same way.
+func _symbol_instance_offset(span: int, difference: int, is_loop: bool, is_reverse: bool) -> int:
+	if is_reverse:
+		var raw: int = span - 1 - difference
+		return wrapi(raw, 0, span) if is_loop else clampi(raw, 0, span - 1)
+	return wrapi(difference, 0, span) if is_loop else mini(difference, span - 1)
 
 
 func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolInstance:
@@ -637,7 +659,12 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME
 				"LP":
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
+				"POR":
+					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT
+				"REV":
+					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
 				_:
+					push_warning("[GDAnimate] Unknown optimized loop mode '%s' in AdobeAtlas, defaulting to LOOP" % loop_mode)
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 		else:
 			match loop_mode:
@@ -647,7 +674,12 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME
 				"loop":
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
+				"reverse":
+					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT
+				"reverseloop":
+					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
 				_:
+					push_warning("[GDAnimate] Unknown unoptimized loop mode '%s' in AdobeAtlas, defaulting to LOOP" % loop_mode)
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 	else:
 		symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP

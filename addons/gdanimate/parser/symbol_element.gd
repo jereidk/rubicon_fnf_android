@@ -50,10 +50,13 @@ func parse_unoptimized(input: Dictionary) -> void:
 		_: push_error("[GDAnimate] " + 'Unknown symbol type detected %s' % [raw_symbol_type])
 	
 	match symbol.get('loop', ''):
-		## TODO: Get the other loop names lmao
 		'playonce': loop_mode = SymbolLoopMode.ONE_SHOT
+		'singleframe': loop_mode = SymbolLoopMode.FREEZE_FRAME
 		'loop': loop_mode = SymbolLoopMode.LOOP
-		_: loop_mode = SymbolLoopMode.LOOP
+		'reverse': loop_mode = SymbolLoopMode.REVERSE_ONE_SHOT
+		_:
+			push_warning("[GDAnimate] Unknown loop mode '%s' in symbol_element (unoptimized), defaulting to LOOP" % symbol.get('loop', ''))
+			loop_mode = SymbolLoopMode.LOOP
 	
 	super(symbol.get('Matrix3D', {}))
 
@@ -84,10 +87,14 @@ func parse_optimized(input: Dictionary) -> void:
 		_: push_error("[GDAnimate] " + 'Unknown symbol type detected %s' % [raw_symbol_type])
 	
 	match symbol.get('LP', ''):
-		## TODO: Get the other loop names lmao
 		'PO': loop_mode = SymbolLoopMode.ONE_SHOT
+		'SF': loop_mode = SymbolLoopMode.FREEZE_FRAME
 		'LP': loop_mode = SymbolLoopMode.LOOP
-		_: loop_mode = SymbolLoopMode.LOOP
+		'POR': loop_mode = SymbolLoopMode.REVERSE_ONE_SHOT
+		'REV': loop_mode = SymbolLoopMode.REVERSE_LOOP
+		_:
+			push_warning("[GDAnimate] Unknown loop mode '%s' in symbol_element (optimized), defaulting to LOOP" % symbol.get('LP', ''))
+			loop_mode = SymbolLoopMode.LOOP
 	
 	# Small conversion because inheritance yucky
 	var m3d: Array = symbol.get('M3D', [])
