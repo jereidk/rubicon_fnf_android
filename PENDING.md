@@ -256,3 +256,32 @@ Corre en CI con `godot --headless --script tools/test_runner.gd`.
 Cuando termines algo de la lista: marcalo con `[x]` y move el item a un
 `CHANGELOG.md` o seccion "Done". Si algo deja de tener sentido, borralo:
 este archivo es para pendientes vivos, no un historial.
+
+---
+
+## 13. MainMenu: las 4 posiciones divergentes (RESUELTO)
+
+**Bug encontrado**: las posiciones de `freeplay`, `gauntlet`, `accolades`,
+`gallery` en `main_menu_sprite.gd` estaban calibradas a mano. Se creia
+que era por el offset del `AN.STI.SI.M3D` (la matriz 3D del Stage Instance
+de Adobe Animate).
+
+**Root cause encontrado**:
+
+- `flxanimate` (el lib que usa Codename, repo `MaybeMaru/flixel-animate`)
+  tiene `applyStageMatrix = false` por **default**.
+- El Haxe del mod **nunca lo activa** (grep en HQMainMenu.hx vacio, el
+  string solo aparece en XMLs de stages de characters, no del menu).
+- Por lo tanto, **el original NO aplica el M3D al render del menu**.
+- El port SI lo aplicaba via `offset = atlas.stage_transform.origin` y
+  compensaba las 4 posiciones para cancelarlo. Esa era la divergencia.
+
+**Fix aplicado**:
+
+- Las 4 posiciones vuelven a los valores del Haxe:
+  `(-2325, -250)`, `(-1250, -1100)`, `(-1300, 370)`, `(850, 750)`.
+- `offset = Vector2.ZERO` (antes era `atlas.stage_transform.origin`).
+
+**Verificar en device**: si en el menu las 4 artes se ven bien, se cierra.
+Si se ven mal, revertir (los valores calibrados estan documentados en el
+comentario del archivo y en el historial de git).
