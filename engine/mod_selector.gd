@@ -120,12 +120,59 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_bottom", 40)
 	add_child(margin)
 
+	# Root vertical: banda superior (titulo + contador) y debajo el
+	# HBox con los dos paneles. El titulo va aca y no en el panel
+	# izquierdo porque ahora ocupa todo el ancho y va centrado.
+	var root_vbox := VBoxContainer.new()
+	root_vbox.add_theme_constant_override("separation", 4)
+	margin.add_child(root_vbox)
+
+	# Titulo grande centrado, ancho completo.
+	_build_top_title(root_vbox)
+
+	# Contador de mods, centrado bajo el titulo.
+	_header = Label.new()
+	_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_apply_font(_header, 22)
+	_header.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	root_vbox.add_child(_header)
+
+	# Espacio entre la banda y los paneles.
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 24)
+	root_vbox.add_child(spacer)
+
+	# HBox con los dos paneles. size_flags_vertical EXPAND_FILL hace que
+	# ocupe todo el alto restante (los paneles se comen el espacio).
 	var hbox := HBoxContainer.new()
+	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hbox.add_theme_constant_override("separation", 32)
-	margin.add_child(hbox)
+	root_vbox.add_child(hbox)
 
 	_build_left_panel(hbox)
 	_build_right_panel(hbox)
+
+
+## Titulo "Washos Engine" como banda superior centrada. VCR, 88px,
+## outline grueso y sombra dura (offset fijo, sin blur). Es el unico
+## label que va fuera del panel izquierdo.
+func _build_top_title(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "Washos Engine"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_apply_font(title, 88)
+	title.add_theme_color_override("font_color", COLOR_ACCENT)
+	title.add_theme_constant_override("outline_size", 14)
+	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	# Sombra dura debajo del texto: offset fijo, sin blur. Godot dibuja
+	# el shadow del Label con blur solo si font_shadow_color tiene alpha
+	# muy bajo; con 0.6 se ve solido.
+	title.add_theme_constant_override("shadow_offset_x", 4)
+	title.add_theme_constant_override("shadow_offset_y", 6)
+	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
+	parent.add_child(title)
 
 
 ## Columna izquierda: titulo, contador, lista scrolleable de mods,
@@ -138,24 +185,8 @@ func _build_left_panel(parent: HBoxContainer) -> void:
 	left.add_theme_constant_override("separation", 16)
 	parent.add_child(left)
 
-	# Title es local: solo vive en el panel izquierdo, no hace falta
-	# guardarlo como miembro.
-	var title := Label.new()
-	title.text = "Washos Engine"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_apply_font(title, 56)
-	title.add_theme_color_override("font_color", COLOR_ACCENT)
-	title.add_theme_constant_override("outline_size", 8)
-	title.add_theme_color_override("font_outline_color", Color.BLACK)
-	left.add_child(title)
-
-	_header = Label.new()
-	_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_apply_font(_header, 22)
-	_header.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
-	left.add_child(_header)
-
+	# El titulo y el header viven en la banda superior (_build_top_title
+	# + _build_ui), no aca. Este panel arranca directo con la lista.
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
