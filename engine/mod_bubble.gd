@@ -241,15 +241,18 @@ func _open() -> void:
 	# Sub-botones: animacion de stagger desde abajo.
 	for i in _option_nodes.size():
 		var b: Control = _option_nodes[i]
-		b.visible = true
-		b.modulate.a = 0.0
-		var target := b.position
-		b.position.y = target.y + 40.0
-		var tw := b.create_tween()
+		# b viene de _option_nodes (Array sin tipar); tiparlo para que
+		# create_tween() devuelva Tween y no Variant.
+		var btn: Control = b
+		btn.visible = true
+		btn.modulate.a = 0.0
+		var target: Vector2 = btn.position
+		btn.position.y = target.y + 40.0
+		var tw: Tween = btn.create_tween()
 		tw.tween_interval(i * 0.04)
-		tw.tween_property(b, "position", target, ANIM_TIME) \
+		tw.tween_property(btn, "position", target, ANIM_TIME) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(b, "modulate:a", 1.0, ANIM_TIME)
+		tw.parallel().tween_property(btn, "modulate:a", 1.0, ANIM_TIME)
 
 
 func _close() -> void:
@@ -265,9 +268,12 @@ func _close() -> void:
 	for b in _option_nodes:
 		if not is_instance_valid(b):
 			continue
-		var tw := b.create_tween()
-		tw.tween_property(b, "modulate:a", 0.0, ANIM_TIME)
-		tw.tween_callback(func(): b.visible = false)
+		# b viene de _option_nodes (Array sin tipar), asi que hay que
+		# tiparlo para que create_tween() devuelva Tween y no Variant.
+		var btn: Control = b
+		var tw: Tween = btn.create_tween()
+		tw.tween_property(btn, "modulate:a", 0.0, ANIM_TIME)
+		tw.tween_callback(func(): btn.visible = false)
 
 
 # ============================================================

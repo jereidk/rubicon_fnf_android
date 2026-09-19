@@ -406,7 +406,9 @@ func _counters_str() -> String:
 			# id.replace() en vez de substr(): saca el prefijo "Washos/"
 			# sin asumir largos, y aplana "/" a "_" para que el key sea
 			# legible en el log (mem_static_mb, perf_median_ms).
-			var short_id := id.replace("Washos/", "").replace("/", "_")
+			# Tipo explicito: id viene de un Array sin tipar, asi que
+			# Godot no puede inferir el tipo de retorno de .replace().
+			var short_id: String = String(id).replace("Washos/", "").replace("/", "_")
 			extras.append("%s=%s" % [short_id, str(Performance.get_custom_monitor(id))])
 
 	return base + " " + pipe_str + " " + " ".join(extras)
