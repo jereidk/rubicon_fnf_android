@@ -15,8 +15,6 @@ extends Control
 ##   mods_reloaded  -> hot reload al volver del background, mostrar aviso
 
 const SELECTOR_SCENE := "res://engine/mod_selector.tscn"
-## Extensiones que se prueban para autodetectar el icon del mod, en orden.
-const ICON_EXTENSIONS: Array[String] = ["png", "ktx", "webp", "svg"]
 
 var _title: Label
 var _header: Label
@@ -205,40 +203,22 @@ func _root_badge(root: String) -> String:
 ## Carga el icono del mod, desde disco, directo. No via res:// porque los
 ## mods desactivados no tienen el .pck montado y load() devolveria null.
 ##
-## Orden de busqueda:
-##   1. Campo "icon" del mod.json (relativo al res:// del mod o absoluto).
-##   2. icon.png / icon.ktx / icon.webp / icon.svg en la raiz del mod.
-##   3. null (se usa un placeholder de texto en la fila).
+## La resolucion del path la hace ModLoader.resolve_icon_path(): prueba
+## mod.json["icon"], Icon.png en la raiz, y icon.* en minuscula, en ese
+## orden. Aca solo cacheamos y decodificamos.
 func _load_icon_for_mod(m: Dictionary) -> Texture2D:
 	var folder: String = m["folder"]
 	if _icon_cache.has(folder):
 		return _icon_cache[folder]
 
-	var mod_path: String = m["path"]
-	var candidates: Array[String] = []
+	var path := ModLoader.resolve_icon_path(m)
+	if path.is_empty():
+		_icon_cache[folder] = null
+		return null
 
-	var declared: String = str(m.get("icon", ""))
-	if not declared.is_empty():
-		# Puede ser "res://icon.png" o "icon.png" (relativo). En los dos
-		# casos el archivo fisico esta en mod_path.
-		var rel := declared
-		if rel.begins_with("res://"):
-			rel = rel.substr(6)
-		candidates.append(mod_path + "/" + rel)
-	else:
-		for ext in ICON_EXTENSIONS:
-			candidates.append(mod_path + "/icon." + ext)
-
-	for path in candidates:
-		if not FileAccess.file_exists(path):
-			continue
-		var tex := _load_texture_from_disk(path)
-		if tex != null:
-			_icon_cache[folder] = tex
-			return tex
-
-	_icon_cache[folder] = null
-	return null
+	var tex := _load_texture_from_disk(path)
+	_icon_cache[folder] = tex
+	return tex
 
 
 func _load_texture_from_disk(path: String) -> Texture2D:
@@ -450,7 +430,6 @@ func _confirm_uninstall(folder: String) -> void:
 func _rescan() -> void:
 	_icon_cache.clear()
 	ModLoader.scan()
-	ModLoader._load_all_enabled()
 	_refresh()
 
 

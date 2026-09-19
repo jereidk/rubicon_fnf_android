@@ -363,38 +363,6 @@ func _update_preview(m: Dictionary) -> void:
 	_show_logo_bumpin()
 
 
-## Resuelve el path fisico del "icon" declarado en mod.json. Soporta
-## dos formas:
-##   "icon": "preview.png"                 (relativo al folder del mod)
-##   "icon": "res://holyquintet/preview.png" (path del mod)
-## Devuelve "" si no hay icon o no se encuentra.
-func _resolve_icon_path(m: Dictionary) -> String:
-	var icon_rel: String = str(m.get("icon", ""))
-	if icon_rel.is_empty():
-		return ""
-	var mod_path: String = str(m["path"])
-
-	# Caso 1: relativo al folder del mod.
-	var abs1 := mod_path.path_join(icon_rel)
-	if FileAccess.file_exists(abs1):
-		return abs1
-
-	# Caso 2: res:// -> intentar mapear al folder del mod por basename.
-	if icon_rel.begins_with("res://"):
-		var without_scheme := icon_rel.substr(6)
-		var basename := without_scheme.get_file()
-		if not basename.is_empty():
-			var abs2 := mod_path.path_join(basename)
-			if FileAccess.file_exists(abs2):
-				return abs2
-		# Ultimo intento: path completo bajo el mod_path.
-		var abs3 := mod_path.path_join(without_scheme)
-		if FileAccess.file_exists(abs3):
-			return abs3
-
-	return ""
-
-
 func _build_loading_overlay() -> void:
 	_loading_overlay = Control.new()
 	_loading_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -496,7 +464,7 @@ func _populate() -> void:
 	for m in ModLoader.mods:
 		if m.get("enabled", true):
 			enabled.append(m)
-			_mod_icons[m["folder"]] = _resolve_icon_path(m)
+			_mod_icons[m["folder"]] = ModLoader.resolve_icon_path(m)
 
 	if enabled.is_empty():
 		_header.text = "No hay mods instalados en:\n%s" % ModLoader.mods_root

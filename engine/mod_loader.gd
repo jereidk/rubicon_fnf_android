@@ -818,6 +818,48 @@ func _read_manifest(path: String) -> Dictionary:
 	return {}
 
 
+## Resuelve el path fisico del icon del mod. Devuelve "" si no
+## encuentra ninguno.
+##
+## Orden de busqueda:
+##   1. mod.json["icon"]                       (explicito, acepta
+##                                              "Icon.png" o
+##                                              "res://Icon.png")
+##   2. <mod>/Icon.png                         (capital, estilo Godot)
+##   3. <mod>/icon.png / .ktx / .webp / .svg   (lowercase, estilo web)
+##
+## Todos los paths se prueban contra el filesystem fisico del mod
+## (no res://), asi funciona con mods desactivados (sin pck montado)
+## y con la app sin permiso de storage (cuando el mod esta en user://).
+func resolve_icon_path(m: Dictionary) -> String:
+	var mod_path: String = str(m.get("path", ""))
+	if mod_path.is_empty():
+		return ""
+
+	# 1. Icon declarado en mod.json.
+	var declared: String = str(m.get("icon", ""))
+	if not declared.is_empty():
+		var rel := declared
+		if rel.begins_with("res://"):
+			rel = rel.substr(6)
+		var abs1 := mod_path.path_join(rel)
+		if FileAccess.file_exists(abs1):
+			return abs1
+
+	# 2. Icon.png con mayuscula en la raiz.
+	var abs2 := mod_path.path_join("Icon.png")
+	if FileAccess.file_exists(abs2):
+		return abs2
+
+	# 3. icon.* en minuscula.
+	for ext in ["png", "ktx", "webp", "svg"]:
+		var abs3 := mod_path.path_join("icon." + ext)
+		if FileAccess.file_exists(abs3):
+			return abs3
+
+	return ""
+
+
 func _apply_order() -> void:
 	var explicit: Array = _config.get("order", [])
 	# `mods` es Array[Dictionary] y `ordered` tiene que ser del mismo tipo:
