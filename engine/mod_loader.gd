@@ -521,8 +521,12 @@ func _debug_autoload_chain(name: String, res_path: String, phase: String = "pre-
 	DebugLog.log("  mod_gd_paths.has(res_path) = %s" % _mod_gd_paths.has(res_path))
 	DebugLog.log("  FileAccess.file_exists(res_path) = %s" % FileAccess.file_exists(res_path))
 
-	var rt: String = ResourceLoader.get_resource_type(res_path)
-	DebugLog.log("  get_resource_type(res_path) = '%s'" % rt)
+	# ResourceLoader.get_resource_type() no es estatico en Godot 4.7.
+	# Aproximamos con extension + exists, que es lo que el loader va a
+	# usar de todas formas.
+	var ext: String = res_path.get_extension().to_lower()
+	var exists: bool = ResourceLoader.exists(res_path)
+	DebugLog.log("  extension = '%s', ResourceLoader.exists = %s" % [ext, exists])
 
 	# Cargar con CACHE_MODE_IGNORE para forzar el parseo real. Si el
 	# analyzer puede resolver el tipo, este load tambien deberia.

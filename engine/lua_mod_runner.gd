@@ -98,8 +98,8 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 ## Crea un nodo por nombre de clase. Acepta "Node", "Control", "Node2D",
 ## "Node3D", "CanvasLayer", "Node2D" subclass, etc. No acepta clases
 ## que no sean Node (por ejemplo "RefCounted", "Resource").
-func _instantiate_node(class_name: String) -> Node:
-	var obj: Object = ClassDB.instantiate(class_name)
+func _instantiate_node(type_name: String) -> Node:
+	var obj: Object = ClassDB.instantiate(type_name)
 	if not (obj is Node):
 		return null
 	return obj as Node
@@ -167,13 +167,13 @@ func _api_play_cancel() -> void:
 	MenuMusic.play_cancel()
 
 
-func _api_create_node(class_name) -> int:
-	if not (class_name is String):
-		push_warning("[Lua] create_node: falta el class_name")
+func _api_create_node(type_name) -> int:
+	if not (type_name is String):
+		push_warning("[Lua] create_node: falta el type_name")
 		return -1
-	var node := _instantiate_node(class_name)
+	var node := _instantiate_node(type_name)
 	if node == null:
-		push_warning("[Lua] create_node: '%s' no es Node" % class_name)
+		push_warning("[Lua] create_node: '%s' no es Node" % type_name)
 		return -1
 	return _register_node(node)
 
