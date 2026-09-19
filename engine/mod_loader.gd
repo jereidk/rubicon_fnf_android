@@ -1368,6 +1368,16 @@ func _build_pck(m: Dictionary, files: Array, out: String, on_progress: Callable 
 ## compila a mano los paths registrados aca. Se llama SIEMPRE,
 ## aunque el pck este en cache, porque el registro no se persiste.
 func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
+	# Limpiar los mapas antes de llenarlos. Sin esto, los paths del mod
+	# anterior quedan acumulados y un loader custom puede confundir un
+	# archivo nuevo con uno viejo si comparten el path res://. Bug real
+	# visto en el log: cargar test_lua (1 path) y despues holyquintet
+	# daba "mod_all_paths (size=1872)" cuando HQ tiene 1871 archivos -
+	# el path extra era res://main.lua del mod anterior.
+	_mod_gd_paths.clear()
+	_mod_resource_paths.clear()
+	_mod_all_paths.clear()
+
 	var n_gd: int = 0
 	var n_res: int = 0
 	var n_other: int = 0
