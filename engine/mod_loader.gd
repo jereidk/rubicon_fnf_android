@@ -553,7 +553,18 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 
-		var script: GDScript = GDCompileHelper.from_path(src_path)
+		# Compilar con el resource_path res:// (no el fisico) para que
+		# GDScriptCache::shallow_gdscript_cache quede poblado con la key
+		# correcta. Sin esto, el analyzer de GDScript no puede resolver
+		# el tipo de retorno de las funciones del autoload cuando OTRO
+		# script del mod hace:
+		#   var x := HQSaves.foo()
+		# y dispara 'Cannot infer the type of "x"' como error duro.
+		#
+		# El src_path fisico sirve para leer el archivo (los .gd no
+		# estan en el pck, estan en el filesystem del mod). El res_path
+		# es para que el engine lo reconozca por su path res://.
+		var script: GDScript = GDCompileHelper.from_path_with_res_path(src_path, path)
 		if script == null or not script.can_instantiate():
 			DebugLog.log("[autoload] SKIP %s: no compila (%s)" % [name, path])
 			continue
