@@ -23,6 +23,21 @@ instance uniform int blend_mode : hint_enum(
 	"SUBTRACT"
 ) = 10;
 
+// GlowFilter: port de openfl.filters.GlowFilter. Solo se activa cuando
+// gdanimate detecta un GF en la frame del layer y activa el canvas group
+// mode TRANSPARENT en el RID del layer. En ese caso TEXTURE = la
+// composicion del layer (no el sprite individual) y podemos samplear
+// alrededor para hacer el blur radial del alpha.
+//
+// Defaults coinciden con "apagado": glow_enabled = 0 hace que el bloque
+// no corra, y el shader se comporta como antes.
+instance uniform int glow_enabled : hint_range(0, 1) = 0;
+instance uniform vec4 glow_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+instance uniform float glow_blur : hint_range(0.0, 64.0) = 6.0;
+instance uniform float glow_strength : hint_range(0.0, 4.0) = 1.0;
+instance uniform int glow_inner : hint_range(0, 1) = 0;
+instance uniform int glow_knockout : hint_range(0, 1) = 0;
+
 // most from https://godotshaders.com/snippet/blending-modes/
 vec3 multiply(vec3 base, vec3 blend){
 	return base * blend;
@@ -61,9 +76,41 @@ vec3 invert(vec3 base) {
 	return vec3(1.0) - base;
 }
 
+// Muestrea 12 puntos en circulo a `radius_px` del UV actual y promedia
+// sus alphas. Aproximacion barata del blur Gaussiano de OpenFL para el
+// glow. TEXTURE_PIXEL_SIZE convierte pixeles a UV.
+float sample_glow_alpha(vec2 uv, float radius_px) {
+	vec2 radius_uv = vec2(radius_px) * TEXTURE_PIXEL_SIZE;
+	float sum = 0.0;
+	for (int i = 0; i < 12; i++) {
+		float angle = float(i) * 0.5235988; // 2*PI/12
+		vec2 offset = vec2(cos(angle), sin(angle)) * radius_uv;
+		sum += texture(TEXTURE, uv + offset).a;
+	}
+	return sum / 12.0;
+}
+
 void fragment() {
-	float original_alpha = COLOR.a;
 	COLOR = color_offsets + (COLOR * color_multipliers);
+
+	// GlowFilter: aplicar ANTES del blend mode, para que el blend vea la
+	// imagen ya con el glow (que es el orden de Flash/OpenFL).
+	if (glow_enabled == 1) {
+		float ring = sample_glow_alpha(UV, glow_blur);
+
+		// Outer glow (default): aplicar donde el sprite NO cubre.
+		// Inner glow (glow_inner = 1): aplicar solo dentro del sprite.
+		float mask = (glow_inner == 1) ? COLOR.a : (1.0 - COLOR.a);
+		float glow_a = ring * mask * glow_strength * glow_color.a;
+
+		// Compuesto aditivo (lo que hace ADD del BlendMode en Flash).
+		COLOR.rgb += glow_color.rgb * glow_a;
+
+		// Knockout: ocultar el sprite original (solo queda el glow).
+		if (glow_knockout == 1) {
+			COLOR.a = 0.0;
+		}
+	}
 
 	if (blend_mode > -1 && blend_mode != 10) {
 		vec4 screen_c = texture(SCREEN_TEXTURE, SCREEN_UV);

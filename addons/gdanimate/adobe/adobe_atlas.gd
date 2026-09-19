@@ -340,6 +340,10 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					var use_material: bool = blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL
 					if not use_material:
 						use_material = color_matrix != null
+					# GlowFilter: activar material tambien cuando hay glow, aunque
+					# no haya blend ni color matrix.
+					if not use_material and not layer_glow.is_empty():
+						use_material = true
 					var used_matrix: AdobeColorMatrix = color_matrix
 					if used_matrix == null:
 						used_matrix = AdobeColorMatrix.new()
@@ -348,7 +352,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					if use_material:
 						if blend_mode == AdobeSymbolInstance.AdobeBlendMode.ADD:
 							used_material = additive_material
-						elif blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+						elif blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL or not layer_glow.is_empty():
 							if Engine.is_editor_hint():
 
 
@@ -359,6 +363,23 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 									&"rid": layer_rid, 
 									&"rect": screen_rect, 
 								})
+
+							# GlowFilter: activar canvas group TRANSPARENT y pasar
+							# uniforms al shader antes de aplicar el material.
+							if not layer_glow.is_empty():
+								RenderingServer.canvas_item_set_canvas_group_mode(
+									layer_rid,
+									RenderingServer.CANVAS_GROUP_MODE_TRANSPARENT)
+								var gcolor_raw: String = String(layer_glow.get("color", "#FFFFFF")).trim_prefix("#")
+								var gcolor: Color = Color.from_string(gcolor_raw, Color.WHITE)
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_enabled", 1)
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_color", Vector4(
+									gcolor.r, gcolor.g, gcolor.b, float(layer_glow.get("alpha", 1.0)),
+								))
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_blur", float(layer_glow.get("blur_x", 6.0)))
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_strength", float(layer_glow.get("strength", 1.0)))
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_inner", 1 if bool(layer_glow.get("inner", false)) else 0)
+								RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"glow_knockout", 1 if bool(layer_glow.get("knockout", false)) else 0)
 
 						RenderingServer.canvas_item_set_use_parent_material(layer_rid, false)
 						RenderingServer.canvas_item_set_material(layer_rid, used_material.get_rid())
