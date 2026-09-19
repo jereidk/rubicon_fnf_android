@@ -53,6 +53,9 @@ var _mem_peak_mb: int = 0
 ## True cuando FileAccess.open() sobre /proc/self/status ya fallo una vez.
 ## Evita spamear el log con el mismo error cada refresh (4 veces/seg).
 var _proc_open_failed: bool = false
+## True cuando ya hicimos el dump crudo de /proc/self/status al log.
+## Solo se hace una vez por sesion, para no spamear.
+var _proc_dump_done: bool = false
 
 
 func _ready() -> void:
@@ -116,6 +119,19 @@ func _refresh() -> void:
 			_mem_peak_mb = mem_now_mb
 		if mem_peak_mb < _mem_peak_mb:
 			mem_peak_mb = _mem_peak_mb
+
+		# Fallback: si /proc no dio nada util (0/0), probar el monitor
+		# del motor. En debug builds de Android suele estar activo.
+		# Cubre el caso de fabricantes que bloquean /proc/self/status
+		# o que lo tienen en un formato que no reconocemos.
+		if mem_now_mb == 0:
+			mem_now_mb = int(Performance.get_monitor(Performance.MEMORY_STATIC)) / 1048576
+			if mem_now_mb > _mem_peak_mb:
+				_mem_peak_mb = mem_now_mb
+			if mem_peak_mb == 0:
+				mem_peak_mb = int(Performance.get_monitor(Performance.MEMORY_STATIC_MAX)) / 1048576
+				if mem_peak_mb < _mem_peak_mb:
+					mem_peak_mb = _mem_peak_mb
 	else:
 		# Fuera de Android (PC, iOS, etc.) usamos el monitor del motor,
 		# que en builds de editor y debug está activo.
@@ -156,6 +172,30 @@ func _read_proc_kb(path: String, key: String) -> int:
 			_proc_open_failed = true
 			DebugLog.log("[DebugDisplay] no puedo abrir %s (err=%d)" % [path, FileAccess.get_open_error()])
 		return 0
+
+	# Log crudo la PRIMERA vez: nos dice exactamente que formato tiene
+	# /proc/self/status en este dispositivo. Distintas versiones de
+	# Android y distintos fabricantes pueden cambiar el espaciado,
+	# tabs vs espacios, o incluso el encoding. Con esto vemos la verdad
+	# en vez de asumir.
+	if not _proc_dump_done:
+		_proc_dump_done = true
+		var dump_count := 0
+		while dump_count < 8:
+			var dump_line := f.get_line()
+			if dump_line.is_empty():
+				break
+			DebugLog.log("[DebugDisplay] proc[%d] len=%d '%s'" % [dump_count, dump_line.length(), dump_line])
+			dump_count += 1
+		# Volver al inicio para el parseo normal. NO usamos f.seek(0):
+		# /proc/self/status es un archivo virtual del kernel y no
+		# garantiza posicionamiento. Cerramos y reabrimos, que es el
+		# patron estandar para /proc.
+		f.close()
+		f = FileAccess.open(path, FileAccess.READ)
+		if f == null:
+			return 0
+
 	var result := 0
 	while true:
 		var line := f.get_line()

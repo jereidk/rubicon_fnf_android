@@ -1154,13 +1154,28 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			await get_tree().process_frame
 
 	var t_fp: int = Time.get_ticks_msec()
-	DebugLog.log("[scan] %s: fingerprint de %d archivos en %dms | total %dms | fp=%d|%d" % [
+
+	# El fingerprint incluye un hash de RUNTIME_EXTENSIONS. Sin esto, si
+	# cambia la constante (por ejemplo, si agregamos/quitamos una
+	# extension), el count total puede seguir siendo el mismo y el cache
+	# no se invalida - el pck queda viejo y no refleja el cambio.
+	# Sintoma real: agregamos "gd" a RUNTIME_EXTENSIONS, despues lo
+	# revertimos, y el pck viejo (generado con la version previa de la
+	# constante) seguia cacheado y se montaba igual.
+	#
+	# String.hash() da un int estable para el mismo contenido. Se agrega
+	# al fingerprint como string.
+	var ext_sig: String = "|".join(RUNTIME_EXTENSIONS)
+	var ext_hash: int = abs(ext_sig.hash())
+	var fingerprint_str := "%d|%d|%d" % [max_mtime, total, ext_hash]
+
+	DebugLog.log("[scan] %s: fingerprint de %d archivos en %dms | total %dms | fp=%s (ext_hash=%d)" % [
 		folder, total, t_fp - t_collect, t_fp - t0,
-		max_mtime, total,
+		fingerprint_str, ext_hash,
 	])
 
 	var result := {
-		"fingerprint": "%d|%d" % [max_mtime, total],
+		"fingerprint": fingerprint_str,
 		"files": files,
 		"pack_files": pack_files,
 		"time": Time.get_ticks_msec(),
@@ -1239,6 +1254,27 @@ func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para %s" % folder)
 		return false
+
+	# Test post-pack: confirmar que un .gd del mod es accesible por res://
+	# DESPUES de montar el pck. Esto valida que el pck incluyo los .gd
+	# (van al pck porque su extension NO esta en RUNTIME_EXTENSIONS). Si
+	# esto falla, el analyzer de GDScript tampoco puede leer el source
+	# de los scripts del mod, y dispara errores de inferencia de tipo.
+	#
+	# Solo hace el test si el mod tiene algun .gd conocido - el path es
+	# especifico de Holy Quintet, mods sin ese path simplemente saltean.
+	if folder == "holyquintet":
+		var test_path := "res://holyquintet_mod/scripts/hq_saves.gd"
+		var test_exists := FileAccess.file_exists(test_path)
+		var test_len := 0
+		if test_exists:
+			var tf := FileAccess.open(test_path, FileAccess.READ)
+			if tf != null:
+				test_len = tf.get_length()
+				tf.close()
+		DebugLog.log("[bake_mod] CHECK post-pack %s exists=%s len=%d" % [
+			test_path, test_exists, test_len,
+		])
 
 	_install_mod_autoloads(m)
 	_log("bake_mod: %s listo (%d archivos)" % [folder, files.size()])
