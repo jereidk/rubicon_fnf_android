@@ -989,6 +989,37 @@ func restore_default_settings() -> void:
 	_log("settings restaurados a defaults")
 
 
+## Color de fondo default del selector (el amarillo actual).
+## Los mods pueden overridearlo via mod.json["background_color"].
+const DEFAULT_BG_COLOR_HEX := "f5d24a"
+
+
+## Devuelve el color de fondo que el mod declaro en
+## mod.json["background_color"], o el default si no hay.
+##
+## Formatos aceptados: "#RRGGBB", "RRGGBB", "#RRGGBBAA", "RRGGBBAA".
+## Color.html() de Godot los parsea todos. Si el string es invalido,
+## Color.html() devuelve negro (r=g=b=a=0) y caemos al default con
+## un warning.
+func resolve_background_color(m: Dictionary) -> Color:
+	var raw: String = str(m.get("background_color", "")).strip_edges()
+	if raw.is_empty():
+		return get_default_bg_color()
+	var c := Color.html(raw)
+	# Color.html() devuelve Color(0,0,0,1) si el string no parsea.
+	# No hay forma de distinguirlo de un "#000000" valido con la API,
+	# asi que si el input era distinto a negro y devolvio negro, es
+	# invalido. Aceptable: nadie va a poner "#000000" como bg.
+	if c == Color(0, 0, 0, 1) and raw.to_lower().lstrip("#") != "000000":
+		push_warning("[ModLoader] background_color invalido: %s" % raw)
+		return get_default_bg_color()
+	return c
+
+
+func get_default_bg_color() -> Color:
+	return Color.html(DEFAULT_BG_COLOR_HEX)
+
+
 func _apply_order() -> void:
 	var explicit: Array = _config.get("order", [])
 	# `mods` es Array[Dictionary] y `ordered` tiene que ser del mismo tipo:

@@ -29,6 +29,9 @@ const BG_CANDIDATES: Array[String] = [
 ]
 
 const COLOR_ACCENT := Color("#4FC3F7")
+const BG_TINT_SHADER := "res://resources/shaders/bg_tint.gdshader"
+## Duracion del tween entre el color del mod anterior y el nuevo.
+const BG_TRANSITION_SEC := 0.35
 const COLOR_BG_NORMAL := Color(0, 0, 0, 0.7)
 const COLOR_BG_HOVER := Color(0.1, 0.1, 0.15, 0.85)
 const COLOR_BG_SELECTED := Color(0.15, 0.3, 0.45, 0.9)
@@ -45,6 +48,16 @@ var _preview_texture: TextureRect
 var _preview_logo: Control = null
 
 var _vcr_font: Font = null
+## Brush del fondo general, con el shader duotone aplicado.
+var _bg_brush: TextureRect = null
+var _bg_material: ShaderMaterial = null
+## ColorRect detras del preview del mod (panel derecho).
+var _preview_bg: ColorRect = null
+## Color actual del fondo (durante la animacion es interpolado).
+var _current_bg_color: Color = Color.WHITE
+## Tween activo de la transicion. Se cancela si el usuario cambia de
+## mod antes de que termine el anterior.
+var _bg_tween: Tween = null
 var _button_group: ButtonGroup = null
 var _selected_mod: Dictionary = {}
 ## folder -> path fisico del icono, "" si no tiene.
@@ -64,6 +77,8 @@ func _ready() -> void:
 	# overrideo stretch/mode o stretch/aspect, hay que devolverlo antes
 	# de mostrar la UI del selector.
 	ModLoader.restore_default_settings()
+	# Color inicial: el default del ModLoader (mismo amarillo del brush).
+	_current_bg_color = ModLoader.get_default_bg_color()
 	_load_font()
 	_build_ui()
 	# Rescan al entrar: si el usuario agrego o quito un mod con el juego
@@ -197,6 +212,15 @@ func _build_right_panel(parent: HBoxContainer) -> void:
 	_preview_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(_preview_rect)
 
+	# Fondo solido del panel: color del mod seleccionado. Va ANTES del
+	# TextureRect para quedar debajo. Se anima con el mismo tween que el
+	# fondo general.
+	_preview_bg = ColorRect.new()
+	_preview_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_preview_bg.color = _current_bg_color
+	_preview_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_rect.add_child(_preview_bg)
+
 	_preview_texture = TextureRect.new()
 	_preview_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -285,6 +309,16 @@ func _build_background() -> void:
 		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# Shader duotone para tintar el brush segun el mod seleccionado.
+		# El tint arranca en el color default (amarillo) y se anima con
+		# _animate_bg_color().
+		if ResourceLoader.exists(BG_TINT_SHADER):
+			var mat := ShaderMaterial.new()
+			mat.shader = load(BG_TINT_SHADER)
+			mat.set_shader_parameter("tint", _current_bg_color)
+			tr.material = mat
+			_bg_brush = tr
+			_bg_material = mat
 		add_child(tr)
 	else:
 		var bg := ColorRect.new()
@@ -522,6 +556,9 @@ func _on_mod_selected(m: Dictionary) -> void:
 	_selected_mod = m
 	_update_preview(m)
 	_update_play_state()
+	# Animar el fondo al color que el mod declaro (o al default).
+	var target := ModLoader.resolve_background_color(m)
+	_animate_bg_color(target)
 
 
 func _update_play_state() -> void:
@@ -532,6 +569,28 @@ func _on_play_pressed() -> void:
 	if _selected_mod.is_empty():
 		return
 	_launch(_selected_mod)
+
+
+## Anima el color del fondo (brush + panel preview) hacia `target`.
+## Cancela el tween previo si todavia esta corriendo, para que el usuario
+## pueda cambiar de mod rapido sin que las animaciones se pisen.
+func _animate_bg_color(target: Color) -> void:
+	if _bg_tween != null and _bg_tween.is_valid():
+		_bg_tween.kill()
+	_bg_tween = create_tween()
+	_bg_tween.set_ease(Tween.EASE_OUT)
+	_bg_tween.set_trans(Tween.TRANS_CUBIC)
+	_bg_tween.tween_method(_set_bg_color, _current_bg_color, target, BG_TRANSITION_SEC)
+
+
+## Aplica el color actual a todos los elementos que lo usan. Llamado
+## cada frame del tween con el valor interpolado.
+func _set_bg_color(c: Color) -> void:
+	_current_bg_color = c
+	if _bg_material != null:
+		_bg_material.set_shader_parameter("tint", c)
+	if _preview_bg != null:
+		_preview_bg.color = c
 
 
 func _open_manager() -> void:
