@@ -31,6 +31,12 @@ var _notice_timer: float = 0.0
 ## icono puede tocar "Releer" y el ModManager se recrea.
 var _icon_cache: Dictionary = {}
 
+## Generación de refresh. Cada llamada a _refresh() la incrementa; las
+## coroutines que terminan tarde (por ejemplo, un recompute de colisiones
+## lento) chequean antes de aplicar cambios. Sin esto, dos refreshes
+## solapados pueden pisarse y dejar la lista en blanco o duplicada.
+var _refresh_gen: int = 0
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -147,13 +153,37 @@ func _on_mods_reloaded(changed: Array) -> void:
 
 
 func _refresh() -> void:
-	# Recalcular colisiones antes de armar la lista. ModLoader las marca
-	# dirty en scan() y en cualquier cambio de enabled/orden. Con HQ
-	# (3070 archivos) hacerlo en cada scan eran 15s en el arranque, pero
-	# aca solo corre cuando el usuario abre esta pantalla.
-	await ModLoader.recompute_collisions_if_dirty()
+	# Generación: cualquier coroutine anterior queda obsoleta.
+	_refresh_gen += 1
+	var gen := _refresh_gen
 
+	# Fase 1 (sincrónica): mostrar la lista AHORA con las colisiones que
+	# ya están cacheadas. En el primer abrir esas colisiones pueden estar
+	# vacías; se actualizan en la fase 2.
+	print("[ModManager] _refresh gen=%d fase1 mods=%d" % [gen, ModLoader.mods.size()])
+	_rebuild_list()
+
+	# Fase 2 (async): recomputear colisiones en background y rearmar la
+	# lista SOLO si seguimos siendo la última generación. Con HQ el
+	# recompute puede tardar varios segundos; mientras corre, el usuario
+	# ya ve la lista y puede tocar cualquier cosa.
+	await ModLoader.recompute_collisions_if_dirty()
+	if gen != _refresh_gen:
+		print("[ModManager] _refresh gen=%d obsoleta, no reaplica" % gen)
+		return
+	print("[ModManager] _refresh gen=%d fase2 done" % gen)
+	_rebuild_list()
+
+
+## Rearma la lista de mods sin await. Saca los hijos viejos del arbol
+## ANTES de queue_free (queue_free solo los marca para borrar al final
+## del frame; si los dejamos en el arbol, se ven viejos + nuevos
+## superpuestos durante 1 frame).
+func _rebuild_list() -> void:
+	if not is_instance_valid(_list):
+		return
 	for c in _list.get_children():
+		_list.remove_child(c)
 		c.queue_free()
 
 	if ModLoader.mods.is_empty():
@@ -184,6 +214,7 @@ func _refresh() -> void:
 
 	for i in ModLoader.mods.size():
 		_list.add_child(_build_row(i))
+	print("[ModManager] _rebuild_list: %d filas" % ModLoader.mods.size())
 
 
 func _short_root(root: String) -> String:
