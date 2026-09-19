@@ -677,9 +677,29 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="Washos Engine"
 run/main_scene="res://engine/mod_selector.tscn"
-config/features=PackedStringArray("4.7", "GL Compatibility")
+config/features=PackedStringArray("4.7", "Mobile", "Forward Plus")
 config/icon="uid://dlxowoyf4wnti"
 config/quit_on_go_back=false
+
+[debug]
+
+; INFERENCE_ON_VARIANT es ERROR por default en Godot 4.7
+; (ver gdscript_warning.h:150). El parser lo dispara cuando compila
+; 'var x := algo.foo()' y no puede resolver el tipo de retorno de foo().
+;
+; El caso concreto: en achievements_screen.gd:87 del mod Holy Quintet,
+; 'var unlocked := not HQSaves.is_achievement_locked(...)'. HQSaves es
+; un autoload instalado en runtime (no esta en ProjectSettings al
+; startup), asi que el analyzer no siempre puede resolver los tipos de
+; retorno de sus funciones. Asume Variant, y en Godot 4.7 eso es error
+; duro.
+;
+; El mod tiene 103 casos del mismo patron. En vez de parchearlos a
+; mano, bajamos el warning a WARN. Los seguimos viendo en el log, pero
+; no bloquean la compilacion del script.
+;
+; Valores: 0 = IGNORE, 1 = WARN, 2 = ERROR.
+gdscript/warnings/inference_on_variant=1
 
 [audio]
 
