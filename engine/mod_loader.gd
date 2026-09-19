@@ -503,6 +503,41 @@ func _remove_recursive(path: String) -> int:
 	return DirAccess.remove_absolute(path)
 
 
+## DIAGNOSTICO TEMPORAL. Chequea los 3 eslabones de la cadena que el
+## analyzer de GDScript usa para resolver el tipo de un autoload:
+##   1. ProjectSettings.has_setting("autoload/<name>")
+##   2. ResourceLoader.get_resource_type(res_path) == "GDScript"
+##   3. GDScriptCache::get_parser(res_path) devuelve un parser valido
+##
+## El paso 3 no es accesible desde GDScript directo, pero se aproxima con
+## un load() que dispara el mismo camino. Si load() devuelve un script
+## con source_code.length() > 0, el parser lo pudo leer.
+##
+## Se saca cuando se identifique el eslabon roto del bug del mod HQ.
+func _debug_autoload_chain(name: String, res_path: String, phase: String = "pre-compile") -> void:
+	DebugLog.log("[autoload][check %s] %s:" % [phase, name])
+	DebugLog.log("  has_setting = %s" % ProjectSettings.has_setting("autoload/" + name))
+	DebugLog.log("  get_setting = '%s'" % str(ProjectSettings.get_setting("autoload/" + name, "")))
+	DebugLog.log("  mod_gd_paths.has(res_path) = %s" % _mod_gd_paths.has(res_path))
+	DebugLog.log("  FileAccess.file_exists(res_path) = %s" % FileAccess.file_exists(res_path))
+
+	var rt: String = ResourceLoader.get_resource_type(res_path)
+	DebugLog.log("  get_resource_type(res_path) = '%s'" % rt)
+
+	# Cargar con CACHE_MODE_IGNORE para forzar el parseo real. Si el
+	# analyzer puede resolver el tipo, este load tambien deberia.
+	var loaded = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
+	if loaded == null:
+		DebugLog.log("  ResourceLoader.load() -> null")
+	else:
+		var src_len: int = 0
+		if loaded is GDScript:
+			src_len = loaded.source_code.length()
+		DebugLog.log("  ResourceLoader.load() -> %s (source_code len = %d)" % [
+			loaded.get_class(), src_len,
+		])
+
+
 ## Instala los autoloads que declara el mod en mod.json, campo "autoloads":
 ##
 ##   "autoloads": {
@@ -553,6 +588,12 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 
 		ProjectSettings.set_setting("autoload/" + name, "*" + path)
 
+		# DIAGNOSTICO TEMPORAL del bug 'Cannot infer the type of "unlocked"'
+		# en achievements_screen.gd del mod Holy Quintet. Verifica que la
+		# cadena has_autoload -> get_resource_type -> get_depended_parser_for
+		# esta completa. Se saca cuando se identifique el eslabon roto.
+		_debug_autoload_chain(name, path)
+
 		# Compilar con el resource_path res:// (no el fisico) para que
 		# GDScriptCache::shallow_gdscript_cache quede poblado con la key
 		# correcta. Sin esto, el analyzer de GDScript no puede resolver
@@ -568,6 +609,10 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 		if script == null or not script.can_instantiate():
 			DebugLog.log("[autoload] SKIP %s: no compila (%s)" % [name, path])
 			continue
+
+		# Post-compilacion: volver a chequear las 3 piezas de la cadena.
+		# Si aca cambia algo respecto al check previo, el orden importa.
+		_debug_autoload_chain(name, path, "post-compile")
 
 		var node = script.new()
 		if not (node is Node):
