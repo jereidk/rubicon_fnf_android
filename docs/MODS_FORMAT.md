@@ -102,6 +102,12 @@ The entry point. Two forms:
 
 Paths are relative to the mod folder. The `res://` prefix is required even though the file lives outside the APK - the engine maps it at load time.
 
+**Lua entry points:** if the path ends in `.lua`, the engine runs it through the Lua bridge instead. See [LUA_API.md](LUA_API.md) for the `washos` API and the table the script must return.
+
+    "main_scene": "res://main.lua"
+
+The Lua sandbox only opens `base`, `table`, `string`, `math`, `coroutine` and `package`. It does not open `io`, `os` or `debug`. See [LUA_API.md](LUA_API.md) for details.
+
 If the mod has no `mod.json` at all, the engine tries `res://main.gd` first, then `res://main.tscn`.
 
 ### `autoloads` (object, optional)

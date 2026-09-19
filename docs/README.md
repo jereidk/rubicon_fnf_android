@@ -6,6 +6,7 @@ Washos Engine is a personal fork of [Rubicon](https://github.com/RubiconTeam/rub
 
 - **[MODS_FORMAT.md](MODS_FORMAT.md)** - `mod.json` reference. Field by field, with gotchas and examples.
 - **[GETTING_STARTED.md](GETTING_STARTED.md)** - build your first mod in 10 minutes.
+- **[LUA_API.md](LUA_API.md)** - write a mod in Lua. The `washos` table, the sandbox, and the entry-point shape.
 - **[mod_schema.json](../mod_schema.json)** - JSON Schema for editor autocompletion.
 
 ## Quick reference
