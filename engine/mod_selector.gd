@@ -60,6 +60,10 @@ var _loading_bar: ProgressBar
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Restaurar el Window al estado original: si venimos de un mod que
+	# overrideo stretch/mode o stretch/aspect, hay que devolverlo antes
+	# de mostrar la UI del selector.
+	ModLoader.restore_default_settings()
 	_load_font()
 	_build_ui()
 	# Rescan al entrar: si el usuario agrego o quito un mod con el juego
@@ -628,6 +632,12 @@ func _launch(m: Dictionary) -> void:
 	if not exists:
 		_show_error("No encontrado: %s\nVerifica que el archivo exista dentro del mod." % scene)
 		return
+
+	# Aplicar settings del mod (whitelist: stretch/mode, stretch/aspect).
+	# Va DESPUES de las verificaciones (bake ok, scene existe) y ANTES
+	# del cambio de escena real. Si algo falla antes, no queremos haber
+	# cambiado el Window sin razon.
+	ModLoader.apply_mod_settings(m)
 
 	if scene.ends_with(".gd"):
 		var script := _compile_gd_from_bytes(scene)

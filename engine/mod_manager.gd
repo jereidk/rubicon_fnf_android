@@ -34,6 +34,10 @@ var _icon_cache: Dictionary = {}
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Restaurar el Window al estado original: si venimos de un mod que
+	# overrideo stretch/mode o stretch/aspect, hay que devolverlo antes
+	# de mostrar la UI del manager.
+	ModLoader.restore_default_settings()
 	_build_ui()
 	ModLoader.mods_changed.connect(_refresh)
 	ModLoader.mods_reloaded.connect(_on_mods_reloaded)

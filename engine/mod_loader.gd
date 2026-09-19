@@ -860,6 +860,135 @@ func resolve_icon_path(m: Dictionary) -> String:
 	return ""
 
 
+## Content scale del Window, capturados la PRIMERA vez que un mod pide
+## settings. Si nunca se aplican settings, quedan en -1 y
+## restore_default_settings() es no-op. Lazy para no depender del orden
+## de _ready entre autoloads y la creacion del Window.
+var _default_stretch_mode: int = -1
+var _default_stretch_aspect: int = -1
+## True cuando ya aplicamos settings de un mod y todavia no restauramos.
+var _settings_overridden: bool = false
+
+## Whitelist de settings que un mod puede overridear via mod.json.
+##
+## El schema del mod.json es:
+##
+##   {
+##     "name": "Holy Quintet",
+##     "version": "1.0.7",
+##     "author": "jereidk",
+##     "description": "...",
+##     "icon": "Icon.png",           // opcional, ver resolve_icon_path()
+##     "main_scene": "res://...",
+##     "autoloads": { ... },
+##     "settings": {                 // opcional
+##       "display/window/stretch/mode": "canvas_items",
+##       "display/window/stretch/aspect": "keep"
+##     }
+##   }
+##
+## Del lado del runtime, cada clave se mapea a una propiedad del Window
+## (get_tree().root). Los valores son strings del export preset de Godot
+## ("canvas_items", "keep", etc.), no ints.
+##
+## Por que whitelist y no ProjectSettings.set_setting() generico: la
+## mayoria de los settings de proyecto se leen UNA vez al startup y no
+## se re-aplican en runtime. Si los cambiarmos con set_setting(), no
+## pasaria nada (el valor se guarda pero nadie lo vuelve a leer). Los
+## unicos que valen en runtime son los de content_scale, que tienen
+## property en el Window.
+const SUPPORTED_SETTINGS: Dictionary = {
+	"display/window/stretch/mode": "content_scale_mode",
+	"display/window/stretch/aspect": "content_scale_aspect",
+}
+
+## Valores validos para stretch/mode. Espejo del enum
+## ContentScaleMode de scene/main/window.h:
+##   DISABLED=0, CANVAS_ITEMS=1, VIEWPORT=2
+const STRETCH_MODE_VALUES: Dictionary = {
+	"disabled": 0,
+	"canvas_items": 1,
+	"viewport": 2,
+}
+
+## Valores validos para stretch/aspect. Espejo del enum
+## ContentScaleAspect de scene/main/window.h:
+##   IGNORE=0, KEEP=1, KEEP_WIDTH=2, KEEP_HEIGHT=3, EXPAND=4
+const STRETCH_ASPECT_VALUES: Dictionary = {
+	"ignore": 0,
+	"keep": 1,
+	"keep_width": 2,
+	"keep_height": 3,
+	"expand": 4,
+}
+
+
+## Aplica los settings que el mod declara en mod.json["settings"].
+## Llamar justo antes de change_scene_to_file() / add_child() del mod.
+##
+## Idempotente y no-op si el mod no tiene "settings" o si ninguna clave
+## esta en la whitelist. Captura los defaults del Window la primera vez,
+## asi restore_default_settings() los puede devolver tal cual estaban.
+func apply_mod_settings(m: Dictionary) -> void:
+	var settings: Dictionary = m.get("settings", {})
+	if settings.is_empty():
+		return
+	var root := get_tree().root
+	if root == null:
+		push_warning("[ModLoader] apply_mod_settings: get_tree().root null")
+		return
+
+	# Captura de defaults lazy: solo la primera vez que un mod pide settings.
+	# El valor real del Window depende de display/window/stretch/* en
+	# project.godot, que puede cambiar entre versiones. Leer al vuelo es
+	# mas robusto que hardcodear.
+	if _default_stretch_mode == -1:
+		_default_stretch_mode = root.content_scale_mode
+		_default_stretch_aspect = root.content_scale_aspect
+
+	var folder: String = str(m.get("folder", "?"))
+	var applied: int = 0
+	for key in settings:
+		var raw: Variant = settings[key]
+		var raw_str: String = str(raw).to_lower()
+		match key:
+			"display/window/stretch/mode":
+				if STRETCH_MODE_VALUES.has(raw_str):
+					root.content_scale_mode = STRETCH_MODE_VALUES[raw_str]
+					applied += 1
+				else:
+					push_warning("[ModLoader] %s: stretch/mode invalido: %s" % [folder, raw])
+			"display/window/stretch/aspect":
+				if STRETCH_ASPECT_VALUES.has(raw_str):
+					root.content_scale_aspect = STRETCH_ASPECT_VALUES[raw_str]
+					applied += 1
+				else:
+					push_warning("[ModLoader] %s: stretch/aspect invalido: %s" % [folder, raw])
+			_:
+				push_warning("[ModLoader] %s: setting no soportado (whitelist): %s" % [folder, key])
+
+	if applied > 0:
+		_settings_overridden = true
+		_log("settings aplicados (%s): %s" % [folder, str(settings)])
+
+
+## Vuelve el Window a los values que tenia antes de aplicar settings de
+## algun mod. Llamar al entrar al ModSelector o ModManager.
+##
+## No-op si nunca se aplicaron settings. Idempotente.
+func restore_default_settings() -> void:
+	if not _settings_overridden:
+		return
+	var root := get_tree().root
+	if root == null:
+		return
+	if _default_stretch_mode != -1:
+		root.content_scale_mode = _default_stretch_mode
+		root.content_scale_aspect = _default_stretch_aspect
+	_settings_overridden = false
+	_log("settings restaurados a defaults")
+
+
 func _apply_order() -> void:
 	var explicit: Array = _config.get("order", [])
 	# `mods` es Array[Dictionary] y `ordered` tiene que ser del mismo tipo:
