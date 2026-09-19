@@ -757,6 +757,7 @@ MenuMusic="*res://engine/menu_music.gd"
 MobileControlsGate="*res://engine/mobile_controls_gate.gd"
 ModBubble="*res://engine/mod_bubble.gd"
 GameJolt="*res://engine/gamejolt/gamejolt.gd"
+PerfProbe="*res://engine/perf_probe.gd"
 
 [rubicon]
 
