@@ -71,9 +71,13 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	# No es un .gd de un mod: devolver null para que Godot siga con el
 	# loader nativo. El ciclo de ResourceLoader::_load() chequea
 	# res.is_valid() y continua si no lo es.
-	# LOG: entrada y estado de los 3 diccionarios.
-	DebugLog.log("[gd_loader._load] path=%s in_mod_gd=%s in_mod_all=%s" % [
-		path, mod_gd_paths.has(path), mod_all_paths.has(path),
+	# LOG: entrada y estado de los 3 diccionarios + original_path.
+	# _original_path es "" cuando ResourceLoader::load(path) llama directo,
+	# y != "" cuando es un remap (por ejemplo, .import de un .tscn que
+	# referencia un .gd).
+	DebugLog.log("[gd_loader._load] path=%s orig=%s in_mod_gd=%s in_mod_all=%s threads=%s mode=%d" % [
+		path, _original_path, mod_gd_paths.has(path), mod_all_paths.has(path),
+		str(_use_sub_threads), _cache_mode,
 	])
 	if not mod_gd_paths.has(path):
 		DebugLog.log("[gd_loader._load] RECHAZA: no esta en mod_gd_paths")
