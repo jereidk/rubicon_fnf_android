@@ -54,7 +54,7 @@ func parse_unoptimized(input: Dictionary) -> void:
 			elif raw_element.has('ATLAS_SPRITE_instance'):
 				element = SpriteElement.new()
 			else:
-				printerr('Found unknown element type.\n%s' % [raw_element])
+				push_error("[GDAnimate] " + 'Found unknown element type.\n%s' % [raw_element])
 				continue
 			
 			element.parse_unoptimized(raw_element)
@@ -79,7 +79,7 @@ func parse_optimized(input: Dictionary) -> void:
 			elif raw_element.has('ASI'):
 				element = SpriteElement.new()
 			else:
-				printerr('Found unknown element type.\n%s' % [raw_element])
+				push_error("[GDAnimate] " + 'Found unknown element type.\n%s' % [raw_element])
 				continue
 			
 			element.parse_optimized(raw_element)

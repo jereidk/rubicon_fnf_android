@@ -21,7 +21,7 @@ func parse_unoptimized(input: Dictionary) -> void:
 
 func parse_optimized(input: Dictionary) -> void:
 	if not input.has(15):
-		printerr('Invalid Matrix3D')
+		push_error("[GDAnimate] " + 'Invalid Matrix3D')
 		return
 	
 	transform = Transform2D.IDENTITY

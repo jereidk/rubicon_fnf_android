@@ -47,7 +47,7 @@ func parse_unoptimized(input: Dictionary) -> void:
 	match raw_symbol_type:
 		'graphic': symbol_type = SymbolType.GRAPHIC
 		'movieclip': symbol_type = SymbolType.MOVIE_CLIP
-		_: printerr('Unknown symbol type detected %s' % [raw_symbol_type])
+		_: push_error("[GDAnimate] " + 'Unknown symbol type detected %s' % [raw_symbol_type])
 	
 	match symbol.get('loop', ''):
 		## TODO: Get the other loop names lmao
@@ -81,7 +81,7 @@ func parse_optimized(input: Dictionary) -> void:
 		'G': symbol_type = SymbolType.GRAPHIC
 		# check this for sure
 		'MC': symbol_type = SymbolType.MOVIE_CLIP
-		_: printerr('Unknown symbol type detected %s' % [raw_symbol_type])
+		_: push_error("[GDAnimate] " + 'Unknown symbol type detected %s' % [raw_symbol_type])
 	
 	match symbol.get('LP', ''):
 		## TODO: Get the other loop names lmao

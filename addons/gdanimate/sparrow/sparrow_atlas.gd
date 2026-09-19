@@ -34,14 +34,14 @@ func parse() -> void:
 		return
 
 	if not FileAccess.file_exists(sparrow_path):
-		printerr("Failed to find sparrow at path \"%s\"!"%[sparrow_path])
+		push_error("[GDAnimate] " + "Failed to find sparrow at path \"%s\"!"%[sparrow_path])
 		return
 
 	var xml: XMLParser = XMLParser.new()
 	var err: Error = OK
 	err = xml.open(sparrow_path)
 	if err != OK:
-		printerr("Failed to open XML, error code: %s!"%[err])
+		push_error("[GDAnimate] " + "Failed to open XML, error code: %s!"%[err])
 		return
 
 	while xml.read() != ERR_FILE_EOF:

@@ -67,7 +67,7 @@ func parse() -> void :
 
 	var animation_json: String = "%s/Animation.json" % [base_dir]
 	if not ResourceLoader.exists(animation_json):
-		printerr("Atlas path (%s) is missing Animation.json!" % [base_dir])
+		push_error("[GDAnimate] " + "Atlas path (%s) is missing Animation.json!" % [base_dir])
 		return
 
 	load_spritemaps()
@@ -388,17 +388,17 @@ func load_spritemap(spritemap_name: String) -> void :
 	var raw_json: String = FileAccess.get_file_as_string("%s/%s" % [base_dir, spritemap_name])
 	var json: Variant = JSON.parse_string(raw_json)
 	if json == null:
-		printerr("Failed to parse %s/%s as JSON!" % [base_dir, spritemap_name])
+		push_error("[GDAnimate] " + "Failed to parse %s/%s as JSON!" % [base_dir, spritemap_name])
 		return
 
 	var texture: Texture2D = load("%s/%s.png" % [base_dir, spritemap_name.get_basename()])
 	if not is_instance_valid(texture):
-		printerr("Failed to load %s/%s.png as Texture2D!" % [base_dir, spritemap_name.get_basename()])
+		push_error("[GDAnimate] " + "Failed to load %s/%s.png as Texture2D!" % [base_dir, spritemap_name.get_basename()])
 		return
 
 	var data: Dictionary = json as Dictionary
 	if not data.has("ATLAS"):
-		printerr("Malformed spritemap json has no ATLAS property!")
+		push_error("[GDAnimate] " + "Malformed spritemap json has no ATLAS property!")
 		return
 	data = data.get("ATLAS")
 
@@ -428,7 +428,7 @@ func load_animation() -> void :
 	var raw_json: String = FileAccess.get_file_as_string("%s/Animation.json" % [base_dir])
 	var json: Variant = JSON.parse_string(raw_json)
 	if json == null:
-		printerr("Failed to parse %s/Animation.json as JSON!" % [base_dir])
+		push_error("[GDAnimate] " + "Failed to parse %s/Animation.json as JSON!" % [base_dir])
 		return
 
 	var data: Dictionary = json as Dictionary
@@ -438,7 +438,7 @@ func load_animation() -> void :
 		var raw_meta: String = FileAccess.get_file_as_string("%s/metadata.json" % [base_dir])
 		var json_meta: Variant = JSON.parse_string(raw_meta)
 		if json_meta == null:
-			printerr("Failed to parse %s/metadata.json as JSON!" % [base_dir])
+			push_error("[GDAnimate] " + "Failed to parse %s/metadata.json as JSON!" % [base_dir])
 			return
 
 		var meta: Dictionary = json_meta as Dictionary
@@ -454,7 +454,7 @@ func load_animation() -> void :
 	elif DirAccess.dir_exists_absolute("%s/LIBRARY" % [base_dir]):
 		var dir: DirAccess = DirAccess.open("%s/LIBRARY" % [base_dir])
 		if dir == null:
-			printerr("Failed to open %s/LIBRARY directory!" % [base_dir])
+			push_error("[GDAnimate] " + "Failed to open %s/LIBRARY directory!" % [base_dir])
 			return
 
 		load_symbol_directory(optimized, dir)
@@ -488,7 +488,7 @@ func load_symbol_directory(optimized: bool, dir: DirAccess, folder: String = "")
 			var raw: String = FileAccess.get_file_as_string(dir.get_current_dir() + "/" + name)
 			var json: Variant = JSON.parse_string(raw)
 			if json == null:
-				printerr("Failed to parse %s as JSON!" % [folder + name])
+				push_error("[GDAnimate] " + "Failed to parse %s as JSON!" % [folder + name])
 				return
 
 			var symbol_name: String = folder + name.get_file().get_basename()
