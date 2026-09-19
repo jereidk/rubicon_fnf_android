@@ -32,6 +32,12 @@ var symbols: Dictionary[StringName, AdobeSymbol] = {}
 var framerate: float = 24.0
 var stage_symbol: StringName = &""
 var stage_transform: Transform2D = Transform2D.IDENTITY
+## Stage background: tamaño (de metadata W x H, default 1280x720) y color
+## (BGC, default blanco). FlxAnimate dibuja un rect de este color detras
+## del contenido del simbolo. Si el color tiene alpha 0, se omite.
+var stage_rect: Rect2 = Rect2(0, 0, 1280, 720)
+var stage_color: Color = Color.WHITE
+var render_stage: bool = false
 ## Scratch for one draw_on() call, handed to the drawing symbol at the end of
 ## it. draw_symbol() is a thirteen-parameter recursive function called
 ## positionally from four places, so the cache is collected here and moved
@@ -60,6 +66,9 @@ func parse() -> void :
 			framerate = cached.framerate
 			stage_symbol = cached.stage_symbol
 			stage_transform = cached.stage_transform
+			stage_rect = cached.stage_rect
+			stage_color = cached.stage_color
+			render_stage = cached.render_stage
 			return
 
 	spritemap.clear()
@@ -87,6 +96,9 @@ func cache() -> void :
 	cached.framerate = framerate
 	cached.stage_symbol = stage_symbol
 	cached.stage_transform = stage_transform
+	cached.stage_rect = stage_rect
+	cached.stage_color = stage_color
+	cached.render_stage = render_stage
 	cached.take_over_path("%s/animation_cache.res" % [base_dir])
 	ResourceSaver.save(cached, "%s/animation_cache.res" % [base_dir], ResourceSaver.FLAG_COMPRESS | ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
 
@@ -120,6 +132,20 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 
 	_backbuffer_scratch.clear()
 
+	# StageBG: rect del color de fondo del "stage" de Adobe Animate.
+	# FlxAnimate tiene renderStage = false por default (FlxAnimate.hx:96)
+	# y el mod original nunca lo activa. Se deja apagado para matchear.
+	if render_stage and stage_color.a > 0.0:
+		var bg_item: RID = RenderingServer.canvas_item_create()
+		RenderingServer.canvas_item_set_transform(bg_item, draw_info.screen_transform)
+		RenderingServer.canvas_item_set_parent(bg_item, canvas_item)
+		RenderingServer.canvas_item_set_draw_behind_parent(bg_item, true)
+		RenderingServer.canvas_item_set_use_parent_material(bg_item, true)
+		RenderingServer.canvas_item_set_light_mask(bg_item, draw_info.light_mask)
+		RenderingServer.canvas_item_set_visibility_layer(bg_item, draw_info.visibility_layer)
+		RenderingServer.canvas_item_add_rect(bg_item, stage_rect, stage_color)
+		draw_info.items.push_back(bg_item)
+
 	var stage_item: RID = RenderingServer.canvas_item_create()
 	RenderingServer.canvas_item_set_transform(stage_item, transform)
 	RenderingServer.canvas_item_set_parent(stage_item, canvas_item)
@@ -149,6 +175,22 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	# the array the symbol passed in rather than replacing the reference, so
 	# the symbol keeps hold of its own cache across draws.
 	draw_info.backbuffer_cache.assign(_backbuffer_scratch)
+
+
+## Lee W/H/BGC del bloque metadata. Acepta tanto la version "optimizada"
+## (W, H, BGC) como la legacy de Adobe Animate (width, height, backgroundColor).
+## Default 1280x720 blanco, mismo que FlxAnimateFrames.hx usa cuando W o H <= 0.
+func _parse_stage_metadata(meta: Dictionary) -> void:
+	var w: float = float(meta.get("W", meta.get("width", 0)))
+	var h: float = float(meta.get("H", meta.get("height", 0)))
+	if w > 0.0 and h > 0.0:
+		stage_rect = Rect2(0, 0, w, h)
+	else:
+		stage_rect = Rect2(0, 0, 1280, 720)
+
+	var bgc_raw: String = str(meta.get("BGC", meta.get("backgroundColor", "#FFFFFF")))
+	# Color.from_string de Godot no acepta el "#" inicial.
+	stage_color = Color.from_string(bgc_raw.trim_prefix("#"), Color.WHITE)
 
 
 func get_framerate() -> float:
@@ -443,9 +485,11 @@ func load_animation() -> void :
 
 		var meta: Dictionary = json_meta as Dictionary
 		framerate = meta.get("framerate", meta.get("FRT", 24))
+		_parse_stage_metadata(meta)
 	else:
 		var meta: Dictionary = get_pair(optimized, data, "metadata", "MD")
 		framerate = get_pair(optimized, meta, "framerate", "FRT")
+		_parse_stage_metadata(meta)
 
 	if has_pair(optimized, data, "SYMBOL_DICTIONARY", "SD"):
 		var symbol_dict: Dictionary = get_pair(optimized, data, "SYMBOL_DICTIONARY", "SD")
