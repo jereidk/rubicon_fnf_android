@@ -17,6 +17,7 @@ extends Control
 
 const DEMO_SCENE := "res://songs/test/test.tscn"
 const AnimatedLogoScript := preload("res://engine/animated_logo.gd")
+const LuaModRunnerScript := preload("res://engine/lua_mod_runner.gd")
 const FONT_PATH := "res://resources/fonts/fnt_vcr.ttf"
 
 ## Fondo opcional. Si el archivo no existe, se usa un ColorRect oscuro
@@ -728,6 +729,23 @@ func _launch(m: Dictionary) -> void:
 	# del cambio de escena real. Si algo falla antes, no queremos haber
 	# cambiado el Window sin razon.
 	ModLoader.apply_mod_settings(m)
+
+	# Mod en Lua: entry point .lua. El LuaModRunner crea un LuaState
+	# sandboxed, ejecuta el chunk del script, y devuelve el nodo raiz
+	# que el mod armo. Se agrega al arbol igual que un .gd.
+	if scene.ends_with(".lua"):
+		var runner := LuaModRunnerScript.new()
+		var lua_node: Node = runner.run(m, scene)
+		if lua_node == null:
+			_show_error("El mod Lua no pudo cargarse: %s" % scene)
+			return
+		lua_node.name = "ModRoot"
+		var lua_old := get_tree().current_scene
+		get_tree().root.add_child(lua_node)
+		get_tree().current_scene = lua_node
+		if lua_old != null:
+			lua_old.queue_free()
+		return
 
 	if scene.ends_with(".gd"):
 		var script := _compile_gd_from_bytes(scene)
