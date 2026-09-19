@@ -641,7 +641,32 @@ func _install_mod_autoloads(m: Dictionary) -> void:
 			_installed_autoloads[name] = folder
 			DebugLog.log("[autoload] encolado para flush: %s (%s)" % [name, path])
 
+	# Config del API de GameJolt para este mod. El singleton GameJolt es un
+	# autoload del engine, siempre presente en /root. El mod solo declara sus
+	# credenciales en mod.json["gamejolt"] y el engine se las pasa. Mods sin
+	# el bloque dejan al singleton con valores del mod anterior (o vacios) —
+	# eso es lo correcto: si el mod no usa GJ, no le importa.
+	_configure_mod_gamejolt(m)
+
 	_ensure_flush_connected()
+
+
+## Pasa la config de GameJolt del mod al singleton del engine. No-op si
+## el mod no tiene bloque "gamejolt" en su mod.json o si el autoload del
+## engine no esta presente.
+func _configure_mod_gamejolt(m: Dictionary) -> void:
+	var gj_cfg: Dictionary = m.get("gamejolt", {})
+	if gj_cfg.is_empty():
+		return
+	var gj: Node = get_node_or_null("/root/GameJolt")
+	if gj == null:
+		DebugLog.log("[gamejolt] /root/GameJolt no existe — sin config para %s" % m.get("folder", "?"))
+		return
+	if not gj.has_method("configure"):
+		DebugLog.log("[gamejolt] /root/GameJolt no expone configure() — version vieja?")
+		return
+	gj.configure(gj_cfg)
+	DebugLog.log("[gamejolt] %s -> configurado (game_id=%s)" % [m.get("folder", "?"), str(gj_cfg.get("game_id", ""))])
 
 
 ## Conecta el flush al primer process_frame, una sola vez por sesion.

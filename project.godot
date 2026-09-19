@@ -756,6 +756,7 @@ MenuMusic="*res://engine/menu_music.gd"
 
 MobileControlsGate="*res://engine/mobile_controls_gate.gd"
 ModExit="*res://engine/mod_exit.gd"
+GameJolt="*res://engine/gamejolt/gamejolt.gd"
 
 [rubicon]
 
