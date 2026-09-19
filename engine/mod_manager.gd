@@ -433,6 +433,11 @@ func _confirm_uninstall(folder: String) -> void:
 
 func _rescan() -> void:
 	_icon_cache.clear()
+	# Invalidar el cache del walk en disco: "Releer" es la via explicita
+	# del usuario para forzar un walk real (por ejemplo, si toco archivos
+	# dentro de un mod sin que el mtime de la raiz cambie).
+	if ModLoader.has_method("invalidate_all_walk_caches"):
+		ModLoader.invalidate_all_walk_caches()
 	ModLoader.scan()
 	_refresh()
 

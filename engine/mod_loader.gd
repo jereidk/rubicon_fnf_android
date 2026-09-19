@@ -272,6 +272,93 @@ func reload_changed_mods() -> void:
 ## Devuelve string porque el fingerprint es "mtime|count" (ver
 ## _mod_fingerprint); el int viejo no se puede comparar contra el formato
 ## nuevo y forzaria un rebuild unico en cada arranque.
+## Ruta del cache del walk en disco.
+func _walk_cache_path(folder: String) -> String:
+	return CACHE_DIR + "/" + folder + ".scan"
+
+
+## Intenta leer el cache del walk del disco. Devuelve un Dictionary con
+## las mismas claves que _scan_mod_tree produce (mas "root_mtime"), o {}
+## si no hay cache valido o el mtime de la raiz cambio.
+func _load_walk_cache(folder: String, mod_path: String) -> Dictionary:
+	var p := _walk_cache_path(folder)
+	if not FileAccess.file_exists(p):
+		return {}
+
+	var root_mtime: int = int(FileAccess.get_modified_time(mod_path))
+	var json_mtime: int = int(FileAccess.get_modified_time(mod_path + "/" + MANIFEST_NAME))
+	# Si el SO no soporta mtime de directorios (algunos Android), no podemos
+	# validar el cache. Mejor caminar siempre.
+	if root_mtime <= 0:
+		return {}
+
+	var f := FileAccess.open(p, FileAccess.READ)
+	if f == null:
+		return {}
+	var raw := f.get_as_text()
+	f.close()
+	var data = JSON.parse_string(raw)
+	if not (data is Dictionary):
+		return {}
+	if int(data.get("root_mtime", -1)) != root_mtime:
+		return {}
+	if int(data.get("mod_json_mtime", -1)) != json_mtime:
+		return {}
+
+	# Reconstruir Array[String] tipados.
+	var files_arr: Array[String] = []
+	for x in data.get("files", []):
+		files_arr.append(str(x))
+	var pack_arr: Array[String] = []
+	for x in data.get("pack_files", []):
+		pack_arr.append(str(x))
+
+	return {
+		"fingerprint": str(data.get("fingerprint", "")),
+		"files": files_arr,
+		"pack_files": pack_arr,
+		"root_mtime": root_mtime,
+		"mod_json_mtime": json_mtime,
+	}
+
+
+## Persiste el resultado del walk en un .scan al lado del .pck/.mtime.
+## El JSON pesa ~50-100 KB para 1900 archivos y tarda ~50ms en parsear,
+## vs ~10s del walk en Android. Vale la pena el trade.
+func _save_walk_cache(folder: String, result: Dictionary) -> void:
+	var p := _walk_cache_path(folder)
+	var to_write := {
+		"fingerprint": str(result.get("fingerprint", "")),
+		"files": result.get("files", []),
+		"pack_files": result.get("pack_files", []),
+		"root_mtime": int(result.get("root_mtime", 0)),
+		"mod_json_mtime": int(result.get("mod_json_mtime", 0)),
+	}
+	var f := FileAccess.open(p, FileAccess.WRITE)
+	if f == null:
+		push_warning("[ModLoader] no puedo escribir walk cache %s" % p)
+		return
+	f.store_string(JSON.stringify(to_write))
+	f.close()
+
+
+## Borra el cache del walk en disco. Se llama desde el boton "Releer" del
+## ModSelector (o cualquier lugar que quiera forzar un walk real).
+func _invalidate_walk_cache(folder: String) -> void:
+	var p := _walk_cache_path(folder)
+	if FileAccess.file_exists(p):
+		DirAccess.remove_absolute(p)
+	_scan_cache.erase(folder)
+
+
+## Borra el cache del walk de TODOS los mods.
+func invalidate_all_walk_caches() -> void:
+	for mod in mods:
+		var folder: String = str(mod.get("folder", ""))
+		if not folder.is_empty():
+			_invalidate_walk_cache(folder)
+
+
 func _cached_fingerprint(folder: String) -> String:
 	var p := CACHE_DIR + "/" + folder + ".mtime"
 	if not FileAccess.file_exists(p):
@@ -462,6 +549,10 @@ func uninstall_mod(folder: String) -> bool:
 	# Borrar cache del .pck
 	DirAccess.remove_absolute(CACHE_DIR + "/" + folder + ".pck")
 	DirAccess.remove_absolute(CACHE_DIR + "/" + folder + ".mtime")
+	# Incluir el cache del walk para que el proximo arranque haga el walk
+	# real. Sin esto, el pck se rebakea pero el walk cacheado sigue
+	# devolviendo la lista vieja de archivos.
+	_invalidate_walk_cache(folder)
 
 	# Sacar de la config
 	var en: Dictionary = _config.get("enabled", {})
@@ -1166,6 +1257,23 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			DebugLog.log("[scan] %s: cache hit" % folder)
 			return cached
 
+	# Fast path: cache del walk en disco. Si el mtime de la raiz del mod
+	# y del mod.json no cambiaron desde el ultimo scan, cargar el .scan
+	# sin caminar el arbol completo. Ahorra ~10s en Android (SAF lento
+	# para DirAccess.open en profundidad).
+	#
+	# LIMITACION conocida: ediciones in-place de archivos en subcarpetas
+	# sin tocar la raiz NI mod.json NO se detectan. El boton "Releer" del
+	# ModSelector llama a _invalidate_walk_cache() y fuerza el walk normal.
+	var disk := _load_walk_cache(folder, mod_path)
+	if not disk.is_empty():
+		disk["time"] = Time.get_ticks_msec()
+		_scan_cache[folder] = disk
+		DebugLog.log("[scan] %s: disco hit (mtime=%d, %d archivos)" % [
+			folder, int(disk.get("root_mtime", 0)), (disk.get("files", []) as Array).size(),
+		])
+		return disk
+
 	# Si ya hay un walk en curso para este folder, esperar a que termine en
 	# vez de arrancar otro. Antes, si 2+ callers consultaban al mismo
 	# tiempo y el walk tardaba mas que SCAN_CACHE_MS (5s), cada uno arrancaba
@@ -1199,7 +1307,11 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
 				continue
 			files.append(name if sub.is_empty() else sub + "/" + name)
-			if files.size() - last_yield >= 100:
+			# Threshold subido de 100 a 500: el walk hace menos awaits y cede
+			# el frame cada 500 archivos en vez de cada 100. La UI del loading
+			# overlay igual se actualiza (500 archivos se procesan en pocos ms),
+			# y nos ahorramos ~15 yields en un mod de 1900 archivos.
+			if files.size() - last_yield >= 500:
 				last_yield = files.size()
 				if on_progress.is_valid():
 					on_progress.call(files.size(), 0, "scan")
@@ -1225,6 +1337,11 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 			max_mtime = mt
 		if on_progress.is_valid() and (i % 20 == 0 or i == total - 1):
 			on_progress.call(i + 1, total, "fingerprint")
+		# Yield cada 100 archivos sin depender del callback: antes estaba
+		# DENTRO del if de on_progress, asi que solo cedia el frame cuando
+		# habia callback (con el overlay de carga, 37 awaits por los 732
+		# archivos). Ahora son 8 fijos (~0.05s vs ~1.7s medidos en device).
+		if i % 100 == 0:
 			await get_tree().process_frame
 
 	var t_fp: int = Time.get_ticks_msec()
@@ -1252,10 +1369,13 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 		"fingerprint": fingerprint_str,
 		"files": files,
 		"pack_files": pack_files,
+		"root_mtime": int(FileAccess.get_modified_time(mod_path)),
+		"mod_json_mtime": int(FileAccess.get_modified_time(mod_path + "/" + MANIFEST_NAME)),
 		"time": Time.get_ticks_msec(),
 	}
 	_scan_cache[folder] = result
 	_scanning.erase(folder)
+	_save_walk_cache(folder, result)
 	return result
 
 
