@@ -742,6 +742,29 @@ ModExit="*res://engine/mod_exit.gd"
 defaults/note_database="uid://bvhsfvptfwijt"
 
 [rendering]
+; Renderer: forzar "mobile" (Vulkan) en Android. Sin esto, el editor
+; headless del CI exporta con el fallback gl_compatibility (porque
+; arranca sin display y cae al mas seguro), y el APK queda forzado a
+; OpenGL 3. Con OpenGL 3, Godot 4 no puede renderizar 3D.
+;
+; Los mods 2D siguen funcionando igual: mismo motor, mismos assets,
+; mismos shaders canvas_item. Lo unico que cambia es que ahora el
+; motor tambien sabe dibujar 3D (cubos, escenarios, camaras, luces).
+;
+; fallback_to_opengl3: si el celular no soporta Vulkan (Android 6 o
+; anterior), cae automaticamente a gl_compatibility sin crashear.
+; En esos celus los mods 2D siguen andando, y los mods 3D no.
+;
+; Cadena verificada en el source 4.7.1:
+;   core/config/project_settings.cpp:1222 - save_custom() mete el
+;     rendering_method actual (que en headless es gl_compatibility)
+;     en application/config/features del project.binary.
+;   platform/android/export/export_plugin.cpp:904 - lee
+;     rendering/renderer/rendering_method.mobile del project setting.
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+rendering_device/fallback_to_opengl3=true
+
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 
 textures/vram_compression/import_etc2_astc=true
