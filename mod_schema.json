@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jereidk/rubicon_fnf_android/mod_schema.json",
+  "title": "Washos Engine mod.json",
+  "description": "Manifest for a Washos Engine mod. See docs/MODS_FORMAT.md for full details.",
+  "type": "object",
+  "required": ["name", "main_scene"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name shown in the mod selector and mod manager.",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Free-form version string. Convention is semantic versioning.",
+      "default": "0.0.1"
+    },
+    "author": {
+      "type": "string",
+      "description": "Your name or handle."
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description shown in the mod manager. Use \\n for a line break."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional URL. Stored on the mod's metadata, shown in the details popup."
+    },
+    "icon": {
+      "type": "string",
+      "description": "Path to a PNG for the selector preview. Relative to the mod folder, or res:// form. Falls back to Icon.png / icon.png at the mod root."
+    },
+    "background_color": {
+      "type": "string",
+      "description": "Hex color for the selector background when this mod is selected. Accepts #RRGGBB, RRGGBB, #RRGGBBAA, RRGGBBAA.",
+      "pattern": "^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$"
+    },
+    "main_scene": {
+      "type": "string",
+      "description": "Entry point, res:// form. Either a .tscn scene or a .gd script that extends Node.",
+      "pattern": "^res://"
+    },
+    "autoloads": {
+      "type": "object",
+      "description": "Named globals available to every script in the mod.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^res://"
+      }
+    },
+    "settings": {
+      "type": "object",
+      "description": "ProjectSettings overrides applied while this mod is running. Only whitelisted keys are honored.",
+      "properties": {
+        "display/window/stretch/mode": {
+          "type": "string",
+          "enum": ["disabled", "canvas_items", "viewport"]
+        },
+        "display/window/stretch/aspect": {
+          "type": "string",
+          "enum": ["ignore", "keep", "keep_width", "keep_height", "expand"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

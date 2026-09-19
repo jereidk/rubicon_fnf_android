@@ -1,3 +1,17 @@
+# Washos Engine
+
+A personal fork of [Rubicon](https://github.com/RubiconTeam/rubicon_fnf) with an **external mod system**. Any Godot 4.7 project can be loaded as a "mod" — a single script, a 2D game, a full 3D scene, or a FNF-style mod. The engine handles packaging, mounting, and running it, including autoloads, icons, background colors, and per-mod window settings.
+
+- **[docs/MODS_FORMAT.md](docs/MODS_FORMAT.md)** — the `mod.json` schema, field by field.
+- **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — build your first mod in 10 minutes.
+- **[docs/](docs/)** — full documentation index.
+
+---
+
+*Original Rubicon README follows.*
+
+---
+
 # Rubicon
 
 A Godot project integrating a unification of rhythm game elements, characters, and levels!
