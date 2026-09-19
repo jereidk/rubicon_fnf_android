@@ -50,6 +50,9 @@ var _timer: float = 0.0
 ## en release; este lo trackea a mano por si el monitor del motor no lo
 ## actualiza en tiempo real.
 var _mem_peak_mb: int = 0
+## True cuando FileAccess.open() sobre /proc/self/status ya fallo una vez.
+## Evita spamear el log con el mismo error cada refresh (4 veces/seg).
+var _proc_open_failed: bool = false
 
 
 func _ready() -> void:
@@ -147,6 +150,11 @@ func _refresh() -> void:
 func _read_proc_kb(path: String, key: String) -> int:
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
+		# Log de error solo la primera vez (no en cada refresh).
+		# Si esta variable se queda true, ya reportamos el fallo.
+		if not _proc_open_failed:
+			_proc_open_failed = true
+			DebugLog.log("[DebugDisplay] no puedo abrir %s (err=%d)" % [path, FileAccess.get_open_error()])
 		return 0
 	var result := 0
 	while true:
