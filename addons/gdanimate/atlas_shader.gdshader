@@ -76,34 +76,24 @@ vec3 invert(vec3 base) {
 	return vec3(1.0) - base;
 }
 
-// Godot 4 removio TEXTURE_PIXEL_SIZE del scope de canvas_item shaders
-// (era de Godot 3). Usamos un uniform con 1/tamano del atlas. Default
-// 1/1024, tipico de atlas de Adobe Animate. Si algun glow se ve mal,
-// setear desde GDScript:
-//   mat.set_shader_parameter("texture_pixel_size", Vector2(1.0/w, 1.0/h))
-uniform vec2 texture_pixel_size = vec2(0.0009765625); // 1/1024
-
-// Muestrea 12 puntos en circulo a `radius_px` del UV actual y promedia
-// sus alphas. Aproximacion barata del blur Gaussiano de OpenFL para el
-// glow. texture_pixel_size convierte pixeles a UV.
-float sample_glow_alpha(vec2 uv, float radius_px) {
-	vec2 radius_uv = vec2(radius_px) * texture_pixel_size;
-	float sum = 0.0;
-	for (int i = 0; i < 12; i++) {
-		float angle = float(i) * 0.5235988; // 2*PI/12
-		vec2 offset = vec2(cos(angle), sin(angle)) * radius_uv;
-		sum += texture(TEXTURE, uv + offset).a;
-	}
-	return sum / 12.0;
-}
-
 void fragment() {
 	COLOR = color_offsets + (COLOR * color_multipliers);
 
 	// GlowFilter: aplicar ANTES del blend mode, para que el blend vea la
 	// imagen ya con el glow (que es el orden de Flash/OpenFL).
 	if (glow_enabled == 1) {
-		float ring = sample_glow_alpha(UV, glow_blur);
+		// Inline del sampling radial. TEXTURE, UV y TEXTURE_PIXEL_SIZE
+		// son built-ins que SOLO existen dentro de vertex/fragment/light
+		// (ver shader_types.cpp:301,302); no estan en funciones helper.
+		// Por eso el bucle va inline aca y no en una funcion auxiliar.
+		vec2 radius_uv = vec2(glow_blur) * TEXTURE_PIXEL_SIZE;
+		float ring_sum = 0.0;
+		for (int i = 0; i < 12; i++) {
+			float angle = float(i) * 0.5235988; // 2*PI/12
+			vec2 offset = vec2(cos(angle), sin(angle)) * radius_uv;
+			ring_sum += texture(TEXTURE, UV + offset).a;
+		}
+		float ring = ring_sum / 12.0;
 
 		// Outer glow (default): aplicar donde el sprite NO cubre.
 		// Inner glow (glow_inner = 1): aplicar solo dentro del sprite.
