@@ -79,6 +79,14 @@ func parse() -> void:
 )
 
 			frame.rotated = xml.get_named_attribute_value_safe("rotated") == "true"
+			# cne-flixel/flixel/graphics/frames/FlxAtlasFrames.hx:263-264.
+			# has_attribute() chequea que la key exista; si falta, el port
+			# deja el default false (mismo efecto que "flipX" ausente en el
+			# engine, donde texture.has.flipX es false).
+			if xml.has_attribute("flipX"):
+				frame.flip_x = xml.get_named_attribute_value_safe("flipX") == "true"
+			if xml.has_attribute("flipY"):
+				frame.flip_y = xml.get_named_attribute_value_safe("flipY") == "true"
 			frames.push_back(frame)
 
 
@@ -167,21 +175,41 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void:
 
 	var offset: Vector2 = - sparrow_frame.offset.position
 	offset += draw_info.offset
+
+	# Flip baked-in del frame (cne-flixel/.../FlxAtlasFrames.hx:263-264).
+	# Se aplica como size negativo en el rect de dibujo: Godot dibuja el
+	# rect espejado cuando size.x o size.y son negativos, dejando la
+	# bounding box visual en el mismo lugar que sin flip (el "origen" se
+	# mueve al borde opuesto para compensar). El flip del sprite que el
+	# engine real XOR-ea (FlxFrame.hx:290-291) no aplica aca: el port no
+	# expone flip a nivel de AnimateSymbol.
+	var region_size: Vector2 = Vector2(sparrow_frame.region.size)
+	var draw_pos: Vector2 = offset
+	if sparrow_frame.flip_x:
+		draw_pos.x += region_size.x
+		region_size.x = -region_size.x
+	if sparrow_frame.flip_y:
+		draw_pos.y += region_size.y
+		region_size.y = -region_size.y
+
 	if sparrow_frame.rotated:
+		# Rotacion -90 grados aplicada como transform del canvas item. El
+		# rect se dibuja desde (0,0) y el transform lo rota; los flips ya
+		# estan aplicados en region_size, asi que rotan con el contenido.
 		RenderingServer.canvas_item_add_set_transform(canvas_item,
 			Transform2D(
 				- PI/ 2.0,
 				Vector2(
 					offset.x,
-					sparrow_frame.region.size.x+ offset.y
+					sparrow_frame.region.size.x + offset.y
 )
 )
 )
 
 	RenderingServer.canvas_item_add_texture_rect_region(canvas_item,
 		Rect2(
-			offset if not sparrow_frame.rotated else Vector2.ZERO,
-			sparrow_frame.region.size
+			draw_pos if not sparrow_frame.rotated else Vector2.ZERO,
+			region_size
 ),
 		texture, sparrow_frame.region
 )
