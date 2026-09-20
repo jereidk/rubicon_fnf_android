@@ -114,10 +114,17 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	var transform: Transform2D = Transform2D.IDENTITY
 	transform = transform.translated(draw_info.offset)
 
+	# CORRECCION DE FUENTE: el comentario original de este fix citaba
+	# Dot-Stuff/flxanimate, que NO es el engine que usa el mod. CodenameEngine
+	# (haxelib "flixel-animate") vendorea su propio fork reescrito,
+	# CodenameCrew/cne-flixel-animate (paquete `animate`, no `flxanimate`) -
+	# ver FIDELITY.md seccion "Fuente de verdad". Todas las referencias de
+	# abajo son a ESE repo.
+	#
 	# FlxAnimate aplica el stage matrix ANTES del scale del sprite
-	# (prepareDrawMatrix, FlxAnimate.hx:283-297) siempre que applyStageMatrix
-	# este activo. Codename lo activa siempre en FunkinSprite
-	# (FunkinSprite.hx:97 applyStageMatrix = true), asi que los
+	# (prepareDrawMatrix, cne-flixel-animate/src/animate/FlxAnimate.hx:304-319)
+	# siempre que applyStageMatrix este activo. Codename lo activa siempre en
+	# FunkinSprite (FunkinSprite.hx:97 applyStageMatrix = true), asi que los
 	# Animation.json del mod HQ dependen de el.
 	#
 	# Antes este bloque solo se ejecutaba con use_stage=true (symbol NO
@@ -131,6 +138,17 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	# son solo traslacion (a=d=1, b=c=0), aplicar el stage como translate
 	# local en el stage_item produce el mismo resultado final que el
 	# pipeline de FlxAnimate (T(pos)*R*S*T(stage.tx, stage.ty)).
+	#
+	# LIMITE CONOCIDO (no arreglado aca, ver FIDELITY.md): esto es una
+	# aproximacion, no una reproduccion literal de prepareDrawMatrix. El
+	# pipeline real hace translate(-bounds.x,-bounds.y) ANTES de concatenar
+	# el stage matrix (FlxAnimate.hx:224-225 en drawAnimate) y translate(
+	# bounds.x*matrix.a, bounds.y*matrix.d) despues (FlxAnimate.hx:317), algo
+	# que no tiene un analogo directo aca porque AnimateSymbol no normaliza
+	# su dibujo a un "frame" con bounds como FlxSprite - dibuja los RIDs
+	# directamente en coordenadas de Animate. Si un futuro Animation.json
+	# trae un M3D de stage con rotacion o escala no trivial, este approach
+	# puede divergir y hay que revisar la formula completa.
 	var should_apply_stage: bool = draw_info.apply_stage_matrix or use_stage
 	if should_apply_stage and stage_transform != Transform2D.IDENTITY:
 		transform *= stage_transform
@@ -656,8 +674,11 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 ## two-frame window of it, so without this his sing-left face runs on through the down, up
 ## and right faces while the note is still being sung.
 ##
-## Reconstructed from SymbolInstance::getFrameIndex in the mod's own build, which is the
-## only place the rule is written down.
+## Port of SymbolInstance.getFrameIndex, cne-flixel-animate/src/animate/internal/elements/
+## SymbolInstance.hx:102-142 (the engine CodenameEngine actually vendors - see FIDELITY.md
+## for why this isn't upstream Dot-Stuff/flxanimate). That engine's LoopType has only three
+## values (LOOP, PLAY_ONCE, SINGLE_FRAME; SymbolInstance.hx:269-273) and no reverse mode, so
+## there is nothing to port for one here - see load_symbol_instance().
 func symbol_instance_frame(
 	element: AdobeSymbolInstance, length: int, difference: int
 ) -> int:
@@ -665,15 +686,7 @@ func symbol_instance_frame(
 	if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
 		return first
 
-	# Two axes: forward vs reverse (direction), and loop vs one-shot (wrap).
-	# Reverse one-shot plays from last_frame back to first_frame once, then
-	# holds. Reverse loop plays backward and wraps to last_frame when it
-	# passes first_frame. The frame_progress sent by the caller is always
-	# forward-counting, so reverse just remaps the progress within the span.
-	var is_reverse: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT \
-		or element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
-	var is_loop: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP \
-		or element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
+	var is_loop: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 
 	var last: int = element.last_frame
 	if last < 0:
@@ -681,12 +694,12 @@ func symbol_instance_frame(
 		var span: int = length - first
 		if span <= 0:
 			return first
-		return first + _symbol_instance_offset(span, difference, is_loop, is_reverse)
+		return first + _symbol_instance_offset(span, difference, is_loop)
 
 	if last >= first:
 		last = mini(last, length - 1)
 		var span: int = last - first + 1
-		return first + _symbol_instance_offset(span, difference, is_loop, is_reverse)
+		return first + _symbol_instance_offset(span, difference, is_loop)
 
 	# last < first: the window runs off the end of the symbol and resumes at frame 0, so
 	# its length is the tail plus the head rather than a subtraction.
@@ -694,19 +707,13 @@ func symbol_instance_frame(
 	var span: int = last + tail + 1
 	if span <= 0:
 		return first
-	var at: int = _symbol_instance_offset(span, difference, is_loop, is_reverse)
+	var at: int = _symbol_instance_offset(span, difference, is_loop)
 	return first + at if at < tail else at - tail
 
 
-## Maps a forward-counting `difference` to an offset in [0, span) for the
-## given direction and wrap policy. Forward loop wraps around; forward
-## one-shot clamps at span-1. Reverse mirrors the offset within the span:
-## the first frame of a reverse clip is the last frame of the window, so
-## we compute span-1-difference and wrap or clamp the same way.
-func _symbol_instance_offset(span: int, difference: int, is_loop: bool, is_reverse: bool) -> int:
-	if is_reverse:
-		var raw: int = span - 1 - difference
-		return wrapi(raw, 0, span) if is_loop else clampi(raw, 0, span - 1)
+## Maps a forward-counting `difference` to an offset in [0, span): wraps
+## around for LOOP, clamps at span-1 for PLAY_ONCE.
+func _symbol_instance_offset(span: int, difference: int, is_loop: bool) -> int:
 	return wrapi(difference, 0, span) if is_loop else mini(difference, span - 1)
 
 
@@ -739,20 +746,21 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 
 	if has_pair(optimized, element, "loop", "LP"):
 		var loop_mode: String = get_pair(optimized, element, "loop", "LP")
+		# cne-flixel-animate/src/animate/internal/elements/SymbolInstance.hx:49-54:
+		# el motor real solo distingue "PO"/"playonce" (ONE_SHOT) y
+		# "SF"/"singleframe" (FREEZE_FRAME) explicitamente; CUALQUIER otro
+		# valor -incluido "LP" y cualquier variante no reconocida como
+		# "POR"/"REV"- cae en LOOP por default (`default: LoopType.LOOP`).
+		# No existe un modo reverse en el engine que usa el mod: los valores
+		# POR/REV que este parser aceptaba antes eran inventados, no venian
+		# de ningun Animation.json real ni tenian soporte en FlxAnimate.
 		if optimized:
 			match loop_mode:
 				"PO":
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.ONE_SHOT
 				"SF":
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME
-				"LP":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
-				"POR":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT
-				"REV":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
 				_:
-					push_warning("[GDAnimate] Unknown optimized loop mode '%s' in AdobeAtlas, defaulting to LOOP" % loop_mode)
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 		else:
 			match loop_mode:
@@ -760,14 +768,7 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.ONE_SHOT
 				"singleframe":
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME
-				"loop":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
-				"reverse":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_ONE_SHOT
-				"reverseloop":
-					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.REVERSE_LOOP
 				_:
-					push_warning("[GDAnimate] Unknown unoptimized loop mode '%s' in AdobeAtlas, defaulting to LOOP" % loop_mode)
 					symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 	else:
 		symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
