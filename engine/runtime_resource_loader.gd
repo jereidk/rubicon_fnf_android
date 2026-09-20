@@ -63,20 +63,28 @@ func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["tres", "tscn", "scn"])
 
 
-func _recognize_path(path: String, _for_type: StringName) -> bool:
-	# Reclamamos cualquier .tres/.tscn/.scn de un mod, sin importar el
-	# hint. Eso es justo lo que el text loader nativo no hace para .tres
-	# + PackedScene.
+func _recognize_path(path: String, for_type: StringName) -> bool:
+	# Solo reclamamos .tres. El bug original era el text loader nativo
+	# rechazando .tres cuando el type_hint era PackedScene (por su
+	# get_recognized_extensions_for_type). Para .tscn/.scn NO hay ese
+	# bug: el text loader los maneja bien.
 	#
-	# EXCEPCION: si estamos delegando al text loader nativo (ver _load),
-	# devolvemos false para que ESTE loader no vuelva a matchear el
-	# mismo path y cree un bucle.
-	_bypass_mutex.lock()
-	var bypassed := _bypass_paths.has(path)
-	_bypass_mutex.unlock()
-	if bypassed:
+	# Ademas, delegar .tscn/.scn al text loader desde _load() causa un
+	# ciclo de dependencia en threaded load: el worker thread pide
+	# ResourceLoader.load(tscn) mientras el padre esta cargando el mismo
+	# tscn, el engine detecta el ciclo y devuelve null anti-deadlock, y
+	# el loader reintenta en bucle (cientos de veces por frame, visto en
+	# el log de 22:05).
+	if not mod_resource_paths.has(path):
 		return false
-	return mod_resource_paths.has(path)
+	var ext := path.get_extension().to_lower()
+	if ext != "tres":
+		return false
+	var hint := String(for_type)
+	# Reclamamos si el hint es PackedScene o GDExtension (los casos
+	# donde el text loader nativo falla para .tres), o si viene vacio
+	# (llamada generica de ResourceLoader.load sin hint explicito).
+	return hint == "PackedScene" or hint == "GDExtension" or hint.is_empty()
 
 
 func _get_resource_type(path: String) -> String:
@@ -120,17 +128,17 @@ func _load(path: String, _orig: String, _sub: bool, _cache: int) -> Variant:
 	])
 	if not mod_resource_paths.has(path):
 		return null
-	# Marcar este path como bypass ANTES de delegar, para que
-	# _recognize_path() devuelva false si el ResourceLoader interno
-	# vuelve a iterar la lista de loaders para este mismo path.
-	_bypass_mutex.lock()
-	_bypass_paths[path] = true
-	_bypass_mutex.unlock()
-	DebugLog.log("[res_loader._load] delegando al text loader: %s" % path)
+	if path.get_extension().to_lower() != "tres":
+		# .tscn/.scn no los tocamos: el text loader nativo los maneja
+		# bien. Delegarlos desde aca causaba el ciclo de dependencia en
+		# threaded load (ver comentario en _recognize_path).
+		return null
+	# Delegar con hint "": el text loader nativo acepta .tres con ese
+	# hint (get_recognized_extensions_for_type sin PackedScene). Como
+	# nuestro _recognize_path ahora devuelve false para .tres sin
+	# PackedScene/GDExtension hint, no hay bucle.
+	DebugLog.log("[res_loader._load] delegando .tres al text loader: %s" % path)
 	var res: Resource = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 	DebugLog.log("[res_loader._load] text loader devolvio %s" % str(res))
-	_bypass_mutex.lock()
-	_bypass_paths.erase(path)
-	_bypass_mutex.unlock()
 	return res
 

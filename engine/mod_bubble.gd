@@ -101,9 +101,10 @@ func _ready() -> void:
 
 
 func _deferred_bootstrap() -> void:
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
+	var vp_phys := get_viewport().get_visible_rect().size
 	_home_pos = _load_or_default_pos()
-	_dbg("_deferred_bootstrap vp=%s home=%s" % [vp, _home_pos])
+	_dbg("_deferred_bootstrap vp_virtual=%s vp_fisico=%s home=%s" % [vp, vp_phys, _home_pos])
 	_apply_home_pos()
 	_update_visibility()
 	_dbg("bootstrap fin: fab.visible=%s fab.pos=%s fab.scale=%s fab.alpha=%s" % [
@@ -205,7 +206,7 @@ func _make_button(size: float, icon: int, color: Color, label: String) -> Contro
 func _update_layout() -> void:
 	if _fab == null:
 		return
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 
 	# FAB en su home (o donde lo dejo el usuario al arrastrar).
 	_fab.position = _home_pos
@@ -288,7 +289,7 @@ func _on_fab_input(ev: InputEvent) -> void:
 
 ## Mueve el FAB a una posicion absoluta, con clamp a los bordes.
 func _move_fab_to(pos: Vector2) -> void:
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 	var x := clampf(pos.x, EDGE_MARGIN, vp.x - FAB_SIZE - EDGE_MARGIN)
 	var y := clampf(pos.y, EDGE_MARGIN, vp.y - FAB_SIZE - EDGE_MARGIN)
 	_home_pos = Vector2(x, y)
@@ -380,7 +381,7 @@ func _close() -> void:
 # ============================================================
 
 func _load_or_default_pos() -> Vector2:
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 	# Default: borde derecho, centro vertical.
 	var default_pos := Vector2(
 		vp.x - FAB_SIZE - EDGE_MARGIN,
@@ -401,7 +402,7 @@ func _load_or_default_pos() -> Vector2:
 
 
 func _save_pos() -> void:
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 	if vp.x <= 0.0 or vp.y <= 0.0:
 		return
 	var cfg := ConfigFile.new()
@@ -464,7 +465,7 @@ func _show_confirm(title: String, text: String, ok_label: String, cancel_label: 
 	)
 	_confirm_root.add_child(dim)
 
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 
 	# Panel centrado.
 	var panel := PanelContainer.new()
@@ -594,7 +595,7 @@ func _open_console() -> void:
 	)
 	_console_root.add_child(dim)
 
-	var vp := get_viewport().get_visible_rect().size
+	var vp := _vp_size()
 	var panel := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -715,6 +716,17 @@ func _set_visible(v: bool) -> void:
 	if v and not was:
 		# Transicion invisible -> visible: animacion de intro.
 		_play_intro()
+
+
+## Tamano virtual del proyecto (1920x1080 tipicamente), NO el fisico.
+## El viewport fisico del moto G53 5G es 2400x1080 con bandas negras
+## por el aspect keep. Los Controles del CanvasLayer viven en
+## coordenadas virtuales (post-stretch), asi que hay que usar el
+## viewport_width/height de ProjectSettings, no get_visible_rect().
+func _vp_size() -> Vector2:
+	var w: int = ProjectSettings.get_setting("display/window/size/viewport_width", 1920)
+	var h: int = ProjectSettings.get_setting("display/window/size/viewport_height", 1080)
+	return Vector2(w, h)
 
 
 ## Animacion de "aqui estoy": arranca invisible + escala 0, crece
