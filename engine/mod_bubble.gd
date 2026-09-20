@@ -74,6 +74,12 @@ var _drag_offset: Vector2 = Vector2.ZERO
 var _expand_dir: int = -1  # -1 = izquierda, +1 = derecha
 var _last_scene_path: String = ""
 var _home_pos: Vector2 = Vector2.ZERO
+## Estado de _expanded al momento del press, para no toggle-ar dos veces
+## en el mismo tap (open en el press branch viejo + close en el release).
+var _was_expanded_at_press: bool = false
+## Frame en el que se abrio el pill. _input ignora eventos del mismo frame
+## para evitar que el press que abre sea procesado tambien como "tap afuera".
+var _last_open_frame: int = -1
 
 
 func _ready() -> void:
@@ -243,8 +249,8 @@ func _on_fab_input(ev: InputEvent) -> void:
 	if ev is InputEventScreenTouch and ev.pressed:
 		_press_time = Time.get_ticks_msec() / 1000.0
 		_drag_dist = 0.0
-		_drag_offset = _home_pos - ev.position
 		_dragging = false
+		_was_expanded_at_press = _expanded
 		if _fab:
 			_fab.modulate.a = FAB_ALPHA_ACTIVE
 		return
@@ -252,17 +258,20 @@ func _on_fab_input(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT and ev.pressed:
 		_press_time = Time.get_ticks_msec() / 1000.0
 		_drag_dist = 0.0
-		_drag_offset = _home_pos - ev.position
 		_dragging = false
+		_was_expanded_at_press = _expanded
 		if _fab:
 			_fab.modulate.a = FAB_ALPHA_ACTIVE
 		return
-	# Drag.
+	# Drag: usamos ev.relative (delta desde el ultimo drag event) en vez de
+	# recomputar desde ev.position, porque en gui_input ev.position esta en
+	# coords locales del FAB, no del CanvasLayer - mezclar sistemas daba
+	# saltos enormes en el movimiento.
 	if ev is InputEventScreenDrag:
 		_drag_dist += ev.relative.length()
 		if _drag_dist > TAP_MAX_DIST:
 			_dragging = true
-			_move_fab_to(_drag_offset + ev.position)
+			_move_fab_to(_home_pos + ev.relative)
 		return
 	# Release.
 	if (ev is InputEventScreenTouch and not ev.pressed) \
@@ -275,7 +284,10 @@ func _on_fab_input(ev: InputEvent) -> void:
 			if not _expanded:
 				_fab.modulate.a = FAB_ALPHA_IDLE
 		if is_tap:
-			if _expanded:
+			# Usar el estado al momento del press, no el actual. Si no,
+			# un toggle rapido (press->open, release->close) cierra lo
+			# que acaba de abrir en el mismo gesto.
+			if _was_expanded_at_press:
 				_close()
 			else:
 				_open()
@@ -295,13 +307,21 @@ func _move_fab_to(pos: Vector2) -> void:
 	_home_pos = Vector2(x, y)
 	if _fab:
 		_fab.position = _home_pos
-	# Si se movio con el pill abierto, recalculamos el pill.
-	_update_layout()
+	# Solo recalcular el pill si esta abierto. Sin esto, cada evento de drag
+	# hace 3+ iteraciones de _update_layout (que crea tweens y reposiciona
+	# cada boton), aunque el pill no se vea - eso tilda el arrastre.
+	if _expanded:
+		_update_layout()
 
 
 func _input(event: InputEvent) -> void:
 	# Colapsar cuando el usuario toca afuera del FAB y fuera del pill.
 	if not _expanded:
+		return
+	# Ignorar eventos del mismo frame en que se abrio. Sin esto, el press
+	# que dispara _open() (via gui_input) llega tambien aca un frame
+	# despues y cierra el pill inmediatamente.
+	if Engine.get_process_frames() == _last_open_frame:
 		return
 	if not (event is InputEventScreenTouch or event is InputEventMouseButton):
 		return
@@ -321,6 +341,7 @@ func _input(event: InputEvent) -> void:
 		if Rect2(btn.position, btn.size).has_point(pos):
 			return
 	# Tap afuera -> colapsar.
+	_dbg("_input tap-afuera frame=%d pos=%s" % [Engine.get_process_frames(), pos])
 	_close()
 
 
@@ -328,6 +349,8 @@ func _open() -> void:
 	if _expanded:
 		return
 	_expanded = true
+	_last_open_frame = Engine.get_process_frames()
+	_dbg("_open frame=%d, botones=%d" % [Engine.get_process_frames(), _option_nodes.size()])
 	if _fab != null:
 		# El icono cambia de "..." a X. NO rotamos el nodo: el icono
 		# FAB_OPEN ya dibuja la X. Rotar daba una X inclinada, ilegible.
@@ -361,6 +384,7 @@ func _close() -> void:
 	if not _expanded:
 		return
 	_expanded = false
+	_dbg("_close frame=%d" % Engine.get_process_frames())
 	if _fab != null:
 		_fab.set_meta("icon_kind", IconKind.FAB_CLOSED)
 		_fab.modulate.a = FAB_ALPHA_IDLE
