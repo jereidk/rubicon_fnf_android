@@ -9,7 +9,6 @@ android.release.arm64 = "bin/android-arm64/libgodot_vlc.so"
 
 [dependencies]
 android.arm64 = {
-    "res://addons/godot-vlc/bin/android-arm64/libgodot_vlc.so": "",
     "res://addons/godot-vlc/bin/android-arm64/libvlc.so": ""
 }
 
