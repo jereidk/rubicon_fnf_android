@@ -71,6 +71,21 @@ class_name AnimateSymbol
 			queue_redraw()
 		apply_stage_matrix = value
 
+## cne-flixel-animate/src/animate/FlxAnimate.hx:63:
+##     public var anim(default, set):FlxAnimateController = null;
+## Registro de animaciones nombradas + busqueda de frame labels. Se crea
+## perezosamente la primera vez que se accede (el engine real lo crea en
+## _init de FlxAnimate; aca lo hacemos lazy para no romper la serializacion
+## de escenas existentes que ya tienen AnimateSymbol con otro estado).
+## Ver AdobeAnimateController para los gaps de fidelidad documentados.
+var anim: AdobeAnimateController:
+	get:
+		if _anim_controller == null:
+			_anim_controller = AdobeAnimateController.new(self)
+		return _anim_controller
+
+var _anim_controller: AdobeAnimateController = null
+
 @export_group("Atlas")
 @export var atlases: Array[AnimateAtlas] = []
 @export var atlas_index: int = 0:
