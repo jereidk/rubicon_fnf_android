@@ -25,8 +25,8 @@ publico de Haxe). **Eso es incorrecto.** Verificado en dos capas:
 Y `FunkinSprite.hx:3` importa `animate.FlxAnimate` (paquete `animate`, no
 `flxanimate`). Todo apunta a **`CodenameCrew/cne-flixel-animate`** (aunque su
 `haxelib.json` diga version 1.5.0 y apunte al upstream `MaybeMaru/flixel-animate`
-como source-of-truth del haxelib, es el fork de Codename el que se compila).
-un fork/reescritura casi completa de FlxAnimate que Codename Engine mantiene por su
+como source-of-truth del haxelib, es el fork de Codename el que se compila) — un
+fork/reescritura casi completa de FlxAnimate que Codename Engine mantiene por su
 cuenta, con una estructura de archivos distinta (`FlxAnimateController`,
 `internal/elements/*.hx`, `internal/Timeline.hx`, `internal/StageBG.hx`, etc.) que además
 coincide con los nombres de archivo que la tarea original esperaba encontrar
@@ -274,3 +274,122 @@ decision del usuario, no de este pase.
   confirmar que no cambio nada - los fixes de este pase solo tocaron loop modes
   (deberian afectar characters/ tambien si alguno usaba `"LP":"POR"/"REV"`, pero es
   improbable ya que esas claves nunca fueron reales) y comentarios.
+
+---
+
+# Etapa 0 (port completo): hallazgos adicionales
+
+Todo lo de abajo es del segundo pase, alcance "port completo y fiel de flixel-animate",
+NO de "arreglar el menu de holyquintet". Ver `DESIGN.md` para el plan de trabajo; esta
+seccion es el estado, esa es el plan. Referencias verificadas contra
+`CodenameCrew/cne-flixel-animate` clonado en `/root/refs/cne-flixel-animate` (o donde el
+siguiente pase lo clone), lectura completa de los 22 `.hx` del paquete `animate`.
+
+## Toolchain de verificacion: que funciona y que no (importante, leer antes de reintentar)
+
+**Godot headless: viable.** `Godot_v4.7.1-stable_linux.x86_64` corre con
+`xvfb-run -a ./Godot ... --rendering-driver opengl3` (Mesa llvmpipe, software OpenGL) y
+`get_viewport().get_texture().get_image().save_png(...)` produce PNGs correctos - probado
+con un `ColorRect` de prueba, pixel exacto. `--headless` puro (sin Xvfb) NO sirve para
+esto: el rendering server no llega a dibujar nada y `RenderingServer.frame_post_draw`
+nunca dispara. Esto habilita golden-image tests del lado Godot sin problema.
+
+**Oraculo Haxe (correr flixel-animate de verdad): bloqueado, necesita decision del
+usuario.** Intentado en orden:
+1. `haxelib install lime/openfl/flixel` (vanilla de haxelib.org) - el redirect de
+   `lib.haxe.org` a `haxelib-files.haxe.org` rompe el cliente de `haxelib` (aunque
+   `curl -L` sigue el redirect sin problema - es un bug/limitacion del cliente viejo
+   4.1.0). Workaround: bajar el zip con curl y `haxelib install <archivo local>`.
+2. Con vanilla flixel 6.2.0 + openfl 9.5.2, `cne-flixel-animate` **no tipa**:
+   `FlxAnimate.hx` espera que `FlxSprite` (heredado de flixel) tenga campos `layer`,
+   `shaderEnabled`, `wrapMode`, `frameOffsetAngle`, `doAdditionalMatrixStuff` que no
+   existen en el `FlxSprite` vanilla de HaxeFlixel. `Blend.hx` espera que
+   `openfl.display.BlendMode` tenga `COLORDODGE`/`COLORBURN`/`SOFTLIGHT`/`EXCLUSION`/
+   `HUE`/`SATURATION`/`COLOR`/`LUMINOSITY` (no estan en el `BlendMode` vanilla de OpenFL)
+   y que `OpenGLRenderer` tenga un campo privado `__complexBlendsSupported` que tampoco
+   existe. **Confirma con evidencia de compilador, no solo de texto, lo que `libs.xml` ya
+   decia**: `cne-flixel-animate` esta escrito contra los forks propios de CodenameCrew,
+   no contra flixel/openfl posta.
+3. Clonado y registrado via `haxelib dev` `CodenameCrew/cne-flixel` (rama `cne`),
+   `cne-openfl` (rama `cne`), `cne-lime` (rama `cne`) - los mismos que `libs.xml` pide.
+   **Tampoco tipa**: ahora el error esta DENTRO de `cne-flixel` mismo
+   (`AssetFrontEnd.hx` referencia `useOpenflAssets`/`getPath`/`directory`, que no existen
+   en ningun lado de `cne-lime` ni `cne-openfl` clonados - confirmado por grep). Esto
+   huele a que el HEAD actual de la rama `cne` de cada repo no es una combinacion
+   compatible entre si (las tres ramas se mueven independientemente; CodenameEngine
+   probablemente los pinea a commits SHA especificos en su propio CI/lockfile, que no
+   tengo) - o falta un define de compilacion que no adivine.
+4. Mas alla del tipado: `FilterRenderer.hx`/`RenderTexture.hx` (el pipeline de filtros)
+   usan `openfl.display.OpenGLRenderer`/`Context3D`/`gl.readPixels` DIRECTAMENTE - para
+   correr eso de verdad hace falta el target nativo (`hxcpp`), que a su vez es
+   **`CodenameCrew/cne-hxcpp`**, otro fork mas, con su propio build nativo (compilador
+   C++, `haxelib run lime rebuild hxcpp`, potencialmente horas). No lo intente: es
+   demasiado para este pase sin aprobacion.
+
+**Que decision necesito del usuario para seguir con esto:**
+- Opcion A: seguir persiguiendo el toolchain exacto de CodenameEngine (necesito los
+  commits pineados exactos de `cne-lime`/`cne-openfl`/`cne-flixel`/`cne-hxcpp` que uso su
+  build real - el usuario los tiene si tiene un checkout que compila, via
+  `git log`/`git rev-parse` en cada `.haxelib/<lib>/.dev` o el lockfile que use su CI).
+  Con eso puedo intentar de nuevo, pero seguramente termino necesitando compilar hxcpp
+  nativo igual para llegar al pixel real - horas de build, sin garantia de que ande
+  headless sin GPU real (Context3D/OpenGLRenderer puede necesitar mas que Mesa
+  llvmpipe).
+- Opcion B (la que recomiendo, ver abajo): **oraculo de logica pura**, no el engine
+  completo. Extraigo (copio literal, no reescribo) las funciones puras que SI importan
+  para fidelidad - parseo de matrices (`MatrixJson.from3Dto2D`/`toMatrix`),
+  `SymbolInstance.getFrameIndex`, `Timeline.applyMatrixToRect`,
+  `AdjustColorFilter.getColorMatrix` - a un programa Haxe standalone sin flixel/openfl
+  (`haxe --interp`, sin dependencias, corre en segundos). Esto reproduce EXACTO el
+  computo (mismo texto fuente, no una reinterpretacion mia) para todo lo que no depende
+  de FlxG/render, que es la mayoria de lo que importa para "misma posicion en pantalla".
+  Lo que NO cubre: composicion final de pixeles (blend GPU, filtros horneados a bitmap,
+  antialiasing) - eso queda en "verificado por lectura + comentado en el codigo +
+  pendiente de comparacion con screenshots del usuario al final", igual que ya se hizo
+  con los blend modes en el pase anterior.
+- Opcion C: usar screenshots/video del mod original que el usuario ya tiene como el
+  oraculo de facto para todo lo que la Opcion B no cubre, en vez de perseguir pixel
+  render real de Haxe. Esto es mas lento (ciclo por chat) pero no depende de que el
+  toolchain de CNE llegue a compilar.
+
+**Mi recomendacion: B + C combinadas.** B me da certeza matematica en la parte que mas
+bugs de posicion/tiempo genera (matrices, frame index, loop). C cubre lo que B no puede
+(pixeles finales). A queda como algo que retomar solo si B+C no alcanzan para algo
+puntual y el usuario tiene los pines exactos a mano.
+
+## Nueva tabla: features fuera del primer pase
+
+| Feature | Estado | Fuente (archivo:linea) | Complejidad estimada | Nota |
+|---|---|---|---|---|
+| `FlxAnimateController` (`addByTimeline`/`addBySymbol`/`addByFrameLabel`/`addByFrameLabelIndices`/`addBySymbolIndices`/`findFrameLabelIndices`, señal `onFrameLabel`) | ❌ | `FlxAnimateController.hx` completo (414 lineas) | Mediano | API de animaciones nombradas al estilo `sprite.animation.add()`. Hoy `AnimateSymbol` solo expone `symbol`+`frame` crudos, sin registro de animaciones con nombre. Requiere ademas frame labels (ver fila siguiente), que hoy no se parsean. |
+| Frame labels (`"N"`/`name` en `FrameJson`) | ❌ | `FlxAnimateJson.hx:125,140-141` (`FrameJson.N`), usado en `Frame.hx:216` (`this.name = frame.N ?? ""`) y `Timeline.hx:131-171` (`getFrameLabelAtIndex`/`findFrameLabelIndices`) | Chico (parseo) | `AdobeLayerFrame` (`adobe_layer_frame.gd`) no tiene campo `name`/label. Sin esto, `FlxAnimateController` no se puede portear (depende de labels para `addByFrameLabel`). |
+| `ButtonInstance` (estados UP/OVER/DOWN/HIT, hit-test mouse/touch, `onClick`) | ❌ | `internal/elements/ButtonInstance.hx` completo (156 lineas) | Mediano | Hoy cualquier `"ST":"B"`/`"button"` cae al fallback de `ATLAS_SPRITE_instance` en `adobe_atlas.gd:load_frame` (produce sprite vacio invisible, no crashea, pero no es un boton funcional). Portear necesita: mapear frames fijos 0/1/2/3 a estado, hit-test contra bounds transformados, señal de click. Godot ya tiene primitivas de input (`Control`/`_input`) pero `AnimateSymbol` es `Node2D` puro - hay que decidir si el hit-test se hace manual (como el original, contra el mouse/touch position en espacio de camara) o si conviene un `Area2D` auxiliar. Recomiendo manual, mas fiel al original y sin nodos extra. |
+| `TextFieldInstance` (texto dinamico horneado a bitmap) | ❌ | `internal/elements/TextFieldInstance.hx` completo (127 lineas) | Grande | El original usa `openfl.text.TextField`+`TextFormat`, renderiza a `BitmapData` y lo trata como un `AtlasInstance` mas. Godot no tiene un equivalente directo de "renderizar texto a textura on-demand" tan directo - la opcion mas fiel es un `SubViewport` con un `Label`/`RichTextLabel` capturado a `ViewportTexture`, cacheado hasta que el texto cambie (paralelo a `_dirty`/`redraw()` del original). Prioridad baja: no hay evidencia de que el mod HQ use `TFI` en sus `Animation.json` (los revisados no traen `textFIELD_Instance`). |
+| `FlxSpriteElement` (envolver un `FlxSprite` arbitrario como elemento de timeline) | ➖ | `internal/elements/FlxSpriteElement.hx` completo (210 lineas) | Grande si hiciera falta | Feature de nicho incluso en el engine real (dejar que un `FlxSprite` cualquiera del juego participe de una timeline de Animate, con blend/color/posicion sincronizados). No hay indicio de que ningun mod lo necesite. Propongo dejarlo en ➖ hasta que un caso real lo pida - implementarlo a ciegas es el tipo de trabajo especulativo que la tarea pide evitar. |
+| `MovieClipInstance.swfMode` (repro tipo SWF: todas las frames animan; default false = solo frame 0 "congelado" tipo Animate) | ⚠️ | `internal/elements/MovieClipInstance.hx:223-226` (`getFrameIndex`/`isSimpleSymbol` overrides) | Chico | El port tiene `movie_clips_play` (default false, igual semantica que `swfMode=false`: MC muestra su primer frame nomas). La diferencia: cuando esta en `true`, el original llama al `getFrameIndex` COMPLETO de `SymbolInstance` (respeta loop mode, first/lastFrame igual que un Graphic). El port en cambio hace `wrapi(symbol_frame + difference, 0, symbols[element.key].length)` a mano en `adobe_atlas.gd:draw_symbol` (~linea 321), ignorando loop mode/first/lastFrame del MovieClip cuando `movie_clips_play=true`. Fix chico: llamar a `symbol_instance_frame()` (la misma funcion que ya usan los Graphics) en vez de un wrap manual. |
+| Filtros: pipeline de horneado completo (`FilterRenderer.hx` + `RenderTexture.hx`) | ❌ | `internal/FilterRenderer.hx` (686 lineas), `internal/RenderTexture.hx` (148 lineas) | Grande | Pipeline real: renderiza el MovieClip a un `BitmapData` offscreen via `OpenGLRenderer`+`Context3D` (acceso directo a GL, `gl.readPixels`), aplica cada `BitmapFilter` (GPU shader pass o CPU fallback segun plataforma), expande bounds segun el filtro (`expandFilterBounds`). Analogo natural en Godot: `SubViewport` + `ViewportTexture`, que YA confirme que renderiza correcto headless (ver arriba). Requiere una clase nueva (`AdobeRenderTexture` o similar) que envuelva un `SubViewport`, mas logica de "expandir bounds por filtro" replicada de `expandFilterBounds` (formulas ya leidas y simples: blur extiende por `ceil(blurX/Y)`, glow igual si no es inner, dropshadow por `distance*cos/sin(angle)+blur`). |
+| `BlurFilter` (real, no aproximado) | ❌ | `internal/filters/StackBlur.hx` (stack blur real, algoritmo de Mario Klingemann portado a Haxe/lime) + `FilterRenderer.__renderCpuFilter`/`__renderGpuFilter` | Mediano-Grande | Godot no tiene stack blur nativo. Dos caminos: (a) shader de blur gaussiano de 2 pasadas (rapido, tiempo real, NO pixel-identico a stack blur pero visualmente muy cercano - lo que ya se usa para el glow actual del port), o (b) portar el algoritmo StackBlur exacto operando sobre `Image` en GDScript/CPU (pixel-identico pero lento, no apto para tiempo real en Android). Recomiendo (a) para MovieClips en pantalla, documentado como aproximacion deliberada. |
+| `GlowFilter` (horneado, no el aproximado actual) | ⚠️ | `FlxAnimateJson.hx:399-400` (`new GlowFilter(color,alpha,blurX,blurY,strength/100,quality,inner,knockout)`, openfl nativo) | Mediano | El port ya tiene un glow por sampling radial en `atlas_shader.gdshader` (ver pase anterior, seccion filtros) pero ligado a `AdobeLayerFrame.glow`, que nunca se llena (codigo muerto). Con el nuevo modelo (filtros en la instancia, solo MovieClip), hay que: (1) conectar el parseo real de `"F"` en `load_symbol_instance`, (2) decidir si el shader-sampling actual alcanza o si hace falta hornear a textura como el original (mas fiel, mas caro). |
+| `DropShadowFilter` | ❌ | `FlxAnimateJson.hx:395-396` | Mediano | No hay nada portado. Formula de extension de bounds ya leida (`FilterRenderer.hx:639-648`), la sombra en si es un blur+offset+color-flat del mismo sprite debajo del original - portable con el mismo pipeline de `RenderTexture` que blur/glow. |
+| `BevelFilter` | ➖/❌ | `FlxAnimateJson.hx:407-414`, condicional `#if (flash \|\| openfl >= "9.5.0")` | Grande, baja prioridad | Disponible en el target real (Android usa openfl >= 9.5.0, no es flash-only). No hay evidencia de uso en HQ. Postergar. |
+| `GradientBevelFilter`/`GradientGlowFilter` | ➖ (no aplica ni en el original) | `FlxAnimateJson.hx:415-427`, ambos bajo `#if flash` exclusivamente | Ninguna | Confirmado: en el target que compila Codename (cpp/Android, no flash), estos dos filtros **ni siquiera existen en el engine real** - `toBitmapFilter()` cae al `default:` (warning "not currently supported on this target") si algun `Animation.json` los trae. No hace falta portearlos nunca; si un JSON los referencia, replicar el mismo warning y listo. |
+| `AdjustColorFilter` (brightness/hue/contrast/saturation) | ❌ | `internal/filters/AdjustColorFilter.hx` completo (79 lineas) - formula de 4 matrices 4x5 multiplicadas (brillo, contraste, saturacion, hue-rotation con luminancia perceptual) | Chico-Mediano | Formula matematica pura, sin dependencia de render - portable directo a GDScript como una funcion que arma un `ColorMatrixFilter`-equivalente (mismo concepto que `AdobeColorMatrix` ya existente, pero derivado de 4 parametros en vez de leido directo del JSON). Aplicarlo requiere el pipeline de horneado (MovieClip only) igual que los demas filtros. |
+| `MaskShader` (compositing de mascara en el horneado de clipping) | ➖ | `internal/filters/MaskShader.hx` completo (87 lineas) | No aplica directo | Es el mecanismo de bajo nivel que usa `FilterRenderer.maskFrame` para el clipping HORNEADO (cuando el contenido enmascarado necesita bakearse a bitmap, ej. porque tiene sus propios filtros). El port ya resuelve clipping con `canvas_item_set_canvas_group_mode` nativo de Godot (ver pase anterior) sin necesitar hornear nada - **ese mecanismo nativo sigue siendo el approach correcto**, este archivo solo aplicaria si en algun momento se implementa el horneado completo de filtros y un clip necesita convivir con un filtro en el mismo frame. |
+| Sparrow: `flipX`/`flipY` en `SubTexture` | ❌ | `cne-flixel/flixel/graphics/frames/FlxAtlasFrames.hx:263-264,302` (`fromSparrow`) | Chico | `sparrow_atlas.gd:parse()` lee `x/y/width/height/rotated/frameX/frameY/frameWidth/frameHeight` pero nunca `flipX`/`flipY`. Si algun personaje del mod tiene frames Sparrow marcados flip en la herramienta de export, se van a ver sin flipear. Nota: Sparrow NO es parte de `flixel-animate` (vive en `flixel.graphics.frames.FlxAtlasFrames`, core de HaxeFlixel) - es un sistema aparte que el port reimplementa con su propia convencion de agrupamiento por prefijo+4-digitos (valida, pero distinta de como el motor real arma animaciones con nombre via `addByPrefix`). |
+| Sparrow: rechazo de formato v1 | ➖ | `FlxAtlasFrames.hx:257-258` (`throw "Sparrow v1 is not supported, use Sparrow v2"` cuando falta `width` pero hay `w`) | Trivial si hace falta | Edge case de compatibilidad con herramientas viejas. Sin evidencia de que el mod lo necesite. |
+| `postStageMatrixApply` | ❌ | `FlxAnimate.hx:90-99` (doc), `:310-319` y `:353-356` (aplicacion: antes vs despues del scale/rotate/skew del sprite) | Chico una vez resuelta la Etapa 1 de stage matrix general | Default `false` en el original (mismo pipeline que ya aproxima el port). Portear el caso `true` requiere primero tener la formula general de stage matrix (no solo la aproximacion de traslacion pura) - ver "Stage matrix (aproximado)" en la tabla del primer pase. |
+| `Timeline._bounds` como concepto general (no solo para stage matrix) | ⚠️ | `Timeline.hx:196-295` (`getBounds`/`getWholeBounds`, con cache), usado por `FlxAnimateController.updateTimelineBounds` para `frameWidth`/`frameHeight`/`origin` de todo el sprite | Mediano | El port ya tiene un equivalente parcial (`AdobeSymbol.bounding_box`/`AdobeLayer.bounding_box`, calculado on-demand sin cache, sin soporte de "bounds incluyendo filtros" ni "bounds en un frame especifico distinto del actual"). Para Etapa 1 (stage matrix general) alcanza con lo que ya hay. Para reproducir `frameWidth`/`frameHeight`/`width`/`height` de `AnimateSymbol` igual que `FlxSprite` (que characters/holyquintet podrian estar leyendo) hace falta la version completa con cache por frame. Verificar primero si algun consumidor real lee esos valores antes de invertir en esto. |
+
+## Que leer antes de la Etapa 1 (adicional a lo ya citado)
+
+- `FlxAnimate.hx` completo (536 lineas, ya leido para este pase) - especialmente
+  `prepareDrawMatrix` (:304-365) para la Etapa 1 de stage matrix general, y
+  `getScreenBounds` (:478-506) que muestra como `renderStage` interactua con los bounds
+  cuando esta activo.
+- `internal/Layer.hx` (`_loadJson`, :134-218) para clipping exacto: la busqueda de la
+  capa `CLIPPER` correspondiente escanea HACIA ARRIBA desde la capa clipeada
+  (`layerIndex - 1` decreciente) buscando el primer nombre que matchee Y sea tipo
+  `CLIPPER` - si no lo encuentra, la capa clipeada queda `visible=false` directamente
+  (`Layer.hx:158-163`). El port no tiene ese fallback (si `clipped_by` no matchea ningun
+  RID conocido, cae a `parent` silenciosamente en vez de ocultarse) - gap chico anotado
+  para la Etapa 1.
