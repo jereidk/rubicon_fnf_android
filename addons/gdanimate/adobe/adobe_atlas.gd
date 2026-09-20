@@ -113,7 +113,26 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	var key: StringName = stage_symbol if use_stage else draw_info.symbol
 	var transform: Transform2D = Transform2D.IDENTITY
 	transform = transform.translated(draw_info.offset)
-	if use_stage and stage_transform != Transform2D.IDENTITY:
+
+	# FlxAnimate aplica el stage matrix ANTES del scale del sprite
+	# (prepareDrawMatrix, FlxAnimate.hx:283-297) siempre que applyStageMatrix
+	# este activo. Codename lo activa siempre en FunkinSprite
+	# (FunkinSprite.hx:97 applyStageMatrix = true), asi que los
+	# Animation.json del mod HQ dependen de el.
+	#
+	# Antes este bloque solo se ejecutaba con use_stage=true (symbol NO
+	# encontrado en el diccionario). Los root symbols del HQ
+	# (Story_Animation, Freeplay_Animation, etc.) SI existen en symbols,
+	# asi que use_stage=false y el stage matrix se ignoraba por completo.
+	# Eso obligo a calibrar las posiciones del mod a mano.
+	#
+	# Fix: respetar draw_info.apply_stage_matrix explicitamente.
+	# Verificado en el source: como los M3D de los Animation.json del HQ
+	# son solo traslacion (a=d=1, b=c=0), aplicar el stage como translate
+	# local en el stage_item produce el mismo resultado final que el
+	# pipeline de FlxAnimate (T(pos)*R*S*T(stage.tx, stage.ty)).
+	var should_apply_stage: bool = draw_info.apply_stage_matrix or use_stage
+	if should_apply_stage and stage_transform != Transform2D.IDENTITY:
 		transform *= stage_transform
 
 	if draw_info.use_backbuffer_cache:

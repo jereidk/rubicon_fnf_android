@@ -12,6 +12,15 @@ class_name AnimateDrawInfo
 @export var light_mask: int = 1
 @export var visibility_layer: int = 1
 
+## FlxAnimate: applyStageMatrix (FlxAnimate.hx:77, default false en el
+## addon, pero Codename lo activa siempre en FunkinSprite.hx:97). Cuando
+## es true, el AdobeAtlas aplica stage_transform al render aunque el
+## symbol este presente en el diccionario. Antes el port solo aplicaba
+## stage_transform cuando el symbol NO existia, lo que dejaba a los
+## Animation.json del mod HQ (cuyos root symbols SI existen) sin su
+## matriz de stage.
+var apply_stage_matrix: bool = false
+
 var items: Array[RID]
 
 ## The drawing symbol's own backbuffer cache, and whether it may be used.

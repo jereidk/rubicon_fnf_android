@@ -58,6 +58,17 @@ class_name AnimateSymbol
 
 		offset = value
 
+## FlxAnimate.hx:77 applyStageMatrix. Codename lo activa siempre
+## (FunkinSprite.hx:97) y el mod HQ (HQMainMenu.hx, MainMenuSprite)
+## depende de el. Default false para no romper los AnimateSymbol de
+## characters/, que usan el port sin stage matrix.
+@export var apply_stage_matrix: bool = false:
+	set(value):
+		if apply_stage_matrix != value:
+			frame_dirty = true
+			queue_redraw()
+		apply_stage_matrix = value
+
 @export_group("Atlas")
 @export var atlases: Array[AnimateAtlas] = []
 @export var atlas_index: int = 0:
@@ -400,6 +411,7 @@ func _draw_impl() -> bool:
 	draw_info.screen_transform = get_backbuffer_transform()
 	draw_info.light_mask = light_mask
 	draw_info.visibility_layer = visibility_layer
+	draw_info.apply_stage_matrix = apply_stage_matrix
 
 	if atlas is AdobeAtlas and frame_dirty:
 		_use_backbuffer_cache = false
