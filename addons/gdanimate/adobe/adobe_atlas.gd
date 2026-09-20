@@ -689,6 +689,15 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	gd_frame.starting_index = get_pair(optimized, frame, "index", "I")
 	gd_frame.duration = get_pair(optimized, frame, "duration", "DU")
 
+	# cne-flixel-animate/src/animate/internal/Frame.hx:216:
+	#   this.name = frame.N ?? "";
+	# El label puede faltar (los keyframes sin label no traen la key en el
+	# JSON), por eso el null check antes de convertir. Coincide con el ?? ""
+	# del engine real.
+	var raw_label: Variant = get_pair(optimized, frame, "name", "N")
+	if raw_label != null:
+		gd_frame.frame_label = String(raw_label)
+
 	var elements: Array = get_pair(optimized, frame, "elements", "E")
 	for element: Dictionary in elements:
 		if element.has("SYMBOL_Instance") or element.has("SI"):
