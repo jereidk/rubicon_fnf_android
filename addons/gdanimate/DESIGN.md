@@ -32,17 +32,19 @@ Si solo vas a leer una sección, que sea esta:
      dibujando lo mismo que antes de tocar código no relacionado?), y (b) el usuario
      puede comparar esos PNG contra sus screenshots del original a mano, más rápido que
      esperar un build de Android completo.
-3. **Si preferís que seguya persiguiendo el toolchain completo de CNE** (Opción A en
-   `FIDELITY.md`), necesito de vos los commits exactos pineados de
-   `cne-lime`/`cne-openfl`/`cne-flixel`/`cne-hxcpp` que usa tu build real - decime dónde
-   están (¿tenés un checkout que compila? ¿hay un lockfile en tu CI?) y retomo desde ahí.
-   Avisado: aun con eso, probablemente termine necesitando compilar `hxcpp` nativo para
-   llegar a comparar píxeles reales, que es de horas y sin garantía de que anda headless.
+3. ~~Opción A (perseguir el toolchain completo de CNE)~~ - **descartada, decisión del
+   usuario 2026-09-20.** Chequeo final antes de cerrarla: `building/libs.xml.sum` no
+   existe en `CodenameCrew/CodenameEngine` (`git show origin/main:building/libs.xml.sum`
+   → `fatal: path does not exist`), y no hay ningún otro lockfile en `building/` ni en
+   el resto del repo (`git ls-tree -r --name-only origin/main | grep -iE
+   "\.sum$|lock"` no encuentra nada relevante). `libs.xml` usa `ref="cne"` sin SHA
+   pineado - el build real de Codename siempre resuelve al HEAD de la rama al momento de
+   compilar, no hay un commit "correcto" fijo para clonar. Aunque lo hubiera, el pipeline
+   de filtros necesita `hxcpp` nativo, que no es viable headless en este sandbox. Opción
+   A queda cerrada, no se retoma salvo que aparezca una razón nueva y concreta.
 
-**Pregunta que necesito que contestes para arrancar Etapa 1**: ¿A, B+C, o alguna mezcla?
-Mi recomendación es B+C. Todo lo demás en este documento asume B+C pero no depende de
-esa elección para las Etapas 1-2 (que son mayormente lógica pura, donde el oráculo A
-tampoco aportaría mucho más que B).
+**Decisión: B+C.** Todo lo que sigue en este documento y en el trabajo de Etapa 1 en
+adelante asume B+C.
 
 ## 1. Principios que gobiernan cada decisión de diseño abajo
 
@@ -176,11 +178,11 @@ tiene nada de testing). Dos capas, sin agregar dependencias:
   toolchain check) que carga cada `Animation.json` de prueba de la branch
   `holyquintet-port`, dibuja unos frames representativos, y guarda PNG en
   `tests/visual/output/`.
-- Sin oráculo pixel-real para diffear automático (ver sección 0), así que esta capa por
-  ahora es "no se rompió nada respecto al PNG anterior" (diff contra el PNG commiteado
-  la vez anterior, con tolerancia de antialiasing) más que "es igual al original". Si en
-  algún momento se resuelve el oráculo Haxe (Opción A), esta es la capa donde se
-  enchufaría la comparación real.
+- Sin oráculo pixel-real para diffear automático (Opción A descartada, ver sección 0),
+  así que esta capa es "no se rompió nada respecto al PNG anterior" (diff contra el PNG
+  commiteado la vez anterior, con tolerancia de antialiasing) más comparación manual del
+  usuario contra sus screenshots del original (Opción C) - no hay comparación automática
+  contra el engine real.
 
 **Runner único**: `addons/gdanimate/tests/run_tests.gd`, pensado para correr con
 `xvfb-run -a /root/Godot_v4.7.1-stable_linux.x86_64 --path <repo> -s res://addons/gdanimate/tests/run_tests.gd`,
