@@ -11,10 +11,21 @@ verificado, que esta roto, y que esta documentado como "no aplica" con su razon.
 ## Fuente de verdad: CORRECCION IMPORTANTE
 
 La tarea original asumia que el mod usa `Dot-Stuff/flxanimate` (el addon "FlxAnimate"
-publico de Haxe). **Eso es incorrecto.** Verificado en
-`CodenameCrew/CodenameEngine/project.xml:140`: la dependencia declarada es
-`<haxelib name="flixel-animate"/>`, y `FunkinSprite.hx` importa `animate.FlxAnimate`
-(paquete `animate`, no `flxanimate`). Ese haxelib es **`CodenameCrew/cne-flixel-animate`**,
+publico de Haxe). **Eso es incorrecto.** Verificado en dos capas:
+
+1. **Declaracion**: `CodenameCrew/CodenameEngine/project.xml:140` declara
+   `<haxelib name="flixel-animate"/>` (sin `git=`, o sea "resolvelo del registry").
+2. **Instalacion real**: `CodenameCrew/CodenameEngine/building/libs.xml`
+   linea 22 declara explicitamente:
+   `<git name="flixel-animate" url="https://github.com/CodenameCrew/cne-flixel-animate" skipDeps="true"/>`.
+   El `Setup.hx` de Codename (`commandline/commands/Setup.hx`) lee ese XML y
+   hace `haxelib git` en vez de `haxelib install` — el registry nunca se
+   consulta.
+
+Y `FunkinSprite.hx:3` importa `animate.FlxAnimate` (paquete `animate`, no
+`flxanimate`). Todo apunta a **`CodenameCrew/cne-flixel-animate`** (aunque su
+`haxelib.json` diga version 1.5.0 y apunte al upstream `MaybeMaru/flixel-animate`
+como source-of-truth del haxelib, es el fork de Codename el que se compila).
 un fork/reescritura casi completa de FlxAnimate que Codename Engine mantiene por su
 cuenta, con una estructura de archivos distinta (`FlxAnimateController`,
 `internal/elements/*.hx`, `internal/Timeline.hx`, `internal/StageBG.hx`, etc.) que además
