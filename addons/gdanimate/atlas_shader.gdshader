@@ -76,11 +76,18 @@ vec3 invert(vec3 base) {
 	return vec3(1.0) - base;
 }
 
+// Godot 4 removio TEXTURE_PIXEL_SIZE del scope de canvas_item shaders
+// (era de Godot 3). Usamos un uniform con 1/tamano del atlas. Default
+// 1/1024, tipico de atlas de Adobe Animate. Si algun glow se ve mal,
+// setear desde GDScript:
+//   mat.set_shader_parameter("texture_pixel_size", Vector2(1.0/w, 1.0/h))
+uniform vec2 texture_pixel_size = vec2(0.0009765625); // 1/1024
+
 // Muestrea 12 puntos en circulo a `radius_px` del UV actual y promedia
 // sus alphas. Aproximacion barata del blur Gaussiano de OpenFL para el
-// glow. TEXTURE_PIXEL_SIZE convierte pixeles a UV.
+// glow. texture_pixel_size convierte pixeles a UV.
 float sample_glow_alpha(vec2 uv, float radius_px) {
-	vec2 radius_uv = vec2(radius_px) * TEXTURE_PIXEL_SIZE;
+	vec2 radius_uv = vec2(radius_px) * texture_pixel_size;
 	float sum = 0.0;
 	for (int i = 0; i < 12; i++) {
 		float angle = float(i) * 0.5235988; // 2*PI/12
