@@ -91,6 +91,7 @@ func _ready() -> void:
 	_fab.visible = false
 	_fab.modulate.a = FAB_ALPHA_IDLE
 	add_child(_fab)
+	_dbg("_ready FAB creado size=%s alpha=%s visible=%s" % [FAB_SIZE, FAB_ALPHA_IDLE, _fab.visible])
 
 	_register_base_options()
 	# El viewport todavia no tiene su tamano real en _ready() (sobre todo
@@ -100,9 +101,14 @@ func _ready() -> void:
 
 
 func _deferred_bootstrap() -> void:
+	var vp := get_viewport().get_visible_rect().size
 	_home_pos = _load_or_default_pos()
+	_dbg("_deferred_bootstrap vp=%s home=%s" % [vp, _home_pos])
 	_apply_home_pos()
 	_update_visibility()
+	_dbg("bootstrap fin: fab.visible=%s fab.pos=%s fab.scale=%s fab.alpha=%s" % [
+		_fab.visible, _fab.position, _fab.scale, _fab.modulate.a
+	])
 
 
 func _register_base_options() -> void:
@@ -679,8 +685,14 @@ func _update_visibility() -> void:
 		_set_visible(false)
 		return
 	var path: String = scene.scene_file_path
-	# Solo visible en escenas del mod (cualquier cosa que no sea del engine).
-	var is_engine_ui: bool = path.begins_with(ENGINE_SCENE_PREFIX) or path.is_empty()
+	# Solo ocultamos cuando EXPLICITAMENTE sabemos que la escena es del
+	# engine. Los .tscn del mod los carga el RuntimeResourceLoader custom,
+	# que no setea el path en el PackedScene (ver packed_scene.cpp:2522:
+	# el scene_file_path de la instancia hereda del PackedScene.get_path).
+	# Resultado: para escenas del mod, path == "". Ocultar en ese caso
+	# dejaba la burbuja invisible siempre.
+	var is_engine_ui: bool = path.begins_with(ENGINE_SCENE_PREFIX)
+	_dbg("_update_visibility path='%s' is_engine=%s" % [path, is_engine_ui])
 	_set_visible(not is_engine_ui)
 	if is_engine_ui:
 		_close()
@@ -694,6 +706,7 @@ func _set_visible(v: bool) -> void:
 	if _fab == null:
 		return
 	var was := _fab.visible
+	_dbg("_set_visible(%s) was=%s" % [v, was])
 	_fab.visible = v
 	if not v:
 		for b in _option_nodes:
@@ -720,3 +733,23 @@ func _play_intro() -> void:
 	tw.tween_property(_fab, "scale", Vector2.ONE, INTRO_TIME * 0.4) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(_fab, "modulate:a", FAB_ALPHA_IDLE, INTRO_TIME * 0.4)
+	tw.finished.connect(func():
+		_dbg("intro done scale=%s alpha=%s visible=%s" % [_fab.scale, _fab.modulate.a, _fab.visible])
+		# Safety: si por alguna razon quedo con escala 0 o alpha 0,
+		# forzar el estado final para que se vea.
+		if _fab.scale.length() < 0.5:
+			_fab.scale = Vector2.ONE
+		if _fab.modulate.a < 0.1 and not _expanded:
+			_fab.modulate.a = FAB_ALPHA_IDLE
+	)
+
+
+
+# ============================================================
+# Debug logging (diagnostico)
+# ============================================================
+
+func _dbg(msg: String) -> void:
+	var dl := get_node_or_null("/root/DebugLog")
+	if dl != null and dl.has_method("log"):
+		dl.log("[ModBubble] " + msg)
