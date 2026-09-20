@@ -58,10 +58,12 @@ class_name AnimateSymbol
 
 		offset = value
 
-## FlxAnimate.hx:77 applyStageMatrix. Codename lo activa siempre
-## (FunkinSprite.hx:97) y el mod HQ (HQMainMenu.hx, MainMenuSprite)
-## depende de el. Default false para no romper los AnimateSymbol de
-## characters/, que usan el port sin stage matrix.
+## cne-flixel-animate/src/animate/FlxAnimate.hx:87 applyStageMatrix
+## (ver FIDELITY.md - ese es el fork real que vendorea CodenameEngine,
+## no Dot-Stuff/flxanimate). Codename lo activa siempre (FunkinSprite.hx:97)
+## y el mod HQ (HQMainMenu.hx, MainMenuSprite) depende de el. Default false
+## para no romper los AnimateSymbol de characters/, que usan el port sin
+## stage matrix.
 @export var apply_stage_matrix: bool = false:
 	set(value):
 		if apply_stage_matrix != value:

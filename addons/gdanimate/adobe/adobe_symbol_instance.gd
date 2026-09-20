@@ -9,12 +9,13 @@ enum AdobeSymbolType{
 
 }
 
+## cne-flixel-animate/src/animate/internal/elements/SymbolInstance.hx:269-273
+## (LoopType) — el motor real solo tiene estos tres modos. No existe
+## reverse: cualquier LP no reconocido cae en LOOP (ver SymbolInstance.hx:49-54).
 enum AdobeSymbolLoopMode{
-	LOOP = 0, 
-	ONE_SHOT, 
-	FREEZE_FRAME, 
-	REVERSE_ONE_SHOT, 
-	REVERSE_LOOP
+	LOOP = 0,
+	ONE_SHOT,
+	FREEZE_FRAME,
 }
 
 enum AdobeBlendMode{

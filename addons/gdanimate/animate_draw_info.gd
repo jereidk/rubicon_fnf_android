@@ -12,8 +12,10 @@ class_name AnimateDrawInfo
 @export var light_mask: int = 1
 @export var visibility_layer: int = 1
 
-## FlxAnimate: applyStageMatrix (FlxAnimate.hx:77, default false en el
-## addon, pero Codename lo activa siempre en FunkinSprite.hx:97). Cuando
+## FlxAnimate: applyStageMatrix (cne-flixel-animate/src/animate/FlxAnimate.hx:87,
+## default false en el addon, pero Codename lo activa siempre en
+## FunkinSprite.hx:97). Ver FIDELITY.md sobre por que la fuente de verdad es
+## CodenameCrew/cne-flixel-animate y no Dot-Stuff/flxanimate. Cuando
 ## es true, el AdobeAtlas aplica stage_transform al render aunque el
 ## symbol este presente en el diccionario. Antes el port solo aplicaba
 ## stage_transform cuando el symbol NO existia, lo que dejaba a los
