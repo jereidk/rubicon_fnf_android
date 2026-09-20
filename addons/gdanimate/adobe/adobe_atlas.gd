@@ -339,9 +339,26 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 							element, symbols[element.key].length, difference)
 					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
 						if not movie_clips_play:
+							# TODO(fidelidad, sin resolver este pase - preguntar antes de
+							# tocar): MovieClipInstance.hx:223-226 devuelve literal 0 en
+							# este caso, no first_frame - un MovieClip "congelado" en
+							# Animate siempre muestra el frame 0 de su timeline interna,
+							# sin importar que FF traiga la instancia. Esto es DISTINTO
+							# a lo que hace esta linea. No lo cambio en este pase porque
+							# es un comportamiento por default (movie_clips_play=false)
+							# que ya esta en produccion via characters/holyquintet - un
+							# MC con FF!=0 en el JSON cambiaria de que se ve hoy a mostrar
+							# otra cosa. Confirmar con el usuario antes de tocarlo.
 							symbol_frame = element.first_frame
 						else:
-							symbol_frame = wrapi(symbol_frame + difference, 0, symbols[element.key].length)
+							# cne-flixel-animate/src/animate/internal/elements/MovieClipInstance.hx:223-226:
+							# getFrameIndex() con swfMode=true (= movie_clips_play acá)
+							# delega directo a SymbolInstance.getFrameIndex(), la MISMA
+							# funcion que ya usan los Graphics - respeta loop_mode y la
+							# ventana first_frame/last_frame en vez de un wrap ciego sobre
+							# el largo total del simbolo.
+							symbol_frame = symbol_instance_frame(
+								element, symbols[element.key].length, difference)
 
 					var next_matrix: AdobeColorMatrix = color_matrix
 					if next_matrix == null:
