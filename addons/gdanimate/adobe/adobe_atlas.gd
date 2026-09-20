@@ -289,6 +289,11 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 	var clip_pushes: Dictionary[StringName, Array] = {}
 	var rids: Dictionary[StringName, RID] = {}
 	for layer: AdobeLayer in target.layers:
+		# Layer.hx:158-163: capa clipeada sin su Clipper -> oculta por completo,
+		# no se crea ningun RID para ella. Ver AdobeLayer.hidden.
+		if layer.hidden:
+			continue
+
 		var layer_rid: RID
 		var layer_parent: RID = parent
 		if not is_clipper:
@@ -334,9 +339,26 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 							element, symbols[element.key].length, difference)
 					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
 						if not movie_clips_play:
+							# TODO(fidelidad, sin resolver este pase - preguntar antes de
+							# tocar): MovieClipInstance.hx:223-226 devuelve literal 0 en
+							# este caso, no first_frame - un MovieClip "congelado" en
+							# Animate siempre muestra el frame 0 de su timeline interna,
+							# sin importar que FF traiga la instancia. Esto es DISTINTO
+							# a lo que hace esta linea. No lo cambio en este pase porque
+							# es un comportamiento por default (movie_clips_play=false)
+							# que ya esta en produccion via characters/holyquintet - un
+							# MC con FF!=0 en el JSON cambiaria de que se ve hoy a mostrar
+							# otra cosa. Confirmar con el usuario antes de tocarlo.
 							symbol_frame = element.first_frame
 						else:
-							symbol_frame = wrapi(symbol_frame + difference, 0, symbols[element.key].length)
+							# cne-flixel-animate/src/animate/internal/elements/MovieClipInstance.hx:223-226:
+							# getFrameIndex() con swfMode=true (= movie_clips_play acá)
+							# delega directo a SymbolInstance.getFrameIndex(), la MISMA
+							# funcion que ya usan los Graphics - respeta loop_mode y la
+							# ventana first_frame/last_frame en vez de un wrap ciego sobre
+							# el largo total del simbolo.
+							symbol_frame = symbol_instance_frame(
+								element, symbols[element.key].length, difference)
 
 					var next_matrix: AdobeColorMatrix = color_matrix
 					if next_matrix == null:
@@ -632,6 +654,20 @@ func load_layers(optimized: bool, layers: Array) -> AdobeSymbol:
 				gd_layer.clipping = layer["Layer_type"] == "Clipper"
 		if has_pair(optimized, layer, "Clipped_by", "Clpb"):
 			gd_layer.clipped_by = get_pair(optimized, layer, "Clipped_by", "Clpb")
+
+			# Layer.hx:141-164: busca la capa Clipper mas cercana ARRIBA (indices
+			# menores, ya parseadas en gd_symbol.layers ya que load_layers procesa
+			# en orden). Si no aparece, Flash oculta la capa entera en vez de
+			# dejarla sin clip - ver AdobeLayer.hidden.
+			var found_clipper: bool = false
+			for i in range(gd_symbol.layers.size() - 1, -1, -1):
+				var existing: AdobeLayer = gd_symbol.layers[i]
+				if existing.name == gd_layer.clipped_by and existing.clipping:
+					found_clipper = true
+					break
+			if not found_clipper:
+				gd_layer.clipped_by = ""
+				gd_layer.hidden = true
 
 		var duration: int = 0
 		if has_pair(optimized, layer, "Frames", "FR"):
