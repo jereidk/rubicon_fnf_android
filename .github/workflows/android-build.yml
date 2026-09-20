@@ -259,6 +259,69 @@ jobs:
             exit 1
           fi
 
+      - name: Strip native libraries from APK
+        if: steps.build.outputs.build_success == 'true'
+        run: |
+          set -e
+          cd builds
+
+          echo "=== APK antes del strip ==="
+          du -h android_debug.apk
+
+          # 1. Extraer SOLO libgodot_android.so (el engine). Los demas .so
+          #    ya vienen stripped del origen: libvlc.so lo strippea su build,
+          #    libgodot_vlc.so es Rust release, libluagdextension es el debug
+          #    del propio addon (5.7 MB, no vale la pena tocarlo).
+          rm -rf apk_strip_work
+          mkdir -p apk_strip_work
+          unzip -o -q android_debug.apk "lib/arm64-v8a/libgodot_android.so" -d apk_strip_work/
+
+          echo "=== .so antes ==="
+          du -h apk_strip_work/lib/arm64-v8a/libgodot_android.so
+
+          # 2. Encontrar llvm-strip en el NDK
+          STRIP=$(find $ANDROID_HOME/ndk -name llvm-strip -type f 2>/dev/null | head -1)
+          if [ -z "$STRIP" ]; then
+            echo "ERROR: llvm-strip no encontrado en $ANDROID_HOME/ndk/"
+            exit 1
+          fi
+          echo "Using: $STRIP"
+
+          # 3. Strip. --strip-unneeded borra simbolos de debug (DWARF) y
+          #    simbolos no referenciados, pero MANTIENE los simbolos
+          #    dinamicos necesarios para relocacion. No usamos --strip-all
+          #    porque puede borrar simbolos que algunos runtimes consultan
+          #    para backtraces en crash.
+          $STRIP --strip-unneeded apk_strip_work/lib/arm64-v8a/libgodot_android.so
+
+          echo "=== .so despues ==="
+          du -h apk_strip_work/lib/arm64-v8a/libgodot_android.so
+
+          # 4. Actualizar el .so en el APK. -u actualiza in-place,
+          #    -0 lo guarda sin compresion (obligatorio para mmap de .so),
+          #    -X quita atributos extendidos de la entry.
+          cd apk_strip_work
+          zip -u -0 -X -q ../android_debug.apk "lib/arm64-v8a/libgodot_android.so"
+          cd ..
+
+          # 5. Quitar la firma vieja (Godot firma con debug key). apksigner
+          #    re-firma despues; sin esto puede fallar por conflicto de
+          #    META-INF existente.
+          zip -d -q android_debug.apk "META-INF/*" 2>/dev/null || true
+
+          # 6. Re-alinear. Modificar el zip movio offsets, y Android
+          #    necesita los .so page-aligned para mmap directo.
+          #    -p aplica page-alignment a los .so uncompressed.
+          ZIPALIGN=$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}/zipalign
+          $ZIPALIGN -f -p 4 android_debug.apk android_debug_aligned.apk
+          mv android_debug_aligned.apk android_debug.apk
+
+          echo "=== APK despues del strip ==="
+          du -h android_debug.apk
+
+          # Limpieza
+          rm -rf apk_strip_work
+
       - name: Sign APK with Release Keystore
         if: steps.build.outputs.build_success == 'true'
         run: |
