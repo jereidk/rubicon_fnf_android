@@ -45,6 +45,10 @@ const FALLBACK_LOG_DIR := "user://logs"
 const LOG_FILE_PREFIX := "washos_perf"
 const LOG_FILE_EXT := ".log"
 
+## Fallback si no podemos deducir el package del path.
+## Coincide con export_presets.cfg's package/unique_name.
+const DEFAULT_ANDROID_PACKAGE := "com.washos.engine"
+
 ## Cuantos logs mantener en la carpeta. Los viejos se borran.
 const MAX_LOG_FILES := 5
 
@@ -446,8 +450,8 @@ func _open_log() -> bool:
 	log_path = "%s/%s_%s%s" % [_log_dir, LOG_FILE_PREFIX, stamp, LOG_FILE_EXT]
 	_file = FileAccess.open(log_path, FileAccess.WRITE)
 	if _file == null:
-		push_warning("[PerfProbe] no puedo abrir %s (err=%d)" % [
-			log_path, FileAccess.get_open_error(),
+		push_warning("[PerfProbe] no puedo abrir %s (err=%d, dir=%s)" % [
+			log_path, FileAccess.get_open_error(), _log_dir,
 		])
 		return false
 	return true
@@ -470,27 +474,35 @@ func _pick_log_dir() -> String:
 					DirAccess.remove_absolute(probe)
 					return android_dir
 
-	# Fallback.
+	# Fallback: user://logs, que en Android es /data/data/<pkg>/files/logs
+	# (interno, inaccesible sin root). Se deja igual pero se avisa por
+	# push_warning, porque hasta ahora el fallback era silencioso y no
+	# habia forma de saber por que el log nunca aparecia en el path
+	# Android/data/...
 	var err := DirAccess.make_dir_recursive_absolute(FALLBACK_LOG_DIR)
 	if err == OK or DirAccess.dir_exists_absolute(FALLBACK_LOG_DIR):
+		push_warning("[PerfProbe] cai al fallback %s (inaccesible sin root). El log NO va a aparecer en Android/data/" % FALLBACK_LOG_DIR)
 		return FALLBACK_LOG_DIR
+	push_warning("[PerfProbe] no pude crear ni el dir Android ni el fallback %s" % FALLBACK_LOG_DIR)
 	return ""
 
 
-## Lee el package name real desde user://. Godot no expone una API; el
-## path de user:// en Android es /data/user/0/<pkg>/files. Parsearlo del
-## path real es mas robusto que hardcodear el package.
+## Lee el package name real desde OS.get_user_data_dir(). Godot no expone
+## una API; el path tipico en Android es /data/user/0/<pkg>/files o
+## /data/data/<pkg>/files. Buscamos el segmento "files" y tomamos el
+## anterior — mismo patron que error_log.gd, que si funciona. La version
+## anterior buscaba el segmento "0" y fallaba silenciosamente en devices
+## donde globalize_path() devuelve /data/data/ en vez de /data/user/0/.
 func _android_package() -> String:
 	if not _android_pkg.is_empty():
 		return _android_pkg
-	var up := ProjectSettings.globalize_path("user://")
-	# /data/user/0/com.foo.bar/files/...
-	var parts := up.split("/")
-	for i in parts.size():
-		if parts[i] == "0" and i + 1 < parts.size():
-			_android_pkg = parts[i + 1]
-			return _android_pkg
-	return ""
+	var parts: PackedStringArray = OS.get_user_data_dir().split("/", false)
+	var idx: int = parts.find("files")
+	if idx > 0:
+		_android_pkg = parts[idx - 1]
+		return _android_pkg
+	_android_pkg = DEFAULT_ANDROID_PACKAGE
+	return _android_pkg
 
 
 ## Rota los logs. Guarda los MAX_LOG_FILES-1 mas nuevos, borra el resto.
