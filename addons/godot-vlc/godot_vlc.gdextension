@@ -4,17 +4,13 @@ compatibility_minimum = 4.3
 reloadable = true
 
 [libraries]
-# Apuntamos debug y release al MISMO .so (el release). El debug del plugin
-# original pesa 108 MB (no stripped, con simbolos). La API de GDExtension es
-# compatible entre modos del engine, asi que el .so release carga bien en un
-# APK de debug. Si en algun momento se necesita el debug real, se cambia esta
-# linea al path del libgodot_vlc_debug.so.
-android.debug.arm64 = "res://addons/godot-vlc/bin/android-arm64/libgodot_vlc.so"
-android.release.arm64 = "res://addons/godot-vlc/bin/android-arm64/libgodot_vlc.so"
-[dependencies]
+android.debug.arm64 = "bin/android-arm64/libgodot_vlc.so"
+android.release.arm64 = "bin/android-arm64/libgodot_vlc.so"
 
+[dependencies]
 android.arm64 = {
-	"res://addons/godot-vlc/bin/android-arm64/libvlc.so": ""
+    "res://addons/godot-vlc/bin/android-arm64/libgodot_vlc.so": "",
+    "res://addons/godot-vlc/bin/android-arm64/libvlc.so": ""
 }
 
 [icons]
