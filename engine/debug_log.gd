@@ -52,12 +52,22 @@ func _exit_tree() -> void:
 ## Escribe una linea al archivo. No-op si el archivo no se pudo abrir.
 ## Flush inmediato: el proximo bug puede ser un crash, y una linea en
 ## buffer es exactamente la que se pierde.
+## Mutex que protege la escritura al archivo. Con threaded load, varios
+## worker threads llaman log() en paralelo (los loaders runtime loguean
+## cada _load). Sin lock, FileAccess.store_line() desde dos threads
+## intercala buffers y corrompe el archivo.
+var _log_mutex := Mutex.new()
+
+
 func log(msg: String) -> void:
+	# captured.emit siempre (los suscriptores deciden si filtran).
 	captured.emit(msg)
 	if _file == null:
 		return
+	_log_mutex.lock()
 	_file.store_line("[%8.2fs] %s" % [float(Time.get_ticks_msec()) / 1000.0, msg])
 	_file.flush()
+	_log_mutex.unlock()
 
 
 ## Ruta del archivo abierto. NO se llama get_path() porque Node ya tiene

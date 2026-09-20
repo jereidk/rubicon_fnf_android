@@ -46,6 +46,11 @@ var mod_all_paths: Dictionary = {}
 ## (verificado en modules/gdscript/gdscript.cpp:781-783).
 var _cache: Dictionary = {}
 
+## Mutex que protege _cache. Con threaded load, varios worker threads
+## pueden pedir el mismo .gd al mismo tiempo; sin lock, la escritura
+## al Dictionary corrompe el hashmap interno de Godot.
+var _cache_mutex := Mutex.new()
+
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["gd"])
@@ -105,9 +110,13 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	# Cache propio: si ya compilamos este path, devolver la misma
 	# instancia. Ademas de ahorrar trabajo, es lo que el parser de
 	# GDScript espera: la misma Ref<GDScript> para el mismo path.
+	_cache_mutex.lock()
 	if _cache.has(path):
+		var cached: Variant = _cache[path]
+		_cache_mutex.unlock()
 		DebugLog.log("[gd_loader._load] cache hit: %s" % path)
-		return _cache[path]
+		return cached
+	_cache_mutex.unlock()
 
 	var src_path: String = path
 	if mod_all_paths.has(path):
@@ -140,7 +149,9 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	# Guardar en el cache propio. Solo si no es CACHE_MODE_IGNORE (0);
 	# los demas modos (REUSE=1 es el default) cachean normal.
 	if _cache_mode != ResourceLoader.CACHE_MODE_IGNORE:
+		_cache_mutex.lock()
 		_cache[path] = gd
+		_cache_mutex.unlock()
 	return gd
 
 
@@ -153,4 +164,6 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 ## solo si el usuario edita el mod, y eso requiere reiniciar la app
 ## para que se note (los scripts ya cargados no se recomputan).
 func clear_cache() -> void:
+	_cache_mutex.lock()
 	_cache.clear()
+	_cache_mutex.unlock()

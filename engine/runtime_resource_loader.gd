@@ -38,6 +38,19 @@ extends ResourceFormatLoader
 
 var mod_resource_paths: Dictionary = {}
 
+## Bypass thread-safe para la delegacion al text loader nativo. En vez
+## de tocar la lista GLOBAL de loaders (add/remove_resource_format_loader
+## mutan loader[] sin lock, y con threaded load el main thread puede estar
+## iterando esa misma lista en paralelo -> crash), marcamos el path en
+## este diccionario para que _recognize_path() devuelva false durante
+## la carga. El mutex protege las lecturas/escrituras concurrentes.
+##
+## mod_resource_paths se setea UNA SOLA VEZ por ModLoader al registrar
+## el loader y nunca se muta, asi que leerlo desde cualquier thread es
+## seguro. El unico shared mutable es _bypass_paths.
+var _bypass_mutex := Mutex.new()
+var _bypass_paths: Dictionary = {}
+
 ## Igual que en los otros runtime loaders: ModLoader lo inyecta al
 ## registrar el loader. Los .tscn/.tres SI van al pck (el text loader
 ## nativo los abre con FileAccess directo), asi que este loader no
@@ -54,6 +67,15 @@ func _recognize_path(path: String, _for_type: StringName) -> bool:
 	# Reclamamos cualquier .tres/.tscn/.scn de un mod, sin importar el
 	# hint. Eso es justo lo que el text loader nativo no hace para .tres
 	# + PackedScene.
+	#
+	# EXCEPCION: si estamos delegando al text loader nativo (ver _load),
+	# devolvemos false para que ESTE loader no vuelva a matchear el
+	# mismo path y cree un bucle.
+	_bypass_mutex.lock()
+	var bypassed := _bypass_paths.has(path)
+	_bypass_mutex.unlock()
+	if bypassed:
+		return false
 	return mod_resource_paths.has(path)
 
 
@@ -98,10 +120,17 @@ func _load(path: String, _orig: String, _sub: bool, _cache: int) -> Variant:
 	])
 	if not mod_resource_paths.has(path):
 		return null
-	ResourceLoader.remove_resource_format_loader(self)
+	# Marcar este path como bypass ANTES de delegar, para que
+	# _recognize_path() devuelva false si el ResourceLoader interno
+	# vuelve a iterar la lista de loaders para este mismo path.
+	_bypass_mutex.lock()
+	_bypass_paths[path] = true
+	_bypass_mutex.unlock()
 	DebugLog.log("[res_loader._load] delegando al text loader: %s" % path)
 	var res: Resource = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 	DebugLog.log("[res_loader._load] text loader devolvio %s" % str(res))
-	ResourceLoader.add_resource_format_loader(self, true)
+	_bypass_mutex.lock()
+	_bypass_paths.erase(path)
+	_bypass_mutex.unlock()
 	return res
 
