@@ -337,6 +337,16 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					if element.type == AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
 						symbol_frame = symbol_instance_frame(
 							element, symbols[element.key].length, difference)
+					elif element.type == AdobeSymbolInstance.AdobeSymbolType.BUTTON:
+						# ButtonInstance.hx:76-79 getFrameIndex():
+						#     return FlxMath.minInt(curButtonState,
+						#         this.libraryItem.timeline.frameCount - 1);
+						# El estado UP/OVER/DOWN del boton se mapea directo a
+						# los frames 0/1/2 del sub-simbolo. Estado HIT (3) se
+						# usa solo para el hitbox, no para dibujar.
+						var btn: AdobeButtonInstance = element as AdobeButtonInstance
+						symbol_frame = btn.button_frame_index(symbols[element.key].length)
+
 					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
 						if not movie_clips_play:
 							# TODO(fidelidad, sin resolver este pase - preguntar antes de
@@ -763,8 +773,22 @@ func _symbol_instance_offset(span: int, difference: int, is_loop: bool) -> int:
 
 
 func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolInstance:
-	var symbol_instance: AdobeSymbolInstance = AdobeSymbolInstance.new()
 	element = get_pair(optimized, element, "SYMBOL_Instance", "SI")
+
+	# cne-flixel-animate/src/animate/internal/Frame.hx:_loadJson crea la
+	# instancia segun si.ST: "B"/"button" -> ButtonInstance,
+	# "MC"/"movieclip" -> MovieClipInstance, resto -> SymbolInstance
+	# (ver SymbolInstance.hx + ButtonInstance.hx:33 this.elementType = BUTTON).
+	# En el port todo cuelga de AdobeSymbolInstance, pero el tipo BUTTON
+	# necesita su propia clase (AdobeButtonInstance) para la logica de
+	# estado + frame index por estado.
+	var raw_type: String = get_pair(optimized, element, "symbolType", "ST")
+	var is_button: bool = raw_type == "B" or raw_type == "button"
+	var symbol_instance: AdobeSymbolInstance
+	if is_button:
+		symbol_instance = AdobeButtonInstance.new()
+	else:
+		symbol_instance = AdobeSymbolInstance.new()
 
 	var key: String = get_pair(optimized, element, "SYMBOL_name", "SN")
 	symbol_instance.key = StringName(key)
@@ -818,19 +842,22 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 	else:
 		symbol_instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
 
-	var type: String = get_pair(optimized, element, "symbolType", "ST")
+	# El tipo ya se leyo arriba (raw_type) para decidir la clase; aca se
+	# normaliza al enum. Orden de deteccion: BUTTON > MOVIE_CLIP > GRAPHIC.
 	if optimized:
-		symbol_instance.type = (
-			AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
-			if type == "MC" else
-			AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
-		)
+		if raw_type == "B":
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.BUTTON
+		elif raw_type == "MC":
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
+		else:
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
 	else:
-		symbol_instance.type = (
-			AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
-			if type == "movieclip" else
-			AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
-		)
+		if raw_type == "button":
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.BUTTON
+		elif raw_type == "movieclip":
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP
+		else:
+			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
 
 	return symbol_instance
 

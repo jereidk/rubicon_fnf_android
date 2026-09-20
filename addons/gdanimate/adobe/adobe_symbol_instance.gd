@@ -4,8 +4,12 @@ class_name AdobeSymbolInstance
 
 
 enum AdobeSymbolType{
-	GRAPHIC = 0, 
-	MOVIE_CLIP
+	GRAPHIC = 0,
+	MOVIE_CLIP,
+	## cne-flixel-animate/.../ButtonInstance.hx:1-9: ButtonInstance extends
+	## SymbolInstance. Se detecta en el JSON cuando ST == "B"/"button".
+	## ButtonInstance.hx:33 hace this.elementType = BUTTON en el ctor.
+	BUTTON
 
 }
 
