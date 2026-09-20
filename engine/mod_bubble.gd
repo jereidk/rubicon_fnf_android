@@ -61,6 +61,7 @@ var _dev_codes: Dictionary = {}
 
 var _fab: Control = null
 var _option_nodes: Array = []
+var _confirm_root: Control = null
 var _console_root: Control = null
 var _console_input: LineEdit = null
 var _console_label: Label = null
@@ -415,21 +416,145 @@ func _apply_home_pos() -> void:
 # ============================================================
 
 func _do_exit() -> void:
-	var dialog := ConfirmationDialog.new()
-	dialog.title = "Salir del mod"
-	dialog.dialog_text = "¿Volver al menu principal?\nEl mod se cerrara."
-	dialog.ok_button_text = "Si"
-	dialog.cancel_button_text = "No"
-	dialog.confirmed.connect(_on_confirm_exit)
-	dialog.canceled.connect(func(): MenuMusic.play_cancel())
-	add_child(dialog)
-	dialog.popup_centered()
+	_show_confirm(
+		"Salir del mod",
+		"¿Volver al menu principal?\nEl mod se cerrara.",
+		"Si, salir",
+		"No, cancelar",
+		_on_confirm_exit
+	)
 
 
 func _on_confirm_exit() -> void:
 	MenuMusic.play_cancel()
 	ModLoader.restore_default_settings()
 	get_tree().change_scene_to_file("res://engine/mod_selector.tscn")
+
+
+## Panel de confirmacion custom. Reemplaza a ConfirmationDialog porque
+## en Android el Window nativo no hereda el content_scale del proyecto
+## (canvas_items + keep) y sale microscopico. Aca dibujamos un Control
+## full-rect con dim + PanelContainer centrado con font/botones grandes.
+func _show_confirm(title: String, text: String, ok_label: String, cancel_label: String, on_ok: Callable) -> void:
+	# Si ya hay uno abierto, no abrimos otro.
+	if _confirm_root != null and is_instance_valid(_confirm_root):
+		return
+
+	_confirm_root = Control.new()
+	_confirm_root.mouse_filter = Control.MOUSE_FILTER_STOP
+	_confirm_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_confirm_root)
+
+	# Dim de fondo.
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.65)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(func(ev):
+		if (ev is InputEventScreenTouch and ev.pressed) \
+		or (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT):
+			MenuMusic.play_cancel()
+			_close_confirm()
+	)
+	_confirm_root.add_child(dim)
+
+	var vp := get_viewport().get_visible_rect().size
+
+	# Panel centrado.
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.08, 0.12, 0.98)
+	sb.border_color = Color(0.7, 0.7, 0.75, 1.0)
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(12)
+	sb.set_content_margin_all(28)
+	panel.add_theme_stylebox_override("panel", sb)
+	var panel_w := 900.0
+	var panel_h := 380.0
+	panel.custom_minimum_size = Vector2(panel_w, panel_h)
+	panel.size = Vector2(panel_w, panel_h)
+	panel.position = Vector2((vp.x - panel_w) / 2.0, (vp.y - panel_h) / 2.0)
+	_confirm_root.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 24)
+	panel.add_child(vbox)
+
+	# Titulo.
+	var title_lbl := Label.new()
+	title_lbl.text = title
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 42)
+	title_lbl.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	vbox.add_child(title_lbl)
+
+	# Separador.
+	var sep := HSeparator.new()
+	sep.add_theme_constant_override("separation", 4)
+	vbox.add_child(sep)
+
+	# Texto.
+	var text_lbl := Label.new()
+	text_lbl.text = text
+	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_lbl.add_theme_font_size_override("font_size", 32)
+	text_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1))
+	text_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(text_lbl)
+
+	# Botones en fila.
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 20)
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(hbox)
+
+	var btn_cancel := _make_confirm_button(cancel_label, Color(0.35, 0.35, 0.4))
+	btn_cancel.pressed.connect(func():
+		MenuMusic.play_cancel()
+		_close_confirm()
+	)
+	hbox.add_child(btn_cancel)
+
+	var btn_ok := _make_confirm_button(ok_label, Color(0.75, 0.25, 0.25))
+	btn_ok.pressed.connect(func():
+		MenuMusic.play_confirm()
+		_close_confirm()
+		if on_ok.is_valid():
+			on_ok.call()
+	)
+	hbox.add_child(btn_ok)
+
+
+func _make_confirm_button(label: String, color: Color) -> Button:
+	var b := Button.new()
+	b.text = label
+	b.custom_minimum_size = Vector2(240, 72)
+	b.add_theme_font_size_override("font_size", 30)
+	b.add_theme_color_override("font_color", Color.WHITE)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = color
+	normal.set_corner_radius_all(8)
+	normal.set_content_margin_all(12)
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = color.lightened(0.15)
+	hover.set_corner_radius_all(8)
+	hover.set_content_margin_all(12)
+	var pressed := StyleBoxFlat.new()
+	pressed.bg_color = color.darkened(0.2)
+	pressed.set_corner_radius_all(8)
+	pressed.set_content_margin_all(12)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", pressed)
+	b.add_theme_stylebox_override("focus", hover)
+	return b
+
+
+func _close_confirm() -> void:
+	if _confirm_root != null and is_instance_valid(_confirm_root):
+		_confirm_root.queue_free()
+	_confirm_root = null
 
 
 func _toggle_debug() -> void:
@@ -559,6 +684,7 @@ func _update_visibility() -> void:
 	_set_visible(not is_engine_ui)
 	if is_engine_ui:
 		_close()
+		_close_confirm()
 		_close_console()
 
 
