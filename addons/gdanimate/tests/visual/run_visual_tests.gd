@@ -40,11 +40,11 @@ const OUTPUT_DIR := "res://addons/gdanimate/tests/visual/output/"
 
 const ITEMS := {
 	"story": {"folder": "anim_story", "symbol": "Story_Animation", "position": Vector2(1300, 1000), "scale": Vector2(1.15, 1.15)},
-	"freeplay": {"folder": "anim_freeplay", "symbol": "Freeplay_Animation", "position": Vector2(-3028, -500), "scale": Vector2(1.15, 1.15)},
-	"gauntlet": {"folder": "anim_gauntlet", "symbol": "Gauntlet_Animation", "position": Vector2(-1496, -1355), "scale": Vector2(1.1, 1.1)},
+	"freeplay": {"folder": "anim_freeplay", "symbol": "Freeplay_Animation", "position": Vector2(-2325, -250), "scale": Vector2(1.15, 1.15)},
+	"gauntlet": {"folder": "anim_gauntlet", "symbol": "Gauntlet_Animation", "position": Vector2(-1250, -1100), "scale": Vector2(1.1, 1.1)},
 	"credits": {"folder": "anim_credits", "symbol": "Credits_Animation", "position": Vector2(675, 675), "scale": Vector2(1.15, 1.15)},
-	"accolades": {"folder": "anim_accolades", "symbol": "Accolades_Animation", "position": Vector2(-1809, 137), "scale": Vector2(1.2, 1.2)},
-	"gallery": {"folder": "anim_gallery", "symbol": "Gallery_Animation", "position": Vector2(665, 546), "scale": Vector2(1.35, 1.35)},
+	"accolades": {"folder": "anim_accolades", "symbol": "Accolades_Animation", "position": Vector2(-1300, 370), "scale": Vector2(1.2, 1.2)},
+	"gallery": {"folder": "anim_gallery", "symbol": "Gallery_Animation", "position": Vector2(850, 750), "scale": Vector2(1.35, 1.35)},
 	"settings": {"folder": "anim_settings", "symbol": "Settings_Animation", "position": Vector2(850, 700), "scale": Vector2(1.2, 1.2)},
 	"shop": {"folder": "anim_shop", "symbol": "Shop_Animation", "position": Vector2(800, 500), "scale": Vector2(1.0, 1.0)},
 }
@@ -99,7 +99,7 @@ func _go() -> void:
 		node.scale = d["scale"]
 		node.centered = false
 		node.symbol = d["symbol"]
-		node.offset = atlas.stage_transform.origin
+		node.apply_stage_matrix = true
 
 		root.add_child(node)
 

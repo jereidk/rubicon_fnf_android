@@ -19,3 +19,6 @@ keys/
 
 # Logs
 *.log
+
+# Output de tests visuales de gdanimate (regenerables)
+addons/gdanimate/tests/visual/output/*.png
