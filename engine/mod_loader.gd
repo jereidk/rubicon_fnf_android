@@ -635,18 +635,13 @@ func _debug_autoload_chain(name: String, res_path: String, phase: String = "pre-
 	var exists: bool = ResourceLoader.exists(res_path)
 	DebugLog.log("  extension = '%s', ResourceLoader.exists = %s" % [ext, exists])
 
-	# Cargar con CACHE_MODE_IGNORE para forzar el parseo real. Si el
-	# analyzer puede resolver el tipo, este load tambien deberia.
-	var loaded = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
-	if loaded == null:
-		DebugLog.log("  ResourceLoader.load() -> null")
-	else:
-		var src_len: int = 0
-		if loaded is GDScript:
-			src_len = loaded.source_code.length()
-		DebugLog.log("  ResourceLoader.load() -> %s (source_code len = %d)" % [
-			loaded.get_class(), src_len,
-		])
+	# NOTA: NO disparamos ResourceLoader.load() aca. Antes lo haciamos
+	# con CACHE_MODE_IGNORE para validar que el parser podia leer el
+	# script, pero eso forzaba un load completo cada vez que la funcion
+	# corria. Como se llama 2 veces por autoload (pre y post compilacion),
+	# eran 2 loads x 5 autoloads = 10 loads (~400-800ms por arranque).
+	# GDCompileHelper.from_path_with_res_path() mas abajo hace el load
+	# real y reporta si falla, asi que no perdemos el diagnostico.
 
 
 ## Instala los autoloads que declara el mod en mod.json, campo "autoloads":
