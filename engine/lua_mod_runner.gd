@@ -38,6 +38,7 @@ var _has_update: bool = false
 var _frames_alive: int = 0
 var _update_calls: int = 0
 var _signal_connected: bool = false
+var _api_rng := RandomNumberGenerator.new()
 
 
 ## Devuelve un Array con todos los MeshInstance3D del arbol (recursivo).
@@ -106,7 +107,7 @@ func _api_fix_skeleton_paths(root: Object) -> int:
 # pos(n)              -> devuelve position actual
 # pos(n, x, y)        -> setea 2D (Control)
 # pos(n, x, y, z)     -> setea 3D (Node3D)
-func _api_pos(node: Object, x = null, y = null, z = null):
+func _api_pos(node: Object, x: Variant = null, y: Variant = null, z: Variant = null):
 	if node == null:
 		return null
 	if x == null:
@@ -138,7 +139,7 @@ func _api_scale_to(node: Object, factor: float) -> void:
 
 
 # --- Material interno (string hex, string nombre, o Color) ---
-func _make_material(color) -> StandardMaterial3D:
+func _make_material(color: Variant) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	if color is String:
 		m.albedo_color = Color.from_string(str(color), Color.MAGENTA)
@@ -148,7 +149,7 @@ func _make_material(color) -> StandardMaterial3D:
 
 
 # --- Mallas preconfiguradas ---
-func _api_box(w: float, h: float, d: float, color = null) -> MeshInstance3D:
+func _api_box(w: float, h: float, d: float, color: Variant = null) -> MeshInstance3D:
 	var m := BoxMesh.new()
 	m.size = Vector3(w, h, d)
 	var n := MeshInstance3D.new()
@@ -158,7 +159,7 @@ func _api_box(w: float, h: float, d: float, color = null) -> MeshInstance3D:
 	return n
 
 
-func _api_sphere(r: float, color = null) -> MeshInstance3D:
+func _api_sphere(r: float, color: Variant = null) -> MeshInstance3D:
 	var m := SphereMesh.new()
 	m.radius = r
 	m.height = r * 2.0
@@ -171,7 +172,7 @@ func _api_sphere(r: float, color = null) -> MeshInstance3D:
 	return n
 
 
-func _api_capsule(r: float, h: float, color = null) -> MeshInstance3D:
+func _api_capsule(r: float, h: float, color: Variant = null) -> MeshInstance3D:
 	var m := CapsuleMesh.new()
 	m.radius = r
 	m.height = h
@@ -184,7 +185,7 @@ func _api_capsule(r: float, h: float, color = null) -> MeshInstance3D:
 	return n
 
 
-func _api_cylinder(r: float, h: float, color = null) -> MeshInstance3D:
+func _api_cylinder(r: float, h: float, color: Variant = null) -> MeshInstance3D:
 	var m := CylinderMesh.new()
 	m.top_radius = r
 	m.bottom_radius = r
@@ -224,9 +225,6 @@ func _api_children(node: Object) -> Array:
 
 
 # --- RNG helpers (evita crear RandomNumberGenerator en Lua) ---
-var _api_rng := RandomNumberGenerator.new()
-
-
 func _api_rand_range(a: float, b: float) -> float:
 	return _api_rng.randf_range(a, b)
 
