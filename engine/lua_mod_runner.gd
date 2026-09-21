@@ -1,83 +1,63 @@
 extends RefCounted
-## Ejecuta un mod escrito en Lua como su entry point.
+## Ejecuta un mod escrito en Lua.
 ##
-## El mod.json declara `"main_scene": "res://main.lua"` y el engine
-## detecta la extension .lua en mod_selector._launch(). En vez de
-## compilar un GDScript o cargar una escena, crea un LuaState sandboxed,
-## inyecta la tabla global `washos` con las APIs disponibles, ejecuta el
-## script y usa la tabla que devuelve para armar el nodo raiz.
+## Modelo: Lua con acceso TOTAL a la API de Godot, sin wrapper ni namespace.
+## Se abren las librerias LUA_* (todas menos FFI) y GODOT_* (VARIANT, CLASSES,
+## SINGLETONS, UTILITY_FUNCTIONS, ENUMS, LOCAL_PATHS). Un mod puede hacer
+## cualquier cosa que haria un script GDScript: instanciar Node3D, conectar
+## senales, leer archivos, usar Input/Time/OS/ProjectSettings, etc.
 ##
-## El mod .lua devuelve una tabla:
+## Utilidades inyectadas en el scope global (sin prefijo, sin namespace):
+##   log(msg)      -> escribe al DebugLog con prefijo del mod
+##   mod_folder    -> string, carpeta del mod (para leer sus assets)
+##   root          -> Node, el nodo raiz del mod (se setea despues de crearlo)
 ##
-##   local mod = {}
-##   mod.root_type = "Control"  -- opcional, default "Node"
-##   function mod.on_ready() ... end
-##   return mod
+## Todo lo demas es API de Godot directa. Sin wrapper.
 ##
-## Sandbox: solo se abren las librerias base, table, string, math,
-## coroutine y package (esta ultima porque el addon la parchea para
-## aceptar paths res:// y user://). NO se abren io, os, debug. Un mod
-## no puede leer archivos arbitrarios del sistema ni ejecutar procesos.
+## El mod puede devolver:
+##   A) Un Node ya armado:
+##        local r = Node3D.new()
+##        ...
+##        return r
+##   B) Una tabla con metadatos y callbacks:
+##        local mod = {}
+##        mod.root_type = "Node3D"          -- opcional, default "Node"
+##        function mod.on_ready(root) end
+##        function mod.on_process(dt) end
+##        function mod.on_exit() end
+##        return mod
 ##
-## API en Lua: la tabla `washos` expuesta como global. Cada funcion
-## toma ids numericos para referirse a nodos. Los ids se devuelven al
-## crear y se guardan en _nodes_by_id. Esto limita el surface expuesto
-## a Lua: no hay forma de acceder a propiedades arbitrarias de un Node
-## desde el sandbox.
-##
-## ACCESO DINAMICO A LOS TIPOS DEL ADDON:
-##
-## El addon lua-gdextension expone las clases LuaState, LuaTable,
-## LuaError, LuaFunction. En Android, el .so se carga y las clases
-## existen. En el editor headless del CI Linux NO, porque solo
-## empaquetamos el .so de Android arm64. Sin las clases registradas,
-## mencionar sus nombres como tipos (`var x: LuaState`) hace que el
-## parser de GDScript falle con "Identifier not declared".
-##
-## Solucion: cero referencias a los tipos en el codigo. Todo se hace
-## via ClassDB (instanciar, consultar constantes) y via get_class()
-## (comparar nombres de clase como strings). El script parsea en
-## cualquier plataforma; si el addon no esta cargado, run() sale con
-## error en runtime pero no rompe el editor.
+## Errores: cada invoke() pasa por _safe_invoke(), que detecta LuaError y
+## lo reporta sin crashear el engine.
 
 const LUA_STATE_CLASS := "LuaState"
 const LUA_TABLE_CLASS := "LuaTable"
 const LUA_ERROR_CLASS := "LuaError"
 const LUA_FUNCTION_CLASS := "LuaFunction"
 
-## Librerias del addon que abrimos en el sandbox. Se consultan sus
-## bitmasks via ClassDB.class_get_integer_constant para no hardcodear
-## los valores (pueden cambiar si el addon cambia).
+## Librerias del sandbox. Todo abierto excepto FFI (acceso a memoria C cruda,
+## puede crashear el proceso) y JIT (control del compilador, no aporta).
 const LUA_LIBS_TO_OPEN: Array[String] = [
-	"LUA_BASE",
-	"LUA_TABLE",
-	"LUA_STRING",
-	"LUA_MATH",
-	"LUA_COROUTINE",
-	"LUA_PACKAGE",
+	"LUA_BASE", "LUA_TABLE", "LUA_STRING", "LUA_MATH",
+	"LUA_COROUTINE", "LUA_IO", "LUA_OS", "LUA_PACKAGE",
+	"LUA_DEBUG", "LUA_CPATH", "LUA_PATH", "LUA_NOENV",
+	"GODOT_VARIANT", "GODOT_CLASSES", "GODOT_SINGLETONS",
+	"GODOT_UTILITY_FUNCTIONS", "GODOT_ENUMS", "GODOT_LOCAL_PATHS",
 ]
 
 var _state: Object = null
 var _root: Node = null
-## LuaTable (sin tipo - la clase puede no existir en CI Linux).
 var _mod_table = null
 var _mod_folder: String = ""
-## Nodos creados por el mod. Lua los manipula indirectamente via ids.
-var _nodes_by_id: Dictionary = {}
-var _next_node_id: int = 0
-## Callbacks de botones: id -> LuaFunction. Guardados para que el GC
-## no los libere mientras el boton existe.
-var _button_callbacks: Dictionary = {}
+var _last_process_msec: int = 0
+var _has_on_process: bool = false
 
 
 func run(mod: Dictionary, scene_path: String) -> Node:
 	_mod_folder = str(mod.get("folder", "?"))
 
-	# El addon solo esta cargado si el .so de esta plataforma existe.
-	# En Android si, en el CI Linux no. Si no esta, salimos con error
-	# limpio en vez de crashear.
 	if not ClassDB.class_exists(LUA_STATE_CLASS):
-		push_error("[LuaModRunner] %s no esta registrado (addon lua-gdextension no cargado para esta plataforma?)" % LUA_STATE_CLASS)
+		push_error("[LuaModRunner] %s no registrado (addon no cargado)" % LUA_STATE_CLASS)
 		return null
 
 	_state = ClassDB.instantiate(LUA_STATE_CLASS)
@@ -85,79 +65,79 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		push_error("[LuaModRunner] no pude instanciar %s" % LUA_STATE_CLASS)
 		return null
 
-	# Construir el bitmask de librerias dinamicamente.
 	var lib_mask: int = 0
 	for const_name in LUA_LIBS_TO_OPEN:
 		var val = ClassDB.class_get_integer_constant(LUA_STATE_CLASS, const_name)
-		if val == null:
-			push_warning("[LuaModRunner] %s.%s no existe" % [LUA_STATE_CLASS, const_name])
-			continue
-		lib_mask |= int(val)
+		if val != null:
+			lib_mask |= int(val)
 	_state.open_libraries(lib_mask)
 
-	# Inyectar la tabla washos en globals.
 	var globals = _state.globals
 	if globals == null:
 		push_error("[LuaModRunner] _state.globals es null")
 		return null
-	globals.set("washos", _make_washos_table())
 
-	# Cargar el chunk del .lua.
+	# Utilidades del engine en scope global. Tres, sin namespace. Si en el
+	# futuro hace falta mas azucar (box, sphere, move_to...), va aca como
+	# global directo tambien.
+	globals.set("log", _api_log)
+	globals.set("mod_folder", _mod_folder)
+
 	var loaded = _state.load_file(scene_path)
 	if loaded == null:
 		push_error("[LuaModRunner] load_file(%s) devolvio null" % scene_path)
 		return null
-
-	var loaded_class: String = loaded.get_class()
-	if loaded_class == LUA_ERROR_CLASS:
+	if loaded.get_class() == LUA_ERROR_CLASS:
 		push_error("[LuaModRunner] load_file(%s) fallo: %s" % [scene_path, str(loaded)])
 		return null
-	if loaded_class != LUA_FUNCTION_CLASS:
-		push_error("[LuaModRunner] load_file(%s) devolvio %s, esperaba %s" % [
-			scene_path, loaded_class, LUA_FUNCTION_CLASS,
-		])
+	if loaded.get_class() != LUA_FUNCTION_CLASS:
+		push_error("[LuaModRunner] load_file(%s) devolvio %s" % [scene_path, loaded.get_class()])
 		return null
 
-	# Ejecutar el chunk.
-	_mod_table = loaded.invoke()
+	_mod_table = _safe_invoke(loaded)
 	if _mod_table == null:
-		push_error("[LuaModRunner] el chunk de %s no devolvio nada" % scene_path)
-		return null
-	if _mod_table.get_class() != LUA_TABLE_CLASS:
-		push_error("[LuaModRunner] el chunk devolvio %s, esperaba %s" % [
-			_mod_table.get_class(), LUA_TABLE_CLASS,
-		])
 		return null
 
-	# Leer root_type (default "Node").
-	var root_type: String = "Node"
-	var rt = _mod_table.get("root_type")
-	if rt != null and rt is String:
-		root_type = rt
+	# Modelo A: el chunk devolvio un Node directo
+	if _mod_table is Node:
+		_root = _mod_table as Node
+		_root.name = "LuaModRoot"
+		globals.set("root", _root)
+		DebugLog.log("[LuaModRunner] %s arranco (Node=%s)" % [_mod_folder, _root.get_class()])
+		return _root
 
-	# Crear nodo raiz.
-	_root = _instantiate_node(root_type)
-	if _root == null:
-		push_error("[LuaModRunner] root_type '%s' no es un Node valido" % root_type)
-		return null
+	# Modelo B: tabla con root_type + callbacks
+	if _mod_table.get_class() == LUA_TABLE_CLASS:
+		var root_type: String = "Node"
+		var rt = _mod_table.get("root_type")
+		if rt != null and rt is String:
+			root_type = rt
+		_root = _instantiate_node(root_type)
+		if _root == null:
+			push_error("[LuaModRunner] root_type '%s' invalido" % root_type)
+			return null
+		_root.name = "LuaModRoot"
+		globals.set("root", _root)
 
-	# Exponer el id del nodo raiz al mod.
-	var washos_table = globals.get("washos")
-	if washos_table != null:
-		washos_table.set("root", _register_node(_root))
+		_has_on_process = _has_function("on_process")
+		if _has_on_process:
+			_last_process_msec = Time.get_ticks_msec()
+			var tree := Engine.get_main_loop() as SceneTree
+			if tree != null:
+				tree.process_frame.connect(_on_process_frame)
+		_root.tree_exiting.connect(_on_root_exiting)
+		_call_if_exists("on_ready", [_root])
+		DebugLog.log("[LuaModRunner] %s arranco (root=%s, process=%s)" % [_mod_folder, root_type, str(_has_on_process)])
+		return _root
 
-	# Llamar on_ready si existe.
-	var on_ready = _mod_table.get("on_ready")
-	if on_ready != null and on_ready.get_class() == LUA_FUNCTION_CLASS:
-		on_ready.invoke()
-
-	DebugLog.log("[LuaModRunner] %s arranco (root=%s)" % [_mod_folder, root_type])
-	return _root
+	push_error("[LuaModRunner] el chunk devolvio %s, esperaba Node o LuaTable" % _mod_table.get_class())
+	return null
 
 
-## Crea un nodo por nombre de clase. Acepta "Node", "Control", "Node2D",
-## "Node3D", "CanvasLayer", subclases, etc. No acepta clases que no
-## hereden de Node.
+func _api_log(msg) -> void:
+	DebugLog.log("[Lua:%s] %s" % [_mod_folder, str(msg)])
+
+
 func _instantiate_node(type_name: String) -> Node:
 	if not ClassDB.class_exists(type_name):
 		return null
@@ -167,166 +147,48 @@ func _instantiate_node(type_name: String) -> Node:
 	return obj as Node
 
 
-func _register_node(node: Node) -> int:
-	_next_node_id += 1
-	_nodes_by_id[_next_node_id] = node
-	return _next_node_id
+func _has_function(fname: String) -> bool:
+	if _mod_table == null:
+		return false
+	var fn = _mod_table.get(fname)
+	if fn == null:
+		return false
+	return fn.get_class() == LUA_FUNCTION_CLASS
 
 
-func _get_node_by_id(id: Variant) -> Node:
-	if not (id is int) and not (id is float):
+func _call_if_exists(fname: String, args: Array = []) -> Variant:
+	if not _has_function(fname):
 		return null
-	var key := int(id)
-	if _nodes_by_id.has(key):
-		return _nodes_by_id[key]
-	return null
+	return _safe_invoke(_mod_table.get(fname), args)
 
 
-## Construye la tabla `washos` que se expone como global.
-## Todas las funciones tienen args sin tipar para tolerar como Lua pasa
-## numeros (LuaJIT pasa integrales como float si son grandes). La
-## conversion a int/float se hace adentro de cada funcion.
-func _make_washos_table():
-	var t = _state.create_table()
-	t.set("log", _api_log)
-	t.set("play_confirm", _api_play_confirm)
-	t.set("play_scroll", _api_play_scroll)
-	t.set("play_cancel", _api_play_cancel)
-	t.set("create_node", _api_create_node)
-	t.set("create_label", _api_create_label)
-	t.set("create_button", _api_create_button)
-	t.set("create_color_rect", _api_create_color_rect)
-	t.set("add_child", _api_add_child)
-	t.set("set_anchors_full", _api_set_anchors_full)
-	t.set("set_font_size", _api_set_font_size)
-	t.set("set_text", _api_set_text)
-	t.set("set_position", _api_set_position)
-	t.set("set_size", _api_set_size)
-	t.set("set_color", _api_set_color)
-	t.set("on_button_pressed", _api_on_button_pressed)
-	return t
+func _safe_invoke(fn, args: Array = []) -> Variant:
+	if fn == null:
+		return null
+	var result
+	if args.is_empty():
+		result = fn.invoke()
+	else:
+		result = fn.invokev(args)
+	if result != null and result.get_class() == LUA_ERROR_CLASS:
+		push_error("[Lua:%s] error en callback: %s" % [_mod_folder, str(result)])
+		return null
+	return result
 
 
-# ============================================================================
-# API expuesta a Lua. Cada funcion recibe args sin tipar y devuelve
-# Variant. Los ids de nodos son ints; si Lua pasa float, se trunca con
-# int().
-# ============================================================================
-
-func _api_log(msg) -> void:
-	DebugLog.log("[Lua:%s] %s" % [_mod_folder, str(msg)])
-
-
-func _api_play_confirm() -> void:
-	MenuMusic.play_confirm()
-
-
-func _api_play_scroll() -> void:
-	MenuMusic.play_scroll()
-
-
-func _api_play_cancel() -> void:
-	MenuMusic.play_cancel()
-
-
-func _api_create_node(type_name) -> int:
-	if not (type_name is String):
-		push_warning("[Lua] create_node: falta el type_name")
-		return -1
-	var node := _instantiate_node(type_name)
-	if node == null:
-		push_warning("[Lua] create_node: '%s' no es Node valido" % type_name)
-		return -1
-	return _register_node(node)
-
-
-func _api_create_label(text) -> int:
-	var l := Label.new()
-	l.text = str(text) if text != null else ""
-	return _register_node(l)
-
-
-func _api_create_button(text) -> int:
-	var b := Button.new()
-	b.text = str(text) if text != null else ""
-	return _register_node(b)
-
-
-func _api_create_color_rect(hex) -> int:
-	var c := ColorRect.new()
-	if hex is String:
-		c.color = Color.html(hex)
-	return _register_node(c)
-
-
-func _api_add_child(parent_id, child_id) -> void:
-	var parent := _get_node_by_id(parent_id)
-	var child := _get_node_by_id(child_id)
-	if parent == null or child == null:
-		push_warning("[Lua] add_child: ids invalidos (%s, %s)" % [parent_id, child_id])
+func _on_process_frame() -> void:
+	if not is_instance_valid(_root):
 		return
-	parent.add_child(child)
-
-
-func _api_set_anchors_full(node_id) -> void:
-	var n := _get_node_by_id(node_id)
-	if n is Control:
-		(n as Control).set_anchors_preset(Control.PRESET_FULL_RECT)
-
-
-func _api_set_font_size(node_id, size) -> void:
-	var n := _get_node_by_id(node_id)
-	if n is Control:
-		(n as Control).add_theme_font_size_override("font_size", int(size))
-
-
-func _api_set_text(node_id, text) -> void:
-	var n := _get_node_by_id(node_id)
-	if n is Label:
-		(n as Label).text = str(text)
-	elif n is Button:
-		(n as Button).text = str(text)
-
-
-func _api_set_position(node_id, x, y) -> void:
-	var n := _get_node_by_id(node_id)
-	var pos := Vector2(float(x), float(y))
-	if n is Control:
-		(n as Control).position = pos
-	elif n is Node2D:
-		(n as Node2D).position = pos
-
-
-func _api_set_size(node_id, w, h) -> void:
-	var n := _get_node_by_id(node_id)
-	if n is Control:
-		(n as Control).size = Vector2(float(w), float(h))
-
-
-func _api_set_color(node_id, hex) -> void:
-	var n := _get_node_by_id(node_id)
-	if not (hex is String):
+	if not _root.is_inside_tree():
 		return
-	var color := Color.html(hex)
-	if n is Label:
-		(n as Label).add_theme_color_override("font_color", color)
-	elif n is ColorRect:
-		(n as ColorRect).color = color
-	elif n is Button:
-		(n as Button).add_theme_color_override("font_color", color)
+	var now := Time.get_ticks_msec()
+	var dt: float = (now - _last_process_msec) / 1000.0
+	_last_process_msec = now
+	_call_if_exists("on_process", [dt])
 
 
-func _api_on_button_pressed(node_id, callback) -> void:
-	var n := _get_node_by_id(node_id)
-	if not (n is Button):
-		push_warning("[Lua] on_button_pressed: id %s no es Button" % node_id)
-		return
-	if callback == null or callback.get_class() != LUA_FUNCTION_CLASS:
-		push_warning("[Lua] on_button_pressed: callback no es funcion Lua")
-		return
-	var btn := n as Button
-	# Guardar el callback para que el GC no lo libere mientras el
-	# boton existe.
-	_button_callbacks[node_id] = callback
-	var cb = callback
-	btn.pressed.connect(func(): cb.invoke())
+func _on_root_exiting() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null and tree.process_frame.is_connected(_on_process_frame):
+		tree.process_frame.disconnect(_on_process_frame)
+	_call_if_exists("on_exit")
