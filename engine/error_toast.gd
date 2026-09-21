@@ -120,8 +120,15 @@ func _show(message: String) -> void:
 	tw.tween_interval(HOLD_SECONDS)
 	tw.tween_property(panel, "modulate:a", 0.0, FADE_OUT_SECONDS) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func():
-		if is_instance_valid(panel):
-			panel.queue_free()
-		_toasts.erase(panel)
-	)
+	tw.tween_callback(_dismiss_toast.bind(panel))
+
+
+## Cierra un toast. Se llama via bind(panel) en vez de lambda porque
+## la lambda capturaba panel en su closure y si el toast era removido
+## durante el tween la captura quedaba freed (Lambda capture at
+## index 0 was freed). Con bind() el panel va como argumento del
+## Callable, no como capture.
+func _dismiss_toast(panel: Control) -> void:
+	if is_instance_valid(panel):
+		panel.queue_free()
+	_toasts.erase(panel)

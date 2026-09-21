@@ -174,12 +174,8 @@ func fade_out_music(duration: float = 0.5) -> void:
 	_muted_by_user = true
 	var start_db: float = _music_player.volume_db
 	var tw := create_tween()
-	tw.tween_method(func(v): _music_player.volume_db = v, start_db, -60.0, duration)
-	tw.tween_callback(func():
-		_music_player.stop()
-		_music_player.stream = null
-		_music_player.volume_db = MUSIC_VOLUME_DB
-	)
+	tw.tween_method(_apply_music_volume, start_db, -60.0, duration)
+	tw.tween_callback(_finish_fade_out)
 
 
 func stop_music() -> void:
@@ -223,3 +219,19 @@ func play_cancel() -> void:
 
 func play_scroll() -> void:
 	_play_sfx(_scroll_stream)
+
+
+## Helpers usados por fade_out_music(). Metodos en vez de lambdas
+## porque la lambda capturaba _music_player en su closure, y si el
+## tween se cancelaba por un cambio de escena la captura quedaba
+## freed (Lambda capture at index 0 was freed).
+func _apply_music_volume(v: float) -> void:
+	if is_instance_valid(_music_player):
+		_music_player.volume_db = v
+
+
+func _finish_fade_out() -> void:
+	if is_instance_valid(_music_player):
+		_music_player.stop()
+		_music_player.stream = null
+		_music_player.volume_db = MUSIC_VOLUME_DB

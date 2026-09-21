@@ -394,6 +394,16 @@ func _open() -> void:
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Helper para ocultar un boton al terminar su tween de cierre. Se usa
+## con bind() en vez de lambda: la lambda captura `btn` por referencia
+## y si el nodo es queue_free()'d durante un rebuild del pill, la captura
+## queda "freed" (Lambda capture at index 0 was freed. Passed null).
+## El guard is_instance_valid() cubre el caso.
+func _hide_btn(btn: Control) -> void:
+	if is_instance_valid(btn):
+		btn.visible = false
+
+
 func _close() -> void:
 	if not _expanded:
 		return
@@ -411,7 +421,7 @@ func _close() -> void:
 		tw.tween_property(btn, "modulate:a", 0.0, ANIM_TIME * 0.6)
 		tw.parallel().tween_property(btn, "scale", Vector2.ZERO, ANIM_TIME * 0.6) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_callback(func(): btn.visible = false)
+		tw.tween_callback(_hide_btn.bind(btn))
 
 
 # ============================================================
