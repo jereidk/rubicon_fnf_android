@@ -172,16 +172,11 @@ func _rebuild_option_nodes() -> void:
 		b.scale = Vector2.ZERO
 		b.pivot_offset = Vector2(OPTION_SIZE, OPTION_SIZE) / 2.0
 		var cb: Callable = opt["callback"]
-		b.gui_input.connect(func(ev):
-			if not (ev is InputEventScreenTouch or ev is InputEventMouseButton):
-				return
-			if not ev.pressed:
-				return
-			MenuMusic.play_confirm()
-			_close()
-			if cb.is_valid():
-				cb.call()
-		)
+		# bind() en vez de lambda: GDScript captura variables por
+		# REFERENCIA en lambdas, asi que todos los botones compartirian
+		# el mismo `cb` (la del ultimo item). Con bind() el valor viaja
+		# como argumento, sin captura.
+		b.gui_input.connect(_on_option_gui_input.bind(cb))
 		add_child(b)
 		_option_nodes.append(b)
 	_update_layout()
@@ -201,6 +196,25 @@ func _make_button(size: float, icon: int, color: Color, label: String) -> Contro
 	if script != null:
 		b.set_script(script)
 	return b
+
+
+## Handler de tap en un boton del pill. Separado de _rebuild_option_nodes
+## para no usar lambda (captura por referencia). Recibe el Callable via
+## bind() para que cada boton tenga el suyo.
+func _on_option_gui_input(ev: InputEvent, cb: Callable) -> void:
+	if not (ev is InputEventScreenTouch or ev is InputEventMouseButton):
+		return
+	if not ev.pressed:
+		return
+	_dbg("_on_option_gui_input frame=%d cb_valid=%s" % [Engine.get_process_frames(), cb.is_valid()])
+	MenuMusic.play_confirm()
+	_close()
+	if cb.is_valid():
+		_dbg("  llamando cb")
+		cb.call()
+		_dbg("  cb retorno")
+	else:
+		_dbg("  cb INVALIDO")
 
 
 # ============================================================
@@ -447,6 +461,7 @@ func _apply_home_pos() -> void:
 # ============================================================
 
 func _do_exit() -> void:
+	_dbg("do_exit llamado")
 	_show_confirm(
 		"Salir del mod",
 		"¿Volver al menu principal?\nEl mod se cerrara.",
@@ -589,6 +604,7 @@ func _close_confirm() -> void:
 
 
 func _toggle_debug() -> void:
+	_dbg("toggle_debug llamado")
 	var dd := get_node_or_null("/root/DebugDisplay")
 	if dd == null:
 		return
@@ -600,6 +616,7 @@ func _toggle_debug() -> void:
 # ============================================================
 
 func _open_console() -> void:
+	_dbg("open_console llamado")
 	if _console_root != null and is_instance_valid(_console_root):
 		return
 	_console_root = Control.new()
