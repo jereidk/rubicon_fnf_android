@@ -283,27 +283,42 @@ func _walk_cache_path(folder: String) -> String:
 func _load_walk_cache(folder: String, mod_path: String) -> Dictionary:
 	var p := _walk_cache_path(folder)
 	if not FileAccess.file_exists(p):
+		DebugLog.log("[walk_cache] %s: miss (no existe %s)" % [folder, p])
 		return {}
 
 	var root_mtime: int = int(FileAccess.get_modified_time(mod_path))
 	var json_mtime: int = int(FileAccess.get_modified_time(mod_path + "/" + MANIFEST_NAME))
-	# Si el SO no soporta mtime de directorios (algunos Android), no podemos
-	# validar el cache. Mejor caminar siempre.
-	if root_mtime <= 0:
+	# En Android /storage/emulated/0 pasa por FUSE: el mtime de un
+	# DIRECTORIO suele venir 0 aunque el FS lo tenga. Antes eso
+	# invalidaba el cache siempre y el walk de ~10s corria en cada
+	# arranque. Fallback: si root_mtime no es confiable, validar solo
+	# con mod.json. Si tampoco hay json_mtime, no hay con que validar:
+	# caminar.
+	var have_root := root_mtime > 0
+	var have_json := json_mtime > 0
+	if not have_root and not have_json:
+		DebugLog.log("[walk_cache] %s: miss (sin mtime confiable root=%d json=%d)" % [folder, root_mtime, json_mtime])
 		return {}
 
 	var f := FileAccess.open(p, FileAccess.READ)
 	if f == null:
+		DebugLog.log("[walk_cache] %s: miss (no puedo abrir %s)" % [folder, p])
 		return {}
 	var raw := f.get_as_text()
 	f.close()
+
 	var data = JSON.parse_string(raw)
 	if not (data is Dictionary):
+		DebugLog.log("[walk_cache] %s: miss (JSON invalido)" % folder)
 		return {}
-	if int(data.get("root_mtime", -1)) != root_mtime:
+
+	if have_root and int(data.get("root_mtime", -1)) != root_mtime:
+		DebugLog.log("[walk_cache] %s: miss (root_mtime %d -> %d)" % [folder, int(data.get("root_mtime", -1)), root_mtime])
 		return {}
-	if int(data.get("mod_json_mtime", -1)) != json_mtime:
+	if have_json and int(data.get("mod_json_mtime", -1)) != json_mtime:
+		DebugLog.log("[walk_cache] %s: miss (mod_json_mtime %d -> %d)" % [folder, int(data.get("mod_json_mtime", -1)), json_mtime])
 		return {}
+	DebugLog.log("[walk_cache] %s: HIT (root=%s json=%s)" % [folder, str(have_root), str(have_json)])
 
 	# Reconstruir Array[String] tipados.
 	var files_arr: Array[String] = []
@@ -321,7 +336,6 @@ func _load_walk_cache(folder: String, mod_path: String) -> Dictionary:
 		"mod_json_mtime": json_mtime,
 	}
 
-
 ## Persiste el resultado del walk en un .scan al lado del .pck/.mtime.
 ## El JSON pesa ~50-100 KB para 1900 archivos y tarda ~50ms en parsear,
 ## vs ~10s del walk en Android. Vale la pena el trade.
@@ -336,11 +350,13 @@ func _save_walk_cache(folder: String, result: Dictionary) -> void:
 	}
 	var f := FileAccess.open(p, FileAccess.WRITE)
 	if f == null:
+		DebugLog.log("[walk_cache] %s: FALLO escritura %s (err=%d)" % [folder, p, FileAccess.get_open_error()])
 		push_warning("[ModLoader] no puedo escribir walk cache %s" % p)
 		return
-	f.store_string(JSON.stringify(to_write))
+	var payload := JSON.stringify(to_write)
+	f.store_string(payload)
 	f.close()
-
+	DebugLog.log("[walk_cache] %s: GUARDADO %s (%d bytes)" % [folder, p, payload.length()])
 
 ## Borra el cache del walk en disco. Se llama desde el boton "Releer" del
 ## ModSelector (o cualquier lugar que quiera forzar un walk real).
@@ -1304,7 +1320,14 @@ func _scan_mod_tree(folder: String, mod_path: String, on_progress: Callable = Ca
 		if dir == null:
 			continue
 		for name in dir.get_files():
+			# .import/.uid: sidecars del editor. mod.json: manifest del loader.
+			# .bak/.tmp: backups temporales. Icon.png: thumbnail del selector.
+			# Ninguno afecta el pck, y si entran al walk un `touch` sobre
+			# cualquiera de ellos invalida el fingerprint y fuerza un rebake
+			# de ~14s. Excluirlos es seguro.
 			if name.ends_with(".import") or name.ends_with(".uid") or name == MANIFEST_NAME:
+				continue
+			if name.ends_with(".bak") or name.ends_with(".tmp") or name == "Icon.png":
 				continue
 			files.append(name if sub.is_empty() else sub + "/" + name)
 			# Threshold subido de 100 a 500: el walk hace menos awaits y cede
