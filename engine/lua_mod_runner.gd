@@ -211,10 +211,10 @@ func _api_on(node: Object, signal_name: String, callback: Object) -> void:
 
 
 # --- class_is: alternativa a 'is' (que no existe en Lua) ---
-func _api_class_is(node: Object, class_name: String) -> bool:
+func _api_class_is(node: Object, cls_name: String) -> bool:
 	if node == null:
 		return false
-	return node.is_class(class_name)
+	return node.is_class(cls_name)
 
 
 # --- children: devuelve los hijos como Array 1-indexado (Lua friendly) ---
