@@ -96,6 +96,171 @@ func _api_fix_skeleton_paths(root: Object) -> int:
 	return n
 
 
+# ============================================================================
+# HELPERS DE CONVENIENCIA — inyectados como globales a Lua
+# Sintaxis corta, sin constructores complejos. Pensados para mods que no
+# quieren lidiar con Vector3()/Color()/Callable() a mano.
+# ============================================================================
+
+# --- pos: getter/setter de position estilo jQuery ---
+# pos(n)              -> devuelve position actual
+# pos(n, x, y)        -> setea 2D (Control)
+# pos(n, x, y, z)     -> setea 3D (Node3D)
+func _api_pos(node: Object, x = null, y = null, z = null):
+	if node == null:
+		return null
+	if x == null:
+		if node is Node3D:
+			return (node as Node3D).position
+		if node is Control:
+			return (node as Control).position
+		return null
+	if node is Node3D:
+		var z_val: float = 0.0
+		if z != null:
+			z_val = float(z)
+		(node as Node3D).position = Vector3(float(x), float(y), z_val)
+	elif node is Control:
+		(node as Control).position = Vector2(float(x), float(y))
+	return null
+
+
+func _api_rot(node: Object, x: float, y: float, z: float) -> void:
+	if node is Node3D:
+		(node as Node3D).rotation = Vector3(x, y, z)
+
+
+func _api_scale_to(node: Object, factor: float) -> void:
+	if node is Node3D:
+		(node as Node3D).scale = Vector3(factor, factor, factor)
+	elif node is Control:
+		(node as Control).scale = Vector2(factor, factor)
+
+
+# --- Material interno (string hex, string nombre, o Color) ---
+func _make_material(color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	if color is String:
+		m.albedo_color = Color.from_string(str(color), Color.MAGENTA)
+	elif color is Color:
+		m.albedo_color = color
+	return m
+
+
+# --- Mallas preconfiguradas ---
+func _api_box(w: float, h: float, d: float, color = null) -> MeshInstance3D:
+	var m := BoxMesh.new()
+	m.size = Vector3(w, h, d)
+	var n := MeshInstance3D.new()
+	n.mesh = m
+	if color != null:
+		n.material_override = _make_material(color)
+	return n
+
+
+func _api_sphere(r: float, color = null) -> MeshInstance3D:
+	var m := SphereMesh.new()
+	m.radius = r
+	m.height = r * 2.0
+	m.radial_segments = 24
+	m.rings = 12
+	var n := MeshInstance3D.new()
+	n.mesh = m
+	if color != null:
+		n.material_override = _make_material(color)
+	return n
+
+
+func _api_capsule(r: float, h: float, color = null) -> MeshInstance3D:
+	var m := CapsuleMesh.new()
+	m.radius = r
+	m.height = h
+	m.radial_segments = 16
+	m.rings = 8
+	var n := MeshInstance3D.new()
+	n.mesh = m
+	if color != null:
+		n.material_override = _make_material(color)
+	return n
+
+
+func _api_cylinder(r: float, h: float, color = null) -> MeshInstance3D:
+	var m := CylinderMesh.new()
+	m.top_radius = r
+	m.bottom_radius = r
+	m.height = h
+	m.radial_segments = 12
+	var n := MeshInstance3D.new()
+	n.mesh = m
+	if color != null:
+		n.material_override = _make_material(color)
+	return n
+
+
+# --- on: conecta una senal con un callback Lua sin Callable() explicito ---
+# on(node, "pressed", function() ... end)
+func _api_on(node: Object, signal_name: String, callback: Object) -> void:
+	if node == null or callback == null:
+		return
+	if not node.has_signal(signal_name):
+		push_warning("[on] %s no tiene signal '%s'" % [node, signal_name])
+		return
+	var cb := Callable(callback, "invoke")
+	node.connect(signal_name, cb)
+
+
+# --- class_is: alternativa a 'is' (que no existe en Lua) ---
+func _api_class_is(node: Object, class_name: String) -> bool:
+	if node == null:
+		return false
+	return node.is_class(class_name)
+
+
+# --- children: devuelve los hijos como Array 1-indexado (Lua friendly) ---
+func _api_children(node: Object) -> Array:
+	if node == null or not (node is Node):
+		return []
+	return (node as Node).get_children()
+
+
+# --- RNG helpers (evita crear RandomNumberGenerator en Lua) ---
+var _api_rng := RandomNumberGenerator.new()
+
+
+func _api_rand_range(a: float, b: float) -> float:
+	return _api_rng.randf_range(a, b)
+
+
+func _api_rand_int(a: int, b: int) -> int:
+	return _api_rng.randi_range(a, b)
+
+
+# --- set_nodepath: workaround del bug de NodePath en el addon ---
+# set_nodepath(mesh_instance, "skeleton", skeleton_node)
+func _api_set_nodepath(node: Object, prop_name: String, target: Object) -> bool:
+	if node == null or target == null:
+		return false
+	if not (node is Node) or not (target is Node):
+		return false
+	var path := (node as Node).get_path_to(target as Node)
+	node.set(prop_name, path)
+	return true
+
+
+# --- qaxis: quaternion por eje en string ---
+# qaxis("x", angle)
+func _api_qaxis(axis: String, angle: float) -> Quaternion:
+	var h := angle * 0.5
+	match axis.to_lower():
+		"x":
+			return Quaternion(sin(h), 0, 0, cos(h))
+		"y":
+			return Quaternion(0, sin(h), 0, cos(h))
+		"z":
+			return Quaternion(0, 0, sin(h), cos(h))
+	return Quaternion()
+
+
 func run(mod: Dictionary, scene_path: String) -> Node:
 	_mod_folder = str(mod.get("folder", "?"))
 
@@ -121,6 +286,22 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 	_globals.set("log", _api_log)
 	_globals.set("mod_folder", _mod_folder)
 	_globals.set("fix_skeleton_paths", _api_fix_skeleton_paths)
+
+	# Helpers de conveniencia (sintaxis corta para mods)
+	_globals.set("pos", _api_pos)
+	_globals.set("rot", _api_rot)
+	_globals.set("scale_to", _api_scale_to)
+	_globals.set("box", _api_box)
+	_globals.set("sphere", _api_sphere)
+	_globals.set("capsule", _api_capsule)
+	_globals.set("cylinder", _api_cylinder)
+	_globals.set("on", _api_on)
+	_globals.set("class_is", _api_class_is)
+	_globals.set("children", _api_children)
+	_globals.set("rand_range", _api_rand_range)
+	_globals.set("rand_int", _api_rand_int)
+	_globals.set("set_nodepath", _api_set_nodepath)
+	_globals.set("qaxis", _api_qaxis)
 
 	var loaded = _state.load_file(scene_path)
 	if loaded == null or loaded.get_class() != LUA_FUNCTION_CLASS:
