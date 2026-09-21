@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 ## Ejecuta un mod escrito en Lua con acceso a la API de Godot.
 ##
 ## Modelos:
@@ -75,6 +75,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 	if chunk_result is Node:
 		_root = chunk_result as Node
 		_root.name = "LuaModRoot"
+		_self_attach()
 		_globals.set("root", _root)
 		_wire_lifecycle()
 		DebugLog.log("[LuaModRunner] %s arranco (A, %s)" % [_mod_folder, _root.get_class()])
@@ -88,6 +89,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 			push_error("[LuaModRunner] root_type '%s' invalido" % root_type_b)
 			return null
 		_root.name = "LuaModRoot"
+		_self_attach()
 		_globals.set("root", _root)
 		_wire_lifecycle()
 		_call_mod_if_exists("on_ready", [_root])
@@ -101,6 +103,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		DebugLog.log("[LuaModRunner] root_type '%s' invalido, usando Node" % root_type_c)
 		_root = Node.new()
 	_root.name = "LuaModRoot"
+	_self_attach()
 	_globals.set("root", _root)
 	_wire_lifecycle()
 	_call_global_if_exists(GLOBAL_SETUP)
@@ -108,6 +111,15 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		_mod_folder, _root.get_class(), str(_has_update),
 	])
 	return _root
+
+
+## Auto-attach: el runner (Node) se hace hijo del root para vivir
+## mientras el root viva. Sin esto el runner es RefCounted huerfano y
+## se libera cuando _launch() retorna, dejando el signal process_frame
+## apuntando a un objeto muerto. Sintoma: setup() corre pero update() no.
+func _self_attach() -> void:
+	if _root != null and get_parent() != _root:
+		_root.add_child(self)
 
 
 func _wire_lifecycle() -> void:
