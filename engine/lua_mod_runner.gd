@@ -1,46 +1,32 @@
 extends RefCounted
-## Ejecuta un mod escrito en Lua.
+## Ejecuta un mod escrito en Lua con acceso a la API de Godot.
 ##
-## Modelo: Lua con acceso TOTAL a la API de Godot, sin wrapper ni namespace.
-## Se abren las librerias LUA_* (todas menos FFI) y GODOT_* (VARIANT, CLASSES,
-## SINGLETONS, UTILITY_FUNCTIONS, ENUMS, LOCAL_PATHS). Un mod puede hacer
-## cualquier cosa que haria un script GDScript: instanciar Node3D, conectar
-## senales, leer archivos, usar Input/Time/OS/ProjectSettings, etc.
+## Se abren las librerias LUA_* y GODOT_* que existan como constantes
+## accesibles desde ClassDB. Los nombres que no existan se saltan con
+## warning (ver log del arranque).
 ##
-## Utilidades inyectadas en el scope global (sin prefijo, sin namespace):
-##   log(msg)      -> escribe al DebugLog con prefijo del mod
-##   mod_folder    -> string, carpeta del mod (para leer sus assets)
-##   root          -> Node, el nodo raiz del mod (se setea despues de crearlo)
+## Utilidades globales inyectadas (sin namespace):
+##   log(msg)    -> DebugLog con prefijo del mod
+##   mod_folder  -> carpeta fisica del mod
+##   root        -> Node, raiz del mod (seteado despues de crearlo)
 ##
-## Todo lo demas es API de Godot directa. Sin wrapper.
-##
-## El mod puede devolver:
-##   A) Un Node ya armado:
-##        local r = Node3D.new()
-##        ...
-##        return r
-##   B) Una tabla con metadatos y callbacks:
-##        local mod = {}
-##        mod.root_type = "Node3D"          -- opcional, default "Node"
-##        function mod.on_ready(root) end
-##        function mod.on_process(dt) end
-##        function mod.on_exit() end
-##        return mod
-##
-## Errores: cada invoke() pasa por _safe_invoke(), que detecta LuaError y
-## lo reporta sin crashear el engine.
+## Modelo de retorno del chunk:
+##   A) Node directo:      return Node3D.new() (con hijos ya agregados)
+##   B) Tabla con hooks:   return { root_type=..., on_ready=..., on_process=..., on_exit=... }
 
 const LUA_STATE_CLASS := "LuaState"
 const LUA_TABLE_CLASS := "LuaTable"
 const LUA_ERROR_CLASS := "LuaError"
 const LUA_FUNCTION_CLASS := "LuaFunction"
 
-## Librerias del sandbox. Todo abierto excepto FFI (acceso a memoria C cruda,
-## puede crashear el proceso) y JIT (control del compilador, no aporta).
+## Nombres de constantes a chequear. Los que no existan en ClassDB se
+## saltan con warning. Orden: Lua stdlib primero, despues Godot API.
 const LUA_LIBS_TO_OPEN: Array[String] = [
+	# Lua stdlib
 	"LUA_BASE", "LUA_TABLE", "LUA_STRING", "LUA_MATH",
 	"LUA_COROUTINE", "LUA_IO", "LUA_OS", "LUA_PACKAGE",
 	"LUA_DEBUG", "LUA_CPATH", "LUA_PATH", "LUA_NOENV",
+	# Godot API
 	"GODOT_VARIANT", "GODOT_CLASSES", "GODOT_SINGLETONS",
 	"GODOT_UTILITY_FUNCTIONS", "GODOT_ENUMS", "GODOT_LOCAL_PATHS",
 ]
@@ -55,31 +41,47 @@ var _has_on_process: bool = false
 
 func run(mod: Dictionary, scene_path: String) -> Node:
 	_mod_folder = str(mod.get("folder", "?"))
+	DebugLog.log("[LuaModRunner] run() folder=%s path=%s" % [_mod_folder, scene_path])
 
 	if not ClassDB.class_exists(LUA_STATE_CLASS):
-		push_error("[LuaModRunner] %s no registrado (addon no cargado)" % LUA_STATE_CLASS)
+		push_error("[LuaModRunner] %s no registrado" % LUA_STATE_CLASS)
 		return null
+	DebugLog.log("[LuaModRunner] %s existe" % LUA_STATE_CLASS)
 
 	_state = ClassDB.instantiate(LUA_STATE_CLASS)
 	if _state == null:
 		push_error("[LuaModRunner] no pude instanciar %s" % LUA_STATE_CLASS)
 		return null
+	DebugLog.log("[LuaModRunner] instancia OK")
 
+	# Construir lib_mask chequeando existencia primero. class_get_integer_constant
+	# con un nombre inexistente tira ERR_FAIL que aborta la funcion (comportamiento
+	# de Godot 4.7). class_has_integer_constant devuelve bool sin error.
 	var lib_mask: int = 0
+	var valid_names: Array[String] = []
+	var missing_names: Array[String] = []
 	for const_name in LUA_LIBS_TO_OPEN:
+		if not ClassDB.class_has_integer_constant(LUA_STATE_CLASS, const_name):
+			missing_names.append(const_name)
+			continue
 		var val = ClassDB.class_get_integer_constant(LUA_STATE_CLASS, const_name)
-		if val != null:
-			lib_mask |= int(val)
+		lib_mask |= int(val)
+		valid_names.append(const_name)
+
+	DebugLog.log("[LuaModRunner] libs OK: %s" % ", ".join(valid_names))
+	if not missing_names.is_empty():
+		DebugLog.log("[LuaModRunner] libs inexistentes: %s" % ", ".join(missing_names))
+	DebugLog.log("[LuaModRunner] lib_mask=%d" % lib_mask)
+
 	_state.open_libraries(lib_mask)
+	DebugLog.log("[LuaModRunner] open_libraries OK")
 
 	var globals = _state.globals
 	if globals == null:
-		push_error("[LuaModRunner] _state.globals es null")
+		push_error("[LuaModRunner] globals null")
 		return null
+	DebugLog.log("[LuaModRunner] globals OK")
 
-	# Utilidades del engine en scope global. Tres, sin namespace. Si en el
-	# futuro hace falta mas azucar (box, sphere, move_to...), va aca como
-	# global directo tambien.
 	globals.set("log", _api_log)
 	globals.set("mod_folder", _mod_folder)
 
@@ -87,18 +89,23 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 	if loaded == null:
 		push_error("[LuaModRunner] load_file(%s) devolvio null" % scene_path)
 		return null
+	DebugLog.log("[LuaModRunner] load_file -> %s" % loaded.get_class())
 	if loaded.get_class() == LUA_ERROR_CLASS:
-		push_error("[LuaModRunner] load_file(%s) fallo: %s" % [scene_path, str(loaded)])
+		push_error("[LuaModRunner] load_file fallo: %s" % str(loaded))
 		return null
 	if loaded.get_class() != LUA_FUNCTION_CLASS:
-		push_error("[LuaModRunner] load_file(%s) devolvio %s" % [scene_path, loaded.get_class()])
+		push_error("[LuaModRunner] load_file devolvio %s" % loaded.get_class())
 		return null
 
 	_mod_table = _safe_invoke(loaded)
 	if _mod_table == null:
+		push_error("[LuaModRunner] el chunk no devolvio nada (o error de Lua)")
 		return null
+	DebugLog.log("[LuaModRunner] chunk ejecutado, tipo=%s" % (
+		_mod_table.get_class() if _mod_table is Object else typeof(_mod_table)
+	))
 
-	# Modelo A: el chunk devolvio un Node directo
+	# Modelo A: Node directo
 	if _mod_table is Node:
 		_root = _mod_table as Node
 		_root.name = "LuaModRoot"
@@ -106,7 +113,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		DebugLog.log("[LuaModRunner] %s arranco (Node=%s)" % [_mod_folder, _root.get_class()])
 		return _root
 
-	# Modelo B: tabla con root_type + callbacks
+	# Modelo B: tabla con callbacks
 	if _mod_table.get_class() == LUA_TABLE_CLASS:
 		var root_type: String = "Node"
 		var rt = _mod_table.get("root_type")
@@ -130,7 +137,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		DebugLog.log("[LuaModRunner] %s arranco (root=%s, process=%s)" % [_mod_folder, root_type, str(_has_on_process)])
 		return _root
 
-	push_error("[LuaModRunner] el chunk devolvio %s, esperaba Node o LuaTable" % _mod_table.get_class())
+	push_error("[LuaModRunner] chunk devolvio %s" % _mod_table.get_class())
 	return null
 
 
@@ -171,7 +178,7 @@ func _safe_invoke(fn, args: Array = []) -> Variant:
 	else:
 		result = fn.invokev(args)
 	if result != null and result.get_class() == LUA_ERROR_CLASS:
-		push_error("[Lua:%s] error en callback: %s" % [_mod_folder, str(result)])
+		push_error("[Lua:%s] error: %s" % [_mod_folder, str(result)])
 		return null
 	return result
 
