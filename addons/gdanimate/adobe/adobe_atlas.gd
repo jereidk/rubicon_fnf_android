@@ -57,7 +57,7 @@ func parse() -> void :
 	if not folder_path.ends_with("/"):
 		base_dir = folder_path.get_base_dir() + "/"
 
-	var cache_path: String = "%s/animation_cache.res" % [base_dir]
+	var cache_path: String = _cache_path_for(base_dir)
 	if ResourceLoader.exists(cache_path):
 		var cached: AdobeAtlasCached = load(cache_path)
 		if is_instance_valid(cached):
@@ -99,8 +99,26 @@ func cache() -> void :
 	cached.stage_rect = stage_rect
 	cached.stage_color = stage_color
 	cached.render_stage = render_stage
-	cached.take_over_path("%s/animation_cache.res" % [base_dir])
-	ResourceSaver.save(cached, "%s/animation_cache.res" % [base_dir], ResourceSaver.FLAG_COMPRESS | ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
+	# res:// es read-only en Android (el pck es inmutable). Escribimos el
+	# cache en user:// con un path basado en un hash del folder + el mtime
+	# del Animation.json, para que se regenere si el mod se actualiza.
+	var cache_path := _cache_path_for(base_dir)
+	var cache_dir := cache_path.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(cache_dir)
+	cached.take_over_path(cache_path)
+	ResourceSaver.save(cached, cache_path, ResourceSaver.FLAG_COMPRESS | ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
+
+
+## Devuelve el path del cache para un base_dir. El hash del path
+## diferencia entre atlases, y el mtime del Animation.json invalida
+## el cache cuando el mod se actualiza (mismo hash, mtime distinto,
+## path distinto, cache se regenera).
+func _cache_path_for(base_dir: String) -> String:
+	var anim_json: String = base_dir + "Animation.json"
+	var mtime: int = 0
+	if FileAccess.file_exists(anim_json):
+		mtime = FileAccess.get_modified_time(anim_json)
+	return "user://mods_cache/gdanimate/%s_%d.res" % [str(base_dir.hash()), mtime]
 
 
 func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
