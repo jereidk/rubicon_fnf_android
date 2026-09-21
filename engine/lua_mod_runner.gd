@@ -90,7 +90,7 @@ func _api_fix_skeleton_paths(root: Object) -> int:
 		if m is MeshInstance3D:
 			var mi := m as MeshInstance3D
 			if mi.skin != null:
-				mi.skeleton_path = mi.get_path_to(sk)
+				mi.skeleton = mi.get_path_to(sk)
 				n += 1
 	DebugLog.log("[fix_skeleton_paths] reparados %d meshes" % n)
 	return n
