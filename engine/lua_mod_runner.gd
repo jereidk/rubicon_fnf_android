@@ -40,6 +40,62 @@ var _update_calls: int = 0
 var _signal_connected: bool = false
 
 
+## Devuelve un Array con todos los MeshInstance3D del arbol (recursivo).
+func _find_all_meshes(root: Node) -> Array:
+	var out: Array = []
+	if root == null:
+		return out
+	if root is MeshInstance3D:
+		out.append(root)
+	for c in root.get_children():
+		out.append_array(_find_all_meshes(c))
+	return out
+
+
+## Devuelve el primer Skeleton3D del arbol, o null.
+func _find_skeleton(root: Node) -> Skeleton3D:
+	if root == null:
+		return null
+	if root is Skeleton3D:
+		return root
+	for c in root.get_children():
+		var sk := _find_skeleton(c)
+		if sk != null:
+			return sk
+	return null
+
+
+## Expuesta a Lua como fix_skeleton_paths(root_node).
+## Recorre los MeshInstance3D con skin y les asigna skeleton_path
+## apuntando al Skeleton3D del arbol. Sin esto, los meshes cargados
+## via GLTFDocument desde un .glb quedan con skeleton_path vacio, el
+## skin no se resuelve, y el modelo queda en pose bind aunque se
+## modifiquen los bones.
+##
+## Esta funcion vive en GDScript (no en Lua) porque el addon
+## lua-gdextension no convierte bien NodePath desde string al
+## asignar propiedades; el setter falla con "Could not set value for
+## key 'skeleton_path'".
+func _api_fix_skeleton_paths(root: Object) -> int:
+	if not (root is Node):
+		push_warning("[fix_skeleton_paths] root no es Node")
+		return 0
+	var root_node := root as Node
+	var sk := _find_skeleton(root_node)
+	if sk == null:
+		push_warning("[fix_skeleton_paths] no encontre Skeleton3D")
+		return 0
+	var n := 0
+	for m in _find_all_meshes(root_node):
+		if m is MeshInstance3D:
+			var mi := m as MeshInstance3D
+			if mi.skin != null:
+				mi.skeleton_path = mi.get_path_to(sk)
+				n += 1
+	DebugLog.log("[fix_skeleton_paths] reparados %d meshes" % n)
+	return n
+
+
 func run(mod: Dictionary, scene_path: String) -> Node:
 	_mod_folder = str(mod.get("folder", "?"))
 
@@ -64,6 +120,7 @@ func run(mod: Dictionary, scene_path: String) -> Node:
 		return null
 	_globals.set("log", _api_log)
 	_globals.set("mod_folder", _mod_folder)
+	_globals.set("fix_skeleton_paths", _api_fix_skeleton_paths)
 
 	var loaded = _state.load_file(scene_path)
 	if loaded == null or loaded.get_class() != LUA_FUNCTION_CLASS:
