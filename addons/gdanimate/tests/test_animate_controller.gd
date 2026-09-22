@@ -63,9 +63,23 @@ func run(tree: SceneTree) -> Dictionary:
 				failures.push_back("add_by_symbol: indices[%d]=%d, esperaba %d" % [i, indices[i], i])
 
 	# --- Test find_frame_label_indices ---
-	var walk: PackedInt32Array = node.anim.find_frame_label_indices("walk")
+	# OJO CON LA SEMANTICA, que este test tenia mal: sin simbolo explicito, el
+	# motor busca en el timeline POR DEFAULT, que es
+	# _animate.library.timeline (FlxAnimateController.hx:getDefaultTimeline)
+	# = el simbolo raiz del Animation.json (FlxAnimateFrames.hx:425), o sea
+	# stage_symbol. Aca stage_symbol es "Anim5", que NO tiene labels, asi que
+	# lo correcto es que devuelva vacio. Antes este test pedia que encontrara
+	# los labels de "WithLabels" sin nombrarlo, que es algo que el motor no
+	# hace.
+	var default_scope: PackedInt32Array = node.anim.find_frame_label_indices("walk")
+	if not default_scope.is_empty():
+		failures.push_back("find_frame_label_indices('walk') sin simbolo: stage_symbol es Anim5 y no tiene labels, esperaba vacio, hay %d" % default_scope.size())
+
+	# Con el simbolo explicito - el parametro `?timeline` de
+	# FlxAnimateController.hx:41/95/189 - si tiene que encontrarlos.
+	var walk: PackedInt32Array = node.anim.find_frame_label_indices("walk", "WithLabels")
 	if walk.size() != 3:
-		failures.push_back("find_frame_label_indices('walk'): esperaba 3 indices, hay %d" % walk.size())
+		failures.push_back("find_frame_label_indices('walk', 'WithLabels'): esperaba 3 indices, hay %d" % walk.size())
 	else:
 		# Label "walk" en frame I=1, DU=3 => indices [1, 2, 3].
 		for i in 3:
@@ -73,18 +87,24 @@ func run(tree: SceneTree) -> Dictionary:
 				failures.push_back("find_frame_label_indices('walk'): walk[%d]=%d, esperaba %d" % [i, walk[i], 1 + i])
 
 	# Label que no existe.
-	var nada: PackedInt32Array = node.anim.find_frame_label_indices("no-existe")
+	var nada: PackedInt32Array = node.anim.find_frame_label_indices("no-existe", "WithLabels")
 	if not nada.is_empty():
 		failures.push_back("find_frame_label_indices('no-existe'): esperaba vacio, hay %d" % nada.size())
 
+	# rtrim: el motor recorta SOLO a la derecha y SOLO el nombre del keyframe
+	# (Timeline.findFrameLabelIndices). Un label con espacio adelante NO
+	# matchea.
+	if not node.anim.find_frame_label_indices(" walk", "WithLabels").is_empty():
+		failures.push_back("find_frame_label_indices(' walk'): el motor hace rtrim del keyframe, no strip del label - no deberia matchear")
+
 	# --- Test add_by_frame_label ---
-	node.anim.add_by_frame_label("walk_anim", "walk")
+	node.anim.add_by_frame_label("walk_anim", "walk", -1.0, true, false, false, "WithLabels")
 	var walk_indices: PackedInt32Array = node.anim.get_animation_indices("walk_anim")
 	if walk_indices.size() != 3:
 		failures.push_back("add_by_frame_label: esperaba 3 indices, hay %d" % walk_indices.size())
 
 	# --- Test add_by_frame_label_indices: solo el primero y el ultimo ---
-	node.anim.add_by_frame_label_indices("walk_picks", "walk", PackedInt32Array([0, 2]))
+	node.anim.add_by_frame_label_indices("walk_picks", "walk", PackedInt32Array([0, 2]), -1.0, true, false, false, "WithLabels")
 	var picks: PackedInt32Array = node.anim.get_animation_indices("walk_picks")
 	if picks.size() != 2:
 		failures.push_back("add_by_frame_label_indices: esperaba 2 indices, hay %d" % picks.size())

@@ -59,18 +59,21 @@ func add_by_symbol_indices(anim_name: String, symbol_name: String, indices: Pack
 ## Registra una animacion a partir de los frames que tienen cierto label
 ## (definido en Adobe Animate con la key "N"/"name" de un keyframe).
 ## Equivale a FlxAnimateController.hx:addByFrameLabel.
-func add_by_frame_label(anim_name: String, label: String, frame_rate: float = -1.0, looped: bool = true, flip_x: bool = false, flip_y: bool = false) -> void:
-	var indices: PackedInt32Array = find_frame_label_indices(label)
+func add_by_frame_label(anim_name: String, label: String, frame_rate: float = -1.0, looped: bool = true, flip_x: bool = false, flip_y: bool = false, symbol_name: String = "") -> void:
+	var indices: PackedInt32Array = find_frame_label_indices(label, symbol_name)
 	if indices.is_empty():
 		push_warning("[AdobeAnimateController] add_by_frame_label: label '%s' no encontrado" % label)
 		return
-	_register(anim_name, indices, frame_rate, looped, flip_x, flip_y, "")
+	# FlxAnimateController.hx:79 `anim.timeline = usedTimeline`: la animacion
+	# se queda con el timeline donde se encontro el label, para que play()
+	# cambie a ese simbolo.
+	_register(anim_name, indices, frame_rate, looped, flip_x, flip_y, symbol_name)
 
 
 ## Igual que add_by_frame_label pero tomando solo algunos indices de los que
 ## matchean el label. Equivale a FlxAnimateController.hx:addByFrameLabelIndices.
-func add_by_frame_label_indices(anim_name: String, label: String, indices: PackedInt32Array, frame_rate: float = -1.0, looped: bool = true, flip_x: bool = false, flip_y: bool = false) -> void:
-	var found: PackedInt32Array = find_frame_label_indices(label)
+func add_by_frame_label_indices(anim_name: String, label: String, indices: PackedInt32Array, frame_rate: float = -1.0, looped: bool = true, flip_x: bool = false, flip_y: bool = false, symbol_name: String = "") -> void:
+	var found: PackedInt32Array = find_frame_label_indices(label, symbol_name)
 	if found.is_empty():
 		push_warning("[AdobeAnimateController] add_by_frame_label_indices: label '%s' no encontrado" % label)
 		return
@@ -81,7 +84,7 @@ func add_by_frame_label_indices(anim_name: String, label: String, indices: Packe
 	if usable.is_empty():
 		push_warning("[AdobeAnimateController] add_by_frame_label_indices: label '%s' + indices dan resultado vacio" % label)
 		return
-	_register(anim_name, usable, frame_rate, looped, flip_x, flip_y, "")
+	_register(anim_name, usable, frame_rate, looped, flip_x, flip_y, symbol_name)
 
 
 ## Registra una animacion a partir de TODOS los frames del timeline del
@@ -109,25 +112,58 @@ func add_by_timeline_indices(anim_name: String, indices: PackedInt32Array, frame
 ## (frame.index .. frame.index + frame.duration - 1). Corta al primer layer
 ## que tenga el label (hasFoundLabel + break), para que un label duplicado en
 ## varias capas no sume indices repetidos.
-func find_frame_label_indices(label: String) -> PackedInt32Array:
+## Indices de frame que cubre un label, port de
+## Timeline.findFrameLabelIndices - maru dcaa33c
+## src/animate/internal/Timeline.hx:
+##
+##     for (layer in layers)
+##     {
+##         for (frame in layer.frames)
+##             if (frame.name.rtrim() == label)
+##             {
+##                 hasFoundLabel = true;
+##                 for (i in 0...frame.duration) foundFrames.push(frame.index + i);
+##             }
+##         if (hasFoundLabel) break;
+##     }
+##
+## `symbol_name` es el port del parametro opcional `?timeline` que tienen
+## findFrameLabelIndices / addByFrameLabel / addByFrameLabelIndices en
+## FlxAnimateController.hx:41, 95 y 189. Vacio = el timeline por default, que
+## es `_animate.library.timeline` (FlxAnimateController.hx:getDefaultTimeline)
+## = el simbolo raiz del Animation.json (FlxAnimateFrames.hx:425
+## `frames.timeline = new Timeline(animData.AN.TL, frames, animData.AN.SN)`),
+## o sea stage_symbol. El port no tenia ese parametro, asi que los labels
+## que viven en un simbolo de la libreria y no en el raiz eran inalcanzables.
+##
+## El trim es rtrim sobre el NOMBRE del keyframe, no strip_edges sobre los
+## dos, como hacia el port: un label con espacios adelante matchea en el port
+## viejo y no en el motor.
+func find_frame_label_indices(label: String, symbol_name: String = "") -> PackedInt32Array:
 	var result: PackedInt32Array = PackedInt32Array()
 	var atlas: AnimateAtlas = _sprite.get_atlas()
 	if atlas == null or not (atlas is AdobeAtlas):
 		return result
+
 	var adobe: AdobeAtlas = atlas as AdobeAtlas
-	if adobe.stage_symbol.is_empty() or not adobe.symbols.has(adobe.stage_symbol):
+	var key: StringName = StringName(symbol_name) if not symbol_name.is_empty() else adobe.stage_symbol
+	if key.is_empty() or not adobe.symbols.has(key):
 		return result
-	var stage: AdobeSymbol = adobe.symbols[adobe.stage_symbol]
-	var label_trimmed: String = label.strip_edges()
-	for layer: AdobeLayer in stage.layers:
+
+	var target: AdobeSymbol = adobe.symbols[key]
+	for layer: AdobeLayer in target.layers:
 		var found_in_layer: bool = false
 		for frame: AdobeLayerFrame in layer.frames:
-			if frame.frame_label.strip_edges() == label_trimmed:
-				found_in_layer = true
-				for i in frame.duration:
-					result.append(frame.starting_index + i)
+			if frame.frame_label.rstrip(" \t\n\r") != label:
+				continue
+
+			found_in_layer = true
+			for i in frame.duration:
+				result.append(frame.starting_index + i)
+
 		if found_in_layer:
 			break
+
 	return result
 
 
