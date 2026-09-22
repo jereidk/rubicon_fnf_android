@@ -12,6 +12,17 @@ extends SceneTree
 ## y las capturas de Viewport quedan vacias. Hace falta xvfb-run + un driver de
 ## render real (Mesa software alcanza, confirmado en Etapa 0).
 ##
+## ANTES de correr esto despues de agregar/renombrar archivos con class_name,
+## hay que regenerar el cache de clases globales:
+##   xvfb-run -a <Godot> --rendering-driver opengl3 --path <repo> --import
+## Un run via `-s` NO reescanea el proyecto: usa
+## .godot/global_script_class_cache.cfg tal como esta. Si ese cache es viejo,
+## las clases nuevas del addon (AdobeButtonInstance, AdobeAnimateController,
+## ...) no existen para el parser y los errores salen como si fueran bugs del
+## addon: "Could not find type X in the current scope" en adobe_atlas.gd, y
+## de arrastre "Could not resolve external class member \"anim\"" en
+## animate_symbol.gd - que parece un ciclo de class_name y NO lo es.
+##
 ## Contrato de cada test_*.gd: una clase con `func run(tree: SceneTree) ->
 ## Dictionary`, que devuelve al menos {"name": String, "passed": bool,
 ## "failures": Array[String]}, y opcionalmente {"png": String} si genero una
@@ -58,9 +69,28 @@ func _run_all() -> void:
 	var failed_names: Array[String] = []
 
 	for file_name: String in test_files:
+		# load() devuelve null cuando el .gd no parsea. Antes se le hacia
+		# .new() directo y el error de "llamada a metodo de null" cortaba
+		# _run_all() a mitad - que es una coroutine, asi que nadie llamaba a
+		# quit() y el runner se colgaba hasta el timeout externo (exit 124),
+		# escondiendo el fallo real detras de "se colgo".
+		# Un .gd que no parsea NO devuelve null aca: load() entrega un
+		# GDScript a medio cargar, y recien el .new() falla con
+		# "Nonexistent function 'new' in base 'GDScript'". Ese error cortaba
+		# _run_all() a mitad - que es una coroutine, asi que nadie llamaba a
+		# quit() y el runner se colgaba hasta el timeout externo (exit 124),
+		# escondiendo el fallo real detras de "se colgo". can_instantiate()
+		# es lo que distingue un script sano de uno roto.
 		var script: GDScript = load(TESTS_DIR + file_name)
+		if script == null or not script.can_instantiate():
+			total += 1
+			print("--- %s ---" % file_name)
+			print("FAIL: %s no se pudo cargar (error de parseo?)" % file_name)
+			failed_names.push_back(file_name)
+			continue
+
 		var instance: Object = script.new()
-		if not instance.has_method("run"):
+		if instance == null or not instance.has_method("run"):
 			continue
 
 		total += 1
