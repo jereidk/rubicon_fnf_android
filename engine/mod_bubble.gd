@@ -498,8 +498,12 @@ func _show_confirm(title: String, text: String, ok_label: String, cancel_label: 
 
 	_confirm_root = Control.new()
 	_confirm_root.mouse_filter = Control.MOUSE_FILTER_STOP
-	_confirm_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Mismo caso que _console_root: hijo directo de CanvasLayer, hay que
+	# forzar el size porque el preset no expande nada sin Control padre.
+	_confirm_root.position = Vector2.ZERO
+	_confirm_root.size = _vp_size()
 	add_child(_confirm_root)
+	_dbg("_show_confirm root.size=%s" % _confirm_root.size)
 
 	# Dim de fondo.
 	var dim := ColorRect.new()
@@ -631,8 +635,14 @@ func _open_console() -> void:
 		return
 	_console_root = Control.new()
 	_console_root.mouse_filter = Control.MOUSE_FILTER_STOP
-	_console_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Hijo directo de un CanvasLayer: set_anchors_preset(PRESET_FULL_RECT)
+	# no calcula el rect (no hay Control padre). Forzamos pos+size al
+	# virtual del proyecto, que es el mismo sistema de coords que usa
+	# el FAB y los botones del pill.
+	_console_root.position = Vector2.ZERO
+	_console_root.size = _vp_size()
 	add_child(_console_root)
+	_dbg("_open_console root.size=%s vp=%s" % [_console_root.size, _vp_size()])
 
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.6)
