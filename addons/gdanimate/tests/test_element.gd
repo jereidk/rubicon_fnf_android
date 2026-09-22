@@ -20,6 +20,7 @@ func run(tree: SceneTree) -> Dictionary:
 
 	_test_missing_sprite_keeps_matrix(failures)
 	await _test_missing_sprite_no_crash(tree, failures)
+	await _test_element_visible(tree, failures)
 
 	return {
 		"name": "element: visible + sprite faltante (Element.hx / AtlasInstance.hx)",
@@ -116,3 +117,70 @@ func _make_sprite(color: Color, size: Vector2i) -> AdobeAtlasSprite:
 	sprite.texture = Helpers.make_solid_texture(color, size)
 	sprite.transform = Transform2D.IDENTITY
 	return sprite
+
+
+## Frame.hx:423-426: el loop de dibujo del keyframe saltea todo elemento con
+## visible == false. Antes el port no tenia el campo y dibujaba todo.
+func _test_element_visible(tree: SceneTree, failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	atlas.spritemap[&"rojo"] = _make_sprite(Color(1, 0, 0, 1), Vector2i(60, 60))
+	atlas.spritemap[&"azul"] = _make_sprite(Color(0, 0, 1, 1), Vector2i(60, 60))
+
+	# Los dos sprites en el mismo keyframe, separados para que no se tapen.
+	atlas.symbols[&"root"] = atlas.load_layers(true, [
+		{
+			"LN": "L",
+			"FR": [
+				{
+					"I": 0,
+					"DU": 1,
+					"E": [
+						{"ASI": {"N": "rojo", "MX": [1, 0, 0, 1, 0, 0]}},
+						{"ASI": {"N": "azul", "MX": [1, 0, 0, 1, 100, 0]}},
+					],
+				}
+			],
+		},
+	])
+	atlas.stage_symbol = &"root"
+
+	var elements: Array[AdobeDrawable] = atlas.symbols[&"root"].layers[0].frames[0].elements
+	if elements.size() != 2:
+		failures.push_back("visible: esperaba 2 elementos, hay %d" % elements.size())
+		return
+	for element: AdobeDrawable in elements:
+		if not element.visible:
+			failures.push_back("visible: el default tiene que ser true (Element.hx:29)")
+
+	var root_node: Node2D = Node2D.new()
+	tree.root.add_child(root_node)
+
+	var node: AnimateSymbol = AnimateSymbol.new()
+	node.atlases = [atlas]
+	node.symbol = "root"
+	node.centered = false
+	node.position = Vector2(300, 300)
+	root_node.add_child(node)
+
+	await Helpers.wait_frames(tree, 3)
+
+	var img: Image = tree.root.get_texture().get_image()
+	if not _has_color(img, Color(1, 0, 0, 1)):
+		failures.push_back("visible: con los dos visibles, el rojo no se dibujo")
+	if not _has_color(img, Color(0, 0, 1, 1)):
+		failures.push_back("visible: con los dos visibles, el azul no se dibujo")
+
+	# Apagar el rojo: tiene que desaparecer y el azul quedarse.
+	elements[0].visible = false
+	node.frame_dirty = true
+	node.queue_redraw()
+	await Helpers.wait_frames(tree, 3)
+
+	img = tree.root.get_texture().get_image()
+	if _has_color(img, Color(1, 0, 0, 1)):
+		failures.push_back("visible=false: el rojo se siguio dibujando")
+	if not _has_color(img, Color(0, 0, 1, 1)):
+		failures.push_back("visible=false: el azul (que sigue visible) desaparecio")
+
+	root_node.queue_free()
+	await tree.process_frame

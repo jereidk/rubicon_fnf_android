@@ -350,6 +350,11 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			rendered = true
 			layer_glow = layer_frame.glow
 			for element: AdobeDrawable in layer_frame.elements:
+				# Frame.hx:423-426 (maru dcaa33c): el loop de dibujo del
+				# keyframe saltea todo elemento con visible == false.
+				if not element.visible:
+					continue
+
 				if element is AdobeSymbolInstance:
 					var symbol_frame: int = element.first_frame
 					if element.type == AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
