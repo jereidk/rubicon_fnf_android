@@ -21,6 +21,8 @@ func run(tree: SceneTree) -> Dictionary:
 	_test_missing_sprite_keeps_matrix(failures)
 	await _test_missing_sprite_no_crash(tree, failures)
 	await _test_element_visible(tree, failures)
+	_test_tile_matrix(failures)
+	_test_replace_frame(failures)
 
 	return {
 		"name": "element: visible + sprite faltante (Element.hx / AtlasInstance.hx)",
@@ -184,3 +186,59 @@ func _test_element_visible(tree: SceneTree, failures: Array[String]) -> void:
 
 	root_node.queue_free()
 	await tree.process_frame
+
+
+## tile_matrix es el port de FlxFrame.prepareBlitMatrix(mat, false)
+## (flixel 6.2.0, FlxFrame.hx:184-204), que AtlasInstance cachea en el ctor
+## (AtlasInstance.hx:58). Tiene que dar lo MISMO que la rotacion que antes se
+## armaba inline en draw_atlas_sprite/calculate_bounding_box.
+func _test_tile_matrix(failures: Array[String]) -> void:
+	var plain: AdobeAtlasSprite = _make_sprite(Color.RED, Vector2i(40, 20))
+	if plain.tile_matrix != Transform2D.IDENTITY:
+		failures.push_back("tile_matrix: un sprite sin rotar tiene que dar identidad, dio %s" % plain.tile_matrix)
+
+	var turned: AdobeAtlasSprite = _make_sprite(Color.RED, Vector2i(40, 20))
+	turned.rotated = true
+	# ANGLE_NEG_90: rotateByNegative90() + translate(0, frame.width).
+	var expected: Transform2D = Transform2D(-PI / 2.0, Vector2(0.0, 40))
+	if turned.tile_matrix != expected:
+		failures.push_back("tile_matrix: sprite rotado dio %s, esperaba %s" % [turned.tile_matrix, expected])
+
+	# Y la bounding box tiene que seguir saliendo igual que con la formula
+	# vieja (transform * rotacion aplicado al rect del region).
+	turned.transform = Transform2D(Vector2(2, 0), Vector2(0, 2), Vector2(7, 9))
+	var old_way: Rect2 = (turned.transform * expected) * Rect2(Vector2.ZERO, Vector2(turned.region.size))
+	if turned.bounding_box != old_way:
+		failures.push_back("bounding_box de sprite rotado: dio %s, la formula vieja da %s" % [turned.bounding_box, old_way])
+
+
+## replace_frame, AtlasInstance.hx:70-86.
+func _test_replace_frame(failures: Array[String]) -> void:
+	var sprite: AdobeAtlasSprite = _make_sprite(Color.RED, Vector2i(80, 40))
+	var replacement: AdobeAtlasSprite = _make_sprite(Color(0, 0, 1, 1), Vector2i(40, 20))
+
+	sprite.replace_frame(replacement)
+
+	if sprite.texture != replacement.texture:
+		failures.push_back("replace_frame: no tomo la textura nueva")
+	if sprite.region.size != Vector2i(40, 20):
+		failures.push_back("replace_frame: no tomo la region nueva (%s)" % sprite.region.size)
+	# adjustScale: a = anchoOriginal / anchoNuevo = 80/40 = 2, d = 40/20 = 2.
+	if not is_equal_approx(sprite.tile_matrix.x.x, 2.0) or not is_equal_approx(sprite.tile_matrix.y.y, 2.0):
+		failures.push_back("replace_frame: adjust_scale dio a=%f d=%f, esperaba 2 y 2" % [sprite.tile_matrix.x.x, sprite.tile_matrix.y.y])
+	# Con la escala, el frame nuevo tiene que ocupar lo mismo que el viejo.
+	if sprite.bounding_box.size != Vector2(80, 40):
+		failures.push_back("replace_frame: con adjust_scale la bounding box deberia seguir siendo 80x40, dio %s" % sprite.bounding_box.size)
+
+	# null vuelve al frame original.
+	sprite.replace_frame(null)
+	if sprite.region.size != Vector2i(80, 40):
+		failures.push_back("replace_frame(null): no volvio al frame original (%s)" % sprite.region.size)
+
+	# Sin adjust_scale la tile matrix no se toca.
+	var sprite2: AdobeAtlasSprite = _make_sprite(Color.RED, Vector2i(80, 40))
+	sprite2.replace_frame(replacement, false)
+	if sprite2.tile_matrix != Transform2D.IDENTITY:
+		failures.push_back("replace_frame(adjust_scale=false): la tile matrix se toco igual (%s)" % sprite2.tile_matrix)
+	if sprite2.bounding_box.size != Vector2(40, 20):
+		failures.push_back("replace_frame(adjust_scale=false): la bounding box deberia ser la del frame nuevo, dio %s" % sprite2.bounding_box.size)

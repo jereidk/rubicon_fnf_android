@@ -520,12 +520,10 @@ func draw_atlas_sprite(sprite: AdobeAtlasSprite, parent: RID, t: Transform2D) ->
 	if sprite.texture == null or sprite.region.size.x <= 0 or sprite.region.size.y <= 0:
 		return
 
-	var transform: Transform2D = t * sprite.transform
-	if sprite.rotated:
-		transform *= Transform2D(
-			- PI / 2.0, 
-			Vector2(0.0, sprite.region.size.x)
-		)
+	# AtlasInstance.hx:101-103:
+	#     _mat.copyFrom(tileMatrix); _mat.concat(matrix); _mat.concat(parentMatrix);
+	# En convencion de columnas (Godot) eso es parent * matrix * tile.
+	var transform: Transform2D = t * sprite.transform * sprite.tile_matrix
 
 	RenderingServer.canvas_item_add_set_transform(parent, transform)
 	RenderingServer.canvas_item_add_texture_rect_region(
