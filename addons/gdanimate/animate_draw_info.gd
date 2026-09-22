@@ -25,6 +25,17 @@ var apply_stage_matrix: bool = false
 
 var items: Array[RID]
 
+## Los AdobeButtonInstance que el dibujo encontro, con su last_hitbox ya
+## actualizado. Se llena por referencia, igual que items: AnimateSymbol lo
+## guarda y lo usa para el hit-test de mouse/touch en _process.
+##
+## En el source no hace falta nada de esto porque ButtonInstance.draw()
+## corre en cada frame y actualiza su estado ahi mismo
+## (ButtonInstance.hx:58-69). En Godot _draw() solo corre cuando alguien
+## encola un redraw, asi que el polling de input vive en el nodo y el dibujo
+## solo deja los hitboxes listos.
+var buttons: Array[AdobeButtonInstance] = []
+
 ## The drawing symbol's own backbuffer cache, and whether it may be used.
 ##
 ## Both of these used to live on the AnimateAtlas, which is shared: one atlas

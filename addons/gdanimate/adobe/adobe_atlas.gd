@@ -47,6 +47,10 @@ var render_stage: bool = false
 ## it. Both are per-symbol state and this resource is shared by every symbol
 ## that names it, so they now live on AnimateDrawInfo - see the note there.
 var _backbuffer_scratch: Array[Dictionary] = []
+## Botones encontrados en el dibujo actual, con su hitbox recien calculado.
+## Mismo patron que _backbuffer_scratch: se llena durante draw_symbol() y
+## draw_on() lo entrega al nodo al final.
+var _button_scratch: Array[AdobeButtonInstance] = []
 
 
 func parse() -> void :
@@ -171,6 +175,11 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	if should_apply_stage and stage_transform != Transform2D.IDENTITY:
 		transform *= stage_transform
 
+	# El camino barato reusa los RIDs del dibujo anterior y no vuelve a pasar
+	# por draw_symbol(), asi que tampoco recalcula hitboxes. Como estos quedan
+	# en coordenadas locales del nodo, no se invalidan cuando el nodo se mueve
+	# y el camino barato sigue siendo seguro con botones; lo unico que hay que
+	# hacer es NO vaciar la lista que el nodo ya tiene.
 	if draw_info.use_backbuffer_cache:
 		if Engine.is_editor_hint():
 			draw_info.backbuffer_cache.clear()
@@ -186,6 +195,7 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 		return
 
 	_backbuffer_scratch.clear()
+	_button_scratch.clear()
 
 	# StageBG: rect del color de fondo del "stage" de Adobe Animate.
 	# FlxAnimate tiene renderStage = false por default (FlxAnimate.hx:96)
@@ -230,6 +240,15 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	# the array the symbol passed in rather than replacing the reference, so
 	# the symbol keeps hold of its own cache across draws.
 	draw_info.backbuffer_cache.assign(_backbuffer_scratch)
+
+	# Los hitboxes se calcularon en el espacio del stage_item; `transform` es
+	# lo que lleva ese espacio al del nodo (offset + stage matrix). Aplicarlo
+	# aca, de una sola vez, los deja en coordenadas locales del nodo, que es
+	# donde AnimateSymbol hace el hit-test con get_local_mouse_position().
+	for button: AdobeButtonInstance in _button_scratch:
+		button.last_hitbox = transform * button.last_hitbox
+
+	draw_info.buttons.assign(_button_scratch)
 
 
 ## Lee W/H/BGC del bloque metadata. Acepta tanto la version "optimizada"
@@ -376,6 +395,23 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 					var symbol_frame: int = instance_frame_index(
 						element, symbols[element.key].length, difference)
+
+					# ButtonInstance.hx:73-75, updateButtonState():
+					#     _hitbox = getBounds(0, _hitbox, drawMatrix);
+					# y getBounds (ButtonInstance.hx:45-51) usa el frame HIT del
+					# sub-simbolo, NO el que se esta mostrando. element_bounds()
+					# ya hace esa distincion.
+					#
+					# El hitbox queda en el espacio del stage_item; draw_on() lo
+					# pasa a coordenadas LOCALES del nodo al final del dibujo.
+					# El source lo guarda en espacio de camara, pero aca conviene
+					# local: no se invalida cuando el nodo se mueve, asi que
+					# sobrevive al camino barato del backbuffer cache (que no
+					# vuelve a pasar por aca).
+					if element is AdobeButtonInstance:
+						var button: AdobeButtonInstance = element as AdobeButtonInstance
+						button.last_hitbox = t * element_bounds(element, difference)
+						_button_scratch.push_back(button)
 
 					var next_matrix: AdobeColorMatrix = color_matrix
 					if next_matrix == null:

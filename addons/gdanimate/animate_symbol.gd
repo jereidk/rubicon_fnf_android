@@ -147,6 +147,10 @@ var last_atlases_size: int = 0
 var adobe_atlas_material: ShaderMaterial = null
 var adobe_additive_material: ShaderMaterial = null
 var last_screen_transform: Transform2D = Transform2D()
+
+## Botones del ultimo dibujo, con su hitbox en coordenadas LOCALES de este
+## nodo. Los llena AdobeAtlas.draw_on(); los consume _update_buttons().
+var _buttons: Array[AdobeButtonInstance] = []
 var internal_setting_frame: bool = false
 var frame_dirty: bool = false
 
@@ -261,6 +265,8 @@ func _process(delta: float) -> void:
 
 	if atlas.wants_reload_list():
 		notify_property_list_changed()
+
+	_update_buttons()
 
 	if not playing:
 		return
@@ -386,6 +392,41 @@ static func take_draw_stats() -> Dictionary:
 	_atlas_users.clear()
 	return stats
 
+## Polling de input de los botones del ultimo dibujo.
+##
+## El source hace esto dentro de ButtonInstance.draw() (ButtonInstance.hx:61),
+## o sea una vez por frame, porque en Flixel dibujar es lo que pasa siempre.
+## En Godot _draw() solo corre cuando alguien encola un redraw, asi que el
+## polling vive aca y el dibujo solo deja los hitboxes listos. La decision por
+## boton esta en AdobeButtonInstance.update_state(), que es donde vive en el
+## source; cuando alguno cambia de estado se encola el redraw, que es lo que
+## hace que el boton pase a mostrar el frame UP/OVER/DOWN correcto
+## (ButtonInstance.hx:53-56).
+##
+## Touch: el source tiene una rama #elseif FLX_TOUCH separada
+## (ButtonInstance.hx:96-119) con la misma logica sobre el primer dedo. Aca
+## alcanza con el mouse porque Godot emula mouse desde touch por default
+## (input_devices/pointing/emulate_mouse_from_touch).
+func _update_buttons() -> void:
+	if _buttons.is_empty():
+		return
+
+	var local: Vector2 = get_local_mouse_position()
+	var pressed: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var changed: bool = false
+
+	for button: AdobeButtonInstance in _buttons:
+		if not is_instance_valid(button):
+			continue
+
+		if button.update_state(local, pressed):
+			changed = true
+
+	if changed:
+		frame_dirty = true
+		queue_redraw()
+
+
 func _draw() -> void:
 	var begin_usec: int = Time.get_ticks_usec()
 	var rebuilt: bool = _draw_impl()
@@ -426,6 +467,8 @@ func _draw_impl() -> bool:
 )
 
 	draw_info.screen_transform = get_backbuffer_transform()
+	# Por referencia, igual que items: el atlas la llena durante el dibujo.
+	draw_info.buttons = _buttons
 	draw_info.light_mask = light_mask
 	draw_info.visibility_layer = visibility_layer
 	draw_info.apply_stage_matrix = apply_stage_matrix
