@@ -22,9 +22,12 @@ func run(_tree: SceneTree) -> Dictionary:
 
 	_test_pair_helpers(failures)
 	_test_mixed_keys(failures)
+	_test_matrix_resolve(failures)
+	_test_matrix_3d_bit_exact(failures)
+	_test_matrix_perspective(failures)
 
 	return {
-		"name": "json schema: claves corta/larga se resuelven por campo (FlxAnimateJson.hx)",
+		"name": "json schema: claves corta/larga por campo + MatrixJson.resolve (FlxAnimateJson.hx)",
 		"passed": failures.is_empty(),
 		"failures": failures,
 	}
@@ -145,3 +148,108 @@ func _make_sprite() -> AdobeAtlasSprite:
 	sprite.texture = Helpers.make_solid_texture(Color.RED, Vector2i(4, 4))
 	sprite.transform = Transform2D.IDENTITY
 	return sprite
+
+
+## MatrixJson.resolve, maru/src/animate/FlxAnimateJson.hx:717-747: el orden
+## de fuentes es MX/Matrix -> M3D/Matrix3D -> POS/Position -> identidad.
+func _test_matrix_resolve(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+
+	var only_mx: Transform2D = atlas.resolve_matrix({"MX": [2, 0, 0, 2, 10, 20]})
+	if only_mx.origin != Vector2(10, 20) or only_mx.x.x != 2.0:
+		failures.push_back("resolve_matrix: MX no se leyo (dio %s)" % only_mx)
+
+	var only_long: Transform2D = atlas.resolve_matrix({"Matrix": [2, 0, 0, 2, 10, 20]})
+	if only_long != only_mx:
+		failures.push_back("resolve_matrix: \"Matrix\" (clave larga) dio distinto que \"MX\"")
+
+	# MX gana sobre M3D, igual que el orden del source.
+	var both: Transform2D = atlas.resolve_matrix({
+		"MX": [1, 0, 0, 1, 7, 7],
+		"M3D": [9, 0, 0, 0, 0, 9, 0, 0, 0, 0, 1, 0, 99, 99, 0, 1],
+	})
+	if both.origin != Vector2(7, 7):
+		failures.push_back("resolve_matrix: con MX y M3D presentes tiene que ganar MX, dio origin %s" % both.origin)
+
+	# POS/Position: texture atlas legacy de Adobe Animate 2018. El source
+	# devuelve [1, 0, 0, 1, pos.x, pos.y].
+	var from_pos: Transform2D = atlas.resolve_matrix({"POS": {"x": 33.0, "y": -44.0}})
+	if from_pos != Transform2D(Vector2(1, 0), Vector2(0, 1), Vector2(33, -44)):
+		failures.push_back("resolve_matrix: POS legacy 2018 dio %s, esperaba identidad trasladada a (33, -44)" % from_pos)
+
+	var from_pos_long: Transform2D = atlas.resolve_matrix({"Position": {"x": 33.0, "y": -44.0}})
+	if from_pos_long != from_pos:
+		failures.push_back("resolve_matrix: \"Position\" (clave larga) dio distinto que \"POS\"")
+
+	# Sin ninguna fuente: identidad, no null ni basura.
+	if atlas.resolve_matrix({}) != Transform2D.IDENTITY:
+		failures.push_back("resolve_matrix: un elemento sin matriz tiene que dar identidad")
+
+
+## Requisito de regresion: para un M3D SIN perspectiva el resultado tiene
+## que ser BIT-EXACTO al aplanado viejo (indices 0,1,4,5,12,13). El camino
+## nuevo agrega el chequeo de perspectiva adelante, pero cuando no hay
+## perspectiva no puede mover ni un bit de lo que ya se dibujaba.
+func _test_matrix_3d_bit_exact(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+
+	var cases: Array = [
+		# a=d=1, b=c=0 - el caso pedido explicitamente.
+		[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+		[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 123.5, -67.25, 0, 1],
+		# Escala + rotacion, todavia sin perspectiva.
+		[0.5, 0.25, 0, 0, -0.75, 1.5, 0, 0, 0, 0, 1, 0, -10.125, 8.0625, 0, 1],
+		[2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0, 0.1, 0.2, 5, 1],
+	]
+
+	for m: Array in cases:
+		# La aproximacion vieja, calculada aca mismo para comparar.
+		var old_way: Transform2D = Transform2D(
+			Vector2(m[0], m[1]),
+			Vector2(m[4], m[5]),
+			Vector2(m[12], m[13])
+		)
+		var new_way: Transform2D = atlas.parse_matrix(m)
+		if new_way != old_way:
+			failures.push_back("M3D sin perspectiva %s: el nuevo codigo dio %s, la aproximacion vieja %s (tienen que ser identicos)" % [m, new_way, old_way])
+
+		# La forma objeto (m00..m33) tiene que dar exactamente lo mismo que
+		# la forma array.
+		var as_dict: Dictionary = {}
+		for row: int in 4:
+			for col: int in 4:
+				as_dict["m%d%d" % [row, col]] = m[row * 4 + col]
+		if atlas.parse_matrix(as_dict) != new_way:
+			failures.push_back("M3D %s: la forma objeto m00..m33 dio distinto que la forma array" % m)
+
+
+## from3Dto2D con perspectiva (maru/src/animate/FlxAnimateJson.hx:749-776).
+## Se compara contra el resultado de aplicar la MISMA formula del source a
+## mano, incluido el `/ z` que aplica solo a m[12]/m[13].
+func _test_matrix_perspective(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+
+	# m[3] != 0 -> hay perspectiva.
+	var m: Array = [2.0, 0.0, 0.0, 0.5, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 40.0, 80.0, 0.0, 1.0]
+
+	var expected_points: Array[Vector2] = []
+	for point: Vector2 in [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)]:
+		var z: float = m[3] * point.x + m[7] * point.y + m[15]
+		expected_points.push_back(Vector2(
+			m[0] * point.x + m[4] * point.y + m[12] / z,
+			m[1] * point.x + m[5] * point.y + m[13] / z
+		))
+	var expected: Transform2D = Transform2D(
+		expected_points[1] - expected_points[0],
+		expected_points[2] - expected_points[0],
+		expected_points[0]
+	)
+
+	var got: Transform2D = atlas.parse_matrix(m)
+	if got != expected:
+		failures.push_back("M3D con perspectiva: dio %s, esperaba %s" % [got, expected])
+
+	# Y tiene que ser DISTINTO del aplanado ingenuo, si no el test no prueba nada.
+	var naive: Transform2D = Transform2D(Vector2(m[0], m[1]), Vector2(m[4], m[5]), Vector2(m[12], m[13]))
+	if got == naive:
+		failures.push_back("M3D con perspectiva: el resultado coincide con el aplanado ingenuo - el chequeo de perspectiva no se activo")

@@ -623,10 +623,7 @@ func load_animation() -> void :
 		var stage: Dictionary = get_pair(optimized, anim, "StageInstance", "STI")
 		var instance: Dictionary = get_pair(optimized, stage, "SYMBOL_Instance", "SI")
 
-		if has_pair(optimized, instance, "Matrix", "MX"):
-			stage_transform = parse_matrix(get_pair(optimized, instance, "Matrix", "MX"))
-		else:
-			stage_transform = parse_matrix(get_pair(optimized, instance, "Matrix3D", "M3D"))
+		stage_transform = resolve_matrix(instance)
 	else:
 		stage_transform = Transform2D.IDENTITY
 
@@ -820,10 +817,7 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 	else:
 		symbol_instance.last_frame = -1
 
-	if has_pair(optimized, element, "Matrix", "MX"):
-		symbol_instance.transform = parse_matrix(get_pair(optimized, element, "Matrix", "MX"))
-	else:
-		symbol_instance.transform = parse_matrix(get_pair(optimized, element, "Matrix3D", "M3D"))
+	symbol_instance.transform = resolve_matrix(element)
 
 	if has_pair(optimized, element, "blend", "B"):
 		symbol_instance.blend_mode = get_pair(optimized, element, "blend", "B") as AdobeSymbolInstance.AdobeBlendMode
@@ -889,39 +883,128 @@ func load_atlas_sprite(optimized: bool, element: Dictionary) -> AdobeAtlasSprite
 		return AdobeAtlasSprite.new()
 
 	var sprite: AdobeAtlasSprite = spritemap[key].duplicate()
-	if has_pair(optimized, element, "Matrix", "MX"):
-		sprite.transform = parse_matrix(get_pair(optimized, element, "Matrix", "MX"))
-	else:
-		sprite.transform = parse_matrix(get_pair(optimized, element, "Matrix3D", "M3D"))
+	sprite.transform = resolve_matrix(element)
 	return sprite
+
+
+## Saca la transform de un elemento del JSON (symbol instance, atlas sprite
+## o stage instance), probando las mismas fuentes y en el mismo orden que
+## MatrixJson.resolve - maru/src/animate/FlxAnimateJson.hx:717-747:
+##
+##     var mat2D = input.MX ?? input.Matrix;        -> si esta, esa
+##     var m3d   = input.M3D ?? input.Matrix3D;     -> si esta, from3Dto2D
+##     var pos   = input.POS ?? input.Position;     -> [1,0,0,1,pos.x,pos.y]
+##     return [1, 0, 0, 1, 0, 0];                   -> identidad
+##
+## Los tres call sites del parser resolvian esto a mano y ninguno tenia el
+## tercer paso: POS/Position es como el texture atlas legacy de Adobe
+## Animate 2018 guarda la posicion de un elemento cuando no hay matriz.
+## Sin ese fallback, cada elemento de un atlas 2018 caia en identidad y se
+## amontonaba todo en el origen.
+func resolve_matrix(element: Dictionary) -> Transform2D:
+	var mat_2d: Variant = element.get("MX")
+	if mat_2d == null:
+		mat_2d = element.get("Matrix")
+	if mat_2d != null:
+		return parse_matrix(mat_2d)
+
+	var mat_3d: Variant = element.get("M3D")
+	if mat_3d == null:
+		mat_3d = element.get("Matrix3D")
+	if mat_3d != null:
+		return parse_matrix(mat_3d)
+
+	var pos: Variant = element.get("POS")
+	if pos == null:
+		pos = element.get("Position")
+	if pos is Dictionary:
+		var p: Dictionary = pos
+		return Transform2D(
+			Vector2(1.0, 0.0), 
+			Vector2(0.0, 1.0), 
+			Vector2(float(p.get("x", 0.0)), float(p.get("y", 0.0)))
+		)
+
+	return Transform2D.IDENTITY
 
 
 func parse_matrix(matrix: Variant) -> Transform2D:
 	if matrix == null:
 		return Transform2D.IDENTITY
 
+	# M3D escrito como objeto (m00..m33) en vez de array. Se arma el array
+	# de 16 y se pasa por la MISMA reduccion 3D->2D que la forma array, en
+	# vez de leer solo las 6 celdas utiles: asi el chequeo de perspectiva
+	# (que mira m03/m13/m23/m33) tambien corre para esta forma.
 	if matrix is Dictionary:
-		return Transform2D(
-			Vector2(matrix["m00"], matrix["m01"]), 
-			Vector2(matrix["m10"], matrix["m11"]), 
-			Vector2(matrix["m30"], matrix["m31"])
-		)
+		var d: Dictionary = matrix
+		var flat: Array = []
+		for row: int in 4:
+			for col: int in 4:
+				var key: String = "m%d%d" % [row, col]
+				flat.push_back(float(d.get(key, 1.0 if row == col else 0.0)))
+		return _matrix_3d_to_2d(flat)
 
 	if matrix is not Array:
 		return Transform2D.IDENTITY
 
-	if matrix.size() == 6:
+	var arr: Array = matrix
+	if arr.size() == 6:
 		return Transform2D(
-			Vector2(matrix[0], matrix[1]), 
-			Vector2(matrix[2], matrix[3]), 
-			Vector2(matrix[4], matrix[5])
+			Vector2(arr[0], arr[1]), 
+			Vector2(arr[2], arr[3]), 
+			Vector2(arr[4], arr[5])
 		)
 
-	return Transform2D(
-		Vector2(matrix[0], matrix[1]), 
-		Vector2(matrix[4], matrix[5]), 
-		Vector2(matrix[12], matrix[13])
+	if arr.size() < 16:
+		return Transform2D.IDENTITY
+
+	return _matrix_3d_to_2d(arr)
+
+
+## Port de MatrixJson.from3Dto2D - maru/src/animate/FlxAnimateJson.hx:749-776.
+##
+## El camino comun (sin perspectiva) es el mismo aplanado de siempre: se
+## toman a,b,c,d,tx,ty de los indices 0,1,4,5,12,13 y se tira el resto. El
+## camino con perspectiva - que el port no tenia - se activa cuando
+## m03/m13/m23 no son 0 o m33 no es 1, y en vez de aplanar proyecta tres
+## puntos (0,0) (1,0) (0,1) por la matriz 4x4 y reconstruye la afin 2x3 a
+## partir de las diferencias. Adobe escribe estas matrices cuando el
+## simbolo tiene rotacion 3D en la timeline.
+##
+## OJO con la formula: en el source el `/ z` se aplica SOLO a mat3D[12] y
+## mat3D[13], no al paren entero (`mat3D[0]*x + mat3D[4]*y + mat3D[12]/z`).
+## Leido literal parece un bug de precedencia upstream, pero se portea tal
+## cual: la idea es que gdanimate dibuje lo mismo que flixel-animate, bug
+## incluido. Si upstream lo corrige, aca hay que corregirlo igual.
+func _matrix_3d_to_2d(m: Array) -> Transform2D:
+	var has_perspective: bool = (
+		float(m[3]) != 0.0
+		or float(m[7]) != 0.0
+		or float(m[11]) != 0.0
+		or float(m[15]) != 1.0
 	)
+
+	if not has_perspective:
+		return Transform2D(
+			Vector2(m[0], m[1]), 
+			Vector2(m[4], m[5]), 
+			Vector2(m[12], m[13])
+		)
+
+	var points: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(1.0, 0.0), Vector2(0.0, 1.0)]
+	var transformed: Array[Vector2] = []
+	for point: Vector2 in points:
+		var z: float = float(m[3]) * point.x + float(m[7]) * point.y + float(m[15])
+		transformed.push_back(Vector2(
+			float(m[0]) * point.x + float(m[4]) * point.y + float(m[12]) / z, 
+			float(m[1]) * point.x + float(m[5]) * point.y + float(m[13]) / z
+		))
+
+	var p0: Vector2 = transformed[0]
+	var p1: Vector2 = transformed[1]
+	var p2: Vector2 = transformed[2]
+	return Transform2D(p1 - p0, p2 - p0, p0)
 
 
 ## Resolucion de una clave del Animation.json que Adobe escribe con dos
