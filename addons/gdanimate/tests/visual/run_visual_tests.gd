@@ -25,15 +25,18 @@ extends SceneTree
 ##   xvfb-run -a <Godot> --rendering-driver opengl3 --path <repo> \
 ##     -s res://addons/gdanimate/tests/visual/run_visual_tests.gd
 ##
-## Posicion/escala/symbol por item calcados de
-## holyquintet_mod/ui/main_menu_sprite.gd:ITEM_DATA (mod real, NO se toca -
-## solo se lee para reproducir el mismo setup). offset = stage_transform.origin
-## replica el workaround que ese mismo archivo ya documenta: draw_on() solo
-## aplica stage_transform cuando el symbol NO esta en el diccionario, y estos
-## simbolos raiz SI estan, asi que main_menu_sprite.gd lo compensa a mano en
-## vez de usar apply_stage_matrix (que ademas nunca prende para estos nodos -
-## no hay conflicto con el fix de apply_stage_matrix de la sesion anterior,
-## simplemente no se usa aca).
+## Symbol por item calcado de holyquintet_mod/ui/main_menu_sprite.gd:ITEM_DATA
+## (mod real, NO se toca - solo se lee para reproducir el mismo setup). Las
+## posiciones son las del .hx original y el nodo usa apply_stage_matrix = true,
+## asi que la stage matrix la aplica el addon y no hay que compensarla a mano.
+##
+## OJO AL COMPARAR PNGs BYTE A BYTE: estas capturas NO son deterministas en
+## la franja y = 9..27. Ahi dibuja el overlay de debug del autoload
+## DebugDisplay (FPS/MEM/SCENE/MODS) y el texto cambia de corrida en corrida.
+## Verificado: dos corridas de la MISMA version dan hash distinto en 27 de
+## los 32 PNGs, y las diferencias caen TODAS dentro de esa franja. Cualquier
+## comparacion automatica tiene que saltear esas filas; si no, da 27 falsos
+## positivos y no sirve como regresion.
 
 const ASSET_ROOT := "res://.test_assets/hq_menu/"
 const OUTPUT_DIR := "res://addons/gdanimate/tests/visual/output/"

@@ -8,7 +8,137 @@ verificado, que esta roto, y que esta documentado como "no aplica" con su razon.
 **No se toco** `addons/gdanimate/sparrow/` (otro formato, para ButtonUI) ni
 `addons/gdanimate/parser/` (ver seccion "parser/ es codigo muerto" abajo).
 
-## Fuente de verdad: CORRECCION IMPORTANTE
+## Fuente de verdad ACTUAL: `MaybeMaru/flixel-animate` @ `dcaa33c`
+
+**Esta es la referencia vigente y manda sobre todo lo que sigue.** Por decision
+del usuario, gdanimate se fideliza contra el HEAD de `MaybeMaru/flixel-animate`,
+commit `dcaa33ca8845f23d7c4c441025cecaacc91b0eff` ("Absolute paths fix",
+2026-08-26), clonado en `/root/refs/flixel-animate-maru`. 23 archivos `.hx`,
+6.695 lineas.
+
+```bash
+git clone https://github.com/MaybeMaru/flixel-animate.git /root/refs/flixel-animate-maru
+git -C /root/refs/flixel-animate-maru checkout dcaa33ca8845f23d7c4c441025cecaacc91b0eff
+```
+
+Sobre `cne-flixel-animate` (la referencia anterior, ver la seccion siguiente):
+comparando los HEADs reales de los dos repos, **cne es maru + hooks de Codename,
+no un superset de features**. Una conclusion anterior de esta auditoria decia que
+cne era el mas completo; eso era un artefacto de comparar contra un ref viejo de
+maru (febrero) en vez de contra su HEAD, y esta **corregido**.
+
+Las citas `archivo:linea` de las secciones viejas apuntan a `cne-flixel-animate`
+y siguen siendo validas donde el codigo coincide, pero **no estan re-verificadas
+contra maru salvo donde se diga explicitamente**. Todo lo escrito a partir del
+pase file-by-file (F1 en adelante) cita maru `dcaa33c`.
+
+### Pase file-by-file contra maru (F1..F13)
+
+Orden acordado: archivo por archivo, logica por logica.
+
+| # | Archivo Haxe (maru) | Destino en el port | Estado |
+|---|---|---|---|
+| F1 | `FlxAnimateJson.hx` (810) | `adobe_atlas.gd`, `adobe_color_matrix.gd` | **hecho** (ver abajo) |
+| F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | pendiente |
+| F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd` | pendiente |
+| F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd` | pendiente (falta input) |
+| F5 | `Frame.hx` (448) | `adobe_layer_frame.gd` | pendiente |
+| F6 | `Layer.hx` (262) | `adobe_layer.gd` | pendiente |
+| F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | pendiente |
+| F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | pendiente |
+| F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | pendiente |
+| F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | pendiente |
+| F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
+| F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
+| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F1 — `FlxAnimateJson.hx`: divergencias encontradas y que se hizo
+
+**Arreglado en este pase:**
+
+1. **Resolucion de claves por campo.** maru no tiene un "modo optimizado"
+   global: cada getter hace `this.<corta> ?? this.<larga>`
+   (`FlxAnimateJson.hx:129-130` y ~90 mas). El port elegia el esquema una vez
+   (`optimized = data.has("AN")`) y miraba una sola clave, asi que un
+   `Animation.json` de claves mezcladas (raiz optimizado + `LIBRARY/*.json`
+   en formato largo, que Adobe si produce) perdia campos en silencio.
+   `AdobeColorMatrix.parse` tenia el mismo problema (`ColorJson`,
+   `FlxAnimateJson.hx:646-700`). Los parametros `optimized` quedan por
+   compatibilidad de firma pero ya no deciden nada.
+
+2. **`MatrixJson.resolve` completo** (`FlxAnimateJson.hx:717-747`). Nuevo
+   `AdobeAtlas.resolve_matrix()`, usado por los tres call sites. Agrega el
+   fallback `POS`/`Position` del texture atlas legacy de Adobe Animate 2018
+   (`[1,0,0,1,pos.x,pos.y]`), que no existia: sin el, cada elemento de un
+   atlas 2018 caia en identidad y se amontonaba en el origen.
+
+3. **`from3Dto2D` con la rama de perspectiva** (`FlxAnimateJson.hx:749-776`).
+   Se activa cuando `m03`/`m13`/`m23` != 0 o `m33` != 1 — Adobe lo escribe con
+   rotacion 3D en la timeline. La formula se porteo literal, incluido que el
+   `/ z` aplica solo a `m[12]`/`m[13]` y no al parentesis entero (parece un bug
+   de precedencia upstream; se replica igual, el objetivo es dibujar lo mismo).
+   La forma objeto del M3D (`m00..m33`) ahora pasa por la misma reduccion que
+   la forma array, asi el chequeo de perspectiva tambien corre para ella.
+
+4. **Despacho de elementos SI/ASI/TFI** (`Frame.hx:216-249`). Era un if/else
+   binario y todo lo que no fuera `SI` caia en `load_atlas_sprite`; un `TFI`
+   reventaba ahi. Ahora se prueba SI -> ASI -> TFI (salteado, F12) -> nada.
+   Ademas `E` puede faltar entero y el source lo chequea; antes se iteraba null.
+
+5. **Blend legacy desde el nombre de instancia** (`SymbolInstanceJson.get_B`,
+   `FlxAnimateJson.hx:222-240`). Si no hay `B`/`blend`, el blend viene
+   codificado en `IN` como `"_bl<N>_..."`. **Esto cambia el render de assets
+   reales**: `anim_accolades` y `anim_gauntlet` del mod holyquintet tienen
+   131 y 150 instancias `_bl0_ACCOLADE_LIGHT` (indice 0 = ADD) y ningun `"B"`,
+   o sea que hasta ahora se dibujaban en NORMAL y ahora van en aditivo — que es
+   lo que hace flixel-animate. **Requiere verificacion visual en device.**
+
+6. **`MetadataJson` null-safe** (`FlxAnimateJson.hx:625-644`): el bloque
+   metadata inline puede faltar; antes framerate quedaba en null.
+
+**Detectado y NO arreglado todavia (queda para el archivo que lo consume):**
+
+| Gap | Source | Donde se resuelve |
+|---|---|---|
+| `FrameJson.B` — blend a nivel keyframe (`this.B ?? this.blend`) | `FlxAnimateJson.hx:135-138`, `Frame.hx:214` | F5 (`Frame.hx`): necesita campo en `AdobeLayerFrame` + plumbing de render |
+| `FrameJson.SND` — sonido por keyframe (`N`/`SNC`/`LP`/`RP`) | `FlxAnimateJson.hx:145-165`, `Frame.hx:251+` | F5; el port no tiene subsistema de audio por timeline |
+| `SymbolInstanceJson.BM` — bitmap legacy 2018 embebido en la instancia | `FlxAnimateJson.hx:201`, `FlxAnimateFrames.hx:157-175` | F8: se resuelve en `getSymbol(name, atlasInstance)`, que arma un SymbolItem de un solo frame |
+| Fallback de nombre "shortcut" para simbolos en carpeta (`a/b/c` -> `c`) | `FlxAnimateFrames.hx:117-123` | F8 |
+| `MetadataJson.V` / `FLV` (version del exporter) | `FlxAnimateJson.hx:637-641` | F8; maru los lee pero el port no ramifica por version todavia |
+| `FilterJson` completo (BLF/ACF/DSF/GF/BF/GBF/GGF + `resolve()` de la forma objeto) | `FlxAnimateJson.hx:259-459` | F13 |
+| `TextFieldInstanceJson` + `TextFieldAttributesJson` | `FlxAnimateJson.hx:487-600` | F12 |
+
+### Correccion: el "ciclo de class_name" NO existe
+
+Una nota anterior de esta auditoria reportaba un bug de GDScript: el par
+`AnimateSymbol.anim: AdobeAnimateController` + `AdobeAnimateController._sprite:
+AnimateSymbol` supuestamente causaba
+`Parse Error: Could not resolve external class member "anim"` en cualquier
+script externo, dejando la Etapa 4 inusable.
+
+**Eso era falso.** La causa real era `.godot/global_script_class_cache.cfg`
+desactualizado: un run via `-s` NO reescanea el proyecto, usa ese cache tal
+como esta, y ahi faltaban las clases nuevas del addon. Los sintomas eran
+"Could not find type AdobeButtonInstance in the current scope" en
+`adobe_atlas.gd` y, de arrastre, el error de `anim`. Despues de correr
+`--import` una vez, el codigo original (con los dos tipos declarados) parsea
+y corre perfecto. No hay que romper ningun tipo.
+
+**OJO**: `--import` reescribe `project.godot` y le borra secciones (incluido
+`_global_script_classes` y los comentarios de rendering). Hay que restaurarlo
+con `git checkout -- project.godot` despues; el cache regenerado vive en
+`.godot/` y sobrevive.
+
+### Las capturas golden-image NO son deterministas
+
+Dos corridas de la MISMA version dan hash distinto en 27 de los 32 PNGs. Las
+diferencias caen **todas** en la franja `y = 9..27`, donde el autoload
+`DebugDisplay` dibuja FPS/MEM/SCENE/MODS. Cualquier comparacion automatica
+tiene que saltear esas filas o da 27 falsos positivos. Con ese filtro, el pase
+F1 cambio exactamente 3 imagenes (accolades f90/f179, gauntlet f90), todas por
+el blend `_bl0` del punto 5.
+
+## Fuente de verdad ANTERIOR (historico): CORRECCION IMPORTANTE
 
 La tarea original asumia que el mod usa `Dot-Stuff/flxanimate` (el addon "FlxAnimate"
 publico de Haxe). **Eso es incorrecto.** Verificado en dos capas:
