@@ -507,6 +507,14 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 
 func draw_atlas_sprite(sprite: AdobeAtlasSprite, parent: RID, t: Transform2D) -> void :
+	# AtlasInstance.hx:98-99: `if (frame == null || frame.frame == null)
+	# return;`. El equivalente del port: el sprite no tiene textura (nombre
+	# que no esta en el spritemap) o su region es de area cero. Sin esto,
+	# sprite.texture.get_rid() reventaba con "Cannot call method 'get_rid'
+	# on a null value" en cada frame, por cada elemento roto.
+	if sprite.texture == null or sprite.region.size.x <= 0 or sprite.region.size.y <= 0:
+		return
+
 	var transform: Transform2D = t * sprite.transform
 	if sprite.rotated:
 		transform *= Transform2D(
@@ -922,10 +930,22 @@ func load_atlas_sprite(optimized: bool, element: Dictionary) -> AdobeAtlasSprite
 
 	var key_raw: String = get_pair(optimized, element, "name", "N")
 	var key: StringName = StringName(key_raw)
-	if not spritemap.has(key):
-		return AdobeAtlasSprite.new()
 
-	var sprite: AdobeAtlasSprite = spritemap[key].duplicate()
+	# AtlasInstance.hx:43-48 (maru dcaa33c):
+	#     this.frame = parent.getByName(data.N);
+	#     this.sourceFrame = this.frame;
+	#     this.matrix = data.MX.toMatrix();
+	# getByName devuelve null si el sprite no esta, pero la MATRIZ se asigna
+	# igual - el elemento existe, solo que sin frame que dibujar (draw() lo
+	# saltea, AtlasInstance.hx:98-99). El port devolvia un AdobeAtlasSprite
+	# recien creado y perdia la matriz, asi que si alguna vez ese sprite se
+	# llena a mano (replace_frame) aparecia en el origen.
+	var sprite: AdobeAtlasSprite
+	if spritemap.has(key):
+		sprite = spritemap[key].duplicate()
+	else:
+		sprite = AdobeAtlasSprite.new()
+
 	sprite.transform = resolve_matrix(element)
 	return sprite
 
