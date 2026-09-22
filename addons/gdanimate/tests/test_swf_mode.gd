@@ -103,20 +103,8 @@ func run(tree: SceneTree) -> Dictionary:
 		# calculado a mano), asi que busco el primer pixel que matchee
 		# CUALQUIERA de los 4 colores de paleta, salteando la franja de
 		# arriba donde dibuja el overlay de debug (FPS/MEM/SCENE/MODS).
-		var found_color: Color = Color(-1, -1, -1, -1)
-		var found_pos: Vector2i = Vector2i(-1, -1)
-		for y in range(80, img.get_height()):
-			for x in range(0, img.get_width()):
-				var p: Color = img.get_pixel(x, y)
-				for c in colors:
-					if p.is_equal_approx(c):
-						found_color = p
-						found_pos = Vector2i(x, y)
-						break
-				if found_pos.x != -1:
-					break
-			if found_pos.x != -1:
-				break
+		var found_color: Color = _find_palette_color(img, colors)
+		var found_pos: Vector2i = Vector2i(0, 0) if found_color.r >= 0.0 else Vector2i(-1, -1)
 
 		if found_pos.x == -1:
 			failures.push_back("difference=%d: no encontre ningun pixel de la paleta de colores en el viewport (%s)" % [difference, img.get_size()])
@@ -127,6 +115,32 @@ func run(tree: SceneTree) -> Dictionary:
 					found_color, found_pos.x, found_pos.y,
 				]
 			)
+
+	# --- movie_clips_play = false: MovieClip congelado en el frame 0 ---
+	# MovieClipInstance.hx:220-223: getFrameIndex devuelve literal 0 cuando
+	# swfMode esta apagado, NO first_frame. La ventana FF=1/LF=2 de este
+	# MovieClip tiene que quedar completamente ignorada y mostrarse siempre
+	# el frame 0 del sub-simbolo (RED), no el 1 (GREEN).
+	atlas.movie_clips_play = false
+	for difference in 4:
+		symbol_node.frame = difference
+		symbol_node.frame_dirty = true
+		symbol_node.queue_redraw()
+		await Helpers.wait_frames(tree, 2)
+
+		var frozen_img: Image = tree.root.get_texture().get_image()
+		var frozen: Color = _find_palette_color(frozen_img, colors)
+		if frozen.r < 0.0:
+			failures.push_back("movie_clips_play=false, difference=%d: no encontre ningun pixel de la paleta" % difference)
+		elif not frozen.is_equal_approx(Color.RED):
+			failures.push_back(
+				"movie_clips_play=false, difference=%d: esperaba RED (frame 0 del sub-simbolo), encontre %s" % [difference, frozen]
+			)
+
+	atlas.movie_clips_play = true
+	symbol_node.frame_dirty = true
+	symbol_node.queue_redraw()
+	await Helpers.wait_frames(tree, 2)
 
 	var png: String = Helpers.capture_png(tree, "swf_mode.png")
 
@@ -156,3 +170,18 @@ func _frame_with_sprite(sprite_name: String, index: int, duration: int) -> Dicti
 		"DU": duration,
 		"E": [{"ASI": {"N": sprite_name, "MX": [1, 0, 0, 1, 0, 0]}}],
 	}
+
+
+## Busca el primer pixel que matchee CUALQUIERA de los colores de la paleta,
+## salteando la franja de arriba donde el autoload DebugDisplay dibuja el
+## overlay (FPS/MEM/SCENE/MODS). Devuelve un color con r < 0 si no encontro
+## ninguno. No se asumen coordenadas exactas: el viewport puede tener su
+## propio stretch transform.
+func _find_palette_color(img: Image, colors: Array[Color]) -> Color:
+	for y in range(80, img.get_height()):
+		for x in range(0, img.get_width()):
+			var p: Color = img.get_pixel(x, y)
+			for c: Color in colors:
+				if p.is_equal_approx(c):
+					return p
+	return Color(-1, -1, -1, -1)

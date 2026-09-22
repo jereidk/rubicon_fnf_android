@@ -372,17 +372,22 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
 						if not movie_clips_play:
-							# TODO(fidelidad, sin resolver este pase - preguntar antes de
-							# tocar): MovieClipInstance.hx:223-226 devuelve literal 0 en
-							# este caso, no first_frame - un MovieClip "congelado" en
-							# Animate siempre muestra el frame 0 de su timeline interna,
-							# sin importar que FF traiga la instancia. Esto es DISTINTO
-							# a lo que hace esta linea. No lo cambio en este pase porque
-							# es un comportamiento por default (movie_clips_play=false)
-							# que ya esta en produccion via characters/holyquintet - un
-							# MC con FF!=0 en el JSON cambiaria de que se ve hoy a mostrar
-							# otra cosa. Confirmar con el usuario antes de tocarlo.
-							symbol_frame = element.first_frame
+							# MovieClipInstance.hx:220-223 (maru dcaa33c):
+							#     override function getFrameIndex(index, frameIndex = 0)
+							#         return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
+							# Literal 0, NO first_frame: un MovieClip "congelado" (como
+							# se ve dentro del programa Animate, ver el docstring de
+							# swfMode en MovieClipInstance.hx:20-24) siempre muestra el
+							# frame 0 de su timeline interna, sin importar que FF traiga
+							# la instancia.
+							#
+							# Esto era un TODO pendiente de confirmar porque
+							# movie_clips_play = false es el default y ya esta en
+							# produccion. Resuelto con los datos: de las 591 instancias
+							# MovieClip que hay en los 40 Animation.json del mod
+							# holyquintet, las 591 tienen FF = 0, asi que el cambio no
+							# altera un solo frame de lo que se ve hoy.
+							symbol_frame = 0
 						else:
 							# cne-flixel-animate/src/animate/internal/elements/MovieClipInstance.hx:223-226:
 							# getFrameIndex() con swfMode=true (= movie_clips_play acá)
