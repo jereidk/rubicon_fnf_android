@@ -40,7 +40,7 @@ Orden acordado: archivo por archivo, logica por logica.
 |---|---|---|---|
 | F1 | `FlxAnimateJson.hx` (810) | `adobe_atlas.gd`, `adobe_color_matrix.gd` | **hecho** (ver abajo) |
 | F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | **hecho** (ver abajo) |
-| F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd` | pendiente |
+| F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd`, `adobe_atlas.gd` | **hecho** (ver abajo) |
 | F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd` | pendiente (falta input) |
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd` | pendiente |
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | pendiente |
@@ -161,6 +161,79 @@ Orden acordado: archivo por archivo, logica por logica.
 | `parentFrame` + `setDirty()` — el elemento avisa a su keyframe que se ensucio | `Element.hx:21`, `AtlasInstance.hx:84-85` | F5 (`Frame.hx`). Hoy `replace_frame` obliga al consumidor a marcar `frame_dirty` + `queue_redraw` a mano |
 | `BakedInstance` + `Blend.resolve(this.blend, blend)` | `AtlasInstance.hx:233-244` | F5/F11: es parte del sistema de baking de keyframes, que el port no tiene |
 | `getBounds(includeFilters, useCachedBounds)` — los dos flags se ignoran | `AtlasInstance.hx:168` | F7 (bounds cacheados) y F13 (bounds con filtros) |
+
+### F3 — `SymbolInstance.hx` + `MovieClipInstance.hx`: divergencias y que se hizo
+
+**Arreglado en este pase:**
+
+1. **`getFrameIndex` transcrito literal** (`SymbolInstance.hx:100-140`).
+   `symbol_instance_frame()` era una reimplementacion a mano, equivalente en
+   5 de los 6 casos pero distinta en el sexto: **LOOP con `FF > 0` y sin
+   `LF`**. El source hace `FlxMath.wrap(frameIndex, 0, lastIndex)`, o sea que
+   al pasarse del final vuelve al frame **0** del sub-simbolo; la version
+   vieja envolvia dentro de `[FF, final]` y volvia a `FF`. Con `FF=7` en un
+   simbolo de 10 frames: source `7,8,9,0,1,2,...`, viejo `7,8,9,7,8,9`.
+   Se agrega `_flx_wrap()`, port de `FlxMath.wrap` (max **inclusivo**, al
+   reves que `wrapi()` de Godot).
+
+2. **MovieClip congelado = frame 0** (`MovieClipInstance.hx:220-223`:
+   `return swfMode ? super.getFrameIndex(...) : 0;`). Literal 0, **no**
+   `firstFrame`. Era un TODO pendiente de confirmar; resuelto con datos (ver
+   la medicion abajo).
+
+3. **Instancia a un simbolo inexistente** (`SymbolInstance.hx:57-58`:
+   `if (libraryItem == null) visible = false;`). El port iba directo a
+   `symbols[element.key]` y el error de acceso a Dictionary **abortaba la
+   funcion**: un solo nombre roto dejaba de dibujar el resto del keyframe y
+   del layer. El chequeo va en el loop de dibujo, no en el parseo, porque
+   `load_symbols()` carga de a uno y los simbolos posteriores todavia no
+   estan en el diccionario.
+
+4. **Alpha 0 saltea el subarbol entero** (`SymbolInstance.hx:190-211`:
+   `if (transform.alphaMultiplier <= 0) return;`, dentro del `if (isColored)`).
+   Mismo resultado en pantalla, pero evita crear los `canvas_item` del
+   subarbol y que un subarbol invisible agrande el `screen_rect` del
+   backbuffer.
+
+5. **Precedencia de blend anidado, estaba invertida**
+   (`SymbolInstance.hx:213` → `Blend.resolve`). El source se queda con el
+   blend **propio** salvo que sea NORMAL; el port se quedaba con el
+   **heredado** salvo que el heredado fuera NORMAL. Una instancia MULTIPLY
+   dentro de una SCREEN se dibujaba SCREEN. Extraido a `resolve_blend()`
+   para que sea una funcion sola como en el source.
+
+**Cuanto de esto cambia lo que se ve** (medido sobre los 40 `Animation.json`
+del mod, branch `origin/holyquintet-port`):
+
+| Cambio | Instancias que lo tocan | Que cambia de verdad |
+|---|---|---|
+| `getFrameIndex` LOOP sin LF | 5736, en 24 archivos (sayaka-base 1873, kyoko-base 700, madoka-base 602, gf-base 601) | **9**, todas en `characters/kyubey-small`: solo se nota cuando la duracion del keyframe supera la cola que queda desde FF hasta el final del sub-simbolo. Conteo de primer nivel, no sigue anidamiento: es piso, no techo |
+| MovieClip congelado → 0 | 591 instancias MC | **0**: las 591 tienen `FF = 0` |
+| Blend anidado | — | **0**: el unico blend del mod es el ADD legacy de accolades/gauntlet, sin anidar |
+| Simbolo inexistente, alpha 0 | — | **0** en los assets actuales; son guards |
+
+Las 32 capturas golden-image salen identicas fuera de la franja del overlay
+despues de los cinco cambios.
+
+**Verificado equivalente, sin cambio de codigo:**
+
+| Item del source | Por que ya esta bien |
+|---|---|
+| El `switch (color.M)` de `SymbolInstance.hx:60-80` (AD / CA / CBRT / T) | `AdobeColorMatrix.parse` hace lo mismo. El source trabaja los offsets en 0-255 (`ColorTransform` de OpenFL) y el port en 0-1, con el `/255` en AD y los valores ya normalizados en CBRT y Tint. Ademas el source **asigna** el transform y el port hace `*=` desde una identidad, que es lo mismo |
+| `LoopType` (LOOP / PLAY_ONCE / SINGLE_FRAME, `SymbolInstance.hx:267-281`) | `AdobeSymbolLoopMode` tiene los mismos tres, y el parseo (`:47-52`) ya estaba porteado |
+| `swfMode` sale de `parent._settings.swfMode` (`MovieClipInstance.hx:44`) | En el port es `AdobeAtlas.movie_clips_play`, un `@export` del atlas. Mismo alcance: por atlas, no por instancia |
+| `transformationPoint` / `TRP` (`SymbolInstance.hx:54-55`) | maru lo parsea y lo guarda pero **nunca lo lee** para dibujar (las unicas otras menciones son `FlxAnimateJson.hx:216` y `SymbolItem.hx:64`, que solo lo inicializa). Dato muerto; no se portea |
+| `destroy()`, `toString()`, los `toXInstance()` casts | Refcounting de Godot / despacho por clase |
+
+**Detectado y NO arreglado todavia:**
+
+| Gap | Source | Donde se resuelve |
+|---|---|---|
+| `isSimpleSymbol()` — marca un simbolo de un solo frame para el baking | `SymbolInstance.hx:146-159`, usado por `Frame.hx:317` | F5 |
+| `getBounds` con el re-resolve de `libraryItem` ("patch-on fix for a really weird fucking bug") | `SymbolInstance.hx:163-185` | F7 |
+| `Frame.__isDirtyCall → NORMAL` en `Blend.resolve` | `Blend.hx` | F5 (sistema de baking) |
+| Filtros y baking del MovieClip: `setFilters`, `setDirty`, `_bakeFilters`, `_bakedFrames`, `_filterQuality`, `expandFilterBounds` | `MovieClipInstance.hx:27-32, 91-178, 192-206` | F13 |
+| `cacheOnLoad` (bakear todos los frames al cargar) | `MovieClipInstance.hx:40-47, 77-82` | F8 / F13 |
 
 ### Correccion: el "ciclo de class_name" NO existe
 
