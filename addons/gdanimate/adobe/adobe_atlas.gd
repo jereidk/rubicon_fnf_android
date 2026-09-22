@@ -723,12 +723,30 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	if raw_label != null:
 		gd_frame.frame_label = String(raw_label)
 
-	var elements: Array = get_pair(optimized, frame, "elements", "E")
-	for element: Dictionary in elements:
-		if element.has("SYMBOL_Instance") or element.has("SI"):
-			gd_frame.elements.push_back(load_symbol_instance(optimized, element))
-		else:
-			gd_frame.elements.push_back(load_atlas_sprite(optimized, element))
+	# Despacho de elementos, port de Frame.hx:216-249 (maru dcaa33c): se
+	# prueba SI, despues ASI, despues TFI, y si no es ninguno el elemento se
+	# IGNORA (el source no hace push de nada en ese caso).
+	#
+	# Antes el else caia siempre en load_atlas_sprite, asi que un elemento
+	# TFI (campo de texto) o cualquier tipo futuro entraba ahi con
+	# get_pair() devolviendo null y reventaba al reasignar `element`.
+	#
+	# El `E` puede faltar directamente: el source lo chequea (`var e =
+	# frame.E; if (e != null)`) antes de iterar. Un keyframe vacio - comun
+	# en capas guia o en huecos de la timeline - no trae la key.
+	var elements: Variant = get_pair(optimized, frame, "elements", "E")
+	if elements is Array:
+		for element: Dictionary in elements:
+			if has_pair(optimized, element, "SYMBOL_Instance", "SI"):
+				gd_frame.elements.push_back(load_symbol_instance(optimized, element))
+			elif has_pair(optimized, element, "ATLAS_SPRITE_instance", "ASI"):
+				gd_frame.elements.push_back(load_atlas_sprite(optimized, element))
+			elif has_pair(optimized, element, "textFIELD_Instance", "TFI"):
+				# TextFieldInstance no esta porteado todavia (F12 del plan de
+				# fidelidad). El source crea uno aca; el port lo saltea en vez
+				# de dibujar basura. Sin warning a proposito: seria uno por
+				# elemento y por frame.
+				pass
 
 	return gd_frame
 

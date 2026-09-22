@@ -25,6 +25,7 @@ func run(_tree: SceneTree) -> Dictionary:
 	_test_matrix_resolve(failures)
 	_test_matrix_3d_bit_exact(failures)
 	_test_matrix_perspective(failures)
+	_test_element_dispatch(failures)
 
 	return {
 		"name": "json schema: claves corta/larga por campo + MatrixJson.resolve (FlxAnimateJson.hx)",
@@ -253,3 +254,59 @@ func _test_matrix_perspective(failures: Array[String]) -> void:
 	var naive: Transform2D = Transform2D(Vector2(m[0], m[1]), Vector2(m[4], m[5]), Vector2(m[12], m[13]))
 	if got == naive:
 		failures.push_back("M3D con perspectiva: el resultado coincide con el aplanado ingenuo - el chequeo de perspectiva no se activo")
+
+
+## Despacho de elementos de un keyframe, Frame.hx:216-249 (maru dcaa33c):
+## SI -> symbol instance, si no ASI -> atlas sprite, si no TFI -> text field
+## (no porteado, se saltea), si no NADA. Y `E` puede faltar entero.
+func _test_element_dispatch(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	atlas.spritemap[&"pixel"] = _make_sprite()
+	atlas.symbols[&"sub"] = atlas.load_layers(true, [
+		{"LN": "L", "FR": [{"I": 0, "DU": 1, "E": [{"ASI": {"N": "pixel", "MX": [1, 0, 0, 1, 0, 0]}}]}]},
+	])
+
+	var sym: AdobeSymbol = atlas.load_layers(true, [
+		{
+			"LN": "Mixto",
+			"FR": [
+				{
+					"I": 0,
+					"DU": 1,
+					"E": [
+						{"SI": {"SN": "sub", "ST": "G", "MX": [1, 0, 0, 1, 1, 1]}},
+						{"ASI": {"N": "pixel", "MX": [1, 0, 0, 1, 2, 2]}},
+						# TFI: el source crea un TextFieldInstance, el port lo
+						# saltea. Lo que NO puede pasar es que caiga en
+						# load_atlas_sprite (antes reventaba ahi).
+						{"TFI": {"TXT": "hola", "MX": [1, 0, 0, 1, 3, 3]}},
+						# Tipo desconocido: el source no hace push de nada.
+						{"XX": {"lo que sea": 1}},
+					],
+				},
+				# Keyframe sin "E": el source chequea null antes de iterar.
+				{"I": 1, "DU": 1},
+			],
+		},
+	])
+
+	if sym.layers.size() != 1:
+		failures.push_back("dispatch: esperaba 1 capa, hay %d" % sym.layers.size())
+		return
+
+	var frames: Array[AdobeLayerFrame] = sym.layers[0].frames
+	if frames.size() != 2:
+		failures.push_back("dispatch: esperaba 2 keyframes, hay %d" % frames.size())
+		return
+
+	var els: Array[AdobeDrawable] = frames[0].elements
+	if els.size() != 2:
+		failures.push_back("dispatch: esperaba 2 elementos utiles (SI + ASI), hay %d - TFI o el tipo desconocido se colaron" % els.size())
+	else:
+		if els[0] is not AdobeSymbolInstance:
+			failures.push_back("dispatch: el primer elemento (SI) no salio como AdobeSymbolInstance")
+		if els[1] is not AdobeAtlasSprite:
+			failures.push_back("dispatch: el segundo elemento (ASI) no salio como AdobeAtlasSprite")
+
+	if not frames[1].elements.is_empty():
+		failures.push_back("dispatch: un keyframe sin \"E\" tiene que quedar sin elementos, tiene %d" % frames[1].elements.size())
