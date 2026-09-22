@@ -599,8 +599,14 @@ func load_animation() -> void :
 		framerate = meta.get("framerate", meta.get("FRT", 24))
 		_parse_stage_metadata(meta)
 	else:
-		var meta: Dictionary = get_pair(optimized, data, "metadata", "MD")
-		framerate = get_pair(optimized, meta, "framerate", "FRT")
+		# MetadataJson, FlxAnimateJson.hx:625-644. El bloque puede faltar
+		# entero (atlas sin metadata inline y sin metadata.json); antes eso
+		# dejaba `meta` en null y framerate tomaba null. El default de 24 es
+		# el mismo que ya usa la rama de metadata.json de arriba.
+		var raw_meta: Variant = get_pair(optimized, data, "metadata", "MD")
+		var meta: Dictionary = raw_meta if raw_meta is Dictionary else {}
+		var raw_framerate: Variant = get_pair(optimized, meta, "framerate", "FRT")
+		framerate = float(raw_framerate) if raw_framerate != null else 24.0
 		_parse_stage_metadata(meta)
 
 	if has_pair(optimized, data, "SYMBOL_DICTIONARY", "SD"):
@@ -837,8 +843,27 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 
 	symbol_instance.transform = resolve_matrix(element)
 
+	# Blend de la instancia, port de SymbolInstanceJson.get_B -
+	# maru/src/animate/FlxAnimateJson.hx:222-240. Primero B/blend (lo que
+	# escribe BetterTextureAtlas); si no esta, el metodo LEGACY: el blend
+	# venia codificado en el NOMBRE de instancia (IN), como "algo_bl9_loque"
+	# -> indice 9. Ese fallback no estaba porteado, asi que cualquier atlas
+	# viejo exportado con esa convencion se dibujaba en NORMAL.
 	if has_pair(optimized, element, "blend", "B"):
 		symbol_instance.blend_mode = get_pair(optimized, element, "blend", "B") as AdobeSymbolInstance.AdobeBlendMode
+	else:
+		var instance_name: Variant = element.get("IN")
+		if instance_name is String:
+			var raw_name: String = instance_name
+			if not raw_name.is_empty() and raw_name.contains("_bl"):
+				# Mismo troceo que el source: split("_bl")[1].split("_")[0].
+				var tail: String = raw_name.split("_bl")[1].split("_")[0]
+				# Std.parseInt de Haxe parsea los digitos de adelante y
+				# devuelve null si no hay ninguno; String.to_int() de GDScript
+				# hace lo primero pero devuelve 0 (= ADD) en vez de null, asi
+				# que el digito inicial se chequea a mano.
+				if not tail.is_empty() and tail[0] >= "0" and tail[0] <= "9":
+					symbol_instance.blend_mode = tail.to_int() as AdobeSymbolInstance.AdobeBlendMode
 
 	if has_pair(optimized, element, "color", "C"):
 		symbol_instance.color_matrix = AdobeColorMatrix.parse(optimized, get_pair(optimized, element, "color", "C"))

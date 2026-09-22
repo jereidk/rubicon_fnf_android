@@ -26,6 +26,7 @@ func run(_tree: SceneTree) -> Dictionary:
 	_test_matrix_3d_bit_exact(failures)
 	_test_matrix_perspective(failures)
 	_test_element_dispatch(failures)
+	_test_legacy_blend_from_instance_name(failures)
 
 	return {
 		"name": "json schema: claves corta/larga por campo + MatrixJson.resolve (FlxAnimateJson.hx)",
@@ -310,3 +311,42 @@ func _test_element_dispatch(failures: Array[String]) -> void:
 
 	if not frames[1].elements.is_empty():
 		failures.push_back("dispatch: un keyframe sin \"E\" tiene que quedar sin elementos, tiene %d" % frames[1].elements.size())
+
+
+## Blend legacy codificado en el nombre de instancia (IN), port de
+## SymbolInstanceJson.get_B - maru/src/animate/FlxAnimateJson.hx:222-240.
+func _test_legacy_blend_from_instance_name(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+
+	var cases: Array = [
+		# [IN, blend esperado, descripcion]
+		["algo_bl9_loquesea", AdobeSymbolInstance.AdobeBlendMode.MULTIPLY, "indice en el medio del nombre"],
+		["x_bl12", AdobeSymbolInstance.AdobeBlendMode.SCREEN, "indice al final, sin sufijo"],
+		["x_bl0_y", AdobeSymbolInstance.AdobeBlendMode.ADD, "indice 0 (ADD) no se confunde con \"sin blend\""],
+		# Sin "_bl": queda en NORMAL.
+		["nombre_comun", AdobeSymbolInstance.AdobeBlendMode.NORMAL, "nombre sin _bl"],
+		# "_bl" sin digitos: Std.parseInt daria null, o sea NORMAL - y NO 0
+		# (ADD), que es lo que daria un to_int() pelado.
+		["x_blabc", AdobeSymbolInstance.AdobeBlendMode.NORMAL, "_bl seguido de basura no numerica"],
+		["", AdobeSymbolInstance.AdobeBlendMode.NORMAL, "IN vacio"],
+	]
+
+	for case: Array in cases:
+		var instance: AdobeSymbolInstance = atlas.load_symbol_instance(true, {
+			"SI": {"SN": "loquesea", "ST": "G", "IN": case[0], "MX": [1, 0, 0, 1, 0, 0]},
+		})
+		if instance.blend_mode != case[1]:
+			failures.push_back("blend legacy (%s), IN=\"%s\": dio %d, esperaba %d" % [case[2], case[0], instance.blend_mode, case[1]])
+
+	# B explicito gana sobre el nombre, igual que en el source (`var blend =
+	# this.B ?? this.blend; if (blend != null) return blend;` va primero).
+	var explicit: AdobeSymbolInstance = atlas.load_symbol_instance(true, {
+		"SI": {
+			"SN": "loquesea", "ST": "G",
+			"IN": "x_bl9",
+			"B": AdobeSymbolInstance.AdobeBlendMode.SCREEN,
+			"MX": [1, 0, 0, 1, 0, 0],
+		},
+	})
+	if explicit.blend_mode != AdobeSymbolInstance.AdobeBlendMode.SCREEN:
+		failures.push_back("blend: con B explicito y un IN con _bl tiene que ganar B, dio %d" % explicit.blend_mode)
