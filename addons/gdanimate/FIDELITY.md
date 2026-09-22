@@ -42,7 +42,7 @@ Orden acordado: archivo por archivo, logica por logica.
 | F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | **hecho** (ver abajo) |
 | F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd`, `adobe_atlas.gd` | **hecho** (ver abajo) |
 | F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd`, `animate_symbol.gd` | **hecho** (ver abajo) |
-| F5 | `Frame.hx` (448) | `adobe_layer_frame.gd` | pendiente |
+| F5 | `Frame.hx` (448) | `adobe_layer_frame.gd`, `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | pendiente |
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | pendiente |
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | pendiente |
@@ -295,6 +295,73 @@ junta en `_button_scratch` (mismo patron que `_backbuffer_scratch`);
 | Cache de bounds por frame (`useCachedBounds`) | `Timeline.hx:249-256, 285-286` | F7 |
 | Bounds expandidos por filtros (`includeFilters`) | `MovieClipInstance.hx:117-125` | F13 |
 | `getWholeBounds` con `includeHiddenLayers` y el `_bounds` cacheado del timeline | `Timeline.hx:203-242, 367` | F7 |
+
+### F5 — `Frame.hx`: divergencias y que se hizo
+
+**Arreglado en este pase:**
+
+1. **Blend a nivel keyframe** (`FrameJson.B` → `Frame.hx:214`
+   `this.blend = frame.B`, aplicado en `Frame.hx:389`
+   `var blend = Blend.resolve(this.blend, blend);`). Un keyframe puede traer
+   su propio blend, que pisa al heredado para todos sus elementos. Estaba
+   anotado como gap desde F1. En `draw_symbol` se resuelve una vez por capa
+   (solo hay un keyframe activo por capa) y reemplaza al heredado tanto para
+   la recursion de elementos como para el material y el `screen_rect` de la
+   capa. Lo escribe BetterTextureAtlas; Adobe a secas no lo emite, y los 40
+   `Animation.json` del mod tienen **0** keyframes con `B`.
+
+2. **Defaults del ctor** (`Frame.hx:49-53`: `index = 0`, `duration = 1`). El
+   port los tomaba del JSON sin chequear null, asi que un keyframe sin `I` o
+   sin `DU` reventaba al asignar Nil a un int tipado.
+
+3. **`find_frame_label_indices` acepta el simbolo** — esto cierra el fallo de
+   frame labels que venia en rojo. Ver abajo.
+
+### El fallo de frame labels: el test estaba mal, no el codigo
+
+`find_frame_label_indices('walk')` devolvia 0 indices y el test lo daba por
+bug del port. Al leer el motor, las dos causas reales fueron:
+
+1. **Faltaba un parametro.** `addByFrameLabel`, `addByFrameLabelIndices` y
+   `findFrameLabelIndices` (`FlxAnimateController.hx:41, 95, 189`) toman un
+   `?timeline` **opcional**. Vacio = `getDefaultTimeline()` =
+   `_animate.library.timeline`, que es el simbolo **raiz** del
+   `Animation.json` (`FlxAnimateFrames.hx:425`), o sea `stage_symbol`. El
+   port no tenia el parametro, asi que los labels que viven en un simbolo de
+   la libreria eran inalcanzables. Ahora las tres funciones aceptan
+   `symbol_name`, y la animacion registrada se queda con ese simbolo
+   (`FlxAnimateController.hx:79` `anim.timeline = usedTimeline`).
+
+2. **El trim estaba mal.** `Timeline.findFrameLabelIndices` compara con
+   `frame.name.rtrim() == label`: rtrim, solo a la derecha, y solo sobre el
+   **nombre del keyframe**. El port hacia `strip_edges()` sobre los dos lados
+   y sobre los dos strings, asi que un label con espacios adelante matcheaba
+   donde el motor no.
+
+**Y el test pedia algo que el motor no hace**: ponia los labels en
+`WithLabels`, dejaba `stage_symbol = "Anim5"` (sin labels) y esperaba que la
+busqueda sin simbolo los encontrara. Corregido para chequear las dos cosas —
+que sin simbolo devuelva vacio (lo correcto) y que con `"WithLabels"` los
+encuentre — mas un caso de rtrim. **Con esto la suite queda en 9/9.**
+
+**Verificado equivalente, sin cambio de codigo:**
+
+| Item del source | Por que ya esta bien |
+|---|---|
+| `_drawElements` gatea con `element.visible` (`Frame.hx:423-426`) | Porteado en F2 |
+| `Frame.getBounds` (`Frame.hx:165-196`), incluido el recorte contra el clipper | Porteado en F4 como prerrequisito del hitbox |
+| `this.name = frame.N ?? ""` (`Frame.hx:212`) | Ya estaba |
+| `add()` / `insert()` / `forEachElement()` | `elements` es un `Array` de Godot; agregar, insertar e iterar ya estan |
+
+**Detectado y NO arreglado todavia:**
+
+| Gap | Source | Donde se resuelve |
+|---|---|---|
+| Sonido por keyframe: `SND`, `sound`, `soundSync`, y el switch event/start/stop/stream de `signalFrameChange` | `Frame.hx:254-283, 350-380` | Necesita un subsistema de audio por timeline que el port no tiene. **0 keyframes con `SND`** en los 40 `Animation.json` del mod |
+| `onFrameLabel.dispatch(name)` al cruzar un keyframe con label | `Frame.hx:344-348` | F10 (la senal vive en el controller) |
+| Baking de mascaras/filtros: `_bakeFrame`, `_bakedFrames`, `_bakedIndices`, `_dirty`, `_requireBake`, `__isDirtyCall`, `FilterRenderer.maskFrame`, y el camino de `draw()` que dibuja el frame bakeado | `Frame.hx:286-341, 396-414` | F13 |
+| `setDirty()` → `parent.setSymbolDirty(...)` | `Frame.hx:88-105` | F8 (vive en `FlxAnimateFrames`) |
+| `convertToSymbol()` — empaqueta elementos en un simbolo nuevo en runtime | `Frame.hx:112-140` | Feature de autoria; sin consumidores. Depende de `SymbolItem.createInstance` (F7) |
 
 ### Correccion: el "ciclo de class_name" NO existe
 

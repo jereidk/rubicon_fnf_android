@@ -18,6 +18,7 @@ func run(_tree: SceneTree) -> Dictionary:
 	var failures: Array[String] = []
 
 	_test_frame_blend_parsed(failures)
+	_test_frame_defaults(failures)
 
 	return {
 		"name": "frame: blend por keyframe (Frame.hx:214 + FrameJson.B)",
@@ -79,3 +80,25 @@ func _sprite() -> AdobeAtlasSprite:
 	sprite.texture = Helpers.make_solid_texture(Color.RED, Vector2i(10, 10))
 	sprite.transform = Transform2D.IDENTITY
 	return sprite
+
+
+## Defaults del ctor de Frame (Frame.hx:49-53): index 0, duration 1. Un
+## keyframe sin I ni DU no aparece en exports reales, pero si en JSON armado
+## a mano, y antes reventaba al asignar Nil a un int tipado.
+func _test_frame_defaults(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	atlas.spritemap[&"s"] = _sprite()
+
+	var sym: AdobeSymbol = atlas.load_layers(true, [
+		{"LN": "L", "FR": [{"E": [{"ASI": {"N": "s", "MX": [1, 0, 0, 1, 0, 0]}}]}]},
+	])
+
+	if sym.layers[0].frames.size() != 1:
+		failures.push_back("defaults: esperaba 1 keyframe, hay %d" % sym.layers[0].frames.size())
+		return
+
+	var frame: AdobeLayerFrame = sym.layers[0].frames[0]
+	if frame.starting_index != 0:
+		failures.push_back("defaults: index sin I tiene que ser 0, dio %d" % frame.starting_index)
+	if frame.duration != 1:
+		failures.push_back("defaults: duration sin DU tiene que ser 1, dio %d" % frame.duration)

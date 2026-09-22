@@ -986,8 +986,14 @@ func load_layers(optimized: bool, layers: Array) -> AdobeSymbol:
 
 func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	var gd_frame: AdobeLayerFrame = AdobeLayerFrame.new()
-	gd_frame.starting_index = get_pair(optimized, frame, "index", "I")
-	gd_frame.duration = get_pair(optimized, frame, "duration", "DU")
+	# Defaults del ctor de Frame (Frame.hx:49-53): index 0, duration 1. El
+	# port los tomaba directo del JSON sin chequear null, asi que un keyframe
+	# sin I o sin DU -que no aparece en exports reales pero si en JSON a
+	# mano- reventaba al asignar Nil a un int tipado.
+	var raw_index: Variant = get_pair(optimized, frame, "index", "I")
+	gd_frame.starting_index = int(raw_index) if raw_index != null else 0
+	var raw_duration: Variant = get_pair(optimized, frame, "duration", "DU")
+	gd_frame.duration = int(raw_duration) if raw_duration != null else 1
 
 	# cne-flixel-animate/src/animate/internal/Frame.hx:216:
 	#   this.name = frame.N ?? "";
