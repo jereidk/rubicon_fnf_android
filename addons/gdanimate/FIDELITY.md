@@ -41,7 +41,7 @@ Orden acordado: archivo por archivo, logica por logica.
 | F1 | `FlxAnimateJson.hx` (810) | `adobe_atlas.gd`, `adobe_color_matrix.gd` | **hecho** (ver abajo) |
 | F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | **hecho** (ver abajo) |
 | F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd`, `adobe_atlas.gd` | **hecho** (ver abajo) |
-| F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd` | pendiente (falta input) |
+| F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd`, `animate_symbol.gd` | **hecho** (ver abajo) |
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd` | pendiente |
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | pendiente |
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | pendiente |
@@ -234,6 +234,67 @@ despues de los cinco cambios.
 | `Frame.__isDirtyCall → NORMAL` en `Blend.resolve` | `Blend.hx` | F5 (sistema de baking) |
 | Filtros y baking del MovieClip: `setFilters`, `setDirty`, `_bakeFilters`, `_bakedFrames`, `_filterQuality`, `expandFilterBounds` | `MovieClipInstance.hx:27-32, 91-178, 192-206` | F13 |
 | `cacheOnLoad` (bakear todos los frames al cargar) | `MovieClipInstance.hx:40-47, 77-82` | F8 / F13 |
+
+### F4 — `ButtonInstance.hx`: divergencias y que se hizo
+
+De ButtonInstance estaba porteada la mitad de "que frame muestro segun el
+estado" (`getFrameIndex`, `ButtonInstance.hx:53-56`), pero **el estado nunca
+cambiaba**: `cur_state` se quedaba en UP para siempre, `last_hitbox` no lo
+escribia nadie y la senal `clicked` no la emitia nadie. El docstring decia
+que la logica vivia en `AnimateSymbol._unhandled_input` y en `draw_symbol`, y
+ninguna de las dos existia.
+
+**Prerrequisito que hubo que portear primero: la cadena de bounds por frame.**
+El hitbox de un boton es, textualmente, los bounds del frame **HIT** de su
+sub-simbolo (`ButtonInstance.hx:45-51`), y el port no tenia forma de calcular
+los bounds de un simbolo *en un frame*. Lo que si tenia, `AdobeSymbol.bounding_box`,
+es el equivalente de `getWholeBounds` (`Timeline.hx:203`), la union sobre
+**todos** los frames — para un hitbox no sirve. Se porteo:
+
+| Nuevo en `adobe_atlas.gd` | Source |
+|---|---|
+| `symbol_bounds()` | `Timeline.getBounds` (`Timeline.hx:244-290`) |
+| `layer_frame_at_index()` | `Layer.getFrameAtIndex` |
+| `frame_bounds()` | `Frame.getBounds` (`Frame.hx:165-196`) |
+| `element_bounds()` | `Element` / `AtlasInstance` / `SymbolInstance`.`getBounds` |
+| `mask_bounds()` | `Timeline.maskBounds` |
+| `instance_frame_index()` | el despacho de `getFrameIndex` por tipo, extraido de `draw_symbol` porque los bounds necesitan exactamente el mismo |
+
+Tres detalles del source que es facil errarle y quedaron tal cual:
+`Frame.getBounds` **no** chequea `element.visible` (ese flag solo se mira en
+el loop de dibujo, `Frame.hx:423-426`); `applyMatrixToRect` sobre un rect
+vacio devuelve un **punto** en `(m.tx, m.ty)`, no un rect en el origen; y una
+capa clipeada recorta sus bounds contra los del clipper (`Frame.hx:186-192`).
+
+**El input:** `draw_symbol()` calcula el hitbox de cada boton que dibuja y lo
+junta en `_button_scratch` (mismo patron que `_backbuffer_scratch`);
+`draw_on()` lo pasa a coordenadas locales y lo entrega por
+`AnimateDrawInfo.buttons`; `AdobeButtonInstance.update_state()` es el port de
+`updateButtonState` (`ButtonInstance.hx:73-121`); y
+`AnimateSymbol._update_buttons()` hace el polling una vez por frame.
+
+**Dos desvios deliberados del source**, los dos documentados en el codigo:
+
+| Desvio | Por que |
+|---|---|
+| El hitbox va en coordenadas **locales del nodo**, no de camara (`ButtonInstance.hx:71`) | No se invalida cuando el nodo se mueve, asi que sobrevive al camino barato del backbuffer cache, que no vuelve a pasar por `draw_symbol()` |
+| El polling vive en el **nodo**, no en el dibujo (`ButtonInstance.hx:61`) | En Flixel `draw()` corre siempre; en Godot `_draw()` solo corre si alguien encola un redraw, asi que un boton quieto nunca reaccionaria. La decision por boton igual vive en `AdobeButtonInstance`, como en el source |
+
+**Verificado equivalente / no aplica:**
+
+| Item del source | Estado |
+|---|---|
+| Rama `#elseif FLX_TOUCH` (`ButtonInstance.hx:96-119`) | Misma logica sobre el primer dedo. Godot emula mouse desde touch por default, asi que el camino del mouse ya la cubre |
+| `drawBoundingBox` del hitbox en violeta (`ButtonInstance.hx:65-68`) | `#if FLX_DEBUG`, no aplica |
+| `ButtonState` (UP/OVER/DOWN/HIT = 0..3) | Ya estaba, con los mismos valores |
+
+**Detectado y NO arreglado todavia:**
+
+| Gap | Source | Donde se resuelve |
+|---|---|---|
+| Cache de bounds por frame (`useCachedBounds`) | `Timeline.hx:249-256, 285-286` | F7 |
+| Bounds expandidos por filtros (`includeFilters`) | `MovieClipInstance.hx:117-125` | F13 |
+| `getWholeBounds` con `includeHiddenLayers` y el `_bounds` cacheado del timeline | `Timeline.hx:203-242, 367` | F7 |
 
 ### Correccion: el "ciclo de class_name" NO existe
 
