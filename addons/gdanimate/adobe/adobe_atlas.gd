@@ -359,6 +359,13 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 		# Glow de la frame activa del layer. Solo una frame por layer esta
 		# activa en el frame actual, asi que sobreescribir esta bien.
 		var layer_glow: Dictionary = {}
+		# Idem para el blend: Frame.hx:389 arranca draw() con
+		#     var blend = Blend.resolve(this.blend, blend);
+		# o sea que el blend propio del keyframe pisa al heredado (salvo que
+		# sea NORMAL) para todos sus elementos. Como solo hay un keyframe
+		# activo por capa, se resuelve una vez y se usa tanto para los
+		# elementos como para el material de la capa.
+		var layer_blend: AdobeSymbolInstance.AdobeBlendMode = blend_mode
 		for layer_frame: AdobeLayerFrame in layer.frames:
 			if frame > layer_frame.starting_index + layer_frame.duration - 1:
 				continue
@@ -368,6 +375,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			var difference: int = frame - layer_frame.starting_index
 			rendered = true
 			layer_glow = layer_frame.glow
+			layer_blend = resolve_blend(layer_frame.blend_mode, blend_mode)
 			for element: AdobeDrawable in layer_frame.elements:
 				# Frame.hx:423-426 (maru dcaa33c): el loop de dibujo del
 				# keyframe saltea todo elemento con visible == false.
@@ -445,7 +453,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						symbol_frame, 
 						is_clipper or layer.clipping, 
 						items, 
-						resolve_blend(element.blend_mode, blend_mode), 
+						resolve_blend(element.blend_mode, layer_blend), 
 						material, 
 						next_matrix, 
 						screen_rect, 
@@ -455,12 +463,12 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						visibility_layer, 
 					)
 
-					if blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+					if layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
 						screen_rect = screen_rect.merge(symbol_rect)
 				elif element is AdobeAtlasSprite:
 					var sprite: AdobeAtlasSprite = element as AdobeAtlasSprite
 
-					if blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+					if layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
 						var sprite_rect: Rect2 = t * sprite.bounding_box
 						screen_rect = screen_rect.merge(sprite_rect)
 
@@ -473,7 +481,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 		if ( not is_clipper) and layer_parent == parent:
 			if rendered:
 				if is_instance_valid(material):
-					var use_material: bool = blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL
+					var use_material: bool = layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL
 					if not use_material:
 						use_material = color_matrix != null
 					# GlowFilter: activar material tambien cuando hay glow, aunque
@@ -486,9 +494,9 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 					var used_material: = material
 					if use_material:
-						if blend_mode == AdobeSymbolInstance.AdobeBlendMode.ADD:
+						if layer_blend == AdobeSymbolInstance.AdobeBlendMode.ADD:
 							used_material = additive_material
-						elif blend_mode != AdobeSymbolInstance.AdobeBlendMode.NORMAL or not layer_glow.is_empty():
+						elif layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL or not layer_glow.is_empty():
 							if Engine.is_editor_hint():
 
 
@@ -519,7 +527,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 						RenderingServer.canvas_item_set_use_parent_material(layer_rid, false)
 						RenderingServer.canvas_item_set_material(layer_rid, used_material.get_rid())
-						RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"blend_mode", int(blend_mode))
+						RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"blend_mode", int(layer_blend))
 						RenderingServer.canvas_item_set_instance_shader_parameter(layer_rid, &"color_multipliers", Vector4(
 							used_matrix.color_multipliers[0][0], 
 							used_matrix.color_multipliers[1][1], 
@@ -989,6 +997,12 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	var raw_label: Variant = get_pair(optimized, frame, "name", "N")
 	if raw_label != null:
 		gd_frame.frame_label = String(raw_label)
+
+	# FrameJson.B (FlxAnimateJson.hx:135-138) -> Frame.hx:214
+	# `this.blend = frame.B`. Blend a nivel KEYFRAME, que despues Frame.draw
+	# resuelve contra el heredado. No estaba porteado.
+	if has_pair(optimized, frame, "blend", "B"):
+		gd_frame.blend_mode = get_pair(optimized, frame, "blend", "B") as AdobeSymbolInstance.AdobeBlendMode
 
 	# Despacho de elementos, port de Frame.hx:216-249 (maru dcaa33c): se
 	# prueba SI, despues ASI, despues TFI, y si no es ninguno el elemento se
