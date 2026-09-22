@@ -39,7 +39,7 @@ Orden acordado: archivo por archivo, logica por logica.
 | # | Archivo Haxe (maru) | Destino en el port | Estado |
 |---|---|---|---|
 | F1 | `FlxAnimateJson.hx` (810) | `adobe_atlas.gd`, `adobe_color_matrix.gd` | **hecho** (ver abajo) |
-| F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | pendiente |
+| F2 | `Element.hx` (78) + `AtlasInstance.hx` (244) | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | **hecho** (ver abajo) |
 | F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd` | pendiente |
 | F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd` | pendiente (falta input) |
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd` | pendiente |
@@ -107,6 +107,60 @@ Orden acordado: archivo por archivo, logica por logica.
 | `MetadataJson.V` / `FLV` (version del exporter) | `FlxAnimateJson.hx:637-641` | F8; maru los lee pero el port no ramifica por version todavia |
 | `FilterJson` completo (BLF/ACF/DSF/GF/BF/GBF/GGF + `resolve()` de la forma objeto) | `FlxAnimateJson.hx:259-459` | F13 |
 | `TextFieldInstanceJson` + `TextFieldAttributesJson` | `FlxAnimateJson.hx:487-600` | F12 |
+
+### F2 — `Element.hx` + `AtlasInstance.hx`: divergencias y que se hizo
+
+**Arreglado en este pase:**
+
+1. **`AnimateElement.visible`** (`Element.hx:19`, true en el ctor
+   `Element.hx:29`). `Frame.hx:423-426` gatea CADA elemento con el:
+   `for (element in elements) if (element.visible) element.draw(...)`.
+   El port no tenia el campo y dibujaba todo siempre. No es lo mismo que
+   `AdobeLayer.hidden`, que es por capa. El motor lo usa internamente para el
+   baking (`Frame.hx:339`, `MovieClipInstance.hx:173`).
+
+2. **Guard de frame inexistente** (`AtlasInstance.hx:98-99`:
+   `if (frame == null || frame.frame == null) return;`). Un `ASI` que apunta
+   a un nombre ausente del spritemap daba un `AdobeAtlasSprite` con
+   `texture == null` y `draw_atlas_sprite` hacia `texture.get_rid()` →
+   *"Cannot call method 'get_rid' on a null value"*, por frame y por elemento
+   roto. Reproducido con un test antes del fix.
+
+3. **La matriz se asigna aunque el frame falte** (`AtlasInstance.hx:43-48`:
+   `getByName` puede dar null pero `this.matrix = data.MX.toMatrix()` corre
+   igual). El port devolvia un sprite nuevo y perdia la matriz.
+
+4. **`tile_matrix` explicita**: port de
+   `FlxFrame.prepareBlitMatrix(mat, blit = false)` (flixel 6.2.0,
+   `FlxFrame.hx:184-204`), cacheada en el ctor de AtlasInstance
+   (`AtlasInstance.hx:58`) y aplicada primero en draw
+   (`AtlasInstance.hx:101-103`). Estaba duplicada inline en
+   `draw_atlas_sprite()` y `calculate_bounding_box()`.
+
+5. **`replace_frame()`**: port de `AtlasInstance.replaceFrame`
+   (`AtlasInstance.hx:70-86`), incluido el `adjustScale` que escribe la
+   escala sobre `tileMatrix.a`/`.d` — con el bug de rotacion que el propio
+   source marca con un TODO (`AtlasInstance.hx:74`), replicado tal cual.
+
+**Verificado equivalente, sin cambio de codigo:**
+
+| Item del source | Por que ya esta bien |
+|---|---|
+| Orden de las matrices en `draw` (`tileMatrix` → `matrix` → `parentMatrix`, `AtlasInstance.hx:101-103`) | Haxe usa convencion de filas y Godot de columnas, asi que el equivalente es `parent * matrix * tile`, que es lo que hace `draw_atlas_sprite` |
+| `getBounds` aplica las matrices **de a una** re-encajonando en el medio (`AtlasInstance.hx:175-177` + `Timeline.applyMatrixToRect`), el port compone y aplica una sola vez | La tile matrix es identidad o una rotacion de 90 grados EXACTOS, y esas preservan el eje: el AABB intermedio no pierde nada, los dos caminos dan el mismo rect |
+| `sprite.rotated` → `ANGLE_NEG_90` (`FlxAnimateFrames.hx:409`), `frame` = `(x, y, w, h)` del spritemap, `offset` = `(0,0)` | El port lee las mismas 4 celdas y arma `rotateByNegative90() + translate(0, w)` |
+| `ElementType` enum (ATLAS/GRAPHIC/MOVIECLIP/BUTTON/TEXT, `Element.hx:71-78`) y los `toXInstance()` casts | En GDScript el despacho es por clase (`element is AdobeSymbolInstance`) y el subtipo por `AdobeSymbolInstance.type` |
+| `destroy()` (`Element.hx:64-69`) | Los `Resource` de Godot son refcounted |
+| `drawPixelsFlash` (`AtlasInstance.hx:126-137`) y `drawBoundingBox` (`AtlasInstance.hx:186-225`) | `#if flash` / `#if FLX_DEBUG`, no aplican |
+
+**Detectado y NO arreglado todavia:**
+
+| Gap | Source | Donde se resuelve |
+|---|---|---|
+| `isOnScreen` — culling por elemento contra la camara | `AtlasInstance.hx:141-166` | Diferencia arquitectonica: el port crea un `canvas_item` por capa y deja cullear al renderer de Godot. Sin efecto visual; revisar recien si aparece un problema de performance |
+| `parentFrame` + `setDirty()` — el elemento avisa a su keyframe que se ensucio | `Element.hx:21`, `AtlasInstance.hx:84-85` | F5 (`Frame.hx`). Hoy `replace_frame` obliga al consumidor a marcar `frame_dirty` + `queue_redraw` a mano |
+| `BakedInstance` + `Blend.resolve(this.blend, blend)` | `AtlasInstance.hx:233-244` | F5/F11: es parte del sistema de baking de keyframes, que el port no tiene |
+| `getBounds(includeFilters, useCachedBounds)` — los dos flags se ignoran | `AtlasInstance.hx:168` | F7 (bounds cacheados) y F13 (bounds con filtros) |
 
 ### Correccion: el "ciclo de class_name" NO existe
 
