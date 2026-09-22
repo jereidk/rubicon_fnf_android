@@ -24,6 +24,7 @@ func run(tree: SceneTree) -> Dictionary:
 	_test_flx_wrap(failures)
 	await _test_missing_symbol(tree, failures)
 	await _test_zero_alpha_skipped(tree, failures)
+	_test_resolve_blend(failures)
 
 	return {
 		"name": "symbol instance: getFrameIndex (SymbolInstance.hx:100-140)",
@@ -277,3 +278,28 @@ func _has_color(img: Image, color: Color) -> bool:
 			if img.get_pixel(x, y).is_equal_approx(color):
 				return true
 	return false
+
+
+## Blend.resolve (maru/src/animate/internal/filters/Blend.hx), llamado desde
+## SymbolInstance.hx:213 como Blend.resolve(this.blend, blend): gana el blend
+## PROPIO, salvo que sea NORMAL, en cuyo caso se hereda el de arriba. El port
+## tenia la precedencia al reves.
+func _test_resolve_blend(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	var NORMAL := AdobeSymbolInstance.AdobeBlendMode.NORMAL
+	var MULTIPLY := AdobeSymbolInstance.AdobeBlendMode.MULTIPLY
+	var SCREEN := AdobeSymbolInstance.AdobeBlendMode.SCREEN
+	var ADD := AdobeSymbolInstance.AdobeBlendMode.ADD
+
+	var cases: Array = [
+		# [propio, heredado, esperado, descripcion]
+		[MULTIPLY, SCREEN, MULTIPLY, "propio != NORMAL gana sobre el heredado"],
+		[NORMAL, SCREEN, SCREEN, "propio NORMAL hereda el de arriba"],
+		[NORMAL, NORMAL, NORMAL, "los dos NORMAL"],
+		[ADD, NORMAL, ADD, "propio sobre un padre sin blend"],
+		[SCREEN, ADD, SCREEN, "propio gana aunque el padre tenga uno fuerte"],
+	]
+	for case: Array in cases:
+		var got: int = atlas.resolve_blend(case[0], case[1])
+		if got != case[2]:
+			failures.push_back("resolve_blend(%d, %d): dio %d, esperaba %d (%s)" % [case[0], case[1], got, case[2], case[3]])

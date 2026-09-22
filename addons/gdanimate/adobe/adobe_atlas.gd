@@ -448,7 +448,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						symbol_frame, 
 						is_clipper or layer.clipping, 
 						items, 
-						element.blend_mode if blend_mode == AdobeSymbolInstance.AdobeBlendMode.NORMAL else blend_mode, 
+						resolve_blend(element.blend_mode, blend_mode), 
 						material, 
 						next_matrix, 
 						screen_rect, 
@@ -552,6 +552,37 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			i += 1
 
 	return screen_rect
+
+
+## Que blend gana cuando una instancia con blend propio esta adentro de otra
+## que tambien tiene blend. Port de Blend.resolve -
+## maru/src/animate/internal/filters/Blend.hx:
+##
+##     public static function resolve(?blend:BlendMode, ?drawBlend:BlendMode):Null<BlendMode>
+##     {
+##         if (Frame.__isDirtyCall) return NORMAL;
+##         if (blend == null || blend == NORMAL) return drawBlend;
+##         return blend;
+##     }
+##
+## O sea: gana el PROPIO, salvo que el propio sea NORMAL, en cuyo caso se
+## hereda el de arriba. SymbolInstance.hx:213 lo llama asi:
+##     var b = Blend.resolve(this.blend, blend);
+##
+## El port tenia la precedencia al reves - se quedaba con el heredado salvo
+## que el heredado fuera NORMAL - asi que una instancia MULTIPLY adentro de
+## una SCREEN se dibujaba en SCREEN cuando el motor la dibuja en MULTIPLY.
+##
+## La rama `Frame.__isDirtyCall -> NORMAL` es del sistema de baking de
+## keyframes, que el port no tiene todavia (F5).
+func resolve_blend(
+	own: AdobeSymbolInstance.AdobeBlendMode, 
+	inherited: AdobeSymbolInstance.AdobeBlendMode
+) -> AdobeSymbolInstance.AdobeBlendMode:
+	if own == AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+		return inherited
+
+	return own
 
 
 func draw_atlas_sprite(sprite: AdobeAtlasSprite, parent: RID, t: Transform2D) -> void :
