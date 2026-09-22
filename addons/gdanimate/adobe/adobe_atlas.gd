@@ -356,6 +356,24 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					continue
 
 				if element is AdobeSymbolInstance:
+					# SymbolInstance.hx:57-58 (maru dcaa33c):
+					#     if (libraryItem == null)
+					#         visible = false;
+					# Una instancia que apunta a un simbolo que no esta en la
+					# libreria no se dibuja. El port iba directo a
+					# symbols[element.key] y reventaba con "Invalid access to
+					# property or key ... on a base object of type Dictionary",
+					# un error que ABORTA la funcion: el resto del keyframe (y
+					# del layer) se dejaba de dibujar por un solo nombre roto.
+					#
+					# El chequeo va aca y no en load_symbol_instance() porque en
+					# tiempo de parseo no alcanza: load_symbols() carga los
+					# simbolos de a uno, asi que mientras se parsea el simbolo 1
+					# los que vienen despues todavia no estan en el diccionario y
+					# se marcarian como faltantes sin serlo.
+					if not symbols.has(element.key):
+						continue
+
 					var symbol_frame: int = element.first_frame
 					if element.type == AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
 						symbol_frame = symbol_instance_frame(

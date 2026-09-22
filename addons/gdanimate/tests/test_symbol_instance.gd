@@ -17,11 +17,12 @@ const ONE_SHOT := AdobeSymbolInstance.AdobeSymbolLoopMode.ONE_SHOT
 const FREEZE := AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME
 
 
-func run(_tree: SceneTree) -> Dictionary:
+func run(tree: SceneTree) -> Dictionary:
 	var failures: Array[String] = []
 
 	_test_get_frame_index(failures)
 	_test_flx_wrap(failures)
+	await _test_missing_symbol(tree, failures)
 
 	return {
 		"name": "symbol instance: getFrameIndex (SymbolInstance.hx:100-140)",
@@ -139,3 +140,72 @@ func _test_flx_wrap(failures: Array[String]) -> void:
 		var got: int = atlas._flx_wrap(case[0], case[1], case[2])
 		if got != case[3]:
 			failures.push_back("_flx_wrap(%d, %d, %d): dio %d, esperaba %d" % [case[0], case[1], case[2], got, case[3]])
+
+
+## SymbolInstance.hx:57-58:
+##     if (libraryItem == null)
+##         visible = false;
+## Una instancia que apunta a un simbolo que no esta en la libreria no se
+## dibuja. En el port eso no estaba: draw_symbol hacia symbols[element.key]
+## directo y reventaba con un error de acceso a Nil.
+func _test_missing_symbol(tree: SceneTree, failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	atlas.spritemap[&"pixel"] = _make_sprite(Color(0, 1, 0, 1), Vector2i(60, 60))
+
+	atlas.symbols[&"existe"] = atlas.load_layers(true, [
+		{"LN": "L", "FR": [{"I": 0, "DU": 1, "E": [{"ASI": {"N": "pixel", "MX": [1, 0, 0, 1, 0, 0]}}]}]},
+	])
+	atlas.symbols[&"root"] = atlas.load_layers(true, [
+		{
+			"LN": "L",
+			"FR": [
+				{
+					"I": 0,
+					"DU": 1,
+					"E": [
+						{"SI": {"SN": "no_existe_en_la_libreria", "ST": "G", "MX": [1, 0, 0, 1, 0, 0]}},
+						{"SI": {"SN": "existe", "ST": "G", "MX": [1, 0, 0, 1, 0, 0]}},
+					],
+				}
+			],
+		},
+	])
+	atlas.stage_symbol = &"root"
+
+	var root_node: Node2D = Node2D.new()
+	tree.root.add_child(root_node)
+
+	var node: AnimateSymbol = AnimateSymbol.new()
+	node.atlases = [atlas]
+	node.symbol = "root"
+	node.centered = false
+	node.position = Vector2(300, 300)
+	root_node.add_child(node)
+
+	await Helpers.wait_frames(tree, 3)
+
+	# El simbolo valido del mismo keyframe tiene que seguir dibujandose.
+	var img: Image = tree.root.get_texture().get_image()
+	var found: bool = false
+	for y in range(80, img.get_height()):
+		for x in img.get_width():
+			if img.get_pixel(x, y).is_equal_approx(Color(0, 1, 0, 1)):
+				found = true
+				break
+		if found:
+			break
+
+	if not found:
+		failures.push_back("simbolo faltante: el simbolo valido del mismo keyframe no se dibujo")
+
+	root_node.queue_free()
+	await tree.process_frame
+
+
+func _make_sprite(color: Color, size: Vector2i) -> AdobeAtlasSprite:
+	var sprite: AdobeAtlasSprite = AdobeAtlasSprite.new()
+	sprite.region = Rect2i(Vector2i.ZERO, size)
+	sprite.rotated = false
+	sprite.texture = Helpers.make_solid_texture(color, size)
+	sprite.transform = Transform2D.IDENTITY
+	return sprite
