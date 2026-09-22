@@ -27,23 +27,37 @@ func concat(another: AdobeColorMatrix) -> AdobeColorMatrix:
 	return matrix
 
 
-static func parse(optimized: bool, data: Dictionary) -> AdobeColorMatrix:
+## Resuelve una clave del bloque color probando primero el nombre corto y
+## cayendo al largo, igual que los getters de ColorJson en
+## maru/src/animate/FlxAnimateJson.hx:646-700 (`this.RM ?? this.RedMultiplier`,
+## etc). Antes esto elegia el esquema con un flag global heredado del parser,
+## asi que un bloque color en formato largo dentro de un Animation.json
+## optimizado (o al reves) devolvia null en TODOS los campos y el tint se
+## perdia sin aviso. Ver adobe_atlas.gd:get_pair para el detalle.
+static func _pair(data: Dictionary, optim: String, unoptim: String) -> Variant:
+	var short: Variant = data.get(optim)
+	if short != null:
+		return short
+	return data.get(unoptim)
+
+
+static func parse(_optimized: bool, data: Dictionary) -> AdobeColorMatrix:
 	var matrix: AdobeColorMatrix = AdobeColorMatrix.new()
-	var mode: Variant = data.get("M") if optimized else data.get("mode")
+	var mode: Variant = _pair(data, "M", "mode")
 	if mode == null or mode is not String:
 		return matrix
 
-	var rm: Variant = data.get("RM") if optimized else data.get("RedMultiplier")
-	var ro: Variant = data.get("RO") if optimized else data.get("redOffset")
+	var rm: Variant = _pair(data, "RM", "RedMultiplier")
+	var ro: Variant = _pair(data, "RO", "redOffset")
 
-	var gm: Variant = data.get("GM") if optimized else data.get("greenMultiplier")
-	var go: Variant = data.get("GO") if optimized else data.get("greenOffset")
+	var gm: Variant = _pair(data, "GM", "greenMultiplier")
+	var go: Variant = _pair(data, "GO", "greenOffset")
 
-	var bm: Variant = data.get("BM") if optimized else data.get("blueMultiplier")
-	var bo: Variant = data.get("BO") if optimized else data.get("blueOffset")
+	var bm: Variant = _pair(data, "BM", "blueMultiplier")
+	var bo: Variant = _pair(data, "BO", "blueOffset")
 
-	var am: Variant = data.get("AM") if optimized else data.get("alphaMultiplier")
-	var ao: Variant = data.get("AO") if optimized else data.get("AlphaOffset")
+	var am: Variant = _pair(data, "AM", "alphaMultiplier")
+	var ao: Variant = _pair(data, "AO", "AlphaOffset")
 
 	match mode:
 		"AD", "Advanced":
@@ -60,7 +74,7 @@ static func parse(optimized: bool, data: Dictionary) -> AdobeColorMatrix:
 		"CA", "Alpha":
 			matrix.color_multipliers[3] *= float(am)
 		"CBRT", "Brightness":
-			var brt: Variant = data.get("BRT") if optimized else data.get("brightness")
+			var brt: Variant = _pair(data, "BRT", "brightness")
 			var brightness: float = float(brt)
 
 			var color_mult: float = 1.0 - absf(brightness)
@@ -73,8 +87,8 @@ static func parse(optimized: bool, data: Dictionary) -> AdobeColorMatrix:
 				color_offset, color_offset, color_offset, 0.0, 
 			)
 		"T", "Tint":
-			var tc: Variant = data.get("TC") if optimized else data.get("tintColor")
-			var tm: Variant = data.get("TM") if optimized else data.get("tintMultiplier")
+			var tc: Variant = _pair(data, "TC", "tintColor")
+			var tm: Variant = _pair(data, "TM", "tintMultiplier")
 
 			var tint: Color = Color.from_string(String(tc), Color.WHITE)
 			var tint_mult: float = float(tm)

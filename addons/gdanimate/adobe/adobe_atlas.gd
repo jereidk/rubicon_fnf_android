@@ -924,9 +924,35 @@ func parse_matrix(matrix: Variant) -> Transform2D:
 	)
 
 
-func has_pair(optimized: bool, dict: Dictionary, unoptim: String, optim: String) -> bool:
-	return dict.has(optim if optimized else unoptim)
+## Resolucion de una clave del Animation.json que Adobe escribe con dos
+## nombres: el "optimizado" (corto, ej "I") y el legacy (largo, ej "index").
+##
+## maru/src/animate/FlxAnimateJson.hx resuelve CADA campo por separado con
+## `this.<corta> ?? this.<larga>` - FlxAnimateJson.hx:129-130:
+##     inline function get_I()
+##         return this.I ?? this.index;
+## y lo mismo para los ~90 getters del archivo. O sea: siempre intenta la
+## clave corta primero y cae a la larga si falta. NO hay un "modo" global.
+##
+## Este parser en cambio elegia el esquema UNA sola vez en load_animation()
+## (`var optimized: bool = data.has("AN")`) y despues miraba una sola clave
+## por campo. Eso rompe con cualquier Animation.json de claves mezcladas, que
+## Adobe si produce: el bloque raiz puede venir optimizado (AN) mientras los
+## simbolos sueltos de LIBRARY/*.json vienen en formato largo (LAYERS,
+## Layer_name, Frames...). Con el esquema global, esos campos devolvian null
+## y el simbolo cargaba vacio, sin ningun error.
+##
+## El parametro `optimized` se mantiene por compatibilidad de firma (se pasa
+## posicionalmente desde ~40 llamadas y desde AdobeColorMatrix.parse), pero
+## ya no decide nada.
+func has_pair(_optimized: bool, dict: Dictionary, unoptim: String, optim: String) -> bool:
+	return dict.get(optim) != null or dict.get(unoptim) != null
 
 
-func get_pair(optimized: bool, dict: Dictionary, unoptim: String, optim: String) -> Variant:
-	return dict.get(optim if optimized else unoptim)
+## Ver has_pair(). Devuelve la clave corta si esta presente y no es null, si
+## no la larga, si no null - identico al `??` encadenado de Haxe.
+func get_pair(_optimized: bool, dict: Dictionary, unoptim: String, optim: String) -> Variant:
+	var short: Variant = dict.get(optim)
+	if short != null:
+		return short
+	return dict.get(unoptim)
