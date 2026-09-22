@@ -22,3 +22,7 @@ keys/
 
 # Output de tests visuales de gdanimate (regenerables)
 addons/gdanimate/tests/visual/output/*.png
+
+# Backups locales de patches
+*.bak
+*.bak_*
