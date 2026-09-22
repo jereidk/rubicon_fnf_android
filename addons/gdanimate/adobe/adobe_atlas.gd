@@ -374,47 +374,8 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					if not symbols.has(element.key):
 						continue
 
-					var symbol_frame: int = element.first_frame
-					if element.type == AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
-						symbol_frame = symbol_instance_frame(
-							element, symbols[element.key].length, difference)
-					elif element.type == AdobeSymbolInstance.AdobeSymbolType.BUTTON:
-						# ButtonInstance.hx:76-79 getFrameIndex():
-						#     return FlxMath.minInt(curButtonState,
-						#         this.libraryItem.timeline.frameCount - 1);
-						# El estado UP/OVER/DOWN del boton se mapea directo a
-						# los frames 0/1/2 del sub-simbolo. Estado HIT (3) se
-						# usa solo para el hitbox, no para dibujar.
-						var btn: AdobeButtonInstance = element as AdobeButtonInstance
-						symbol_frame = btn.button_frame_index(symbols[element.key].length)
-
-					elif element.type == AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
-						if not movie_clips_play:
-							# MovieClipInstance.hx:220-223 (maru dcaa33c):
-							#     override function getFrameIndex(index, frameIndex = 0)
-							#         return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
-							# Literal 0, NO first_frame: un MovieClip "congelado" (como
-							# se ve dentro del programa Animate, ver el docstring de
-							# swfMode en MovieClipInstance.hx:20-24) siempre muestra el
-							# frame 0 de su timeline interna, sin importar que FF traiga
-							# la instancia.
-							#
-							# Esto era un TODO pendiente de confirmar porque
-							# movie_clips_play = false es el default y ya esta en
-							# produccion. Resuelto con los datos: de las 591 instancias
-							# MovieClip que hay en los 40 Animation.json del mod
-							# holyquintet, las 591 tienen FF = 0, asi que el cambio no
-							# altera un solo frame de lo que se ve hoy.
-							symbol_frame = 0
-						else:
-							# cne-flixel-animate/src/animate/internal/elements/MovieClipInstance.hx:223-226:
-							# getFrameIndex() con swfMode=true (= movie_clips_play acá)
-							# delega directo a SymbolInstance.getFrameIndex(), la MISMA
-							# funcion que ya usan los Graphics - respeta loop_mode y la
-							# ventana first_frame/last_frame en vez de un wrap ciego sobre
-							# el largo total del simbolo.
-							symbol_frame = symbol_instance_frame(
-								element, symbols[element.key].length, difference)
+					var symbol_frame: int = instance_frame_index(
+						element, symbols[element.key].length, difference)
 
 					var next_matrix: AdobeColorMatrix = color_matrix
 					if next_matrix == null:
@@ -552,6 +513,185 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			i += 1
 
 	return screen_rect
+
+
+## getFrameIndex polimorfico: que frame del sub-simbolo muestra una instancia,
+## segun su tipo. En el source son tres implementaciones de la misma funcion
+## virtual y el despacho lo hace la jerarquia de clases; aca va en una sola
+## funcion porque el port tiene un unico AdobeSymbolInstance con un campo
+## `type`.
+##
+##  - GRAPHIC: SymbolInstance.getFrameIndex (SymbolInstance.hx:100-140).
+##  - BUTTON:  ButtonInstance.hx:53-56 -> min(curButtonState, frameCount - 1).
+##             El estado UP/OVER/DOWN se mapea directo a los frames 0/1/2 del
+##             sub-simbolo; HIT (3) se usa solo para el hitbox, no para dibujar.
+##  - MOVIE_CLIP: MovieClipInstance.hx:220-223 -> literal 0 con swfMode
+##             apagado (= movie_clips_play), o el de SymbolInstance con
+##             swfMode prendido.
+##
+## Se extrajo de draw_symbol() porque symbol_bounds() necesita exactamente el
+## mismo despacho: en el source los bounds tambien pasan por getFrameIndex.
+func instance_frame_index(
+	element: AdobeSymbolInstance, symbol_length: int, difference: int
+) -> int:
+	match element.type:
+		AdobeSymbolInstance.AdobeSymbolType.BUTTON:
+			var button: AdobeButtonInstance = element as AdobeButtonInstance
+			return button.button_frame_index(symbol_length)
+
+		AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
+			if not movie_clips_play:
+				return 0
+
+			return symbol_instance_frame(element, symbol_length, difference)
+
+	# GRAPHIC y cualquier cosa no reconocida: el source cae en SymbolInstance
+	# por default (Frame.hx:225-231).
+	return symbol_instance_frame(element, symbol_length, difference)
+
+
+## Bounds de un simbolo EN UN FRAME dado, en el espacio de `t`.
+##
+## Port de Timeline.getBounds - maru/src/animate/internal/Timeline.hx:244-290.
+## Recorre las capas visibles, saca el keyframe activo de cada una, pide sus
+## bounds y los une; al final aplica la matriz.
+##
+## OJO, no confundir con AdobeSymbol.bounding_box, que ya existia: ese es el
+## equivalente de getWholeBounds (Timeline.hx:203), la union sobre TODOS los
+## frames. Este es por frame.
+##
+## Lo que todavia NO esta porteado de esa funcion, porque depende de otros
+## archivos: el cache de bounds por frame (`useCachedBounds`, F7) y los bounds
+## expandidos por filtros (`includeFilters`, F13). Los dos flags del source se
+## comportan aca como si fueran false y true respectivamente.
+func symbol_bounds(
+	target: AdobeSymbol, frame: int, 
+	t: Transform2D = Transform2D.IDENTITY, 
+	include_hidden_layers: bool = false
+) -> Rect2:
+	var rect: Rect2 = Rect2()
+	var first: bool = true
+
+	for layer: AdobeLayer in target.layers:
+		if layer.hidden and not include_hidden_layers:
+			continue
+
+		var layer_frame: AdobeLayerFrame = layer_frame_at_index(layer, frame)
+		if layer_frame == null or layer_frame.elements.is_empty():
+			continue
+
+		var bounds: Rect2 = frame_bounds(
+			layer_frame, frame - layer_frame.starting_index, target, layer)
+		if bounds.size == Vector2.ZERO:
+			continue
+
+		if first:
+			first = false
+			rect = bounds
+		else:
+			rect = rect.merge(bounds)
+
+	# applyMatrixToRect (Timeline.hx:292-341) sobre un rect vacio devuelve un
+	# punto en (m.tx, m.ty); `t * Rect2()` de Godot da exactamente eso.
+	return t * rect
+
+
+## Port de Layer.getFrameAtIndex - Layer.hx. El source usa un array
+## `frameIndices` precalculado; aca se escanea, que es lo que ya hacia
+## draw_symbol().
+func layer_frame_at_index(layer: AdobeLayer, frame: int) -> AdobeLayerFrame:
+	frame = maxi(frame, 0)
+	for layer_frame: AdobeLayerFrame in layer.frames:
+		if frame < layer_frame.starting_index:
+			continue
+		if frame > layer_frame.starting_index + layer_frame.duration - 1:
+			continue
+
+		return layer_frame
+
+	return null
+
+
+## Port de Frame.getBounds - Frame.hx:165-196.
+##
+## OJO: el source NO chequea element.visible aca. El flag solo se mira en el
+## loop de dibujo (Frame.hx:423-426); para bounds entran todos los elementos.
+func frame_bounds(
+	layer_frame: AdobeLayerFrame, difference: int, 
+	owner: AdobeSymbol, layer: AdobeLayer
+) -> Rect2:
+	if layer_frame.elements.is_empty():
+		return Rect2()
+
+	var rect: Rect2 = element_bounds(layer_frame.elements[0], difference)
+	for i in range(1, layer_frame.elements.size()):
+		rect = rect.merge(element_bounds(layer_frame.elements[i], difference))
+
+	# Frame.hx:186-192: una capa clipeada recorta sus bounds contra los de su
+	# clipper. El source llega al clipper por layer.parentLayer; aca la capa
+	# guarda el NOMBRE (clipped_by) y se busca en el mismo simbolo.
+	if not layer.clipped_by.is_empty():
+		for other: AdobeLayer in owner.layers:
+			if other.name != layer.clipped_by or not other.clipping:
+				continue
+
+			var masker_frame: AdobeLayerFrame = layer_frame_at_index(
+				other, difference + layer_frame.starting_index)
+			var masker: Rect2 = Rect2()
+			if masker_frame != null:
+				masker = frame_bounds(
+					masker_frame, 
+					difference + layer_frame.starting_index - masker_frame.starting_index, 
+					owner, 
+					other
+				)
+			rect = mask_bounds(rect, masker)
+			break
+
+	return rect
+
+
+## Bounds de un elemento suelto. Los AdobeAtlasSprite ya los tienen cacheados
+## (AtlasInstance.getBounds, F2); una instancia de simbolo recursiona
+## (SymbolInstance.hx:163-185), y un boton usa el frame HIT en vez del que
+## dibuja (ButtonInstance.hx:45-51).
+func element_bounds(element: AdobeDrawable, difference: int) -> Rect2:
+	if element is not AdobeSymbolInstance:
+		return element.bounding_box
+
+	var instance: AdobeSymbolInstance = element as AdobeSymbolInstance
+	if not symbols.has(instance.key):
+		# SymbolInstance.hx:57-58: sin libraryItem la instancia queda invisible;
+		# el source reventaria al pedirle bounds, aca no aporta nada.
+		return Rect2()
+
+	var sub: AdobeSymbol = symbols[instance.key]
+	var sub_frame: int
+	if instance is AdobeButtonInstance:
+		# ButtonInstance.hx:47: boundsIndex = min(ButtonState.HIT, frameCount - 1).
+		# El hitbox del boton es el frame HIT, no el que se esta mostrando.
+		sub_frame = mini(AdobeButtonInstance.ButtonState.HIT, maxi(sub.length - 1, 0))
+	else:
+		sub_frame = instance_frame_index(instance, sub.length, difference)
+
+	return symbol_bounds(sub, sub_frame, instance.transform)
+
+
+## Port de Timeline.maskBounds - Timeline.hx. Interseca, y si el masker esta
+## vacio devuelve el rect sin tocar (NO lo anula).
+func mask_bounds(masked: Rect2, masker: Rect2) -> Rect2:
+	if masker.size.x <= 0.0 or masker.size.y <= 0.0:
+		return masked
+
+	var x1: float = maxf(masked.position.x, masker.position.x)
+	var y1: float = maxf(masked.position.y, masker.position.y)
+	var x2: float = minf(masked.end.x, masker.end.x)
+	var y2: float = minf(masked.end.y, masker.end.y)
+
+	if x2 <= x1 or y2 <= y1:
+		return Rect2()
+
+	return Rect2(x1, y1, x2 - x1, y2 - y1)
 
 
 ## Que blend gana cuando una instancia con blend propio esta adentro de otra
