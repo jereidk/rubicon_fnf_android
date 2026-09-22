@@ -421,6 +421,26 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						next_matrix = element.color_matrix
 					elif element.color_matrix != null:
 						next_matrix = next_matrix.concat(element.color_matrix)
+
+					# SymbolInstance.hx:190-211, draw(): cuando la instancia
+					# tiene color propio (isColored), el source concatena su
+					# ColorTransform con el heredado y despues:
+					#     if (transform.alphaMultiplier <= 0)
+					#         return;
+					# o sea que ni se mete en la timeline del sub-simbolo. El
+					# resultado en pantalla es el mismo -alpha 0 no pinta nada-
+					# pero aca ademas evita crear los canvas_item del subarbol
+					# y, con blend activo, evita que ese subarbol invisible
+					# agrande el screen_rect que dimensiona la copia al
+					# backbuffer.
+					#
+					# El guard va condicionado a element.color_matrix != null
+					# para calcar el `if (isColored)` del source: una instancia
+					# sin color propio no entra en esa rama ni aunque herede un
+					# alpha 0.
+					if element.color_matrix != null and next_matrix != null:
+						if next_matrix.color_multipliers[3].w <= 0.0:
+							continue
 					var symbol_rect: Rect2 = draw_symbol(
 						symbols[element.key], 
 						layer_rid, 

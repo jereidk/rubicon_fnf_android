@@ -23,6 +23,7 @@ func run(tree: SceneTree) -> Dictionary:
 	_test_get_frame_index(failures)
 	_test_flx_wrap(failures)
 	await _test_missing_symbol(tree, failures)
+	await _test_zero_alpha_skipped(tree, failures)
 
 	return {
 		"name": "symbol instance: getFrameIndex (SymbolInstance.hx:100-140)",
@@ -209,3 +210,70 @@ func _make_sprite(color: Color, size: Vector2i) -> AdobeAtlasSprite:
 	sprite.texture = Helpers.make_solid_texture(color, size)
 	sprite.transform = Transform2D.IDENTITY
 	return sprite
+
+
+## SymbolInstance.hx:190-211: con color propio, el source concatena y si el
+## alphaMultiplier resultante es <= 0 vuelve sin dibujar nada.
+##
+## Lo que este test puede probar es el resultado en pantalla: la instancia
+## con alpha 0 no pinta y la de al lado si. Lo que NO puede probar desde
+## afuera es la otra mitad del cambio -que el subarbol ni se recorra, y por
+## lo tanto no agrande el screen_rect del backbuffer-, porque eso no tiene
+## efecto visual. Queda como guard de no-regresion.
+func _test_zero_alpha_skipped(tree: SceneTree, failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	atlas.spritemap[&"rojo"] = _make_sprite(Color(1, 0, 0, 1), Vector2i(60, 60))
+	atlas.spritemap[&"verde"] = _make_sprite(Color(0, 1, 0, 1), Vector2i(60, 60))
+
+	atlas.symbols[&"sub_rojo"] = atlas.load_layers(true, [
+		{"LN": "L", "FR": [{"I": 0, "DU": 1, "E": [{"ASI": {"N": "rojo", "MX": [1, 0, 0, 1, 0, 0]}}]}]},
+	])
+	atlas.symbols[&"sub_verde"] = atlas.load_layers(true, [
+		{"LN": "L", "FR": [{"I": 0, "DU": 1, "E": [{"ASI": {"N": "verde", "MX": [1, 0, 0, 1, 0, 0]}}]}]},
+	])
+	atlas.symbols[&"root"] = atlas.load_layers(true, [
+		{
+			"LN": "L",
+			"FR": [
+				{
+					"I": 0,
+					"DU": 1,
+					"E": [
+						# "CA"/Alpha con AM = 0: invisible.
+						{"SI": {"SN": "sub_rojo", "ST": "G", "MX": [1, 0, 0, 1, 0, 0], "C": {"M": "CA", "AM": 0.0}}},
+						{"SI": {"SN": "sub_verde", "ST": "G", "MX": [1, 0, 0, 1, 100, 0]}},
+					],
+				}
+			],
+		},
+	])
+	atlas.stage_symbol = &"root"
+
+	var root_node: Node2D = Node2D.new()
+	tree.root.add_child(root_node)
+
+	var node: AnimateSymbol = AnimateSymbol.new()
+	node.atlases = [atlas]
+	node.symbol = "root"
+	node.centered = false
+	node.position = Vector2(300, 300)
+	root_node.add_child(node)
+
+	await Helpers.wait_frames(tree, 3)
+
+	var img: Image = tree.root.get_texture().get_image()
+	if _has_color(img, Color(1, 0, 0, 1)):
+		failures.push_back("alpha 0: la instancia con AM = 0 se dibujo igual")
+	if not _has_color(img, Color(0, 1, 0, 1)):
+		failures.push_back("alpha 0: la instancia de al lado (sin color) desaparecio")
+
+	root_node.queue_free()
+	await tree.process_frame
+
+
+func _has_color(img: Image, color: Color) -> bool:
+	for y in range(80, img.get_height()):
+		for x in img.get_width():
+			if img.get_pixel(x, y).is_equal_approx(color):
+				return true
+	return false
