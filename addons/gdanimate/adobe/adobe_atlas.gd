@@ -768,58 +768,102 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	return gd_frame
 
 
-## Which frame of the pointed-at symbol a graphic instance shows, `difference` frames into
-## the keyframe that holds it.
+## Que frame del sub-simbolo muestra una instancia, `difference` frames despues del
+## keyframe que la contiene.
 ##
-## The interesting part is last_frame. An instance may bound itself to a WINDOW of the
-## symbol - first_frame..last_frame - rather than run to the symbol's own end, and the
-## window is allowed to wrap past the end and continue from frame 0. Ignoring the bound
-## silently turns a play-once instance into one that walks out of its window: Animania's
-## tadano packs four sing faces into one `facessing` symbol and gives each direction a
-## two-frame window of it, so without this his sing-left face runs on through the down, up
-## and right faces while the note is still being sung.
+## Transcripcion literal de SymbolInstance.getFrameIndex -
+## MaybeMaru/flixel-animate@dcaa33c src/animate/internal/elements/SymbolInstance.hx:100-140.
+## La firma del source es getFrameIndex(index, frameIndex = 0), donde index es el frame
+## absoluto de la timeline padre y frameIndex el indice del keyframe que contiene a la
+## instancia; la primera linea hace `frameIndex = firstFrame + (index - frameIndex)`, o
+## sea que lo unico que importa de los dos es la resta - el `difference` de aca.
 ##
-## Port of SymbolInstance.getFrameIndex, cne-flixel-animate/src/animate/internal/elements/
-## SymbolInstance.hx:102-142 (the engine CodenameEngine actually vendors - see FIDELITY.md
-## for why this isn't upstream Dot-Stuff/flxanimate). That engine's LoopType has only three
-## values (LOOP, PLAY_ONCE, SINGLE_FRAME; SymbolInstance.hx:269-273) and no reverse mode, so
-## there is nothing to port for one here - see load_symbol_instance().
+## Antes esto era una reimplementacion a mano equivalente en 5 de los 6 casos, pero
+## DISTINTA en el sexto: LOOP con first_frame > 0 y sin last_frame. El source hace
+## `FlxMath.wrap(frameIndex, 0, lastIndex)`, o sea que al pasarse del final vuelve al
+## frame 0 del sub-simbolo; la version vieja envolvia dentro de [first_frame, final] y
+## volvia a first_frame. Con FF=7 en un simbolo de 10 frames el source da
+## 7,8,9,0,1,2,... y la version vieja daba 7,8,9,7,8,9. En los assets del mod
+## holyquintet ese caso aparece 5736 veces repartido en 24 Animation.json, los
+## personajes principales incluidos.
 func symbol_instance_frame(
 	element: AdobeSymbolInstance, length: int, difference: int
 ) -> int:
-	var first: int = clampi(element.first_frame, 0, maxi(length - 1, 0))
-	if element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
-		return first
+	if length <= 0:
+		return 0
 
-	var is_loop: bool = element.loop_mode == AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
+	var first_frame: int = element.first_frame
+	var last_frame: int = element.last_frame
+	var frame_index: int = first_frame + difference
 
-	var last: int = element.last_frame
-	if last < 0:
-		# No bound: the window is the whole symbol.
-		var span: int = length - first
-		if span <= 0:
-			return first
-		return first + _symbol_instance_offset(span, difference, is_loop)
+	var last_index: int = length - 1
+	var has_last_frame: bool = last_frame > - 1
+	var do_wrap: bool = has_last_frame and last_frame < first_frame
 
-	if last >= first:
-		last = mini(last, length - 1)
-		var span: int = last - first + 1
-		return first + _symbol_instance_offset(span, difference, is_loop)
+	# El source llama `length` a esta variable local, que NO es el largo del
+	# sub-simbolo (eso es lastIndex + 1) sino el tramo que va de first_frame
+	# hasta el final efectivo. Se renombra a span para no pisar el parametro.
+	var span: int
+	if do_wrap:
+		span = last_index
+	elif has_last_frame:
+		span = mini(last_frame, last_index)
+	else:
+		span = last_index
+	span = span - first_frame + 1
 
-	# last < first: the window runs off the end of the symbol and resumes at frame 0, so
-	# its length is the tail plus the head rather than a subtraction.
-	var tail: int = length - first
-	var span: int = last + tail + 1
-	if span <= 0:
-		return first
-	var at: int = _symbol_instance_offset(span, difference, is_loop)
-	return first + at if at < tail else at - tail
+	# `totalLength` del source: cuando la ventana se pasa del final y sigue
+	# desde 0, el largo total es la cola mas la cabeza.
+	var total_span: int = span + (last_frame + 1) if do_wrap else span
+
+	match element.loop_mode:
+		AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP:
+			if do_wrap:
+				if total_span <= 0:
+					return first_frame
+				# ((x % t) + t) % t del source = posmod.
+				frame_index = posmod(frame_index - first_frame, total_span)
+			else:
+				if has_last_frame:
+					return _flx_wrap(frame_index, first_frame, mini(last_frame, last_index))
+				return _flx_wrap(frame_index, 0, last_index)
+
+		AdobeSymbolInstance.AdobeSymbolLoopMode.ONE_SHOT:
+			frame_index = mini(frame_index - first_frame, total_span - 1)
+
+		AdobeSymbolInstance.AdobeSymbolLoopMode.FREEZE_FRAME:
+			return first_frame
+
+	if frame_index < span:
+		return first_frame + frame_index
+
+	if do_wrap:
+		return frame_index - span
+
+	# Rama inalcanzable con los tres loop types actuales (LOOP y FREEZE_FRAME
+	# ya devolvieron, y ONE_SHOT deja frame_index <= total_span - 1 < span
+	# cuando no hay wrap). Se portea igual para no cambiar el codigo si
+	# upstream agrega un modo.
+	return - 1 + (frame_index - span)
 
 
-## Maps a forward-counting `difference` to an offset in [0, span): wraps
-## around for LOOP, clamps at span-1 for PLAY_ONCE.
-func _symbol_instance_offset(span: int, difference: int, is_loop: bool) -> int:
-	return wrapi(difference, 0, span) if is_loop else mini(difference, span - 1)
+## Port de FlxMath.wrap - flixel 6.2.0, flixel/math/FlxMath.hx:
+##     var range = max - min + 1;
+##     if (value < min) value += range * Std.int((min - value) / range + 1);
+##     return min + (value - min) % range;
+## `max` es INCLUSIVO, al reves que wrapi() de Godot, que lo trata como
+## exclusivo. Se transcribe en vez de usar wrapi(v, min, max + 1) para que
+## la equivalencia no dependa de como Godot maneje los negativos.
+func _flx_wrap(value: int, min_value: int, max_value: int) -> int:
+	var range: int = max_value - min_value + 1
+	if range <= 0:
+		return min_value
+
+	if value < min_value:
+		@warning_ignore("integer_division")
+		value += range * int(float(min_value - value) / float(range) + 1.0)
+
+	return min_value + (value - min_value) % range
 
 
 func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolInstance:
