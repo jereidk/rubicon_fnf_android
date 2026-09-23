@@ -45,12 +45,85 @@ Orden acordado: archivo por archivo, logica por logica.
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd`, `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | **hecho** (ver abajo) |
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | **hecho** (ver abajo) |
-| F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | pendiente |
+| F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | **hecho** (ver abajo) |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | pendiente |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | pendiente |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F8 — `FlxAnimateFrames.hx`: estado y fix del shortcut de carpetas
+
+**Revision completa del archivo (707 lineas).** La mayoria de la
+infraestructura ya estaba porteada; el unico fix funcional fue el shortcut
+de nombres con carpeta.
+
+**Fix aplicado — shortcut de nombres con carpeta.**
+
+`FlxAnimateFrames.getSymbol` (maru FlxAnimateFrames.hx:90-155) tiene un
+fallback: si el `SymbolInstance` referencia `"Symbol 3/walk"` pero el
+dictionary tiene `"walk"` (o al reves), prueba el ultimo segmento del path
+(`name.split("/").pop()`) antes de rendirse. Sin esto, cualquier atlas
+exportado con carpetas de simbolos dibuja instancias faltantes (nada se
+pinta donde va el sub-simbolo).
+
+Antes el port hacia `symbols.has(key)` + `symbols[key]` directo en 8
+lugares, asi que un `SN = "Folder/walk"` con `symbols = {"walk": ...}` no
+matcheaba y el frame entero del sub-simbolo desaparecia.
+
+`AdobeAtlas.get_symbol(name)` es el port fiel del shortcut. El port NO hace
+lazy-load de simbolos inlined (SD) ni de LIBRARY/*.json — los carga eager
+en `load_symbols` / `load_symbol_directory`. Equivalencia funcional (mismo
+dictionary final), lookup O(1).
+
+Lookups reemplazados:
+- `draw_on` (141, 230): `not symbols.has(x)` -> `get_symbol(x) == null`,
+  `symbols[key]` -> `get_symbol(key)`.
+- `get_length_of` (308-318): ahora usa `get_symbol` con fallback a
+  `stage_symbol` como el source.
+- `draw_symbol` (408-457): `if not symbols.has(element.key): continue` ->
+  `var sub_sym = get_symbol(element.key); if sub_sym == null: continue`,
+  y los dos usos de `symbols[element.key]` -> `sub_sym`.
+- `element_bounds` (709-714): mismo cambio.
+
+**Lo que ya estaba portado (sin cambios):**
+- Deteccion inlined vs non-inlined en `load_animation`: chequea
+  `metadata.json` vs `SD` — mismo criterio que
+  `isInlined = !exists("metadata.json")` de maru (FlxAnimateFrames.hx:325).
+- `LIBRARY/*.json` via `load_symbol_directory` con subdirectorios — port de
+  `listWithFilter(path + "/LIBRARY", ..., true)` (FlxAnimateFrames.hx:335).
+- Spritemap id-based pairing en `load_spritemap`: usa `get_basename()` para
+  el `.png` — equivalente a `split("spritemap")[1].split(".")[0]`
+  (FlxAnimateFrames.hx:352).
+- Metadata `FRT/W/H/BGC` con fallback 1280x720 / blanco en
+  `_parse_stage_metadata` — port de FlxAnimateFrames.hx:405-410.
+- `STI.SI.MX` -> `stage_transform` (FlxAnimateFrames.hx:412-414).
+- Root symbol self-registration: `load_symbol(anim)` mete
+  `symbols[SN] = gd_symbol` — mismo patron que
+  `frames.dictionary.set(frames.timeline.name, ...)` (FlxAnimateFrames.hx:405).
+
+**N/A (arquitectura distinta):**
+- `_cachedAtlases` in-memory: el port cachea en disco (`.res`).
+- `FlxAnimateSpritemapCollection`: ciclo de vida de FlxGraphic; Godot usa
+  reference counting.
+- `addAtlas` / `combineAtlas`: mix Adobe+Sparrow; el port no lo necesita.
+- `setSymbolDirty`: baking de filters/masks, va a F13.
+- `FilterQuality`: idem F13.
+
+**Diferido (no vale la pena sin perfilado real):**
+- `_cachedBounds` per-frame (diferido de F7).
+- Pre-computo de `bounding_box` en `parse()`.
+- Legacy Animate 2018 (`atlasInstance` param que construye un Timeline fake
+  con un AtlasInstance): no portado. Ningun asset del mod lo usa.
+- `MetadataJson.V/FLV` (version del exporter): cosmetico, no afecta render.
+
+**Tests:** `tests/test_symbol_lookup.gd` nuevo con 5 casos: exact match,
+shortcut directo, shortcut missing, sin slash sin match,
+`get_length_of` con fallback a stage_symbol + shortcut. Suite: **12/12**.
+
+**Regresion visual: cero esperada.** El cambio solo AGREGA un fallback
+cuando el lookup directo falla; nunca cambia el resultado de un lookup que
+ya funcionaba.
 
 ### F7 — `Timeline.hx` + `SymbolItem.hx`: divergencias y fixes
 

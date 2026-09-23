@@ -138,7 +138,7 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	if stage_symbol.is_empty():
 		return
 
-	var use_stage: bool = not symbols.has(draw_info.symbol)
+	var use_stage: bool = get_symbol(draw_info.symbol) == null
 	var key: StringName = stage_symbol if use_stage else draw_info.symbol
 	var transform: Transform2D = Transform2D.IDENTITY
 	transform = transform.translated(draw_info.offset)
@@ -227,7 +227,7 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	RenderingServer.canvas_item_set_visibility_layer(stage_item, draw_info.visibility_layer)
 	draw_info.items.push_back(stage_item)
 
-	draw_symbol(symbols[key], 
+	draw_symbol(get_symbol(key), 
 		stage_item, 
 		Transform2D.IDENTITY, 
 		draw_info.frame, 
@@ -305,13 +305,38 @@ func get_symbols() -> String:
 	return ("" if string.is_empty() else " ,") + string
 
 
+## Port del fallback de nombres con carpeta de FlxAnimateFrames.getSymbol -
+## maru/src/animate/FlxAnimateFrames.hx:100-116.
+##
+## Cuando un SymbolInstance del Animation.json referencia "Symbol 3/walk"
+## pero el simbolo esta guardado en el dictionary con el nombre corto "walk"
+## (o al reves), el motor prueba el ultimo segmento del path antes de
+## rendirse. Sin esto, cualquier atlas exportado con carpetas de simbolos se
+## dibuja con instancias faltantes (nada se pinta donde va el sub-simbolo).
+##
+## NO hace lazy-load de simbolos inlined (SD) ni de LIBRARY/*.json: el port
+## los carga eager en load_symbols/load_symbol_directory. La equivalencia es
+## funcional (mismo dictionary final), pero el lookup en el port siempre es
+## O(1) contra un dictionary ya cargado.
+func get_symbol(name: StringName) -> AdobeSymbol:
+	if symbols.has(name):
+		return symbols[name]
+
+	var s: String = String(name)
+	if s.contains("/"):
+		var shortcut_sn: StringName = StringName(s.get_file())
+		if symbols.has(shortcut_sn):
+			return symbols[shortcut_sn]
+
+	return null
+
+
 func get_length_of(symbol: StringName) -> int:
-	if not symbols.has(symbol):
-		symbol = stage_symbol
-
-	if symbols.has(symbol):
-		return symbols[symbol].length
-
+	var sym: AdobeSymbol = get_symbol(symbol)
+	if sym == null:
+		sym = get_symbol(stage_symbol)
+	if sym != null:
+		return sym.length
 	return 0
 
 
@@ -405,11 +430,12 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					# simbolos de a uno, asi que mientras se parsea el simbolo 1
 					# los que vienen despues todavia no estan en el diccionario y
 					# se marcarian como faltantes sin serlo.
-					if not symbols.has(element.key):
+					var sub_sym: AdobeSymbol = get_symbol(element.key)
+					if sub_sym == null:
 						continue
 
 					var symbol_frame: int = instance_frame_index(
-						element, symbols[element.key].length, difference)
+						element, sub_sym.length, difference)
 
 					# ButtonInstance.hx:73-75, updateButtonState():
 					#     _hitbox = getBounds(0, _hitbox, drawMatrix);
@@ -454,7 +480,7 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						if next_matrix.color_multipliers[3].w <= 0.0:
 							continue
 					var symbol_rect: Rect2 = draw_symbol(
-						symbols[element.key], 
+						sub_sym, 
 						layer_rid, 
 						t * element.transform, 
 						symbol_frame, 
@@ -706,12 +732,11 @@ func element_bounds(element: AdobeDrawable, difference: int) -> Rect2:
 		return element.bounding_box
 
 	var instance: AdobeSymbolInstance = element as AdobeSymbolInstance
-	if not symbols.has(instance.key):
+	var sub: AdobeSymbol = get_symbol(instance.key)
+	if sub == null:
 		# SymbolInstance.hx:57-58: sin libraryItem la instancia queda invisible;
 		# el source reventaria al pedirle bounds, aca no aporta nada.
 		return Rect2()
-
-	var sub: AdobeSymbol = symbols[instance.key]
 	var sub_frame: int
 	if instance is AdobeButtonInstance:
 		# ButtonInstance.hx:47: boundsIndex = min(ButtonState.HIT, frameCount - 1).
