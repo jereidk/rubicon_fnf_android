@@ -262,8 +262,49 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 	return ImageTexture.create_from_image(result)
 
 
+
+
+
+## F13b-iii: bake de un nodo (Node2D) al SubViewport del baker.
+## Mecanismo: mover el nodo al viewport del baker (remove_child + add_child
+## en el _bake_viewport_node), esperar frame_post_draw, leer textura,
+## devolverlo al padre original.
+##
+## Esto se coordina con el baker principal (que hornea capas y filtros)
+## porque ambos comparten el mismo SubViewport serializado. La request se
+## encola igual y el `_process` la resuelve en su turno.
+##
+## `sprite_element` es el AdobeSpriteElement que es dueño del nodo; se le
+## delega la captura y restauracion del padre.
+func request_node_bake(key: String, sprite_element: AdobeSpriteElement, size: Vector2i) -> void:
+	if size.x <= 0 or size.y <= 0:
+		return
+	if sprite_element == null or sprite_element.target == null:
+		return
+	if not is_instance_valid(sprite_element.target):
+		return
+	_pending_node[key] = {
+		"size": size,
+		"element": sprite_element, 
+	}
+
+
+var _pending_node: Dictionary = {}
+
+
 func _process(_delta: float) -> void:
-	if _is_baking or _pending.is_empty():
+	if _is_baking:
+		return
+	# Prioridad: node bakes (F13b-iii) antes que content bakes.
+	if not _pending_node.is_empty():
+		_is_baking = true
+		var key: String = String(_pending_node.keys()[0])
+		var req: Dictionary = _pending_node[key]
+		_pending_node.erase(key)
+		_do_node_bake(key, req["size"], req["element"])
+		_is_baking = false
+		return
+	if _pending.is_empty():
 		return
 	_is_baking = true
 	var key: String = String(_pending.keys()[0])
@@ -305,4 +346,40 @@ func _do_bake(key: String, size: Vector2i, draw_cb: Callable, filters: Array[Ado
 
 	_cache[key] = tex
 
+	bake_ready.emit(key)
+
+
+## F13b-iii: implementacion del bake de nodo. Mueve el target al viewport,
+## espera, captura, restaura.
+func _do_node_bake(key: String, size: Vector2i, element: AdobeSpriteElement) -> void:
+	var target: CanvasItem = element.target
+	if target == null or not is_instance_valid(target):
+		return
+
+	# Capturar el padre original (idempotente en el element).
+	element.capture_original_parent()
+
+	_viewport.size = size
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+
+	# Mover el target al viewport del baker. Godot dispara
+	# NOTIFICATION_EXIT_CANVAS + ENTER_CANVAS solo.
+	var cur_parent: Node = target.get_parent()
+	if cur_parent != null:
+		cur_parent.remove_child(target)
+	_viewport.add_child(target)
+
+	# Esperar a que el render del viewport este listo.
+	await RenderingServer.frame_post_draw
+
+	# Capturar la textura.
+	var img: Image = _viewport.get_texture().get_image()
+	var tex: ImageTexture = ImageTexture.create_from_image(img)
+	_cache[key] = tex
+
+	# Devolver el target a su lugar.
+	_viewport.remove_child(target)
+	element.restore_target_parent()
+
+	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	bake_ready.emit(key)

@@ -52,6 +52,57 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-iii — `FlxSpriteElement` (F12b)
+
+**HECHO.** `adobe/adobe_sprite_element.gd` (nuevo) + baker con
+`request_node_bake` + dispatch en `draw_symbol`.
+
+**Source de maru (`FlxSpriteElement.hx`):** envuelve un `FlxBasic`
+arbitrario (típicamente `FlxSprite`) para que participe de la timeline de
+Animate con transform/blend/color sincronizados. Patron: guardar estado
+-> setPosition/setAngle/setBlend in-place -> `basic.draw()` (sincrono a
+camara activa) -> restaurar.
+
+**En Godot esto no es 1:1.** Investigue el source de Godot (grep en
+`/godot-src`) y confirmé:
+- **NO existe** getter `canvas_item_get_parent()` (solo setters).
+- **NO existe** API para renderizar un canvas_item arbitrario a textura
+  (`canvas_item_to_texture` no existe).
+- **SI existe** `CanvasItem::get_canvas_item()` (el nodo sabe su RID).
+- Godot reparenta automáticamente el RID al mover el **nodo** entre
+  padres (`CanvasItem::_notification` dispara `_exit_canvas` +
+  `_enter_canvas`).
+
+**Mecanismo elegido (opción B de la investigación):**
+1. `AdobeSpriteElement` es DUEÑO del target (`CanvasItem`, no `Node2D`:
+   la rama real de Godot es CanvasItem → Node2D|Control).
+2. `request_node_bake()` mueve el target al SubViewport del baker
+   (`remove_child` + `add_child`), espera `frame_post_draw`, captura a
+   `ImageTexture`, y restaura el padre original.
+3. Cache hit: `draw_symbol` dibuja la textura baked.
+
+**DIVERGENCIA ARQUITECTÓNICA:** el source es sincrono; el port es
+deferred. Latencia 2 frames (33ms a 60fps). El target no se dibuja en
+su lugar normal durante el bake (equivalente a "el target ES del
+element, no del scene tree", mismo modelo que maru).
+
+**Caveats documentados:**
+- El target debe ser del element (construido por el consumidor, no
+  agregado al scene tree principal). El element lo mueve y lo devuelve
+  a `_original_parent` (capturado idempotentemente).
+- Si el target depende de `get_viewport()` (2D physics, input), durante
+  el bake ve el SubViewport del baker, no el viewport real.
+
+**Cero cambio de comportamiento para el mod:** `FlxSpriteElement` no
+tiene representación en Animation.json (verificado en FlxAnimateJson.hx:
+el grep de `FlxSpriteElement|FSEL|spriteElement` no encuentra nada). El
+dispatch nuevo solo se activa si un consumidor construye el element
+programáticamente.
+
+**Tests:** `tests/test_sprite_element.gd` nuevo (3 casos: bbox con
+`Control`, capture/restore de padre, bake completo con `ColorRect`
+movido al SubViewport). Suite: **20/20**.
+
 ### F13b-ii.4 — filtros a nivel `AdobeSymbolInstance`
 
 **HECHO.** Mismo pipeline que F13b-ii.3 (capas), pero aplicado a las

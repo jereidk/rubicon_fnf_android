@@ -600,6 +600,36 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 
 					tf.draw_to_canvas(layer_rid, t)
 
+
+				elif element is AdobeSpriteElement:
+					# F13b-iii: port de FlxSpriteElement. Envuelve un Node2D
+					# para que participe de la timeline con transform
+					# sincronizada. Cache hit: dibuja la textura baked.
+					# Cache miss: dispara el bake (que mueve el nodo al
+					# SubViewport, espera 1 frame, captura, devuelve).
+					var spe: AdobeSpriteElement = element as AdobeSpriteElement
+					var spe_key: String = _sprite_element_bake_key(spe, frame)
+					if not spe_key.is_empty():
+						var spe_tex: ImageTexture = AdobeRenderBaker.instance().get_cached(spe_key)
+						if spe_tex != null:
+							var spe_size: Vector2 = Vector2(spe_tex.get_width(), spe_tex.get_height())
+							RenderingServer.canvas_item_add_set_transform(
+								layer_rid, t * spe.transform)
+							RenderingServer.canvas_item_add_texture_rect(
+								layer_rid, 
+								Rect2(Vector2.ZERO, spe_size), 
+								spe_tex.get_rid(), 
+								false, 
+							)
+							if layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+								screen_rect = screen_rect.merge(Rect2(Vector2.ZERO, spe_size))
+						else:
+							var spe_size: Vector2i = Vector2i(
+								maxi(int(ceilf(spe.bounding_box.size.x)), 1), 
+								maxi(int(ceilf(spe.bounding_box.size.y)), 1), 
+							)
+							AdobeRenderBaker.instance().request_node_bake(spe_key, spe, spe_size)
+
 		if ( not is_clipper) and layer_parent == parent:
 			if rendered:
 				if is_instance_valid(material):
@@ -1924,3 +1954,13 @@ func _request_instance_bake(
 			additive_ref, lm_ref, vl_ref, 
 		)
 	, filters_copy)
+
+
+## F13b-iii: key de cache del bake para un AdobeSpriteElement. Devuelve ""
+## si el element no tiene target asignado.
+func _sprite_element_bake_key(spe: AdobeSpriteElement, frame: int) -> String:
+	if spe == null or spe.target == null:
+		return ""
+	if not is_instance_valid(spe.target):
+		return ""
+	return "spe:%d:%d" % [spe.get_instance_id(), frame]
