@@ -94,6 +94,123 @@ func request(key: String, size: Vector2i, draw_cb: Callable) -> void:
 	}
 
 
+## F13b-ii: aplica la lista de filtros Adobe a una textura ya renderizada.
+## Port conceptual de FilterRenderer.applyFilter
+## (maru src/animate/internal/FilterRenderer.hx:400-500), pero en un solo
+## pase via shader de canvas_item.
+##
+## Devuelve la textura filtrada como ImageTexture, o null si falla.
+## El shader cubre BLUR, GLOW y ADJUST_COLOR. DROP_SHADOW y BEVEL quedan
+## para F13b-ii.2 (necesitan un segundo pase con el contenido original
+## para hacer el offset del shadow).
+##
+## `size` es el tamano de la textura fuente (se usa para el SubViewport
+## intermedio).
+func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], size: Vector2i) -> ImageTexture:
+	if src == null or filters.is_empty() or size.x <= 0 or size.y <= 0:
+		return src
+
+	# Extraer los parametros del primer filtro de cada tipo. Por ahora
+	# asumimos 1 filtro por tipo (los mods reales no los repiten).
+	var blur_x: float = 0.0
+	var blur_y: float = 0.0
+	var glow_on: bool = false
+	var glow_color: Color = Color.WHITE
+	var glow_strength: float = 1.0
+	var glow_inner: bool = false
+	var glow_knockout: bool = false
+	var adjust_on: bool = false
+	var adjust_mult: Vector4 = Vector4.ONE
+	var adjust_off: Vector4 = Vector4.ZERO
+
+	for filter: AdobeFilter in filters:
+		if filter == null:
+			continue
+		var d: Dictionary = filter.data
+		match filter.type:
+			AdobeFilter.AdobeFilterType.BLUR:
+				blur_x = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
+				blur_y = float(AdobeFilter._pick_or(d, "BLY", "blurY", 0.0))
+			AdobeFilter.AdobeFilterType.GLOW:
+				glow_on = true
+				glow_color = Color.from_string(
+					String(AdobeFilter._pick_or(d, "C", "color", "#FFFFFF")), Color.WHITE)
+				glow_strength = float(AdobeFilter._pick_or(d, "STR", "strength", 1.0)) / 100.0
+				glow_inner = bool(AdobeFilter._pick_or(d, "IN", "inner", false))
+				glow_knockout = bool(AdobeFilter._pick_or(d, "KK", "knockout", false))
+				# El glow reusa el blur como radio.
+				if blur_x <= 0.0:
+					blur_x = float(AdobeFilter._pick_or(d, "BLX", "blurX", 6.0))
+				if blur_y <= 0.0:
+					blur_y = float(AdobeFilter._pick_or(d, "BLY", "blurY", 6.0))
+			AdobeFilter.AdobeFilterType.ADJUST_COLOR:
+				adjust_on = true
+				var acf: AdobeColorMatrix = AdobeColorMatrix.adjust_from_params(
+					float(AdobeFilter._pick_or(d, "BRT", "brightness", 0.0)), 
+					float(AdobeFilter._pick_or(d, "H", "hue", 0.0)), 
+					float(AdobeFilter._pick_or(d, "CT", "contrast", 0.0)), 
+					float(AdobeFilter._pick_or(d, "SAT", "saturation", 0.0)), 
+				)
+				adjust_mult = Vector4(
+					acf.color_multipliers[0].x, 
+					acf.color_multipliers[1].y, 
+					acf.color_multipliers[2].z, 
+					acf.color_multipliers[3].w, 
+				)
+				adjust_off = acf.color_offsets
+			_:
+				# DROP_SHADOW y BEVEL: F13b-ii.2 (segundo pase).
+				pass
+
+	# Construir el shader material.
+	var shader: Shader = load("res://addons/gdanimate/filter_shader.gdshader")
+	if shader == null:
+		return src
+
+	var mat: ShaderMaterial = ShaderMaterial.new()
+	mat.shader = shader
+	# blur_uv: radio en UV-space (independiente del pixel_size del viewport).
+	mat.set_shader_parameter(&"blur_uv", Vector2(blur_x / float(size.x), blur_y / float(size.y)))
+	mat.set_shader_parameter(&"blur_x", blur_x)
+	mat.set_shader_parameter(&"blur_y", blur_y)
+	mat.set_shader_parameter(&"glow_enabled", 1 if glow_on else 0)
+	mat.set_shader_parameter(&"glow_color", glow_color)
+	mat.set_shader_parameter(&"glow_strength", glow_strength)
+	mat.set_shader_parameter(&"glow_inner", 1 if glow_inner else 0)
+	mat.set_shader_parameter(&"glow_knockout", 1 if glow_knockout else 0)
+	mat.set_shader_parameter(&"adjust_enabled", 1 if adjust_on else 0)
+	mat.set_shader_parameter(&"adjust_mult", adjust_mult)
+	mat.set_shader_parameter(&"adjust_offset", adjust_off)
+
+	# Render-to-texture con el shader aplicado. Uso un SubViewport temporal
+	# (no el _viewport del baker, que esta en uso serializado) para no
+	# romper la garantia "1 bake por frame".
+	var viewport: SubViewport = SubViewport.new()
+	viewport.size = size
+	viewport.transparent_bg = true
+	viewport.disable_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	add_child(viewport)
+
+	# TextureRect (no ColorRect): el shader lee la textura fuente en
+	# TEXTURE. Un ColorRect dibuja un rect plano y el shader no tendria
+	# nada que filtrar.
+	var tex_rect: TextureRect = TextureRect.new()
+	tex_rect.texture = src
+	tex_rect.size = Vector2(size)
+	tex_rect.material = mat
+	viewport.add_child(tex_rect)
+
+	# Async: esperar al render y leer la textura.
+	await RenderingServer.frame_post_draw
+	var result: Image = viewport.get_texture().get_image()
+	viewport.queue_free()
+
+	if result == null:
+		return src
+	return ImageTexture.create_from_image(result)
+
+
 func _process(_delta: float) -> void:
 	if _is_baking or _pending.is_empty():
 		return

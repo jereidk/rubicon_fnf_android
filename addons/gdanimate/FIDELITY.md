@@ -52,6 +52,49 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.1 — shader de filtros + `apply_filters_to_texture`
+
+**HECHO.** `filter_shader.gdshader` (nuevo) + metodo
+`AdobeRenderBaker.apply_filters_to_texture(src, filters, size)`.
+
+Port conceptual de `FilterRenderer.applyFilter`
+(maru src/animate/internal/FilterRenderer.hx:400-500). El source aplica
+filtros de a uno al `BitmapData` (via OpenFL + GPU shader o CPU). El
+port los aplica en **un solo pase** con un shader de canvas_item.
+
+**Cobertura del shader:** BLUR, GLOW, ADJUST_COLOR.
+**Diferido a F13b-ii.2:** DROP_SHADOW, BEVEL (necesitan un segundo pase
+con el contenido original + offset del shadow).
+
+**Detalles de implementacion:**
+
+- `apply_filters_to_texture` crea un `SubViewport` temporal con un
+  `TextureRect` (con `src` como textura) y un `ShaderMaterial`. Espera a
+  `RenderingServer.frame_post_draw` y lee con `get_texture().get_image()`
+  (equivalente a `gl.readPixels` del source).
+- `TextureRect` y no `ColorRect`: el shader lee la textura fuente en
+  `TEXTURE`; un `ColorRect` dibuja un rect plano sin textura.
+
+**Lecciones / fixes aplicados en este sub-pase:**
+
+1. `TAU` ya existe como built-in en el shader language de Godot 4 (junto
+   con `PI` y `E`). No se puede redeclarar — el shader no compila.
+2. `instance uniform` + `ShaderMaterial.set_shader_parameter()` **no se
+   comunican**. Los instance uniforms requieren
+   `RenderingServer.canvas_item_set_instance_shader_parameter()` sobre el
+   RID del nodo. Este shader usa `uniform` a secas (se aplica a 1 nodo,
+   no necesita instancing).
+3. `TEXTURE_PIXEL_SIZE` en un canvas_item shader **no es 1/size de la
+   textura** — es un valor global del viewport. El radio del blur hay que
+   pasarlo precomputado como `blur_uv = blur_px / size` desde GDScript.
+4. Texturas uniformes (rojo solido) no muestran blur aunque el shader
+   funcione: no hay transiciones que suavizar. El test usa un patron
+   mitad-y-mitad (borde duro) para verificar.
+
+**Tests:** `tests/test_filter_shader.gd` nuevo (3 casos: blur suaviza un
+borde duro, adjust con brightness -50 atenua el rojo, filtros vacios
+hacen passthrough). Suite: **18/18**.
+
 ### F13b-i — infra render-to-texture (`AdobeRenderBaker`)
 
 **HECHO.** `adobe/adobe_render_baker.gd` (nuevo).
