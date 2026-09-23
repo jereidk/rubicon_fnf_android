@@ -54,8 +54,14 @@ func run(tree: SceneTree) -> Dictionary:
 	else:
 		if not symbol_missing.layers[1].hidden:
 			failures.push_back("caso roto: ClippedLayer deberia quedar hidden=true (su Clipper no es tipo Clp)")
-		if symbol_missing.layers[1].clipped_by != "":
-			failures.push_back("caso roto: clipped_by deberia limpiarse a \"\", quedo \"%s\"" % symbol_missing.layers[1].clipped_by)
+		# maru Layer.hx:158-163 NO limpia Clpb cuando el clipper no aparece:
+		# solo pone parentLayer=null, isMasked=false, visible=false. El
+		# clipped_by se mantiene intacto. (El port viejo lo limpiaba; F6
+		# corrige a maru.)
+		if symbol_missing.layers[1].clipped_by != "ClipperLayer":
+			failures.push_back("caso roto: clipped_by tiene que mantenerse 'ClipperLayer', quedo '%s'" % symbol_missing.layers[1].clipped_by)
+		if symbol_missing.layers[1].parent_layer != null:
+			failures.push_back("caso roto: parent_layer deberia ser null")
 
 	# Captura visual de cortesia: dos AnimateSymbol lado a lado. El de la
 	# izquierda (clip_ok) deberia mostrar el cuadrado azul clipeado dentro

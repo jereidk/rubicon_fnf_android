@@ -43,7 +43,7 @@ Orden acordado: archivo por archivo, logica por logica.
 | F3 | `SymbolInstance.hx` (282) + `MovieClipInstance.hx` (285) | `adobe_symbol_instance.gd`, `adobe_atlas.gd` | **hecho** (ver abajo) |
 | F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd`, `animate_symbol.gd` | **hecho** (ver abajo) |
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd`, `adobe_animate_controller.gd` | **hecho** (ver abajo) |
-| F6 | `Layer.hx` (262) | `adobe_layer.gd` | pendiente |
+| F6 | `Layer.hx` (262) | `adobe_layer.gd` | **hecho** (ver abajo) |
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | pendiente |
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | pendiente |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | pendiente |
@@ -51,6 +51,74 @@ Orden acordado: archivo por archivo, logica por logica.
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F6 — `Layer.hx`: divergencias encontradas y que se hizo
+
+**Arreglado en este pase:**
+
+1. **`frame_indices` (Layer.hx:34, :186-188).** El source mantiene un array
+   `timeline_index -> keyframe_index`, un slot por frame de duracion de cada
+   keyframe (`for (_ in 0...frame.duration) frameIndices.push(i)`). El port
+   hacia un scan O(N) sobre `layer.frames` en `layer_frame_at_index()`. En
+   JSON con keyframes de duraciones bien formadas coinciden, pero el source
+   es O(1) y el port O(N), y con keyframes con gaps se comportan distinto.
+   `AdobeLayer.frame_indices` + `get_frame_at_index()` lo portean tal cual.
+   `_migrate_from_legacy()` rellena el array en caches viejos.
+
+2. **`layerType` enum (Layer.hx:32, :200-213).** El source tiene
+   `NORMAL / CLIPPER / CLIPPED / FOLDER`. El port solo tenia `clipping: bool`
+   (CLIPPER vs resto) y CLIPPED implicito en `clipped_by != ""`. FOLDER no
+   existia. `AdobeLayer.LayerType` es ahora el campo real.
+
+3. **Precedencia `Clpb > LT` (Layer.hx:141-164).** Si `Clpb` esta presente la
+   capa es CLIPPED y el bloque `else` (donde se evalua `LT`) **no corre**. El
+   port viejo chequeaba los dos por separado, asi que una capa con ambos
+   campos podia quedar CLIPPER y CLIPPED a la vez, o CLIPPER donde el source
+   haria CLIPPED. Reproducido con fixture sintetico antes de tocar nada.
+
+4. **FOLDER no parsea frames (Layer.hx:181-193).** `if (this.layerType !=
+   FOLDER) { ... parse FR ... }`. El port lo trataba como NORMAL y si el JSON
+   traia un `FR` en un folder lo parseaba igual.
+
+5. **`parentLayer` es referencia directa (Layer.hx:150).** El source guarda
+   `parentLayer = aboveLayer`. El port guardaba el nombre en `clipped_by` y
+   hacia lookup por nombre cada vez en `frame_bounds()`. Ahora
+   `AdobeLayer.parent_layer` es la referencia.
+
+**Sin cambios de comportamiento, verificados equivalentes:**
+
+- `getFrameAtIndex` con `FlxMath.maxInt(index, 0)` -> `maxi(index, 0)`.
+- `frameCount` es property calculada sobre `frameIndices.length` -> `get_frame_count()`.
+- `visible`/`hidden` son el mismo flag con la polaridad invertida (el port
+  mantiene `hidden` para que el default `false` sea "mostrar").
+
+**Fix colateral en `test_clipping.gd`:** el test aserteaba que `clipped_by`
+se limpia a `""` cuando el clipper no aparece. Eso era comportamiento del
+**cne-flixel-animate** (port viejo), no de maru. `Layer.hx:158-163` de maru
+**solo** pone `parentLayer = null`, `isMasked = false`, `visible = false` —
+no toca `Clpb`. El test se corrigio a maru. Sigue siendo la unica assertion
+que cambio; el resto del test pasaba tal cual.
+
+**Migracion de caches legacy.** Los `.res` cacheados de gdanimate guardan
+`AdobeLayer` con `clipping: bool` en lugar de `layer_type`. Al cargar un
+cache viejo, `AdobeSymbol.migrate_all_layers_from_legacy()` hace 3 pasos:
+(1) infiere `layer_type` desde `clipping`, (2) rellena `frame_indices` desde
+las duraciones de los keyframes, (3) resuelve `parent_layer` para CLIPPED sin
+referencia. Idempotente. Se llama desde `adobe_atlas.gd::parse()` en la rama
+del cache.
+
+**Tests:** nuevo `tests/test_layer.gd` con 5 casos:
+`frame_indices` (con duraciones 1/3/2), precedencia `Clpb > LT`, FOLDER sin
+frames, `parent_layer` referencia directa, migracion + idempotencia. Suite
+**10/10** (test_layer + test_clipping corregido + los 8 previos).
+
+**Regresion visual: cero.** Los bounds y el render de assets reales
+(holyquintet + trickyclowned) no cambian con F6 — el cambio es de estructura
+interna (indices, tipo, ref), no de geometria.
+
+**Anotado para despues:** `setKeyframe` / `setBlankKeyframe` (Layer.hx:73-105)
+estan sin portear; el source los usa para el baking de mascaras, que cae en
+F13. `forEachFrame` esta portado pero el port no lo usa todavia.
 
 ### F1 — `FlxAnimateJson.hx`: divergencias encontradas y que se hizo
 

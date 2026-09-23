@@ -73,6 +73,13 @@ func parse() -> void :
 			stage_rect = cached.stage_rect
 			stage_color = cached.stage_color
 			render_stage = cached.render_stage
+			# F6: migrar caches viejos que no tienen layer_type, frame_indices
+			# ni parent_layer. AdobeSymbol.migrate_all_layers_from_legacy()
+			# hace los tres pasos (inferir tipo, rellenar indices, resolver
+			# clipper ref). Idempotente.
+			for sym_name: StringName in symbols:
+				var sym: AdobeSymbol = symbols[sym_name]
+				sym.migrate_all_layers_from_legacy()
 			return
 
 	spritemap.clear()
@@ -620,7 +627,7 @@ func symbol_bounds(
 		if layer.hidden and not include_hidden_layers:
 			continue
 
-		var layer_frame: AdobeLayerFrame = layer_frame_at_index(layer, frame)
+		var layer_frame: AdobeLayerFrame = layer.get_frame_at_index(frame)
 		if layer_frame == null or layer_frame.elements.is_empty():
 			continue
 
@@ -674,23 +681,18 @@ func frame_bounds(
 	# Frame.hx:186-192: una capa clipeada recorta sus bounds contra los de su
 	# clipper. El source llega al clipper por layer.parentLayer; aca la capa
 	# guarda el NOMBRE (clipped_by) y se busca en el mismo simbolo.
-	if not layer.clipped_by.is_empty():
-		for other: AdobeLayer in owner.layers:
-			if other.name != layer.clipped_by or not other.clipping:
-				continue
-
-			var masker_frame: AdobeLayerFrame = layer_frame_at_index(
-				other, difference + layer_frame.starting_index)
-			var masker: Rect2 = Rect2()
-			if masker_frame != null:
-				masker = frame_bounds(
-					masker_frame, 
-					difference + layer_frame.starting_index - masker_frame.starting_index, 
-					owner, 
-					other
-				)
-			rect = mask_bounds(rect, masker)
-			break
+	if layer.parent_layer != null:
+		var masker_frame: AdobeLayerFrame = layer.parent_layer.get_frame_at_index(
+			difference + layer_frame.starting_index)
+		var masker: Rect2 = Rect2()
+		if masker_frame != null:
+			masker = frame_bounds(
+				masker_frame, 
+				difference + layer_frame.starting_index - masker_frame.starting_index, 
+				owner, 
+				layer.parent_layer
+			)
+		rect = mask_bounds(rect, masker)
 
 	return rect
 
@@ -943,38 +945,69 @@ func load_symbol(optimized: bool, symbol: Dictionary) -> void :
 
 
 func load_layers(optimized: bool, layers: Array) -> AdobeSymbol:
+	# Port fiel de Layer.hx:130-198. Diferencias con el port viejo:
+	#   - Precedencia Clpb > LT (Layer.hx:141-164): si Clpb esta presente la
+	#     capa es CLIPPED y el LT no se mira.
+	#   - FOLDER no parsea frames (Layer.hx:181-193).
+	#   - frame_indices se rellena con un slot por frame de duracion de cada
+	#     keyframe (Layer.hx:186-188).
+	#   - parent_layer es una referencia directa al clipper, no el nombre.
 	var gd_symbol: AdobeSymbol = AdobeSymbol.new()
+
 	for layer: Dictionary in layers:
 		var gd_layer: AdobeLayer = AdobeLayer.new()
 		gd_layer.name = get_pair(optimized, layer, "Layer_name", "LN")
-		if has_pair(optimized, layer, "Layer_type", "LT"):
-			if optimized:
-				gd_layer.clipping = layer["LT"] == "Clp"
-			else:
-				gd_layer.clipping = layer["Layer_type"] == "Clipper"
-		if has_pair(optimized, layer, "Clipped_by", "Clpb"):
-			gd_layer.clipped_by = get_pair(optimized, layer, "Clipped_by", "Clpb")
 
-			# Layer.hx:141-164: busca la capa Clipper mas cercana ARRIBA (indices
-			# menores, ya parseadas en gd_symbol.layers ya que load_layers procesa
-			# en orden). Si no aparece, Flash oculta la capa entera en vez de
-			# dejarla sin clip - ver AdobeLayer.hidden.
-			var found_clipper: bool = false
+		var clipped_by: String = ""
+		if has_pair(optimized, layer, "Clipped_by", "Clpb"):
+			clipped_by = get_pair(optimized, layer, "Clipped_by", "Clpb")
+
+		if not clipped_by.is_empty():
+			# CLIPPED (Layer.hx:141-166): busca hacia arriba el clipper que la
+			# referencia. Si no lo encuentra, la capa queda invisible pero
+			# mantiene layer_type CLIPPED y clipped_by intacto (source no los
+			# limpia).
+			gd_layer.layer_type = AdobeLayer.LayerType.CLIPPED
+			gd_layer.clipped_by = clipped_by
+
+			var found: AdobeLayer = null
 			for i in range(gd_symbol.layers.size() - 1, -1, -1):
 				var existing: AdobeLayer = gd_symbol.layers[i]
-				if existing.name == gd_layer.clipped_by and existing.clipping:
-					found_clipper = true
+				if existing.name == clipped_by and existing.layer_type == AdobeLayer.LayerType.CLIPPER:
+					found = existing
 					break
-			if not found_clipper:
-				gd_layer.clipped_by = ""
-				gd_layer.hidden = true
 
+			if found != null:
+				gd_layer.parent_layer = found
+			else:
+				gd_layer.hidden = true
+		else:
+			# Layer.hx:167-176: switch por LT.
+			if has_pair(optimized, layer, "Layer_type", "LT"):
+				var lt: String = get_pair(optimized, layer, "Layer_type", "LT")
+				match lt:
+					"Clp", "Clipper":
+						gd_layer.layer_type = AdobeLayer.LayerType.CLIPPER
+					"Fld", "Folder":
+						gd_layer.layer_type = AdobeLayer.LayerType.FOLDER
+					_:
+						gd_layer.layer_type = AdobeLayer.LayerType.NORMAL
+
+		# Compat: mantener `clipping` sincronizado para caches viejos.
+		gd_layer.clipping = gd_layer.layer_type == AdobeLayer.LayerType.CLIPPER
+
+		# Layer.hx:181-193: FOLDER no parsea frames.
 		var duration: int = 0
-		if has_pair(optimized, layer, "Frames", "FR"):
-			var frames: Array = get_pair(optimized, layer, "Frames", "FR")
-			for frame: Dictionary in frames:
-				gd_layer.frames.push_back(load_frame(optimized, frame))
-				duration += gd_layer.frames[gd_layer.frames.size() - 1].duration
+		if gd_layer.layer_type != AdobeLayer.LayerType.FOLDER:
+			if has_pair(optimized, layer, "Frames", "FR"):
+				var frames: Array = get_pair(optimized, layer, "Frames", "FR")
+				for frame_idx in frames.size():
+					gd_layer.frames.push_back(load_frame(optimized, frames[frame_idx]))
+					var last: AdobeLayerFrame = gd_layer.frames[gd_layer.frames.size() - 1]
+					duration += last.duration
+					# Layer.hx:186-188: un slot por frame de duracion.
+					for _j in last.duration:
+						gd_layer.frame_indices.append(frame_idx)
 
 		if gd_symbol.length < duration:
 			gd_symbol.length = duration
