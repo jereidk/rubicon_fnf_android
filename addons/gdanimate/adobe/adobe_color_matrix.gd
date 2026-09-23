@@ -27,6 +27,95 @@ func concat(another: AdobeColorMatrix) -> AdobeColorMatrix:
 	return matrix
 
 
+## F13a. Port de AdjustColorFilter.getColorMatrix
+## (maru src/animate/internal/filters/AdjustColorFilter.hx:18-75).
+##
+## Aplica 4 transformaciones de color al pixel en este orden:
+##   1. brightness: escala RGB por (1-|b|) y suma max(b, 0)
+##   2. contrast:   escala por (c/100 + 1) y centra en 128
+##   3. saturation: interpola contra luminancia (lumR/G/B estandar)
+##   4. hue:        rota el vector RGB por h grados
+##
+## Devuelve un AdobeColorMatrix equivalente. El source devuelve un array
+## 4x5 de floats para el ColorMatrixFilter de OpenFL; aca se empaqueta en
+## la estructura de AdobeColorMatrix que el shader ya consume
+## (color_multipliers + color_offsets).
+##
+## Como el ColorMatrixFilter de OpenFL y el shader del port usan el mismo
+## layout (multiplicadores diagonales + offsets), esto es un port 1:1.
+static func adjust_from_params(brightness: float, hue: float, contrast: float, saturation: float) -> AdobeColorMatrix:
+	var b: float = brightness
+	var h: float = hue * PI / 180.0
+	var c: float = contrast / 100.0 + 1.0
+	var s: float = saturation / 100.0 + 1.0
+
+	var lum_r: float = 0.3086
+	var lum_g: float = 0.6094
+	var lum_b: float = 0.0820
+
+	var cos_h: float = cos(h)
+	var sin_h: float = sin(h)
+
+	# Matrices 4x5 (cada fila: 4 coefs + offset). Solo nos interesan la
+	# diagonal (multiplicadores) y la ultima columna (offsets) para el
+	# shader del port; el resto de los coefs afecta al cross-talk entre
+	# canales que el shader no aplica. Documentado como divergencia.
+	#
+	# Todos los casos reales del mod tienen hue=0 y saturation=0, asi que
+	# los terminos cruzados son 0 y el resultado es identico. Cuando haya
+	# un caso real con hue != 0, hay que pasar a un shader 4x5 completo.
+
+	var b_mat_diag: float = 1.0
+	var b_mat_offset: float = b
+
+	var c_mat_diag: float = c
+	var c_mat_offset: float = 128.0 / 255.0 * (1.0 - c)
+
+	var s_mat_diag: float = s
+	# Fila 0,1,2 del sMat: lum_X*(1-s) + s en la diagonal, lum_other*(1-s)
+	# fuera de la diagonal. Como el shader solo toma la diagonal, usamos
+	# los terminos diagonales.
+	#   sMat[0][0] = lum_r*(1-s) + s
+	#   sMat[1][1] = lum_g*(1-s) + s
+	#   sMat[2][2] = lum_b*(1-s) + s
+	# El port no aplica cross-talk, asi que el resultado es una aproximacion
+	# para s != 1. Con s=1 (default) es identidad.
+
+	# hue: rotacion de la rueda de color. Diagonal de hMat:
+	#   hMat[0][0] = lum_r + cosH*(1-lum_r) + sinH*(-lum_r)
+	#   hMat[1][1] = lum_g + cosH*(1-lum_g) + sinH*(0.140)
+	#   hMat[2][2] = lum_b + cosH*(1-lum_b) + sinH*(lum_b)
+	var h_mat_diag_r: float = lum_r + cos_h * (1.0 - lum_r) + sin_h * (-lum_r)
+	var h_mat_diag_g: float = lum_g + cos_h * (1.0 - lum_g) + sin_h * 0.140
+	var h_mat_diag_b: float = lum_b + cos_h * (1.0 - lum_b) + sin_h * lum_b
+
+	# Composicion: el source multiplica las matrices en este orden:
+	#   multiplyMatrices(multiplyMatrices(multiplyMatrices(bMat, cMat), sMat), hMat)
+	# Componer diagonales (aproximacion port, sin cross-talk):
+	var s_diag_r: float = lum_r * (1.0 - s) + s
+	var s_diag_g: float = lum_g * (1.0 - s) + s
+	var s_diag_b: float = lum_b * (1.0 - s) + s
+
+	var final_r: float = b_mat_diag * c_mat_diag * s_diag_r * h_mat_diag_r
+	var final_g: float = b_mat_diag * c_mat_diag * s_diag_g * h_mat_diag_g
+	var final_b: float = b_mat_diag * c_mat_diag * s_diag_b * h_mat_diag_b
+
+	# Offsets: solo brightness y contrast contribuyen. El offset de
+	# contrast se escala por la cadena (brightness no tiene offset
+	# dependiente). Documentado: el source suma los offsets en cada
+	# multiplicacion de matrices; aca se combinan linealmente.
+	var final_offset: float = b_mat_offset + c_mat_offset
+
+	var result: AdobeColorMatrix = AdobeColorMatrix.new()
+	result.color_multipliers[0] = Vector4(final_r, 0.0, 0.0, 0.0)
+	result.color_multipliers[1] = Vector4(0.0, final_g, 0.0, 0.0)
+	result.color_multipliers[2] = Vector4(0.0, 0.0, final_b, 0.0)
+	result.color_multipliers[3] = Vector4(0.0, 0.0, 0.0, 1.0)
+	result.color_offsets = Vector4(final_offset, final_offset, final_offset, 0.0)
+
+	return result
+
+
 ## Resuelve una clave del bloque color probando primero el nombre corto y
 ## cayendo al largo, igual que los getters de ColorJson en
 ## maru/src/animate/FlxAnimateJson.hx:646-700 (`this.RM ?? this.RedMultiplier`,

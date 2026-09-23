@@ -27,4 +27,15 @@ class_name AdobeLayerFrame
 ##   {color: String (con #), blur_x: float, blur_y: float,
 ##    strength: float, alpha: float, inner: bool, knockout: bool}
 ## Vacio = sin filtros.
+##
+## F13a: `glow` es ahora un DERIVADO de `filters` (primer GLOW). El shader
+## inline de atlas_shader.gdshader sigue leyendo esto; cuando F13b porte el
+## render-to-texture (bake real), `glow` se vuelve redundante pero se
+## mantiene por compat con caches y consumidores.
 @export_storage var glow: Dictionary = {}
+
+## F13a: lista completa de filtros del keyframe. Port de FrameJson.F +
+## FilterJson.resolve (FlxAnimateJson.hx:419-440). Tipos soportados:
+## BLUR, ADJUST_COLOR, DROP_SHADOW, GLOW, BEVEL, GRADIENT_GLOW,
+## GRADIENT_BEVEL. Aplicarlos es F13b (necesita render-to-texture).
+@export_storage var filters: Array[AdobeFilter] = []

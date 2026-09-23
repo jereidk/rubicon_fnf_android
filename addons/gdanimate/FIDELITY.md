@@ -50,7 +50,100 @@ Orden acordado: archivo por archivo, logica por logica.
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (ver abajo) |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
-| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd` | **F13a hecho, F13b pendiente** (ver abajo) |
+
+### F13 — filtros: F13a (parseo + math) y F13b (render-to-texture, pendiente)
+
+**Revision del pipeline real de maru.**
+
+maru NO aplica filtros per-fragmento. El pipeline es:
+1. `FilterRenderer.renderToBitmap` renderiza la frame a un `BitmapData` offscreen.
+2. Aplica los `BitmapFilter` de OpenFL al bitmap (GPU via
+   `__renderGpuFilter`, o CPU via `__renderCpuFilter` + `StackBlur`).
+3. `bakeFilters` devuelve un `AtlasInstance` con el bitmap filtrado como
+   `frame`. El resto del render lo trata como un sprite normal.
+
+En Godot eso requiere render-to-texture (SubViewport + `force_draw` +
+`get_texture`). Es la misma infra que necesita F12b
+(`FlxSpriteElement`). Por eso F13 se parte en dos.
+
+**F13a HECHO — parseo + math sin render.**
+
+Lo que se puede hacer sin tocar el pipeline de dibujo:
+
+1. **`AdobeFilter` reescrito** (`adobe_filter.gd`):
+   - Enum con **7 tipos** en vez de 2: BLUR, ADJUST_COLOR, DROP_SHADOW,
+     GLOW, BEVEL, GRADIENT_GLOW, GRADIENT_BEVEL.
+   - `parse_one(raw)`: dispatch por `N`/`name` con los 7 nombres cortos
+     (`BLF`/`ACF`/`DSF`/`GF`/`BF`/`GGF`/`GBF`) y los 7 largos
+     (`blurFilter`/`adjustColorFilter`/`dropShadowFilter`/`glowFilter`/
+     `bevelFilter`/`gradientGlowFilter`/`gradientBevelFilter`). Filtro
+     desconocido -> null (mismo comportamiento que el source).
+   - `parse_list(input)`: acepta Array (optimized) o Dictionary (legacy
+     con `DropShadowFilter` / `GlowFilter` como claves). El source lo
+     normaliza con `FilterJson.resolve` (FlxAnimateJson.hx:419-440).
+   - `extract_glow_compat(filters)`: devuelve el primer GLOW como Dict con
+     los campos que el shader inline actual espera (`color`, `alpha`,
+     `blur_x`, `blur_y`, `strength`, `quality`, `inner`, `knockout`).
+
+2. **Parseo en `load_frame`**: ahora pobla `AdobeLayerFrame.filters` con
+   `AdobeFilter.parse_list`. Antes `glow` existia pero NUNCA se puebla
+   (el shader de glow nunca funcionaba). Ahora `glow` es un DERIVADO de
+   `filters` (primer GLOW) y el shader inline recibe datos reales.
+
+3. **Parseo en `load_symbol_instance`**: ahora pobla
+   `AdobeSymbolInstance.filters` desde `SymbolInstanceJson.F`. Antes el
+   campo existia y nunca se usaba.
+
+4. **`AdobeLayerFrame.filters: Array[AdobeFilter]`** campo nuevo.
+
+5. **`AdobeAtlas.expand_filter_bounds(base, filters)`**: port de
+   `FilterRenderer.expandFilterBounds`. Calcula el margen que cada filtro
+   agrega al bbox (blur/glow outer/dropShadow). No expanden:
+   inner glow, bevel, adjust_color, gradient_*.
+
+6. **`AdobeColorMatrix.adjust_from_params(b, h, c, s)`**: port de
+   `AdjustColorFilter.getColorMatrix`. Matematica pura. Devuelve un
+   `AdobeColorMatrix` con la diagonal + offsets compuestos. Documentado:
+   la version del port NO aplica el cross-talk entre canales
+   (saturation/hue cruzados); con los valores reales del mod (h=0,
+   saturation=0) es 1:1 con el source. Un caso con h != 0 requiere un
+   shader 4x5 completo -> F13b.
+
+**F13b PENDIENTE — aplicar los filtros (render-to-texture).**
+
+Bloqueado por SubViewport (misma infra que necesita F12b). Componentes
+que faltan:
+
+- `FilterRenderer::renderToBitmap` -> `SubViewport` + `force_draw`.
+- `FilterRenderer::bakeFilters` -> horneado con margen de filtro.
+- `FilterRenderer::applyFilter` + `__renderGpuFilter` / `__renderCpuFilter`.
+- `FilterRenderer::maskFrame` (aunque `canvas_item_set_canvas_group_mode(
+  CLIP_ONLY)` puede cubrirlo parcialmente).
+- `StackBlur::blur` (para targets sin gpu-blur).
+- `MaskShader` (equivalente al CLIP_ONLY nativo).
+- `Frame._requireBake` / `_bakedFrames` / `__isDirtyCall`.
+- `FilterQuality` enum.
+- Aplicacion de cada filtro real (Blur, Glow outer, DropShadow, Bevel).
+- `AdjustColorFilter` con shader 4x5 completo (para h != 0, s != 1).
+
+**Reaperturas tambien anotadas para F13b:**
+
+- **F11-reopen**: modos ALPHA (1) y ERASE (4) hoy hacen `discard` en
+  `atlas_shader.gdshader`. Divergencia arquitectonica fundamental
+  (requieren escribir el alpha del BG). Fix real: RenderTexture +
+  composicion manual -> F13b.
+- **F11-reopen**: ADD con premult hack (`COLOR.rgb *= COLOR.a` antes de
+  `add()`). Divergencia real contra el `BlendShader` de maru. Revisar en
+  F13b.
+- **F12-reopen**: `FlxSpriteElement` (F12b). Requiere SubViewport capture.
+- **F12-reopen**: `letter_spacing` (CSP) y `bold`/`italic` en
+  `AdobeTextFieldInstance`. F13b.
+
+**Tests:** `tests/test_filters.gd` nuevo (6 casos: parseo optimized,
+parseo legacy dict, filtro desconocido descartado, extract_glow_compat,
+expand_filter_bounds para blur/inner-glow/outer-glow/none,
+adjust_from_params identidad). Suite: **16/16**.
 
 ### F12 — `TextFieldInstance.hx` (F12a) + `FlxSpriteElement.hx` (F12b)
 

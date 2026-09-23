@@ -1168,6 +1168,20 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	if has_pair(optimized, frame, "blend", "B"):
 		gd_frame.blend_mode = get_pair(optimized, frame, "blend", "B") as AdobeSymbolInstance.AdobeBlendMode
 
+	# F13a: parseo de filtros a nivel KEYFRAME. Port de FrameJson.F +
+	# FilterJson.resolve (FlxAnimateJson.hx:419-440). El source lo hace
+	# via `Frame.hx:214`, y Frame.draw aplica los filtros con
+	# FilterRenderer.bakeFilters (render-to-texture, F13b).
+	#
+	# Hasta F13a esto NO se parseaba: `AdobeLayerFrame.glow` existia pero
+	# nadie lo puebla, asi que el shader inline de glow del port nunca se
+	# activaba. Ahora `filters` tiene todos los tipos y `glow` se deriva
+	# del primer GLOW para que el shader actual reciba datos reales.
+	if has_pair(optimized, frame, "filters", "F"):
+		var raw_filters: Variant = get_pair(optimized, frame, "filters", "F")
+		gd_frame.filters = AdobeFilter.parse_list(raw_filters)
+		gd_frame.glow = AdobeFilter.extract_glow_compat(gd_frame.filters)
+
 	# Despacho de elementos, port de Frame.hx:216-249 (maru dcaa33c): se
 	# prueba SI, despues ASI, despues TFI, y si no es ninguno el elemento se
 	# IGNORA (el source no hace push de nada en ese caso).
@@ -1351,6 +1365,14 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 
 	if has_pair(optimized, element, "color", "C"):
 		symbol_instance.color_matrix = AdobeColorMatrix.parse(optimized, get_pair(optimized, element, "color", "C"))
+
+	# F13a: parseo de filtros a nivel INSTANCIA. Port de SymbolInstanceJson.F
+	# (FlxAnimateJson.hx:220-235): el source lo normaliza con
+	# `FilterJson.resolve` si viene como Dictionary (formato no-optimized).
+	# Aplicar los filtros es F13b (bake); aca solo se guardan.
+	if has_pair(optimized, element, "filters", "F"):
+		var raw_filters: Variant = get_pair(optimized, element, "filters", "F")
+		symbol_instance.filters = AdobeFilter.parse_list(raw_filters)
 
 	if has_pair(optimized, element, "loop", "LP"):
 		var loop_mode: String = get_pair(optimized, element, "loop", "LP")
@@ -1639,3 +1661,80 @@ func compute_bounds_offset(target_key: StringName) -> Vector2:
 	if target_sym == null:
 		return Vector2.ZERO
 	return -target_sym.bounding_box.position
+
+
+## F13a. Port de FilterRenderer.expandFilterBounds
+## (maru src/animate/internal/FilterRenderer.hx:534-618).
+##
+## Expande un rect con el margen que cada filtro agrega al renderizar:
+##   BLUR (BlurFilter): blurX/blurY en cada direccion.
+##   GLOW (GlowFilter): si NO es inner, blurX/blurY en cada direccion.
+##     (inner = el glow vive DENTRO del sprite, no expande)
+##   DROP_SHADOW (DropShadowFilter): blurX/blurY + offset del shadow.
+##   BEVEL / GRADIENT_GLOW / GRADIENT_BEVEL / ADJUST_COLOR: NO expanden
+##     (todos operan pixel-a-pixel sin generar pixeles fuera del bbox).
+##
+## El source tiene los campos `__leftExtension`, etc. que ya tienen el
+## margen acumulado por OpenFL. En el port los calculamos a mano desde los
+## campos crudos del JSON (via AdobeFilter.data).
+##
+## Se usa para pre-calcular bounds cuando `includeFilters=true` en
+## symbol_bounds/frame_bounds. Hoy no se llama desde ningun lado; queda
+## disponible para F13b cuando se apliquen los filtros reales.
+static func expand_filter_bounds(base: Rect2, filters: Array[AdobeFilter]) -> Rect2:
+	if filters.is_empty():
+		return base
+
+	var left: float = 0.0
+	var top: float = 0.0
+	var right: float = 0.0
+	var bottom: float = 0.0
+
+	for filter: AdobeFilter in filters:
+		if filter == null:
+			continue
+		var d: Dictionary = filter.data
+		match filter.type:
+			AdobeFilter.AdobeFilterType.BLUR:
+				var bx: float = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
+				var by: float = float(AdobeFilter._pick_or(d, "BLY", "blurY", 0.0))
+				left += maxf(ceilf(bx), 0.0)
+				right += maxf(ceilf(bx), 0.0)
+				top += maxf(ceilf(by), 0.0)
+				bottom += maxf(ceilf(by), 0.0)
+			AdobeFilter.AdobeFilterType.GLOW:
+				var inner: bool = bool(AdobeFilter._pick_or(d, "IN", "inner", false))
+				if inner:
+					continue
+				var bx: float = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
+				var by: float = float(AdobeFilter._pick_or(d, "BLY", "blurY", 0.0))
+				left += maxf(ceilf(bx), 0.0)
+				right += maxf(ceilf(bx), 0.0)
+				top += maxf(ceilf(by), 0.0)
+				bottom += maxf(ceilf(by), 0.0)
+			AdobeFilter.AdobeFilterType.DROP_SHADOW:
+				var dist: float = float(AdobeFilter._pick_or(d, "D", "distance", 0.0))
+				var angle_deg: float = float(AdobeFilter._pick_or(d, "AL", "angle", 45.0))
+				var blur_x: float = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
+				var blur_y: float = float(AdobeFilter._pick_or(d, "BLY", "blurY", 0.0))
+				var rad: float = angle_deg * PI / 180.0
+				var off_x: float = dist * cos(rad)
+				var off_y: float = dist * sin(rad)
+				# El source usa int() (truncate) para el offset, y luego
+				# ceil() del blur. Lo mismo aca.
+				var int_off_x: int = int(off_x)
+				var int_off_y: int = int(off_y)
+				left += maxf(-int_off_x if int_off_x < 0 else 0, 0) + ceilf(blur_x)
+				right += maxf(int_off_x if int_off_x > 0 else 0, 0) + ceilf(blur_x)
+				top += maxf(-int_off_y if int_off_y < 0 else 0, 0) + ceilf(blur_y)
+				bottom += maxf(int_off_y if int_off_y > 0 else 0, 0) + ceilf(blur_y)
+			_:
+				# BEVEL, GRADIENT_GLOW, GRADIENT_BEVEL, ADJUST_COLOR no expanden.
+				pass
+
+	return Rect2(
+		base.position.x - left, 
+		base.position.y - top, 
+		base.size.x + left + right, 
+		base.size.y + top + bottom, 
+	)
