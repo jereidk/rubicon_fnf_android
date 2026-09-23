@@ -1452,3 +1452,50 @@ func get_pair(_optimized: bool, dict: Dictionary, unoptim: String, optim: String
 	if short != null:
 		return short
 	return dict.get(unoptim)
+
+
+## F7. Port de Timeline.getWholeBounds - maru Timeline.hx:194-220.
+##
+## Recorre todos los frames y expande el rect con el bounds de cada frame
+## (via symbol_bounds, que es el port de Timeline.getBounds). Mas fiel que
+## "merge de layer.bounding_box" porque aplica el clipping frame-by-frame.
+##
+## Sin cache por ahora. El source cachea en `_cachedBounds` (Timeline.hx:
+## 240-283) y lo invalida con clearBoundsCache; portar eso requiere hookear
+## todos los puntos que invalidan (replace_frame del sprite, F13 del layer,
+## etc). TODO F8.
+func whole_symbol_bounds(target: AdobeSymbol, include_hidden: bool = false) -> Rect2:
+	if target == null or target.length <= 0:
+		return Rect2()
+
+	var rect: Rect2 = Rect2()
+	var first: bool = true
+
+	for i in target.length:
+		var fb: Rect2 = symbol_bounds(target, i, Transform2D.IDENTITY, include_hidden)
+		if fb.size.x <= 0.0 or fb.size.y <= 0.0:
+			continue
+		if first:
+			first = false
+			rect = fb
+		else:
+			rect = rect.merge(fb)
+
+	return rect
+
+
+## F7. Port de Timeline.getBoundsOrigin - maru Timeline.hx:166-178.
+## Devuelve el top-left de los bounds como Vector2. Util para replicar el
+## matrix.translate(-x, -y) que hace FlxAnimate.hx:224-225 - el patron que
+## usan los mods para centrar el sprite.
+##
+## `apply_stage_matrix` multiplica por stage_transform.x.x/y.y, que es el
+## fix de "legacy bounds" del source (Timeline.hx:170-174). El port no tiene
+## legacy mode, pero se mantiene el parametro por fidelidad.
+func symbol_bounds_origin(target: AdobeSymbol, apply_stage_matrix: bool = false) -> Vector2:
+	var rect: Rect2 = whole_symbol_bounds(target)
+	var origin: Vector2 = rect.position
+	if apply_stage_matrix:
+		origin.x *= stage_transform.x.x
+		origin.y *= stage_transform.y.y
+	return origin

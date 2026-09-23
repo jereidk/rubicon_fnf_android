@@ -101,10 +101,34 @@ func _migrate_from_legacy() -> void:
 
 
 func calculate_bounding_box() -> void:
+	# Fix F7 (fixup de F6): antes arrancaba de Rect2() vacio y mergeaba cada
+	# elemento. `Rect2().merge(otro)` NO es `otro`, es "(0,0,0,0) union otro"
+	# = Rect2(0, 0, ...). Esto metia el origen del atlas en el bbox de la
+	# capa, que despues AdobeSymbol.merge() propagaba al bbox del simbolo,
+	# que despues FlxAnimate.hx:224-225 usaba para matrix.translate(-x,-y)
+	# -> sprite cortado/desplazado (bug raiz del trickyDJ).
+	#
+	# Ahora se usa el flag `first` como el source (Timeline.getBounds,
+	# maru Timeline.hx:230-275) y se skipean frames vacios y elementos sin
+	# area como el source:
+	#   - `if (frame == null || frame.elements.length <= 0) continue;`
+	#     (Timeline.hx:255)
+	#   - `if (frameBounds.isEmpty) continue;`  (Timeline.hx:259)
+	#   - Layer.hx:106, `if (!layer.visible && !includeHiddenLayers) continue;`
 	if layer_type == LayerType.CLIPPER:
 		return
 	var rect: Rect2 = Rect2()
+	var first: bool = true
 	for frame: AdobeLayerFrame in frames:
+		if frame.elements.is_empty():
+			continue
 		for element: AdobeDrawable in frame.elements:
-			rect = rect.merge(element.bounding_box)
+			var eb: Rect2 = element.bounding_box
+			if eb.size.x <= 0.0 or eb.size.y <= 0.0:
+				continue
+			if first:
+				first = false
+				rect = eb
+			else:
+				rect = rect.merge(eb)
 	bounding_box = rect

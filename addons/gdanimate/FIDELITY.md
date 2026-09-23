@@ -44,13 +44,115 @@ Orden acordado: archivo por archivo, logica por logica.
 | F4 | `ButtonInstance.hx` (153) | `adobe_button_instance.gd`, `animate_symbol.gd` | **hecho** (ver abajo) |
 | F5 | `Frame.hx` (448) | `adobe_layer_frame.gd`, `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | **hecho** (ver abajo) |
-| F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | pendiente |
+| F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | **hecho** (ver abajo) |
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | pendiente |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | pendiente |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | pendiente |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F7 — `Timeline.hx` + `SymbolItem.hx`: divergencias y fixes
+
+**Bug raiz corregido (fixup de F6):** `AdobeLayer.calculate_bounding_box`
+y `AdobeSymbol.calculate_bounding_box` arrancaban de `Rect2()` vacio y
+mergeaban. **`Rect2().merge(otro)` NO es `otro`**, es
+`"(0,0,0,0) union otro"` = `Rect2(0, 0, ...)`. Cualquier capa cuyo primer
+elemento tuviera bbox fuera del origen del atlas **metia (0, 0) al bbox de
+la capa**, y el merge capa-por-capa del simbolo propagaba el error. Despues
+`FlxAnimate.hx:224-225` hacia `matrix.translate(-bounds.x, -bounds.y)` con
+ese bounds inflado -> **sprite cortado/desplazado. Bug raiz del trickyDJ.**
+
+Fix: flag `first` como el source (`Timeline.getBounds`, maru Timeline.hx:
+230-275) + skip de frames vacios (`if (frame == null ||
+frame.elements.length <= 0) continue;`, Timeline.hx:255) y skip de
+elementos sin area (`if (frameBounds.isEmpty) continue;`, Timeline.hx:259).
+
+**SymbolItem.hx: casi N/A.** El archivo es un wrapper fino de Timeline:
+- `createInstance(type)` -> ya portado en F3 (`adobe_symbol_instance.gd` +
+  `animate_symbol.gd`).
+- `transformationPoint = FlxPoint.get()` -> **solo inicializacion a (0,0)**.
+  El TRP real del JSON lo escribe `SymbolInstance._loadJson` (F3).
+  SymbolItem NO parsea TRP.
+- `onSymbolCreate` hook -> settings callback, sin equivalente en el port.
+- `timeline.libraryItem = this` -> backref SymbolItem->Timeline. En el port
+  AdobeSymbol **es** SymbolItem+Timeline fusionados, backref N/A.
+
+**Metodos portados a `adobe_symbol.gd` (Timeline.hx):**
+- `name: StringName` + `_layer_map: Dictionary` + `rebuild_layer_map()`.
+- `get_layer(ref)` (Timeline.hx:48-51): acepta String/StringName (por mapa)
+  o int (por indice).
+- `for_each_layer(cb)` (Timeline.hx:60-66).
+- `get_frames_at_index(i)` (Timeline.hx:75-90).
+- `get_elements_at_index(i)` (Timeline.hx:92-108).
+- `get_frame_label_at_index(i)` (Timeline.hx:120-133).
+- Static `expand_bounds(a, b)` (Timeline.hx:391-401): wrapper de `a.merge(b)`.
+- Static `mask_bounds(masked, masker)` (Timeline.hx:406-424): interseca; si
+  el masker esta vacio devuelve `masked` sin tocar.
+- Static `apply_matrix_to_rect(rect, m)` (Timeline.hx:426-477): wrapper de
+  `m * rect`. Godot aplica el mismo AABB de las 4 esquinas.
+
+**Metodos portados a `adobe_atlas.gd`:**
+- `whole_symbol_bounds(target, include_hidden=false)` (Timeline.hx:194-220):
+  recorre todos los frames, expande el rect. Sin cache todavia
+  (`_cachedBounds` de maru se difiere a F8 junto con los hooks de
+  invalidacion).
+- `symbol_bounds_origin(target, apply_stage_matrix=false)` (Timeline.hx:
+  166-178): top-left del bounds. Es lo que un consumidor usa para
+  `matrix.translate(-origin.x, -origin.y)`.
+
+**Hallazgo contractual: `frame_indices` es DENSO desde 0.**
+
+`Layer.frame_indices` es un array **denso desde 0**, un slot por frame de
+duracion de cada keyframe, **sin respetar huecos** por `frame.starting_index`
+(que si es timeline-global). Consecuencia: `Layer.getFrameAtIndex(i)` indexa
+por el i-esimo frame **local** de la capa, no por el frame i del timeline.
+Un keyframe con `I=2, DU=1` produce `frame_indices=[0]`, y
+`getFrameAtIndex(0)` lo devuelve aunque su `starting_index=2`.
+
+**Esto es fiel a maru, no un bug del port.** `test_layer.gd` (F6) y
+`test_symbol.gd::_test_get_frames_and_elements_at_index` (F7) lo cubren.
+Un futuro "fix" que pretenda meter huecos nulos en `frame_indices`
+romperia el invariante que maru mantiene.
+
+**Lo que NO se porto (a otro archivo / otro F):**
+- `draw()` -> `animate_symbol.gd::_draw_adobe` (F9). Verificar alli el loop
+  REVERSO de capas (`i = length - 1; i--`, Timeline.hx:312-328): si el port
+  itera en orden natural, las capas quedan invertidas (Adobe Animate emite
+  top-to-bottom, hay que dibujar bottom primero).
+- `currentFrame` / `getCurrentElements()` -> vive en AnimateSymbol, no en
+  AdobeSymbol (F9).
+- `signalFrameChange(i, anim)` -> controller (F10).
+- `_loadJson` -> ya portado en `adobe_atlas.gd::load_layers`.
+- `findFrameLabelIndices` -> ya portado en `adobe_animate_controller.gd`.
+
+**Anotado para F8:**
+- `_cachedBounds` de maru (Timeline.hx:240-283) + `clearBoundsCache()`.
+  Requiere hookear todos los puntos que invalidan (replace_frame del sprite,
+  setKeyframe, cacheOnLoad).
+- Pre-computar `bounding_box` en `parse()` (llamando
+  `whole_symbol_bounds`) para que el getter lazy no recalcule.
+- Verificar que `getWholeBounds` vs "merge de layer.bounding_box" difieran
+  solo con clipping frame-level. Los assets de holyquintet + trickyclowned
+  no tienen ese patron; el fallback local es correcto para ellos.
+- Inconsistencia detectada: `adobe_atlas.gd::load_layers` resuelve
+  `parent_layer` buscando hacia atras en `gd_symbol.layers` (solo capas ya
+  procesadas), pero `migrate_all_layers_from_legacy` busca en TODO el array.
+  Si el clipper esta DESPUES del clipped en el JSON, el parse vivo NO lo
+  encuentra. Verificar contra Layer.hx real si "busca hacia arriba" es
+  indice menor o mayor. No tocado en F7.
+
+**Tests:** `tests/test_symbol.gd` nuevo con 9 casos: `layer.bbox` sin leak
+de (0,0), `symbol.bbox` sin leak, frame vacio no infla bbox, `get_layer`
+por nombre+indice, `for_each_layer`, `get_frames_at_index`,
+`get_elements_at_index`, `get_frame_label_at_index`,
+`whole_symbol_bounds`, `symbol_bounds_origin`. Suite: **11/11**.
+
+**Regresion visual: cero esperada.** El fixup corrige un leak de origen que
+estaba latente desde F2; para assets cuyo primer elemento del primer frame
+arranca cerca de (0,0) del atlas el comportamiento es identico. Para
+trickyDJ (que arranca lejos) el bbox deberia achicarse y el sprite
+reubicarse correctamente.
 
 ### F6 — `Layer.hx`: divergencias encontradas y que se hizo
 
