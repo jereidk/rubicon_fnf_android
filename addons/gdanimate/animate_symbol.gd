@@ -181,6 +181,15 @@ var last_light_mask: int = 0
 var last_visibilty_layer: int = 0
 
 
+## F13b-ii.3b: conectar el signal `bake_ready` del AdobeRenderBaker
+## singleton para redibujar cuando un bake termina. Sin esto, el primer
+## frame tras un cache miss sigue dibujando el contenido sin filtro
+## (porque el bake se hornea deferred) y el frame siguiente nunca se
+## entera.
+func _on_bake_ready(_key: String) -> void:
+	queue_redraw()
+
+
 func _enter_tree() -> void:
 	if autoplay and not Engine.is_editor_hint():
 		playing = true
@@ -189,6 +198,21 @@ func _enter_tree() -> void:
 
 	set_notify_local_transform(true)
 	set_notify_transform(true)
+
+	# F13b-ii.3b: reconectar el signal de bake. El baker es singleton y
+	# hornea 1 pending por frame; cuando termina, este slot hace
+	# queue_redraw() para que el proximo _draw() use el cache.
+	var baker: AdobeRenderBaker = AdobeRenderBaker.instance()
+	if not baker.bake_ready.is_connected(_on_bake_ready):
+		baker.bake_ready.connect(_on_bake_ready)
+
+
+func _exit_tree() -> void:
+	# F13b-ii.3b: desconectar el signal al salir del arbol (evita
+	# callbacks sobre nodos liberados).
+	if AdobeRenderBaker._instance != null and is_instance_valid(AdobeRenderBaker._instance):
+		if AdobeRenderBaker._instance.bake_ready.is_connected(_on_bake_ready):
+			AdobeRenderBaker._instance.bake_ready.disconnect(_on_bake_ready)
 
 
 func _notification(what: int) -> void:

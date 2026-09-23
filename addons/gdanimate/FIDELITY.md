@@ -52,6 +52,38 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.3b — aplicar filtros al bake + reconectar bake_ready
+
+**HECHO.**
+
+1. **`AdobeRenderBaker.request()`** acepta `filters: Array[AdobeFilter]`
+   opcional. `_do_bake` aplica `apply_filters_to_texture` a la textura
+   resultante ANTES de guardarla en el cache. El cache que queda es la
+   textura **ya filtrada** (equivalente a `FilterRenderer.applyFilter`
+   de maru, que devuelve el BitmapData final).
+
+2. **`_request_layer_bake`** en `adobe_atlas.gd` pasa `filters_copy` al
+   `baker.request()`.
+
+3. **`AnimateSymbol._enter_tree`** conecta `AdobeRenderBaker.bake_ready`
+   a un slot `_on_bake_ready(key)` que hace `queue_redraw()`. **Sin
+   esto**, el primer frame tras un cache miss seguia dibujando sin
+   filtro y el siguiente nunca se enteraba. **`_exit_tree`** desconecta
+   para evitar callbacks sobre nodos liberados.
+
+Con esto el flujo completo funciona:
+- Frame N: `draw_symbol` ve la capa con BLUR, no hay cache, dibuja sin
+  filtro + encola el bake.
+- Frame N+1 (baker `_process`): hornea el contenido crudo + aplica los
+  filtros via shader → guarda en cache → emite `bake_ready`.
+- Frame N+1 (symbol, tras recibir el signal): `queue_redraw()`.
+- Frame N+2: `draw_symbol` ve el cache → dibuja la textura filtrada.
+
+Latencia total: 2 frames. Imperceptible a 60fps (33ms).
+
+**Tests:** sin test nuevo. El test de integracion real (bake con BLUR
+en un simbolo sintetico) es F13b-ii.3c. Suite: **18/18**.
+
 ### F13b-ii.3a — bifurcacion de bake en draw_symbol
 
 **HECHO (hooks).** `adobe_atlas.gd` ahora tiene:

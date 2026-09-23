@@ -85,12 +85,17 @@ func invalidate(key: String) -> void:
 
 ## Pide un bake. Si ya hay uno pendiente con la misma key, lo reemplaza
 ## (el nuevo gana). `draw_cb` recibe `(canvas_rid: RID, size: Vector2)`.
-func request(key: String, size: Vector2i, draw_cb: Callable) -> void:
+##
+## F13b-ii.3b: `filters` opcional. Si no esta vacio, DESPUES del bake
+## crudo se aplica `apply_filters_to_texture` a la textura resultante.
+## El cache que queda es la textura YA FILTRADA.
+func request(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter] = []) -> void:
 	if size.x <= 0 or size.y <= 0:
 		return
 	_pending[key] = {
 		"size": size,
 		"draw": draw_cb,
+		"filters": filters, 
 	}
 
 
@@ -264,11 +269,11 @@ func _process(_delta: float) -> void:
 	var key: String = String(_pending.keys()[0])
 	var req: Dictionary = _pending[key]
 	_pending.erase(key)
-	_do_bake(key, req["size"], req["draw"])
+	_do_bake(key, req["size"], req["draw"], req.get("filters", []))
 	_is_baking = false
 
 
-func _do_bake(key: String, size: Vector2i, draw_cb: Callable) -> void:
+func _do_bake(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter]) -> void:
 	_viewport.size = size
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
@@ -285,10 +290,19 @@ func _do_bake(key: String, size: Vector2i, draw_cb: Callable) -> void:
 	# Copiar a ImageTexture (mismo readPixels que maru con gl.readPixels).
 	var img: Image = _viewport.get_texture().get_image()
 	var tex: ImageTexture = ImageTexture.create_from_image(img)
-	_cache[key] = tex
 
 	_viewport.remove_child(node)
 	node.queue_free()
 	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+
+	# F13b-ii.3b: aplicar filtros si los hay. El cache que queda es la
+	# textura ya filtrada (equivalente a FilterRenderer.applyFilter de
+	# maru que devuelve el BitmapData final).
+	if not filters.is_empty():
+		var filtered: ImageTexture = await apply_filters_to_texture(tex, filters, size)
+		if filtered != null:
+			tex = filtered
+
+	_cache[key] = tex
 
 	bake_ready.emit(key)

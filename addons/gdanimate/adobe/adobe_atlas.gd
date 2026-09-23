@@ -1814,4 +1814,4 @@ func _request_layer_bake(key: String, layer: AdobeLayer, frame: int, layer_frame
 				draw_atlas_sprite(element as AdobeAtlasSprite, rid, bake_t)
 			elif element is AdobeTextFieldInstance:
 				(element as AdobeTextFieldInstance).draw_to_canvas(rid, bake_t)
-	)
+	, filters_copy)
