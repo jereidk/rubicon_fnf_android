@@ -48,9 +48,110 @@ Orden acordado: archivo por archivo, logica por logica.
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | **hecho** (ver abajo) |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | **hecho** (ver abajo) |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
-| F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
+| F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (ver abajo) |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F11 — `StageBG.hx` + `Blend.hx`: estado (sin fixes)
+
+**Revision completa.** Los dos archivos ya estan portados fielmente. Este
+pase es solo verificacion + documentacion de las divergencias
+arquitectonicas.
+
+**Verificacion empirica de blends en los mods.**
+
+Se escanearon los 42 Animation.json del HQ + trickyclowned buscando claves
+`B` (optimized) y `Blend` (legacy). Resultado:
+
+    0  ADD         ->  105 instancias
+    9  MULTIPLY    ->  204 instancias
+    TOTAL:            309
+
+**Cero ALPHA, cero ERASE, cero valores fuera de {ADD, MULTIPLY}.** Los dos
+unicos modos que aparecen estan implementados y son fieles:
+
+- **ADD (0)**: `add(COLOR, screen)` con premultiplicacion por `COLOR.a` y
+  `COLOR.a = 1.0`. Documentado como divergencia conocida por el autor
+  (blend aditivo de Flixel no es exactamente el mismo que Flash, que
+  aplica ADD sobre el target sin premultiplicar). Para el patron real que
+  usan los mods (glow additive sobre fondo oscuro) el resultado visual
+  coincide.
+- **MULTIPLY (9)**: `multiply(COLOR, screen)` = `COLOR.rgb * screen.rgb`.
+  Identico al `a.rgb * b.rgb` del `BlendShader` de maru.
+
+**`Blend.hx` - estado por metodo:**
+
+- `resolve()` -> `adobe_atlas.gd::resolve_blend` (~linea 810). Port fiel.
+  La unica rama no portada es `Frame.__isDirtyCall -> NORMAL`, que es del
+  sistema de baking de keyframes (F13).
+- `fromInt()` -> cubierto por el enum `AdobeSymbolInstance.AdobeBlendMode`.
+  Verificado valor-por-valor contra `Blend.hx:37-56`:
+    ADD=0, ALPHA=1, DARKEN=2, DIFFERENCE=3, ERASE=4, HARD_LIGHT=5,
+    INVERT=6, LAYER=7, LIGHTEN=8, MULTIPLY=9, NORMAL=10, OVERLAY=11,
+    SCREEN=12, SHADER=13, SUBTRACT=14.
+  Los 15 valores coinciden exactos.
+- `isGpuSupported()` -> N/A. En Godot el blend se resuelve via
+  `instance uniform int blend_mode` en `atlas_shader.gdshader`, no via
+  shaders de target.
+- `blend()` + `BlendShader` (bitmap) -> N/A. Arquitectura distinta: el
+  shader de maru renderiza al TARGET (BG compuesto) y hace el alpha blend
+  manual (`result.rgb = mix(a.rgb, result.rgb, b.a)`). El shader de Godot
+  renderiza por fragmento del FG y deja que el canvas haga el alpha blend
+  automatico. **Mismo resultado neto**, mecanismo distinto.
+
+**Divergencia arquitectonica: modos 1 (ALPHA) y 4 (ERASE) no se aplican.**
+
+`atlas_shader.gdshader` hace `discard` para ambos:
+    } else if (blend_mode == 1 || blend_mode == 4) { // adobe animate skill issue
+        discard;
+    }
+
+Razon: un shader canvas_item **no puede reescribir el BG**, solo el FG.
+Para ALPHA (reemplazar el alpha del BG por el del FG) o ERASE (atenuar el
+BG por el alpha del FG) hace falta un segundo pase con
+`canvas_item_set_copy_to_backbuffer`. **No vale la pena implementarlo
+porque los mods reales no los usan** (verificado empiricamente: 0 hits).
+
+**Cobertura del shader (verificada contra `BlendShader` de maru):**
+
+    0 ADD         -> add() con premult (divergencia conocida)
+    1 ALPHA       -> discard (N/A)
+    2 DARKEN      -> min()
+    3 DIFFERENCE  -> abs(a - b)
+    4 ERASE       -> discard (N/A)
+    5 HARD_LIGHT  -> overlay(COLOR, screen) = hardlight(BG, FG)  [identidad]
+    6 INVERT      -> 1.0 - BG
+    7 LAYER       -> passthrough (no matchea en el if)
+    8 LIGHTEN     -> max()
+    9 MULTIPLY    -> a * b
+    10 NORMAL     -> excluido del if externo, passthrough
+    11 OVERLAY    -> overlay(screen, COLOR) = overlay(BG, FG)
+    12 SCREEN     -> 1 - (1-a)*(1-b)
+    13 SHADER     -> passthrough
+    14 SUBTRACT   -> BG - FG
+
+Las dos `overlay()` con argumentos invertidos (11 y 5) son identidades
+matematicas: el orden de los argumentos de `hardlight` en Flash coincide
+con el `overlay(a,b)` con los roles invertidos. Verificado leyendo
+`BlendShader` de maru lado a lado.
+
+**`StageBG.hx` - estado:**
+
+Port en `AdobeAtlas.draw_on` (`render_stage` branch). El source escala un
+sprite 1x1 blanco a `(stageRect.width, stageRect.height)` y le aplica el
+color; el port dibuja `stage_rect` directo como rect con
+`canvas_item_add_rect`. **Mismo resultado visual** porque `stage_rect`
+siempre se construye en `_parse_stage_metadata` como `Rect2(0, 0, W, H)`.
+
+Early-outs del source:
+    if (!visible || alpha <= 0) return;
+    if (colorTransform.alphaMultiplier <= 0) return;
+
+El port solo tiene el segundo via `stage_color.a > 0.0`. En Godot el
+modulate del padre se hereda por jerarquia de canvas_items, asi que
+`modulate.a == 0` no dibuja igual - solo hay 1 rect de coste, no es bug.
+
+**Regresion visual: cero.** Sin cambios de codigo en este pase.
 
 ### F10 — `FlxAnimateController.hx`: `on_frame_label` + `set_anim_frame`
 
