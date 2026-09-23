@@ -52,6 +52,38 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.4 — filtros a nivel `AdobeSymbolInstance`
+
+**HECHO.** Mismo pipeline que F13b-ii.3 (capas), pero aplicado a las
+instancias de simbolo. Port de `SymbolInstance.filters` de maru.
+
+1. **Bifurcacion** en el bloque de `AdobeSymbolInstance` dentro de
+   `draw_symbol`: si la instancia tiene BLUR/DS/BEVEL, se hornea el
+   sub-render completo (`draw_symbol` recursivo al sub_sym) + se aplican
+   los filtros.
+   - Cache hit: dibuja la textura baked con
+     `canvas_item_add_texture_rect` y `continue`.
+   - Cache miss: `draw_symbol` recursivo normal + dispara el bake.
+   - GLOW y ADJUST_COLOR siguen por shader inline (no fuerzan bake,
+     mismo criterio que F13b-ii.3).
+
+2. **`_instance_filters_bake_key(inst, symbol_frame)`:** key
+   `"inst:<inst_id>:<frame>:<hash>"` o `""`.
+
+3. **`_request_instance_bake(...)`:** captura todos los parametros
+   necesarios (self, sub_sym, transform, material, color_matrix,
+   screen_transform, additive_material, light_mask, visibility_layer,
+   is_clipper, blend) y los cierra sobre el `draw_cb` del baker. El
+   `draw_cb` hace `draw_symbol` recursivo al sub_sym en el RID del
+   SubViewport, con un shift por el bbox expandido.
+
+**Cero cambio de comportamiento:** ningun asset del mod tiene filtros a
+nivel instancia. Solo GF a nivel keyframe (que va por shader inline, no
+bakea).
+
+**Tests:** suite **19/19** (sin test nuevo; el pipeline ya esta cubierto
+por test_bake_integration.gd de F13b-ii.3c).
+
 ### F13b-ii.3c — test de integracion del pipeline de bake
 
 **HECHO.** `tests/test_bake_integration.gd` nuevo, 5 casos:

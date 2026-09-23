@@ -521,6 +521,37 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					if element.color_matrix != null and next_matrix != null:
 						if next_matrix.color_multipliers[3].w <= 0.0:
 							continue
+					# F13b-ii.4: filtros a nivel INSTANCIA. Si la instancia tiene
+					# filtros que el shader inline no cubre (BLUR, DROP_SHADOW,
+					# BEVEL), se hornea el sub-render completo (draw_symbol
+					# recursivo + filtros) a una textura. Cache hit: dibuja la
+					# textura. Cache miss: draw_symbol normal + dispara el bake.
+					var inst_bake_key: String = _instance_filters_bake_key(
+						element as AdobeSymbolInstance, symbol_frame)
+					if not inst_bake_key.is_empty():
+						var inst_tex: ImageTexture = AdobeRenderBaker.instance().get_cached(inst_bake_key)
+						if inst_tex != null:
+							var inst_size: Vector2 = Vector2(
+								inst_tex.get_width(), inst_tex.get_height())
+							RenderingServer.canvas_item_add_set_transform(
+								layer_rid, t * element.transform)
+							RenderingServer.canvas_item_add_texture_rect(
+								layer_rid, 
+								Rect2(Vector2.ZERO, inst_size), 
+								inst_tex.get_rid(), 
+								false, 
+							)
+							if layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+								screen_rect = screen_rect.merge(Rect2(Vector2.ZERO, inst_size))
+							continue
+						else:
+							_request_instance_bake(
+								inst_bake_key, element as AdobeSymbolInstance, sub_sym, 
+								symbol_frame, t * element.transform, is_clipper or layer.clipping, 
+								layer_blend, material, next_matrix, 
+								screen_transform, additive_material, 
+								light_mask, visibility_layer)
+
 					var symbol_rect: Rect2 = draw_symbol(
 						sub_sym, 
 						layer_rid, 
@@ -1814,4 +1845,82 @@ func _request_layer_bake(key: String, layer: AdobeLayer, frame: int, layer_frame
 				draw_atlas_sprite(element as AdobeAtlasSprite, rid, bake_t)
 			elif element is AdobeTextFieldInstance:
 				(element as AdobeTextFieldInstance).draw_to_canvas(rid, bake_t)
+	, filters_copy)
+
+
+
+## F13b-ii.4: key de cache del bake para una instancia de simbolo, o ""
+## si la instancia no tiene filtros que requieran bake.
+func _instance_filters_bake_key(inst: AdobeSymbolInstance, symbol_frame: int) -> String:
+	if inst.filters.is_empty():
+		return ""
+
+	var needs_bake: bool = false
+	var hash_input: String = ""
+	for filter: AdobeFilter in inst.filters:
+		if filter == null:
+			continue
+		hash_input += "%d;" % filter.type
+		if filter.type == AdobeFilter.AdobeFilterType.BLUR \
+				or filter.type == AdobeFilter.AdobeFilterType.DROP_SHADOW \
+				or filter.type == AdobeFilter.AdobeFilterType.BEVEL:
+			needs_bake = true
+
+	if not needs_bake:
+		return ""
+
+	return "inst:%d:%d:%s" % [
+		inst.get_instance_id(), symbol_frame, str(hash_input.hash())
+	]
+
+
+## F13b-ii.4: dispara un bake del sub-render de una instancia de simbolo.
+func _request_instance_bake(
+	key: String, 
+	inst: AdobeSymbolInstance, 
+	sub_sym: AdobeSymbol, 
+	symbol_frame: int, 
+	t: Transform2D, 
+	is_clipper: bool, 
+	layer_blend: AdobeSymbolInstance.AdobeBlendMode, 
+	material: Material, 
+	next_matrix: AdobeColorMatrix, 
+	screen_transform: Transform2D, 
+	additive_material: Material, 
+	light_mask: int, 
+	visibility_layer: int, 
+) -> void:
+	var base: Rect2 = symbol_bounds(sub_sym, symbol_frame, t)
+	if base.size.x <= 0.0 or base.size.y <= 0.0:
+		base = Rect2(0.0, 0.0, 64.0, 64.0)
+	var expanded: Rect2 = AdobeAtlas.expand_filter_bounds(base, inst.filters)
+	var size: Vector2i = Vector2i(
+		maxi(int(ceilf(expanded.size.x)), 1), 
+		maxi(int(ceilf(expanded.size.y)), 1), 
+	)
+
+	var filters_copy: Array[AdobeFilter] = inst.filters.duplicate()
+	var self_ref: AdobeAtlas = self
+	var sub_sym_ref: AdobeSymbol = sub_sym
+	var t_ref: Transform2D = t
+	var mat_ref: Material = material
+	var color_ref: AdobeColorMatrix = next_matrix
+	var screen_ref: Transform2D = screen_transform
+	var additive_ref: Material = additive_material
+	var lm_ref: int = light_mask
+	var vl_ref: int = visibility_layer
+	var is_clipper_ref: bool = is_clipper
+	var blend_ref: AdobeSymbolInstance.AdobeBlendMode = layer_blend
+	var shift_pos: Vector2 = expanded.position
+
+	var baker: AdobeRenderBaker = AdobeRenderBaker.instance()
+	baker.request(key, size, func(rid: RID, _bake_size: Vector2) -> void:
+		var shift: Transform2D = Transform2D(0.0, -shift_pos)
+		var bake_t: Transform2D = shift * t_ref
+		var dummy_items: Array[RID] = []
+		self_ref.draw_symbol(
+			sub_sym_ref, rid, bake_t, symbol_frame, is_clipper_ref, dummy_items, 
+			blend_ref, mat_ref, color_ref, Rect2(), screen_ref, 
+			additive_ref, lm_ref, vl_ref, 
+		)
 	, filters_copy)
