@@ -531,6 +531,22 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 						layer_rid, 
 						t, 
 					)
+				elif element is AdobeTextFieldInstance:
+					# Port del dispatch de Frame.draw (Frame.hx:423-440): el
+					# loop prueba `element is SymbolInstance`, despues
+					# `element is AtlasInstance`, despues `element is
+					# TextFieldInstance`. Como TextFieldInstance hereda de
+					# AtlasInstance en maru, el orden ya es ASI > TFI para
+					# todos los AtlasInstance genericos; en el port son
+					# clases distintas y el orden es AdobeSymbolInstance >
+					# AdobeAtlasSprite > AdobeTextFieldInstance.
+					var tf: AdobeTextFieldInstance = element as AdobeTextFieldInstance
+
+					if layer_blend != AdobeSymbolInstance.AdobeBlendMode.NORMAL:
+						var tf_bounds: Rect2 = t * tf.bounding_box
+						screen_rect = screen_rect.merge(tf_bounds)
+
+					tf.draw_to_canvas(layer_rid, t)
 
 		if ( not is_clipper) and layer_parent == parent:
 			if rendered:
@@ -1063,6 +1079,69 @@ func load_layers(optimized: bool, layers: Array) -> AdobeSymbol:
 	return gd_symbol
 
 
+## Port de TextFieldInstance.hx constructor (maru dcaa33c,
+## src/animate/internal/elements/TextFieldInstance.hx:32-72). El source:
+##   1. Guarda la matrix del JSON (MX / matrix).
+##   2. Lee el primer atributo de ATR (el source solo usa ATR[0]).
+##   3. Aplica font/size/color/align/bold/italic al TextFormat.
+##   4. Guarda el texto (TXT / text).
+##   5. Hace redraw() para hornear el primer frame.
+##
+## El port no hornea (TextLine dibuja on-demand), asi que este metodo solo
+## parsea y guarda. El primer draw del textfield construye la TextLine.
+##
+## Mapeo de atributos (TextFieldAttributesJson, FlxAnimateJson.hx:565-630):
+##   SZ / Size            -> font_size
+##   C / color            -> text_color (hex string, "#RRGGBB" o "RRGGBB")
+##   F / font             -> font_path (el source lo trata como nombre de
+##                           fuente; aca lo tratamos como path res://)
+##   ALN / align          -> align (0=left, 1=center, 2=right, 3=justify)
+##   BL / bold, IT / italic -> NO aplicados (divergencia documentada)
+##   CSP / charSpacing      -> NO aplicado (divergencia documentada)
+##   LSP / lineSpacing      -> NO aplicado (el source tampoco)
+##   OF / LEN / ALS / AUK / CPS / IND / LFM / RFM / URL -> NO aplicados
+##                            (el source tampoco los lee)
+##   BRD / ALSRP / ALTHK / MAX / ORT / LT / TP / IN -> NO aplicados
+##                            (BRD esta comentado en el source; el resto no
+##                            se usa en render)
+func load_textfield_instance(optimized: bool, element: Dictionary) -> AdobeTextFieldInstance:
+	var tf: AdobeTextFieldInstance = AdobeTextFieldInstance.new()
+	element = get_pair(optimized, element, "textFIELD_Instance", "TFI")
+
+	tf.transform = resolve_matrix(element)
+
+	var raw_text: Variant = get_pair(optimized, element, "text", "TXT")
+	tf.text = str(raw_text) if raw_text != null else ""
+
+	# ATR es un array; el source solo lee el [0].
+	var attributes: Variant = get_pair(optimized, element, "attributes", "ATR")
+	if attributes is Array and not (attributes as Array).is_empty():
+		var atr: Dictionary = (attributes as Array)[0]
+		var raw_size: Variant = get_pair(optimized, atr, "Size", "SZ")
+		if raw_size != null:
+			tf.font_size = int(raw_size)
+
+		var raw_color: Variant = get_pair(optimized, atr, "color", "C")
+		if raw_color is String and not (raw_color as String).is_empty():
+			# Color.from_string rechaza el "#" inicial.
+			var hex: String = (raw_color as String).trim_prefix("#")
+			tf.text_color = Color.from_string(hex, Color.WHITE)
+
+		var raw_font: Variant = get_pair(optimized, atr, "font", "F")
+		if raw_font is String:
+			tf.font_path = raw_font
+
+		var raw_align: Variant = get_pair(optimized, atr, "align", "ALN")
+		if raw_align is String:
+			match raw_align:
+				"center": tf.align = 1
+				"right": tf.align = 2
+				"justify": tf.align = 3
+				_: tf.align = 0  # left / default
+
+	return tf
+
+
 func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 	var gd_frame: AdobeLayerFrame = AdobeLayerFrame.new()
 	# Defaults del ctor de Frame (Frame.hx:49-53): index 0, duration 1. El
@@ -1108,11 +1187,12 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 			elif has_pair(optimized, element, "ATLAS_SPRITE_instance", "ASI"):
 				gd_frame.elements.push_back(load_atlas_sprite(optimized, element))
 			elif has_pair(optimized, element, "textFIELD_Instance", "TFI"):
-				# TextFieldInstance no esta porteado todavia (F12 del plan de
-				# fidelidad). El source crea uno aca; el port lo saltea en vez
-				# de dibujar basura. Sin warning a proposito: seria uno por
-				# elemento y por frame.
-				pass
+				# Port de Frame.hx:216-249 (maru dcaa33c): el dispatch prueba
+				# SI > ASI > TFI. El source construye un TextFieldInstance,
+				# que hereda de AtlasInstance (texto horneado a bitmap). Aca
+				# se construye AdobeTextFieldInstance, que resuelve el texto
+				# via TextLine en el primer draw.
+				gd_frame.elements.push_back(load_textfield_instance(optimized, element))
 
 	return gd_frame
 

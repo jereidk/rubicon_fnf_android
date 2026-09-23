@@ -258,8 +258,8 @@ func _test_matrix_perspective(failures: Array[String]) -> void:
 
 
 ## Despacho de elementos de un keyframe, Frame.hx:216-249 (maru dcaa33c):
-## SI -> symbol instance, si no ASI -> atlas sprite, si no TFI -> text field
-## (no porteado, se saltea), si no NADA. Y `E` puede faltar entero.
+## SI -> symbol instance, si no ASI -> atlas sprite, si no TFI -> text field,
+## si no NADA. Y `E` puede faltar entero.
 func _test_element_dispatch(failures: Array[String]) -> void:
 	var atlas: AdobeAtlas = Helpers.make_test_atlas()
 	atlas.spritemap[&"pixel"] = _make_sprite()
@@ -277,9 +277,10 @@ func _test_element_dispatch(failures: Array[String]) -> void:
 					"E": [
 						{"SI": {"SN": "sub", "ST": "G", "MX": [1, 0, 0, 1, 1, 1]}},
 						{"ASI": {"N": "pixel", "MX": [1, 0, 0, 1, 2, 2]}},
-						# TFI: el source crea un TextFieldInstance, el port lo
-						# saltea. Lo que NO puede pasar es que caiga en
-						# load_atlas_sprite (antes reventaba ahi).
+						# TFI: el source crea un TextFieldInstance; el port
+						# tambien, via AdobeTextFieldInstance (F12). Lo que NO
+						# puede pasar es que caiga en load_atlas_sprite (antes
+						# reventaba ahi).
 						{"TFI": {"TXT": "hola", "MX": [1, 0, 0, 1, 3, 3]}},
 						# Tipo desconocido: el source no hace push de nada.
 						{"XX": {"lo que sea": 1}},
@@ -301,13 +302,17 @@ func _test_element_dispatch(failures: Array[String]) -> void:
 		return
 
 	var els: Array[AdobeDrawable] = frames[0].elements
-	if els.size() != 2:
-		failures.push_back("dispatch: esperaba 2 elementos utiles (SI + ASI), hay %d - TFI o el tipo desconocido se colaron" % els.size())
+	# F12: TFI ahora se construye (antes se salteaba). Del fixture de 4
+	# elementos (SI + ASI + TFI + XX desconocido), sobreviven 3.
+	if els.size() != 3:
+		failures.push_back("dispatch: esperaba 3 elementos utiles (SI + ASI + TFI), hay %d - el tipo desconocido se colo o falta TFI" % els.size())
 	else:
 		if els[0] is not AdobeSymbolInstance:
 			failures.push_back("dispatch: el primer elemento (SI) no salio como AdobeSymbolInstance")
 		if els[1] is not AdobeAtlasSprite:
 			failures.push_back("dispatch: el segundo elemento (ASI) no salio como AdobeAtlasSprite")
+		if els[2] is not AdobeTextFieldInstance:
+			failures.push_back("dispatch: el tercer elemento (TFI) no salio como AdobeTextFieldInstance")
 
 	if not frames[1].elements.is_empty():
 		failures.push_back("dispatch: un keyframe sin \"E\" tiene que quedar sin elementos, tiene %d" % frames[1].elements.size())

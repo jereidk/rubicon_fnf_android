@@ -49,8 +49,114 @@ Orden acordado: archivo por archivo, logica por logica.
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | **hecho** (ver abajo) |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (ver abajo) |
-| F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
+| F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F12 — `TextFieldInstance.hx` (F12a) + `FlxSpriteElement.hx` (F12b)
+
+**F12a HECHO — `TextFieldInstance.hx` (124 lineas).**
+
+Port en `adobe/adobe_textfield_instance.gd` (nuevo). El source crea un
+`openfl.text.TextField`, lo configura con un `TextFormat`, mide
+`textWidth`/`textHeight`, lo hornea a un `BitmapData` y lo trata como un
+`FlxFrame` mas. Hereda de `AtlasInstance`, NO de `SymbolInstance`.
+
+El port NO hornea a textura: usa `TextLine` de Godot, que dibuja directo
+al canvas RID del layer en el mismo pipeline que el resto de los
+elementos. Ventajas: sin SubViewport, sin forzar render sincrono, y
+glow/blend/canvas group siguen aplicando igual porque va al mismo
+`canvas_item` del layer. El source hornea porque Flixel dibuja sincrono y
+necesita un `FlxFrame`; Godot no lo necesita.
+
+**Parseo** (`AdobeAtlas::load_textfield_instance`):
+- MX / matrix -> `transform`
+- TXT / text -> `text`
+- ATR[0].SZ / Size -> `font_size`
+- ATR[0].C / color -> `text_color` (hex, trim_prefix "#")
+- ATR[0].F / font -> `font_path` (el source lo trata como nombre de
+  fuente del SO; aca como path `res://`. Fallback a `ThemeDB.fallback_font`
+  si no existe.)
+- ATR[0].ALN / align -> `align` (0=left, 1=center, 2=right, 3=justify)
+- ATR[1..N] -> ignorados. El source solo lee `ATR[0]`
+  (TextFieldInstance.hx:52 `var atr = data.ATR[0]`).
+
+**Dispatch**: `load_frame` prueba SI > ASI > TFI. Antes el TFI estaba como
+`pass` (se salteaba); ahora se construye. `draw_symbol` tiene una rama
+nueva para `AdobeTextFieldInstance` despues del `elif` de
+`AdobeAtlasSprite`.
+
+**Divergencias conocidas:**
+
+- **`letter_spacing` (CSP)**: no aplicado. `TextLine.add_string` no
+  soporta tracking. Anotado para F13b: agregar manualmente por glifo o
+  cambiar a un `RichTextLabel` con `BBCode` custom.
+- **`bold` (BL) / `italic` (IT)**: no aplicados. Requieren cargar la
+  variante bold/italic de la fuente. El source las aplica via
+  `TextFormat.bold/italic` (que redirige a la fuente del SO). En Godot
+  hay que resolver el path a la variante correcta. Anotado para F13b.
+- **`BRD` / `ALSRP` / `ALTHK`**: no aplicados. El source **tampoco** los
+  aplica (`format.borderSize = data.ALTHK` esta comentado,
+  TextFieldInstance.hx:71). Fiel.
+- **`MAX` / `ORT` / `LT` / `TP` / `IN`**: no aplicados. El source no los
+  usa en render. Fiel.
+- **`AUK` / `CPS` / `LSP` / `IND` / `LFM` / `RFM` / `URL`**: no aplicados.
+  El source no los lee. Fiel.
+
+**Anclaje del bbox**: `transform * Rect2(0, 0, W, H)`, igual que
+`AtlasInstance.getBounds` (AtlasInstance.hx:168-180). Sin centrar.
+
+**Alineacion horizontal**: aplicada manualmente en `draw_to_canvas`
+desplazando el origen por -W/2 (center) o -W (right). `TextLine` no maneja
+alineacion por si sola; el source la resuelve via `TextFormat.align` +
+`textWidth`. Resultado final: identico.
+
+**Tests:** `tests/test_textfield.gd` nuevo (5 casos: parse minimo,
+atributos completos, bbox desde matrix, setter de text marca dirty,
+ATR vacio no crashea). Actualizado `test_json_schema.gd`: el fixture de
+dispatch ahora espera 3 elementos (SI + ASI + TFI) en vez de 2, y
+verifica `els[2] is AdobeTextFieldInstance`. Suite: **15/15**.
+
+**F12b DIFERIDO — `FlxSpriteElement.hx` (206 lineas).**
+
+En maru, `FlxTypedElement<T:FlxBasic>` envuelve un `FlxBasic` arbitrario
+(un `FlxSprite` cualquiera del juego) para que participe de la timeline
+de Animate con transform/blend/color sincronizados. Patron: guardar
+estado -> `basic.setPosition(...)` -> `basic.draw()` -> restaurar. Todo
+**sincrono**, dentro del mismo call stack, porque Flixel dibuja a camara
+inmediatamente.
+
+**En Godot esto no es posible 1:1.** El pipeline de dibujo es diferido
+via RIDs: modificar un `CanvasItem` no se refleja hasta el proximo frame
+del scene tree. No hay "draw synchronously now".
+
+Tres arquitecturas posibles:
+1. **SubViewport capture**: renderizar el `CanvasItem` externo a una
+   textura via `SubViewport`, dibujar la textura en la timeline. Fiel al
+   resultado. **Requiere la infra de SubViewport que tambien necesita
+   F13** (filtros Adobe: `RenderTexture` de maru).
+2. **RID reparenting**: `canvas_item_set_parent(nodo.get_canvas_item(),
+   layer_rid)` en draw_on, restaurar en `_process`. Aprovecha el pipeline
+   actual pero rompe jerarquia de nodos (riesgo con botones, filtros).
+3. **API transformada**: el elemento expone `apply_timeline_transform(t)`
+   que el consumidor llama en `_process`. Funcional pero no fiel al
+   "sincrono".
+
+**Decision: F12b va con opcion 1, diferido a F13b**, cuando la infra de
+SubViewport este armada. Hacerlo antes implica duplicar el trabajo de
+F13 (que tambien necesita SubViewport/RenderTexture) o hacer un hack
+(RID reparenting) que despues habria que deshacer.
+
+**Reapertura F11 (para F13b):**
+- Modos de blend **ALPHA (1)** y **ERASE (4)**: hoy hacen `discard` en
+  `atlas_shader.gdshader`. Son divergencia arquitectonica fundamental:
+  requieren escribir el alpha del BG compuesto, que un `canvas_item`
+  no controla (solo el FG). Fix real requiere RenderTexture + composicion
+  manual -> **F13b**, junto con la infra de SubViewport.
+- **ADD con premult hack** (`COLOR.rgb *= COLOR.a; COLOR.a = 1.0` antes de
+  `add()`): divergencia real contra el `BlendShader` de maru, que aplica
+  ADD sin premultiplicar. Para el patron real que usan los mods (glow
+  additive sobre fondo oscuro) el resultado visual coincide, pero no es
+  fiel. **Revisar en F13b.**
 
 ### F11 — `StageBG.hx` + `Blend.hx`: estado (sin fixes)
 
