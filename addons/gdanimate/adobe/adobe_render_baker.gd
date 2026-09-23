@@ -122,6 +122,17 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 	var adjust_on: bool = false
 	var adjust_mult: Vector4 = Vector4.ONE
 	var adjust_off: Vector4 = Vector4.ZERO
+	var ds_on: bool = false
+	var ds_color: Color = Color.BLACK
+	var ds_offset: Vector2 = Vector2.ZERO
+	var ds_blur: float = 0.0
+	var ds_strength: float = 1.0
+	var bevel_on: bool = false
+	var bevel_highlight: Color = Color.WHITE
+	var bevel_shadow: Color = Color.BLACK
+	var bevel_offset: Vector2 = Vector2.ZERO
+	var bevel_blur: float = 0.0
+	var bevel_strength: float = 1.0
 
 	for filter: AdobeFilter in filters:
 		if filter == null:
@@ -158,8 +169,32 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 					acf.color_multipliers[3].w, 
 				)
 				adjust_off = acf.color_offsets
+			AdobeFilter.AdobeFilterType.DROP_SHADOW:
+				ds_on = true
+				ds_color = Color.from_string(
+					String(AdobeFilter._pick_or(d, "C", "color", "#000000")), Color.BLACK)
+				ds_color.a = float(AdobeFilter._pick_or(d, "A", "alpha", 1.0))
+				var dist: float = float(AdobeFilter._pick_or(d, "D", "distance", 0.0))
+				var ang_deg: float = float(AdobeFilter._pick_or(d, "AL", "angle", 45.0))
+				var ang: float = ang_deg * PI / 180.0
+				ds_offset = Vector2(dist * cos(ang), dist * sin(ang))
+				ds_blur = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
+				ds_strength = float(AdobeFilter._pick_or(d, "STR", "strength", 1.0)) / 100.0
+			AdobeFilter.AdobeFilterType.BEVEL:
+				bevel_on = true
+				bevel_highlight = Color.from_string(
+					String(AdobeFilter._pick_or(d, "HC", "highlightColor", "#FFFFFF")), Color.WHITE)
+				bevel_highlight.a = float(AdobeFilter._pick_or(d, "HA", "highlightAlpha", 1.0))
+				bevel_shadow = Color.from_string(
+					String(AdobeFilter._pick_or(d, "SC", "shadowColor", "#000000")), Color.BLACK)
+				bevel_shadow.a = float(AdobeFilter._pick_or(d, "SA", "shadowAlpha", 1.0))
+				var dist: float = float(AdobeFilter._pick_or(d, "D", "distance", 5.0))
+				var ang_deg: float = float(AdobeFilter._pick_or(d, "AL", "angle", 45.0))
+				var ang: float = ang_deg * PI / 180.0
+				bevel_offset = Vector2(dist * cos(ang), dist * sin(ang))
+				bevel_blur = float(AdobeFilter._pick_or(d, "BLX", "blurX", 4.0))
+				bevel_strength = float(AdobeFilter._pick_or(d, "STR", "strength", 1.0)) / 100.0
 			_:
-				# DROP_SHADOW y BEVEL: F13b-ii.2 (segundo pase).
 				pass
 
 	# Construir el shader material.
@@ -181,6 +216,17 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 	mat.set_shader_parameter(&"adjust_enabled", 1 if adjust_on else 0)
 	mat.set_shader_parameter(&"adjust_mult", adjust_mult)
 	mat.set_shader_parameter(&"adjust_offset", adjust_off)
+	mat.set_shader_parameter(&"ds_enabled", 1 if ds_on else 0)
+	mat.set_shader_parameter(&"ds_color", ds_color)
+	mat.set_shader_parameter(&"ds_offset_uv", Vector2(ds_offset.x / float(size.x), ds_offset.y / float(size.y)))
+	mat.set_shader_parameter(&"ds_blur_uv", ds_blur / float(maxf(size.x, size.y)))
+	mat.set_shader_parameter(&"ds_strength", ds_strength)
+	mat.set_shader_parameter(&"bevel_enabled", 1 if bevel_on else 0)
+	mat.set_shader_parameter(&"bevel_highlight", bevel_highlight)
+	mat.set_shader_parameter(&"bevel_shadow", bevel_shadow)
+	mat.set_shader_parameter(&"bevel_offset_uv", Vector2(bevel_offset.x / float(size.x), bevel_offset.y / float(size.y)))
+	mat.set_shader_parameter(&"bevel_blur_uv", bevel_blur / float(maxf(size.x, size.y)))
+	mat.set_shader_parameter(&"bevel_strength", bevel_strength)
 
 	# Render-to-texture con el shader aplicado. Uso un SubViewport temporal
 	# (no el _viewport del baker, que esta en uso serializado) para no

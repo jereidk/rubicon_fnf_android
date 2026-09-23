@@ -43,6 +43,21 @@ uniform vec4 adjust_mult = vec4(1.0);
 uniform vec4 adjust_offset = vec4(0.0);
 uniform int adjust_enabled = 0;
 
+// DropShadow
+uniform int ds_enabled = 0;
+uniform vec4 ds_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform vec2 ds_offset_uv = vec2(0.0);
+uniform float ds_blur_uv = 0.0;  // radio del blur aplicado al shadow
+uniform float ds_strength = 1.0;
+
+// Bevel (2 sombras opuestas: highlight + shadow).
+uniform int bevel_enabled = 0;
+uniform vec4 bevel_highlight : source_color = vec4(1.0);
+uniform vec4 bevel_shadow : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform vec2 bevel_offset_uv = vec2(0.0);
+uniform float bevel_blur_uv = 0.0;
+uniform float bevel_strength = 1.0;
+
 // TAU ya existe como built-in en el shader language de Godot 4
 // (junto con PI y E). No se puede redeclarar.
 
@@ -64,6 +79,21 @@ vec4 sample_blur(sampler2D tex, vec2 uv, vec2 radius_uv) {
         }
     }
     return sum / count;
+}
+
+// Suma radial del alpha con blur variable (para DS y Bevel).
+// Devuelve el promedio del alpha en un anillo de radio `r` (en UV).
+float sample_alpha_ring(sampler2D tex, vec2 uv, float r) {
+    if (r <= 0.0) {
+        return texture(tex, uv).a;
+    }
+    float sum = 0.0;
+    for (int i = 0; i < 12; i++) {
+        float angle = float(i) * TAU / 12.0;
+        vec2 off = vec2(cos(angle), sin(angle)) * r;
+        sum += texture(tex, uv + off).a;
+    }
+    return sum / 12.0;
 }
 
 // Suma radial del alpha para el glow.
@@ -100,6 +130,34 @@ void fragment() {
     // 3. AdjustColor (matriz de color).
     if (adjust_enabled == 1) {
         col = col * adjust_mult + adjust_offset;
+    }
+
+    // 4. Bevel (antes de DS: el bevel forma parte del "contenido").
+    if (bevel_enabled == 1) {
+        float ring_h = sample_alpha_ring(TEXTURE, uv + bevel_offset_uv, bevel_blur_uv);
+        float ring_s = sample_alpha_ring(TEXTURE, uv - bevel_offset_uv, bevel_blur_uv);
+        // Highlight: aplicado donde el sprite NO cubre (afuera).
+        float h_amount = ring_h * (1.0 - col.a) * bevel_strength * bevel_highlight.a;
+        col.rgb = mix(col.rgb, bevel_highlight.rgb, h_amount);
+        // Shadow: aplicado donde el sprite NO cubre.
+        float s_amount = ring_s * (1.0 - col.a) * bevel_strength * bevel_shadow.a;
+        col.rgb = mix(col.rgb, bevel_shadow.rgb, s_amount);
+        col.a = max(col.a, h_amount + s_amount);
+    }
+
+    // 5. DropShadow (compuesto detras del contenido).
+    if (ds_enabled == 1) {
+        float ds_alpha = sample_alpha_ring(TEXTURE, uv - ds_offset_uv, ds_blur_uv);
+        ds_alpha *= ds_color.a * ds_strength;
+        // Composicion estandar: fg sobre bg.
+        // fg = col (contenido), bg = shadow color con alpha ds_alpha.
+        vec3 fg_rgb = col.rgb * col.a;
+        vec3 bg_rgb = ds_color.rgb * ds_alpha;
+        float out_a = col.a + ds_alpha * (1.0 - col.a);
+        if (out_a > 0.0) {
+            col.rgb = (fg_rgb + bg_rgb * (1.0 - col.a)) / out_a;
+        }
+        col.a = out_a;
     }
 
     COLOR = col;

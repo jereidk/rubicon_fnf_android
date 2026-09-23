@@ -52,6 +52,54 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.2 — DropShadow + Bevel
+
+**HECHO.** Extendido `filter_shader.gdshader` +
+`AdobeRenderBaker.apply_filters_to_texture` para cubrir DropShadow (DSF)
+y Bevel (BF). Ya **no** hace falta un segundo pase: los dos se resuelven
+con samples offset en el mismo shader.
+
+**DropShadow:** se dibuja como un alpha compositing estandar del shadow
+detras del contenido. El shadow es `src` muestreada en
+`uv - ds_offset_uv` con un ring de alpha para el blur. Formula:
+    fg_rgb = col.rgb * col.a
+    bg_rgb = ds_color.rgb * ds_alpha
+    out_a = col.a + ds_alpha * (1 - col.a)
+    col.rgb = (fg_rgb + bg_rgb * (1 - col.a)) / out_a
+
+**Bevel:** dos rings opuestos (highlight y shadow). Se aplican sobre
+donde el sprite NO cubre (`1 - col.a`), con `mix()`:
+    ring_h = ring en (uv + bevel_offset_uv)
+    ring_s = ring en (uv - bevel_offset_uv)
+    h_amount = ring_h * (1 - col.a) * strength * highlight.a
+    s_amount = ring_s * (1 - col.a) * strength * shadow.a
+    col.rgb = mix(col.rgb, highlight.rgb, h_amount)
+    col.rgb = mix(col.rgb, shadow.rgb, s_amount)
+    col.a = max(col.a, h_amount + s_amount)
+
+**Uniforms nuevos:**
+- ds_enabled, ds_color, ds_offset_uv, ds_blur_uv, ds_strength
+- bevel_enabled, bevel_highlight, bevel_shadow, bevel_offset_uv,
+  bevel_blur_uv, bevel_strength
+
+**Offsets en UV-space:** igual que el blur, los offsets (distance, angle)
+se convierten a UV dividiendo por `size` en GDScript. Evita el gotcha de
+`TEXTURE_PIXEL_SIZE` (viewport-global, no texture-local) descubierto en
+F13b-ii.1.
+
+**Helper nuevo en el shader:** `sample_alpha_ring(tex, uv, r)`, variante
+de `sample_glow_ring` que toma un radio escalar (no un `vec2`) — util
+para DS y Bevel que solo necesitan un radio.
+
+**Tests:** `test_filter_shader.gd` extendido con 2 casos: DropShadow
+agrega alpha a la zona del shadow (fuera del contenido original); Bevel
+agrega pixeles en el borde del patron. Suite: **18/18**.
+
+**Cobertura final del shader:** BLUR, GLOW, DROP_SHADOW, BEVEL,
+ADJUST_COLOR. Los dos tipos GRADIENT_* (solo flash en el source) quedan
+descartados: no se aplican, mismo comportamiento que maru en target no
+flash.
+
 ### F13b-ii.1 — shader de filtros + `apply_filters_to_texture`
 
 **HECHO.** `filter_shader.gdshader` (nuevo) + metodo

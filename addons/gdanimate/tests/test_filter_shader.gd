@@ -13,9 +13,11 @@ func run(tree: SceneTree) -> Dictionary:
 	await _test_blur_smooths_edges(tree, failures)
 	await _test_adjust_color_modifies(tree, failures)
 	await _test_empty_filters_passthrough(tree, failures)
+	await _test_drop_shadow_adds_pixels(tree, failures)
+	await _test_bevel_adds_pixels(tree, failures)
 
 	return {
-		"name": "filter_shader: blur + adjust + passthrough (F13b-ii.1)",
+		"name": "filter_shader: blur + adjust + dropshadow + bevel (F13b-ii)",
 		"passed": failures.is_empty(),
 		"failures": failures,
 	}
@@ -107,3 +109,51 @@ func _test_empty_filters_passthrough(tree: SceneTree, failures: Array[String]) -
 
 	if out != src:
 		failures.push_back("passthrough: con filtros vacios devolvio otra textura")
+
+
+## DropShadow: sobre una textura con contenido opaco, agregar pixeles
+## semi-transparentes donde no habia nada (el shadow expandido).
+func _test_drop_shadow_adds_pixels(tree: SceneTree, failures: Array[String]) -> void:
+	var baker: AdobeRenderBaker = AdobeRenderBaker.instance()
+	var src: ImageTexture = _make_half_red_texture(32)
+
+	var filters: Array[AdobeFilter] = AdobeFilter.parse_list([
+		{"N": "DSF", "D": 6.0, "AL": 45.0, "C": "#000000", "A": 0.8, "BLX": 2.0, "BLY": 2.0, "STR": 100.0},
+	])
+	var out: ImageTexture = await baker.apply_filters_to_texture(src, filters, Vector2i(32, 32))
+
+	if out == null or out == src:
+		failures.push_back("dropshadow: no aplico")
+		return
+
+	var img: Image = out.get_image()
+	# El shadow va hacia abajo-derecha por angle 45. Mirar en (18, 18) que
+	# estaba transparente en la fuente.
+	var px: Color = img.get_pixel(18, 18)
+	# Deberia tener algo de alpha (el shadow se extendio ahi).
+	if px.a <= 0.0:
+		failures.push_back("dropshadow: no extendio alpha a la zona del shadow (a=%f)" % px.a)
+
+
+## Bevel: sobre un borde duro, agregar highlight en un lado y shadow en el
+## otro. El pixel del borde debe cambiar de color.
+func _test_bevel_adds_pixels(tree: SceneTree, failures: Array[String]) -> void:
+	var baker: AdobeRenderBaker = AdobeRenderBaker.instance()
+	var src: ImageTexture = _make_half_red_texture(32)
+
+	var filters: Array[AdobeFilter] = AdobeFilter.parse_list([
+		{"N": "BF", "D": 4.0, "AL": 45.0, "HC": "#FFFFFF", "HA": 1.0, "SC": "#000000", "SA": 1.0, "BLX": 2.0, "BLY": 2.0, "STR": 100.0},
+	])
+	var out: ImageTexture = await baker.apply_filters_to_texture(src, filters, Vector2i(32, 32))
+
+	if out == null or out == src:
+		failures.push_back("bevel: no aplico")
+		return
+
+	var img: Image = out.get_image()
+	# El bevel cambia el color del borde del patron. Mirar el pixel justo
+	# en el corte (x=16, y=16) que en la fuente es transparente, ahora
+	# puede tener highlight o shadow.
+	var px: Color = img.get_pixel(16, 16)
+	if px.a <= 0.0 and px.r == 0.0 and px.g == 0.0 and px.b == 0.0:
+		failures.push_back("bevel: no agrego pixel en el borde del patron")
