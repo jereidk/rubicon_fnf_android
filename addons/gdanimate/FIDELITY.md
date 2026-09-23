@@ -46,11 +46,100 @@ Orden acordado: archivo por archivo, logica por logica.
 | F6 | `Layer.hx` (262) | `adobe_layer.gd` | **hecho** (ver abajo) |
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | **hecho** (ver abajo) |
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | **hecho** (ver abajo) |
-| F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | pendiente |
+| F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | **hecho** (ver abajo) |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | pendiente |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F9 — `FlxAnimate.hx`: origin-shift automatico + flip de offset
+
+**Revision completa del archivo (497 lineas).** Casi todo estaba portado en
+`animate_symbol.gd` (props + setters, `_process` con playback, `_draw_impl`
+-> `_draw_adobe`, `get_animation_length`, `validate_frame`). El fix
+funcional de este pase es el origin-shift automatico al bbox del simbolo,
+que cierra la otra mitad del bug raiz del trickyDJ.
+
+**FIX — origin-shift automatico al bbox del simbolo (BREAKING).**
+
+maru `drawAnimate` (FlxAnimate.hx:194-196):
+    var bounds = timeline._bounds;
+    if (!willUseRenderTexture) matrix.translate(-bounds.x, -bounds.y);
+
+El source hace este shift SIEMPRE, no condicionado a `applyStageMatrix`
+(que recien se aplica despues, en `prepareAnimateMatrix`). El port no lo
+hacia en absoluto: `offset` era `@export var offset: Vector2 = ZERO`, que
+el usuario seteaba a mano. Resultado: todo sprite quedaba desplazado por
+`bounds.position` del simbolo, lo cual el mod HQ compensaba con
+`pixel_offset` empiricos.
+
+Fix: `AdobeAtlas.compute_bounds_offset(key)` (nuevo, ~linea 1557) devuelve
+`-symbol.bounding_box.position`. `draw_on` lo aplica
+(`transform = transform.translated(compute_bounds_offset(key))`) ANTES
+de concatenar `stage_transform`, mismo orden que el source.
+
+**BREAKING CHANGE: `offset` invierte el signo.**
+
+maru `FlxSprite.updateFramePixels`:
+    _point.x += origin.x - offset.x;
+    _point.y += origin.y - offset.y;
+o sea offset positivo mueve el sprite **LEFT/UP**. El port sumaba
+(`translated(draw_info.offset)`), asi que offset positivo movia
+**RIGHT/DOWN** - opuesto al source. Ahora se resta
+(`translated(-draw_info.offset)`).
+
+**Consecuencia agregada:** los dos cambios de F9 (shift automatico +
+flip de signo) van a romper visualmente los mods actuales:
+
+- **Holy Quintet**: los `pixel_offset` empiricos del `MainMenuSprite` /
+  `chr_*_base.tscn` asumian que `bounds_offset` era 0 y que offset
+  positivo movia RIGHT/DOWN. Despues de F9 hay que **recalibrar todos**.
+- **Tricky Clowned Out**: trickyDJ va a quedar **corregido** de raiz
+  (bbox ya no arrastra (0,0), y el origin-shift se aplica como en maru),
+  pero `title-screen-text` puede necesitar reajuste de `offset` por el
+  flip.
+
+**La recalibracion NO se hace en este pase** (regla: no testear mods
+hasta cerrar F13). Queda como paso obligatorio post-F13: correr los mods,
+medir, ajustar `offset` a mano hasta que las posiciones coincidan con el
+engine Haxe real.
+
+**N/A (arquitectura distinta):**
+- `useRenderTexture`, `_renderTexture`, `checkRenderTexture`: el flatten
+  de limbs a una textura unica es una optimizacion para `renderTile` en
+  flixel; Godot dibuja directo via RenderingServer.
+- `postStageMatrixApply`: modo alternativo de aplicar el stage matrix
+  despues de las transformaciones del sprite. El mod usa el orden default.
+- `skew`, `_skewMatrix`, `updateSkew`: FlxSprite no tiene skew en el port.
+- `drawDebugLimbs`, `drawFrameComplex`, `getScreenBounds`,
+  `getAnimateOrigin`, `drawStage` (StageBG): N/A o F13.
+- `updateFramePixels` (render a BitmapData): N/A, Godot no tiene ese
+  pipeline.
+- `set_applyStageMatrix` que dispara `anim.updateTimelineBounds()`: el
+  port no cachea bounds en el sprite (lazy en `AdobeSymbol.bounding_box`),
+  asi que no hay nada que invalidar. El setter ya hace `frame_dirty =
+  true` + `queue_redraw`, que es lo que importa.
+
+**Verificado como equivalente (mecanismo distinto, resultado igual):**
+- Loop REVERSO de layers. maru `Timeline.draw` itera `i = length - 1;
+  i--`. El port itera `for layer in target.layers` (0..N-1) y compensa
+  con `to_push.push_front(layer_rid)` + `canvas_item_set_draw_index(i)`
+  con i creciente. Layers[0] queda con draw_index maximo = se dibuja
+  ultimo = arriba. Mismo painter's order final.
+- `_process` playback: el port usa `frame_step` (extension propia
+  documentada) para reducir rebuilds. Con `frame_step=1` es 1:1 con maru.
+- `get_animation_length` / `validate_frame`: portados tal cual.
+
+**Tests:** `tests/test_bounds_offset.gd` nuevo con 4 casos:
+`compute_bounds_offset` con bbox (100, 200) -> (-100, -200), bbox (0, 0)
+-> (0, 0), symbol inexistente -> (0, 0), shortcut de carpeta
+`Folder/walk` -> bbox de `walk`. Suite: **13/13**.
+
+**Post-F13 (obligatorio):** recalibrar offsets de los mods.
+- Verificar trickyDJ con gdanimate post-F9: el sprite deberia verse
+  centrado sin `pixel_offset` manuales.
+- Re-correr Holy Quintet `MainMenuSprite`, anotar desplazamientos,
+  ajustar `offset` (ahora con signo invertido).
 
 ### F8 — `FlxAnimateFrames.hx`: estado y fix del shortcut de carpetas
 

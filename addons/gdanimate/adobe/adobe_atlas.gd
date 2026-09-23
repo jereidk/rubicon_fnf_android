@@ -141,7 +141,28 @@ func draw_on(canvas_item: RID, draw_info: AnimateDrawInfo) -> void :
 	var use_stage: bool = get_symbol(draw_info.symbol) == null
 	var key: StringName = stage_symbol if use_stage else draw_info.symbol
 	var transform: Transform2D = Transform2D.IDENTITY
-	transform = transform.translated(draw_info.offset)
+
+	# F9 - origin-shift automatico al top-left del bbox del simbolo. Port
+	# fiel de FlxAnimate.drawAnimate (maru dcaa33c src/animate/FlxAnimate.hx:
+	# 194-196):
+	#     var bounds = timeline._bounds;
+	#     if (!willUseRenderTexture) matrix.translate(-bounds.x, -bounds.y);
+	# El source hace este shift SIEMPRE, no condicionado a applyStageMatrix
+	# (que recien se aplica despues, en prepareAnimateMatrix). Sin esto, todo
+	# sprite quedaba desplazado por bounds.position - que es la otra mitad
+	# del bug raiz del trickyDJ (F7 corrigio el calculo del bbox; F9 lo
+	# consume).
+	transform = transform.translated(compute_bounds_offset(key))
+
+	# F9 - signo de `offset` alineado a maru. FlxSprite resta el offset del
+	# usuario (FlxSprite.hx, updateFramePixels):
+	#     _point.x += origin.x - offset.x;
+	#     _point.y += origin.y - offset.y;
+	# o sea offset positivo mueve el sprite LEFT/UP. El port sumaba, asi que
+	# offset positivo movia RIGHT/DOWN - opuesto al source. Los consumidores
+	# que hoy pasan offsets positivos (mod HQ con pixel_offset empiricos) van
+	# a quedar espejados hasta la recalibracion post-F13.
+	transform = transform.translated(-draw_info.offset)
 
 	# CORRECCION DE FUENTE: el comentario original de este fix citaba
 	# Dot-Stuff/flxanimate, que NO es el engine que usa el mod. CodenameEngine
@@ -1524,3 +1545,17 @@ func symbol_bounds_origin(target: AdobeSymbol, apply_stage_matrix: bool = false)
 		origin.x *= stage_transform.x.x
 		origin.y *= stage_transform.y.y
 	return origin
+
+
+## F9 - origin-shift automatico para el simbolo dado, port de
+## FlxAnimate.hx:194-196. Devuelve el valor que `draw_on` aplica al transform
+## antes de concatenar el stage matrix:
+##     matrix.translate(-bounds.x, -bounds.y);
+##
+## Se expone publico para que los tests lo verifiquen sin pasar por el
+## pipeline de rendering (draw_on no es testeable directo).
+func compute_bounds_offset(target_key: StringName) -> Vector2:
+	var target_sym: AdobeSymbol = get_symbol(target_key)
+	if target_sym == null:
+		return Vector2.ZERO
+	return -target_sym.bounding_box.position
