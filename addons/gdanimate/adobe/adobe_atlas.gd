@@ -429,6 +429,27 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			rendered = true
 			layer_glow = layer_frame.glow
 			layer_blend = resolve_blend(layer_frame.blend_mode, blend_mode)
+			# F13b-ii.3: si la capa tiene filtros que el shader inline NO
+			# cubre (BLUR, DROP_SHADOW, BEVEL), se hornea la capa completa
+			# a una textura y se dibuja como sprite. GLOW y ADJUST_COLOR
+			# siguen por el shader inline. Cache miss => dibujo normal
+			# este frame + dispara el bake para el proximo.
+			var bake_key: String = _filters_bake_key(layer, frame, layer_frame)
+			if not bake_key.is_empty():
+				var baked_tex: ImageTexture = AdobeRenderBaker.instance().get_cached(bake_key)
+				if baked_tex != null:
+					var baked_size: Vector2 = Vector2(baked_tex.get_width(), baked_tex.get_height())
+					RenderingServer.canvas_item_add_set_transform(layer_rid, t)
+					RenderingServer.canvas_item_add_texture_rect(
+						layer_rid, 
+						Rect2(Vector2.ZERO, baked_size), 
+						baked_tex.get_rid(), 
+						false, 
+					)
+					rendered = true
+					continue
+				else:
+					_request_layer_bake(bake_key, layer, frame, layer_frame, t)
 			for element: AdobeDrawable in layer_frame.elements:
 				# Frame.hx:423-426 (maru dcaa33c): el loop de dibujo del
 				# keyframe saltea todo elemento con visible == false.
@@ -1737,4 +1758,60 @@ static func expand_filter_bounds(base: Rect2, filters: Array[AdobeFilter]) -> Re
 		base.position.y - top, 
 		base.size.x + left + right, 
 		base.size.y + top + bottom, 
+	)
+
+
+## F13b-ii.3: key de cache del bake para una capa+frame, o "" si no hace
+## falta bake (no tiene filtros que el shader inline no cubra). Los
+## filtros que el shader inline SI cubre (GLOW, ADJUST_COLOR) no fuerzan
+## bake. BLUR, DROP_SHADOW y BEVEL si.
+func _filters_bake_key(layer: AdobeLayer, frame: int, layer_frame: AdobeLayerFrame) -> String:
+	if layer_frame.filters.is_empty():
+		return ""
+
+	var needs_bake: bool = false
+	var hash_input: String = ""
+	for filter: AdobeFilter in layer_frame.filters:
+		if filter == null:
+			continue
+		hash_input += "%d;" % filter.type
+		if filter.type == AdobeFilter.AdobeFilterType.BLUR \
+				or filter.type == AdobeFilter.AdobeFilterType.DROP_SHADOW \
+				or filter.type == AdobeFilter.AdobeFilterType.BEVEL:
+			needs_bake = true
+
+	if not needs_bake:
+		return ""
+
+	return "layer:%d:%d:%d:%s" % [
+		layer.get_instance_id(), frame, layer_frame.starting_index, 
+		str(hash_input.hash()), 
+	]
+
+
+## F13b-ii.3: dispara un bake de la capa. Dibuja los elementos a un canvas
+## plano del SubViewport via el baker, y el baker aplica los filtros con
+## shader de post-proceso.
+func _request_layer_bake(key: String, layer: AdobeLayer, frame: int, layer_frame: AdobeLayerFrame, t: Transform2D) -> void:
+	var base: Rect2 = frame_bounds(layer_frame, frame - layer_frame.starting_index, AdobeSymbol.new(), layer)
+	if base.size.x <= 0.0 or base.size.y <= 0.0:
+		base = Rect2(0.0, 0.0, 64.0, 64.0)
+	var expanded: Rect2 = AdobeAtlas.expand_filter_bounds(base, layer_frame.filters)
+	var size: Vector2i = Vector2i(maxi(int(ceilf(expanded.size.x)), 1), maxi(int(ceilf(expanded.size.y)), 1))
+
+	var filters_copy: Array[AdobeFilter] = layer_frame.filters.duplicate()
+	var elements_copy: Array[AdobeDrawable] = layer_frame.elements.duplicate()
+	var shift_pos: Vector2 = expanded.position
+
+	var baker: AdobeRenderBaker = AdobeRenderBaker.instance()
+	baker.request(key, size, func(rid: RID, _bake_size: Vector2) -> void:
+		var shift: Transform2D = Transform2D(0.0, -shift_pos)
+		var bake_t: Transform2D = shift * t
+		for element: AdobeDrawable in elements_copy:
+			if not element.visible:
+				continue
+			if element is AdobeAtlasSprite:
+				draw_atlas_sprite(element as AdobeAtlasSprite, rid, bake_t)
+			elif element is AdobeTextFieldInstance:
+				(element as AdobeTextFieldInstance).draw_to_canvas(rid, bake_t)
 	)

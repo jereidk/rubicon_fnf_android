@@ -52,6 +52,38 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.3a — bifurcacion de bake en draw_symbol
+
+**HECHO (hooks).** `adobe_atlas.gd` ahora tiene:
+
+1. **Bifurcacion en `draw_symbol`:** cuando una capa tiene filtros que el
+   shader inline NO cubre (BLUR, DROP_SHADOW, BEVEL), el render de esa
+   capa se reemplaza por una textura baked:
+   - Cache hit: dibujar la textura filtrada con
+     `canvas_item_add_texture_rect` y `continue` (saltea el loop de
+     elementos).
+   - Cache miss: dibujar normal este frame + disparar el bake para el
+     proximo.
+   - GLOW y ADJUST_COLOR siguen por el shader inline (ya funcionan); no
+     fuerzan bake.
+
+2. **`_filters_bake_key(layer, frame, layer_frame)`:** devuelve `""` si la
+   capa no necesita bake, o una key de cache
+   `"layer:<id>:<frame>:<starting_index>:<hash>"`.
+
+3. **`_request_layer_bake(...)`:** encola un bake. Dibuja los elementos a
+   un canvas plano del SubViewport via el mini-loop (copia local; no reusa
+   el loop de `draw_symbol` porque ese tiene side effects en
+   `_backbutton_scratch` y `_backbuffer_scratch`).
+
+**Estado (F13b-ii.3a):** los bakes se encolan pero **todavia no se aplican
+los filtros ni se reconecta `bake_ready` a `queue_redraw`**. Eso viene en
+F13b-ii.3b. Como ningun asset del mod HQ/tricky tiene BLUR/DS/BEVEL, la
+ramificacion nunca se ejecuta en runtime real: cero regresion visual.
+
+**Tests:** sin test nuevo (los hooks no son verificables sin un asset con
+BLUR). Suite sigue **18/18**.
+
 ### F13b-ii.2 — DropShadow + Bevel
 
 **HECHO.** Extendido `filter_shader.gdshader` +
