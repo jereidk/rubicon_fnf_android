@@ -23,6 +23,15 @@ class_name AdobeAnimateController
 ##   AnimateSymbol maneja frame directo sin wrap automatico por animacion.
 ## - updateTimelineBounds con el "fake FlxFrame" para width/height del sprite.
 
+## F10 - Port del signal FlxAnimateController.onFrameLabel
+## (maru FlxAnimateController.hx:19-23):
+##     public final onFrameLabel = new FlxTypedSignal<(frameLabel:String) -> Void>();
+## Se dispara cada vez que el frame activo tiene un label no vacio. El label
+## lo consulta el sprite via get_current_label(); el controller lo reenvia
+## con notify_frame_changed() (llamado desde el setter de `frame`).
+signal on_frame_label(label: String)
+
+
 ## Referencia al AnimateSymbol dueno. Se setea en el ctor.
 var _sprite: AnimateSymbol
 
@@ -172,17 +181,66 @@ func find_frame_label_indices(label: String, symbol_name: String = "") -> Packed
 ## el frame al primer indice registrado. El playback (avance de frame) lo
 ## sigue haciendo AnimateSymbol.speed_scale/playing/loop.
 func play(anim_name: String) -> void:
+	set_anim_frame(anim_name, 0)
+
+
+## F10 - Port del override de FlxAnimateController.set_frameIndex
+## (maru FlxAnimateController.hx:322-350):
+##     override function set_frameIndex(frame:Int):Int
+##     {
+##         if (!isAnimate) return super.set_frameIndex(frame);
+##         var curAnim = cast _curAnim;
+##         if (curAnim != null) {
+##             final numFrames = numFrames;
+##             if (numFrames > 0) {
+##                 frame = frame % numFrames;                     // wrap por numFrames
+##                 _animate.timeline = curAnim.timeline;          // cambia timeline
+##                 _animate.timeline.currentFrame = frame;
+##                 _animate.timeline.signalFrameChange(frame, this);
+##                 if (_animate.useRenderTexture) _animate._renderTextureDirty = true;
+##                 frameIndex = frame;
+##                 fireCallback();
+##                 updateTimelineBounds();
+##             }
+##         }
+##         return frameIndex;
+##     }
+##
+## El port NO overridea el `_process` del sprite (el sprite avanza
+## natural), asi que este metodo se expone como API publica para que un
+## consumidor que quiera el wrap estricto por lista lo use en vez de setear
+## `.frame` a mano. Cambia el symbol del sprite al `timeline_symbol`
+## registrado, hace posmod por indices.size(), y setea el frame real.
+##
+## Devuelve el frame real aplicado, o -1 si la animacion no existe.
+func set_anim_frame(anim_name: String, frame_index: int) -> int:
 	if not _animations.has(anim_name):
-		push_warning("[AdobeAnimateController] play: animacion '%s' no registrada" % anim_name)
-		return
-	_current_anim = anim_name
+		push_warning("[AdobeAnimateController] set_anim_frame: animacion '%s' no registrada" % anim_name)
+		return -1
 	var anim: Dictionary = _animations[anim_name]
 	var indices: PackedInt32Array = anim["indices"]
 	if indices.is_empty():
-		return
+		return -1
+	var idx: int = posmod(frame_index, indices.size())
+	var real_frame: int = indices[idx]
 	if not anim["timeline_symbol"].is_empty():
 		_sprite.symbol = anim["timeline_symbol"]
-	_sprite.frame = indices[0]
+	_current_anim = anim_name
+	_sprite.frame = real_frame
+	notify_frame_changed(real_frame)
+	return real_frame
+
+
+## F10 - Hook para disparar `on_frame_label`. Lo llama el setter de `frame`
+## del AnimateSymbol cuando el frame cambia (y tambien set_anim_frame).
+## Consulta el label del simbolo activo en ese frame; si esta vacio, no
+## emite (maru tampoco dispara para frames sin label: ver Frame.hx).
+func notify_frame_changed(_new_frame: int) -> void:
+	if _sprite == null or not is_instance_valid(_sprite):
+		return
+	var label: String = _sprite.get_current_label()
+	if not label.is_empty():
+		on_frame_label.emit(label)
 
 
 ## Nombre de la animacion actual (o "" si no hay ninguna en curso).

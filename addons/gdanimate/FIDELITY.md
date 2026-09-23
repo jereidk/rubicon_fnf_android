@@ -47,10 +47,88 @@ Orden acordado: archivo por archivo, logica por logica.
 | F7 | `Timeline.hx` (476) + `SymbolItem.hx` (95) | `adobe_symbol.gd` | **hecho** (ver abajo) |
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | **hecho** (ver abajo) |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | **hecho** (ver abajo) |
-| F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | pendiente |
+| F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | pendiente |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | sin portear | pendiente |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | sin portear | pendiente |
+
+### F10 — `FlxAnimateController.hx`: `on_frame_label` + `set_anim_frame`
+
+**Revision completa del archivo (413 lineas).** El registro de animaciones
+nombradas y la busqueda de labels ya estaban portados en F7. Este pase
+cierra los dos gaps que el port tenia anotados:
+
+**FIX 1 — Signal `on_frame_label`.**
+
+Port de `FlxAnimateController.onFrameLabel` (maru
+FlxAnimateController.hx:19-23):
+    public final onFrameLabel = new FlxTypedSignal<(frameLabel:String) -> Void>();
+Se dispara cada vez que el frame activo del timeline tiene un label no
+vacio. En maru lo dispara `Timeline.signalFrameChange` (que a su vez itera
+los frames activos y llama `Frame.signalFrameChange`).
+
+Cadena en el port:
+- `AnimateSymbol.frame` setter llama `_anim_controller.notify_frame_changed(value)`.
+- `AdobeAnimateController.notify_frame_changed` consulta
+  `AnimateSymbol.get_current_label()` y emite `on_frame_label` si no esta
+  vacio.
+- `AnimateSymbol.get_current_label()` usa `AdobeSymbol.get_frame_label_at_index`
+  (F7) sobre el simbolo actual.
+
+**FIX 2 — `set_anim_frame(anim_name, frame_index)`.**
+
+Port del override de `set_frameIndex` (maru FlxAnimateController.hx:322-350):
+    frame = frame % numFrames;
+    _animate.timeline = curAnim.timeline;
+    _animate.timeline.currentFrame = frame;
+    _animate.timeline.signalFrameChange(frame, this);
+    frameIndex = frame;
+    fireCallback();
+
+El port NO overridea el `_process` del sprite (AnimateSymbol avanza natural
+con `frame += amount`, siguiendo el flow Godot). Reemplazar ese flow por un
+`set_frameIndex` completo es alto riesgo sobre mods calibrados, asi que
+`set_anim_frame` se expone como **API publica**: un consumidor que quiera
+el wrap estricto por lista lo usa en vez de setear `.frame` a mano.
+
+Comportamiento:
+- `posmod(frame_index, indices.size())` — wrap por la LISTA, no por
+  `frame_count` del timeline (como hace maru).
+- Mapea `indices[idx]` al frame real del simbolo.
+- Cambia `_sprite.symbol` al `timeline_symbol` registrado (si hay).
+- Llama `notify_frame_changed` para disparar el signal.
+- Devuelve el frame real, o -1 si la animacion no esta registrada.
+
+`play(anim_name)` se refactorizo para llamar `set_anim_frame(anim_name, 0)`,
+asi que tambien dispara el signal y hace wrap del primer indice.
+
+**N/A (arquitectura distinta):**
+- `updateTimelineBounds` (maru FlxAnimateController.hx:353-372): construye
+  un `FlxFrame` fake para que FlxSprite tenga `frameWidth`/`frameHeight`
+  coherentes con el bbox del timeline. En Godot el AnimateSymbol es un
+  Node2D que dibuja RIDs directo; no tiene "frame rect" que fakeear.
+- `FlxAnimateAnimation.getCurrentFrameDuration`: extension de FlxAnimation
+  para que los frame durations cuenten. La animacion de Godot
+  (`AnimationPlayer` generado por `make_player_from_current`) ya maneja
+  esto nativamente.
+- `_renderTexture` mark-dirty en `set_frameIndex`: N/A (useRenderTexture
+  no portado, ver F9).
+- `getCollectionTimelines` sobre `addedCollections`: N/A, el port tiene un
+  solo atlas por AnimateSymbol.
+
+**Verificado como equivalente:**
+- `add_by_frame_label` / `add_by_frame_label_indices` / `add_by_symbol` /
+  `add_by_symbol_indices` / `add_by_timeline` / `add_by_timeline_indices`:
+  registran en `_animations` con la misma estructura {name, indices,
+  frame_rate, looped, flip_x, flip_y, timeline_symbol} que la
+  FlxAnimateAnimation de maru.
+- `find_frame_label_indices`: port fiel con `rtrim` en el nombre del
+  keyframe (no `strip_edges`) y `hasFoundLabel` + break al primer layer.
+
+**Tests:** `tests/test_anim_controller_f10.gd` nuevo con 4 casos:
+`set_anim_frame` basico con indices [2,5,8], wrap positivo (`3->2, 4->5`),
+wrap negativo (`-1->8` por posmod), animacion no registrada -> -1, y
+existencia/conectividad del signal `on_frame_label`. Suite: **14/14**.
 
 ### F9 — `FlxAnimate.hx`: origin-shift automatico + flip de offset
 

@@ -31,6 +31,13 @@ class_name AnimateSymbol
 		if not internal_setting_frame:
 			frame_timer = 0.0
 
+		# F10 - avisar al controller para que reevalue el label del frame
+		# nuevo y dispare `on_frame_label` si corresponde. El controller
+		# puede no existir todavia (lazy); en ese caso no hay signal
+		# conectada y no importa.
+		if _anim_controller != null:
+			_anim_controller.notify_frame_changed(value)
+
 @export_range(0.0, 10.0, 0.01, "or_greater") var speed_scale: float = 1.0
 
 @export var autoplay: bool = false
@@ -642,3 +649,20 @@ func get_atlas() -> AnimateAtlas:
 
 func get_backbuffer_transform() -> Transform2D:
 	return get_viewport().get_stretch_transform()* get_global_transform_with_canvas()
+
+
+## F10 - Label del keyframe activo en el frame actual, o "" si no hay label.
+## Port de FlxAnimateController.updateTimelineBounds + el lookup que maru
+## hace al disparar `onFrameLabel`: consulta el label del simbolo actual en
+## el frame actual. Usa `AdobeSymbol.get_frame_label_at_index` (F7).
+func get_current_label() -> String:
+	if symbol.is_empty():
+		return ""
+	var atlas: AnimateAtlas = get_atlas()
+	if not (atlas is AdobeAtlas):
+		return ""
+	var adobe: AdobeAtlas = atlas as AdobeAtlas
+	var sym: AdobeSymbol = adobe.get_symbol(StringName(symbol))
+	if sym == null:
+		return ""
+	return sym.get_frame_label_at_index(frame)
