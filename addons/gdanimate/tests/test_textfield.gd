@@ -14,9 +14,11 @@ func run(_tree: SceneTree) -> Dictionary:
 	_test_bbox_from_matrix(failures)
 	_test_text_setter_marks_dirty(failures)
 	_test_missing_attributes(failures)
+	_test_bold_italic_spacing_parse(failures)
+	_test_font_variation_applied(failures)
 
 	return {
-		"name": "textfield: parseo + bbox + dirty (TextFieldInstance.hx)",
+		"name": "textfield: parseo + bbox + dirty + bold/italic/spacing (TextFieldInstance.hx)",
 		"passed": failures.is_empty(),
 		"failures": failures,
 	}
@@ -62,6 +64,66 @@ func _test_parse_full_attributes(failures: Array[String]) -> void:
 		failures.push_back("full: font_path='%s'" % tf.font_path)
 	if tf.align != 1:
 		failures.push_back("full: align=%d, esperaba 1 (center)" % tf.align)
+
+
+## F13b-iv.2: parseo de BL / IT / CSP.
+func _test_bold_italic_spacing_parse(failures: Array[String]) -> void:
+	var atlas: AdobeAtlas = Helpers.make_test_atlas()
+	var el: Dictionary = {
+		"TFI": {
+			"MX": [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+			"TXT": "abc",
+			"ATR": [{
+				"SZ": 16,
+				"BL": true,
+				"IT": true,
+				"CSP": 2.5,
+			}]
+		}
+	}
+	var tf: AdobeTextFieldInstance = atlas.load_textfield_instance(true, el)
+	if not tf.bold:
+		failures.push_back("bold: no se parseo (bold=false)")
+	if not tf.italic:
+		failures.push_back("italic: no se parseo (italic=false)")
+	if absf(tf.letter_spacing - 2.5) > 0.001:
+		failures.push_back("csp: letter_spacing=%f, esperaba 2.5" % tf.letter_spacing)
+
+
+## F13b-iv.2: _get_font() devuelve un FontVariation si hay bold/italic/spacing.
+func _test_font_variation_applied(failures: Array[String]) -> void:
+	var tf: AdobeTextFieldInstance = AdobeTextFieldInstance.new()
+	tf.font_size = 12
+
+	# Sin bold/italic/spacing: fuente base (no variation).
+	tf.bold = false
+	tf.italic = false
+	tf.letter_spacing = 0.0
+	var f_plain: Font = tf._get_font()
+	if f_plain is FontVariation:
+		failures.push_back("font_plain: devolvio FontVariation sin flags")
+
+	# Con bold: variacion.
+	tf.bold = true
+	var f_bold: Font = tf._get_font()
+	if not (f_bold is FontVariation):
+		failures.push_back("font_bold: no devolvio FontVariation")
+
+	# Con italic: variacion.
+	tf.bold = false
+	tf.italic = true
+	var f_italic: Font = tf._get_font()
+	if not (f_italic is FontVariation):
+		failures.push_back("font_italic: no devolvio FontVariation")
+
+	# Con spacing: variacion con spacing_glyph.
+	tf.italic = false
+	tf.letter_spacing = 3.0
+	var f_space: Font = tf._get_font()
+	if not (f_space is FontVariation):
+		failures.push_back("font_spacing: no devolvio FontVariation")
+	elif (f_space as FontVariation).spacing_glyph != 3:
+		failures.push_back("font_spacing: spacing_glyph=%d, esperaba 3" % (f_space as FontVariation).spacing_glyph)
 
 
 func _test_bbox_from_matrix(failures: Array[String]) -> void:

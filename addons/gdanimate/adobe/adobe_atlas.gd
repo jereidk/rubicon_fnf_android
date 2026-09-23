@@ -1221,6 +1221,19 @@ func load_textfield_instance(optimized: bool, element: Dictionary) -> AdobeTextF
 				"justify": tf.align = 3
 				_: tf.align = 0  # left / default
 
+		# F13b-iv.2: bold / italic / letter_spacing.
+		var raw_bold: Variant = get_pair(optimized, atr, "bold", "BL")
+		if raw_bold is bool:
+			tf.bold = raw_bold
+
+		var raw_italic: Variant = get_pair(optimized, atr, "italic", "IT")
+		if raw_italic is bool:
+			tf.italic = raw_italic
+
+		var raw_csp: Variant = get_pair(optimized, atr, "charSpacing", "CSP")
+		if raw_csp is float or raw_csp is int:
+			tf.letter_spacing = float(raw_csp)
+
 	return tf
 
 

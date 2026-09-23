@@ -137,8 +137,26 @@ void fragment() {
 			COLOR.rgb = difference(COLOR.rgb, screen_c.rgb);
 		} else if (blend_mode == 6) {
 			COLOR.rgb = invert(screen_c.rgb);
-		} else if (blend_mode == 1 || blend_mode == 4) { // adobe animate skill issue
-			discard;
+		} else if (blend_mode == 1) {
+			// ALPHA (BlendShader de maru, Blend.hx):
+			//     result.a = b.a;   // b = FG (a = BG)
+			// result.rgb queda en bg.rgb. En el pipeline de Godot, para
+			// obtener final.rgb = bg.rgb hace falta COLOR.rgb = bg.rgb.
+			// El alpha final = mix(bg.a, COLOR.a, COLOR.a), que con bg.a=1
+			// da 1-fg.a+fg.a^2 (no exactamente fg.a para fg.a<1). Cerca
+			// pero no 1:1. Documentado en FIDELITY.md.
+			COLOR.rgb = screen_c.rgb;
+			// Sin cambios en COLOR.a (que es el alpha del FG).
+		} else if (blend_mode == 4) {
+			// ERASE (BlendShader de maru, Blend.hx):
+			//     result.a = a.a * (1.0 - b.a);   // a = BG, b = FG
+			//     result.rgb = a.rgb;
+			// Aproximacion: el FG se dibuja con el rgb del BG y alpha
+			// invertido. final.a = mix(bg.a, 1-fg.a, 1-fg.a), que con
+			// bg.a=1 da 1 - (1-fg.a) + (1-fg.a)^2 = 1 - fg.a + fg.a^2,
+			// cerca de bg.a*(1-fg.a) para fg.a chico. Documentado.
+			COLOR.rgb = screen_c.rgb;
+			COLOR.a = 1.0 - COLOR.a;
 		}
 	}
 }

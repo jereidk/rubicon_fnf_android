@@ -48,27 +48,72 @@ class_name AdobeTextFieldInstance
 @export_storage var text_color: Color = Color.WHITE
 @export_storage var align: int = 0  # 0=left, 1=center, 2=right, 3=justify
 
+## F13b-iv.2: bold / italic / letter_spacing via FontVariation.
+## maru los aplica al TextFormat (que redirige a la fuente del sistema o a
+## una variante de la misma). Godot no tiene esa redireccion automatica:
+## se aplica FontVariation sobre la fuente base.
+## - bold: variation_embolden = 0.5 (fake bold generico, funciona con
+##   cualquier fuente; variation_opentype con wght=700 solo funciona con
+##   fuentes variables).
+## - italic: variation_transform con skew de -0.25 rad en X.
+## - letter_spacing: spacing_glyph (int, en pixeles).
+@export_storage var bold: bool = false
+@export_storage var italic: bool = false
+@export_storage var letter_spacing: float = 0.0
+
 ## Scratch state. NO van a @export_storage (se recrean en el primer draw).
 var _dirty: bool = true
 var _text_line: TextLine = null
 var _font: Font = null
+## F13b-iv.2: config con la que se genero _font. Si cambia (bold, italic,
+## letter_spacing, font_path, font_size), _get_font() reconstruye.
+var _font_cached_key: String = ""
 
 
 func _get_font() -> Font:
-	if _font != null:
+	var key: String = "%s|%d|%s|%s|%f" % [
+		font_path, font_size, bold, italic, letter_spacing]
+	if _font != null and _font_cached_key == key:
 		return _font
+
+	var base_font: Font = null
 	if not font_path.is_empty():
-		var res: Resource = null
 		if ResourceLoader.exists(font_path):
-			res = load(font_path)
-		if res is Font:
-			_font = res
-			return _font
-	# Fallback: fuente default del tema. El source usa el sistema operativo
-	# (openfl.text.TextFormat.font con un nombre pelado). Godot no tiene
-	# acceso a fuentes del sistema desde un shader/canvas - el consumidor
-	# tiene que proveer font_path si quiere el tipo exacto.
-	_font = ThemeDB.fallback_font
+			var res: Resource = load(font_path)
+			if res is Font:
+				base_font = res
+	if base_font == null:
+		# Fallback: fuente default del tema. El source usa el sistema
+		# operativo (openfl.text.TextFormat.font con un nombre pelado).
+		# Godot no accede a fuentes del sistema desde un canvas - el
+		# consumidor tiene que proveer font_path si quiere el tipo exacto.
+		base_font = ThemeDB.fallback_font
+
+	# F13b-iv.2: aplicar bold / italic / letter_spacing via FontVariation.
+	if not bold and not italic and is_zero_approx(letter_spacing):
+		_font = base_font
+		_font_cached_key = key
+		return _font
+
+	var var_font: FontVariation = FontVariation.new()
+	var_font.base_font = base_font
+	if bold:
+		# variation_embolden es un fake-bold generico: funciona con
+		# cualquier fuente (variable o no).
+		var_font.variation_embolden = 0.5
+	if italic:
+		# Skew hacia la derecha en X: Transform2D(x, y, origin). El
+		# elemento (0, 1) es el vector Y que se inclina -0.25 en X.
+		var_font.variation_transform = Transform2D(
+			Vector2(1.0, 0.0), 
+			Vector2(-0.25, 1.0), 
+			Vector2.ZERO, 
+		)
+	if not is_zero_approx(letter_spacing):
+		var_font.spacing_glyph = int(letter_spacing)
+
+	_font = var_font
+	_font_cached_key = key
 	return _font
 
 

@@ -52,6 +52,53 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-iv — reaperturas F11 y F12
+
+**HECHO.** Cierra las cuatro reaperturas anotadas al cerrar F11/F12.
+
+**F13b-iv.1 — ALPHA/ERASE en `atlas_shader.gdshader`.**
+
+Antes los dos modos hacían `discard` (admitía "adobe animate skill
+issue"). Ahora:
+
+- **ALPHA (1)**: `COLOR.rgb = screen_c.rgb` (BG compuesto). El alpha
+  final queda como `mix(bg.a, COLOR.a, COLOR.a)` = `1 - fg.a + fg.a^2`
+  con `bg.a=1`. NO es exactamente `fg.a` (el source hace
+  `result.a = b.a; result.rgb = a.rgb` sobre el BG), pero es mucho más
+  cerca que `discard`. Documentado.
+- **ERASE (4)**: `COLOR.rgb = screen_c.rgb; COLOR.a = 1 - COLOR.a`. El
+  resultado es la inversa del alpha del FG sobre el BG. Aproximación
+  geométrica de `bg.a * (1 - fg.a)`, más fiel que `discard`.
+  Documentado.
+
+**ADD premult NO se toca.** El premult (`COLOR.rgb *= COLOR.a` antes de
+`add()`) es la traducción correcta del source a Godot: maru escribe
+directo al target sin alpha compositing, Godot pasa por
+`canvas_item_add_*` que SÍ compone. El port ya hace lo correcto.
+
+**F13b-iv.2 — bold / italic / letter_spacing en `AdobeTextFieldInstance`.**
+
+Los tres campos ahora se parsean (BL/IT/CSP en `ATR[0]`) y se aplican
+via `FontVariation` en `_get_font()`:
+- `bold` -> `variation_embolden = 0.5` (fake bold genérico).
+- `italic` -> `variation_transform` con skew -0.25 rad en X.
+- `letter_spacing` -> `spacing_glyph` (int, pixeles).
+
+Cache por key (`font_path|font_size|bold|italic|letter_spacing`): si
+alguno cambia, `_font` se reconstruye. Sin esto los setters no
+actualizaban la fuente (bug que atrapó el test).
+
+**Fuera de F13b-iv:**
+
+- `BRD` / `ALSRP` / `ALTHK` en TextField: el source NO los aplica
+  (`format.borderSize = data.ALTHK` está comentado, TextFieldInstance.hx:
+  71). Fiel: no se aplican.
+- `gradientGlow` / `gradientBevel`: solo flash, N/A.
+
+**Tests:** `test_textfield.gd` extendido con 2 casos nuevos: parseo de
+BL/IT/CSP, y `_get_font()` devuelve `FontVariation` con la config
+correcta. Suite: **20/20**.
+
 ### F13b-iii — `FlxSpriteElement` (F12b)
 
 **HECHO.** `adobe/adobe_sprite_element.gd` (nuevo) + baker con
