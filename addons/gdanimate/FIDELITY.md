@@ -52,6 +52,22 @@ Orden acordado: archivo por archivo, logica por logica.
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
 | F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
 
+### F13b-ii.3c — test de integracion del pipeline de bake
+
+**HECHO.** `tests/test_bake_integration.gd` nuevo, 5 casos:
+
+1. `_filters_bake_key` sin filtros -> "".
+2. `_filters_bake_key` con GLOW solo -> "" (glow va por shader inline,
+   no bakea).
+3. `_filters_bake_key` con BLUR -> "layer:<id>:<frame>:<start>:<hash>".
+4. `_filters_bake_key` con DROP_SHADOW -> no vacia.
+5. `AdobeRenderBaker.request()` con BLUR en un patron mitad-y-mitad:
+   despues del bake + apply_filters_to_texture, el pixel del borde
+   (x=15) tiene rojo < 0.99 (blur aplicado).
+
+Los casos 1-4 son puros (sin render). El 5 ejercita el pipeline completo:
+SubViewport bake + apply_filters_to_texture + readback. Suite: **19/19**.
+
 ### F13b-ii.3b — aplicar filtros al bake + reconectar bake_ready
 
 **HECHO.**
