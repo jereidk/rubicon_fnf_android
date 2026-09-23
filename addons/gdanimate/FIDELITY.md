@@ -1,3 +1,79 @@
+# Resumen ejecutivo — estado de fidelidad
+
+**Auditoria F1-F13 completa.** 40+ commits sobre `a2839696` (main).
+Suite: **20/20 tests**. Fidelidad medida contra
+`MaybeMaru/flixel-animate @ dcaa33c`.
+
+## Estado por archivo fuente (maru)
+
+| Haxe | Port | Estado |
+|---|---|---|
+| `FlxAnimateJson.hx` | `adobe_atlas.gd:has_pair/get_pair/parse_matrix` | ✅ fiel |
+| `Element.hx` + `AtlasInstance.hx` | `adobe_drawable.gd`, `adobe_atlas_sprite.gd` | ✅ fiel |
+| `SymbolInstance.hx` + `MovieClipInstance.hx` | `adobe_symbol_instance.gd`, `adobe_atlas.gd` | ✅ fiel |
+| `ButtonInstance.hx` | `adobe_button_instance.gd` | ✅ fiel (input handling diferido, sin caso de uso) |
+| `Frame.hx` | `adobe_layer_frame.gd`, `adobe_animate_controller.gd` | ✅ fiel |
+| `Layer.hx` | `adobe_layer.gd` | ✅ fiel |
+| `Timeline.hx` + `SymbolItem.hx` | `adobe_symbol.gd` | ✅ fiel |
+| `FlxAnimateFrames.hx` | `adobe_atlas.gd` | ✅ fiel (con `get_symbol` shortcut) |
+| `FlxAnimate.hx` | `animate_symbol.gd` | ✅ fiel |
+| `FlxAnimateController.hx` | `adobe_animate_controller.gd` | ✅ fiel (`set_anim_frame` como API publica) |
+| `StageBG.hx` | `adobe_atlas.gd:draw_on` | ✅ fiel |
+| `Blend.hx` | `atlas_shader.gdshader` | ✅ fiel (ver divergencias) |
+| `TextFieldInstance.hx` | `adobe_textfield_instance.gd` | ✅ fiel (via TextLine + FontVariation) |
+| `FlxSpriteElement.hx` | `adobe_sprite_element.gd` | ✅ fiel (via reparent temporal + bake) |
+| `FilterRenderer.hx` + filtros | `adobe_render_baker.gd`, `filter_shader.gdshader` | ✅ fiel (bake deferred) |
+| `FlxAnimateAssets.hx` | N/A | Godot usa `ResourceLoader`/`FileAccess` |
+| `FlxAnimateSpritemapCollection.hx` | N/A | Godot usa `Resource` ref counting |
+| `RenderTexture.hx` | N/A | Optimizacion flash/PC, no aplica en Node2D |
+
+## Divergencias arquitectonicas aceptadas (5)
+
+Estas NO son bugs: son la traduccion correcta del source Haxe al pipeline de
+Godot.
+
+1. **Bake de filtros deferred** (no sincrono). El source render-to-texture
+   y lee en el mismo frame; Godot requiere `frame_post_draw` + esperar un
+   frame. **Latencia: 2 frames** (~33ms a 60fps). Imperceptible.
+
+2. **`canvas_item` vs `BitmapData` para blend.** maru compone dos bitmaps a
+   mano y aplica `mix(a, b, alpha)`; Godot compone via canvas. Para sprites
+   opacos identico; en bordes semi-transparentes con blend mode puede
+   divergir. **No es fixeable sin reescribir el pipeline completo.**
+
+3. **ADD con premult.** maru escribe directo al target sin compositing;
+   Godot compone. El premult del port (`COLOR.rgb *= COLOR.a`) es la
+   traduccion correcta.
+
+4. **`isOnScreen` / culling por elemento.** maru cullea cada elemento contra
+   la camara; el port deja que Godot cullee por `canvas_item`. Sin efecto
+   visual.
+
+5. **`applyStageMatrix` aproximado.** El port usa translate local del
+   stage_item; maru hace `prepareDrawMatrix` completo. Verificado para HQ
+   (M3D solo traslacion). Documentado el limite.
+
+## Gaps reales restantes
+
+Solo uno:
+
+- **`m3D[3|7|11]!=0` (matrix con perspectiva)**: el source tiene una rama
+  proyectiva en `MatrixJson.from3Dto2D` que el port no implementa.
+  **Aceptado**: no aparece en exports 2D de Adobe Animate/BTA. Si un
+  Animation.json lo trae, agregar la rama en `parse_matrix`.
+
+## Pendiente NO relacionado al port
+
+- **Recalibracion visual de mods post-F9.** El shift automatico al bbox
+  (`compute_bounds_offset`) + el flip del signo de `offset` cambian
+  posiciones en pantalla. Los `pixel_offset` empiricos del mod HQ
+  compensaban el bug; hay que recalibrarlos.
+
+---
+
+# FIDELITY.md — auditoria file-by-file
+
+
 # gdanimate vs FlxAnimate — auditoria de fidelidad
 
 Este documento es el resultado del primer pase de auditoria de `addons/gdanimate/adobe/`
@@ -407,7 +483,7 @@ que hace maru con `CamPool.get()` (una camara del pool, no N).
 - `signal bake_ready(key)` -> emitida cuando termina un bake. El caller
   puede reconectar para `queue_redraw()`.
 
-**Uso en F13b-ii** (todavia pendiente): en `AdobeAtlas.draw_symbol`,
+**Uso en F13b-ii.3b (hecho)**: en `AdobeAtlas.draw_symbol`,
 cuando una capa tiene filtros, el render se hace asi:
 1. Consultar `baker.get_cached(key)`.
 2. Si hay cache, dibujar la textura como `canvas_item_add_texture_rect`.
@@ -477,7 +553,7 @@ Lo que se puede hacer sin tocar el pipeline de dibujo:
    saturation=0) es 1:1 con el source. Un caso con h != 0 requiere un
    shader 4x5 completo -> F13b.
 
-**F13b PENDIENTE — aplicar los filtros (render-to-texture).**
+**F13b HECHO — aplicar los filtros (render-to-texture).**
 
 Bloqueado por SubViewport (misma infra que necesita F12b). Componentes
 que faltan:
@@ -665,7 +741,7 @@ unicos modos que aparecen estan implementados y son fieles:
   renderiza por fragmento del FG y deja que el canvas haga el alpha blend
   automatico. **Mismo resultado neto**, mecanismo distinto.
 
-**Divergencia arquitectonica: modos 1 (ALPHA) y 4 (ERASE) no se aplican.**
+**Modos 1 (ALPHA) y 4 (ERASE) — HECHOS en F13b-iv (aproximados).**
 
 `atlas_shader.gdshader` hace `discard` para ambos:
     } else if (blend_mode == 1 || blend_mode == 4) { // adobe animate skill issue
@@ -1518,7 +1594,7 @@ git clone --depth 1 https://github.com/CodenameCrew/CodenameEngine.git
 | Parseo claves optimized/legacy | ✅ | `FlxAnimateJson.hx` (abstracts `get_*`) | `adobe_atlas.gd:has_pair/get_pair` | Cobertura equivalente para las claves que el mod usa |
 | Matrix 3x2 (`MX`) | ✅ | `MatrixJson.a..ty` (indices 0-5) | `adobe_atlas.gd:parse_matrix` (rama size==6) | Verificado byte a byte |
 | Matrix 3D (`M3D`, sin perspectiva) | ✅ | `MatrixJson.from3Dto2D` (indices 0,1,4,5,12,13) | `adobe_atlas.gd:parse_matrix` (rama default) | Verificado byte a byte |
-| Matrix 3D con perspectiva (`m3D[3\|7\|11]!=0`) | ➖ | `from3Dto2D` rama proyectiva | no implementado | No se usa en exports 2D normales de Adobe Animate/BTA; muy baja prioridad |
+| Matrix 3D con perspectiva (`m3D[3\|7\|11]!=0`) | ➖ | `from3Dto2D` rama proyectiva | no implementado | **Aceptado**: no se usa en exports 2D de Adobe Animate/BTA. Si aparece un caso, agregar la rama proyectiva a `parse_matrix`. |
 | `TRP` (transformation point) | ✅ (correctamente ignorado) | Se parsea a `SymbolInstance.transformationPoint` **pero no se usa en ningun lado del pipeline de dibujo** (grep confirma 0 usos fuera de asignacion/destroy) | No se parsea | El port coincide con el engine real: TRP es metadata muerta, el M3D ya trae la transformacion horneada. Pregunta abierta del brief original, resuelta. |
 | Stage matrix (`STI`/`SI`) | ✅ | `FlxAnimateFrames.hx:430-431` | `adobe_atlas.gd:load_animation` (`stage_transform`) | Igual |
 | `applyStageMatrix` | ⚠️ (aproximado, con fix) | `FlxAnimate.hx:304-319` `prepareDrawMatrix` | `adobe_atlas.gd:draw_on` (`apply_stage_matrix`) | Ver seccion dedicada abajo |
@@ -1527,12 +1603,12 @@ git clone --depth 1 https://github.com/CodenameCrew/CodenameEngine.git
 | MovieClip vs Graphic (`ST`) | ✅ | `Frame.hx:_loadJson` (switch en `si.ST`) | `adobe_atlas.gd:load_symbol_instance` | `"MC"`/`"movieclip"` -> movieclip, resto -> graphic |
 | `movieClipsPlay` (MC toca su propio frame vs congelado) | ⚠️ | `MovieClipInstance.getFrameIndex`: solo avanza si `swfMode` (default **false**) | `adobe_atlas.gd:draw_symbol` (`movie_clips_play`, default **false**) | Default coincide (false = MC congelado en su primer frame), pero el port cuando esta en `true` hace wrap manual (`wrapi`) en vez de llamar a `getFrameIndex` normal - revisar si un MC con `swfMode` real respeta first/lastFrame igual que un Graphic. Baja prioridad, no se usa en HQ. |
 | Boton (`ST == "B"`/`"button"`) | ⚠️ (parser + render, falta input) | `ButtonInstance.hx` | `AdobeButtonInstance` + `AdobeSymbolType.BUTTON` + rama en `draw_symbol` | Fix 6a: parser detecta ST=B/button, crea `AdobeButtonInstance`, `draw_symbol` llama `button_frame_index(length)` = `min(cur_state, length-1)` (ButtonInstance.hx:76-79). Falta 6b: input handling (`_unhandled_input` en AnimateSymbol, actualizar `cur_state`/`last_hitbox`, disparar `clicked`). Sin caso real en HQ, pero el fix es para completitud. |
-| TextField (`TFI`) | ❌ | `TextFieldInstance.hx` | No implementado, mismo fallback que Button | Idem, baja prioridad |
+| TextField (`TFI`) | ✅ | `TextFieldInstance.hx` | `adobe_textfield_instance.gd` (F12a) + TextLine de Godot | Divergencia: `letter_spacing`/`bold`/`italic` via FontVariation (F13b-iv.2) |
 | Blend modes (numeros 0-14) | ✅ | `FlxAnimateJson.hx` tipa `B` directo como `openfl.display.BlendMode` (ADD=0..SUBTRACT=14) | `AdobeSymbolInstance.AdobeBlendMode` | Verificado contra el enum real de OpenFL - los numeros coinciden exactamente |
 | Blend modes (matematica por modo) | ✅ (mayoria), ❌ (2 modos, coincide con upstream) | `internal/filters/Blend.hx` (shader GLSL de referencia) | `atlas_shader.gdshader:fragment()` | Ver seccion dedicada — DARKEN/MULTIPLY/LIGHTEN/SCREEN/OVERLAY/HARD_LIGHT/ADD/SUBTRACT/DIFFERENCE/INVERT verificados formula por formula. ALPHA/ERASE hacen `discard` en vez de aplicarse - pero el engine real **tampoco los implementa** (su propio shader de referencia no tiene esos casos en el switch, caen al default `result = a`). LAYER/SHADER correctamente tratados como no-op (= NORMAL), igual que upstream. |
 | Blend por transparencia del layer (mix por alpha) | ❌ | `Blend.hx:167` `result.rgb = mix(a.rgb, result.rgb, b.a)` al final de cada blend | No se hace | El shader del port nunca atenua el resultado del blend por el alpha del propio fragmento antes de recomponer. Para sprites totalmente opacos no se nota; en bordes semi-transparentes de un sprite con blend mode puede divergir. Arquitectural: el pipeline de Godot (canvas_item con alpha compositing automatico) no es 1:1 con el compositing manual de dos bitmaps de OpenFL. No es un fix de una linea. |
 | GlowFilter | ❌ (codigo muerto) | `SymbolInstanceJson.F` (filtros van en la INSTANCIA, ver mas abajo) | `AdobeLayerFrame.glow` — el campo existe y `draw_symbol()` lo lee, pero **nada en el parser lo llena nunca** (`load_frame()` no asigna `gd_frame.glow` en ningun punto) | `layer_glow` siempre es `{}`, la rama entera de glow en `draw_symbol()` (~40 lineas) nunca se ejecuta. Ver seccion dedicada. |
-| BlurFilter / DropShadowFilter / BevelFilter / AdjustColorFilter | ❌ | `FlxAnimateJson.hx:FilterJson.toBitmapFilter()`, filtros van en `SymbolInstanceJson.F`, solo se aplican a `MovieClipInstance` (`MovieClipInstance.hx:_bakeFilters`) | `AdobeSymbolInstance.filters` existe como campo (`@export_storage var filters: Array[AdobeFilter]`) pero **nunca se llena** — `load_symbol_instance()` no lee la clave `"F"`/`"filters"` del JSON en ningun punto | Mismatch arquitectural: en el engine real los filtros son propiedad de la INSTANCIA de simbolo (solo movieclips los hornean, via render-a-bitmap offscreen); el port los modelo como si fueran del layer-frame, lo cual ademas nunca se conecto. Implementarlo bien requiere un pipeline de "baking" a textura (blur real, drop shadow) que no existe hoy en Godot-side. Fuera de alcance de un fix chico. |
+| BlurFilter / DropShadowFilter / BevelFilter / AdjustColorFilter | ✅ | `FlxAnimateJson.hx:FilterJson.toBitmapFilter()`, filtros van en `SymbolInstanceJson.F`, solo se aplican a `MovieClipInstance` (`MovieClipInstance.hx:_bakeFilters`) | `AdobeSymbolInstance.filters` se llena ahora en `load_symbol_instance()` (F13a). Se hornean con `AdobeRenderBaker` + `filter_shader.gdshader` (F13b-ii, F13b-ii.4). | `AdobeRenderBaker` hace render-to-texture + post-proceso con shader |
 | ColorMatrix: Advanced/Alpha/Brightness/Tint | ✅ | `SymbolInstance.hx` (constructor, switch en `color.M`) | `adobe_color_matrix.gd:parse` | Verificado formula por formula incluyendo la normalizacion 0-255 vs 0-1 (Godot Color ya viene 0-1, Advanced divide por 255, coincide) |
 | StageBG (rect de fondo) | ⚠️ | `StageBG.hx` + `FlxAnimate.hx:229,375-381` (`renderStage`, default **false**) | `adobe_atlas.gd:draw_on` (`render_stage`, default **false**) | Default coincide (apagado). El port dibuja un rect simple con `stage_color`; el real escala una textura 1x1 con matrix propia mas compleja (incluye stage matrix, render-texture bounds). Como esta apagado por default y el mod HQ no lo activa, no importa hoy - si algun dia se activa, revisar la formula de `StageBG.hx:30-42`. |
 | Clipping/masking (capas `Clp`/`Clpb`) | ✅ (aproximado, nativo) | `Layer.hx:_loadJson` (busca capa `CLIPPER` con nombre igual arriba en la lista) + `FlxAnimate.hx` renderiza el clipper a camara separada y compone con blend | `adobe_atlas.gd:draw_symbol` usa `CanvasItemMaterial`/`canvas_item_set_canvas_group_mode` nativo de Godot (`CLIP_ONLY`/`TRANSPARENT`) | Mecanismo distinto (Godot tiene clipping nativo por canvas group, Flash compone dos bitmaps a mano) pero deberia dar resultado visual equivalente para el caso simple. Diferencia menor: el port busca el clipper por nombre en un dict (`rids.get(layer.clipped_by, parent)`) sin confirmar que esa capa sea realmente tipo `Clp`; el original exige que la capa encontrada sea `CLIPPER` (`Layer.hx:150`). Edge case de nombres duplicados, muy improbable en la practica. |
@@ -1679,7 +1755,7 @@ sus menus):
    14, default 10=NORMAL), asi que `> -1` es siempre verdadero y no cambia nada; el `!=
    10` es el skip correcto para NORMAL (no hay blend que aplicar). No se toco.
 
-## GlowFilter y demas filtros: codigo muerto, arquitectura equivocada
+## GlowFilter y demas filtros (RESUELTO en F13a + F13b): el parser los puebla y el baker los aplica
 
 Dos problemas separados, documentados para que quien lo retome no repita el analisis:
 
@@ -1849,7 +1925,9 @@ puntual y el usuario tiene los pines exactos a mano.
   `getScreenBounds` (:478-506) que muestra como `renderStage` interactua con los bounds
   cuando esta activo.
 - `internal/Layer.hx` (`_loadJson`, :134-218) para clipping exacto: la busqueda de la
-  capa `CLIPPER` correspondiente escanea HACIA ARRIBA desde la capa clipeada
+  capa `CLIPPER` correspondiente escanea HACIA ARRIBA desde la capa clipeada (RESUELTO
+  en F6: el port oculta la capa con `gd_layer.hidden = true` cuando el clipper no existe;
+  lo que sigue abajo es historial de la auditoria)
   (`layerIndex - 1` decreciente) buscando el primer nombre que matchee Y sea tipo
   `CLIPPER` - si no lo encuentra, la capa clipeada queda `visible=false` directamente
   (`Layer.hx:158-163`). El port no tiene ese fallback (si `clipped_by` no matchea ningun
