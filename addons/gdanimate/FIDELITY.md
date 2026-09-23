@@ -50,7 +50,66 @@ Orden acordado: archivo por archivo, logica por logica.
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
 | F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (ver abajo) |
 | F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
-| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd` | **F13a hecho, F13b pendiente** (ver abajo) |
+| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
+
+### F13b-i — infra render-to-texture (`AdobeRenderBaker`)
+
+**HECHO.** `adobe/adobe_render_baker.gd` (nuevo).
+
+Port conceptual de `FilterRenderer.renderToBitmap`
+(maru src/animate/internal/FilterRenderer.hx:257-285). El source:
+1. Toma un `FlxCamera` del `CamPool`.
+2. Llama `draw_cb(cam, mat)` que dibuja en el canvas de la camara.
+3. `renderGfx()` lee el canvas a un `BitmapData` via `gl.readPixels`.
+4. Devuelve el `BitmapData`.
+
+En Godot la version mas cercana es SubViewport + `frame_post_draw` +
+`get_texture().get_image()` (que ES `readPixels`) + `ImageTexture`.
+
+**DIVERGENCIA ARQUITECTONICA — bake deferred, no sincrono.**
+
+El source es SINCRONO: `renderToBitmap` devuelve el bitmap en el mismo
+call stack y el caller lo usa inmediatamente. Godot no permite "render
+sincrono a textura". El port usa bake DEFERRED:
+
+- El caller hace `baker.request(key, size, draw_cb)` y sigue con lo que
+  tenia cacheado.
+- El `AdobeRenderBaker` singleton hornea **1 pending por frame** en su
+  propio `_process()`.
+- El resultado se ve **1 frame tarde**. Imperceptible a 60fps.
+
+Efecto observable: la primera vez que aparece una capa con filtro se ve
+sin filtro durante 1 frame. No es un bug, es la unica forma sin reescribir
+el pipeline de Godot. Se puede mitigar pre-bakeando durante el `parse()`
+del atlas, pero eso multiplica el tiempo de carga (maru mismo lo advierte
+en `FilterQuality` con el flag `cacheOnLoad`).
+
+**Serializado: 1 SubViewport, 1 bake por frame.**
+
+Evita N viewports en memoria cuando hay muchas capas con filtros. Es lo
+que hace maru con `CamPool.get()` (una camara del pool, no N).
+
+**API** (`AdobeRenderBaker`):
+- `instance()` -> singleton (creado bajo root del SceneTree on demand).
+- `request(key, size, draw_cb)` -> encola un bake. `draw_cb(rid, size)`.
+- `has_cached(key) -> bool`.
+- `get_cached(key) -> ImageTexture`.
+- `invalidate(key)` -> descarta cache + pending. Equivalente al
+  `_dirty = true` de `Frame.setDirty()` en maru.
+- `signal bake_ready(key)` -> emitida cuando termina un bake. El caller
+  puede reconectar para `queue_redraw()`.
+
+**Uso en F13b-ii** (todavia pendiente): en `AdobeAtlas.draw_symbol`,
+cuando una capa tiene filtros, el render se hace asi:
+1. Consultar `baker.get_cached(key)`.
+2. Si hay cache, dibujar la textura como `canvas_item_add_texture_rect`.
+3. Si no, `baker.request(key, size, cb)` y dibujar SIN filtro este frame
+   (o dibujar el bake previo si `invalidate` no se llamo todavia).
+4. El `AnimateSymbol::_process()` reconecta `bake_ready` -> `queue_redraw`.
+
+**Tests:** `tests/test_render_baker.gd` nuevo (3 casos: bake simple de un
+rect rojo 32x32, cache hit sin request nuevo, invalidate limpia la key).
+Suite: **17/17**.
 
 ### F13 — filtros: F13a (parseo + math) y F13b (render-to-texture, pendiente)
 
