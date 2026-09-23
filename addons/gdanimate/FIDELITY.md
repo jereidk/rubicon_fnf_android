@@ -36,6 +36,13 @@ pase file-by-file (F1 en adelante) cita maru `dcaa33c`.
 
 Orden acordado: archivo por archivo, logica por logica.
 
+**CIERRE DE AUDITORÍA (F1-F13).** Branch
+`claude/gdanimate-flxanimate-fidelity-vqq16z` con 39 commits sobre
+`a2839696`. Suite de tests: **20/20**. F1-F13 cerrados. Reaperturas
+F11/F12 resueltas en F13b-iv. Pendiente solo la recalibración visual de
+los mods (post-F9 el shift automático al bbox + flip del signo de
+`offset` cambian posiciones).
+
 | # | Archivo Haxe (maru) | Destino en el port | Estado |
 |---|---|---|---|
 | F1 | `FlxAnimateJson.hx` (810) | `adobe_atlas.gd`, `adobe_color_matrix.gd` | **hecho** (ver abajo) |
@@ -48,9 +55,9 @@ Orden acordado: archivo por archivo, logica por logica.
 | F8 | `FlxAnimateFrames.hx` (707) | `adobe_atlas.gd` (load_*) | **hecho** (ver abajo) |
 | F9 | `FlxAnimate.hx` (497) | `animate_symbol.gd` | **hecho** (ver abajo) |
 | F10 | `FlxAnimateController.hx` (413) | `adobe_animate_controller.gd` | **hecho** (ver abajo) |
-| F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (ver abajo) |
-| F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd` | **F12a hecho, F12b diferido a F13** (ver abajo) |
-| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd` | **F13a + F13b-i hechos, F13b-ii..iv pendientes** |
+| F11 | `StageBG.hx` (46) + `Blend.hx` (171) | stage bg + shader | **hecho** (F13b-iv) |
+| F12 | `TextFieldInstance.hx` (124) + `FlxSpriteElement.hx` (206) | `adobe_textfield_instance.gd`, `adobe_sprite_element.gd` | **hecho** (F12a + F13b-iii) |
+| F13 | filtros: `RenderTexture` + `FilterRenderer` + `AdjustColorFilter` + `StackBlur` + `MaskShader` | `adobe_filter.gd`, `adobe_color_matrix.gd`, `adobe_render_baker.gd`, `filter_shader.gdshader` | **hecho** (F13a + F13b-i..iv) |
 
 ### F13b-iv — reaperturas F11 y F12
 
