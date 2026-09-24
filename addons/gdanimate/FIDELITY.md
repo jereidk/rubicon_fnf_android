@@ -1808,9 +1808,16 @@ o porque el pipeline de Godot no lo permite.
 
 ### Fixes chicos pendientes (sin caso real, coste bajo)
 
-| # | Gap | Fuente maru | Coste | Nota |
-|---|-----|-------------|-------|------|
-| 1 | `isOnScreen` per-elemento | `Element.hx:141-166` | Chico | **Perf only, 0 impacto visual**: el port deja que Godot cullee por canvas_item |
+**No quedan gaps reales.** El unico item que quedaba (`isOnScreen`
+per-elemento) es N/A por diseno:
+
+`isOnScreen` en maru (`Element.hx:141-166`) es una optimizacion de
+culling: Flixel no tiene culling por elemento, asi que el engine lo
+chequea antes de cada `draw()`. **Godot lo hace en el renderer nativo**
+(`RendererCanvasCull::_cull_canvas_item`, visto en `/godot-src`), mas
+eficiente porque corre en C++. Portearlo al port seria duplicar el
+trabajo: chequeo en GDScript + chequeo en C++ abajo. **No se portea
+porque Godot ya lo hace mejor.**
 
 **Falso positivo del audit: `ButtonInstance` input handling 6b ya estaba HECHO.**
 El port tiene:
