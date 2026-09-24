@@ -1,4 +1,0 @@
-extends ConfirmationDialog
-class_name RubiconAnimationManager
-
-var character:RubiconCharacter
