@@ -132,3 +132,73 @@ func calculate_bounding_box() -> void:
 			else:
 				rect = rect.merge(eb)
 	bounding_box = rect
+
+## F13-gap: port de Layer.setBlankKeyframe (maru Layer.hx:85-99).
+##
+##     var lastFrame = getFrameAtIndex(index);
+##     var startIndex = lastFrame.index;
+##     var startDuration = lastFrame.duration;
+##     var keyframe = new Frame(this);
+##     keyframe.index = index;
+##     keyframe.duration = startDuration - (index - startIndex);
+##     frames.insert(frames.indexOf(lastFrame) + 1, keyframe);
+##     for (i in 0...keyframe.duration)
+##         frameIndices[index + i] = frames.length - 1;
+##
+## Inserta un keyframe VACIO en `index`. Si `index` ya es el inicio de un
+## keyframe, el source no hace nada (getFrameAtIndex(index).index == index
+## -> return, ver setKeyframe). Aca no chequeamos eso porque el llamador
+## decide; el metodo siempre inserta.
+func set_blank_keyframe(index: int) -> void:
+	var last: AdobeLayerFrame = get_frame_at_index(index)
+	if last == null:
+		return
+	var start_index: int = last.starting_index
+	var start_duration: int = last.duration
+	if start_index == index:
+		return
+
+	var keyframe: AdobeLayerFrame = AdobeLayerFrame.new()
+	keyframe.starting_index = index
+	keyframe.duration = start_duration - (index - start_index)
+	if keyframe.duration <= 0:
+		return
+
+	var at: int = frames.find(last)
+	frames.insert(at + 1, keyframe)
+
+	# Reindexar frame_indices: los slots [index, index+duration) apuntan al
+	# keyframe nuevo.
+	var new_fi: int = frames.size() - 1
+	for i in keyframe.duration:
+		var slot: int = index + i
+		if slot < frame_indices.size():
+			frame_indices[slot] = new_fi
+
+
+## F13-gap: port de Layer.setKeyframe (maru Layer.hx:67-78).
+##
+##     var lastFrame = getFrameAtIndex(index);
+##     if (lastFrame == null || lastFrame.index == index) return;
+##     setBlankKeyframe(index);
+##     var keyframe = getFrameAtIndex(index);
+##     keyframe.elements = lastFrame.elements.copy();
+##     keyframe.name = lastFrame.name;
+##
+## Crea un keyframe con COPIA de los elementos del keyframe que lo contiene
+## en `index`. Si `index` ya es el inicio de un keyframe, no hace nada.
+func set_keyframe(index: int) -> void:
+	var last: AdobeLayerFrame = get_frame_at_index(index)
+	if last == null or last.starting_index == index:
+		return
+
+	set_blank_keyframe(index)
+	var kf: AdobeLayerFrame = get_frame_at_index(index)
+	if kf == null or kf == last:
+		return
+
+	# Copia superficial de elementos (mismo comportamiento que `.copy()`
+	# del source: son referencias, no clones).
+	kf.elements = last.elements.duplicate()
+	kf.frame_label = last.frame_label
+
