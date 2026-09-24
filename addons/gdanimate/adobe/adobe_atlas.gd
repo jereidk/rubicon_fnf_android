@@ -364,6 +364,18 @@ func get_symbols() -> String:
 ## los carga eager en load_symbols/load_symbol_directory. La equivalencia es
 ## funcional (mismo dictionary final), pero el lookup en el port siempre es
 ## O(1) contra un dictionary ya cargado.
+## F13-gap: port de FlxAnimateFrames.existsSymbol
+## (maru FlxAnimateFrames.hx:178-195). Misma logica que get_symbol:
+## chequea el nombre exacto y, si tiene "/", el shortcut de carpeta.
+func exists_symbol(name: StringName) -> bool:
+	if symbols.has(name):
+		return true
+	var s: String = String(name)
+	if s.contains("/"):
+		return symbols.has(StringName(s.get_file()))
+	return false
+
+
 func get_symbol(name: StringName) -> AdobeSymbol:
 	if symbols.has(name):
 		return symbols[name]

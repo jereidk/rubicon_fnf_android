@@ -193,3 +193,47 @@ func calculate_bounding_box() -> void :
 			rect = rect.merge(lb)
 
 	bounding_box = rect
+
+## F13-gap: port de SymbolItem.createInstance (maru SymbolItem.hx:41-67):
+##     public function createInstance(?type:ElementType = GRAPHIC):Null<SymbolInstance>
+##     {
+##         var instance:SymbolInstance;
+##         switch (type) {
+##             case GRAPHIC: instance = new SymbolInstance();
+##             case MOVIECLIP: instance = new MovieClipInstance();
+##             case BUTTON: instance = new ButtonInstance();
+##             default: FlxG.log.warn(...); return null;
+##         }
+##         instance.libraryItem = this;
+##         instance.matrix = new FlxMatrix();
+##         instance.transformationPoint = FlxPoint.get();
+##         instance.loopType = LOOP;
+##         instance.firstFrame = 0;
+##         instance.setColorTransform(1, 1, 1, 1, 0, 0, 0, 0);
+##         return instance;
+##     }
+##
+## El port no tiene la clase SymbolItem (AdobeSymbol la fusiona con el
+## Timeline de maru), asi que el factory vive aca. `type` es
+## AdobeSymbolInstance.AdobeSymbolType.
+func create_instance(type: int = AdobeSymbolInstance.AdobeSymbolType.GRAPHIC) -> AdobeSymbolInstance:
+	var instance: AdobeSymbolInstance
+	match type:
+		AdobeSymbolInstance.AdobeSymbolType.BUTTON:
+			instance = AdobeButtonInstance.new()
+		AdobeSymbolInstance.AdobeSymbolType.MOVIE_CLIP:
+			instance = AdobeSymbolInstance.new()
+		AdobeSymbolInstance.AdobeSymbolType.GRAPHIC:
+			instance = AdobeSymbolInstance.new()
+		_:
+			push_warning("[AdobeSymbol] create_instance: tipo invalido %d" % type)
+			return null
+
+	instance.key = name
+	instance.type = type
+	instance.loop_mode = AdobeSymbolInstance.AdobeSymbolLoopMode.LOOP
+	instance.first_frame = 0
+	instance.last_frame = -1
+	instance.transform = Transform2D.IDENTITY
+	return instance
+

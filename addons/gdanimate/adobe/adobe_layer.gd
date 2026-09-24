@@ -202,3 +202,26 @@ func set_keyframe(index: int) -> void:
 	kf.elements = last.elements.duplicate()
 	kf.frame_label = last.frame_label
 
+## F13-gap: port de Layer.getBounds (maru Layer.hx:110-121).
+##     var frame = getFrameAtIndex(frameIndex);
+##     if (frame != null)
+##         return frame.getBounds((frameIndex - frame.index), rect, matrix, ...);
+##
+## En el port, el equivalente de Frame.getBounds es calcular el bounds del
+## keyframe con `frame_index - frame.starting_index` como offset (el mismo
+## `difference` que usa AdobeAtlas.frame_bounds). Este metodo no hace el
+## merge de bounds de la capa entera -- solo del keyframe activo, igual
+## que el source.
+##
+## El parametro `atlas` es necesario porque el `difference` requiere
+## resolver sub-simbolos via `element_bounds`, que vive en AdobeAtlas.
+## El source lo hace via layer.timeline.parent.
+func get_bounds(frame_index: int, atlas: AdobeAtlas) -> Rect2:
+	if atlas == null:
+		return Rect2()
+	var kf: AdobeLayerFrame = get_frame_at_index(frame_index)
+	if kf == null:
+		return Rect2()
+	var difference: int = frame_index - kf.starting_index
+	return atlas.frame_bounds(kf, difference, null, self)
+

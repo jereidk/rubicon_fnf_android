@@ -104,3 +104,19 @@ func convert_to_symbol(from_index: int, to_index: int, type: int, atlas: AdobeAt
 	elements.insert(from_index, instance)
 	return instance
 
+## F13-gap: port de Frame.add (maru Frame.hx:56-68).
+## Agrega un elemento si no esta ya, y llama setDirty().
+func add(element: AdobeDrawable) -> void:
+	if elements.has(element):
+		return
+	elements.append(element)
+	set_dirty()
+
+
+## F13-gap: port de Frame.insert (maru Frame.hx:76-87).
+func insert_at(index: int, element: AdobeDrawable) -> void:
+	if elements.has(element):
+		return
+	elements.insert(index, element)
+	set_dirty()
+
