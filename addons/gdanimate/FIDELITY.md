@@ -1810,15 +1810,20 @@ o porque el pipeline de Godot no lo permite.
 
 | # | Gap | Fuente maru | Coste | Nota |
 |---|-----|-------------|-------|------|
-| 1 | `onSymbolCreate` hook | `SymbolItem.hx:24-26` | Medio | Requiere infra de `FlxAnimateSettings` que el port no tiene |
-| 2 | `FilterQuality` enum (`HIGH`/`MEDIUM`/`LOW`/`RUDY`) | `FlxAnimateFrames.hx:679-707` | Medio | Solo afecta el radio del blur en filtros bakeados; sin caso real |
-| 3 | `isOnScreen` per-elemento | `Element.hx:141-166` | Chico | **Perf only, 0 impacto visual**: el port deja que Godot cullee por canvas_item |
-| 4 | `StageBG` formula completa (scale + matrix) | `StageBG.hx:30-42` | Chico | **render_stage=false en HQ**, 0 impacto mientras este apagado |
-| 5 | `ButtonInstance` input handling (6b) | `ButtonInstance.hx:58-69` | Medio | Requiere verificacion en device |
+| 1 | `isOnScreen` per-elemento | `Element.hx:141-166` | Chico | **Perf only, 0 impacto visual**: el port deja que Godot cullee por canvas_item |
+| 2 | `ButtonInstance` input handling (6b) | `ButtonInstance.hx:58-69` | Medio | Requiere verificacion en device |
 
 **Cerrados en este pase:**
-- `MetadataJson.V` / `FLV` (version del exporter) → agregados a `adobe_atlas.gd`
-  como `exporter_version` / `fl_version`. Solo informativos, nadie los lee.
+- `MetadataJson.V` / `FLV` (version del exporter) → `adobe_atlas.gd:exporter_version/fl_version`.
+- **`FilterQuality` enum** → `adobe_filter_quality.gd` (nuevo). Aplicado en
+  `AdobeRenderBaker.apply_filters_to_texture`: el radio del blur pasa por
+  `Math.pow(blurX, 0.85) / qualityFactor` como en maru
+  (`MovieClipInstance.hx:148-156`).
+- **`onSymbolCreate` hook** → `AdobeAtlas.on_symbol_create: Callable`,
+  disparado desde `load_symbol`.
+- **`StageBG` formula completa**: ahora centrado en el origen como
+  `StageBG.hx:35-37` (`translate(-0.5*(W-1), -0.5*(H-1))`). Antes el port
+  dibujaba el rect desde `(0, 0)` (desplazado).
 - Sparrow `flipX`/`flipY`: **falso positivo del audit previo** — el port YA
   los parsea (`sparrow_atlas.gd:84-88`).
 

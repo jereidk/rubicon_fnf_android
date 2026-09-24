@@ -47,6 +47,17 @@ var stage_color: Color = Color.WHITE
 var exporter_version: String = ""
 var fl_version: String = ""
 var render_stage: bool = false
+
+## F13-gap: nivel de calidad de filtros bakeados. Port de FlxAnimateSettings
+## .filterQuality (default MEDIUM en el source). Solo afecta al radio del
+## blur: ver AdobeFilterQuality.applied_blur_factor.
+@export var filter_quality: int = AdobeFilterQuality.Quality.MEDIUM
+
+## F13-gap: hook opcional que se dispara cuando un AdobeSymbol se agrega
+## al diccionario. Port de FlxAnimateSettings.onSymbolCreate
+## (maru FlxAnimateFrames.hx:51) y SymbolItem.hx:24-26.
+## El callback recibe el AdobeSymbol recien construido.
+@export var on_symbol_create: Callable = Callable()
 ## Scratch for one draw_on() call, handed to the drawing symbol at the end of
 ## it. draw_symbol() is a thirteen-parameter recursive function called
 ## positionally from four places, so the cache is collected here and moved
@@ -1099,6 +1110,12 @@ func load_symbol(optimized: bool, symbol: Dictionary) -> void :
 	if has_pair(optimized, timeline, "LAYERS", "L"):
 		var gd_symbol: AdobeSymbol = load_layers(optimized, 
 			get_pair(optimized, timeline, "LAYERS", "L"))
+		gd_symbol.name = StringName(key)
+
+		# F13-gap: hook onSymbolCreate.
+		if on_symbol_create.is_valid():
+			on_symbol_create.call(gd_symbol)
+
 		symbols[StringName(key)] = gd_symbol
 
 
@@ -1902,7 +1919,7 @@ func _request_layer_bake(key: String, layer: AdobeLayer, frame: int, layer_frame
 				draw_atlas_sprite(element as AdobeAtlasSprite, rid, bake_t)
 			elif element is AdobeTextFieldInstance:
 				(element as AdobeTextFieldInstance).draw_to_canvas(rid, bake_t)
-	, filters_copy)
+	, filters_copy, filter_quality)
 
 
 

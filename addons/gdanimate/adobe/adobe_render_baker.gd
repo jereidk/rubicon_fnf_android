@@ -89,13 +89,14 @@ func invalidate(key: String) -> void:
 ## F13b-ii.3b: `filters` opcional. Si no esta vacio, DESPUES del bake
 ## crudo se aplica `apply_filters_to_texture` a la textura resultante.
 ## El cache que queda es la textura YA FILTRADA.
-func request(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter] = []) -> void:
+func request(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter] = [], quality: int = AdobeFilterQuality.Quality.MEDIUM) -> void:
 	if size.x <= 0 or size.y <= 0:
 		return
 	_pending[key] = {
 		"size": size,
 		"draw": draw_cb,
 		"filters": filters, 
+		"quality": quality, 
 	}
 
 
@@ -111,7 +112,7 @@ func request(key: String, size: Vector2i, draw_cb: Callable, filters: Array[Adob
 ##
 ## `size` es el tamano de la textura fuente (se usa para el SubViewport
 ## intermedio).
-func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], size: Vector2i) -> ImageTexture:
+func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], size: Vector2i, quality: int = AdobeFilterQuality.Quality.MEDIUM) -> ImageTexture:
 	if src == null or filters.is_empty() or size.x <= 0 or size.y <= 0:
 		return src
 
@@ -139,6 +140,7 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 	var bevel_blur: float = 0.0
 	var bevel_strength: float = 1.0
 
+	var had_blur: bool = false
 	for filter: AdobeFilter in filters:
 		if filter == null:
 			continue
@@ -147,6 +149,7 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 			AdobeFilter.AdobeFilterType.BLUR:
 				blur_x = float(AdobeFilter._pick_or(d, "BLX", "blurX", 0.0))
 				blur_y = float(AdobeFilter._pick_or(d, "BLY", "blurY", 0.0))
+				had_blur = true
 			AdobeFilter.AdobeFilterType.GLOW:
 				glow_on = true
 				glow_color = Color.from_string(
@@ -201,6 +204,17 @@ func apply_filters_to_texture(src: ImageTexture, filters: Array[AdobeFilter], si
 				bevel_strength = float(AdobeFilter._pick_or(d, "STR", "strength", 1.0)) / 100.0
 			_:
 				pass
+
+	# F13-gap: reducir el radio del blur segun la calidad (maru
+	# MovieClipInstance.hx:148-156, camino desktop con scale=1):
+	#     blur.blurX = Math.pow(blur.blurX, 0.85) / (scale.x * qualityFactor);
+	# Solo se aplica si hay un filtro BLUR (glow tiene su propio radio).
+	if had_blur:
+		var qf: float = AdobeFilterQuality.applied_blur_factor(quality)
+		if blur_x > 0.0:
+			blur_x = pow(blur_x, 0.85) / qf
+		if blur_y > 0.0:
+			blur_y = pow(blur_y, 0.85) / qf
 
 	# Construir el shader material.
 	var shader: Shader = load("res://addons/gdanimate/filter_shader.gdshader")
@@ -310,11 +324,11 @@ func _process(_delta: float) -> void:
 	var key: String = String(_pending.keys()[0])
 	var req: Dictionary = _pending[key]
 	_pending.erase(key)
-	_do_bake(key, req["size"], req["draw"], req.get("filters", []))
+	_do_bake(key, req["size"], req["draw"], req.get("filters", []), req.get("quality", AdobeFilterQuality.Quality.MEDIUM))
 	_is_baking = false
 
 
-func _do_bake(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter]) -> void:
+func _do_bake(key: String, size: Vector2i, draw_cb: Callable, filters: Array[AdobeFilter], quality: int = AdobeFilterQuality.Quality.MEDIUM) -> void:
 	_viewport.size = size
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
@@ -340,7 +354,7 @@ func _do_bake(key: String, size: Vector2i, draw_cb: Callable, filters: Array[Ado
 	# textura ya filtrada (equivalente a FilterRenderer.applyFilter de
 	# maru que devuelve el BitmapData final).
 	if not filters.is_empty():
-		var filtered: ImageTexture = await apply_filters_to_texture(tex, filters, size)
+		var filtered: ImageTexture = await apply_filters_to_texture(tex, filters, size, quality)
 		if filtered != null:
 			tex = filtered
 
