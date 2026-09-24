@@ -67,8 +67,40 @@ enum AdobeBlendMode{
 @export_storage var color_matrix: AdobeColorMatrix = null
 
 
+## Referencia al AdobeAtlas que contiene este instance. Se setea en
+## AdobeAtlas::load_symbol_instance y se rehidrata en cache load.
+## Port de SymbolInstance.libraryItem (maru SymbolInstance.hx:23), que el
+## ctor setea via `instance.libraryItem = this` en SymbolItem.createInstance
+## (SymbolItem.hx).
+##
+## NO va a @export_storage: una referencia circular (atlas -> symbol ->
+## instance -> atlas) rompe el .res cache. Se rehidrata al vuelo.
+var _atlas: AdobeAtlas = null
+
+
+## Port de SymbolInstance.getBounds (maru SymbolInstance.hx:186):
+##     return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, ...);
+##
+## El source desreferencia `libraryItem.timeline` sin null check (seria
+## crash). En el port, _atlas es el equivalente: sin el, no se puede
+## resolver el sub-simbolo y el bbox queda vacio — bug de posicion de
+## TODO sprite con AdobeSymbolInstance adentro (mayoria en HQ y trickyDJ).
+##
+## El frame del sub-simbolo se calcula igual que en el source: para
+## botones es el frame HIT (ButtonInstance.hx:45-51), para el resto el
+## frame "en reposo" con instance_frame_index.
 func calculate_bounding_box() -> void :
-	pass
+	if _atlas == null:
+		return
+	var sub: AdobeSymbol = _atlas.get_symbol(key)
+	if sub == null:
+		return
+	var sub_frame: int
+	if self is AdobeButtonInstance:
+		sub_frame = mini(AdobeButtonInstance.ButtonState.HIT, maxi(sub.length - 1, 0))
+	else:
+		sub_frame = _atlas.instance_frame_index(self, sub.length, 0)
+	bounding_box = _atlas.symbol_bounds(sub, sub_frame, transform)
 
 ## F13-gap: port de SymbolInstance.get_symbolName (maru SymbolInstance.hx:
 ## 246-249):

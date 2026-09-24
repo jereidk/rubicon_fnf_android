@@ -162,8 +162,15 @@ func _test_hitbox_is_local(tree: SceneTree, failures: Array[String]) -> void:
 		return
 
 	# HIT: sprite 10x10 escalado x4 en (20, 30) = (20, 30, 40, 40), mas el
-	# (5, 5) de la matriz de la instancia.
-	var expected: Rect2 = Rect2(25, 35, 40, 40)
+	# (5, 5) de la matriz de la instancia = (25, 35, 40, 40) en coords del
+	# sub-simbolo. El port le resta el bbox del simbolo ("root") via
+	# compute_bounds_offset, que post-fix del calculate_bounding_box da
+	# -(25,35). Resultado final en coords LOCALES del nodo: (0, 0, 40, 40).
+	#
+	# Antes del fix del bbox el shift era cero y este valor era
+	# (25,35,40,40). El comentario original sigue valiendo: coords locales
+	# del nodo, no se mueve al mover el nodo.
+	var expected: Rect2 = Rect2(0, 0, 40, 40)
 	if buttons[0].last_hitbox != expected:
 		failures.push_back("hitbox: dio %s, esperaba %s (frame HIT, en coords locales)" % [buttons[0].last_hitbox, expected])
 

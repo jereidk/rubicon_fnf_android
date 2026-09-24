@@ -100,6 +100,9 @@ func parse() -> void :
 			for sym_name: StringName in symbols:
 				var sym: AdobeSymbol = symbols[sym_name]
 				sym.migrate_all_layers_from_legacy()
+				# Bbox fix: rehidratar _atlas en cada AdobeSymbolInstance
+				# (no sobrevive el .res por no ser @export_storage).
+				_rehydrate_instance_atlas(sym)
 			return
 
 	spritemap.clear()
@@ -1578,6 +1581,7 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 		else:
 			symbol_instance.type = AdobeSymbolInstance.AdobeSymbolType.GRAPHIC
 
+	symbol_instance._atlas = self
 	return symbol_instance
 
 
@@ -2105,3 +2109,14 @@ func _set_symbol_dirty_recursive(sym: AdobeSymbol, target: StringName, checked: 
 					if sub != null:
 						_set_symbol_dirty_recursive(sub, target, checked)
 
+
+
+## Bbox fix: recorre un AdobeSymbol y setea `_atlas` en todos los
+## AdobeSymbolInstance que encuentra. Necesario tras cargar de cache
+## (donde `_atlas` no sobrevive, por no ser @export_storage).
+func _rehydrate_instance_atlas(sym: AdobeSymbol) -> void:
+	for layer: AdobeLayer in sym.layers:
+		for frame: AdobeLayerFrame in layer.frames:
+			for el: AdobeDrawable in frame.elements:
+				if el is AdobeSymbolInstance:
+					(el as AdobeSymbolInstance)._atlas = self
