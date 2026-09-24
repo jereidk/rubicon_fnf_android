@@ -26,3 +26,4 @@ addons/gdanimate/tests/visual/output/*.png
 # Backups locales de patches
 *.bak
 *.bak_*
+test_assets/
