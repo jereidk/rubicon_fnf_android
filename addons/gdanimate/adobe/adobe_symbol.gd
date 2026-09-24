@@ -72,6 +72,23 @@ func get_frame_label_at_index(index: int) -> String:
 	return ""
 
 
+## F13-gap: port de Timeline.getCurrentElements (maru Timeline.hx:118-121).
+## El port no tiene el estado `currentFrame` en el symbol (vive en el
+## AnimateSymbol), asi que lo recibe por parametro. Mismo comportamiento
+## que getElementsAtIndex(current_frame).
+func get_current_elements(current_frame: int) -> Array[AdobeDrawable]:
+	return get_elements_at_index(current_frame)
+
+
+## F13-gap: port de Timeline.clearBoundsCache (maru Timeline.hx:301-306).
+## El port no cachea bounds per-frame todavia (ver F7, diferido). Este
+## metodo existe para que un consumidor pueda llamar la API y no romper;
+## cuando se agregue el cache, se implementa aca.
+func clear_bounds_cache() -> void:
+	# No-op hasta que se implemente el cache per-frame (F13-gap cluster A).
+	pass
+
+
 ## F7: reconstruye _layer_map desde `layers`. Llamar cada vez que `layers`
 ## cambia (parse de atlas, migracion de caches legacy).
 func rebuild_layer_map() -> void:

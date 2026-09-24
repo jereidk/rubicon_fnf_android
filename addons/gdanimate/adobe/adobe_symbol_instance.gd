@@ -63,3 +63,12 @@ enum AdobeBlendMode{
 
 func calculate_bounding_box() -> void :
 	pass
+
+## F13-gap: port de SymbolInstance.get_symbolName (maru SymbolInstance.hx:
+## 246-249):
+##     inline function get_symbolName():String { return libraryItem?.name; }
+## En el port el equivalente del `libraryItem.name` es `key` (el nombre con
+## el que se busca el simbolo en `atlas.symbols`).
+func symbol_name() -> String:
+	return String(key)
+

@@ -39,3 +39,53 @@ class_name AdobeLayerFrame
 ## BLUR, ADJUST_COLOR, DROP_SHADOW, GLOW, BEVEL, GRADIENT_GLOW,
 ## GRADIENT_BEVEL. Aplicarlos es F13b (necesita render-to-texture).
 @export_storage var filters: Array[AdobeFilter] = []
+
+## F13-gap: port de Frame.forEachElement (maru Frame.hx:150-154).
+func for_each_element(callback: Callable) -> void:
+	for element: AdobeDrawable in elements:
+		callback.call(element)
+
+
+## F13-gap: port de Frame.convertToSymbol (maru Frame.hx:121-142).
+## Saca los elementos en [from_index, to_index) de este keyframe, los
+## empaqueta en un simbolo temporal (AdobeSymbol con 1 capa / 1 keyframe),
+## y reemplaza el rango por una instancia de ese simbolo.
+##
+## En el source el Timeline temporal tiene parent = atlas, asi que el
+## SymbolItem se registra en la libreria. Aca el atlas es opcional: si se
+## pasa, se registra en `atlas.symbols`; si no, el simbolo queda huerfano
+## (el consumidor se encarga).
+##
+## Devuelve la instancia creada, para chaining.
+func convert_to_symbol(from_index: int, to_index: int, type: int, atlas: AdobeAtlas = null) -> AdobeSymbolInstance:
+	var taken: Array[AdobeDrawable] = []
+	for _i in (to_index - from_index):
+		taken.append(elements[from_index])
+		elements.remove_at(from_index)
+
+	var temp_sym: AdobeSymbol = AdobeSymbol.new()
+	temp_sym.name = &"tempSymbol"
+	var temp_layer: AdobeLayer = AdobeLayer.new()
+	temp_layer.name = &"Layer 0"
+	var temp_frame: AdobeLayerFrame = AdobeLayerFrame.new()
+	temp_frame.starting_index = 0
+	temp_frame.duration = 1
+	for el: AdobeDrawable in taken:
+		temp_frame.elements.append(el)
+	temp_layer.frames = [temp_frame]
+	temp_layer.frame_indices = [0]
+	temp_sym.layers = [temp_layer]
+	temp_sym.length = 1
+	temp_sym.rebuild_layer_map()
+
+	if atlas != null:
+		atlas.symbols[&"tempSymbol"] = temp_sym
+
+	var instance: AdobeSymbolInstance = AdobeSymbolInstance.new()
+	instance.key = &"tempSymbol"
+	instance.transform = Transform2D.IDENTITY
+	instance.type = type
+
+	elements.insert(from_index, instance)
+	return instance
+
