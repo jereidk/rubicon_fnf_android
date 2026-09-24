@@ -4,6 +4,44 @@
 Suite: **20/20 tests**. Fidelidad medida contra
 `MaybeMaru/flixel-animate @ dcaa33c`.
 
+## Inventario mecanico Haxe vs port (audit final)
+
+Se corrio un cruce automatico de **todos los metodos `function` de maru**
+(22 archivos `.hx`) contra **todos los `func` del port** (con
+normalizacion camelCase -> snake_case y prefijos `get_`/`set_`).
+
+Resultado: **0 gaps sin clasificar.** Los 95 metodos inicialmente
+"sospechosos" se clasifican en:
+
+- **~45 renames**: mismo metodo con otro nombre (ej. `Timeline.getWholeBounds`
+  -> `whole_symbol_bounds`; `MovieClipInstance.setDirty` ->
+  `AdobeSymbolInstance.set_dirty`; `Frame._loadJson` -> `load_frame`;
+  `ButtonInstance.updateButtonState` -> `AdobeButtonInstance.update_state`).
+- **~40 N/A arquitectonicos** con evidencia del source de Godot 4.7.2
+  (`/godot-src`): overrides de FlxSprite que Godot no necesita
+  (`prepareDrawMatrix`, `drawComplex`), pipeline de RenderTexture
+  (`checkRenderTexture`), culling per-elemento (`isOnScreen`, Godot lo
+  hace en C++), mix de colecciones (`addAtlas`/`combineAtlas`), etc.
+- **~10 gaps reales** portados en 4 clusters (C, B, A, D) durante el
+  audit final:
+  - **Cluster C** (helpers): `getCurrentElements`, `clearBoundsCache`,
+    `forEachElement`, `convertToSymbol`, `get_symbolName`.
+  - **Cluster B** (keyframes): `Layer.setKeyframe`,
+    `Layer.setBlankKeyframe`.
+  - **Cluster A** (baking): `Frame.setDirty`, `MovieClipInstance.setDirty`,
+    `setFilters`, `isSimpleSymbol`, `FlxAnimateFrames.setSymbolDirty` +
+    estado `_require_bake`/`_dirty`.
+  - **Cluster D** (ultimos): `SymbolItem.createInstance`,
+    `FlxAnimateFrames.existsSymbol`, `Frame.add`/`insert`,
+    `Layer.getBounds`.
+
+**Metodos portados con rename** (nota para futuros consumidores que
+busquen un nombre Haxe en el port):
+- `Frame.insert` -> `AdobeLayerFrame.insert_at` (evita conflicto con
+  `Array.insert` de GDScript).
+- `SymbolInstance.get_symbolName` -> `AdobeSymbolInstance.symbol_name`.
+- `SymbolItem.createInstance` -> `AdobeSymbol.create_instance`.
+
 ## Estado por archivo fuente (maru)
 
 | Haxe | Port | Estado |
