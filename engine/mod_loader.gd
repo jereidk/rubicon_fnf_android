@@ -46,6 +46,20 @@ const MODS_ROOT_CANDIDATES: Array[String] = [
 const ANDROID_STORAGE_PERMISSION := "android.permission.MANAGE_EXTERNAL_STORAGE"
 const CACHE_DIR := "user://mods_cache"
 const MANIFEST_NAME := "mod.json"
+
+## Addons globales: capa previa a los mods, sin UI, sin enable/disable.
+## Se bakean y montan al boot. El pck usa prefijo "addons/<folder>/" para
+## que los paths finales sean res://addons/<folder>/... y coincidan con
+## los class_name del project.godot (que ya apuntan ahi). Como
+## load_resource_pack usa replace=true, el pck externo PISA el addon que
+## venga en el APK: editar el .gd en storage + reload_addon() da cambios
+## sin recompilar el APK.
+const ADDONS_ROOT_CANDIDATES: Array[String] = [
+	"user://addons",
+	"/storage/emulated/0/WashosEngine/addons",
+	"/storage/emulated/0/.WashosEngine/addons",
+]
+const ADDON_MANIFEST_NAME := "addon.json"
 const CONFIG_DIR_NAME := "config"
 const CONFIG_FILE_NAME := "mods.json"
 
@@ -61,6 +75,14 @@ var mods: Array[Dictionary] = []
 var mods_roots: Array[String] = []
 ## Raiz principal (primera legible). Se usa para config/ y para la UI.
 var mods_root: String = ""
+## Addons globales cargados al boot: {folder, path, root, version, ...}.
+var addons: Array[Dictionary] = []
+var addons_roots: Array[String] = []
+## Paths res:// de addons (persisten entre registros de mods). Se copian
+## a _mod_gd_paths/_mod_all_paths al final de _register_mod_gd_paths
+## para que los loaders los vean junto con los del mod activo.
+var _addon_gd_paths: Dictionary = {}
+var _addon_all_paths: Dictionary = {}
 var _config: Dictionary = {"enabled": {}, "order": []}
 var _loaders: Array[ResourceFormatLoader] = []
 ## Cuando la app vuelve del background marcamos para recargar en el
@@ -156,6 +178,11 @@ func _ready() -> void:
 		push_warning("[ModLoader] no puedo crear CACHE_DIR %s" % CACHE_DIR)
 	_load_config()
 	scan()
+
+	# Addons globales: antes que los loaders, para que _addon_gd_paths ya
+	# este poblado cuando _register_runtime_loaders asigne los mapas.
+	# Coroutine sin await: corre en paralelo con el resto del _ready.
+	_load_addons()
 
 	# Los loaders async van AL FINAL, sin await. Tardan ~7 frames pero
 	# no bloquean nada: para cuando ModSelector llame a bake_mod (que
@@ -1585,16 +1612,161 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 	#
 	# Fix: reasignar la referencia actual DESPUES de llenarla. Los
 	# loaders ahora ven el mapa con los 1869 paths.
+	# Copiar los paths de addons AL FINAL. Los loaders ven un solo mapa
+	# (_mod_gd_paths/_mod_all_paths) con los paths del mod activo Y los
+	# addons. Los addons son de solo lectura: se copian, no se borran
+	# cuando _register_mod_gd_paths hace clear() al principio.
+	for k in _addon_gd_paths:
+		_mod_gd_paths[k] = _addon_gd_paths[k]
+	for k in _addon_all_paths:
+		_mod_all_paths[k] = _addon_all_paths[k]
+
 	for l in _loaders:
-		# Sin check de "mod_all_paths" in l: ese operador solo mira
-		# metodos, no variables de script. Todos los loaders declaran
-		# mod_all_paths, asi que asignacion directa sin preguntar.
 		l.mod_all_paths = _mod_all_paths
-	DebugLog.log("[register_paths] reasignado mod_all_paths (size=%d) a %d loaders" % [
-		_mod_all_paths.size(), _loaders.size(),
+	DebugLog.log("[register_paths] reasignado mod_all_paths (size=%d, addons=%d) a %d loaders" % [
+		_mod_all_paths.size(), _addon_all_paths.size(), _loaders.size(),
 	])
 
 
 ## Publico para debug externo.
 func get_loaders() -> Array:
 	return _loaders
+
+## ============================================================
+## Addons globales (capa previa a los mods, sin UI)
+## ============================================================
+
+func _resolve_addons_roots() -> Array[String]:
+	var out: Array[String] = []
+	for candidate in ADDONS_ROOT_CANDIDATES:
+		DirAccess.make_dir_recursive_absolute(candidate)
+		if not _can_read_from(candidate):
+			continue
+		out.append(candidate)
+	return out
+
+
+## Punto de entrada. Recorre cada raiz, cada subcarpeta = un addon.
+func _load_addons() -> void:
+	addons_roots = _resolve_addons_roots()
+	if addons_roots.is_empty():
+		_log("sin addons roots legibles")
+		return
+	for root in addons_roots:
+		var dir := DirAccess.open(root)
+		if dir == null:
+			continue
+		dir.list_dir_begin()
+		var name := dir.get_next()
+		while name != "":
+			if name != "." and name != ".." and dir.current_is_dir():
+				await _load_one_addon(name, root + "/" + name)
+			name = dir.get_next()
+		dir.list_dir_end()
+	_log("addons cargados: %d" % addons.size())
+
+
+func _load_one_addon(folder: String, addon_path: String) -> void:
+	# Metadata opcional (addon.json).
+	var meta: Dictionary = {"folder": folder, "path": addon_path}
+	var mf := addon_path + "/" + ADDON_MANIFEST_NAME
+	if FileAccess.file_exists(mf):
+		var f := FileAccess.open(mf, FileAccess.READ)
+		if f != null:
+			var parsed = JSON.parse_string(f.get_as_text())
+			if parsed is Dictionary:
+				meta.merge(parsed, true)
+			f.close()
+	# Sacar entry previa si ya estaba (reload).
+	for i in range(addons.size() - 1, -1, -1):
+		if addons[i]["folder"] == folder:
+			addons.remove_at(i)
+	addons.append(meta)
+
+	# Prefijo: "addons/<folder>/" -> los archivos del pck caen en
+	# res://addons/<folder>/<rel>, donde los class_name del project.godot
+	# ya los esperan.
+	var prefix: String = "addons/" + folder + "/"
+	var cache_path: String = CACHE_DIR + "/addon_" + folder + ".pck"
+	var mtime_path: String = CACHE_DIR + "/addon_" + folder + ".mtime"
+
+	# Cache key distinto del de un mod del mismo nombre.
+	var cache_key: String = "addon_" + folder
+	var scan: Dictionary = await _scan_mod_tree(cache_key, addon_path)
+	var files: Array = scan["files"]
+	var pack_files: Array = scan["pack_files"]
+	var fingerprint: String = scan["fingerprint"]
+
+	var cached_fp: String = ""
+	if FileAccess.file_exists(mtime_path):
+		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
+
+	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
+		if not await _build_pck_prefixed(pack_files, addon_path, cache_path, prefix):
+			push_error("[ModLoader] no pude empaquetar addon %s" % folder)
+			return
+		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
+
+	_register_addon_gd_paths(files, addon_path, prefix)
+
+	var ok := ProjectSettings.load_resource_pack(cache_path, true)
+	if not ok:
+		push_error("[ModLoader] load_resource_pack fallo para addon %s" % folder)
+		return
+	_log("addon montado: %s (%d archivos, prefix=%s)" % [folder, files.size(), prefix])
+
+
+## Igual que _build_pck pero con prefijo en el path res:// interno del pck.
+## El path fisico del archivo NO cambia.
+func _build_pck_prefixed(files: Array, disk_path: String, out: String, prefix: String) -> bool:
+	var packer := PCKPacker.new()
+	if packer.pck_start(out) != OK:
+		return false
+	var i: int = 0
+	for rel in files:
+		var err := packer.add_file("res://" + prefix + String(rel), disk_path + "/" + String(rel))
+		if err != OK:
+			_log("addon add_file %s fallo: %d" % [rel, err])
+		i += 1
+		if i % PROGRESS_EVERY == 0:
+			await get_tree().process_frame
+	return packer.flush(true) == OK
+
+
+## Registra los paths del addon. NO limpia (a diferencia del equivalente
+## para mods): los addons se acumulan. La copia a _mod_gd_paths/_mod_all_paths
+## la hace _register_mod_gd_paths al final.
+func _register_addon_gd_paths(files: Array, disk_path: String, prefix: String) -> void:
+	var n_gd: int = 0
+	for rel in files:
+		var s: String = String(rel)
+		var res_path: String = "res://" + prefix + s
+		_addon_all_paths[res_path] = disk_path + "/" + s
+		if s.ends_with(".gd"):
+			_addon_gd_paths[res_path] = true
+			n_gd += 1
+	_log("addon paths: %d gd, %d total (prefix=%s)" % [n_gd, files.size(), prefix])
+
+
+## Recarga un addon desde disco sin reiniciar. Uso: editar el .gd en
+## .WashosEngine/addons/<folder>/ y llamar reload_addon("<folder>").
+## El pck se re-empaqueta y se re-monta con replace=true. Los .gd ya
+## compilados quedan cacheados en runtime_gd_loader._cache; para cambios
+## profundos hay que reiniciar el engine.
+func reload_addon(folder: String) -> bool:
+	var found: Dictionary = {}
+	for a in addons:
+		if a["folder"] == folder:
+			found = a
+			break
+	if found.is_empty():
+		push_warning("[ModLoader] reload_addon: no existe %s" % folder)
+		return false
+	_invalidate_walk_cache("addon_" + folder)
+	var mtime_path: String = CACHE_DIR + "/addon_" + folder + ".mtime"
+	if FileAccess.file_exists(mtime_path):
+		DirAccess.remove_absolute(mtime_path)
+	await _load_one_addon(folder, String(found["path"]))
+	_log("addon recargado: %s" % folder)
+	return true
+
