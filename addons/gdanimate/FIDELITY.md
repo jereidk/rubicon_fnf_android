@@ -1811,7 +1811,19 @@ o porque el pipeline de Godot no lo permite.
 | # | Gap | Fuente maru | Coste | Nota |
 |---|-----|-------------|-------|------|
 | 1 | `isOnScreen` per-elemento | `Element.hx:141-166` | Chico | **Perf only, 0 impacto visual**: el port deja que Godot cullee por canvas_item |
-| 2 | `ButtonInstance` input handling (6b) | `ButtonInstance.hx:58-69` | Medio | Requiere verificacion en device |
+
+**Falso positivo del audit: `ButtonInstance` input handling 6b ya estaba HECHO.**
+El port tiene:
+- `AdobeButtonInstance.cur_state` (UP/OVER/DOWN/HIT).
+- `signal clicked` (= `onClick:FlxSignal` del source).
+- `update_state(point, pressed)` con la logica exacta de
+  `ButtonInstance.hx:73-121`: overlap con `<=`/`>=` inclusivos, `DOWN` si
+  `pressed` adentro, `clicked.emit()` en el flanco de subida, retorna
+  `changed` para triggear redraw.
+- `AnimateSymbol._update_buttons()` en `_process`: polling de
+  `get_local_mouse_position()` + `Input.is_mouse_button_pressed`.
+- Touch: funciona via `emulate_mouse_from_touch = true` (default de Godot 4,
+  `project.godot` no lo overridea).**
 
 **Cerrados en este pase:**
 - `MetadataJson.V` / `FLV` (version del exporter) → `adobe_atlas.gd:exporter_version/fl_version`.
