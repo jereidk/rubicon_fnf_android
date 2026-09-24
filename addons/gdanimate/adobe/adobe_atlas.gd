@@ -461,6 +461,12 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 			# este frame + dispara el bake para el proximo.
 			var bake_key: String = _filters_bake_key(layer, frame, layer_frame)
 			if not bake_key.is_empty():
+				# F13-gap cluster A: si el keyframe quedo dirty, invalidar
+				# el cache antes de leer. Maru hace lo mismo via
+				# _bakedFrames.dispose() en Frame.setDirty.
+				if layer_frame._dirty:
+					AdobeRenderBaker.instance().invalidate(bake_key)
+					layer_frame._dirty = false
 				var baked_tex: ImageTexture = AdobeRenderBaker.instance().get_cached(bake_key)
 				if baked_tex != null:
 					var baked_size: Vector2 = Vector2(baked_tex.get_width(), baked_tex.get_height())
@@ -554,6 +560,11 @@ func draw_symbol(target: AdobeSymbol, parent: RID,
 					var inst_bake_key: String = _instance_filters_bake_key(
 						element as AdobeSymbolInstance, symbol_frame)
 					if not inst_bake_key.is_empty():
+						# F13-gap cluster A: idem layer branch.
+						var inst_ref: AdobeSymbolInstance = element as AdobeSymbolInstance
+						if inst_ref._dirty:
+							AdobeRenderBaker.instance().invalidate(inst_bake_key)
+							inst_ref._dirty = false
 						var inst_tex: ImageTexture = AdobeRenderBaker.instance().get_cached(inst_bake_key)
 						if inst_tex != null:
 							var inst_size: Vector2 = Vector2(
@@ -1308,6 +1319,11 @@ func load_frame(optimized: bool, frame: Dictionary) -> AdobeLayerFrame:
 		gd_frame.filters = AdobeFilter.parse_list(raw_filters)
 		gd_frame.glow = AdobeFilter.extract_glow_compat(gd_frame.filters)
 
+	# F13-gap cluster A: si el keyframe tiene filtros, requiere bake.
+	# El _requireBake de maru (Frame.hx:288-290) es exactamente esto:
+	# `filters != null && filters.length > 0`.
+	gd_frame._require_bake = not gd_frame.filters.is_empty()
+
 	# Despacho de elementos, port de Frame.hx:216-249 (maru dcaa33c): se
 	# prueba SI, despues ASI, despues TFI, y si no es ninguno el elemento se
 	# IGNORA (el source no hace push de nada en ese caso).
@@ -1499,6 +1515,10 @@ func load_symbol_instance(optimized: bool, element: Dictionary) -> AdobeSymbolIn
 	if has_pair(optimized, element, "filters", "F"):
 		var raw_filters: Variant = get_pair(optimized, element, "filters", "F")
 		symbol_instance.filters = AdobeFilter.parse_list(raw_filters)
+
+	# F13-gap cluster A: espejo del _requireBake de MovieClipInstance
+	# (MovieClipInstance.hx:89-93).
+	symbol_instance._require_bake = not symbol_instance.filters.is_empty()
 
 	if has_pair(optimized, element, "loop", "LP"):
 		var loop_mode: String = get_pair(optimized, element, "loop", "LP")
@@ -2008,3 +2028,68 @@ func _sprite_element_bake_key(spe: AdobeSpriteElement, frame: int) -> String:
 	if not is_instance_valid(spe.target):
 		return ""
 	return "spe:%d:%d" % [spe.get_instance_id(), frame]
+
+## F13-gap cluster A: port de FlxAnimateFrames.setSymbolDirty
+## (maru FlxAnimateFrames.hx:535-583).
+##
+##     function setSymbolDirty(targetSymbol:String)
+##     {
+##         if (checkedDirtySymbols.contains(targetSymbol)) return;
+##         var checkForSymbol:Timeline->Void = (timeline) -> {
+##             if (timeline == null || timeline.name.length <= 0) return;
+##             checkedDirtySymbols.push(timeline.name);
+##             for (layer in timeline) for (frame in layer) {
+##                 if (!frame._requireBake) continue;
+##                 var wasFrameSetDirty:Bool = false;
+##                 for (element in frame) {
+##                     switch (element.elementType) {
+##                         case GRAPHIC | MOVIECLIP | BUTTON:
+##                             var foundSymbol = element.toSymbolInstance().libraryItem;
+##                             if (foundSymbol.name == targetSymbol) {
+##                                 if (!wasFrameSetDirty) frame.setDirty();
+##                                 wasFrameSetDirty = true;
+##                             } else {
+##                                 checkForSymbol(foundSymbol.timeline);
+##                             }
+##                         default:
+##                     }
+##                 }
+##             }
+##         }
+##         checkForSymbol(timeline);
+##         checkedDirtySymbols.resize(0);
+##     }
+##
+## Se recorre el arbol de simbolos desde cada entrada del diccionario. Se
+## usa un set local para no re-chequear el mismo simbolo dos veces.
+func set_symbol_dirty(target_symbol: StringName) -> void:
+	var checked: Dictionary = {}
+	for sym_name: StringName in symbols.keys():
+		_set_symbol_dirty_recursive(symbols[sym_name], target_symbol, checked)
+
+
+func _set_symbol_dirty_recursive(sym: AdobeSymbol, target: StringName, checked: Dictionary) -> void:
+	if sym == null or sym.name.is_empty():
+		return
+	if checked.has(sym.name):
+		return
+	checked[sym.name] = true
+
+	for layer: AdobeLayer in sym.layers:
+		for frame: AdobeLayerFrame in layer.frames:
+			if not frame._require_bake:
+				continue
+			var was_set: bool = false
+			for element: AdobeDrawable in frame.elements:
+				if element is not AdobeSymbolInstance:
+					continue
+				var inst: AdobeSymbolInstance = element as AdobeSymbolInstance
+				if inst.key == target:
+					if not was_set:
+						frame.set_dirty()
+						was_set = true
+				else:
+					var sub: AdobeSymbol = get_symbol(inst.key)
+					if sub != null:
+						_set_symbol_dirty_recursive(sub, target, checked)
+

@@ -18,6 +18,31 @@ class_name AdobeRenderBaker
 ##   3. `await RenderingServer.frame_post_draw` para sincronizar.
 ##   4. `viewport.get_texture().get_image()` (readPixels) + ImageTexture.
 ##
+## EVIDENCIA DEL SOURCE DE GODOT (`/godot-src`, 4.7.2):
+##
+## 1. `RenderingServer::force_draw` NO EXISTE. Grep en
+##    servers/rendering_server.cpp: 0 hits. No hay API publica para forzar
+##    un render de viewport en cualquier momento.
+##
+## 2. `RendererViewport::draw_viewports(bool p_swap_buffers)` (línea 782
+##    de servers/rendering/renderer_viewport.cpp) es el UNICO call site del
+##    render de viewports. Se invoca una vez por frame, al final del ciclo.
+##    No hay forma de triggear un render de un SubViewport individual
+##    desde adentro del `_draw()` de un canvas_item.
+##
+## 3. `RenderingServer::texture_2d_get(RID)` y
+##    `TextureStorage::render_target_get_texture(RID)`
+##    (servers/rendering/renderer_rd/storage_rd/texture_storage.cpp:1882,
+##    :4470) existen pero solo funcionan sobre texturas YA renderizadas.
+##
+## 4. `SubViewport::_notification` (scene/main/viewport.cpp:5756) solo
+##    maneja NOTIFICATION_ENTER_TREE / EXIT_TREE. No hay proceso de render
+##    por notificacion.
+##
+## Conclusion: la unica forma de leer el resultado de un SubViewport es
+## esperar al `RenderingServer.frame_post_draw` del frame. Es una propiedad
+## del pipeline de Godot, no una limitacion del port.
+##
 ## DIVERGENCIA ARQUITECTONICA: el source es SINCRONO (bake + usar en el mismo
 ## frame). Godot no lo permite. El port usa bake DEFERRED:
 ##   - El caller pide `request()` y sigue con lo que tenia cacheado.

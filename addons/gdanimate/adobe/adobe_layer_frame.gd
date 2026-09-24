@@ -40,6 +40,21 @@ class_name AdobeLayerFrame
 ## GRADIENT_BEVEL. Aplicarlos es F13b (necesita render-to-texture).
 @export_storage var filters: Array[AdobeFilter] = []
 
+## F13-gap cluster A: estado de baking (maru Frame._requireBake/_dirty,
+## Frame.hx:288-290). _require_bake se setea al parsear si hay filtros;
+## _dirty lo prende set_dirty() y lo apaga el draw cuando re-pide el bake.
+@export_storage var _require_bake: bool = false
+@export_storage var _dirty: bool = false
+
+
+## Port de Frame.setDirty (maru Frame.hx:94-112). En el source tambien
+## propaga hacia arriba via layer.timeline.parent.setSymbolDirty(). Aca
+## solo se prende el flag local; la propagacion la hace
+## AdobeAtlas.set_symbol_dirty cuando el consumidor la pide.
+func set_dirty() -> void:
+	if _require_bake:
+		_dirty = true
+
 ## F13-gap: port de Frame.forEachElement (maru Frame.hx:150-154).
 func for_each_element(callback: Callable) -> void:
 	for element: AdobeDrawable in elements:

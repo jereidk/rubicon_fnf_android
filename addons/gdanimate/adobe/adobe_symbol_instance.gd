@@ -57,6 +57,12 @@ enum AdobeBlendMode{
 ## directions and each direction is FF/LF two frames apart.
 @export_storage var last_frame: int = -1
 @export_storage var filters: Array[AdobeFilter] = []
+
+## F13-gap cluster A: estado de baking, espejo de MovieClipInstance.hx:
+## 27-32 (_dirty, _requireBake, _filters). El port solo usa los dos flags
+## para exponer la API; el bake real lo maneja AdobeRenderBaker.
+@export_storage var _require_bake: bool = false
+@export_storage var _dirty: bool = false
 @export_storage var blend_mode: AdobeBlendMode = AdobeBlendMode.NORMAL
 @export_storage var color_matrix: AdobeColorMatrix = null
 
@@ -71,4 +77,34 @@ func calculate_bounding_box() -> void :
 ## el que se busca el simbolo en `atlas.symbols`).
 func symbol_name() -> String:
 	return String(key)
+
+## Port de MovieClipInstance.setDirty (maru MovieClipInstance.hx:98-110).
+## En el source tambien propaga al parentFrame.setDirty(). Aca solo el flag.
+func set_dirty() -> void:
+	if _require_bake:
+		_dirty = true
+
+
+## Port de MovieClipInstance.setFilters (maru MovieClipInstance.hx:89-93):
+##     this._filters = filters;
+##     this._requireBake = (filters != null && filters.length > 0);
+##     setDirty();
+func set_filters(new_filters: Array[AdobeFilter]) -> void:
+	filters = new_filters
+	_require_bake = not new_filters.is_empty()
+	set_dirty()
+
+
+## Port de SymbolInstance.isSimpleSymbol (maru SymbolInstance.hx:146-159):
+##     if (timeline.frameCount == 1) return true;
+##     if (loopType == SINGLE_FRAME) return true;
+##     return false;
+## El port recibe `symbol_length` (frameCount) por parametro porque la
+## instancia no tiene referencia directa al AdobeSymbol.
+func is_simple_symbol(symbol_length: int) -> bool:
+	if symbol_length == 1:
+		return true
+	if loop_mode == AdobeSymbolLoopMode.FREEZE_FRAME:
+		return true
+	return false
 

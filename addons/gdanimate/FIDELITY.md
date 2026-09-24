@@ -1859,6 +1859,64 @@ El port tiene:
 | 14 | `m3D[3\|7\|11]!=0` (matrix con perspectiva) | `FlxAnimateJson.hx:from3Dto2D` rama proyectiva | Medio | No aparece en exports 2D de Adobe Animate/BTA |
 | 15 | `Timeline._bounds` con cache per-frame + includeFilters | `Timeline.hx:196-295` | Chico | Performance; el port calcula on-demand |
 
+### F13-gap Cluster A — sistema de baking (HECHO con divergencia arquitectonica)
+
+Port de los 12 metodos de estado de baking de maru, agrupados en un solo
+pase:
+
+**API portada (estado + invalidacion):**
+- `AdobeLayerFrame._require_bake` / `_dirty` / `set_dirty()` — Frame.hx:94-112.
+- `AdobeSymbolInstance._require_bake` / `_dirty` / `set_dirty()` /
+  `set_filters()` / `is_simple_symbol()` — MovieClipInstance.hx:27-32,
+  :89-93, :98-110; SymbolInstance.hx:146-159.
+- `AdobeAtlas.set_symbol_dirty(target)` — FlxAnimateFrames.hx:535-583.
+  Recorre el arbol de simbolos desde cada entrada del diccionario y
+  prende `_dirty` en los frames con `_require_bake` que contienen una
+  instancia del target.
+
+**Wiring:**
+- `load_frame` / `load_symbol_instance` setean `_require_bake` al parsear
+  los filtros.
+- `draw_symbol` chequea `_dirty` antes de leer del cache del
+  `AdobeRenderBaker`; si esta prendido, invalida la key y lo apaga.
+- No se portaron `_bakedFrames` / `_bakedIndices` per-frame ni `_bakeFrame`
+  como metodo: el cache real lo maneja el `AdobeRenderBaker` (deferred).
+
+**DIVERGENCIA ARQUITECTONICA — evidencia del source de Godot (4.7.2):**
+
+1. `RenderingServer::force_draw` **no existe** (0 hits en
+   `servers/rendering_server.cpp`).
+2. `RendererViewport::draw_viewports(bool)` es el **unico** call site del
+   render de viewports (`renderer_viewport.cpp:782`). Corre una vez por
+   frame al final.
+3. `RenderingServer::texture_2d_get(RID)` y
+   `TextureStorage::render_target_get_texture(RID)` (`texture_storage.cpp:
+   1882, 4470`) existen pero solo leen texturas **ya** renderizadas.
+4. `SubViewport::_notification` (`viewport.cpp:5756`) solo maneja
+   ENTER_TREE / EXIT_TREE.
+
+**Conclusion:** el sistema de maru (bake síncrono con `BakedFramesVector`)
+no se puede replicar 1:1 en Godot. **El port tiene API identica +
+backend distinto** (AdobeRenderBaker deferred). Es la sexta divergencia
+arquitectonica, ahora con evidencia del source.
+
+**Cobertura de los 12 metodos del inventario:**
+- `Frame.setDirty` -> `AdobeLayerFrame.set_dirty` ✅
+- `Frame._bakeFrame` -> delegado al baker (deferred) ✅ (semantica)
+- `Frame._bakedFrames` / `_bakedIndices` -> delegado al baker ✅ (semantica)
+- `MovieClipInstance.setDirty` -> `AdobeSymbolInstance.set_dirty` ✅
+- `MovieClipInstance.setFilters` -> `AdobeSymbolInstance.set_filters` ✅
+- `MovieClipInstance._bakeFilters` -> delegado al baker ✅ (semantica)
+- `MovieClipInstance.findFrame` / `isFull` -> delegado al baker ✅ (semantica)
+- `SymbolInstance.isSimpleSymbol` -> `AdobeSymbolInstance.is_simple_symbol` ✅
+- `MovieClipInstance.isSimpleSymbol` -> mismo ✅
+- `FlxAnimateFrames.setSymbolDirty` -> `AdobeAtlas.set_symbol_dirty` ✅
+- `Timeline.clearBoundsCache` -> `AdobeSymbol.clear_bounds_cache` ✅ (no-op documentado)
+
+**Tests:** `tests/test_baking_state.gd` nuevo (5 casos: setDirty con/sin
+require_bake, setFilters con/sin filtros, isSimpleSymbol para los 3 casos,
+setSymbolDirty que recorre el arbol). Suite: **22/22**.
+
 ### Divergencias arquitectonicas (no fixeables sin reescribir Godot)
 
 Verificadas leyendo el source de Godot (`/godot-src`):
