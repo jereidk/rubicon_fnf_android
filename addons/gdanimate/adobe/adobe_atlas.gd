@@ -37,6 +37,15 @@ var stage_transform: Transform2D = Transform2D.IDENTITY
 ## del contenido del simbolo. Si el color tiene alpha 0, se omite.
 var stage_rect: Rect2 = Rect2(0, 0, 1280, 720)
 var stage_color: Color = Color.WHITE
+
+## F13-gap: MetadataJson.V / .FLV (maru FlxAnimateJson.hx:624-636):
+##     public var V(get, never):String;    // return this.V ?? this.version ?? "";
+##     public var FLV(get, never):String;  // return this.FLV ?? this.flVersion ?? "";
+## Version del exporter de Adobe Animate y de Flash. Solo informativos: el
+## source los parsea pero ningun consumidor del engine real los lee. Se
+## guardan por fidelidad de parseo.
+var exporter_version: String = ""
+var fl_version: String = ""
 var render_stage: bool = false
 ## Scratch for one draw_on() call, handed to the drawing symbol at the end of
 ## it. draw_symbol() is a thirteen-parameter recursive function called
@@ -293,6 +302,11 @@ func _parse_stage_metadata(meta: Dictionary) -> void:
 	var bgc_raw: String = str(meta.get("BGC", meta.get("backgroundColor", "#FFFFFF")))
 	# Color.from_string de Godot no acepta el "#" inicial.
 	stage_color = Color.from_string(bgc_raw.trim_prefix("#"), Color.WHITE)
+
+	# F13-gap: MetadataJson.V/FLV. Maru lee ambos con fallback al nombre
+	# legacy largo (this.V ?? this.version). Aplicado igual aca.
+	exporter_version = str(meta.get("V", meta.get("version", "")))
+	fl_version = str(meta.get("FLV", meta.get("flVersion", "")))
 
 
 func get_framerate() -> float:
