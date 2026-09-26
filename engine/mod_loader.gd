@@ -477,6 +477,55 @@ func _register_runtime_loaders() -> void:
 		# Ceder el frame antes del siguiente load.
 		await get_tree().process_frame
 	_log("%d runtime loaders registrados" % _loaders.size())
+	# Ahora que los 9 loaders estan registrados y mod_gd_paths tiene los
+	# paths del addon, correr el prewarm topologico.
+	await _prewarm_addons()
+
+
+## Carga topologicamente los .gd del addon para poblar
+## GDScriptCache::shallow_gdscript_cache con scripts COMPILADOS (no
+## huecos). Debe correr DESPUES de que RuntimeGDLoader este registrado,
+## porque es el que compila los .gd del pck con su base real.
+##
+## Sin esto, cuando el parser de un script del mod resuelve
+## preload() a un .gd del addon, FileAccess::exists(remapped_path)
+## en GDScriptCache::get_parser puede fallar en Android dentro del
+## contexto parser-dentro-de-parser.
+func _prewarm_addons() -> void:
+	var order: Array[String] = [
+		"adobe/adobe_color_matrix.gd",
+		"adobe/adobe_drawable.gd",
+		"adobe/adobe_symbol.gd",
+		"adobe/adobe_symbol_instance.gd",
+		"adobe/adobe_button_instance.gd",
+		"adobe/adobe_filter.gd",
+		"adobe/adobe_layer_frame.gd",
+		"adobe/adobe_layer.gd",
+		"adobe/adobe_sprite_element.gd",
+		"adobe/adobe_atlas_sprite.gd",
+		"animate_draw_info.gd",
+		"animate_atlas.gd",
+		"animate_symbol.gd",
+		"adobe/adobe_atlas.gd",
+		"adobe/adobe_atlas_cached.gd",
+		"adobe/adobe_animate_controller.gd",
+	]
+	var t0: int = Time.get_ticks_msec()
+	var total: int = 0
+	var ok: int = 0
+	for a in addons:
+		var folder: String = String(a["folder"])
+		for rel in order:
+			total += 1
+			var res_path := "res://addons/" + folder + "/" + rel
+			var scr = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_REUSE)
+			if scr != null and not str(scr.get_instance_base_type()).is_empty():
+				ok += 1
+			elif scr != null:
+				DebugLog.log("[addon_prewarm] hueco %s base='%s'" % [res_path, str(scr.get_instance_base_type())])
+	DebugLog.log("[addon_prewarm] %d/%d scripts con base real en %dms" % [
+		ok, total, Time.get_ticks_msec() - t0,
+	])
 
 
 ## Devuelve todas las raices legibles en este dispositivo, en orden.
@@ -1718,42 +1767,13 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para addon %s" % folder)
 		return
-	# Prewarm topologico: cargar los .gd del addon en orden hoja->raiz
-	# para poblar GDScriptCache::shallow_gdscript_cache. Sin esto, cuando
-	# el parser de un script del mod resuelve preload() a un .gd del
-	# addon, intenta leer el source con FileAccess directo
-	# (GDScriptCache::get_source_code) dentro del contexto de reload de
-	# otro script del loader custom, y en Android esa lectura falla.
-	# Los 16 scripts listados cargan OK en ese orden (validado en Termux).
-	# Si se agregan clases nuevas al addon con dependencias al inicio,
-	# agregarlas a esta lista en la posicion correcta.
-	var prewarm_order: Array[String] = [
-		"adobe/adobe_color_matrix.gd",
-		"adobe/adobe_drawable.gd",
-		"adobe/adobe_symbol.gd",
-		"adobe/adobe_symbol_instance.gd",
-		"adobe/adobe_button_instance.gd",
-		"adobe/adobe_filter.gd",
-		"adobe/adobe_layer_frame.gd",
-		"adobe/adobe_layer.gd",
-		"adobe/adobe_sprite_element.gd",
-		"adobe/adobe_atlas_sprite.gd",
-		"animate_draw_info.gd",
-		"animate_atlas.gd",
-		"animate_symbol.gd",
-		"adobe/adobe_atlas.gd",
-		"adobe/adobe_atlas_cached.gd",
-		"adobe/adobe_animate_controller.gd",
-	]
-	var t_pw: int = Time.get_ticks_msec()
-	var ok_count: int = 0
-	for rel in prewarm_order:
-		var p := "res://addons/" + folder + "/" + rel
-		if ResourceLoader.load(p, "GDScript", ResourceLoader.CACHE_MODE_REUSE) != null:
-			ok_count += 1
-	DebugLog.log("[addon_prewarm] %s: %d/%d scripts en %dms" % [
-		folder, ok_count, prewarm_order.size(), Time.get_ticks_msec() - t_pw,
-	])
+	# (prewarm movido a _prewarm_addons, llamado al final de
+	# _register_runtime_loaders. Antes corria aca, antes de que el
+	# RuntimeGDLoader estuviera registrado, asi que ResourceLoader.load()
+	# caia al loader nativo de GDScript, que devuelve scripts HUECOS
+	# (base vacio, methods=0) cuando el .gd vive en un pck montado. Eso
+	# envenenaba shallow_gdscript_cache y el parser del mod no podia
+	# resolver el preload del addon.)
 	# Runner: probar todos los .gd del addon que tienen class_name en
 	# orden de dependencia (hoja → raiz). Cada uno indica:
 	#   OK   script cargado, con name/base/methods
