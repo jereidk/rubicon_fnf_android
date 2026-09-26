@@ -1758,7 +1758,11 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
 
 	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
-		if not await _build_pck_prefixed(pack_files, addon_path, cache_path, prefix):
+		var cfg_path: String = _build_class_cache_cfg(folder, files, addon_path, prefix)
+		var synthetic: Dictionary = {}
+		if not cfg_path.is_empty():
+			synthetic["res://.godot/global_script_class_cache.cfg"] = cfg_path
+		if not await _build_pck_prefixed(pack_files, addon_path, cache_path, prefix, synthetic):
 			push_error("[ModLoader] no pude empaquetar addon %s" % folder)
 			return
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
@@ -1852,9 +1856,67 @@ func _test_addon_script(folder: String, rel: String) -> void:
 		])
 
 
+## Extrae class_name + extends + @tool + @abstract de cada .gd del addon
+## y devuelve un Array de Dictionary con el formato exacto que espera
+## .godot/global_script_class_cache.cfg.
+func _scan_addon_classes(files: Array, disk_path: String, prefix: String) -> Array:
+	var out: Array = []
+	var re_cn := RegEx.new()
+	re_cn.compile("class_name\\s+([A-Za-z_][A-Za-z0-9_]*)")
+	var re_ex := RegEx.new()
+	re_ex.compile("extends\\s+([A-Za-z_][A-Za-z0-9_\\.]*)")
+	for rel in files:
+		var s: String = String(rel)
+		if not s.ends_with(".gd"):
+			continue
+		var src := FileAccess.get_file_as_string(disk_path + "/" + s)
+		if src.is_empty():
+			continue
+		var head := src.substr(0, 2000)
+		var m := re_cn.search(head)
+		if not m:
+			continue
+		var cn: String = m.get_string(1)
+		var me := re_ex.search(head)
+		var base: String = "RefCounted"
+		if me:
+			base = me.get_string(1)
+		out.append({
+			"base": StringName(base),
+			"class": StringName(cn),
+			"icon": "",
+			"is_abstract": head.contains("@abstract"),
+			"is_tool": head.contains("@tool"),
+			"language": &"GDScript",
+			"path": "res://" + prefix + s,
+		})
+	return out
+
+
+## Escribe el .cfg con las clases del addon a un archivo temp y devuelve
+## su path fisico. Devuelve "" si el addon no tiene clases o el save falla.
+func _build_class_cache_cfg(folder: String, files: Array, disk_path: String, prefix: String) -> String:
+	var classes: Array = _scan_addon_classes(files, disk_path, prefix)
+	if classes.is_empty():
+		return ""
+	var cfg := ConfigFile.new()
+	cfg.set_value("", "list", classes)
+	var out_path := CACHE_DIR + "/addon_" + folder + "_classes.cfg"
+	if cfg.save(out_path) != OK:
+		push_warning("[ModLoader] no pude escribir class cache de addon %s" % folder)
+		return ""
+	DebugLog.log("[addon_classes] %s: %d clases escritas a %s" % [folder, classes.size(), out_path])
+	return out_path
+
+
 ## Igual que _build_pck pero con prefijo en el path res:// interno del pck.
 ## El path fisico del archivo NO cambia.
-func _build_pck_prefixed(files: Array, disk_path: String, out: String, prefix: String) -> bool:
+##
+## synthetic: Dictionary {res_path: disk_path} para archivos que no salen
+## del walk del addon (por ejemplo el global_script_class_cache.cfg que
+## ModLoader genera para que ScriptServer registre las clases del addon
+## al montar el pck).
+func _build_pck_prefixed(files: Array, disk_path: String, out: String, prefix: String, synthetic: Dictionary = {}) -> bool:
 	_log("[addon_pck] build %s: %d archivos" % [out, files.size()])
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
@@ -1867,6 +1929,10 @@ func _build_pck_prefixed(files: Array, disk_path: String, out: String, prefix: S
 		i += 1
 		if i % PROGRESS_EVERY == 0:
 			await get_tree().process_frame
+	for res_path in synthetic:
+		var err := packer.add_file(String(res_path), String(synthetic[res_path]))
+		if err != OK:
+			_log("addon add_file synthetic %s fallo: %d" % [res_path, err])
 	return packer.flush(true) == OK
 
 
