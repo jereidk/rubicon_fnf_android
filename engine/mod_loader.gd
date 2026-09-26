@@ -83,6 +83,20 @@ var addons_roots: Array[String] = []
 ## para que los loaders los vean junto con los del mod activo.
 var _addon_gd_paths: Dictionary = {}
 var _addon_all_paths: Dictionary = {}
+## Acumulador de clases de todos los addons. class_name -> dict (gana el primero).
+## El .cfg combinado se genera en _finalize_addons. Si dos addons definen
+## el mismo class_name, gana el primero en cargarse y se loguea un warning.
+var _addon_classes_all: Dictionary = {}
+## Owner de cada class_name: class_name -> folder del addon que la definio.
+## Para que reload_addon pueda limpiar las entradas viejas antes de
+## repoblar.
+var _addon_classes_owner: Dictionary = {}
+## Acumulador de UIDs de todos los addons. uid_id -> res://path.
+var _addon_uids_all: Dictionary = {}
+## Owner de cada uid: uid_id -> folder.
+var _addon_uids_owner: Dictionary = {}
+## Lista ordenada de paths .gd a precargar tras montar el pck sintetico.
+var _addon_prewarm_list: Array[String] = []
 var _config: Dictionary = {"enabled": {}, "order": []}
 var _loaders: Array[ResourceFormatLoader] = []
 ## Cuando la app vuelve del background marcamos para recargar en el
@@ -1702,12 +1716,110 @@ func _resolve_addons_roots() -> Array[String]:
 	return out
 
 
+## Ordena la lista de addons por dependencias cruzadas. Un addon que
+## referencia (extends X) una clase definida por otro addon va DESPUES
+## del que la define. Los ciclos se rompen con orden alfabetico + warning.
+##
+## addons_to_load: Array de {folder, path, classes: Array[String],
+## refs: Array[String]}. Devuelve el mismo Array reordenado.
+func _order_addons_by_deps(addons_to_load: Array) -> Array:
+	if addons_to_load.size() <= 1:
+		return addons_to_load
+	var by_class: Dictionary = {}
+	for i in addons_to_load.size():
+		for cn in addons_to_load[i]["classes"]:
+			by_class[cn] = i
+
+	var deps: Array = []
+	deps.resize(addons_to_load.size())
+	for i in addons_to_load.size():
+		var d: Array = []
+		for ref in addons_to_load[i]["refs"]:
+			if by_class.has(ref):
+				var j: int = by_class[ref]
+				if j != i and j not in d:
+					d.append(j)
+		deps[i] = d
+
+	var order: Array = []
+	var done: Array = []
+	done.resize(addons_to_load.size())
+	for i in done.size():
+		done[i] = false
+	var changed := true
+	while changed:
+		changed = false
+		for i in addons_to_load.size():
+			if done[i]:
+				continue
+			var ready := true
+			for j in deps[i]:
+				if not done[j]:
+					ready = false
+					break
+			if ready:
+				order.append(addons_to_load[i])
+				done[i] = true
+				changed = true
+
+	var remaining: Array = []
+	for i in addons_to_load.size():
+		if not done[i]:
+			remaining.append(addons_to_load[i])
+	if not remaining.is_empty():
+		push_warning("[ModLoader] %d addons con dependencias ciclicas, orden alfabetico como fallback" % remaining.size())
+		remaining.sort_custom(func(a, b): return String(a["folder"]) < String(b["folder"]))
+		order.append_array(remaining)
+	return order
+
+
+## Extrae refs (extends X) y class_names definidos de un addon, para el
+## orden topologico. Walk rapido, sin scan de .scan cache ni fingerprint.
+func _probe_addon_deps(folder: String, addon_path: String) -> Dictionary:
+	var classes: Array[String] = []
+	var refs: Array[String] = []
+	var re_cn := RegEx.new()
+	re_cn.compile("class_name\\s+([A-Za-z_][A-Za-z0-9_]*)")
+	var re_ex := RegEx.new()
+	re_ex.compile("extends\\s+([A-Za-z_][A-Za-z0-9_\\.]*)")
+	var dirs: Array[String] = [""]
+	while not dirs.is_empty():
+		var sub: String = dirs.pop_back()
+		var path: String = addon_path if sub.is_empty() else addon_path + "/" + sub
+		var d := DirAccess.open(path)
+		if d == null:
+			continue
+		for f in d.get_files():
+			if not f.ends_with(".gd"):
+				continue
+			var full := path + "/" + f
+			var src := FileAccess.get_file_as_string(full)
+			if src.is_empty():
+				continue
+			var head := src.substr(0, 2000)
+			var m := re_cn.search(head)
+			if m:
+				classes.append(m.get_string(1))
+			var me := re_ex.search(head)
+			if me:
+				refs.append(me.get_string(1))
+		for sd in d.get_directories():
+			dirs.append(sd if sub.is_empty() else sub + "/" + sd)
+	return {"folder": folder, "path": addon_path, "classes": classes, "refs": refs}
+
+
 ## Punto de entrada. Recorre cada raiz, cada subcarpeta = un addon.
+## Primera pasada: descubrir todos los addons. Segunda pasada: ordenar
+## por dependencias cruzadas. Tercera: cargar en orden.
 func _load_addons() -> void:
 	addons_roots = _resolve_addons_roots()
 	if addons_roots.is_empty():
 		_log("sin addons roots legibles")
 		return
+
+	# Pasada 1: descubrir todos los addons en todas las raices.
+	var discovered: Array[Dictionary] = []
+	var seen_folders: Dictionary = {}
 	for root in addons_roots:
 		var dir := DirAccess.open(root)
 		if dir == null:
@@ -1716,10 +1828,109 @@ func _load_addons() -> void:
 		var name := dir.get_next()
 		while name != "":
 			if name != "." and name != ".." and dir.current_is_dir():
-				await _load_one_addon(name, root + "/" + name)
+				if not seen_folders.has(name):
+					seen_folders[name] = true
+					discovered.append({"folder": name, "path": root + "/" + name})
 			name = dir.get_next()
 		dir.list_dir_end()
+
+	# Pasada 2: para cada addon, extraer clases y refs. Ordenar por deps.
+	var probed: Array[Dictionary] = []
+	for addon_info in discovered:
+		probed.append(_probe_addon_deps(addon_info["folder"], addon_info["path"]))
+	var ordered: Array = _order_addons_by_deps(probed)
+	if ordered.size() > 1:
+		var order_str: Array[String] = []
+		for a in ordered:
+			order_str.append(String(a["folder"]))
+		DebugLog.log("[addon_order] %s" % str(order_str))
+
+	# Pasada 3: cargar en orden.
+	for a in ordered:
+		await _load_one_addon(String(a["folder"]), String(a["path"]))
+	await _finalize_addons()
 	_log("addons cargados: %d" % addons.size())
+
+
+## Genera y monta el .cfg combinado y el uid_cache.bin combinado de
+## TODOS los addons cargados, y corre el prewarm global. Se llama al
+## final de _load_addons, cuando ya estan todos los acumuladores
+## poblados. Los archivos van a un pck sintetico separado de los pcks
+## de cada addon, para que ningun addon pise el .cfg o los uids de otro.
+func _finalize_addons() -> void:
+	if _addon_classes_all.is_empty() and _addon_uids_all.is_empty():
+		return
+	var synthetic: Dictionary = {}
+
+	# .cfg combinado. El orden de las entradas importa poco (el parser
+	# las lee y llama add_global_class, que resuelve dependencias al
+	# vuelo), pero ordeno por class_name para que sea determinista y
+	# facil de difear entre builds.
+	if not _addon_classes_all.is_empty():
+		var keys: Array = _addon_classes_all.keys()
+		keys.sort()
+		var classes: Array = []
+		for k in keys:
+			classes.append(_addon_classes_all[k])
+		var cfg := ConfigFile.new()
+		cfg.set_value("", "list", classes)
+		var cfg_path: String = CACHE_DIR + "/addons_all_classes.cfg"
+		if cfg.save(cfg_path) == OK:
+			synthetic["res://.godot/global_script_class_cache.cfg"] = cfg_path
+			DebugLog.log("[addons_finalize] .cfg: %d clases -> %s" % [classes.size(), cfg_path])
+		else:
+			push_warning("[ModLoader] no pude escribir .cfg combinado")
+
+	# uid_cache.bin combinado
+	if not _addon_uids_all.is_empty():
+		var entries: Array = []
+		for k in _addon_uids_all.keys():
+			entries.append({"id": k, "path": _addon_uids_all[k]})
+		var uid_bin := _build_uid_cache_bin(entries)
+		var uid_path: String = CACHE_DIR + "/addons_all_uids.bin"
+		var uf := FileAccess.open(uid_path, FileAccess.WRITE)
+		if uf != null:
+			uf.store_buffer(uid_bin)
+			uf.close()
+			synthetic["res://.godot/uid_cache.bin"] = uid_path
+			DebugLog.log("[addons_finalize] uids: %d entradas -> %s" % [entries.size(), uid_path])
+
+	if synthetic.is_empty():
+		return
+
+	# Mini pck solo con los sinteticos
+	var pck_path: String = CACHE_DIR + "/addons_synthetic.pck"
+	var packer := PCKPacker.new()
+	if packer.pck_start(pck_path) != OK:
+		push_error("[ModLoader] no pude crear pck sintetico %s" % pck_path)
+		return
+	for res_path in synthetic:
+		var err := packer.add_file(String(res_path), String(synthetic[res_path]))
+		if err != OK:
+			push_warning("[ModLoader] add_file %s fallo: %d" % [res_path, err])
+	if packer.flush(true) != OK:
+		push_error("[ModLoader] flush fallo para pck sintetico")
+		return
+	if not ProjectSettings.load_resource_pack(pck_path, true):
+		push_error("[ModLoader] load_resource_pack fallo para pck sintetico")
+		return
+	DebugLog.log("[addons_finalize] pck sintetico montado (%d archivos)" % synthetic.size())
+
+	# Prewarm topologico. El orden de _addon_prewarm_list sigue el orden
+	# en que se agregaron las clases (que sigue el orden del walk, que
+	# es alfabetico). No es topologico perfecto, pero con CACHE_MODE_IGNORE
+	# un intento fallido no envenena shallow_gdscript_cache; solo se
+	# pierde el prewarm de ese archivo. El loader custom lo carga igual
+	# cuando el mod lo pida.
+	var t_pw: int = Time.get_ticks_msec()
+	var ok_pw: int = 0
+	for res_path in _addon_prewarm_list:
+		var scr = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
+		if scr != null and not str(scr.get_instance_base_type()).is_empty():
+			ok_pw += 1
+	DebugLog.log("[addon_prewarm] %d/%d scripts con base real en %dms" % [
+		ok_pw, _addon_prewarm_list.size(), Time.get_ticks_msec() - t_pw,
+	])
 
 
 func _load_one_addon(folder: String, addon_path: String) -> void:
@@ -1751,18 +1962,21 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	var scan: Dictionary = await _scan_mod_tree(cache_key, addon_path)
 	var files: Array = scan["files"]
 	var pack_files: Array = scan["pack_files"]
-	var fingerprint: String = scan["fingerprint"]
+	# El fingerprint del walk solo mira mtime+size del pck; no ve cambios
+	# en el contenido logico (class_name, extends, uid) que no cambien
+	# el tamano del archivo. Se appendea un hash de esos pares para que
+	# el .mtime cambie y dispare rebuild del pck cuando haga falta.
+	var fingerprint: String = String(scan["fingerprint"]) + "|sig:" + _compute_addon_sig(files, addon_path, prefix)
 
 	var cached_fp: String = ""
 	if FileAccess.file_exists(mtime_path):
 		cached_fp = FileAccess.open(mtime_path, FileAccess.READ).get_as_text().strip_edges()
 
 	if not FileAccess.file_exists(cache_path) or cached_fp != fingerprint:
-		var cfg_path: String = _build_class_cache_cfg(folder, files, addon_path, prefix)
-		var synthetic: Dictionary = {}
-		if not cfg_path.is_empty():
-			synthetic["res://.godot/global_script_class_cache.cfg"] = cfg_path
-		if not await _build_pck_prefixed(pack_files, addon_path, cache_path, prefix, synthetic):
+		# El pck del addon lleva SOLO sus archivos. El .cfg y uid_cache.bin
+		# son combinados entre todos los addons y se montan aparte, en
+		# _finalize_addons, tras cargar todos. Asi no se pisan entre si.
+		if not await _build_pck_prefixed(pack_files, addon_path, cache_path, prefix):
 			push_error("[ModLoader] no pude empaquetar addon %s" % folder)
 			return
 		FileAccess.open(mtime_path, FileAccess.WRITE).store_string(fingerprint)
@@ -1792,45 +2006,55 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 		l.mod_all_paths = _mod_all_paths
 	DebugLog.log("[addon] paths copiados a _mod_gd_paths (size=%d) antes del prewarm" % _mod_gd_paths.size())
 
-	# Prewarm: cargar los .gd del addon AHORA (con loader custom ya
-	# registrado) en orden hoja->raiz. Con el loader custom activo,
-	# cada .gd se compila con base real y queda bien cacheado en
-	# shallow_gdscript_cache. Sin esto, el parser de title_screen.gd
-	# no puede resolver el preload del addon.
-	var prewarm_order: Array[String] = [
-		"adobe/adobe_color_matrix.gd",
-		"adobe/adobe_drawable.gd",
-		"adobe/adobe_symbol.gd",
-		"adobe/adobe_symbol_instance.gd",
-		"adobe/adobe_button_instance.gd",
-		"adobe/adobe_filter.gd",
-		"adobe/adobe_layer_frame.gd",
-		"adobe/adobe_layer.gd",
-		"adobe/adobe_sprite_element.gd",
-		"adobe/adobe_atlas_sprite.gd",
-		"animate_draw_info.gd",
-		"animate_atlas.gd",
-		"animate_symbol.gd",
-		"adobe/adobe_atlas.gd",
-		"adobe/adobe_atlas_cached.gd",
-		"adobe/adobe_animate_controller.gd",
-	]
-	var t_pw: int = Time.get_ticks_msec()
-	var ok_pw: int = 0
-	for rel in prewarm_order:
-		var res_path := "res://addons/" + folder + "/" + rel
-		var scr = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_REUSE)
-		if scr != null and not str(scr.get_instance_base_type()).is_empty():
-			ok_pw += 1
-		elif scr != null:
-			DebugLog.log("[addon_prewarm] hueco %s base='%s'" % [res_path, str(scr.get_instance_base_type())])
-	DebugLog.log("[addon_prewarm] %s: %d/%d scripts con base real en %dms" % [
-		folder, ok_pw, prewarm_order.size(), Time.get_ticks_msec() - t_pw,
+	# Acumular clases con B (first wins). El .cfg combinado se genera en
+	# _finalize_addons, al final de _load_addons. Si otro addon ya
+	# registro el mismo class_name, gana el primero y se loguea warning.
+	var n_new_classes: int = 0
+	var n_dup_classes: int = 0
+	for cls_dict in _scan_addon_classes(files, addon_path, prefix):
+		var cn: String = String(cls_dict["class"])
+		if _addon_classes_all.has(cn):
+			var prev: Dictionary = _addon_classes_all[cn]
+			if String(prev["path"]) != String(cls_dict["path"]):
+				push_warning("[ModLoader] addon %s: class_name '%s' ya definida en %s, se omite la de %s" % [
+					folder, cn, prev["path"], cls_dict["path"],
+				])
+				n_dup_classes += 1
+			continue
+		_addon_classes_all[cn] = cls_dict
+		_addon_classes_owner[cn] = folder
+		_addon_prewarm_list.append(String(cls_dict["path"]))
+		n_new_classes += 1
+
+	# Acumular uids. Si otro addon ya tiene el mismo uid (imposible en
+	# teoria), gana el primero.
+	var n_new_uids: int = 0
+	for uid_entry in _scan_addon_uids(files, addon_path, prefix):
+		var uid_id: int = uid_entry["id"]
+		if _addon_uids_all.has(uid_id):
+			continue
+		_addon_uids_all[uid_id] = uid_entry["path"]
+		_addon_uids_owner[uid_id] = folder
+		n_new_uids += 1
+
+	DebugLog.log("[addon] %s: +%d clases (%d dup), +%d uids. Total acumulado: %d clases, %d uids" % [
+		folder, n_new_classes, n_dup_classes, n_new_uids,
+		_addon_classes_all.size(), _addon_uids_all.size(),
 	])
-	# Listar los primeros paths del addon_all para verificar que el prefijo es correcto
-	var keys: Array = _addon_all_paths.keys()
-	var sample: Array = keys.slice(0, 5)
-	DebugLog.log("[addon] addon_all primeros 5: %s" % str(sample))
+
+	# Autoloads declarados en addon.json["autoloads"]. Misma logica que
+	# para mods (primer registro gana). Se hace al final porque necesita
+	# que los paths del addon ya esten en _mod_all_paths (los copiamos
+	# mas arriba, antes del prewarm).
+	if meta.has("autoloads") and not (meta["autoloads"] is Dictionary and (meta["autoloads"] as Dictionary).is_empty()):
+		var fake_mod: Dictionary = {
+			"folder": "addon:" + folder,
+			"autoloads": meta["autoloads"],
+		}
+		if meta.has("gamejolt"):
+			fake_mod["gamejolt"] = meta["gamejolt"]
+		_install_mod_autoloads(fake_mod)
+
 	_log("addon montado: %s (%d archivos, prefix=%s)" % [folder, files.size(), prefix])
 
 
@@ -1854,6 +2078,71 @@ func _test_addon_script(folder: String, rel: String) -> void:
 		DebugLog.log("[addon_test] FAIL %-40s exists=%s q_ms=%d load_ms=%d" % [
 			rel, str(exists), t1 - t0, t2 - t1,
 		])
+
+
+## Firma compacta del contenido logico del addon: pares (class_name, base)
+## de cada .gd con class_name + pares (uid_id, path) de cada .uid. El walk
+## del arbol no ve estos cambios si el tamano del archivo no cambia, asi
+## que el fingerprint del walk los ignora. Sin este sig, cambiar
+## 'extends X' o agregar un .uid no dispara rebuild del .cfg/uid_cache.
+func _compute_addon_sig(files: Array, disk_path: String, prefix: String) -> String:
+	var parts: Array[String] = []
+	for cls in _scan_addon_classes(files, disk_path, prefix):
+		parts.append("c:%s:%s" % [String(cls["class"]), String(cls["base"])])
+	for u in _scan_addon_uids(files, disk_path, prefix):
+		parts.append("u:%s:%s" % [str(u["id"]), String(u["path"])])
+	parts.sort()
+	var joined: String = "|".join(parts)
+	return str(absi(joined.hash()))
+
+
+## Recorre los .uid del addon y devuelve un Array de {id:int64, path:String}
+## listos para meter en un uid_cache.bin. Formato del .uid: archivo de texto
+## con una linea "uid://xxxxx".
+##
+## Walk propio, no usa `files`: el walk general de _scan_mod_tree excluye
+## los .uid (porque antes no importaban), asi que `files` no los contiene.
+func _scan_addon_uids(_files: Array, disk_path: String, prefix: String) -> Array:
+	var out: Array = []
+	var dirs: Array[String] = [""]
+	while not dirs.is_empty():
+		var sub: String = dirs.pop_back()
+		var path: String = disk_path if sub.is_empty() else disk_path + "/" + sub
+		var d := DirAccess.open(path)
+		if d == null:
+			continue
+		for f in d.get_files():
+			if not f.ends_with(".uid"):
+				continue
+			var rel: String = f if sub.is_empty() else sub + "/" + f
+			var content := FileAccess.get_file_as_string(path + "/" + f).strip_edges()
+			if not content.begins_with("uid://"):
+				continue
+			var uid_id: int = ResourceUID.text_to_id(content)
+			if uid_id == -1:
+				continue
+			var target_rel: String = rel.substr(0, rel.length() - 4)  # sin ".uid"
+			out.append({
+				"id": uid_id,
+				"path": "res://" + prefix + target_rel,
+			})
+		for sd in d.get_directories():
+			dirs.append(sd if sub.is_empty() else sub + "/" + sd)
+	return out
+
+
+## Empaqueta las entradas en el binario que ResourceUID::load_from_cache
+## espera: u32 count + (u64 id + u32 len + utf8 path)*.
+## Equivalente a ResourceUID::encode_binary_cache (resource_uid.cpp:259).
+func _build_uid_cache_bin(entries: Array) -> PackedByteArray:
+	var buf := StreamPeerBuffer.new()
+	buf.put_u32(entries.size())
+	for e in entries:
+		buf.put_u64(e["id"])
+		var cs: PackedByteArray = String(e["path"]).to_utf8_buffer()
+		buf.put_u32(cs.size())
+		buf.put_data(cs)
+	return buf.get_data_array()
 
 
 ## Extrae class_name + extends + @tool + @abstract de cada .gd del addon
@@ -1965,11 +2254,50 @@ func reload_addon(folder: String) -> bool:
 	if found.is_empty():
 		push_warning("[ModLoader] reload_addon: no existe %s" % folder)
 		return false
+
+	# Limpiar las entradas del addon en los acumuladores. Si no, las
+	# clases viejas quedan y reload_addon no ve los cambios del .gd.
+	var removed_classes: int = 0
+	var cn_keys: Array = _addon_classes_owner.keys()
+	for cn in cn_keys:
+		if _addon_classes_owner[cn] == folder:
+			_addon_classes_all.erase(cn)
+			_addon_classes_owner.erase(cn)
+			removed_classes += 1
+	var removed_uids: int = 0
+	var uid_keys: Array = _addon_uids_owner.keys()
+	for uid_id in uid_keys:
+		if _addon_uids_owner[uid_id] == folder:
+			_addon_uids_all.erase(uid_id)
+			_addon_uids_owner.erase(uid_id)
+			removed_uids += 1
+	# Los paths del prewarm del addon tambien. Filtro por prefijo.
+	var prefix_match: String = "res://addons/" + folder + "/"
+	var kept_prewarm: Array[String] = []
+	for p in _addon_prewarm_list:
+		if not String(p).begins_with(prefix_match):
+			kept_prewarm.append(p)
+	_addon_prewarm_list = kept_prewarm
+	DebugLog.log("[addon_reload] %s: limpiados %d clases, %d uids del acumulador" % [
+		folder, removed_classes, removed_uids,
+	])
+
+	# Invalidar walk cache + .mtime para forzar rebuild del pck del addon.
 	_invalidate_walk_cache("addon_" + folder)
 	var mtime_path: String = CACHE_DIR + "/addon_" + folder + ".mtime"
 	if FileAccess.file_exists(mtime_path):
 		DirAccess.remove_absolute(mtime_path)
+
+	# Recargar. _load_one_addon repuebla los acumuladores y copia los
+	# paths a _mod_gd_paths (aunque los paths viejos quedan zombie ahi,
+	# es idempotente porque el mapping es res_path -> disk_path y las
+	# mismas keys se reescriben).
 	await _load_one_addon(folder, String(found["path"]))
+
+	# Regenerar y remontar el pck sintetico (cfg + uid_cache) con los
+	# acumuladores actualizados. Tambien corre el prewarm.
+	await _finalize_addons()
+
 	_log("addon recargado: %s" % folder)
 	return true
 

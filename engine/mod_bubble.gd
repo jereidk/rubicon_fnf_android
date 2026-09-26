@@ -202,9 +202,27 @@ func _make_button(size: float, icon: int, color: Color, label: String) -> Contro
 ## para no usar lambda (captura por referencia). Recibe el Callable via
 ## bind() para que cada boton tenga el suyo.
 func _on_option_gui_input(ev: InputEvent, cb: Callable) -> void:
-	if not (ev is InputEventScreenTouch or ev is InputEventMouseButton):
-		return
-	if not ev.pressed:
+	# Android con emulate_mouse_from_touch=true (default en Godot 4) emite
+	# DOS eventos por cada tap: InputEventScreenTouch + un InputEventMouseButton
+	# emulado. Los dos llegan a gui_input en el mismo frame, y el callback
+	# se ejecuta dos veces.
+	#
+	# Sintomas: debug togglea dos veces (net: no-op), exit abre el
+	# dialogo y el mismo tap lo cierra al instante via el dim, console
+	# muestra el teclado por un frame y lo esconde.
+	#
+	# Fix: en plataformas tactiles, descartar el mouse emulado. En desktop
+	# procesar solo MouseButton (no hay ScreenTouch real).
+	var is_touch_platform: bool = OS.get_name() in ["Android", "iOS"]
+	if ev is InputEventMouseButton:
+		if is_touch_platform:
+			return
+		if ev.button_index != MOUSE_BUTTON_LEFT or not ev.pressed:
+			return
+	elif ev is InputEventScreenTouch:
+		if not ev.pressed:
+			return
+	else:
 		return
 	_dbg("_on_option_gui_input frame=%d cb_valid=%s" % [Engine.get_process_frames(), cb.is_valid()])
 	MenuMusic.play_confirm()
@@ -268,14 +286,19 @@ func _on_fab_input(ev: InputEvent) -> void:
 		if _fab:
 			_fab.modulate.a = FAB_ALPHA_ACTIVE
 		return
-	# Mouse start (desktop / debug).
-	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT and ev.pressed:
+	# Mouse start (desktop / debug). En Android el mouse emulado duplica
+	# cada touch y dispara play_confirm() dos veces.
+	var is_touch_platform: bool = OS.get_name() in ["Android", "iOS"]
+	if ev is InputEventMouseButton and not is_touch_platform 			and ev.button_index == MOUSE_BUTTON_LEFT and ev.pressed:
 		_press_time = Time.get_ticks_msec() / 1000.0
 		_drag_dist = 0.0
 		_dragging = false
 		_was_expanded_at_press = _expanded
 		if _fab:
 			_fab.modulate.a = FAB_ALPHA_ACTIVE
+		return
+	if ev is InputEventMouseButton and is_touch_platform:
+		# Ignorar el emulado de un touch.
 		return
 	# Drag: usamos ev.relative (delta desde el ultimo drag event) en vez de
 	# recomputar desde ev.position, porque en gui_input ev.position esta en
@@ -340,6 +363,11 @@ func _input(event: InputEvent) -> void:
 	if not (event is InputEventScreenTouch or event is InputEventMouseButton):
 		return
 	if not event.pressed:
+		return
+	# Android duplica el touch con un mouse emulado; sin esto el colapso
+	# de "tocar afuera" se dispara dos veces.
+	var is_touch_platform: bool = OS.get_name() in ["Android", "iOS"]
+	if event is InputEventMouseButton and is_touch_platform:
 		return
 	var pos: Vector2 = event.position
 	# ¿Dentro del FAB?
