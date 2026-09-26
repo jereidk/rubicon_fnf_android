@@ -1621,6 +1621,11 @@ func _register_mod_gd_paths(files: Array, mod_path: String = "") -> void:
 	for k in _addon_all_paths:
 		_mod_all_paths[k] = _addon_all_paths[k]
 
+	DebugLog.log("[register_paths] sizes: mod_gd=%d mod_all=%d addon_gd=%d addon_all=%d" % [
+		_mod_gd_paths.size(), _mod_all_paths.size(),
+		_addon_gd_paths.size(), _addon_all_paths.size(),
+	])
+
 	for l in _loaders:
 		l.mod_all_paths = _mod_all_paths
 	DebugLog.log("[register_paths] reasignado mod_all_paths (size=%d, addons=%d) a %d loaders" % [

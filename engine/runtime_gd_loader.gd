@@ -57,6 +57,8 @@ func _get_recognized_extensions() -> PackedStringArray:
 
 
 func _get_resource_type(path: String) -> String:
+	if path.begins_with("res://addons/"):
+		DebugLog.log("[gd_loader._get_resource_type] %s -> %s" % [path, mod_gd_paths.has(path)])
 	if mod_gd_paths.has(path):
 		return "GDScript"
 	return ""
@@ -81,13 +83,14 @@ func _handles_type(type: StringName) -> bool:
 ## ResourceFormatLoader::recognize_path), asi que devolviendo true para
 ## nuestros paths ignoramos el type_hint por completo.
 func _recognize_path(path: String, _for_type: StringName) -> bool:
+	if path.begins_with("res://addons/"):
+		DebugLog.log("[gd_loader._recognize_path] %s -> %s" % [path, mod_gd_paths.has(path)])
 	return mod_gd_paths.has(path)
 
 
 func _exists(path: String) -> bool:
-	# El analyzer llama exists() al resolver preload(). Sin pck, res://
-	# no ve el filesystem del mod, asi que el default daria false y
-	# abortaria el preload de cualquier .gd del mod.
+	if path.begins_with("res://addons/"):
+		DebugLog.log("[gd_loader._exists] %s -> %s" % [path, mod_gd_paths.has(path)])
 	return mod_gd_paths.has(path)
 
 
@@ -131,6 +134,8 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	if src.is_empty():
 		push_warning("[RuntimeGDLoader] %s esta vacio" % path)
 		return null
+	if path.begins_with("res://addons/"):
+		DebugLog.log("[gd_loader._load] ADDON compilando %s (%d bytes)" % [path, src.length()])
 
 	var gd := GDScript.new()
 	gd.source_code = src
@@ -144,7 +149,11 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	gd.take_over_path(path)
 	if gd.reload() != OK:
 		push_warning("[RuntimeGDLoader] reload fallo para %s" % path)
+		if path.begins_with("res://addons/"):
+			DebugLog.log("[gd_loader._load] ADDON reload FALLO %s" % path)
 		return null
+	if path.begins_with("res://addons/"):
+		DebugLog.log("[gd_loader._load] ADDON reload OK %s" % path)
 
 	# Guardar en el cache propio. Solo si no es CACHE_MODE_IGNORE (0);
 	# los demas modos (REUSE=1 es el default) cachean normal.
