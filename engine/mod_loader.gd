@@ -1718,12 +1718,28 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para addon %s" % folder)
 		return
+	# TEST POST-PACK: verificar que un .gd del addon es accesible por FileAccess
+	# via res://. Esto valida si el pck realmente expone los .gd al FS virtual.
+	var test_gd: String = "res://addons/" + folder + "/adobe/adobe_atlas.gd"
+	var test_exists: bool = FileAccess.file_exists(test_gd)
+	var test_len: int = 0
+	if test_exists:
+		var tf := FileAccess.open(test_gd, FileAccess.READ)
+		if tf != null:
+			test_len = tf.get_length()
+			tf.close()
+	DebugLog.log("[addon] post-pack FileAccess %s exists=%s len=%d" % [test_gd, test_exists, test_len])
+	# Listar los primeros paths del addon_all para verificar que el prefijo es correcto
+	var keys: Array = _addon_all_paths.keys()
+	var sample: Array = keys.slice(0, 5)
+	DebugLog.log("[addon] addon_all primeros 5: %s" % str(sample))
 	_log("addon montado: %s (%d archivos, prefix=%s)" % [folder, files.size(), prefix])
 
 
 ## Igual que _build_pck pero con prefijo en el path res:// interno del pck.
 ## El path fisico del archivo NO cambia.
 func _build_pck_prefixed(files: Array, disk_path: String, out: String, prefix: String) -> bool:
+	_log("[addon_pck] build %s: %d archivos" % [out, files.size()])
 	var packer := PCKPacker.new()
 	if packer.pck_start(out) != OK:
 		return false
