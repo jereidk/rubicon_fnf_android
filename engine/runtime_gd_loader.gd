@@ -91,20 +91,6 @@ func _exists(path: String) -> bool:
 	return mod_gd_paths.has(path)
 
 
-var _re_addon_preload: RegEx
-
-func _ensure_addon_preload_re() -> void:
-	if _re_addon_preload:
-		return
-	_re_addon_preload = RegEx.new()
-	_re_addon_preload.compile(
-		'const\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?::\\s*[A-Za-z_][A-Za-z0-9_\\.]*)?\\s*:?=\\s*preload\\s*\\(\\s*"res://addons/([^"]+)"\\s*\\)'
-	)
-
-func _rewrite_addon_preloads(src: String) -> String:
-	_ensure_addon_preload_re()
-	return _re_addon_preload.sub(src, 'var $1 = load("res://addons/$2")', true)
-
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
 	# No es un .gd de un mod: devolver null para que Godot siga con el
 	# loader nativo. El ciclo de ResourceLoader::_load() chequea
@@ -145,10 +131,6 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 	if src.is_empty():
 		push_warning("[RuntimeGDLoader] %s esta vacio" % path)
 		return null
-	if src.contains('preload("res://addons/'):
-		print("[RuntimeGDLoader] preload->load en ", path)
-		src = _rewrite_addon_preloads(src)
-
 
 	var gd := GDScript.new()
 	gd.source_code = src
