@@ -27,3 +27,4 @@ addons/gdanimate/tests/visual/output/*.png
 *.bak
 *.bak_*
 test_assets/
+addons/gdanimate/**/*.bak_*
