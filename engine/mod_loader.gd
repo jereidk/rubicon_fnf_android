@@ -1793,7 +1793,6 @@ func _test_addon_script(folder: String, rel: String) -> void:
 	var path := "res://addons/" + folder + "/" + rel
 	var t0: int = Time.get_ticks_msec()
 	var exists: bool = ResourceLoader.exists(path)
-	var rt: String = ResourceLoader.get_resource_type(path)
 	var t1: int = Time.get_ticks_msec()
 	var scr = ResourceLoader.load(path, "GDScript", ResourceLoader.CACHE_MODE_REUSE)
 	var t2: int = Time.get_ticks_msec()
@@ -1803,8 +1802,8 @@ func _test_addon_script(folder: String, rel: String) -> void:
 			scr.get_script_method_list().size(), t1 - t0, t2 - t1,
 		])
 	else:
-		DebugLog.log("[addon_test] FAIL %-40s exists=%s rt='%s' q_ms=%d load_ms=%d" % [
-			rel, str(exists), rt, t1 - t0, t2 - t1,
+		DebugLog.log("[addon_test] FAIL %-40s exists=%s q_ms=%d load_ms=%d" % [
+			rel, str(exists), t1 - t0, t2 - t1,
 		])
 
 
