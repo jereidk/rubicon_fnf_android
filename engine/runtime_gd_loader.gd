@@ -91,6 +91,17 @@ func _exists(path: String) -> bool:
 	return mod_gd_paths.has(path)
 
 
+var _pw:=false
+func _pwarm():
+	if _pw:return
+	_pw=true
+	for i in 10:
+		var ok:=0
+		for k in mod_all_paths.keys():
+			var s:=String(k)
+			if s.begins_with("res://addons/") and s.ends_with(".gd"):
+				if ResourceLoader.load(s,"GDScript",1):ok+=1
+		if ok==0:break
 var _re_addon_preload: RegEx
 
 func _ensure_addon_preload_re() -> void:
@@ -103,7 +114,7 @@ func _ensure_addon_preload_re() -> void:
 
 func _rewrite_addon_preloads(src: String) -> String:
 	_ensure_addon_preload_re()
-	return _re_addon_preload.sub(src, 'var $1 = load("res://addons/$2")', true)
+	return _re_addon_preload.sub(src, '# $1 addon-global', true)
 
 func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_mode: int) -> Variant:
 	# No es un .gd de un mod: devolver null para que Godot siga con el
@@ -117,6 +128,8 @@ func _load(path: String, _original_path: String, _use_sub_threads: bool, _cache_
 		path, _original_path, mod_gd_paths.has(path), mod_all_paths.has(path),
 		str(_use_sub_threads), _cache_mode,
 	])
+	if not _pw:
+		_pwarm()
 	if not mod_gd_paths.has(path):
 		DebugLog.log("[gd_loader._load] RECHAZA: no esta en mod_gd_paths")
 		return null
