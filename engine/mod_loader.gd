@@ -1769,13 +1769,25 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para addon %s" % folder)
 		return
-	# (prewarm movido a _prewarm_addons, llamado al final de
-	# _register_runtime_loaders. Antes corria aca, antes de que el
-	# RuntimeGDLoader estuviera registrado, asi que ResourceLoader.load()
-	# caia al loader nativo de GDScript, que devuelve scripts HUECOS
-	# (base vacio, methods=0) cuando el .gd vive en un pck montado. Eso
-	# envenenaba shallow_gdscript_cache y el parser del mod no podia
-	# resolver el preload del addon.)
+	# CRITICO: copiar los addon paths a los mapas principales AHORA, antes
+	# del prewarm. Sin esto, el RuntimeGDLoader recibe el path del .gd del
+	# addon, consulta mod_gd_paths.has(path) -> false (no se ha copiado
+	# nada todavia), rechaza, y Godot cae al loader nativo que devuelve
+	# GDScript HUECOS (base vacio, methods=0). Esos huecos van a
+	# shallow_gdscript_cache y envenenan el cache para todo el arranque.
+	# Evidencia: '[gd_loader._recognize_path] ... -> false' seguido de
+	# '[addon_prewarm] hueco res://addons/...'.
+	for k in _addon_gd_paths:
+		_mod_gd_paths[k] = _addon_gd_paths[k]
+	for k in _addon_all_paths:
+		_mod_all_paths[k] = _addon_all_paths[k]
+	if _gd_loader != null:
+		_gd_loader.mod_gd_paths = _mod_gd_paths
+		_gd_loader.mod_all_paths = _mod_all_paths
+	for l in _loaders:
+		l.mod_all_paths = _mod_all_paths
+	DebugLog.log("[addon] paths copiados a _mod_gd_paths (size=%d) antes del prewarm" % _mod_gd_paths.size())
+
 	# Prewarm: cargar los .gd del addon AHORA (con loader custom ya
 	# registrado) en orden hoja->raiz. Con el loader custom activo,
 	# cada .gd se compila con base real y queda bien cacheado en
