@@ -1718,22 +1718,94 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	if not ok:
 		push_error("[ModLoader] load_resource_pack fallo para addon %s" % folder)
 		return
-	# TEST POST-PACK: verificar que un .gd del addon es accesible por FileAccess
-	# via res://. Esto valida si el pck realmente expone los .gd al FS virtual.
-	var test_gd: String = "res://addons/" + folder + "/adobe/adobe_atlas.gd"
-	var test_exists: bool = FileAccess.file_exists(test_gd)
-	var test_len: int = 0
-	if test_exists:
-		var tf := FileAccess.open(test_gd, FileAccess.READ)
-		if tf != null:
-			test_len = tf.get_length()
-			tf.close()
-	DebugLog.log("[addon] post-pack FileAccess %s exists=%s len=%d" % [test_gd, test_exists, test_len])
+	# Prewarm topologico: cargar los .gd del addon en orden hoja->raiz
+	# para poblar GDScriptCache::shallow_gdscript_cache. Sin esto, cuando
+	# el parser de un script del mod resuelve preload() a un .gd del
+	# addon, intenta leer el source con FileAccess directo
+	# (GDScriptCache::get_source_code) dentro del contexto de reload de
+	# otro script del loader custom, y en Android esa lectura falla.
+	# Los 16 scripts listados cargan OK en ese orden (validado en Termux).
+	# Si se agregan clases nuevas al addon con dependencias al inicio,
+	# agregarlas a esta lista en la posicion correcta.
+	var prewarm_order: Array[String] = [
+		"adobe/adobe_color_matrix.gd",
+		"adobe/adobe_drawable.gd",
+		"adobe/adobe_symbol.gd",
+		"adobe/adobe_symbol_instance.gd",
+		"adobe/adobe_button_instance.gd",
+		"adobe/adobe_filter.gd",
+		"adobe/adobe_layer_frame.gd",
+		"adobe/adobe_layer.gd",
+		"adobe/adobe_sprite_element.gd",
+		"adobe/adobe_atlas_sprite.gd",
+		"animate_draw_info.gd",
+		"animate_atlas.gd",
+		"animate_symbol.gd",
+		"adobe/adobe_atlas.gd",
+		"adobe/adobe_atlas_cached.gd",
+		"adobe/adobe_animate_controller.gd",
+	]
+	var t_pw: int = Time.get_ticks_msec()
+	var ok_count: int = 0
+	for rel in prewarm_order:
+		var p := "res://addons/" + folder + "/" + rel
+		if ResourceLoader.load(p, "GDScript", ResourceLoader.CACHE_MODE_REUSE) != null:
+			ok_count += 1
+	DebugLog.log("[addon_prewarm] %s: %d/%d scripts en %dms" % [
+		folder, ok_count, prewarm_order.size(), Time.get_ticks_msec() - t_pw,
+	])
+	# Runner: probar todos los .gd del addon que tienen class_name en
+	# orden de dependencia (hoja → raiz). Cada uno indica:
+	#   OK   script cargado, con name/base/methods
+	#   FAIL null, y los valores que devolvieron exists/type antes del load
+	# El punto donde se corta la cadena marca el ciclo problematico.
+	for rel in [
+		"adobe/adobe_color_matrix.gd",
+		"adobe/adobe_drawable.gd",
+		"adobe/adobe_symbol.gd",
+		"adobe/adobe_symbol_instance.gd",
+		"adobe/adobe_button_instance.gd",
+		"adobe/adobe_filter.gd",
+		"adobe/adobe_layer_frame.gd",
+		"adobe/adobe_layer.gd",
+		"adobe/adobe_sprite_element.gd",
+		"adobe/adobe_atlas_sprite.gd",
+		"animate_draw_info.gd",
+		"animate_atlas.gd",
+		"animate_symbol.gd",
+		"adobe/adobe_atlas.gd",
+		"adobe/adobe_atlas_cached.gd",
+		"adobe/adobe_animate_controller.gd",
+	]:
+		_test_addon_script(folder, rel)
 	# Listar los primeros paths del addon_all para verificar que el prefijo es correcto
 	var keys: Array = _addon_all_paths.keys()
 	var sample: Array = keys.slice(0, 5)
 	DebugLog.log("[addon] addon_all primeros 5: %s" % str(sample))
 	_log("addon montado: %s (%d archivos, prefix=%s)" % [folder, files.size(), prefix])
+
+
+## Prueba cargar un .gd del addon via ResourceLoader. Devuelve un log
+## de una linea por archivo. Se usa para trazar donde se corta la cadena
+## del parser: si X carga y Y no, y Y es base/dep de X, el ciclo esta
+## entre esos dos.
+func _test_addon_script(folder: String, rel: String) -> void:
+	var path := "res://addons/" + folder + "/" + rel
+	var t0: int = Time.get_ticks_msec()
+	var exists: bool = ResourceLoader.exists(path)
+	var rt: String = ResourceLoader.get_resource_type(path)
+	var t1: int = Time.get_ticks_msec()
+	var scr = ResourceLoader.load(path, "GDScript", ResourceLoader.CACHE_MODE_REUSE)
+	var t2: int = Time.get_ticks_msec()
+	if scr != null:
+		DebugLog.log("[addon_test] OK   %-40s name=%s base=%s methods=%d q_ms=%d load_ms=%d" % [
+			rel, str(scr.get_global_name()), str(scr.get_instance_base_type()),
+			scr.get_script_method_list().size(), t1 - t0, t2 - t1,
+		])
+	else:
+		DebugLog.log("[addon_test] FAIL %-40s exists=%s rt='%s' q_ms=%d load_ms=%d" % [
+			rel, str(exists), rt, t1 - t0, t2 - t1,
+		])
 
 
 ## Igual que _build_pck pero con prefijo en el path res:// interno del pck.
