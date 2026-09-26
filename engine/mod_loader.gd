@@ -179,16 +179,21 @@ func _ready() -> void:
 	_load_config()
 	scan()
 
-	# Addons globales: antes que los loaders, para que _addon_gd_paths ya
-	# este poblado cuando _register_runtime_loaders asigne los mapas.
-	# Coroutine sin await: corre en paralelo con el resto del _ready.
-	_load_addons()
+	# Los loaders async van PRIMERO. Tienen que estar registrados ANTES
+	# de montar los addons, porque _load_one_addon dispara _prewarm que
+	# hace ResourceLoader.load() sobre los .gd del pck. Sin el loader
+	# custom registrado, Godot cae al nativo, que devuelve GDScript
+	# HUECOS (base vacio, methods=0) y los mete en
+	# GDScriptCache::shallow_gdscript_cache. Una vez ahi, CACHE_MODE_REUSE
+	# devuelve el hueco en cada load posterior y el loader custom nunca
+	# ve el path. Evidencia en device: '[addon_prewarm] 2/16 scripts con
+	# base real' — los 14 huecos eran de este race.
+	await _register_runtime_loaders()
 
-	# Los loaders async van AL FINAL, sin await. Tardan ~7 frames pero
-	# no bloquean nada: para cuando ModSelector llame a bake_mod (que
-	# requiere input del usuario), los 9 loaders ya estan listos.
-	# Ningun flujo de arranque necesita loaders en los primeros frames.
-	_register_runtime_loaders()
+	# Addons: ahora si, con el loader custom listo para compilar los .gd
+	# del pck con base real. El prewarm dentro de _register_runtime_loaders
+	# ya no corre; se hace al final de _load_one_addon, post-pck.
+	await _load_addons()
 	# NO se empaquetan los mods aca. Con HQ (351 MB) el arranque tardaba
 	# minutos en el splash. Los mods se empaquetan y montan on-demand desde
 	# ModSelector._launch() -> bake_mod(). El arranque queda en ~2s con
@@ -477,9 +482,6 @@ func _register_runtime_loaders() -> void:
 		# Ceder el frame antes del siguiente load.
 		await get_tree().process_frame
 	_log("%d runtime loaders registrados" % _loaders.size())
-	# Ahora que los 9 loaders estan registrados y mod_gd_paths tiene los
-	# paths del addon, correr el prewarm topologico.
-	await _prewarm_addons()
 
 
 ## Carga topologicamente los .gd del addon para poblar
@@ -1774,12 +1776,12 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 	# (base vacio, methods=0) cuando el .gd vive en un pck montado. Eso
 	# envenenaba shallow_gdscript_cache y el parser del mod no podia
 	# resolver el preload del addon.)
-	# Runner: probar todos los .gd del addon que tienen class_name en
-	# orden de dependencia (hoja → raiz). Cada uno indica:
-	#   OK   script cargado, con name/base/methods
-	#   FAIL null, y los valores que devolvieron exists/type antes del load
-	# El punto donde se corta la cadena marca el ciclo problematico.
-	for rel in [
+	# Prewarm: cargar los .gd del addon AHORA (con loader custom ya
+	# registrado) en orden hoja->raiz. Con el loader custom activo,
+	# cada .gd se compila con base real y queda bien cacheado en
+	# shallow_gdscript_cache. Sin esto, el parser de title_screen.gd
+	# no puede resolver el preload del addon.
+	var prewarm_order: Array[String] = [
 		"adobe/adobe_color_matrix.gd",
 		"adobe/adobe_drawable.gd",
 		"adobe/adobe_symbol.gd",
@@ -1796,8 +1798,19 @@ func _load_one_addon(folder: String, addon_path: String) -> void:
 		"adobe/adobe_atlas.gd",
 		"adobe/adobe_atlas_cached.gd",
 		"adobe/adobe_animate_controller.gd",
-	]:
-		_test_addon_script(folder, rel)
+	]
+	var t_pw: int = Time.get_ticks_msec()
+	var ok_pw: int = 0
+	for rel in prewarm_order:
+		var res_path := "res://addons/" + folder + "/" + rel
+		var scr = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_REUSE)
+		if scr != null and not str(scr.get_instance_base_type()).is_empty():
+			ok_pw += 1
+		elif scr != null:
+			DebugLog.log("[addon_prewarm] hueco %s base='%s'" % [res_path, str(scr.get_instance_base_type())])
+	DebugLog.log("[addon_prewarm] %s: %d/%d scripts con base real en %dms" % [
+		folder, ok_pw, prewarm_order.size(), Time.get_ticks_msec() - t_pw,
+	])
 	# Listar los primeros paths del addon_all para verificar que el prefijo es correcto
 	var keys: Array = _addon_all_paths.keys()
 	var sample: Array = keys.slice(0, 5)
