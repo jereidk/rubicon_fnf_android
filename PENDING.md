@@ -372,3 +372,48 @@ chequear `_addon_classes_all.size() > 0`. Si es 0 y el mod hace
 explícito con la lista de addons esperados y el motivo (bootstrap no
 terminó / addon.json corrupto / ruta mal escrita). Hoy no hay pista de
 por qué falla — solo el error genérico del parser.
+
+---
+
+## Bug — atlas.cache() rompe el atlas al deserializar
+
+`AdobeAtlas.cache()` (addon gdanimate) serializa el atlas parseado a un
+`.res` para acelerar arranques posteriores (~300ms por atlas x 8 = 2.4s
+ahorrados). Pero el `.res` incluye los `.gd` de las clases adobe
+embebidos como recursos (AdobeAtlasCached, AdobeSymbol, AdobeLayer,
+etc), y al deserializar en runtime el parser de Godot tira:
+
+    Parse Error: Class "AdobeAtlasCached" hides a global script class.
+        1951835445_0.res::GDScript_wbw6a:2 GDScript::reload
+        [0] parse (res://addons/gdanimate/adobe/adobe_atlas.gd:86)
+
+porque esas clases ya estan registradas en el `.cfg` global que ModLoader
+inyecta al montar el pck del addon. El resultado es que `parse()` falla
+en la asignacion posterior ("Trying to assign value of type 'Resource'
+to a variable of type ''") y el atlas queda inutilizable — el arte del
+menu no se dibuja.
+
+Reproducido 2026-09-26 en HQMenu: `main_menu_sprite.gd` hacia
+`atlas.parse(); atlas.cache()` para acelerar el arranque, y todos los
+artes del menu salian vacios. Revertido a solo `atlas.parse()` (que ya
+corre internamente desde `@folder_path_setter`, linea 16) y todo volvio
+a andar.
+
+**Fix correcto (addon, no mod):** dos opciones.
+
+1. **Excluir los scripts del `.res`.** Marcar los `.gd` de las clases
+   adobe como no serializables (probablemente via `ResourceSaver` con
+   `FLAG_OMIT_EDITOR_PROPERTIES` no alcanza — hay que ver si Godot
+   permite excluir Ref<Script> de un Resource guardado). Al cargar, las
+   clases se reconstruyen desde el atlas en vivo, no desde el `.res`.
+
+2. **Guardar solo los datos.** Serializar unicamente la estructura
+   parseada (layers, frames, sprites como diccionarios/arrays planos) y
+   reconstruir las clases al leer. Mas trabajo, mas robusto: el `.res`
+   no tiene dependencias de scripts adobe y no puede chocar con
+   `_global_script_classes`.
+
+**Impacto actual:** cada arranque del mod HQ re-parsea los 8 atlases
+del menu principal (~2.4s en device). No critico pero se nota en el
+`HQTransition` del main_menu (el log reporto `intro 3137ms` cuando los
+atlases se re-parsean, vs ~700ms normal).
