@@ -57,8 +57,6 @@ func _get_recognized_extensions() -> PackedStringArray:
 
 
 func _get_resource_type(path: String) -> String:
-	if path.begins_with("res://addons/"):
-		DebugLog.log("[gd_loader._get_resource_type] %s -> %s" % [path, mod_gd_paths.has(path)])
 	if mod_gd_paths.has(path):
 		return "GDScript"
 	return ""
@@ -83,8 +81,6 @@ func _handles_type(type: StringName) -> bool:
 ## ResourceFormatLoader::recognize_path), asi que devolviendo true para
 ## nuestros paths ignoramos el type_hint por completo.
 func _recognize_path(path: String, _for_type: StringName) -> bool:
-	if path.begins_with("res://addons/"):
-		DebugLog.log("[gd_loader._recognize_path] %s -> %s" % [path, mod_gd_paths.has(path)])
 	return mod_gd_paths.has(path)
 
 
