@@ -22,7 +22,12 @@ extends CanvasLayer
 ##   clear_dev_codes()
 ##   unregister_option(id)
 
-const LAYER := 185
+## Capa del CanvasLayer del bubble. Alto para quedar arriba de
+## cualquier CanvasLayer que un mod ponga. Los mods suelen usar
+## 0-100, los UIs de transicion 4096 (HQTransition). 4095 es el maximo
+## bajo eso. Si un mod quiere tapar el bubble, tiene que ir a 4096+
+## y lo tiene que hacer a proposito.
+const LAYER := 4095
 const ENGINE_SCENE_PREFIX := "res://engine/"
 
 # --- Geometria
@@ -352,6 +357,19 @@ func _move_fab_to(pos: Vector2) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Back de Android / ESC: si la consola o el confirm estan abiertos,
+	# cerrarlos antes de que el input siga al mod. Sin esto, la unica
+	# forma de cerrar la consola era tocar el dim, que el teclado virtual
+	# puede tapar.
+	if event.is_action_pressed("ui_cancel"):
+		if _console_root != null and is_instance_valid(_console_root):
+			_close_console()
+			get_viewport().set_input_as_handled()
+			return
+		if _confirm_root != null and is_instance_valid(_confirm_root):
+			_close_confirm()
+			get_viewport().set_input_as_handled()
+			return
 	# Colapsar cuando el usuario toca afuera del FAB y fuera del pill.
 	if not _expanded:
 		return
@@ -713,6 +731,15 @@ func _open_console() -> void:
 	_console_input.text_submitted.connect(_on_console_submit)
 	_console_input.add_theme_font_size_override("font_size", 22)
 	vbox.add_child(_console_input)
+
+	# Boton Cerrar visible: en Android el dim de fondo puede quedar tapado
+	# por el teclado virtual, y no hay "back" para cerrar la consola.
+	var close_btn := Button.new()
+	close_btn.text = "Cerrar"
+	close_btn.custom_minimum_size = Vector2(0, 56)
+	close_btn.add_theme_font_size_override("font_size", 22)
+	close_btn.pressed.connect(_close_console)
+	vbox.add_child(close_btn)
 
 	_console_input.grab_focus()
 

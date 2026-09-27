@@ -165,6 +165,9 @@ const SCAN_CACHE_MS := 5000
 ## para que el orden sea consistente.
 var _pending_autoloads: Array[Dictionary] = []
 var _pending_flush_connected: bool = false
+## True cuando el bootstrap async (loaders + addons) termino. bake_mod
+## espera a que este en true antes de tocar nada.
+var _bootstrap_done: bool = false
 
 
 func _ready() -> void:
@@ -202,16 +205,40 @@ func _ready() -> void:
 	# devuelve el hueco en cada load posterior y el loader custom nunca
 	# ve el path. Evidencia en device: '[addon_prewarm] 2/16 scripts con
 	# base real' — los 14 huecos eran de este race.
-	await _register_runtime_loaders()
-
-	# Addons: ahora si, con el loader custom listo para compilar los .gd
-	# del pck con base real. El prewarm dentro de _register_runtime_loaders
-	# ya no corre; se hace al final de _load_one_addon, post-pck.
-	await _load_addons()
+	# Bootstrap async sin await: ModSelector arranca su _ready en cuanto
+	# esta funcion retorna, sin esperar a los loaders (~150ms) ni a los
+	# addons (~3-9s segun device). El usuario ve la lista al instante.
+	# Si toca un mod antes de que termine, _await_bootstrap() bloquea
+	# hasta que este listo.
+	_bootstrap_async.call_deferred()
 	# NO se empaquetan los mods aca. Con HQ (351 MB) el arranque tardaba
 	# minutos en el splash. Los mods se empaquetan y montan on-demand desde
 	# ModSelector._launch() -> bake_mod(). El arranque queda en ~2s con
 	# cualquier cantidad de mods.
+
+
+## Coroutine de bootstrap. Corre en background mientras ModSelector ya
+## esta en pantalla. Al terminar, _bootstrap_done queda en true y
+## cualquier bake_mod que haya llegado antes sigue.
+func _bootstrap_async() -> void:
+	var _t0: int = Time.get_ticks_msec()
+	await _register_runtime_loaders()
+	DebugLog.log("[perf] _bootstrap: loaders = %dms" % (Time.get_ticks_msec() - _t0))
+	var _t1: int = Time.get_ticks_msec()
+	await _load_addons()
+	DebugLog.log("[perf] _bootstrap: addons = %dms" % (Time.get_ticks_msec() - _t1))
+	_bootstrap_done = true
+	DebugLog.log("[perf] _bootstrap: total = %dms" % (Time.get_ticks_msec() - _t0))
+
+
+## Espera a que el bootstrap termine. Se llama al inicio de bake_mod y
+## de cualquier operacion que dependa de los loaders o los paths de
+## addons. Idempotente: si ya termino, retorna sin ceder el frame.
+func _await_bootstrap() -> void:
+	if _bootstrap_done:
+		return
+	while not _bootstrap_done:
+		await get_tree().process_frame
 
 
 ## Llamado por el SceneTree cuando el usuario responde al dialogo de
@@ -1523,6 +1550,11 @@ func needs_bake(folder: String, on_progress: Callable = Callable()) -> bool:
 ## Cede el frame con await cada tanto para que la UI respire. No corre en
 ## thread aparte: PCKPacker no es thread-safe.
 func bake_mod(m: Dictionary, on_progress: Callable = Callable()) -> bool:
+	# Si el usuario toca un mod antes de que el bootstrap termine (loaders
+	# + addons), esperamos. La pantalla de carga del ModSelector ya esta
+	# arriba, asi que el usuario ve un "Preparando..." en vez de un
+	# freeze.
+	await _await_bootstrap()
 	var folder: String = m["folder"]
 	var cache_path := CACHE_DIR + "/" + folder + ".pck"
 	var mtime_path := CACHE_DIR + "/" + folder + ".mtime"
@@ -1812,6 +1844,8 @@ func _probe_addon_deps(folder: String, addon_path: String) -> Dictionary:
 ## Primera pasada: descubrir todos los addons. Segunda pasada: ordenar
 ## por dependencias cruzadas. Tercera: cargar en orden.
 func _load_addons() -> void:
+	var _t_all: int = Time.get_ticks_msec()
+	DebugLog.log("[perf] _load_addons start")
 	addons_roots = _resolve_addons_roots()
 	if addons_roots.is_empty():
 		_log("sin addons roots legibles")
@@ -1847,8 +1881,14 @@ func _load_addons() -> void:
 
 	# Pasada 3: cargar en orden.
 	for a in ordered:
+		var _t_one: int = Time.get_ticks_msec()
 		await _load_one_addon(String(a["folder"]), String(a["path"]))
+		DebugLog.log("[perf] _load_one_addon(%s) = %dms" % [a["folder"], Time.get_ticks_msec() - _t_one])
+	DebugLog.log("[perf] _load_addons discovery+load = %dms" % (Time.get_ticks_msec() - _t_all))
+	var _t_fin: int = Time.get_ticks_msec()
 	await _finalize_addons()
+	DebugLog.log("[perf] _finalize_addons = %dms" % (Time.get_ticks_msec() - _t_fin))
+	DebugLog.log("[perf] _load_addons total = %dms" % (Time.get_ticks_msec() - _t_all))
 	_log("addons cargados: %d" % addons.size())
 
 
@@ -1866,6 +1906,7 @@ func _finalize_addons() -> void:
 	# las lee y llama add_global_class, que resuelve dependencias al
 	# vuelo), pero ordeno por class_name para que sea determinista y
 	# facil de difear entre builds.
+	var _t_cfg: int = Time.get_ticks_msec()
 	if not _addon_classes_all.is_empty():
 		var keys: Array = _addon_classes_all.keys()
 		keys.sort()
@@ -1881,6 +1922,8 @@ func _finalize_addons() -> void:
 		else:
 			push_warning("[ModLoader] no pude escribir .cfg combinado")
 
+	DebugLog.log("[perf] _finalize: cfg = %dms" % (Time.get_ticks_msec() - _t_cfg))
+	var _t_uids: int = Time.get_ticks_msec()
 	# uid_cache.bin combinado
 	if not _addon_uids_all.is_empty():
 		var entries: Array = []
@@ -1895,9 +1938,11 @@ func _finalize_addons() -> void:
 			synthetic["res://.godot/uid_cache.bin"] = uid_path
 			DebugLog.log("[addons_finalize] uids: %d entradas -> %s" % [entries.size(), uid_path])
 
+	DebugLog.log("[perf] _finalize: uids = %dms" % (Time.get_ticks_msec() - _t_uids))
 	if synthetic.is_empty():
 		return
 
+	var _t_pck: int = Time.get_ticks_msec()
 	# Mini pck solo con los sinteticos
 	var pck_path: String = CACHE_DIR + "/addons_synthetic.pck"
 	var packer := PCKPacker.new()
@@ -1914,8 +1959,10 @@ func _finalize_addons() -> void:
 	if not ProjectSettings.load_resource_pack(pck_path, true):
 		push_error("[ModLoader] load_resource_pack fallo para pck sintetico")
 		return
+	DebugLog.log("[perf] _finalize: pck build+mount = %dms" % (Time.get_ticks_msec() - _t_pck))
 	DebugLog.log("[addons_finalize] pck sintetico montado (%d archivos)" % synthetic.size())
 
+	var _t_pw: int = Time.get_ticks_msec()
 	# Prewarm topologico. El orden de _addon_prewarm_list sigue el orden
 	# en que se agregaron las clases (que sigue el orden del walk, que
 	# es alfabetico). No es topologico perfecto, pero con CACHE_MODE_IGNORE
@@ -1924,13 +1971,22 @@ func _finalize_addons() -> void:
 	# cuando el mod lo pida.
 	var t_pw: int = Time.get_ticks_msec()
 	var ok_pw: int = 0
-	for res_path in _addon_prewarm_list:
+	# Ceder el frame cada N scripts para no congelar el main thread. El
+	# parser de GDScript es main-thread-only, asi que no podemos usar un
+	# Thread real, pero partimos el bloque en chunks. N=4 mantiene el
+	# freeze por debajo de ~200ms en device.
+	var _pw_count: int = _addon_prewarm_list.size()
+	for _pw_i in _pw_count:
+		var res_path: String = _addon_prewarm_list[_pw_i]
 		var scr = ResourceLoader.load(res_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
 		if scr != null and not str(scr.get_instance_base_type()).is_empty():
 			ok_pw += 1
+		if _pw_i % 4 == 3:
+			await get_tree().process_frame
 	DebugLog.log("[addon_prewarm] %d/%d scripts con base real en %dms" % [
 		ok_pw, _addon_prewarm_list.size(), Time.get_ticks_msec() - t_pw,
 	])
+	DebugLog.log("[perf] _finalize: prewarm = %dms" % (Time.get_ticks_msec() - _t_pw))
 
 
 func _load_one_addon(folder: String, addon_path: String) -> void:
@@ -2105,6 +2161,11 @@ func _compute_addon_sig(files: Array, disk_path: String, prefix: String) -> Stri
 func _scan_addon_uids(_files: Array, disk_path: String, prefix: String) -> Array:
 	var out: Array = []
 	var dirs: Array[String] = [""]
+	# Regex para el uid inline en el header de .tres/.tscn/.res:
+	#   [gd_resource type="X" ... uid="uid://xxxxx"]
+	#   [gd_scene ... uid="uid://xxxxx"]
+	var re_uid := RegEx.new()
+	re_uid.compile("uid=\"(uid://[^\"]+)\"")
 	while not dirs.is_empty():
 		var sub: String = dirs.pop_back()
 		var path: String = disk_path if sub.is_empty() else disk_path + "/" + sub
@@ -2112,20 +2173,37 @@ func _scan_addon_uids(_files: Array, disk_path: String, prefix: String) -> Array
 		if d == null:
 			continue
 		for f in d.get_files():
-			if not f.ends_with(".uid"):
-				continue
 			var rel: String = f if sub.is_empty() else sub + "/" + f
-			var content := FileAccess.get_file_as_string(path + "/" + f).strip_edges()
-			if not content.begins_with("uid://"):
-				continue
-			var uid_id: int = ResourceUID.text_to_id(content)
-			if uid_id == -1:
-				continue
-			var target_rel: String = rel.substr(0, rel.length() - 4)  # sin ".uid"
-			out.append({
-				"id": uid_id,
-				"path": "res://" + prefix + target_rel,
-			})
+			if f.ends_with(".uid"):
+				# Sidecar .uid: archivo de texto con "uid://xxx".
+				var content := FileAccess.get_file_as_string(path + "/" + f).strip_edges()
+				if not content.begins_with("uid://"):
+					continue
+				var uid_id: int = ResourceUID.text_to_id(content)
+				if uid_id == -1:
+					continue
+				var target_rel: String = rel.substr(0, rel.length() - 4)
+				out.append({"id": uid_id, "path": "res://" + prefix + target_rel})
+			elif f.ends_with(".tres") or f.ends_with(".tscn") or f.ends_with(".res"):
+				# UID inline en el header del recurso. Leer solo las
+				# primeras 2 lineas (el header) para no parsear archivos
+				# grandes.
+				var fa := FileAccess.open(path + "/" + f, FileAccess.READ)
+				if fa == null:
+					continue
+				var head := ""
+				for i in 2:
+					if fa.eof_reached():
+						break
+					head += fa.get_line() + "\n"
+				fa.close()
+				var m := re_uid.search(head)
+				if m == null:
+					continue
+				var uid_id: int = ResourceUID.text_to_id(m.get_string(1))
+				if uid_id == -1:
+					continue
+				out.append({"id": uid_id, "path": "res://" + prefix + rel})
 		for sd in d.get_directories():
 			dirs.append(sd if sub.is_empty() else sub + "/" + sd)
 	return out
