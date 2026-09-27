@@ -351,3 +351,24 @@ condicionar los dos primeros con el flag.
 Aplicado en `9e6c8f59`: `_input` maneja `ui_cancel` y cierra consola
 y confirm antes de propagar. Pendiente confirmar en device que funciona
 (el botón "Cerrar" también está agregado como fallback).
+
+---
+
+## Diagnóstico — bake_mod sin addons cargados
+
+Si `_addon_classes_all` está vacío cuando `bake_mod` corre (porque el
+bootstrap async todavía no terminó, o el addon falló al cargar), el mod
+arranca igual y falla en silencio con `Could not resolve script` cuando
+el parser pide un `preload` a una clase del addon.
+
+Reproducido 2026-09-26: primer arranque dio `addons cargados: 0` a los
+4.50s, después HQ tiró `Could not resolve script
+res://holyquintet_mod/ui/main_menu_sprite.gd`. Reabrir el juego hizo que
+cargara bien.
+
+**Fix sugerido:** en `bake_mod`, después de `_await_bootstrap()`,
+chequear `_addon_classes_all.size() > 0`. Si es 0 y el mod hace
+`preload` a algo que empieza con `res://addons/`, loguear warning
+explícito con la lista de addons esperados y el motivo (bootstrap no
+terminó / addon.json corrupto / ruta mal escrita). Hoy no hay pista de
+por qué falla — solo el error genérico del parser.
